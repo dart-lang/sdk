@@ -54,7 +54,7 @@ class HighlightsGenerator {
 
   /// Initialize a newly created highlights generator to use the given
   /// [contributors].
-  HighlightsGenerator(this.contributors);
+  new(this.contributors);
 
   /// Create an 'analysis.highlights' notification. If any of the contributors
   /// throws an exception, also create a non-fatal 'plugin.error' notification.

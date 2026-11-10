@@ -29,7 +29,7 @@ abstract class Abstract2 {
     // Cannot assign to final field.
     a.x = 42;
     //^
-    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_WRITE
     // [cfe] The setter 'x' isn't defined for the type 'Abstract2'.
 
     String y = a.y;
@@ -48,7 +48,7 @@ abstract class Abstract2 {
     // Cannot assign to final field.
     this.x = 42;
     //   ^
-    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_WRITE
     // [cfe] The setter 'x' isn't defined for the type 'Abstract2'.
 
     String y = this.y;

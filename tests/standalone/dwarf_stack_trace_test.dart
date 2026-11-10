@@ -40,15 +40,21 @@ Future<void> main() async {
     return; // Generated dwarf.so not available on the test device.
   }
 
-  if (Platform.script.toString().endsWith(".dll")) {
-    return; // DWARF not available in DLLs.
-  }
-
-  final dwarf = Dwarf.fromFile(
-    path.join(Platform.environment["TEST_COMPILATION_DIR"]!, "dwarf.so"),
-  )!;
+  final dwarf = debugInfo("dwarf.so");
 
   await checkStackTrace(rawStack, dwarf, expectedCallsInfo);
+}
+
+/// Returns the debugging information of the running snapshot, which was saved
+/// to [name] in the test compilation directory, or for DLLs, which have no
+/// DWARF, is in the PDB that the DLL was linked with.
+Dwarf debugInfo(String name) {
+  final script = Platform.script.toFilePath();
+  return Dwarf.fromFile(
+    script.endsWith(".dll")
+        ? path.setExtension(script, ".pdb")
+        : path.join(Platform.environment["TEST_COMPILATION_DIR"]!, name),
+  )!;
 }
 
 Future<void> checkStackTrace(
@@ -104,8 +110,8 @@ Future<void> checkStackTrace(
 
   final absolutes = absoluteAddresses(rawLines);
   // The relocated addresses of the stack frames in the loaded DSO. These is
-  // only guaranteed to be the same as virtualAddresses if the built-in ELF
-  // generator was used to create the snapshot.
+  // only guaranteed to be the same as virtualAddresses if the built-in ELF or
+  // PE/COFF generator was used to create the snapshot.
   final relocatedAddresses = absolutes.map((a) => a - dsoBase);
 
   print('Relocated absolute addresses:');
@@ -114,9 +120,9 @@ Future<void> checkStackTrace(
   }
   print('');
 
-  // Explicits will be empty if not generating ELF snapshots directly, which
-  // means we can't depend on virtual addresses in the snapshot lining up with
-  // those in the separate debugging information.
+  // Explicits will be empty if not generating ELF or PE/COFF snapshots
+  // directly, which means we can't depend on virtual addresses in the snapshot
+  // lining up with those in the separate debugging information.
   final explicits = explicitVirtualAddresses(rawLines);
   if (explicits.isNotEmpty) {
     print('Explicit virtual addresses:');
@@ -124,11 +130,12 @@ Future<void> checkStackTrace(
       print('* 0x${address.toRadixString(16)}');
     }
     print('');
-    // Direct-to-ELF snapshots should have a build ID.
+    // Direct-to-ELF and PE/COFF snapshots should have a build ID.
     Expect.isNotNull(dwarf.buildId);
     Expect.deepEquals(explicits, virtualAddresses);
 
-    // This is an ELF snapshot, so check that these two are the same.
+    // This is an ELF or PE/COFF snapshot, so check that these two are the
+    // same.
     Expect.deepEquals(virtualAddresses, relocatedAddresses);
   }
 

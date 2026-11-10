@@ -14,7 +14,7 @@ main() {
     // Use an unresolved prefix.
     var foo = Unresolved.bar(
       //      ^^^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
       // [cfe] Undefined name 'Unresolved'.
 
       // Make dart2js generate a call to setRuntimeTypeInfo.

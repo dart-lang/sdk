@@ -573,6 +573,13 @@ void Assembler::shufpd(XmmRegister dst, XmmRegister src, const Immediate& imm) {
   EmitUint8(imm.value());
 }
 
+void Assembler::pshufd(XmmRegister dst, XmmRegister src, const Immediate& imm) {
+  EmitL(dst, src, 0x70, 0x0F, 0x66);
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  ASSERT(imm.is_uint8());
+  EmitUint8(imm.value());
+}
+
 void Assembler::roundsd(XmmRegister dst, XmmRegister src, RoundingMode mode) {
   ASSERT(src <= XMM15);
   ASSERT(dst <= XMM15);
@@ -585,6 +592,18 @@ void Assembler::roundsd(XmmRegister dst, XmmRegister src, RoundingMode mode) {
   EmitRegisterOperand(dst & 7, src);
   // Mask precision exception.
   EmitUint8(static_cast<uint8_t>(mode) | 0x8);
+}
+
+void Assembler::ptest(XmmRegister dst, XmmRegister src) {
+  ASSERT(src <= XMM15);
+  ASSERT(dst <= XMM15);
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitRegRegRex(dst, src);
+  EmitUint8(0x0F);
+  EmitUint8(0x38);
+  EmitUint8(0x17);
+  EmitRegisterOperand(dst & 7, src);
 }
 
 void Assembler::fldl(const Address& src) {
@@ -2556,7 +2575,6 @@ void Assembler::TryAllocateObject(intptr_t cid,
     // instance_reg: potential next object start.
     cmpq(instance_reg, Address(THR, target::Thread::end_offset()));
     j(ABOVE_EQUAL, failure, distance);
-    CheckAllocationCanary(instance_reg);
     // Successfully allocated the object, now update top to point to
     // next object start and store the class in the class field of object.
     movq(Address(THR, target::Thread::top_offset()), instance_reg);
@@ -2594,7 +2612,6 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // end_address: potential next object start.
     cmpq(end_address, Address(THR, target::Thread::end_offset()));
     j(ABOVE_EQUAL, failure);
-    CheckAllocationCanary(instance);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.

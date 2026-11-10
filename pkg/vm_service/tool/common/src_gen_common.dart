@@ -15,7 +15,6 @@ final RegExp _wsRegexp = RegExp(r'\s+');
 
 String collapseWhitespace(String str) => str.replaceAll(_wsRegexp, ' ');
 
-bool isEmphasis(Node node) => node is Element && node.tag == 'em';
 bool isPara(Node node) => node is Element && node.tag == 'p';
 bool isBlockquote(Node node) => node is Element && node.tag == 'blockquote';
 bool isPre(Node node) => node is Element && node.tag == 'pre';
@@ -28,14 +27,6 @@ String textForElement(Node node) =>
 String textForCode(Node node) =>
     textForElement((node as Element).children!.first);
 
-/// foo ==> Foo
-String titleCase(String str) =>
-    str.substring(0, 1).toUpperCase() + str.substring(1);
-
-/// FooBar ==> fooBar
-String lowerTitleCase(String str) =>
-    str.substring(0, 1).toLowerCase() + str.substring(1);
-
 /// Certain special characters are encoded as HTML entities by the Markdown
 /// parser, this function changes those HTML entities back into the characters
 /// they represent.
@@ -45,9 +36,9 @@ String replaceHTMLEntities(String text) {
       // package:markdown dep is bumped to ^7.0.0.
       .replaceAll('&#39;', "'")
       .replaceAll('&quot;', '"')
-      .replaceAll('&amp;', '&')
       .replaceAll('&lt;', '<')
-      .replaceAll('&gt;', '>');
+      .replaceAll('&gt;', '>')
+      .replaceAll('&amp;', '&');
 }
 
 String joinLast(Iterable<String> strs, String join, [String? last]) {

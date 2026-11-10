@@ -596,7 +596,7 @@ library
               formalParameters
                 #F3 optionalPositional hasImplicitType isOriginDeclaration x (nameOffset:26) (firstTokenOffset:26) (offset:26)
                   element: <testLibrary>::@class::C::@constructor::positional::@formalParameter::x
-                  initializer: expression_0
+                  constantInitializer2: expression_0
                     IntegerLiteral
                       literal: 1 @30
                       staticType: int
@@ -608,7 +608,7 @@ library
               formalParameters
                 #F5 optionalNamed hasImplicitType isOriginDeclaration x (nameOffset:46) (firstTokenOffset:46) (offset:46)
                   element: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
-                  initializer: expression_1
+                  constantInitializer2: expression_1
                     IntegerLiteral
                       literal: 1 @49
                       staticType: int
@@ -624,9 +624,7 @@ library
             #E0 optionalPositional hasDefaultValue hasImplicitType x
               firstFragment: #F3
               type: dynamic
-              constantInitializer
-                fragment: #F3
-                expression: expression_0
+              constantInitializer2: expression_0
         isOriginDeclaration named
           reference: <testLibrary>::@class::C::@constructor::named
           firstFragment: #F4
@@ -634,9 +632,7 @@ library
             #E1 optionalNamed hasDefaultValue hasImplicitType x
               firstFragment: #F5
               type: dynamic
-              constantInitializer
-                fragment: #F5
-                expression: expression_1
+              constantInitializer2: expression_1
 ''');
   }
 
@@ -673,7 +669,7 @@ library
               formalParameters
                 #F6 optionalPositional hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:40) (firstTokenOffset:35) (offset:40)
                   element: <testLibrary>::@class::C::@constructor::positional::@formalParameter::x
-                  initializer: expression_0
+                  constantInitializer2: expression_0
                     IntegerLiteral
                       literal: 1 @44
                       staticType: int
@@ -685,7 +681,7 @@ library
               formalParameters
                 #F8 optionalNamed hasImplicitType isFinal isOriginDeclaration this.x (nameOffset:65) (firstTokenOffset:60) (offset:65)
                   element: <testLibrary>::@class::C::@constructor::named::@formalParameter::x
-                  initializer: expression_1
+                  constantInitializer2: expression_1
                     IntegerLiteral
                       literal: 1 @68
                       staticType: int
@@ -719,9 +715,7 @@ library
             #E0 optionalPositional hasDefaultValue hasImplicitType isFinal this.x
               firstFragment: #F6
               type: dynamic
-              constantInitializer
-                fragment: #F6
-                expression: expression_0
+              constantInitializer2: expression_0
               field: <testLibrary>::@class::C::@field::x
         isOriginDeclaration named
           reference: <testLibrary>::@class::C::@constructor::named
@@ -730,9 +724,7 @@ library
             #E1 optionalNamed hasDefaultValue hasImplicitType isFinal this.x
               firstFragment: #F8
               type: dynamic
-              constantInitializer
-                fragment: #F8
-                expression: expression_1
+              constantInitializer2: expression_1
               field: <testLibrary>::@class::C::@field::x
       getters
         isOriginVariable x
@@ -781,7 +773,7 @@ library
               formalParameters
                 #F4 optionalPositional hasImplicitType isOriginDeclaration x (nameOffset:36) (firstTokenOffset:36) (offset:36)
                   element: <testLibrary>::@class::C::@method::positional::@formalParameter::x
-                  initializer: expression_0
+                  constantInitializer2: expression_0
                     IntegerLiteral
                       literal: 1 @40
                       staticType: int
@@ -790,7 +782,7 @@ library
               formalParameters
                 #F6 optionalNamed hasImplicitType isOriginDeclaration x (nameOffset:68) (firstTokenOffset:68) (offset:68)
                   element: <testLibrary>::@class::C::@method::named::@formalParameter::x
-                  initializer: expression_1
+                  constantInitializer2: expression_1
                     IntegerLiteral
                       literal: 1 @71
                       staticType: int
@@ -810,9 +802,7 @@ library
             #E0 optionalPositional hasDefaultValue hasImplicitType x
               firstFragment: #F4
               type: dynamic
-              constantInitializer
-                fragment: #F4
-                expression: expression_0
+              constantInitializer2: expression_0
           returnType: void
         isOriginDeclaration isStatic named
           reference: <testLibrary>::@class::C::@method::named
@@ -821,9 +811,7 @@ library
             #E1 optionalNamed hasDefaultValue hasImplicitType x
               firstFragment: #F6
               type: dynamic
-              constantInitializer
-                fragment: #F6
-                expression: expression_1
+              constantInitializer2: expression_1
           returnType: void
 ''');
   }
@@ -848,7 +836,7 @@ library
           formalParameters
             #F2 optionalPositional hasImplicitType isOriginDeclaration x (nameOffset:17) (firstTokenOffset:17) (offset:17)
               element: <testLibrary>::@function::positional::@formalParameter::x
-              initializer: expression_0
+              constantInitializer2: expression_0
                 IntegerLiteral
                   literal: 1 @21
                   staticType: int
@@ -857,7 +845,7 @@ library
           formalParameters
             #F4 optionalNamed hasImplicitType isOriginDeclaration x (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: <testLibrary>::@function::named::@formalParameter::x
-              initializer: expression_1
+              constantInitializer2: expression_1
                 IntegerLiteral
                   literal: 1 @43
                   staticType: int
@@ -869,9 +857,7 @@ library
         #E0 optionalPositional hasDefaultValue hasImplicitType x
           firstFragment: #F2
           type: dynamic
-          constantInitializer
-            fragment: #F2
-            expression: expression_0
+          constantInitializer2: expression_0
       returnType: void
     isOriginDeclaration isStatic named
       reference: <testLibrary>::@function::named
@@ -880,9 +866,7 @@ library
         #E1 optionalNamed hasDefaultValue hasImplicitType x
           firstFragment: #F4
           type: dynamic
-          constantInitializer
-            fragment: #F4
-            expression: expression_1
+          constantInitializer2: expression_1
       returnType: void
 ''');
   }

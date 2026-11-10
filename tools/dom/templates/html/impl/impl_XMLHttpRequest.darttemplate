@@ -79,7 +79,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    * * [request]
    */
   static Future<String> getString(String url,
-      {bool$NULLABLE withCredentials, void onProgress(ProgressEvent e)$NULLABLE}) {
+      {bool$NULLABLE withCredentials, void Function(ProgressEvent e)$NULLABLE onProgress}) {
     return request(url, withCredentials: withCredentials,
         onProgress: onProgress).then(
             (HttpRequest xhr) => xhr.responseText$NULLASSERT);
@@ -113,7 +113,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   static Future<HttpRequest> postFormData(String url, Map<String, String> data,
       {bool$NULLABLE withCredentials, String$NULLABLE responseType,
       Map<String, String>$NULLABLE requestHeaders,
-      void onProgress(ProgressEvent e)$NULLABLE}) {
+      void Function(ProgressEvent e)$NULLABLE onProgress}) {
 
     var parts = [];
     data.forEach((key, value) {
@@ -192,7 +192,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
       {String$NULLABLE method, bool$NULLABLE withCredentials,
       String$NULLABLE responseType, String$NULLABLE mimeType,
       Map<String, String>$NULLABLE requestHeaders, sendData,
-      void onProgress(ProgressEvent e)$NULLABLE}) {
+      void Function(ProgressEvent e)$NULLABLE onProgress}) {
     var completer = new Completer<HttpRequest>();
 
     var xhr = new HttpRequest();

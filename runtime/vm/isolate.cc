@@ -12,6 +12,7 @@
 #include "platform/atomic.h"
 #include "platform/growable_array.h"
 #include "platform/text_buffer.h"
+#include "vm/autorelease_pool_scope.h"
 #include "vm/canonical_tables.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_observers.h"
@@ -1423,6 +1424,7 @@ bool Isolate::HasPendingMessages() {
 
 MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
     std::unique_ptr<Message> message) {
+  AutoreleasePoolScope autorelease_pool;
 #ifdef DEBUG
   CheckAccess();
 #endif
@@ -1861,10 +1863,8 @@ Isolate::~Isolate() {
 #endif  // !defined(PRODUCT)
 
   free(name_);
+  FreeEnvironment();
   delete field_table_;
-#if defined(DART_INCLUDE_SIMULATOR)
-  delete simulator_;
-#endif
   delete message_handler_;
   message_handler_ =
       nullptr;  // Fail fast if we send messages to a dead isolate.
@@ -1874,6 +1874,50 @@ Isolate::~Isolate() {
   // `Thread::ExitIsolate()` call.
   ASSERT(scheduled_mutator_thread_ == nullptr);
   ASSERT(mutator_thread_ == nullptr);
+}
+
+void Isolate::FreeEnvironment() {
+  if (environment_ != nullptr) {
+    for (intptr_t i = 0; i < environment_len_; i++) {
+      free(environment_[i]);
+    }
+    free(environment_);
+    environment_ = nullptr;
+  }
+  environment_len_ = 0;
+}
+
+void Isolate::SetEnvironment(const char** environment) {
+  FreeEnvironment();
+
+  if (environment == nullptr || environment[0] == nullptr ||
+      environment[1] == nullptr) {
+    return;
+  }
+
+  intptr_t count = 0;
+  while (environment[count] != nullptr && environment[count + 1] != nullptr) {
+    count += 2;
+  }
+
+  environment_ = reinterpret_cast<char**>(malloc(count * sizeof(char*)));
+  for (intptr_t i = 0; i < count; i += 2) {
+    environment_[i] = Utils::StrDup(environment[i]);
+    environment_[i + 1] = Utils::StrDup(environment[i + 1]);
+  }
+  environment_len_ = count;
+}
+
+const char* Isolate::LookupEnvironment(const char* name) const {
+  if (environment_ == nullptr || name == nullptr) {
+    return nullptr;
+  }
+  for (intptr_t i = environment_len_ - 2; i >= 0; i -= 2) {
+    if (strcmp(environment_[i], name) == 0) {
+      return environment_[i + 1];
+    }
+  }
+  return nullptr;
 }
 
 void Isolate::InitVM() {
@@ -2793,6 +2837,10 @@ void Isolate::VisitStackPointers(ObjectPointerVisitor* visitor,
   if (mutator_thread_ != nullptr) {
     mutator_thread_->VisitObjectPointers(visitor, validate_frames);
   }
+}
+
+void IsolateGroup::AbandonRemainingTLABs(Scavenger* new_space) {
+  thread_registry()->AbandonRemainingTLABs(new_space);
 }
 
 void IsolateGroup::ReleaseStoreBuffers() {

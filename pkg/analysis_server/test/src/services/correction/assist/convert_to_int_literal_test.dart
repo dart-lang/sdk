@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertToIntLiteralTest extends AssistProcessorTest {
+class ConvertToIntLiteralTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertToIntLiteral;
 

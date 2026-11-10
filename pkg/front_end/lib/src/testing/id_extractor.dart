@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:kernel/ast.dart';
 
@@ -33,23 +35,23 @@ TreeNode? computeTreeNodeWithOffset(TreeNode? node) {
 abstract class DataExtractor<T> extends VisitorDefault<void>
     with VisitorVoidMixin, DataRegistry<T> {
   @override
-  final Map<Id, ActualData<T>> actualMap;
+  final ActualDataMap<T> actualMap;
 
   /// Implement this to compute the data corresponding to [library].
   ///
   /// If `null` is returned, [library] has no associated data.
-  T? computeLibraryValue(Id id, Library library) => null;
+  FutureOr<T?> computeLibraryValue(Id id, Library library) => null;
 
   /// Implement this to compute the data corresponding to [cls].
   ///
   /// If `null` is returned, [cls] has no associated data.
-  T? computeClassValue(Id id, Class cls) => null;
+  FutureOr<T?> computeClassValue(Id id, Class cls) => null;
 
   /// Implement this to compute the data corresponding to
   /// [extensionTypeDeclaration].
   ///
   /// If `null` is returned, [extensionTypeDeclaration] has no associated data.
-  T? computeExtensionTypeDeclarationValue(
+  FutureOr<T?> computeExtensionTypeDeclarationValue(
     Id id,
     ExtensionTypeDeclaration extensionTypeDeclaration,
   ) => null;
@@ -57,36 +59,36 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
   /// Implement this to compute the data corresponding to [extension].
   ///
   /// If `null` is returned, [extension] has no associated data.
-  T? computeExtensionValue(Id id, Extension extension) => null;
+  FutureOr<T?> computeExtensionValue(Id id, Extension extension) => null;
 
   /// Implement this to compute the data corresponding to [member].
   ///
   /// If `null` is returned, [member] has no associated data.
-  T? computeMemberValue(Id id, Member member) => null;
+  FutureOr<T?> computeMemberValue(Id id, Member member) => null;
 
   /// Implement this to compute the data corresponding to [node].
   ///
   /// If `null` is returned, [node] has no associated data.
-  T? computeNodeValue(Id id, TreeNode node) => null;
+  FutureOr<T?> computeNodeValue(Id id, TreeNode node) => null;
 
   new(this.actualMap);
 
   void computeForLibrary(Library library) {
     LibraryId id = new LibraryId(library.fileUri);
-    T? value = computeLibraryValue(id, library);
-    registerValue(library.fileUri, -1, id, value, library);
+    FutureOr<T?> value = computeLibraryValue(id, library);
+    asyncRegisterValue(library.fileUri, -1, id, value, library);
   }
 
   void computeForClass(Class cls) {
     ClassId id = new ClassId(cls.name);
-    T? value = computeClassValue(id, cls);
-    registerValue(cls.fileUri, cls.fileOffset, id, value, cls);
+    FutureOr<T?> value = computeClassValue(id, cls);
+    asyncRegisterValue(cls.fileUri, cls.fileOffset, id, value, cls);
   }
 
   void computeForExtension(Extension extension) {
     ClassId id = new ClassId(extension.name);
-    T? value = computeExtensionValue(id, extension);
-    registerValue(
+    FutureOr<T?> value = computeExtensionValue(id, extension);
+    asyncRegisterValue(
       extension.fileUri,
       extension.fileOffset,
       id,
@@ -99,11 +101,11 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
     ExtensionTypeDeclaration extensionTypeDeclaration,
   ) {
     ClassId id = new ClassId(extensionTypeDeclaration.name);
-    T? value = computeExtensionTypeDeclarationValue(
+    FutureOr<T?> value = computeExtensionTypeDeclarationValue(
       id,
       extensionTypeDeclaration,
     );
-    registerValue(
+    asyncRegisterValue(
       extensionTypeDeclaration.fileUri,
       extensionTypeDeclaration.fileOffset,
       id,
@@ -114,15 +116,15 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
 
   void computeForMember(Member member) {
     MemberId id = computeMemberId(member);
-    T? value = computeMemberValue(id, member);
-    registerValue(member.fileUri, member.fileOffset, id, value, member);
+    FutureOr<T?> value = computeMemberValue(id, member);
+    asyncRegisterValue(member.fileUri, member.fileOffset, id, value, member);
   }
 
   void computeForNode(TreeNode node, NodeId? id) {
     if (id == null) return;
-    T? value = computeNodeValue(id, node);
+    FutureOr<T?> value = computeNodeValue(id, node);
     TreeNode nodeWithOffset = computeTreeNodeWithOffset(node)!;
-    registerValue(
+    asyncRegisterValue(
       nodeWithOffset.location!.file,
       nodeWithOffset.fileOffset,
       id,

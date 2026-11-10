@@ -53,6 +53,10 @@ final _package2Dir = Directory.fromUri(
   _sdkUri.resolveUri(_package2RelativePath),
 );
 
+final _installPathResolutionDir = Directory.fromUri(
+  _sdkUri.resolve('pkg/dartdev/test/data/install_path_resolution/'),
+);
+
 void main([List<String> args = const []]) async {
   if (!nativeAssetsExperimentAvailableOnCurrentChannel) {
     return;
@@ -194,10 +198,14 @@ Run "dart help" to see global options.
         );
         expect(emptyAllResult.stderr, isEmpty);
 
+        final copiedPackage2Dir = Directory.fromUri(
+          tempUri.resolve('dart_app/'),
+        );
+        await copyDirectory(_package2Dir, copiedPackage2Dir);
         await _runDartdev(
           fromDartdevSource,
           'install',
-          [_package2Dir.path],
+          [copiedPackage2Dir.path],
           null,
           environment,
         );
@@ -248,11 +256,26 @@ Run "dart help" to see global options.
               '${binDir.path}$_pathEnvVarSeparator${Platform.environment['PATH']!}',
         };
 
+        final bool isLocalPathInstall =
+            workingDirectory != null || arguments.contains(_packageDir.path);
+        final Directory? copiedPackageDir = isLocalPathInstall
+            ? await _copyPackageForTest(tempUri)
+            : null;
+        final effectiveWorkingDirectory = switch (workingDirectory) {
+          final uri? when uri == _sdkUri => tempUri,
+          final uri? when uri == _packageDir.uri => copiedPackageDir!.uri,
+          final uri => uri,
+        };
+        final effectiveArguments = [
+          for (final arg in arguments)
+            if (arg == _packageDir.path) copiedPackageDir!.path else arg,
+        ];
+
         final installResult = await _runDartdev(
           fromDartdevSource,
           'install',
-          arguments,
-          workingDirectory,
+          effectiveArguments,
+          effectiveWorkingDirectory,
           environment,
         );
         // No hooks.
@@ -691,37 +714,6 @@ void main(List<String> args) async {
   });
 }
 ''');
-        // Copy package:hooks to a temporary directory and rewrite its dependency
-        // on package:record_use to use a local path dependency pointing to the
-        // SDK checkout.
-        //
-        // By default, hooks/pubspec.yaml specifies a hosted version constraint on
-        // record_use. Because unreleased versions are not published on pub.dev,
-        // and because `dart install` solves dependencies from a temporary helper
-        // package (ignoring non-root `dependency_overrides`), pointing hooks to
-        // record_use via a relative/local path ensures that all dependency paths
-        // agree on path resolution without querying pub.dev.
-        final hooksTempDir = Directory.fromUri(tempUri.resolve('hooks/'));
-        await copyDirectory(
-          Directory.fromUri(
-            sdkRootUri.resolve('third_party/pkg/native/pkgs/hooks/'),
-          ),
-          hooksTempDir,
-        );
-        final hooksPubspecFile = File.fromUri(
-          hooksTempDir.uri.resolve('pubspec.yaml'),
-        );
-        final hooksPubspec = YamlEditor(await hooksPubspecFile.readAsString());
-        hooksPubspec.update(
-          ['dependencies', 'record_use'],
-          {
-            'path': sdkRootUri
-                .resolve('third_party/pkg/native/pkgs/record_use/')
-                .toFilePath(),
-          },
-        );
-        await hooksPubspecFile.writeAsString(hooksPubspec.toString());
-
         for (final addUserDefine in [true, false]) {
           await pubspec.writeAsString(
             jsonEncode(
@@ -733,7 +725,16 @@ void main(List<String> args) async {
                 executables: {packageName: packageName},
                 dependencies: {
                   'hooks': PathDependencySourceSyntax(
-                    path$: hooksTempDir.path,
+                    path$: sdkRootUri
+                        .resolve('third_party/pkg/native/pkgs/hooks/')
+                        .toFilePath(),
+                  ),
+                },
+                dependencyOverrides: {
+                  'record_use': PathDependencySourceSyntax(
+                    path$: sdkRootUri
+                        .resolve('third_party/pkg/native/pkgs/record_use/')
+                        .toFilePath(),
                   ),
                 },
                 hooks: HooksSyntax(
@@ -769,6 +770,93 @@ void main(List<String> args) async {
   );
 
   skippableTest(
+    'dart install from path uses package as root for pub resolution',
+    timeout: longTimeout,
+    () async {
+      await inTempDir((tempUri) async {
+        final binDir = Directory.fromUri(tempUri.resolve('install/bin'));
+        final environment = {
+          _dartDirectoryEnvKey: tempUri.toFilePath(),
+          'PATH':
+              '${binDir.path}$_pathEnvVarSeparator${Platform.environment['PATH']!}',
+        };
+
+        final fixturesUri = tempUri.resolve('fixtures/');
+        await copyDirectory(
+          _installPathResolutionDir,
+          Directory.fromUri(fixturesUri),
+        );
+
+        const appName = 'test_app';
+        final appWithOverridesUri = fixturesUri.resolve('app_with_overrides/');
+        final wsAppUri = fixturesUri.resolve('workspace/pkgs/$appName/');
+
+        Future<void> installAndVerify(
+          String expectedOutput, {
+          required List<String> installArgs,
+          Uri? workingDirectory,
+        }) async {
+          await _runDartdev(
+            fromDartdevSource,
+            'install',
+            installArgs,
+            workingDirectory,
+            environment,
+          );
+          final toolResult = await runProcess(
+            executable: Uri.file(appName),
+            workingDirectory: Directory.systemTemp.uri,
+            logger: logger,
+            environment: environment,
+          );
+          expect(toolResult.exitCode, 0);
+          expect(toolResult.stdout.trim(), equals(expectedOutput));
+        }
+
+        // 1. Relative path dependency_overrides in pubspec.yaml.
+        await installAndVerify(
+          'from_dep_v2',
+          installArgs: [appWithOverridesUri.toFilePath()],
+        );
+
+        // Verify the redirecting pubspec.lock in the app bundle works with
+        // `dart installed`.
+        final installedResult = await _runDartdev(
+          fromDartdevSource,
+          'installed',
+          [],
+          null,
+          environment,
+        );
+        expect(
+          installedResult.stdout.trim(),
+          stringContainsInOrder([
+            '$appName 1.2.3 from "',
+            appWithOverridesUri.toFilePath(),
+            '" at 20',
+          ]),
+        );
+
+        // 2. Separate pubspec_overrides.yaml takes precedence over pubspec.yaml
+        // (also testing relative `@` path descriptor syntax).
+        await installAndVerify(
+          'from_dep_v3',
+          installArgs: ['$appName@{path: app_with_pubspec_overrides}'],
+          workingDirectory: fixturesUri,
+        );
+
+        // 3. Pub workspace member (`resolution: workspace`) where sibling
+        // workspace package and workspace-level dependency_overrides live in
+        // the workspace root pubspec.yaml.
+        await installAndVerify(
+          'from_dep_v2+from_ws_sibling',
+          installArgs: [wsAppUri.toFilePath()],
+        );
+      });
+    },
+  );
+
+  skippableTest(
     'dart install uninstalls old versions',
     timeout: longTimeout,
     () async {
@@ -781,12 +869,14 @@ void main(List<String> args) async {
               '${binDir.path}$_pathEnvVarSeparator${Platform.environment['PATH']!}',
         };
 
+        final copiedPackageDir = await _copyPackageForTest(tempUri);
+
         // Install two versions.
         await _runDartdev(
           fromDartdevSource,
           'install',
           ['.'],
-          _packageDir.uri,
+          copiedPackageDir.uri,
           environment,
         );
         final installResult = await _runDartdev(
@@ -984,4 +1074,29 @@ Future<RunProcessResult> _runToolForTest(
   );
   expect(toolResult.exitCode, 0);
   return toolResult;
+}
+
+/// Copies [_packageDir] into [tempUri] as a standalone package so running
+/// `dart install` on it does not run `pub get` on the live SDK root workspace.
+Future<Directory> _copyPackageForTest(Uri tempUri) async {
+  final targetDir = Directory.fromUri(tempUri.resolveUri(_packageRelativePath));
+  await copyDirectory(_packageDir, targetDir);
+  final pubspecFile = File.fromUri(targetDir.uri.resolve('pubspec.yaml'));
+  final pubspec = YamlEditor(await pubspecFile.readAsString());
+  pubspec.remove(['resolution']);
+  pubspec.remove(['dev_dependencies']);
+  pubspec.update(
+    ['dependency_overrides'],
+    {
+      for (final package in ['args', 'collection', 'path'])
+        package: {
+          'path': _sdkUri
+              .resolve('third_party/pkg/core/pkgs/$package/')
+              .toFilePath(),
+        },
+      'meta': {'path': _sdkUri.resolve('pkg/meta/').toFilePath()},
+    },
+  );
+  await pubspecFile.writeAsString(pubspec.toString());
+  return targetDir;
 }

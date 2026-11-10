@@ -8,6 +8,7 @@ import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
@@ -249,20 +250,41 @@ class _Visitor(final AnalysisRule rule, final RuleContext context)
   @override
   void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
     if (node.inPrivateMember) return;
-    if (node.parent?.parent is! ClassDeclaration) return;
+    var parent = node.parent?.parent;
+    if (parent is! ClassDeclaration) return;
+    if (parent.isEffectivelyPrivate) return;
 
     check(node);
   }
 
   @override
   void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    if (node.typeName.isPrivate) return;
+
+    var parent = node.parent;
+    if (parent is! ClassDeclaration) return;
+    if (parent.isInternal) return;
+
+    for (var parameter in node.formalParameters.parameters) {
+      var name = parameter.name;
+      if (name == null || name.isPrivate) continue;
+      var element = parameter.declaredFragment?.element;
+      if (element is! FieldFormalParameterElement || !element.isDeclaring) {
+        continue;
+      }
+      if (element.field?.overriddenMember != null) continue;
+
+      if (parameter.documentationComment == null) {
+        rule.reportAtToken(name);
+      }
+    }
+
+    if (parent.isEffectivelyPrivate) return;
+
     // If it has a body, let `PrimaryConstructorBody` visitor handle it.
     if (node.body != null) return;
 
-    if (node.typeName.isPrivate) return;
     if (node.constructorName?.name.isPrivate ?? false) return;
-
-    if (node.parent is! ClassDeclaration) return;
 
     var token = node.constructorName?.name ?? node.typeName;
     rule.reportAtToken(token);

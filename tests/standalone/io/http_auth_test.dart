@@ -293,6 +293,53 @@ void testMalformedAuthenticateHeaderWithCredentials() {
   });
 }
 
+// Credentials registered for an https URL must not be sent on a cleartext
+// http request to the same host and port.
+Future<void> testCredentialsDoNotCrossScheme() async {
+  asyncStart();
+  final server = await HttpServer.bind(InternetAddress.loopbackIPv4.address, 0);
+  final authorization = <String?>[];
+  server.listen((request) {
+    authorization.add(request.headers.value(HttpHeaders.authorizationHeader));
+    request.response.close();
+  });
+  final uri = Uri.parse(
+    'http://${server.address.address}:${server.port}/secret',
+  );
+
+  Future<void> makeRequest(HttpClient client) async {
+    final request = await client.getUrl(uri);
+    final response = await request.close();
+    await response.drain();
+  }
+
+  final secureClient = new HttpClient();
+  secureClient.addCredentials(
+    uri.replace(scheme: 'https'),
+    "realm",
+    new HttpClientBasicCredentials("dart", "password"),
+  );
+  await makeRequest(secureClient);
+  secureClient.close();
+
+  final client = new HttpClient();
+  client.addCredentials(
+    uri,
+    "realm",
+    new HttpClientBasicCredentials("dart", "password"),
+  );
+  await makeRequest(client);
+  client.close();
+
+  await server.close();
+
+  Expect.listEquals([
+    null,
+    "Basic ${base64.encode(utf8.encode("dart:password"))}",
+  ], authorization);
+  asyncEnd();
+}
+
 void testLocalServerBasic() {
   HttpClient client = new HttpClient();
 
@@ -373,6 +420,7 @@ main() {
   testMalformedAuthenticateHeaderNoAuthHandler();
   testMalformedAuthenticateHeaderWithAuthHandler();
   testMalformedAuthenticateHeaderWithCredentials();
+  testCredentialsDoNotCrossScheme();
   // These teste are not normally run. They can be used for locally
   // testing with another web server (e.g. Apache).
   //testLocalServerBasic();

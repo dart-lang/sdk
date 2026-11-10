@@ -67,6 +67,14 @@ void f(dynamic a) {
 ''');
   }
 
+  test_condition_forLoop_element() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f(dynamic a) {
+  [for (; [!a!];) 7];
+}
+''');
+  }
+
   test_condition_ifExpression() async {
     await assertDiagnosticsFromMarkup(r'''
 void f(dynamic a) {
@@ -113,10 +121,26 @@ void f(dynamic a) {
 ''');
   }
 
+  test_forEach_iterable_element() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f(dynamic a) {
+  [for (var x in [!a!]) x];
+}
+''');
+  }
+
   test_forEach_variable() async {
     await assertDiagnosticsFromMarkup(r'''
 void f(List<dynamic> list) {
   for (int x in [!list!]) {}
+}
+''');
+  }
+
+  test_forEach_variable_element() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f(List<dynamic> list) {
+  [for (int x in [!list!]) x];
 }
 ''');
   }
@@ -235,6 +259,66 @@ void f(dynamic a) {
 void f(dynamic p, dynamic q) {
   String a, b;
   [a, b] = [/*[0*/p/*0]*/, /*[1*/q/*1]*/];
+}
+''');
+  }
+
+  @FailingTest(reason: 'Not implemented yet')
+  test_patternAssignment_recordDeconstruction_fromExpression() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f((dynamic, dynamic) r) {
+  String a, b;
+  (a, b) = [!r!];
+}
+''');
+  }
+
+  test_patternAssignment_recordDeconstruction_fromLiteral() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f(dynamic p, dynamic q) {
+ String a, b;
+ (a, b) = (/*[0*/p/*0]*/, /*[1*/q/*1]*/);
+}
+''');
+  }
+
+  test_patternAssignment_recordDeconstruction_fromLiteral_named() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f(dynamic p, dynamic q) {
+ String a, b;
+ (first: a, second: b) = (first: /*[0*/p/*0]*/, second: /*[1*/q/*1]*/);
+}
+''');
+  }
+
+  test_patternAssignment_recordVariable_fromLiteral() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f(dynamic p, dynamic q, (int, int) r) {
+  r = (/*[0*/p/*0]*/, /*[1*/q/*1]*/);
+}
+''');
+  }
+
+  test_recordLiteral() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f(dynamic p, dynamic q) {
+ (String, String) r = (/*[0*/p/*0]*/, /*[1*/q/*1]*/);
+}
+''');
+  }
+
+  test_recordLiteral_named() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f(dynamic p, dynamic q) {
+ ({String first, int second}) r = (first: /*[0*/p/*0]*/, second: /*[1*/q/*1]*/);
+}
+''');
+  }
+
+  test_recordLiteral_nested() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f(dynamic p, dynamic q) {
+ ((String, int), bool) r = ((/*[0*/p/*0]*/, /*[1*/q/*1]*/), true);
 }
 ''');
   }

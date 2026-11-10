@@ -36,6 +36,7 @@ library;
 
 import 'dart:_internal' show Since;
 import 'dart:_js_types';
+import 'dart:async';
 import 'dart:js_interop_unsafe';
 import 'dart:typed_data';
 
@@ -245,7 +246,17 @@ external JSObjectType _createObjectLiteral();
 /// JavaScript side.
 @JS('Function')
 extension type JSFunction<T extends Function>._(JSFunctionType _jsFunction)
-    implements JSObject, JSFunctionType {}
+    implements JSObject, JSFunctionType {
+  /// The number of arguments declared for this function.
+  @Since('3.14')
+  external int get length;
+
+  /// The name used when declaring this function.
+  ///
+  /// Anonymous functions' names are empty strings.
+  @Since('3.14')
+  external String get name;
+}
 
 /// A JavaScript function created from a Dart function.
 ///
@@ -516,6 +527,14 @@ extension type JSArray<T extends JSAny?>._(JSArrayType _jsArray)
   @Since('3.6')
   external static JSArray<T> from<T extends JSAny>(JSObject arrayLike);
 
+  /// Creates a new, shallow-copied JavaScript `Array` instance from an
+  /// JavaScript asynchronous iterable or array-like object that may contain
+  /// JavaScript promises.
+  @Since('3.14')
+  external static JSPromise<JSArray<T>> fromAsync<T extends JSAny>(
+    JSObject arrayLike,
+  );
+
   /// The length in elements of this `Array`.
   @Since('3.6')
   external int get length;
@@ -557,6 +576,26 @@ extension type JSArray<T extends JSAny?>._(JSArrayType _jsArray)
 extension type JSPromise<T extends JSAny?>._(JSPromiseType _jsPromise)
     implements JSObject, JSPromiseType {
   external JSPromise(JSFunction executor);
+
+  /// Returns a promise that resolves to [value].
+  ///
+  /// Throws an [ArgumentError] if [value] is already a [JSPromise].
+  @Since('3.14')
+  static JSPromise<T> resolve<T extends JSAny?>(T value) =>
+      value.isA<JSPromise>()
+      ? throw ArgumentError.value(
+          value,
+          'value',
+          'JSPromise passed to JSPromise.resolve()',
+        )
+      : _resolve<T>(value);
+
+  @JS('resolve')
+  external static JSPromise<T> _resolve<T extends JSAny?>(T value);
+
+  /// Returns a promise that rejects with [reason].
+  @Since('3.14')
+  external static JSPromise<Null> reject(JSAny reason);
 }
 
 /// Exception for when a [JSPromise] that is converted via
@@ -575,6 +614,49 @@ class NullRejectionException implements Exception {
     var value = this.isUndefined ? 'undefined' : 'null';
     return 'Promise was rejected with a value of `$value`.';
   }
+}
+
+/// A JavaScript `Error`.
+@JS('Error')
+extension type JSError._(JSObject _) implements JSObject {
+  /// See [`Error.captureStackTrace()`].
+  ///
+  /// [`Error.captureStackTrace()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/captureStackTrace
+  external static void captureStackTrace(
+    JSError error, [
+    JSFunction constructor,
+  ]);
+
+  /// See [`new Error()`].
+  ///
+  /// [`new Error()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/Error
+  factory JSError(String message, {JSAny? cause}) => cause == null
+      ? JSError._native(message)
+      : JSError._native(message, JSObject()..['cause'] = cause);
+
+  /// The native constructor that takes a raw [JSObject] for its options rather
+  /// than Dart-style named arguments.
+  external JSError._native(String message, [JSObject options]);
+
+  /// See [`Error.cause`].
+  ///
+  /// [`Error.cause`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/cause
+  external JSAny? get cause;
+
+  /// See [`Error.message`].
+  ///
+  /// [`Error.message`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/message
+  external String get message;
+
+  /// See [`Error.name`].
+  ///
+  /// [`Error.name`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/name
+  external String get name;
+
+  /// See [`Error.stack`].
+  ///
+  /// [`Error.stack`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/stack
+  external String get stack;
 }
 
 /// A Dart object that is wrapped with a JavaScript object so that it can be
@@ -1154,12 +1236,19 @@ extension NullableObjectUtilExtension on Object? {
   ///   [FunctionToJSExportedDartFunction.toJS] or
   ///   [FunctionToJSExportedDartFunction.toJSCaptureThis] call and that the
   ///   Dart function the value forwards to is a function of type `U`.
+  /// - `JSError`: `isA<JSError>` will use [`Error.isError`] on browsers where
+  ///   it's supported. Because Safari has [known bugs] in its implementation,
+  ///   `isA<JSError>()` will return true if either `Error.isError()` or
+  ///   `instanceof Error` returns true.
   /// - User interop types whose representation types are JS primitive types:
   ///   This will result in an error to avoid confusion on whether the user
   ///   interop type is used in the type-check. Use the primitive JS type as the
   ///   value for [T] instead.
   /// - User interop types that have an object literal constructor: This will
   ///   result in an error as you likely want to use [JSObject] instead.
+  ///
+  /// [`Error.isError`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/isError
+  /// [known bugs]: https://bugs.webkit.org/show_bug.cgi?id=292727
   @Since('3.4')
   external bool isA<T extends JSAny?>();
 }
@@ -1239,6 +1328,41 @@ extension FunctionToJSExportedDartFunction<T extends Function> on T {
   external JSExportedDartFunction<T> get toJSCaptureThis;
 }
 
+/// Conversion from [Function] to a [JSFunction] that takes any number of
+/// arguments as an array.
+@Since('3.14')
+extension FunctionToJSExportedDartFunctionVarArgs<
+  R extends JSAny?,
+  E extends JSAny?
+>
+    on R Function(JSArray<E>) {
+  /// Converts this [Function] to a [JSFunction] that passes all of its
+  /// arguments as a [List] to this function.
+  ///
+  /// This is less efficient than [FunctionToJSExportedDartFunction.toJS], and
+  /// should only be used when var args specifically are necessary.
+  external JSExportedDartFunction<R Function(JSArray<E>)> get toJSVarArgs;
+}
+
+/// Conversion from [Function] to a [JSFunction] that takes the `this` value
+/// along with any number of arguments as an array.
+@Since('3.14')
+extension FunctionToJSExportedDartFunctionCaptureThisVarArgs<
+  R extends JSAny?,
+  T extends JSObject,
+  E extends JSAny?
+>
+    on R Function(T, JSArray<E>) {
+  /// Converts this [Function] to a [JSFunction] that passes the `this` value
+  /// along with all of its arguments as a [List] to this function.
+  ///
+  /// This is less efficient than
+  /// [FunctionToJSExportedDartFunction.toJSCaptureThis], and should only be
+  /// used when var args specifically are necessary.
+  external JSExportedDartFunction<R Function(T, JSArray<E>)>
+  get toJSCaptureThisVarArgs;
+}
+
 /// Conversions from [JSBoxedDartObject] to [Object].
 extension JSBoxedDartObjectToObject on JSBoxedDartObject {
   /// The Dart [Object] that this [JSBoxedDartObject] wrapped.
@@ -1309,6 +1433,17 @@ extension JSPromiseToFuture<T extends JSAny?> on JSPromise<T> {
   external Future<T> get toDart;
 }
 
+/// Conversions from [JSAny] to [FutureOr].
+@Since('3.14')
+extension JSAnyToFutureOr on JSAny? {
+  /// If this is a [JSPromise], returns it as a [Future].
+  ///
+  /// Otherwise, returns it as-is.
+  FutureOr<JSAny?> get toDartFutureOr => (this?.isA<JSPromise>() ?? false)
+      ? (this as JSPromise<JSAny?>).toDart
+      : this;
+}
+
 JSAny _convertError(Object error, StackTrace stackTrace) {
   if (error.isA<JSAny>()) return error as JSAny;
   final errorConstructor = globalContext['Error'] as JSFunction;
@@ -1366,6 +1501,32 @@ extension FutureOfVoidToJSPromise on Future<void> {
       }.toJS,
     );
   }
+}
+
+/// Conversions from [FutureOr] with a nullable value to [JSAny].
+@Since('3.14')
+extension FutureOrToNullableJSAny<T extends JSAny?> on FutureOr<T> {
+  /// Converts this value to a [JSPromise] or a synchronous value.
+  ///
+  /// If this is a [Future], it's converted to a [JSPromise]. Otherwise, it
+  /// returns this as-is.
+  JSAny? get toJSPromiseOrValue => switch (this) {
+    Future<T> future => future.toJS,
+    _ => this as JSAny?,
+  };
+}
+
+/// Conversions from [FutureOr] with a non-nullable value to [JSAny].
+@Since('3.14')
+extension FutureOrToJSAny<T extends JSAny> on FutureOr<T> {
+  /// Converts this value to a [JSPromise] or a synchronous value.
+  ///
+  /// If this is a [Future], it's converted to a [JSPromise]. Otherwise, it
+  /// returns this as-is.
+  JSAny get toJSPromiseOrValue => switch (this) {
+    Future<T> future => future.toJS,
+    _ => this as JSAny,
+  };
 }
 
 @JS('Object.getOwnPropertyNames')
@@ -2426,9 +2587,45 @@ extension JSAnyOperatorExtension on JSAny? {
 
   // Bitwise operators.
 
+  /// The result of <code>`this` << [any]</code> in JavaScript.
+  ///
+  /// The result is either a [JSNumber] or a [JSBigInt].
+  @Since('3.15')
+  external JSAny leftShift(JSAny? any);
+
+  /// The result of <code>`this` >> [any]</code> in JavaScript.
+  ///
+  /// The result is either a [JSNumber] or a [JSBigInt].
+  @Since('3.15')
+  external JSAny rightShift(JSAny? any);
+
   /// The result of <code>`this` >>> [any]</code> in JavaScript.
   // TODO(srujzs): This should return `num` or `double` instead.
   external JSNumber unsignedRightShift(JSAny? any);
+
+  /// The result of <code>`this` & [any]</code> in JavaScript.
+  ///
+  /// The result is either a [JSNumber] or a [JSBigInt].
+  @Since('3.15')
+  external JSAny bitwiseAnd(JSAny? any);
+
+  /// The result of <code>`this` | [any]</code> in JavaScript.
+  ///
+  /// The result is either a [JSNumber] or a [JSBigInt].
+  @Since('3.15')
+  external JSAny bitwiseOr(JSAny? any);
+
+  /// The result of <code>`this` ^ [any]</code> in JavaScript.
+  ///
+  /// The result is either a [JSNumber] or a [JSBigInt].
+  @Since('3.15')
+  external JSAny bitwiseXor(JSAny? any);
+
+  /// The result of <code>`~this`</code> in JavaScript.
+  ///
+  /// The result is either a [JSNumber] or a [JSBigInt].
+  @Since('3.15')
+  external JSAny get bitwiseNot;
 
   // Logical operators.
 

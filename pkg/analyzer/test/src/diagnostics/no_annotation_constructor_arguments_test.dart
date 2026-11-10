@@ -16,15 +16,63 @@ main() {
 
 @reflectiveTest
 class NoAnnotationConstructorArgumentsTest extends PubPackageResolutionTest {
-  test_missingArgumentList() async {
+  test_named_const() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A.named();
+}
+
+@A.named
+// [diag.noAnnotationConstructorArguments][column 1][length 8] Annotation creation must have arguments.
+void f() {}
+''');
+  }
+
+  test_named_notConst() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A.named();
+}
+
+@A.named
+// [diag.noAnnotationConstructorArguments][column 1][length 8] Annotation creation must have arguments.
+void f() {}
+''');
+  }
+
+  test_unnamed_const() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
   const A();
 }
+
 @A
 // [diag.noAnnotationConstructorArguments][column 1][length 2] Annotation creation must have arguments.
-main() {
+void f() {}
+''');
+  }
+
+  test_unnamed_notConst() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A();
 }
+
+@A
+// [diag.noAnnotationConstructorArguments][column 1][length 2] Annotation creation must have arguments.
+void f() {}
+''');
+  }
+
+  test_unnamed_notConst_factory() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  factory A() => throw 0;
+}
+
+@A
+// [diag.noAnnotationConstructorArguments][column 1][length 2] Annotation creation must have arguments.
+void f() {}
 ''');
   }
 }

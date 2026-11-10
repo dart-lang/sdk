@@ -9,26 +9,90 @@ import 'package:analyzer/dart/ast/visitor.dart';
 class CollectExecutablesVisitor extends RecursiveAstVisitor2<void> {
   final List<ExecutableDeclaration> _out;
 
-  CollectExecutablesVisitor._internal(this._out);
+  new _internal(this._out);
 
   @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    _out.add(
-      ExecutableDeclaration(
-        node.offset,
-        node.functionExpression.parameters,
-        node.returnType,
-      ),
-    );
-    super.visitFunctionDeclaration(node);
+  void visitGetterDeclaration(GetterDeclaration node) {
+    _out.add(ExecutableDeclaration(node.offset, null, node.returnType));
+    super.visitGetterDeclaration(node);
   }
 
   @override
-  void visitMethodDeclaration(MethodDeclaration node) {
+  void visitLocalFunctionDeclaration(LocalFunctionDeclaration node) {
     _out.add(
-      ExecutableDeclaration(node.offset, node.parameters, node.returnType),
+      ExecutableDeclaration(
+        node.offset,
+        node.formalParameters,
+        node.returnType,
+      ),
     );
-    super.visitMethodDeclaration(node);
+    super.visitLocalFunctionDeclaration(node);
+  }
+
+  @override
+  void visitMethodDeclaration2(MethodDeclaration2 node) {
+    _out.add(
+      ExecutableDeclaration(
+        node.offset,
+        node.formalParameters,
+        node.returnType,
+      ),
+    );
+    super.visitMethodDeclaration2(node);
+  }
+
+  @override
+  void visitOperatorDeclaration(OperatorDeclaration node) {
+    _out.add(
+      ExecutableDeclaration(
+        node.offset,
+        node.formalParameters,
+        node.returnType,
+      ),
+    );
+    super.visitOperatorDeclaration(node);
+  }
+
+  @override
+  void visitSetterDeclaration(SetterDeclaration node) {
+    _out.add(
+      ExecutableDeclaration(
+        node.offset,
+        node.formalParameters,
+        node.returnType,
+      ),
+    );
+    super.visitSetterDeclaration(node);
+  }
+
+  @override
+  void visitTopLevelFunctionDeclaration(TopLevelFunctionDeclaration node) {
+    _out.add(
+      ExecutableDeclaration(
+        node.offset,
+        node.formalParameters,
+        node.returnType,
+      ),
+    );
+    super.visitTopLevelFunctionDeclaration(node);
+  }
+
+  @override
+  void visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node) {
+    _out.add(ExecutableDeclaration(node.offset, null, node.returnType));
+    super.visitTopLevelGetterDeclaration(node);
+  }
+
+  @override
+  void visitTopLevelSetterDeclaration(TopLevelSetterDeclaration node) {
+    _out.add(
+      ExecutableDeclaration(
+        node.offset,
+        node.formalParameters,
+        node.returnType,
+      ),
+    );
+    super.visitTopLevelSetterDeclaration(node);
   }
 
   /// Collect all top-level functions and class methods in [unit].
@@ -45,9 +109,5 @@ class ExecutableDeclaration {
   final FormalParameterList? formalParameters;
   final TypeAnnotation? returnType;
 
-  ExecutableDeclaration(
-    this.declarationOffset,
-    this.formalParameters,
-    this.returnType,
-  );
+  new(this.declarationOffset, this.formalParameters, this.returnType);
 }

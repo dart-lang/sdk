@@ -16,7 +16,8 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertToNullAwareMapEntryKeyTest extends FixProcessorTest {
+class ConvertToNullAwareMapEntryKeyTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.convertToNullAwareMapEntryKey;
 
@@ -72,7 +73,8 @@ void f (String? arg) {
 }
 
 @reflectiveTest
-class ConvertToNullAwareMapEntryValueTest extends FixProcessorTest {
+class ConvertToNullAwareMapEntryValueTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.convertToNullAwareMapEntryValue;
 

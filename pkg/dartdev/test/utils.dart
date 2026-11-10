@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:cli_util/cli_logging.dart';
 import 'package:dartdev/dartdev.dart';
 import 'package:dartdev/src/core.dart';
 import 'package:file/memory.dart';
@@ -34,10 +33,6 @@ const residentFrontendCompilerPrefix =
 /// Return the root URI of the SDK by walking up from the pkg/dartdev folder.
 final sdkRootUri = resolveDartDevUri('../../');
 
-void initGlobalState() {
-  log = Logger.standard();
-}
-
 /// Creates a test-project in a temp-dir that will [dispose] itself at the end
 /// of the test.
 TestProject project({
@@ -45,6 +40,7 @@ TestProject project({
   String? analysisOptions,
   String name = TestProject._defaultProjectName,
   VersionConstraint? sdkConstraint,
+  String? languageVersion,
   Map<String, dynamic>? pubspecExtras,
 }) {
   var testProject = TestProject(
@@ -52,6 +48,7 @@ TestProject project({
     name: name,
     analysisOptions: analysisOptions,
     sdkConstraint: sdkConstraint,
+    languageVersion: languageVersion,
     pubspecExtras: pubspecExtras,
   );
   addTearDown(() => testProject.dispose());
@@ -70,6 +67,9 @@ class TestProject {
   String get pubCachePath => path.join(root.path, 'pub_cache');
 
   String get pubCacheBinPath => path.join(pubCachePath, 'bin');
+
+  String get analyzerStateLocationPath =>
+      path.join(root.path, 'analyzer_state');
 
   String get mainPath => path.join(dirPath, relativeFilePath);
 
@@ -91,9 +91,9 @@ class TestProject {
     String? analysisOptions,
     this.name = _defaultProjectName,
     VersionConstraint? sdkConstraint,
+    String? languageVersion,
     Map<String, dynamic>? pubspecExtras,
   }) {
-    initGlobalState();
     root = Directory.systemTemp
         .createTempSync('dartdev')
         .withUppercaseDriveLetter;
@@ -115,7 +115,7 @@ class TestProject {
             'name': name,
             'rootUri': '../',
             'packageUri': 'lib/',
-            'languageVersion': '3.2',
+            'languageVersion': languageVersion ?? '3.2',
           },
         ],
       }),
@@ -146,7 +146,7 @@ class TestProject {
   void file(String name, String contents) {
     var file = File(path.join(dir.path, name));
     file.parent.createSync(recursive: true);
-    file.writeAsStringSync(contents);
+    file.writeAsStringSync(contents, flush: true);
   }
 
   void deleteFile(String name) {
@@ -170,8 +170,13 @@ class TestProject {
   Future<ProcessResult> runAnalyze(
     List<String> arguments, {
     String? workingDir,
+    Map<String, String>? environment,
   }) async {
-    return run(['analyze', '--suppress-analytics', ...arguments]);
+    return run(
+      ['analyze', '--suppress-analytics', ...arguments],
+      workingDir: workingDir,
+      environment: environment,
+    );
   }
 
   Future<ProcessResult> runFix(
@@ -191,8 +196,13 @@ class TestProject {
   Future<ProcessResult> run(
     List<String> arguments, {
     String? workingDir,
+    Map<String, String>? environment,
   }) async {
-    final process = await start(arguments, workingDir: workingDir);
+    final process = await start(
+      arguments,
+      workingDir: workingDir,
+      environment: environment,
+    );
     final stdoutContents = process.stdout.transform(utf8.decoder).join();
     final stderrContents = process.stderr.transform(utf8.decoder).join();
     final code = await process.exitCode;
@@ -204,13 +214,21 @@ class TestProject {
     );
   }
 
-  Future<Process> start(List<String> arguments, {String? workingDir}) {
+  Future<Process> start(
+    List<String> arguments, {
+    String? workingDir,
+    Map<String, String>? environment,
+  }) {
     return Process.start(
       Platform.resolvedExecutable,
       [...arguments],
       workingDirectory: workingDir ?? dir.path,
       environment: {
+        'ANALYZER_STATE_LOCATION_OVERRIDE': analyzerStateLocationPath,
         'PUB_CACHE': pubCachePath,
+        // Don't implicitly enable CI behavior when tests run on a CI bot.
+        if (Platform.environment.containsKey('CI')) 'CI': '',
+        ...?environment,
       },
     )..then((p) => _process = p);
   }

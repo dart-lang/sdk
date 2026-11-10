@@ -15,9 +15,8 @@ abstract class ClassDeclaration {
   int get endOffset;
   bool get isMixinDeclaration;
 
-  TypeBuilder? get supertype;
-  List<TypeBuilder>? get mixedInTypes;
-  List<TypeBuilder>? get interfaces;
+  /// [UriOffsetLength] for the class declaration.
+  UriOffsetLength get uriOffset;
 
   void buildOutlineExpressions({
     required Annotatable annotatable,
@@ -47,6 +46,9 @@ class RegularClassDeclaration implements ClassDeclaration {
   LookupScope get bodyScope => _fragment.bodyScope;
 
   @override
+  UriOffsetLength get uriOffset => _fragment.uriOffset;
+
+  @override
   Uri get fileUri => _fragment.fileUri;
 
   @override
@@ -63,15 +65,6 @@ class RegularClassDeclaration implements ClassDeclaration {
 
   @override
   bool get isMixinDeclaration => false;
-
-  @override
-  TypeBuilder? get supertype => _fragment.supertype;
-
-  @override
-  List<TypeBuilder>? get mixedInTypes => _fragment.mixins;
-
-  @override
-  List<TypeBuilder>? get interfaces => _fragment.interfaces;
 
   @override
   void buildOutlineExpressions({
@@ -106,10 +99,7 @@ class RegularClassDeclaration implements ClassDeclaration {
 class EnumDeclaration implements ClassDeclaration {
   final EnumFragment _fragment;
 
-  @override
-  final TypeBuilder supertype;
-
-  new(this._fragment, this.supertype);
+  new(this._fragment);
 
   @override
   ExtensionScope get extensionScope =>
@@ -120,6 +110,9 @@ class EnumDeclaration implements ClassDeclaration {
 
   @override
   LookupScope get bodyScope => _fragment.bodyScope;
+
+  @override
+  UriOffsetLength get uriOffset => _fragment.uriOffset;
 
   @override
   Uri get fileUri => _fragment.fileUri;
@@ -138,12 +131,6 @@ class EnumDeclaration implements ClassDeclaration {
 
   @override
   bool get isMixinDeclaration => false;
-
-  @override
-  List<TypeBuilder>? get mixedInTypes => _fragment.mixins;
-
-  @override
-  List<TypeBuilder>? get interfaces => _fragment.interfaces;
 
   @override
   void buildOutlineExpressions({
@@ -178,10 +165,7 @@ class EnumDeclaration implements ClassDeclaration {
 class NamedMixinApplication implements ClassDeclaration {
   final NamedMixinApplicationFragment _fragment;
 
-  @override
-  final List<TypeBuilder> mixedInTypes;
-
-  new(this._fragment, this.mixedInTypes);
+  new(this._fragment);
 
   @override
   ExtensionScope get extensionScope =>
@@ -193,6 +177,9 @@ class NamedMixinApplication implements ClassDeclaration {
   @override
   // Coverage-ignore(suite): Not run.
   LookupScope get bodyScope => compilationUnitScope;
+
+  @override
+  UriOffsetLength get uriOffset => _fragment.uriOffset;
 
   @override
   Uri get fileUri => _fragment.fileUri;
@@ -211,12 +198,6 @@ class NamedMixinApplication implements ClassDeclaration {
 
   @override
   bool get isMixinDeclaration => false;
-
-  @override
-  TypeBuilder? get supertype => _fragment.supertype;
-
-  @override
-  List<TypeBuilder>? get interfaces => _fragment.interfaces;
 
   @override
   void buildOutlineExpressions({
@@ -256,40 +237,31 @@ class AnonymousMixinApplication implements ClassDeclaration {
   final LookupScope compilationUnitScope;
 
   @override
-  final int nameOffset;
-
-  @override
   final int startOffset;
 
   @override
   final int endOffset;
 
   @override
-  final Uri fileUri;
-
-  @override
-  final TypeBuilder? supertype;
+  final UriOffsetLength uriOffset;
 
   @override
   bool get isMixinDeclaration => false;
-
-  @override
-  List<TypeBuilder>? get mixedInTypes => null;
-
-  @override
-  final List<TypeBuilder>? interfaces;
 
   new({
     required this.name,
     required this.extensionScope,
     required this.compilationUnitScope,
-    required this.fileUri,
-    required this.nameOffset,
+    required this.uriOffset,
     required this.startOffset,
     required this.endOffset,
-    required this.supertype,
-    required this.interfaces,
   });
+
+  @override
+  Uri get fileUri => uriOffset.fileUri;
+
+  @override
+  int get nameOffset => uriOffset.fileOffset;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -328,6 +300,9 @@ class MixinDeclaration implements ClassDeclaration {
   LookupScope get bodyScope => _fragment.bodyScope;
 
   @override
+  UriOffsetLength get uriOffset => _fragment.uriOffset;
+
+  @override
   Uri get fileUri => _fragment.fileUri;
 
   @override
@@ -344,15 +319,6 @@ class MixinDeclaration implements ClassDeclaration {
 
   @override
   bool get isMixinDeclaration => true;
-
-  @override
-  TypeBuilder? get supertype => _fragment.supertype;
-
-  @override
-  List<TypeBuilder>? get mixedInTypes => _fragment.mixins;
-
-  @override
-  List<TypeBuilder>? get interfaces => _fragment.interfaces;
 
   @override
   void buildOutlineExpressions({

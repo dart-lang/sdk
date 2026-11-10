@@ -6,6 +6,7 @@ import 'dart:typed_data';
 
 import 'state_int.dart';
 
+@pragma('vm:align-loops')
 bool match(Uint8List s) {
   int i = 0;
 

@@ -191,13 +191,22 @@ TEST_CASE(ClassHeapStats) {
 }
 #endif  // !PRODUCT
 
-ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadOldToNew) {
-  Heap* heap = IsolateGroup::Current()->heap();
-
+static intptr_t CollectAllForSize() {
+  Thread* thread = Thread::Current();
+  Heap* heap = thread->heap();
   heap->CollectAllGarbage();
   heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
-  intptr_t size_before =
-      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
+  heap->WaitForSweeperTasks(thread);
+  heap->new_space()->AbandonRemainingTLAB(thread);
+
+  intptr_t new_size = heap->new_space()->UsedInWords() * kWordSize;
+  intptr_t old_size = heap->old_space()->UsedInWords() * kWordSize;
+  OS::PrintErr(" %" Pd " new, %" Pd " old\n", new_size, old_size);
+  return new_size + old_size;
+}
+
+ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadOldToNew) {
+  intptr_t size_before = CollectAllForSize();
 
   Array& old = Array::Handle(Array::New(1, Heap::kOld));
   Array& neu = Array::Handle(Array::New(1, Heap::kNew));
@@ -205,22 +214,12 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadOldToNew) {
   old = Array::null();
   neu = Array::null();
 
-  heap->CollectAllGarbage();
-  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
-
-  intptr_t size_after =
-      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
-
+  intptr_t size_after = CollectAllForSize();
   EXPECT_EQ(size_before, size_after);
 }
 
 ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadNewToOld) {
-  Heap* heap = IsolateGroup::Current()->heap();
-
-  heap->CollectAllGarbage();
-  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
-  intptr_t size_before =
-      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
+  intptr_t size_before = CollectAllForSize();
 
   Array& old = Array::Handle(Array::New(1, Heap::kOld));
   Array& neu = Array::Handle(Array::New(1, Heap::kNew));
@@ -228,22 +227,12 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadNewToOld) {
   old = Array::null();
   neu = Array::null();
 
-  heap->CollectAllGarbage();
-  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
-
-  intptr_t size_after =
-      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
-
+  intptr_t size_after = CollectAllForSize();
   EXPECT_EQ(size_before, size_after);
 }
 
 ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadGenCycle) {
-  Heap* heap = IsolateGroup::Current()->heap();
-
-  heap->CollectAllGarbage();
-  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
-  intptr_t size_before =
-      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
+  intptr_t size_before = CollectAllForSize();
 
   Array& old = Array::Handle(Array::New(1, Heap::kOld));
   Array& neu = Array::Handle(Array::New(1, Heap::kNew));
@@ -252,109 +241,60 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_DeadGenCycle) {
   old = Array::null();
   neu = Array::null();
 
-  heap->CollectAllGarbage();
-  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
-
-  intptr_t size_after =
-      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
-
+  intptr_t size_after = CollectAllForSize();
   EXPECT_EQ(size_before, size_after);
 }
 
 ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveNewToOld) {
-  Heap* heap = IsolateGroup::Current()->heap();
-
-  heap->CollectAllGarbage();
-  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
-  intptr_t size_before =
-      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
+  intptr_t size_before = CollectAllForSize();
 
   Array& old = Array::Handle(Array::New(1, Heap::kOld));
   Array& neu = Array::Handle(Array::New(1, Heap::kNew));
   neu.SetAt(0, old);
   old = Array::null();
 
-  heap->CollectAllGarbage();
-  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
-
-  intptr_t size_after =
-      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
-
+  intptr_t size_after = CollectAllForSize();
   EXPECT(size_before < size_after);
 }
 
 ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveOldToNew) {
-  Heap* heap = IsolateGroup::Current()->heap();
-
-  heap->CollectAllGarbage();
-  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
-  intptr_t size_before =
-      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
+  intptr_t size_before = CollectAllForSize();
 
   Array& old = Array::Handle(Array::New(1, Heap::kOld));
   Array& neu = Array::Handle(Array::New(1, Heap::kNew));
   old.SetAt(0, neu);
   neu = Array::null();
 
-  heap->CollectAllGarbage();
-  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
-
-  intptr_t size_after =
-      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
-
+  intptr_t size_after = CollectAllForSize();
   EXPECT(size_before < size_after);
 }
 
 ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveOldDeadNew) {
-  Heap* heap = IsolateGroup::Current()->heap();
-
-  heap->CollectAllGarbage();
-  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
-  intptr_t size_before =
-      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
+  intptr_t size_before = CollectAllForSize();
 
   Array& old = Array::Handle(Array::New(1, Heap::kOld));
   Array& neu = Array::Handle(Array::New(1, Heap::kNew));
   neu = Array::null();
   old.SetAt(0, old);
 
-  heap->CollectAllGarbage();
-  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
-
-  intptr_t size_after =
-      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
-
+  intptr_t size_after = CollectAllForSize();
   EXPECT(size_before < size_after);
 }
 
 ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveNewDeadOld) {
-  Heap* heap = IsolateGroup::Current()->heap();
-
-  heap->CollectAllGarbage();
-  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
-  intptr_t size_before =
-      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
+  intptr_t size_before = CollectAllForSize();
 
   Array& old = Array::Handle(Array::New(1, Heap::kOld));
   Array& neu = Array::Handle(Array::New(1, Heap::kNew));
   old = Array::null();
   neu.SetAt(0, neu);
 
-  heap->CollectAllGarbage();
-  heap->WaitForMarkerTasks(thread);  // Finalize marking to get live size.
-
-  intptr_t size_after =
-      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
-
+  intptr_t size_after = CollectAllForSize();
   EXPECT(size_before < size_after);
 }
 
 ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveNewToOldChain) {
-  Heap* heap = IsolateGroup::Current()->heap();
-
-  heap->CollectAllGarbage();
-  intptr_t size_before =
-      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
+  intptr_t size_before = CollectAllForSize();
 
   Array& old = Array::Handle(Array::New(1, Heap::kOld));
   Array& old2 = Array::Handle(Array::New(1, Heap::kOld));
@@ -364,20 +304,12 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveNewToOldChain) {
   old = Array::null();
   old2 = Array::null();
 
-  heap->CollectAllGarbage();
-
-  intptr_t size_after =
-      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
-
+  intptr_t size_after = CollectAllForSize();
   EXPECT(size_before < size_after);
 }
 
 ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveOldToNewChain) {
-  Heap* heap = IsolateGroup::Current()->heap();
-
-  heap->CollectAllGarbage();
-  intptr_t size_before =
-      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
+  intptr_t size_before = CollectAllForSize();
 
   Array& old = Array::Handle(Array::New(1, Heap::kOld));
   Array& neu = Array::Handle(Array::New(1, Heap::kNew));
@@ -387,11 +319,7 @@ ISOLATE_UNIT_TEST_CASE(CollectAllGarbage_LiveOldToNewChain) {
   neu = Array::null();
   neu2 = Array::null();
 
-  heap->CollectAllGarbage();
-
-  intptr_t size_after =
-      heap->new_space()->UsedInWords() + heap->old_space()->UsedInWords();
-
+  intptr_t size_after = CollectAllForSize();
   EXPECT(size_before < size_after);
 }
 
@@ -726,8 +654,9 @@ ISOLATE_UNIT_TEST_CASE(ArrayTruncationPadding) {
       // Fill the alignment gap with invalid pointers.
       uword addr = UntaggedObject::ToAddr(array.ptr());
       for (intptr_t offset = Array::UnroundedSize(big);
-           offset < Array::InstanceSize(big); offset += sizeof(uword)) {
-        *reinterpret_cast<uword*>(addr + offset) = kHeapObjectTag;
+           offset < Array::InstanceSize(big);
+           offset += sizeof(compressed_uword)) {
+        *reinterpret_cast<compressed_uword*>(addr + offset) = kHeapObjectTag;
       }
 
       array.Truncate(small);

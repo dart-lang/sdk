@@ -177,6 +177,11 @@ wasm:
       patches:
         - _internal/wasm/js/js_helper_patch.dart
 
+wasm_dev:
+  include:
+    - target: "wasm"
+  libraries: {}
+
 wasm_js_compatibility:
   include:
     - target: "wasm_js_common"
@@ -402,6 +407,7 @@ wasm_common:
       uri: isolate/isolate.dart
       patches:
         - "_internal/wasm/common/isolate_patch.dart"
+      support_conditional_import: false
 
 dart2js:
   include:

@@ -3,10 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
-import 'package:expect/async_helper.dart';
 import 'package:compiler/src/closure.dart';
-import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common/codegen.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
@@ -14,7 +13,9 @@ import 'package:compiler/src/js/js.dart' as js;
 import 'package:compiler/src/js_emitter/model.dart';
 import 'package:compiler/src/js_model/element_map.dart';
 import 'package:compiler/src/js_model/js_world.dart';
+import 'package:expect/async_helper.dart';
 import 'package:kernel/ast.dart' as ir;
+
 import '../equivalence/id_equivalence.dart';
 import '../equivalence/id_equivalence_helper.dart';
 import '../helpers/program_lookup.dart';
@@ -43,7 +44,7 @@ class ModelDataComputer extends DataComputer<Features> {
   void computeMemberData(
     Compiler compiler,
     MemberEntity member,
-    Map<Id, ActualData<Features>> actualMap, {
+    ActualDataMap<Features> actualMap, {
     bool verbose = false,
   }) {
     JClosedWorld closedWorld = compiler.backendClosedWorldForTesting!;
@@ -88,14 +89,13 @@ class ModelIrComputer extends IrDataExtractor<Features> {
   final ProgramLookup _programLookup;
 
   ModelIrComputer(
-    DiagnosticReporter reporter,
-    Map<Id, ActualData<Features>> actualMap,
+    super.reporter,
+    super.actualMap,
     this._elementMap,
     MemberEntity member,
     Compiler compiler,
     this._closureDataLookup,
-  ) : _programLookup = ProgramLookup(compiler.backendStrategy),
-      super(reporter, actualMap);
+  ) : _programLookup = ProgramLookup(compiler.backendStrategy);
 
   void registerCalls(
     Features features,

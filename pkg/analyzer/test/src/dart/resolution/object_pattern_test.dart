@@ -686,7 +686,7 @@ void f(x) {
   switch (x) {
     case A(foo: 0):
 //         ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'A'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'A'.
       break;
   }
 }
@@ -723,7 +723,7 @@ void f(x) {
   switch (x) {
     case A(: var foo):
 //               ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'A'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'A'.
 // [diag.unusedLocalVariable] The value of the local variable 'foo' isn't used.
       break;
   }
@@ -839,7 +839,7 @@ void f(x) {
   switch (x) {
     case A(foo: 0):
 //         ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'A'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'A'.
       break;
   }
 }
@@ -1094,7 +1094,7 @@ void f(Object? x) {
   switch (x) {
     case A(foo: var y):
 //         ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'A'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'A'.
 //                  ^
 // [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
       break;
@@ -1247,7 +1247,13 @@ PatternVariableDeclaration
     rightParenthesis: )
     matchedValueType: A<int>
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: A<int>
+    staticType: A<int>
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: A<int>

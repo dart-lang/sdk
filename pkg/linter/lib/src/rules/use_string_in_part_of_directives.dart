@@ -30,7 +30,7 @@ class UseStringInPartOfDirectives extends AnalysisRule {
     RuleVisitorRegistry registry,
     RuleContext context,
   ) {
-    if (!context.hasEnancedPartsFeatureEnabled) {
+    if (!context.isFeatureEnabled(Feature.enhanced_parts)) {
       var visitor = _Visitor(this);
       registry.addPartOfDirective(this, visitor);
     }
@@ -44,9 +44,4 @@ class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
       rule.reportAtNode(node);
     }
   }
-}
-
-extension on RuleContext {
-  bool get hasEnancedPartsFeatureEnabled =>
-      isFeatureEnabled(Feature.enhanced_parts);
 }

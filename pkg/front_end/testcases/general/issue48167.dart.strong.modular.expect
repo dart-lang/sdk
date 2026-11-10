@@ -4,11 +4,11 @@ library;
 //
 // pkg/front_end/testcases/general/issue48167.dart:13:29: Error: The class 'Mixin1a' can't be used as a mixin because it extends a class other than 'Object'.
 // class C1a extends Base with Mixin1a {}
-//                             ^
+//                             ^^^^^^^
 //
 // pkg/front_end/testcases/general/issue48167.dart:15:29: Error: The class 'Mixin1b' can't be used as a mixin because it extends a class other than 'Object'.
 // class C1b extends Base with Mixin1b {}
-//                             ^
+//                             ^^^^^^^
 //
 import self as self;
 import "dart:core" as core;

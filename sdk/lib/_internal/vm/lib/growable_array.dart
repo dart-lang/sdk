@@ -64,16 +64,6 @@ class _GrowableList<T> extends ListBase<T> {
     setAll(index, iterable);
   }
 
-  void setAll(int index, Iterable<T> iterable) {
-    if (iterable is List) {
-      setRange(index, index + iterable.length, iterable);
-    } else {
-      for (T element in iterable) {
-        this[index++] = element;
-      }
-    }
-  }
-
   void removeRange(int start, int end) {
     RangeError.checkValidRange(start, end, this.length);
     Lists.copy(this, end, this, start, this.length - end);
@@ -134,7 +124,7 @@ class _GrowableList<T> extends ListBase<T> {
   // Used by pkg/vm/lib/transformations/list_factory_specializer.dart.
   @pragma("vm:prefer-inline")
   @pragma('dyn-module:language-impl:callable')
-  factory _GrowableList.generate(int length, T generator(int index)) {
+  factory _GrowableList.generate(int length, T Function(int index) generator) {
     final result = _GrowableList<T>(length);
     for (int i = 0; i < result.length; ++i) {
       result[i] = generator(i);
@@ -217,6 +207,18 @@ class _GrowableList<T> extends ListBase<T> {
   ])
   @pragma("vm:external-name", "GrowableList_allocate")
   external factory _GrowableList._withData(_List data);
+
+  /// Converts this growable list into a fixed-length [_List] with the same
+  /// elements by stealing and truncating its backing storage.
+  ///
+  /// This is a destructive operation that leaves this growable list empty.
+  /// The receiver must not be used after calling this method.
+  @pragma("vm:external-name", "Internal_makeListFixedLength")
+  @pragma("vm:exact-result-type", <dynamic>[
+    _List,
+    "result-type-uses-receiver-type-arguments",
+  ])
+  external _List<T> _mutateIntoFixedLengthList();
 
   @pragma("vm:recognized", "graph-intrinsic")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
@@ -422,7 +424,7 @@ class _GrowableList<T> extends ListBase<T> {
   // Iterable interface.
 
   @pragma("vm:prefer-inline")
-  void forEach(f(T element)) {
+  void forEach(Function(T element) f) {
     int initialLength = length;
     for (int i = 0; i < length; i++) {
       f(this[i]);

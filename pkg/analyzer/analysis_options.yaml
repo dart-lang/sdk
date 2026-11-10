@@ -51,9 +51,11 @@ linter:
     - always_use_package_imports
     - analyzer_element_model_tracking
     - analyzer_public_api
+    - analyzer_v1_ast_use
     - avoid_dynamic_calls
     - avoid_redundant_argument_values
     - avoid_unused_constructor_parameters
+    - combinators_ordering
     - comment_references
     - deprecated_member_use_from_same_package
     - discarded_futures
@@ -61,7 +63,9 @@ linter:
     - no_literal_bool_comparisons
     - unawaited_futures
     - unnecessary_breaks
+    - unnecessary_const_in_enum_constructor
     - unnecessary_final
     - unnecessary_ignore
     - unnecessary_library_directive
     - unnecessary_parenthesis
+    - unnecessary_type_name_in_constructor

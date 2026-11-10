@@ -18,6 +18,7 @@ import 'package:path/path.dart' as path;
 
 import '../core.dart';
 import '../experiments.dart';
+import '../progress.dart';
 import '../sdk.dart';
 import '../utils.dart';
 
@@ -115,9 +116,31 @@ class AnalyzeCommand extends DartdevCommand {
       )
       ..addFlag(
         'plugins',
-        help: 'Use analyzer plugins',
-        defaultsTo: true,
-        hide: true,
+        help:
+            'Use analyzer plugins. Defaults to true when the CI environment '
+            'variable is set.',
+        defaultsTo: null,
+      )
+      ..addFlag(
+        'trust-plugins',
+        help:
+            'Trust the analyzer plugins specified in analysis options, '
+            'with their current contents, to execute code.',
+        negatable: false,
+      )
+      ..addFlag(
+        'always-trust-plugins',
+        help:
+            'Always trust the analyzer plugins specified in analysis options '
+            'to execute code.',
+        negatable: false,
+      )
+      ..addFlag(
+        'never-trust-plugins',
+        help:
+            'Never trust the analyzer plugins specified in analysis options '
+            'to execute code.',
+        negatable: false,
       )
       ..addExperimentalFlags();
   }
@@ -197,7 +220,6 @@ class AnalyzeCommand extends DartdevCommand {
     final machineFormat = args.option('format') == 'machine';
     final jsonFormat = args.option('format') == 'json';
     final printMemory = args.flag('memory') && jsonFormat;
-    final usePlugins = args.flag('plugins');
 
     io.Directory sdkPath;
     final useAotSnapshot = args.flag(useAotSnapshotFlag);
@@ -242,13 +264,28 @@ class AnalyzeCommand extends DartdevCommand {
       usageException('Unknown experiment(s): $unknownExperimentsText');
     }
 
+    final trustPlugins = args.flag('trust-plugins');
+    final alwaysTrustPlugins = args.flag('always-trust-plugins');
+    final neverTrustPlugins = args.flag('never-trust-plugins');
+    final trustFlags = [
+      if (trustPlugins) '--trust-plugins',
+      if (alwaysTrustPlugins) '--always-trust-plugins',
+      if (neverTrustPlugins) '--never-trust-plugins',
+    ];
+    if (trustFlags.length > 1) {
+      usageException(
+        'Cannot specify more than one of --trust-plugins, '
+        '--always-trust-plugins, and --never-trust-plugins.',
+      );
+    }
+
     final targetsNames = targets
         .map((entity) => path.basename(entity.path))
         .join(', ');
-    final progress = machineFormat || jsonFormat
-        ? null
-        : log.progress('Analyzing $targetsNames');
-
+    final usePlugins = resolveUsePlugins(
+      pluginsFlag: args.wasParsed('plugins') ? args.flag('plugins') : null,
+      neverTrustPlugins: neverTrustPlugins,
+    );
     final server = LspAnalysisServer(
       _packagesFile(),
       sdkPath,
@@ -257,47 +294,55 @@ class AnalyzeCommand extends DartdevCommand {
       commandName: 'analyze',
       argResults: args,
       usePlugins: usePlugins,
+      trustPlugins: trustPlugins,
+      alwaysTrustPlugins: alwaysTrustPlugins,
+      neverTrustPlugins: neverTrustPlugins,
       enabledExperiments: args.enabledExperiments,
       suppressAnalytics: suppressAnalytics,
       useAotSnapshot: useAotSnapshot,
     );
-
-    server.onErrors.listen((
-      params,
-    ) {
-      // Replace any previous results for this file.
-      errorsByFile[params.uri.toFilePath()] = params.diagnostics;
-    });
-
-    int pid = await server.start();
-
-    bool analysisFinished = false;
-
-    server.onExit.then((int exitCode) {
-      if (!analysisFinished) {
-        io.exitCode = exitCode;
-      }
-    });
-
-    server.onCrash.then((_) {
-      log.stderr('The analysis server shut down unexpectedly.');
-      log.stdout('Please report this at dartbug.com.');
-      io.exit(_Result.crash.exitCode);
-    });
-
-    // Wait for all analysis to complete.
-    await server.workspaceAnalysisComplete();
-    analysisFinished = true;
-
     UsageInfo? usageInfo;
-    if (printMemory) {
-      usageInfo = await ProcessProfiler.getProfilerForPlatform()
-          ?.getProcessUsage(pid);
-    }
+    await progress(
+      'Analyzing $targetsNames',
+      () async {
+        server.onErrors.listen((
+          params,
+        ) {
+          // Replace any previous results for this file.
+          errorsByFile[params.uri.toFilePath()] = params.diagnostics;
+        });
 
-    await server.shutdown();
+        int pid = await server.start();
 
-    progress?.finish(showTiming: true);
+        bool analysisFinished = false;
+
+        server.onExit.then((int exitCode) {
+          if (!analysisFinished) {
+            io.exitCode = exitCode;
+          }
+        });
+
+        server.onCrash.then((_) {
+          log.stderr('The analysis server shut down unexpectedly.');
+          log.stdout('Please report this at dartbug.com.');
+          io.exit(_Result.crash.exitCode);
+        });
+
+        // Wait for all analysis to complete.
+        await server.workspaceAnalysisComplete();
+        analysisFinished = true;
+
+        if (printMemory) {
+          usageInfo = await ProcessProfiler.getProfilerForPlatform()
+              ?.getProcessUsage(pid);
+        }
+
+        await server.shutdown();
+      },
+      output: machineFormat || jsonFormat
+          ? ProgressOutput.none
+          : ProgressOutput.stdout,
+    );
 
     /// Errors in analysis_options.yaml and pubspec.yaml will be reported first
     /// and a note that they might be the cause of other errors.
@@ -661,6 +706,37 @@ class AnalyzeCommand extends DartdevCommand {
   /// Converts a line or column number from 0-based (LSP) to 1-based.
   static int lspToUser(int i) {
     return i + 1;
+  }
+
+  /// Resolves whether plugins should be enabled for an `analyze` invocation.
+  ///
+  /// Pass a value for [pluginsFlag] if `--plugins` or `--no-plugins` is
+  /// explicitly given. Pass `neverTrustPlugins: true` if
+  /// `--never-trust-plugins` is given.
+  ///
+  /// Returns [pluginsFlag] if given, `false` if [neverTrustPlugins], and
+  /// otherwise returns `true` when [environment] has a truthy `CI`
+  /// variable, and `null` otherwise. `null` means that no direction was given
+  /// at the command-line. (`--always-trust-plugins` is not taken into account
+  /// here.)
+  @visibleForTesting
+  static bool? resolveUsePlugins({
+    required bool? pluginsFlag,
+    required bool neverTrustPlugins,
+    Map<String, String>? environment,
+  }) {
+    if (pluginsFlag != null) {
+      return pluginsFlag;
+    }
+    if (!neverTrustPlugins && _isCi(environment ?? io.Platform.environment)) {
+      return true;
+    }
+    return null;
+  }
+
+  static bool _isCi(Map<String, String> environment) {
+    final ci = environment['CI']?.trim().toLowerCase();
+    return const {'true', '1', 'yes'}.contains(ci);
   }
 }
 

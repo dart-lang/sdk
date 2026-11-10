@@ -181,11 +181,10 @@ final class _Double implements double {
   external bool get isNaN;
   bool get isFinite => !isInfinite && !isNaN; // Can be optimized.
 
-  double abs() {
-    // Handle negative 0.0.
-    if (this == 0.0) return 0.0;
-    return this < 0.0 ? -this : this;
-  }
+  @pragma("vm:recognized", "other")
+  @pragma("vm:exact-result-type", _Double)
+  @pragma("vm:prefer-inline")
+  external double abs();
 
   double get sign {
     if (this > 0.0) return 1.0;

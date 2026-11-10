@@ -189,6 +189,31 @@ void f() {
 ''');
   }
 
+  Future<void>
+  test_importLibrary_withTopLevelVariable_methodInvocation() async {
+    var a = newFile('/workspace/dart/test/lib/a.dart', r'''
+class A {
+  void foo() {}
+}
+var a = A();
+''');
+    await fileResolver.resolve(path: a.path);
+
+    await _compute(r'''
+void f() {
+  a.foo();^
+}
+''');
+
+    assertHasFix(DartFixKind.importLibraryProject1, r'''
+import 'a.dart';
+
+void f() {
+  a.foo();
+}
+''');
+  }
+
   Future<void> test_insertSemicolon() async {
     await _compute(r'''
 var v = 0^
@@ -210,10 +235,17 @@ var v = 0;
 
   Fix _getFix(FixKind kind) {
     for (var errorFixes in _errorsFixes) {
+      Fix? result;
       for (var fix in errorFixes.fixes) {
         if (fix.kind == kind) {
-          return fix;
+          if (result != null && result.change.message == fix.change.message) {
+            fail('Duplicate fix $kind with message "${fix.change.message}"');
+          }
+          result ??= fix;
         }
+      }
+      if (result != null) {
+        return result;
       }
     }
     fail('No fix $kind');

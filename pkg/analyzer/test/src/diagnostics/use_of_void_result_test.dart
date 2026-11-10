@@ -509,11 +509,47 @@ void f(void x) {
 ''');
   }
 
+  test_mapLiteralEntry_keyAndValue_toDynamic_error() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void v) {
+  <dynamic, dynamic>{v: v};
+//                   ^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+//                      ^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+}
+''');
+  }
+
   test_mapLiteralEntry_keyQuestion_keyTypeVoid_error() async {
     await resolveTestCodeWithDiagnostics('''
 void f(void key) {
   <void, int>{?key: 0};
 //             ^^^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+}
+''');
+  }
+
+  test_mapLiteralEntry_keyQuestion_keyTypeVoid_valueNotAssignable() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void v) {
+  <void, int>{?v: ''};
+//             ^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+//                ^^
+// [diag.mapValueTypeNotAssignable] The element type 'String' can't be assigned to the map value type 'int'.
+}
+''');
+  }
+
+  test_mapLiteralEntry_keyQuestion_valueQuestion_bothTypeVoid_error() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void v) {
+  <void, void>{?v: ?v};
+//              ^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+//                  ^
 // [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
 }
 ''');
@@ -540,6 +576,18 @@ void f(void key, int? value) {
 void f(void value) {
   <int, void>{0: ?value};
 //                ^^^^^
+// [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
+}
+''');
+  }
+
+  test_mapLiteralEntry_valueQuestion_valueTypeVoid_keyNotAssignable() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(void v) {
+  <int, void>{'': ?v};
+//            ^^
+// [diag.mapKeyTypeNotAssignable] The element type 'String' can't be assigned to the map key type 'int'.
+//                 ^
 // [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
 }
 ''');

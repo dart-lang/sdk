@@ -41,7 +41,7 @@ void StubCodeCompiler::EnsureIsNewOrRemembered() {
   // Page's TLAB use is always ascending.
   Label done;
   __ AndImmediate(TMP, A0, target::Page::kPageMask);
-  __ LoadFromOffset(TMP, TMP, target::Page::original_top_offset());
+  __ LoadFromOffset(TMP, TMP, target::Page::survivor_end_offset());
   __ CompareRegisters(A0, TMP);
   __ BranchIf(UNSIGNED_GREATER_EQUAL, &done);
 
@@ -221,7 +221,7 @@ void StubCodeCompiler::GenerateEnterSafepointStub() {
 
   __ ReserveAlignedFrameSpace(0);
 
-  __ lx(TMP, Address(THR, kEnterSafepointRuntimeEntry.OffsetFromThread()));
+  __ LoadFromOffset(TMP, THR, kEnterSafepointRuntimeEntry.OffsetFromThread());
   __ Comment("Leaf runtime call: %s", kEnterSafepointRuntimeEntry.name());
   __ jalr(TMP);
 
@@ -241,7 +241,7 @@ void StubCodeCompiler::GenerateExitSafepointStub() {
 
   __ VerifyNotInGenerated(TMP);
 
-  __ lx(TMP, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
+  __ LoadFromOffset(TMP, THR, kExitSafepointRuntimeEntry.OffsetFromThread());
   __ Comment("Leaf runtime call: %s", kExitSafepointRuntimeEntry.name());
   __ jalr(TMP);
 
@@ -391,6 +391,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   }
 
   Label tail;
+  ASSERT_EQUAL(target::CallbackMetadata::kCall, 0);
   __ bnez(T3, &tail, Assembler::kNearJump);
 
   {
@@ -444,6 +445,10 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   }
 #endif
 #endif
+}
+
+void StubCodeCompiler::GenerateInterpretedFfiCallbackTrampolineStub() {
+  __ Breakpoint();  // currently only used in ARM64 runtimes.
 }
 
 void StubCodeCompiler::GenerateDispatchTableNullErrorStub() {
@@ -1124,7 +1129,6 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     // T4: potential next object start.
     __ LoadFromOffset(TMP, THR, target::Thread::end_offset());
     __ bgeu(T4, TMP, &slow_case);  // Branch if unsigned higher or equal.
-    __ CheckAllocationCanary(AllocateArrayABI::kResultReg);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
@@ -1200,18 +1204,17 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
       __ AddShifted(T3, T3, vl, target::kWordSizeLog2);  // Bump dest.
       __ bnez(remaining_length, &loop);
     } else {
-      Label loop;
+      Label loop, done;
+      __ bgeu(T3, T4, &done);
       __ Bind(&loop);
-      for (intptr_t offset = 0; offset < target::kObjectAlignment;
+      for (intptr_t offset = 0; offset < target::kWordSize;
            offset += target::kCompressedWordSize) {
         __ StoreCompressedIntoObjectNoBarrier(AllocateArrayABI::kResultReg,
                                               Address(T3, offset), NULL_REG);
       }
-      // Safe to only check every kObjectAlignment bytes instead of each word.
-      ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
-      __ addi(T3, T3, target::kObjectAlignment);
+      __ addi(T3, T3, target::kWordSize);
       __ bltu(T3, T4, &loop);
-      __ WriteAllocationCanary(T4);  // Fix overshoot.
+      __ Bind(&done);
     }
 
     // Done allocating and initializing the array.
@@ -1468,7 +1471,6 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
   __ lx(TMP, Address(THR, target::Thread::end_offset()));
   __ CompareRegisters(T3, TMP);
   __ BranchIf(CS, slow_case);  // Branch if unsigned higher or equal.
-  __ CheckAllocationCanary(A0);
 
   // Successfully allocated the object, now update top to point to
   // next object start and initialize the object.
@@ -1863,7 +1865,6 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
 
       __ CompareRegisters(kEndReg, kNewTopReg);
       __ BranchIf(UNSIGNED_LESS_EQUAL, &slow_case);
-      __ CheckAllocationCanary(AllocateObjectABI::kResultReg);
 
       // Successfully allocated the object, now update top to point to
       // next object start and store the class in the class field of object.
@@ -1879,19 +1880,18 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
 
       __ AddImmediate(kFieldReg, AllocateObjectABI::kResultReg,
                       target::Instance::first_field_offset());
-      Label loop;
+      Label loop, done;
+      __ bgeu(kFieldReg, kNewTopReg, &done);
       __ Bind(&loop);
-      for (intptr_t offset = 0; offset < target::kObjectAlignment;
+      for (intptr_t offset = 0; offset < target::kWordSize;
            offset += target::kCompressedWordSize) {
         __ StoreCompressedIntoObjectNoBarrier(AllocateObjectABI::kResultReg,
                                               Address(kFieldReg, offset),
                                               NULL_REG);
       }
-      // Safe to only check every kObjectAlignment bytes instead of each word.
-      ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
-      __ addi(kFieldReg, kFieldReg, target::kObjectAlignment);
+      __ addi(kFieldReg, kFieldReg, target::kWordSize);
       __ bltu(kFieldReg, kNewTopReg, &loop);
-      __ WriteAllocationCanary(kNewTopReg);  // Fix overshoot.
+      __ Bind(&done);
     }  // kFieldReg = T4
 
     __ AddImmediate(AllocateObjectABI::kResultReg,
@@ -3379,7 +3379,6 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
     /* T3: allocation size. */
     __ lx(TMP, Address(THR, target::Thread::end_offset()));
     __ bgeu(T4, TMP, &call_runtime);
-    __ CheckAllocationCanary(A0);
 
     /* Successfully allocated the object(s), now update top to point to */
     /* next object start and initialize the object. */
@@ -3455,17 +3454,20 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
       __ AddShifted(T3, T3, vl, scale_shift);  // Bump dest.
       __ bnez(remaining_length, &loop);
     } else {
-      Label loop;
+      ASSERT(
+          Utils::IsAligned(target::TypedData::HeaderSize() + target::kWordSize,
+                           target::kObjectAlignment));
+      __ sx(ZR, Address(T3, 0));
+      __ addi(T3, T3, target::kWordSize);
+      Label loop, cmp;
+      __ j(&cmp, Assembler::kNearJump);
       __ Bind(&loop);
-      for (intptr_t offset = 0; offset < target::kObjectAlignment;
-           offset += target::kWordSize) {
-        __ sx(ZR, Address(T3, offset));
-      }
-      // Safe to only check every kObjectAlignment bytes instead of each word.
-      ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
-      __ addi(T3, T3, target::kObjectAlignment);
+      ASSERT(target::kObjectAlignment == 2 * target::kWordSize);
+      __ sx(ZR, Address(T3, 0));
+      __ sx(ZR, Address(T3, target::kWordSize));
+      __ addi(T3, T3, 2 * target::kWordSize);
+      __ Bind(&cmp);
       __ bltu(T3, T4, &loop);
-      __ WriteAllocationCanary(T4);  // Fix overshoot.
     }
 
     __ Ret();

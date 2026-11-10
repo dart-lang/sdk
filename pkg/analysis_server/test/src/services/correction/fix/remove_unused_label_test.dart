@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class RemoveUnusedLabelTest extends FixProcessorTest {
+class RemoveUnusedLabelTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeUnusedLabel;
 

@@ -789,8 +789,9 @@ import 'a.dart';
       // ignore:experimental_member_use
       unit.accept2(
         FunctionAstVisitor(
-          simpleIdentifier: (node) {
-            if (identifiers.contains(node.name) && node.element != null) {
+          unqualifiedFunctionInvocation: (node) {
+            if (identifiers.contains(node.name.lexeme) &&
+                node.resolution != null) {
               fail('Unexpectedly resolved node: $node');
             }
           },

@@ -85,6 +85,9 @@ class Flags {
   static const String interopNullAssertions = '--interop-null-assertions';
   static const String noInteropNullAssertions = '--no-interop-null-assertions';
 
+  static const String deprecatedJsInterop = '--deprecated-js-interop';
+  static const String noDeprecatedJsInterop = '--no-deprecated-js-interop';
+
   static const String noSourceMaps = '--no-source-maps';
 
   static const String omitLateNames = '--omit-late-names';

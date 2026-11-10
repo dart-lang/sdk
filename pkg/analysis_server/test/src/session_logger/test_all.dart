@@ -5,11 +5,13 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'log_normalizer_test.dart' as log_normalizer;
+import 'log_sanitizer_test.dart' as log_sanitizer;
 import 'session_logger_sink_test.dart' as session_logger_sink;
 
 void main() {
   defineReflectiveSuite(() {
     log_normalizer.main();
+    log_sanitizer.main();
     session_logger_sink.main();
   });
 }

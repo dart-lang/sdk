@@ -1579,8 +1579,8 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
             compiler::Address(
                 THR, compiler::target::Thread::
                          call_native_through_safepoint_entry_point_offset()));
-      __ lx(target, compiler::Address(
-                        THR, kPropagateErrorRuntimeEntry.OffsetFromThread()));
+      __ LoadFromOffset(target, THR,
+                        kPropagateErrorRuntimeEntry.OffsetFromThread());
       __ jalr(temp1);
 #if defined(DEBUG)
       // We should never return with normal controlflow from this.
@@ -2154,11 +2154,7 @@ void LoadCodeUnitsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ lhu(result, element_address);
       break;
     case compiler::kUnsignedFourBytes:
-#if XLEN == 32
-      __ lw(result, element_address);
-#else
       __ lwu(result, element_address);
-#endif
       break;
     default:
       UNREACHABLE();
@@ -4267,11 +4263,35 @@ void BinaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ fdivd(result, left, right);
         break;
       case Token::kMIN:
-        __ fmind(result, left, right);
+      case Token::kMAX: {
+        const bool is_min = op_kind() == Token::kMIN;
+        if (__ Supports(RV_Zfa)) {
+          if (is_min) {
+            __ fminmd(result, left, right);
+          } else {
+            __ fmaxmd(result, left, right);
+          }
+        } else {
+          // fmind/fmaxd return the non-NaN operand, but Float64x2 min/max must
+          // propagate NaNs. Return a NaN operand directly, as MathMinMax does.
+          compiler::Label done;
+          __ feqd(TMP, left, left);
+          __ fmvd(result, left);
+          ASSERT(result != left);
+          __ beqz(TMP, &done, compiler::Assembler::kNearJump);
+          __ feqd(TMP, right, right);
+          __ fmvd(result, right);
+          ASSERT(result != right);
+          __ beqz(TMP, &done, compiler::Assembler::kNearJump);
+          if (is_min) {
+            __ fmind(result, left, right);
+          } else {
+            __ fmaxd(result, left, right);
+          }
+          __ Bind(&done);
+        }
         break;
-      case Token::kMAX:
-        __ fmaxd(result, left, right);
-        break;
+      }
       default:
         UNREACHABLE();
     }
@@ -4291,11 +4311,35 @@ void BinaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ fdivs(result, left, right);
         break;
       case Token::kMIN:
-        __ fmins(result, left, right);
+      case Token::kMAX: {
+        const bool is_min = op_kind() == Token::kMIN;
+        if (__ Supports(RV_Zfa)) {
+          if (is_min) {
+            __ fminms(result, left, right);
+          } else {
+            __ fmaxms(result, left, right);
+          }
+        } else {
+          // fmins/fmaxs return the non-NaN operand, but Float32x4 min/max must
+          // propagate NaNs. Return a NaN operand directly, as MathMinMax does.
+          compiler::Label done;
+          __ feqs(TMP, left, left);
+          __ fmvs(result, left);
+          ASSERT(result != left);
+          __ beqz(TMP, &done, compiler::Assembler::kNearJump);
+          __ feqs(TMP, right, right);
+          __ fmvs(result, right);
+          ASSERT(result != right);
+          __ beqz(TMP, &done, compiler::Assembler::kNearJump);
+          if (is_min) {
+            __ fmins(result, left, right);
+          } else {
+            __ fmaxs(result, left, right);
+          }
+          __ Bind(&done);
+        }
         break;
-      case Token::kMAX:
-        __ fmaxs(result, left, right);
-        break;
+      }
       default:
         UNREACHABLE();
     }
@@ -4717,50 +4761,90 @@ void FloatToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ fcvtds(result, value);
 }
 
-LocationSummary* FloatCompareInstr::MakeLocationSummary(Zone* zone,
-                                                        bool opt) const {
+LocationSummary* CompareAsMaskInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
   const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* result = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  result->set_in(0, Location::RequiresFpuRegister());
-  result->set_in(1, Location::RequiresFpuRegister());
+  switch (input_representation()) {
+    case kUnboxedInt32:
+      result->set_in(0, Location::RequiresRegister());
+      result->set_in(1, Location::RequiresRegister());
+      break;
+    case kUnboxedFloat:
+      result->set_in(0, Location::RequiresFpuRegister());
+      result->set_in(1, Location::RequiresFpuRegister());
+      break;
+    default:
+      UNREACHABLE();
+  }
   result->set_out(0, Location::RequiresRegister());
   return result;
 }
 
-void FloatCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const FRegister lhs = locs()->in(0).fpu_reg();
-  const FRegister rhs = locs()->in(1).fpu_reg();
+void CompareAsMaskInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register result = locs()->out(0).reg();
 
-  switch (op_kind()) {
-    case Token::kEQ:
-      __ feqs(result, lhs, rhs);  // lhs op rhs ? 1 : 0
-      __ neg(result, result);     // lhs op rhs ? -1 : 0
+  switch (input_representation()) {
+    case kUnboxedInt32: {
+      const Register lhs = locs()->in(0).reg();
+      const Register rhs = locs()->in(1).reg();
+      switch (op_kind()) {
+        case Token::kEQ:
+          __ subw(result, lhs, rhs);    // lhs op rhs ? 0 : nz
+          __ snez(result, result);      // lhs op rhs ? 0 : 1
+          __ addi(result, result, -1);  // lhs op rhs ? -1 : 0
+          break;
+        case Token::kNE:
+#if XLEN > 32
+          __ subw(result, lhs, rhs);  // lhs op rhs ? 0 : nz
+#else
+          __ sub(result, lhs, rhs);
+#endif
+          __ snez(result, result);  // lhs op rhs ? 0 : 1
+          __ neg(result, result);   // lhs op rhs ? 0 : -1
+          break;
+        default:
+          UNREACHABLE();
+      }
       break;
-    case Token::kLT:
-      __ flts(result, lhs, rhs);
-      __ neg(result, result);
-      break;
-    case Token::kLTE:
-      __ fles(result, lhs, rhs);
-      __ neg(result, result);
-      break;
-    case Token::kGT:
-      __ fgts(result, lhs, rhs);
-      __ neg(result, result);
-      break;
-    case Token::kGTE:
-      __ fges(result, lhs, rhs);
-      __ neg(result, result);
-      break;
+    }
+    case kUnboxedFloat: {
+      const FRegister lhs = locs()->in(0).fpu_reg();
+      const FRegister rhs = locs()->in(1).fpu_reg();
+      switch (op_kind()) {
+        case Token::kEQ:
+          __ feqs(result, lhs, rhs);  // lhs op rhs ? 1 : 0
+          __ neg(result, result);     // lhs op rhs ? -1 : 0
+          break;
+        case Token::kLT:
+          __ flts(result, lhs, rhs);
+          __ neg(result, result);
+          break;
+        case Token::kLTE:
+          __ fles(result, lhs, rhs);
+          __ neg(result, result);
+          break;
+        case Token::kGT:
+          __ fgts(result, lhs, rhs);
+          __ neg(result, result);
+          break;
+        case Token::kGTE:
+          __ fges(result, lhs, rhs);
+          __ neg(result, result);
+          break;
 
-    case Token::kNE:
-      __ feqs(result, lhs, rhs);    // lhs op rhs ? 0 : 1
-      __ addi(result, result, -1);  // lhs op rhs ? -1 : 0
-      break;
+        case Token::kNE:
+          __ feqs(result, lhs, rhs);    // lhs op rhs ? 0 : 1
+          __ addi(result, result, -1);  // lhs op rhs ? -1 : 0
+          break;
 
+        default:
+          UNREACHABLE();
+      }
+      break;
+    }
     default:
       UNREACHABLE();
   }
@@ -6032,18 +6116,10 @@ static void EmitShiftUint32ByConstant(FlowGraphCompiler* compiler,
     switch (op_kind) {
       case Token::kSHR:
       case Token::kUSHR:
-#if XLEN == 32
-        __ srli(out, left, shift);
-#else
         __ srliw(out, left, shift);
-#endif
         break;
       case Token::kSHL:
-#if XLEN == 32
-        __ slli(out, left, shift);
-#else
         __ slliw(out, left, shift);
-#endif
         break;
       default:
         UNREACHABLE();
@@ -6059,18 +6135,10 @@ static void EmitShiftUint32ByRegister(FlowGraphCompiler* compiler,
   switch (op_kind) {
     case Token::kSHR:
     case Token::kUSHR:
-#if XLEN == 32
-      __ srl(out, left, right);
-#else
       __ srlw(out, left, right);
-#endif
       break;
     case Token::kSHL:
-#if XLEN == 32
-      __ sll(out, left, right);
-#else
       __ sllw(out, left, right);
-#endif
       break;
     default:
       UNREACHABLE();
@@ -6382,21 +6450,13 @@ void BinaryUint32OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ xor_(out, left, right);
         break;
       case Token::kADD:
-#if XLEN == 32
-        __ add(out, left, right);
-#elif XLEN > 32
         __ addw(out, left, right);
-#endif
         break;
       case Token::kSUB:
-#if XLEN == 32
-        __ sub(out, left, right);
-#elif XLEN > 32
         __ subw(out, left, right);
-#endif
         break;
       case Token::kMUL:
-        __ mul(out, left, right);
+        __ mulw(out, left, right);
         break;
       default:
         UNREACHABLE();

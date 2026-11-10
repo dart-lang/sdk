@@ -10,7 +10,7 @@
 // ignore_for_file: unnecessary_type_name_in_constructor
 
 // ignore: constant_identifier_names
-const String PROTOCOL_VERSION = '1.40.1';
+const String PROTOCOL_VERSION = '1.41.0';
 
 const String analysisNotificationAnalyzedFiles = 'analysis.analyzedFiles';
 const String analysisNotificationAnalyzedFilesDirectories = 'directories';
@@ -150,7 +150,6 @@ const String diagnosticResponseGetDiagnosticsContexts = 'contexts';
 const String diagnosticResponseGetServerPortPort = 'port';
 const String editRequestBulkFixes = 'edit.bulkFixes';
 const String editRequestBulkFixesCodes = 'codes';
-const String editRequestBulkFixesInTestMode = 'inTestMode';
 const String editRequestBulkFixesIncluded = 'included';
 const String editRequestBulkFixesUpdatePubspec = 'updatePubspec';
 const String editRequestFormat = 'edit.format';
@@ -340,4 +339,6 @@ const String serverRequestShowMessageRequestMessage = 'message';
 const String serverRequestShowMessageRequestType = 'type';
 const String serverRequestShutdown = 'server.shutdown';
 const String serverResponseGetVersionVersion = 'version';
+const String serverResponseSetClientCapabilitiesLspCapabilities =
+    'lspCapabilities';
 const String serverResponseShowMessageRequestAction = 'action';

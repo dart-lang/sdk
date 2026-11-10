@@ -80,9 +80,10 @@ class N {}
     await resolveTestCodeWithDiagnostics(r'''
 library L;
 export 'lib.dart';
+// [context 1][column 1][length 6] The previous export that is being duplicated.
 export 'lib.dart';
 //     ^^^^^^^^^^
-// [diag.duplicateExport] Duplicate export.
+// [diag.duplicateExport][context 1] Duplicate export.
 ''');
   }
 
@@ -1502,7 +1503,7 @@ test() {
   return f;
 }
 ''');
-    assertType(result.findNode.assignment('f = C()'), 'void Function()');
+    assertType(result.findNode.directAssignment('f = C()'), 'void Function()');
   }
 
   test_importDuplicatedLibraryName() async {
@@ -1510,11 +1511,12 @@ test() {
     await resolveTestCodeWithDiagnostics(r'''
 library test;
 import 'lib.dart';
+// [context 1][column 1][length 6] The previous import that is being duplicated.
 //     ^^^^^^^^^^
 // [diag.unusedImport] Unused import: 'lib.dart'.
 import 'lib.dart';
 //     ^^^^^^^^^^
-// [diag.duplicateImport] Duplicate import.
+// [diag.duplicateImport][context 1] Duplicate import.
 // [diag.unusedImport] Unused import: 'lib.dart'.
 ''');
   }
@@ -2367,9 +2369,15 @@ void test(Object x) {
   x; // demoted
 }
 ''');
-    assertType(result.findNode.simple('x; // promoted'), 'Object Function()');
-    assertType(result.findNode.assignment('x = B()'), 'B');
-    assertType(result.findNode.simple('x; // demoted'), 'Object');
+    assertType(
+      result.findNode.unqualifiedNameExpression('x; // promoted'),
+      'Object Function()',
+    );
+    assertType(result.findNode.directAssignment('x = B()'), 'B');
+    assertType(
+      result.findNode.unqualifiedNameExpression('x; // demoted'),
+      'Object',
+    );
   }
 
   test_nonBoolExpression_interfaceType() async {
@@ -2784,8 +2792,8 @@ import 'b.dart';
 @B.named8()
 main() {}
 ''');
-    expect(result.unit.declarations, hasLength(1));
-    var mainDecl = result.unit.declarations[0];
+    expect(result.unit.declarations2, hasLength(1));
+    var mainDecl = result.unit.declarations2[0];
     expect(mainDecl.metadata, hasLength(8));
     for (var metadata in mainDecl.metadata) {
       var value = metadata.elementAnnotation!.computeConstantValue()!;
@@ -3229,32 +3237,6 @@ import 'lib.dart' as p;
 f(Type t) {}
 main() {
   f(p.F);
-}
-''');
-  }
-
-  test_undefinedSuperMethod_field() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class A {
-  var m;
-}
-class B extends A {
-  f() {
-    super.m();
-  }
-}
-''');
-  }
-
-  test_undefinedSuperMethod_method() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class A {
-  m() {}
-}
-class B extends A {
-  f() {
-    super.m();
-  }
 }
 ''');
   }

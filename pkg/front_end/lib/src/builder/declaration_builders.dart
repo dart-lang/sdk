@@ -14,6 +14,7 @@ import '../base/messages.dart';
 import '../base/name_space.dart';
 import '../base/problems.dart' show unexpected, unhandled;
 import '../base/scope.dart';
+import '../base/uri_offset.dart';
 import '../base/uris.dart';
 import '../codes/cfe_codes.dart';
 import '../source/source_library_builder.dart';

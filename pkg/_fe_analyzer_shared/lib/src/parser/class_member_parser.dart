@@ -16,7 +16,7 @@ import 'parser_impl.dart' show Parser;
 class ClassMemberParser extends Parser {
   Parser? skipParser;
 
-  ClassMemberParser(
+  new(
     super.listener, {
     super.useImplicitCreationExpression,
     required super.experimentalFeatures,

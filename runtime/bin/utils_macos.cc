@@ -34,8 +34,7 @@ void OSError::SetCodeAndMessage(SubSystem sub_system, int code) {
   if (sub_system == kSystem) {
     const int kBufferSize = 1024;
     char error_message[kBufferSize];
-    Utils::StrError(code, error_message, kBufferSize);
-    SetMessage(error_message);
+    SetMessage(Utils::StrError(code, error_message, kBufferSize));
   } else if (sub_system == kGetAddressInfo) {
     SetMessage(gai_strerror(code));
   } else {

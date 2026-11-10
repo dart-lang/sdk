@@ -4,22 +4,30 @@
 
 import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 
+/// The lookup through `super` found a member with the name, but it is not
+/// concrete, so it can't be invoked.
+final class AbstractMemberSuperLookupRecovery extends SuperLookupRecovery {
+  final InternalExecutableElement member;
+
+  new(this.member);
+}
+
 /// Failure because of there is no most specific signature in [candidates].
 class CandidatesConflict extends Conflict {
   /// The list has at least two items, because the only item is always valid.
   final List<InternalExecutableElement> candidates;
 
-  CandidatesConflict({required super.name, required this.candidates});
+  new({required super.name, required this.candidates});
 }
 
 /// Failure to find a valid signature from superinterfaces.
@@ -27,7 +35,7 @@ class Conflict {
   /// The name for which we failed to find a valid signature.
   final Name name;
 
-  Conflict({required this.name});
+  new({required this.name});
 }
 
 /// The extension type inherits a method and a setter with the same name,
@@ -37,11 +45,7 @@ class ExtensionTypeConflictingInheritedMethodAndSetterConflict
   final InternalMethodElement method;
   final InternalSetterElement setter;
 
-  ExtensionTypeConflictingInheritedMethodAndSetterConflict({
-    required super.name,
-    required this.method,
-    required this.setter,
-  });
+  new({required super.name, required this.method, required this.setter});
 }
 
 /// The extension type has a static member that conflicts with an inherited
@@ -50,11 +54,7 @@ class ExtensionTypeConflictingStaticAndInstanceConflict extends Conflict {
   final InternalExecutableElement declared;
   final InternalExecutableElement inherited;
 
-  ExtensionTypeConflictingStaticAndInstanceConflict({
-    required super.name,
-    required this.declared,
-    required this.inherited,
-  });
+  new({required super.name, required this.declared, required this.inherited});
 }
 
 /// Failure because of a getter and a method from direct superinterfaces.
@@ -62,11 +62,7 @@ class GetterMethodConflict extends Conflict {
   final InternalGetterElement getter;
   final InternalMethodElement method;
 
-  GetterMethodConflict({
-    required super.name,
-    required this.getter,
-    required this.method,
-  });
+  new({required super.name, required this.getter, required this.method});
 }
 
 /// The extension type has both an extension and non-extension member
@@ -75,7 +71,7 @@ class HasNonExtensionAndExtensionMemberConflict extends Conflict {
   final List<InternalExecutableElement> nonExtension;
   final List<InternalExecutableElement> extension;
 
-  HasNonExtensionAndExtensionMemberConflict({
+  new({
     required super.name,
     required this.nonExtension,
     required this.extension,
@@ -298,6 +294,101 @@ class InheritanceManager3 {
     return interface.overridden[name];
   }
 
+  /// Returns an instance member of [type], declared in another library than
+  /// [name] and spelled like the private [name], or `null` if there is none.
+  ///
+  /// This is for reporting a failed lookup of [name]: `_foo` of another
+  /// library is a different name, so the lookup doesn't find it. The manifests
+  /// of interfaces don't include private names, so we ask the declarations,
+  /// which records requirements for private names too.
+  ///
+  /// Static members are ignored, because the lookup of instance members would
+  /// not find them even if [name] were accessible.
+  InternalExecutableElement? getPrivateMemberOfOtherLibrary(
+    InterfaceTypeImpl type,
+    Name name,
+  ) {
+    var spelling = name.forGetter.name;
+    for (var candidate in [type, ...type.element.allSupertypes]) {
+      var declaration = candidate.element;
+      if (declaration.library.uri != name.libraryUri) {
+        if (declaration.getGetter(spelling) ??
+                declaration.getMethod(spelling) ??
+                declaration.getSetter(spelling)
+            case var member?) {
+          if (!member.isStatic) {
+            return member;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  /// Returns why the lookup of [name] through `super` in [element] found no
+  /// concrete member to invoke.
+  ///
+  /// This is recovery, for when [getMember] with `forSuper` returned `null`.
+  SuperLookupRecovery recoverFailedSuperLookup(
+    InterfaceElement element,
+    Name name,
+  ) {
+    element as InterfaceElementImpl; // TODO(scheglov): remove cast
+
+    // What `super` sees, excluding the interfaces that [element] implements.
+    var superTypes = switch (element) {
+      ClassElementImpl() => [?element.supertype, ...element.mixins],
+      EnumElementImpl() => [?element.supertype, ...element.mixins],
+      ExtensionTypeElementImpl() => const <InterfaceTypeImpl>[],
+      MixinElementImpl() => element.superclassConstraints,
+    };
+
+    // Returns the member with [memberName] that `super` has, abstract or
+    // concrete. Records requirements for [memberName] only.
+    InternalExecutableElement? getSuperMember(Name memberName) {
+      if (element is MixinElementImpl) {
+        return getMember(element, memberName, forSuper: true);
+      }
+      for (var type in superTypes.reversed) {
+        if (getMember3(type, memberName) case var member?) {
+          return member;
+        }
+      }
+      return null;
+    }
+
+    // Returns a member that `super` has, declared in another library and
+    // spelled like the private [name].
+    InternalExecutableElement? getPrivateOfOtherLibrary() {
+      for (var superType in superTypes) {
+        if (getPrivateMemberOfOtherLibrary(superType, name) case var member?) {
+          return member;
+        }
+      }
+      return null;
+    }
+
+    if (getSuperMember(name) case var member?) {
+      return AbstractMemberSuperLookupRecovery(member);
+    }
+
+    // A getter or method instead of a setter, or a setter instead of a getter.
+    var otherName = name.isSetter ? name.forGetter : name.forSetter;
+    if (getSuperMember(otherName) case var member?) {
+      return MissingMemberSuperLookupRecovery(member);
+    }
+
+    // The lookups above don't find a private member of another library,
+    // because `_foo` of another library is a different name. Look for one,
+    // to report that it is private. A public name is the same in every
+    // library, so the lookups above would have found it.
+    if (!name.isPublic) {
+      return MissingMemberSuperLookupRecovery(getPrivateOfOtherLibrary());
+    }
+
+    return const MissingMemberSuperLookupRecovery(null);
+  }
+
   /// Remove interfaces for classes defined in specified libraries.
   void removeOfLibraries(Set<Uri> uriSet) {
     _interfaces.removeWhere((element, _) {
@@ -452,10 +543,10 @@ class InheritanceManager3 {
     // https://github.com/flutter/flutter/issues/178925#issuecomment-3573399510
     // TODO(scheglov): Consider having only one merge pass of candidates.
     var expandedCandidates = candidates;
-    if (candidates.any((c) => c.enclosingElement == targetClass)) {
+    if (candidates.any((c) => _isCombinedFor(c, targetClass))) {
       expandedCandidates = [];
       for (var candidate in candidates) {
-        if (candidate.enclosingElement == targetClass) {
+        if (_isCombinedFor(candidate, targetClass)) {
           if (_combinedSignatures[targetClass]?[name] case var previous?) {
             expandedCandidates.addAll(previous);
             continue;
@@ -467,7 +558,7 @@ class InheritanceManager3 {
 
     (_combinedSignatures[targetClass] ??= {})[name] = expandedCandidates;
 
-    return _topMerge(typeSystem, targetClass, validOverrides);
+    return _topMerge(typeSystem, targetClass, candidates, validOverrides);
   }
 
   /// The given [namedCandidates] maps names to candidates from direct
@@ -715,18 +806,6 @@ class InheritanceManager3 {
         if (mixinConflicts.isNotEmpty) {
           conflicts.addAll(mixinConflicts);
         }
-      }
-    }
-
-    for (var entry in implemented.entries) {
-      var result = _inheritCovariance(
-        element,
-        namedCandidates,
-        entry.key,
-        entry.value,
-      );
-      if (!identical(entry.value, result)) {
-        implemented[entry.key] = result;
       }
     }
 
@@ -1056,281 +1135,84 @@ class InheritanceManager3 {
     );
   }
 
-  /// If a candidate from [namedCandidates] has covariant parameters, return
-  /// a copy of the [executable] with the corresponding parameters marked
-  /// covariant. If there are no covariant parameters, or parameters to
-  /// update are already covariant, return the [executable] itself.
-  InternalExecutableElement _inheritCovariance(
-    InterfaceElementImpl class_,
-    Map<Name, List<InternalExecutableElement>> namedCandidates,
-    Name name,
-    InternalExecutableElement executable,
-  ) {
-    if (executable.enclosingElement == class_) {
-      return executable;
-    }
-
-    var parameters = executable.formalParameters;
-    if (parameters.isEmpty) {
-      return executable;
-    }
-
-    var candidates = namedCandidates[name];
-    if (candidates == null) {
-      return executable;
-    }
-
-    // Find parameters that are covariant (by declaration) in any overridden.
-    Set<_ParameterDesc>? covariantParameters;
-    for (var candidate in candidates) {
-      var parameters = candidate.formalParameters;
-      for (var i = 0; i < parameters.length; i++) {
-        var parameter = parameters[i];
-        if (parameter.isCovariant) {
-          covariantParameters ??= {};
-          covariantParameters.add(_ParameterDesc(i, parameter));
-        }
-      }
-    }
-
-    if (covariantParameters == null) {
-      return executable;
-    }
-
-    // Update covariance of the parameters of the chosen executable.
-    List<FormalParameterElementImpl>? transformedParameters;
-    for (var index = 0; index < parameters.length; index++) {
-      var parameter = parameters[index];
-      var shouldBeCovariant = covariantParameters.contains(
-        _ParameterDesc(index, parameter),
-      );
-      if (parameter.isCovariant != shouldBeCovariant) {
-        transformedParameters ??= [
-          for (var parameter in parameters) parameter.baseElement,
-        ];
-        transformedParameters[index] = parameter.baseElement.copyWith(
-          isCovariant: shouldBeCovariant,
-        );
-      }
-    }
-
-    if (transformedParameters == null) {
-      return executable;
-    }
-
-    if (executable is InternalMethodElement) {
-      var fragmentName = executable.name ?? '';
-
-      var elementReference = class_.reference.getOrCreateMethod(fragmentName);
-      if (elementReference.element case MethodElementImpl result) {
-        return result;
-      }
-
-      var resultFragment = MethodFragmentImpl(name: executable.name);
-      resultFragment.enclosingFragment = class_.firstFragment;
-      resultFragment.isOriginInterface = true;
-      var freshTypeParameters = _FreshExecutableTypeParameters(
-        executable.typeParameters,
-      );
-      resultFragment.typeParameters = freshTypeParameters.fragments;
-
-      var elementName = executable.name!;
-      var result = MethodElementImpl(
-        name: elementName,
-        reference: elementReference,
-        firstFragment: resultFragment,
-      );
-      freshTypeParameters.initializeElements(result.typeParameters);
-
-      var freshFormalParameterElements = freshTypeParameters
-          .freshFormalParameterElements(transformedParameters);
-      resultFragment.formalParameters = freshFormalParameterElements
-          .map((e) => e.firstFragment)
-          .toFixedList();
-      result.returnType = freshTypeParameters.substitute(executable.returnType);
-
-      return result;
-    }
-
-    if (executable is SetterElementImpl) {
-      var fragmentName = executable.name ?? '';
-      var setterReference = class_.reference.getOrCreateSetter(fragmentName);
-      if (setterReference.element case SetterElementImpl result) {
-        return result;
-      }
-
-      var resultFragment = SetterFragmentImpl(name: executable.name);
-      resultFragment.enclosingFragment = class_.firstFragment;
-      resultFragment.isOriginInterface = true;
-      var freshTypeParameters = _FreshExecutableTypeParameters(const []);
-      freshTypeParameters.initializeElements(const []);
-      var freshFormalParameterElements = freshTypeParameters
-          .freshFormalParameterElements(transformedParameters);
-      resultFragment.formalParameters = freshFormalParameterElements
-          .map((e) => e.firstFragment)
-          .toFixedList();
-
-      var result = SetterElementImpl(setterReference, resultFragment);
-      result.returnType = freshTypeParameters.substitute(executable.returnType);
-
-      var resultField = FieldFragmentImpl(name: executable.name);
-      resultField.enclosingFragment = class_.firstFragment;
-      resultField.isOriginGetterSetter = true;
-
-      var elementName = executable.name!;
-      var fieldReference = class_.reference.getOrCreateField(elementName);
-      assert(fieldReference.element == null);
-      FieldElementImpl(reference: fieldReference, firstFragment: resultField);
-
-      return result;
-    }
-
-    return executable;
-  }
-
-  /// Given one or more [validOverrides], merge them into a single resulting
-  /// signature. This signature always exists.
+  /// Merges [validOverrides] into a single signature, which always exists.
+  ///
+  /// The [validOverrides] are the most specific of [candidates]: their types
+  /// are subtypes of the types of all [candidates]. The result overrides all
+  /// [candidates], so a parameter of the result is covariant if the
+  /// corresponding parameter of any of them is covariant.
+  ///
+  /// Returns one of [validOverrides] if it has this signature. Otherwise,
+  /// returns a view of the first of them with this signature, in the
+  /// interface of [targetClass].
   InternalExecutableElement _topMerge(
     TypeSystemImpl typeSystem,
     InterfaceElementImpl targetClass,
+    List<InternalExecutableElement> candidates,
     List<InternalExecutableElement> validOverrides,
   ) {
     var firstElement = validOverrides[0];
-
-    if (validOverrides.length == 1) {
-      return firstElement;
-    }
-
     var firstType = firstElement.type;
-    var allFirstType = true;
-    for (var e in validOverrides) {
-      if (e.type != firstType) {
-        allFirstType = false;
-        break;
-      }
-    }
-    if (allFirstType) {
-      return firstElement;
-    }
 
-    var resultType = _topMergeSignatureTypes(
-      typeSystem: typeSystem,
-      validOverrides: validOverrides,
-    );
+    FunctionTypeImpl resultType;
+    if (validOverrides.every((e) => e.type == firstType)) {
+      resultType = firstType;
+    } else {
+      resultType = _topMergeSignatureTypes(
+        typeSystem: typeSystem,
+        validOverrides: validOverrides,
+      );
+    }
+    resultType = _addCovarianceFrom(resultType, candidates);
 
     for (var executable in validOverrides) {
-      if (executable.type == resultType) {
+      if (_isSameSignature(executable.type, resultType)) {
         return executable;
       }
     }
 
-    if (firstElement is InternalMethodElement) {
-      var fragmentName = firstElement.firstFragment.name!;
+    return CombinedExecutableElementImpl.forCandidate(
+      owner: targetClass,
+      candidate: firstElement,
+      signature: resultType,
+    );
+  }
 
-      var elementReference = targetClass.reference.getOrCreateMethod(
-        fragmentName,
-      );
-      if (elementReference.element case MethodElementImpl result) {
-        return result;
+  /// Returns [type], with formal parameters made covariant if the
+  /// corresponding parameters of any of [candidates] are covariant.
+  static FunctionTypeImpl _addCovarianceFrom(
+    FunctionTypeImpl type,
+    List<InternalExecutableElement> candidates,
+  ) {
+    var parameters = type.formalParameters;
+
+    List<InternalFormalParameterElement>? newParameters;
+    for (var i = 0; i < parameters.length; i++) {
+      var parameter = parameters[i];
+      if (parameter.isCovariant) {
+        continue;
       }
-      assert(elementReference.element == null);
-
-      var resultFragment = MethodFragmentImpl(name: fragmentName);
-      resultFragment.enclosingFragment = targetClass.firstFragment;
-      resultFragment.isOriginInterface = true;
-      var freshTypeParameters = _FreshExecutableTypeParameters(
-        resultType.typeParameters,
-      );
-      resultFragment.typeParameters = freshTypeParameters.fragments;
-
-      var elementName = firstElement.name!;
-      var result = MethodElementImpl(
-        name: elementName,
-        reference: elementReference,
-        firstFragment: resultFragment,
-      );
-      freshTypeParameters.initializeElements(result.typeParameters);
-
-      var freshFormalParameterElements = freshTypeParameters
-          .freshFormalParameterElements(resultType.formalParameters);
-      resultFragment.formalParameters = freshFormalParameterElements
-          .map((e) => e.firstFragment)
-          .toFixedList();
-      result.returnType = freshTypeParameters.substitute(resultType.returnType);
-
-      return result;
-    } else {
-      firstElement as InternalPropertyAccessorElement;
-      var fragmentName = firstElement.name!;
-      var field = FieldFragmentImpl(name: fragmentName);
-      field.isOriginGetterSetter = true;
-
-      PropertyAccessorFragmentImpl resultFragment;
-      PropertyAccessorElementImpl resultElement;
-      if (firstElement is InternalGetterElement) {
-        var elementReference = targetClass.reference.getOrCreateGetter(
-          fragmentName,
-        );
-        if (elementReference.element case GetterElementImpl result) {
-          return result;
-        }
-        assert(elementReference.element == null);
-
-        var fragment = GetterFragmentImpl(name: fragmentName);
-        resultFragment = fragment;
-
-        var result = GetterElementImpl(elementReference, fragment);
-        resultElement = result;
-      } else {
-        var elementReference = targetClass.reference.getOrCreateSetter(
-          fragmentName,
-        );
-        if (elementReference.element case SetterElementImpl result) {
-          return result;
-        }
-        assert(elementReference.element == null);
-
-        var fragment = SetterFragmentImpl(name: fragmentName);
-        resultFragment = fragment;
-        resultFragment.isOriginInterface = true;
-
-        var result = SetterElementImpl(elementReference, fragment);
-        resultElement = result;
+      var isCovariant = candidates.any((candidate) {
+        var corresponding = candidate.formalParameters
+            .correspondingFormalParameter(parameter, i);
+        return corresponding != null && corresponding.isCovariant;
+      });
+      if (isCovariant) {
+        newParameters ??= parameters.toList(growable: false);
+        newParameters[i] = parameter.copyWith(isCovariant: true);
       }
-      resultFragment.enclosingFragment = targetClass.firstFragment;
-      var freshTypeParameters = _FreshExecutableTypeParameters(const []);
-      freshTypeParameters.initializeElements(const []);
-      var freshFormalParameterElements = freshTypeParameters
-          .freshFormalParameterElements(resultType.formalParameters);
-      resultFragment.formalParameters = freshFormalParameterElements
-          .map((e) => e.firstFragment)
-          .toFixedList();
-      resultElement.returnType = freshTypeParameters.substitute(
-        resultType.returnType,
-      );
-
-      field.enclosingFragment = targetClass.firstFragment;
-
-      var elementName = firstElement.name!;
-      var elementReference = targetClass.reference.getOrCreateField(
-        elementName,
-      );
-      assert(elementReference.element == null);
-      var fieldElement = FieldElementImpl(
-        reference: elementReference,
-        firstFragment: field,
-      );
-      resultFragment.element.variable = fieldElement;
-
-      if (firstElement is GetterElement) {
-        fieldElement.type = resultType.returnType;
-      } else {
-        var type = freshFormalParameterElements[0].type;
-        fieldElement.type = type;
-      }
-
-      return resultElement;
     }
+
+    if (newParameters == null) {
+      return type;
+    }
+
+    return FunctionTypeImpl(
+      typeParameters: type.typeParameters,
+      formalParameters: newParameters,
+      returnType: type.returnType,
+      nullabilitySuffix: type.nullabilitySuffix,
+    );
   }
 
   static Map<Name, InternalExecutableElement> _getTypeMembers(
@@ -1377,9 +1259,36 @@ class InheritanceManager3 {
     return validOverrides;
   }
 
+  /// Whether [executable] is the result of combining signatures for
+  /// [targetClass], for example of a mixin layer.
+  static bool _isCombinedFor(
+    InternalExecutableElement executable,
+    InterfaceElementImpl targetClass,
+  ) {
+    return executable is CombinedExecutableElementImpl &&
+        executable.owner == targetClass;
+  }
+
   static bool _isDeclaredInObject(InternalExecutableElement element) {
     var enclosing = element.enclosingElement;
     return enclosing is ClassElement && enclosing.isDartCoreObject;
+  }
+
+  /// Whether [a] and [b] are equal function types with the same covariant
+  /// parameters. Equality of function types ignores covariance.
+  static bool _isSameSignature(FunctionTypeImpl a, FunctionTypeImpl b) {
+    if (a != b) {
+      return false;
+    }
+    // Equal function types have the same parameters, named ones are sorted.
+    var aParameters = a.formalParameters;
+    var bParameters = b.formalParameters;
+    for (var i = 0; i < aParameters.length; i++) {
+      if (aParameters[i].isCovariant != bParameters[i].isCovariant) {
+        return false;
+      }
+    }
+    return true;
   }
 
   static FunctionTypeImpl _topMergeSignatureTypes({
@@ -1447,7 +1356,7 @@ class Interface {
   /// superclasses, or interfaces.
   Map<Name, InternalExecutableElement>? inheritedMap;
 
-  Interface._({
+  new _({
     required this.map,
     required this.declared,
     required this.implemented,
@@ -1463,6 +1372,18 @@ class Interface {
   bool isSuperImplemented(Name name) {
     return superImplemented.last.containsKey(name);
   }
+}
+
+/// The lookup through `super` found no member with the name.
+final class MissingMemberSuperLookupRecovery extends SuperLookupRecovery {
+  /// The member that explains the failure, or `null` if there is none.
+  ///
+  /// This is the member with the same name, but of the other kind, such as
+  /// a getter when a setter was looked up. Otherwise, it is a private getter
+  /// or setter of another library, which is spelled like the name.
+  final InternalExecutableElement? foundInstead;
+
+  const new(this.foundInstead);
 }
 
 /// A public name, or a private name qualified by a library URI.
@@ -1484,7 +1405,7 @@ class Name {
   @override
   final int hashCode;
 
-  factory Name(Uri? libraryUri, String name) {
+  factory(Uri? libraryUri, String name) {
     if (name.startsWith('_')) {
       var hashCode = Object.hash(libraryUri, name);
       return Name._internal(libraryUri, name, false, hashCode);
@@ -1493,11 +1414,11 @@ class Name {
     }
   }
 
-  factory Name.forLibrary(LibraryElement? library, String name) {
+  factory forLibrary(LibraryElement? library, String name) {
     return Name(library?.uri, name);
   }
 
-  Name._internal(this.libraryUri, this.name, this.isPublic, this.hashCode);
+  new _internal(this.libraryUri, this.name, this.isPublic, this.hashCode);
 
   Name get forGetter {
     if (isSetter) {
@@ -1559,10 +1480,12 @@ class Name {
 class NotUniqueExtensionMemberConflict extends Conflict {
   final List<InternalExecutableElement> candidates;
 
-  NotUniqueExtensionMemberConflict({
-    required super.name,
-    required this.candidates,
-  });
+  new({required super.name, required this.candidates});
+}
+
+/// Why a lookup through `super` found no concrete member to invoke.
+sealed class SuperLookupRecovery {
+  const new();
 }
 
 class _ExtensionTypeCandidates {
@@ -1571,7 +1494,7 @@ class _ExtensionTypeCandidates {
   final List<InternalGetterElement> getters = [];
   final List<InternalSetterElement> setters = [];
 
-  _ExtensionTypeCandidates(this.name);
+  new(this.name);
 
   List<InternalExecutableElement> get all {
     return [...methods, ...getters, ...setters];
@@ -1601,87 +1524,5 @@ class _ExtensionTypeCandidates {
       ...getters,
       if (!precludedSetters.contains(name)) ...setters,
     ];
-  }
-}
-
-/// Owns the fresh type parameters used while synthesizing an executable.
-///
-/// The caller creates [fragments] first, attaches them to a fragment, and only
-/// then calls [initializeElements] with the element-owned type parameters that
-/// were materialized from those fragments.
-final class _FreshExecutableTypeParameters {
-  final List<TypeParameterElementImpl> _source;
-  final List<TypeParameterFragmentImpl> fragments;
-  late final MapSubstitution _substitution;
-
-  _FreshExecutableTypeParameters(this._source)
-    : fragments = [
-        for (var typeParameter in _source)
-          TypeParameterFragmentImpl.synthetic(name: typeParameter.name ?? ''),
-      ];
-
-  List<FormalParameterElementImpl> freshFormalParameterElements(
-    List<InternalFormalParameterElement> formalParameters,
-  ) {
-    return [
-      for (var formalParameter in formalParameters)
-        formalParameter.copyWith(type: substitute(formalParameter.type)),
-    ];
-  }
-
-  void initializeElements(List<TypeParameterElementImpl> target) {
-    _substitution = Substitution.fromPairs2(_source, [
-      for (var element in target)
-        TypeParameterTypeImpl(
-          element: element,
-          nullabilitySuffix: NullabilitySuffix.none,
-        ),
-    ]);
-
-    for (var i = 0; i < _source.length; i++) {
-      var sourceTypeParameter = _source[i];
-      var targetTypeParameter = target[i];
-      if (!sourceTypeParameter.isLegacyCovariant) {
-        targetTypeParameter.variance = sourceTypeParameter.variance;
-      }
-      var defaultType = sourceTypeParameter.defaultType;
-      if (defaultType != null) {
-        targetTypeParameter.defaultType = substitute(defaultType);
-      }
-
-      var bound = sourceTypeParameter.bound;
-      if (bound != null) {
-        targetTypeParameter.bound = substitute(bound);
-      }
-    }
-  }
-
-  TypeImpl substitute(DartType type) => _substitution.substituteType(type);
-}
-
-class _ParameterDesc {
-  final int? index;
-  final String? name;
-
-  factory _ParameterDesc(int index, FormalParameterElement element) {
-    return element.isNamed
-        ? _ParameterDesc.name(element.name)
-        : _ParameterDesc.index(index);
-  }
-
-  _ParameterDesc.index(this.index) : name = null;
-
-  _ParameterDesc.name(this.name) : index = null;
-
-  @override
-  int get hashCode {
-    return index?.hashCode ?? name?.hashCode ?? 0;
-  }
-
-  @override
-  bool operator ==(other) {
-    return other is _ParameterDesc &&
-        other.index == index &&
-        other.name == name;
   }
 }

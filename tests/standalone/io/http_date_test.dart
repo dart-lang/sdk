@@ -51,34 +51,47 @@ void testFormatParseHttpDate() {
 }
 
 void testParseHttpDateFailures() {
-  Expect.throws(() {
+  Expect.throws<HttpException>(() {
     HttpDate.parse("");
   });
   String valid = "Mon, 5 Mar 2012 23:59:59 GMT";
   for (int i = 1; i < valid.length - 1; i++) {
     String tmp = valid.substring(0, i);
-    Expect.throws(() {
+    Expect.throws<HttpException>(() {
       HttpDate.parse(tmp);
     });
-    Expect.throws(() {
+    Expect.throws<HttpException>(() {
       HttpDate.parse(" $tmp");
     });
-    Expect.throws(() {
+    Expect.throws<HttpException>(() {
       HttpDate.parse(" $tmp ");
     });
-    Expect.throws(() {
+    Expect.throws<HttpException>(() {
       HttpDate.parse("$tmp ");
     });
   }
-  Expect.throws(() {
+  Expect.throws<HttpException>(() {
     HttpDate.parse(" $valid");
   });
-  Expect.throws(() {
+  Expect.throws<HttpException>(() {
     HttpDate.parse(" $valid ");
   });
-  Expect.throws(() {
+  Expect.throws<HttpException>(() {
     HttpDate.parse("$valid ");
   });
+
+  // Prefix truncation on asctime-format dates (up to the trailing 4-digit year,
+  // including right after the month and space: "Mon Mar ").
+  String validAsctime = "Mon Mar  5 23:59:59 2012";
+  for (int i = 1; i <= validAsctime.length - 4; i++) {
+    String tmp = validAsctime.substring(0, i);
+    Expect.throws<HttpException>(() {
+      HttpDate.parse(tmp);
+    });
+    Expect.throws<HttpException>(() {
+      HttpDate.parse("$tmp ");
+    });
+  }
 }
 
 void main() {

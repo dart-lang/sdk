@@ -10,7 +10,7 @@
 import "dart:async" show Timer;
 import "dart:core" hide Symbol;
 import "dart:ffi" show Pointer, Struct, Union, IntPtr, Handle, Void, Native;
-import "dart:isolate" show SendPort;
+import "dart:isolate" show Isolate, SendPort;
 import "dart:typed_data" show Int32List, Uint8List;
 import "dart:_vm" show FinalThreadLocal, ThreadLocal;
 
@@ -18,22 +18,6 @@ import "dart:_vm" show FinalThreadLocal, ThreadLocal;
 part "class_id_fasta.dart";
 part "print_patch.dart";
 part "symbol_patch.dart";
-
-// On the VM, we don't make the entire legacy weak mode check
-// const to avoid having a constant in the platform libraries
-// which evaluates differently in weak vs strong mode.
-@patch
-bool typeAcceptsNull<T>() => (const <Null>[]) is List<int> || null is T;
-
-@patch
-@pragma("vm:external-name", "Internal_makeListFixedLength")
-@pragma("vm:exact-result-type", "dart:core#_List")
-external List<T> makeListFixedLength<T>(List<T> growableList);
-
-@patch
-@pragma("vm:external-name", "Internal_makeFixedListUnmodifiable")
-@pragma("vm:exact-result-type", "dart:core#_ImmutableList")
-external List<T> makeFixedListUnmodifiable<T>(List<T> fixedLengthList);
 
 @patch
 @pragma("vm:external-name", "Internal_extractTypeArguments")
@@ -124,6 +108,10 @@ external bool get has63BitSmis;
 class Lists {
   @pragma("vm:prefer-inline")
   static void copy(List src, int srcStart, List dst, int dstStart, int count) {
+    if (srcStart + count > src.length) {
+      throw IterableElementError.tooFew();
+    }
+
     if (srcStart < dstStart) {
       for (
         int i = srcStart + count - 1, j = dstStart + count - 1;
@@ -457,14 +445,6 @@ Future<Object?> loadDynamicModule({Uri? uri, Uint8List? bytes}) {
 
 @pragma("vm:external-name", "Internal_loadDynamicModule")
 external Object? _loadDynamicModule(Uint8List bytes);
-
-@patch
-@pragma("vm:entry-point")
-abstract interface class IsolateGroup {
-  @patch
-  @Native<Handle Function(Handle)>(symbol: "IsolateGroup_runSync")
-  external static Object? _runSync(Object computation);
-}
 
 @pragma("vm:shared")
 final _toStringVisiting = FinalThreadLocal<List<Object>>(() => <Object>[]);

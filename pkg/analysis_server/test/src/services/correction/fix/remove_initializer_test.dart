@@ -17,7 +17,8 @@ void main() {
 }
 
 @reflectiveTest
-class RemoveDeadWildcardInitializerTest extends FixProcessorTest {
+class RemoveDeadWildcardInitializerTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeInitializer;
 
@@ -63,7 +64,7 @@ class T2 {
 }
 
 @reflectiveTest
-class RemoveInitializerTest extends FixProcessorLintTest {
+class RemoveInitializerTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeInitializer;
 

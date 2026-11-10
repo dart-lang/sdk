@@ -102,7 +102,7 @@ FunctionExpression
     var result = await resolveTestCodeWithDiagnostics('''
 var f = ({int x = x}) {};
 //                ^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'x'.
 ''');
 
     var node = result.findNode.singleFormalParameterList;
@@ -120,7 +120,12 @@ FormalParameterList
         name: x
         defaultClause: FormalParameterDefaultClause
           separator: =
-          value2: SimpleIdentifier
+          value2: UnqualifiedNameExpression
+            name: x
+            resolution: InvalidNamedReadResolution
+              recoveryElement: <null>
+            staticType: InvalidType
+          value(v1): SimpleIdentifier
             token: x
             element: <null>
             staticType: InvalidType

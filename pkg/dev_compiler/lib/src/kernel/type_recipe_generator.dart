@@ -275,7 +275,7 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String>
 
   /// Type parameters introduced to the environment while visiting generic
   /// function types nested within other types.
-  var _unboundTypeParameters = <String>[];
+  var _unboundTypeParameters = <StructuralParameter>[];
 
   /// When `true` this visitor will record all of the [InterfaceType]s it
   /// visits.
@@ -306,6 +306,9 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String>
   /// All of the [InterfaceType]s visited.
   final _visitedInterfaceTypes = <InterfaceType>{};
   final _visitedJsInteropTypes = <InterfaceType>{};
+
+  /// Maps a [Library] to the identifier name used in its type recipe.
+  final _libraryRecipeNames = <Library, String>{};
   final CoreTypes _coreTypes;
 
   _TypeRecipeVisitor(this._typeEnvironment, this._coreTypes);
@@ -399,7 +402,7 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String>
     // For example, the function type `T Function<T, S>(S)` introduces new type
     // parameter types and uses them in the parameter and return types.
     _unboundTypeParameters = [
-      for (var parameter in node.typeParameters) parameter.name!,
+      ...node.typeParameters,
       ..._unboundTypeParameters,
     ];
     // Generate the return type recipe.
@@ -494,12 +497,6 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String>
 
   @override
   String visitTypeParameterType(TypeParameterType node) {
-    var i = _unboundTypeParameters.indexOf(node.parameter.name!);
-    if (i >= 0) {
-      return '$i'
-          '${Recipe.genericFunctionTypeParameterIndexString}'
-          '${_nullabilityRecipe(node)}';
-    }
     var parameterDeclaration = node.parameter.declaration;
     if (!_emitClassTypeParametersAsIndices && parameterDeclaration is Class) {
       // Generic type parameters in binding positions will still be emitted
@@ -520,12 +517,11 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String>
         return '$classNameToEmit.${node.parameter.name}${_nullabilityRecipe(node)}';
       }
     }
-    i = _typeEnvironment.recipeIndexOf(node.parameter);
+    var i = _typeEnvironment.recipeIndexOf(node.parameter);
     if (i < 0) {
       throw UnsupportedError(
         'Type parameter $node was not found in the environment '
-        '$_typeEnvironment or in the unbound parameters '
-        '$_unboundTypeParameters.',
+        '$_typeEnvironment.',
       );
     }
     return '$i${_nullabilityRecipe(node)}';
@@ -537,7 +533,7 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String>
 
   @override
   String visitStructuralParameterType(StructuralParameterType node) {
-    var i = _unboundTypeParameters.indexOf(node.parameter.name!);
+    var i = _unboundTypeParameters.indexOf(node.parameter);
     if (i >= 0) {
       return '$i'
           '${Recipe.genericFunctionTypeParameterIndexString}'
@@ -569,8 +565,10 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String>
 
   /// Returns the recipe for the interface type introduced by [cls].
   String interfaceTypeRecipe(Class cls) {
-    var path = p.withoutExtension(cls.enclosingLibrary.importUri.path);
-    var library = pathToJSIdentifier(path);
+    var enclosingLibrary = cls.enclosingLibrary;
+    var library = _libraryRecipeNames[enclosingLibrary] ??= pathToJSIdentifier(
+      p.withoutExtension(enclosingLibrary.importUri.path),
+    );
     return '$library${Recipe.librarySeparatorString}${cls.name}';
   }
 

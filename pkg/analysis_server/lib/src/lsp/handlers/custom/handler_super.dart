@@ -37,43 +37,47 @@ class SuperHandler
     }
 
     var pos = params.position;
-    var path = pathOfDoc(params.textDocument);
-    var unit = await path.mapResult(requireResolvedUnit);
-    var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
-
-    return (unit, offset).mapResultsSync((unit, offset) {
-      // Find the nearest node that could have a super.
-      var node = unit.unit
-          .nodeCovering(offset: offset)
-          ?.thisOrAncestorMatching(_canHaveSuper);
-      if (node == null) {
-        return success(null);
-      }
-
-      var element = ElementLocator.locate(node);
-      if (element == null) {
-        return success(null);
-      }
-
-      // For PrimaryConstructorDeclarations, ElementLocator will return the
-      // class element (unless we're on a constructor name), but we want to
-      // treat a position within parameters as the constructor element, not the
-      // class element.
-      //
-      //   class Fo^o() extends X {}       // navigate to super class
-      //   class Foo(^) extends X {}       // navigate to super constructor
-      //   class Foo.na^med() extends X {} // navigate to super constructor
-      if (node is PrimaryConstructorDeclaration &&
-          element is ClassElement &&
-          offset > node.typeName.end) {
-        if (element.primaryConstructor case var constructor?) {
-          element = constructor;
+    return withResolvedUnit(textDocument: params.textDocument, token, (
+      unit,
+      _,
+      _,
+    ) async {
+      var offset = toOffset(unit.lineInfo, pos);
+      return offset.mapResultSync((offset) {
+        // Find the nearest node that could have a super.
+        var node = unit.unit
+            .nodeCovering(offset: offset)
+            ?.thisOrAncestorMatching(_canHaveSuper);
+        if (node == null) {
+          return success(null);
         }
-      }
 
-      var targetFragment = _SuperComputer().computeSuper(element);
-      var location = fragmentToLocation(uriConverter, targetFragment);
-      return success(location);
+        var element = ElementLocator.locate(node);
+        if (element == null) {
+          return success(null);
+        }
+
+        // For PrimaryConstructorDeclarations, ElementLocator will return the
+        // class element (unless we're on a constructor name). Treat positions in
+        // ordinary parameters as the constructor element; declaring parameters
+        // are selected separately by _canHaveSuper because they also declare
+        // fields.
+        //
+        //   class Fo^o() extends X {}       // navigate to super class
+        //   class Foo(^) extends X {}       // navigate to super constructor
+        //   class Foo.na^med() extends X {} // navigate to super constructor
+        if (node is PrimaryConstructorDeclaration &&
+            element is ClassElement &&
+            offset > node.typeName.end) {
+          if (element.primaryConstructor case var constructor?) {
+            element = constructor;
+          }
+        }
+
+        var targetFragment = _SuperComputer().computeSuper(element);
+        var location = fragmentToLocation(uriConverter, targetFragment);
+        return success(location);
+      });
     });
   }
 
@@ -88,6 +92,13 @@ class SuperHandler
       testNode = list.parent;
     }
 
+    if (testNode is FormalParameter) {
+      var element = testNode.declaredFragment?.element;
+      if (element is FieldFormalParameterElement && element.isDeclaring) {
+        return true;
+      }
+    }
+
     return testNode is ClassDeclaration ||
         testNode is ClassMember ||
         testNode is PrimaryConstructorDeclaration;
@@ -98,6 +109,8 @@ class _SuperComputer {
   Fragment? computeSuper(Element element) {
     return switch (element) {
       ConstructorElement element => _findSuperConstructor(element),
+      FieldFormalParameterElement(isDeclaring: true, :var field?) =>
+        _findSuperMember(field),
       InterfaceElement element => _findSuperClass(element),
       _ => _findSuperMember(element),
     };

@@ -2,184 +2,189 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Represents a mapping from a range of generated instructions to some source
-/// code.
-class SourceMapping {
-  /// Start offset of mapped instructions.
-  final int instructionOffset;
+import 'dart:typed_data';
 
-  /// Source info for the mapped instructions starting at [instructionOffset].
-  ///
-  /// When `null`, the mapping effectively makes the code unmapped. This is
-  /// useful for compiler-generated code that doesn't correstpond to any lines
-  /// in the source.
-  final SourceInfo? sourceInfo;
+import 'package:source_maps/parser.dart';
 
-  new _(this.instructionOffset, this.sourceInfo);
+import 'debug_info.dart';
 
-  new(this.instructionOffset, Uri fileUri, int line, int col, String? name)
-    : sourceInfo = SourceInfo(fileUri, line, col, name);
+export 'debug_info.dart';
 
-  new unmapped(this.instructionOffset) : sourceInfo = null;
+/// Builder that collects function-level byte debug info during serialization
+/// and generates Source Map v3 JSON.
+class SourceMapBuilder implements DebugInfoSerializer {
+  final DebugInfoTables? debugInfoTables;
+  final List<(int, Uint8List)> _functions = [];
+  int? _codeSectionFileOffset;
 
-  SourceMapping shiftBy(int shift) {
-    if (shift == 0) return this;
-    return SourceMapping._(shift + instructionOffset, sourceInfo);
+  SourceMapBuilder(this.debugInfoTables);
+
+  @override
+  void addFunction(int functionCodeOffset, Uint8List byteDebugInfo) {
+    if (byteDebugInfo.isNotEmpty) {
+      _functions.add((functionCodeOffset, byteDebugInfo));
+    }
   }
 
   @override
-  String toString() => '$instructionOffset -> $sourceInfo';
-}
+  void setCodeSectionFileOffset(int fileOffset) {
+    _codeSectionFileOffset = fileOffset;
+  }
 
-class SourceInfo {
-  /// URI of the compiled code's file.
-  final Uri fileUri;
-
-  /// 0-based line number of the compiled code.
-  final int line;
-
-  /// 0-based column number of the compiled code.
-  final int col;
-
-  /// Name of the mapped code. This is usually the name of the function that
-  /// contains the code.
-  final String? name;
-
-  new(this.fileUri, this.line, this.col, this.name);
-
-  @override
-  String toString() => '$fileUri:$line:$col ($name)';
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) {
-      return true;
+  Map<String, Object?> toJson() {
+    final filesInfo = debugInfoTables;
+    if (filesInfo == null || _functions.isEmpty) {
+      return <String, Object?>{
+        "version": 3,
+        "sources":
+            filesInfo?.files.map((uri) => uri.toString()).toList() ??
+            const <String>[],
+        "names": filesInfo?.names ?? const <String>[],
+        "mappings": "",
+      };
     }
 
-    if (other is! SourceInfo) {
-      return false;
-    }
+    final codeSectionFileOffset = _codeSectionFileOffset!;
+    final StringBuffer mappingsStr = StringBuffer();
 
-    return fileUri == other.fileUri &&
-        line == other.line &&
-        col == other.col &&
-        name == other.name;
-  }
+    int lastTargetColumn = 0;
+    int lastSourceIndex = 0;
+    int lastSourceLine = 0;
+    int lastSourceColumn = 0;
+    int lastNameIndex = 0;
+    bool firstSegment = true;
 
-  @override
-  int get hashCode => Object.hash(fileUri, line, col, name);
-}
+    for (final (functionCodeOffset, byteDebugInfo) in _functions) {
+      final baseOffset = codeSectionFileOffset + functionCodeOffset;
+      final reader = DebugInfoReader(byteDebugInfo);
 
-class SourceMapSerializer {
-  final List<SourceMapping> mappings = [];
+      while (reader.moveNext()) {
+        if (!firstSegment) {
+          mappingsStr.write(',');
+        }
+        firstSegment = false;
 
-  void addMapping(int instructionOffset, SourceInfo? sourceInfo) {
-    final mapping = SourceMapping._(instructionOffset, sourceInfo);
-    mappings.add(mapping);
-  }
+        final targetOffset = baseOffset + reader.offset;
 
-  void copyMappings(SourceMapSerializer other, int offset) {
-    for (final mapping in other.mappings) {
-      mappings.add(
-        SourceMapping._(mapping.instructionOffset + offset, mapping.sourceInfo),
-      );
-    }
-  }
+        lastTargetColumn = _encodeVLQ(
+          mappingsStr,
+          targetOffset,
+          lastTargetColumn,
+        );
 
-  Map<String, Object?> serializeAsJson() => _sourceMapToJson(mappings);
-}
+        if (reader.hasSourcePosition) {
+          lastSourceIndex = _encodeVLQ(
+            mappingsStr,
+            reader.fileIndex,
+            lastSourceIndex,
+          );
+          lastSourceLine = _encodeVLQ(mappingsStr, reader.line, lastSourceLine);
+          lastSourceColumn = _encodeVLQ(
+            mappingsStr,
+            reader.col,
+            lastSourceColumn,
+          );
 
-Map<String, Object?> _sourceMapToJson(List<SourceMapping> mappings) {
-  final Set<Uri> sourcesSet = {};
-  for (final mapping in mappings) {
-    if (mapping.sourceInfo?.fileUri != null) {
-      sourcesSet.add(mapping.sourceInfo!.fileUri);
-    }
-  }
-
-  final List<Uri> sourcesList = sourcesSet.toList();
-
-  // Maps sources to their indices in the 'sources' list.
-  final Map<Uri, int> sourceIndices = {};
-  for (Uri source in sourcesList) {
-    sourceIndices[source] = sourceIndices.length;
-  }
-
-  final Set<String> namesSet = {};
-  for (final mapping in mappings) {
-    if (mapping.sourceInfo?.name != null) {
-      namesSet.add(mapping.sourceInfo!.name!);
-    }
-  }
-
-  final List<String> namesList = namesSet.toList();
-
-  // Maps names to their index in the 'names' list.
-  final Map<String, int> nameIndices = {};
-  for (String name in namesList) {
-    nameIndices[name] = nameIndices.length;
-  }
-
-  // Generate the 'mappings' field.
-  final StringBuffer mappingsStr = StringBuffer();
-
-  int lastTargetColumn = 0;
-  int lastSourceIndex = 0;
-  int lastSourceLine = 0;
-  int lastSourceColumn = 0;
-  int lastNameIndex = 0;
-
-  bool first = true;
-
-  for (int i = 0; i < mappings.length; ++i) {
-    final mapping = mappings[i];
-    final sourceInfo = mapping.sourceInfo;
-
-    if (sourceInfo == null && first) {
-      // Initial parts of the code will be unmapped my default, we don't need to
-      // explicitly unmap them. More importantly, current version of binaryen
-      // cannot handle single-segment mappings at the beginning of the mappings.
-      // We can remove this block of code after switching to a version with
-      // https://github.com/WebAssembly/binaryen/pull/6794.
-      continue;
-    }
-
-    first = false;
-
-    lastTargetColumn = _encodeVLQ(
-      mappingsStr,
-      mapping.instructionOffset,
-      lastTargetColumn,
-    );
-
-    if (sourceInfo != null) {
-      final sourceIndex = sourceIndices[sourceInfo.fileUri]!;
-
-      lastSourceIndex = _encodeVLQ(mappingsStr, sourceIndex, lastSourceIndex);
-      lastSourceLine = _encodeVLQ(mappingsStr, sourceInfo.line, lastSourceLine);
-      lastSourceColumn = _encodeVLQ(
-        mappingsStr,
-        sourceInfo.col,
-        lastSourceColumn,
-      );
-
-      if (sourceInfo.name != null) {
-        final nameIndex = nameIndices[sourceInfo.name!]!;
-        lastNameIndex = _encodeVLQ(mappingsStr, nameIndex, lastNameIndex);
+          if (reader.nameIndex >= 0) {
+            lastNameIndex = _encodeVLQ(
+              mappingsStr,
+              reader.nameIndex,
+              lastNameIndex,
+            );
+          }
+        }
       }
     }
 
-    if (i != mappings.length - 1) {
-      mappingsStr.write(',');
+    return <String, Object?>{
+      "version": 3,
+      "sources": filesInfo.files.map((uri) => uri.toString()).toList(),
+      "names": filesInfo.names,
+      "mappings": mappingsStr.toString(),
+    };
+  }
+}
+
+/// Streaming decoder that decodes Source Map v3 JSON into instruction-level
+/// debug info during Wasm module deserialization.
+class SourceMapDecoder implements DebugInfoDeserializer {
+  @override
+  final DebugInfoTables debugInfoTables;
+
+  final SingleMapping _mapping;
+  int _entryIdx = 0;
+
+  DebugInfoWriter? _writer;
+  int? _pendingInstructionIndex;
+
+  SourceMapDecoder(this.debugInfoTables, this._mapping);
+
+  factory SourceMapDecoder.fromJson(Map<String, dynamic> json) {
+    final mapping = SingleMapping.fromJson(json);
+    final debugInfoTables = DebugInfoTables();
+    for (final url in mapping.urls) {
+      debugInfoTables.files.add(Uri.parse(url));
+    }
+    debugInfoTables.names.addAll(mapping.names);
+    return SourceMapDecoder(debugInfoTables, mapping);
+  }
+
+  List<TargetEntry> get _entries =>
+      _mapping.lines.isNotEmpty ? _mapping.lines[0].entries : const [];
+
+  @override
+  void startFunction(int fileOffset) {
+    _writer = DebugInfoWriter(debugInfoTables);
+    _pendingInstructionIndex = null;
+    final entries = _entries;
+    while (_entryIdx < entries.length &&
+        entries[_entryIdx].column < fileOffset) {
+      _entryIdx++;
     }
   }
 
-  return <String, Object?>{
-    "version": 3,
-    "sources": sourcesList.map((uri) => uri.toString()).toList(),
-    "names": namesList,
-    "mappings": mappingsStr.toString(),
-  };
+  @override
+  void onInstruction(int instructionIndex, int fileOffset) {
+    if (_pendingInstructionIndex != null) {
+      // Process entries that belong to the previous instruction
+      _flushEntriesUpTo(fileOffset, _pendingInstructionIndex!);
+    }
+    _pendingInstructionIndex = instructionIndex;
+  }
+
+  @override
+  Uint8List? endFunction(int fileOffset) {
+    if (_pendingInstructionIndex != null) {
+      // Process entries for the last instruction in the function
+      _flushEntriesUpTo(fileOffset, _pendingInstructionIndex!);
+      _pendingInstructionIndex = null;
+    }
+    final writer = _writer;
+    _writer = null;
+    if (writer == null || writer.isEmpty) return null;
+    return writer.build();
+  }
+
+  void _flushEntriesUpTo(int limitFileOffset, int instructionIndex) {
+    final writer = _writer!;
+    final entries = _entries;
+    while (_entryIdx < entries.length &&
+        entries[_entryIdx].column < limitFileOffset) {
+      final entry = entries[_entryIdx];
+      if (entry.sourceUrlId != null) {
+        writer.setSourcePositionWithIndices(
+          instructionIndex,
+          entry.sourceUrlId!,
+          entry.sourceLine!,
+          entry.sourceColumn!,
+          entry.sourceNameId ?? -1,
+        );
+      } else {
+        writer.clearSourcePosition(instructionIndex);
+      }
+      _entryIdx++;
+    }
+  }
 }
 
 /// Writes the VLQ of delta between [value] and [offset] into [output] and

@@ -12,7 +12,8 @@ import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
         getMessageCodeObject,
         getMessageRelatedInformation;
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
-    show CfeSeverity, severityEnumValues;
+    show CfeSeverity;
+import 'package:analyzer_utilities/message_examples.dart';
 import 'package:analyzer_utilities/messages.dart';
 import 'package:analyzer_testing/utilities/extensions/string.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
@@ -40,7 +41,7 @@ import "package:testing/testing.dart"
         TestDescription,
         ExpectationSet;
 import "package:vm/modular/target/vm.dart" show VmTarget;
-import "package:yaml/yaml.dart" show YamlList, YamlMap, YamlNode, loadYamlNode;
+import "package:yaml/yaml.dart" show loadYamlNode;
 
 import "../tool/entry_points.dart" show BatchCompiler;
 import 'spell_checking_utils.dart' as spell;
@@ -68,7 +69,7 @@ class MessageTestDescription extends TestDescription {
 
   final String name;
 
-  final YamlMap data;
+  final CfeStyleMessage message;
 
   final Example? example;
 
@@ -78,7 +79,7 @@ class MessageTestDescription extends TestDescription {
     this.uri,
     this.shortName,
     this.name,
-    this.data,
+    this.message,
     this.example,
     this.problem,
   );
@@ -183,27 +184,46 @@ class MessageTestSuite extends ChainContext {
     Uri uri = root.resolve("messages.yaml");
     File file = new File.fromUri(uri);
     String fileContent = file.readAsStringSync();
-    YamlMap messages = loadYamlNode(fileContent, sourceUrl: uri) as YamlMap;
-    for (String camelCaseName in messages.keys) {
+    CfeStyleMessage Function(MessageYaml) decodeMessage = switch (prefix) {
+      "_fe_analyzer_shared/" => SharedMessage.new,
+      "front_end/" => FrontEndMessage.new,
+      _ => throw new StateError("Unexpected sub-root ${json.encode(prefix)}"),
+    };
+    List<CfeStyleMessage> messages = decodeCfeStyleMessagesYaml(
+      loadYamlNode(fileContent, sourceUrl: uri),
+      decodeMessage: decodeMessage,
+      path: uri.toFilePath(),
+    );
+    for (CfeStyleMessage message in messages) {
+      String camelCaseName = message.keyString;
       try {
         // TODO(paulberry): switch CFE to camelCase conventions.
         var name = camelCaseName.toSnakeCase().toPascalCase();
-        YamlMap messageNode = messages.nodes[camelCaseName] as YamlMap;
-        dynamic message = messageNode.value;
-        if (message is String) continue;
 
-        bool exampleAllowOtherCodes = false;
-        bool exampleAllowMultipleReports = false;
-        bool includeErrorContext = false;
-        List<Example> examples = <Example>[];
-        String? externalTest;
-        CfeSeverity? severity;
+        bool exampleAllowOtherCodes = message.exampleAllowOtherCodes;
+        bool exampleAllowMultipleReports = message.exampleAllowMultipleReports;
+        bool includeErrorContext = message.includeErrorContext;
+        List<Example> examples = <Example>[
+          for (MessageExample example in message.examples)
+            new MessageYamlExample(name, example),
+        ];
+        String? externalTest = message.externalExample;
+        CfeSeverity? severity = switch (message.cfeSeverity) {
+          String cfeSeverity => CfeSeverity.values.byName(cfeSeverity),
+          null => null,
+        };
         List<String>? spellingMessages;
         const String spellingPostMessage =
             "\nIf the word(s) look okay, update "
             "'spell_checking_list_messages.txt' or "
             "'spell_checking_list_common.txt'.";
-        Map<ExperimentalFlag, bool>? experimentalFlags;
+        Map<ExperimentalFlag, bool>? experimentalFlags =
+            message.experiments.isEmpty
+            ? null
+            : parseExperimentalFlags(
+                parseExperimentalArguments(message.experiments),
+                onError: (message) => throw new ArgumentError(message),
+              );
 
         Source? source;
         List<String> formatSpellingMistakes(
@@ -251,184 +271,38 @@ class MessageTestSuite extends ChainContext {
           return result;
         }
 
-        for (String key in message.keys) {
-          YamlNode node = message.nodes[key];
-          var value = node.value;
-          // When positions matter, use node.span.text.
-          // When using node.span.text, replace r"\n" with "\n\n" to replace two
-          // characters with two characters without actually having the string
-          // "backslash n".
-          switch (key) {
-            case "problemMessage":
-              if (skipSpellCheck) continue;
-              spell.SpellingResult spellingResult = spell.spellcheckString(
-                node.span.text
-                    .replaceAll(placeholderPattern, '*')
-                    .replaceAll(r"\n", "\n\n"),
-                dictionaries: const [
-                  spell.Dictionaries.common,
-                  spell.Dictionaries.cfeMessages,
-                ],
+        if (!skipSpellCheck) {
+          for (var (span, key) in [
+            (message.problemMessageSpan, "problemMessage"),
+            (message.correctionMessageSpan, "correctionMessage"),
+          ]) {
+            if (span == null) continue;
+            // When positions matter, use span.text.
+            // When using span.text, replace r"\n" with "\n\n" to replace two
+            // characters with two characters without actually having the
+            // string "backslash n".
+            spell.SpellingResult spellingResult = spell.spellcheckString(
+              span.text
+                  .replaceAll(placeholderPattern, '*')
+                  .replaceAll(r"\n", "\n\n"),
+              dictionaries: const [
+                spell.Dictionaries.common,
+                spell.Dictionaries.cfeMessages,
+              ],
+            );
+            if (spellingResult.misspelledWords != null) {
+              spellingMessages ??= <String>[];
+              spellingMessages.addAll(
+                formatSpellingMistakes(
+                  spellingResult,
+                  span.start.offset,
+                  "$key has the following word that is "
+                      "not in our dictionary",
+                  "$key has the following word that is "
+                      "on our deny-list",
+                ),
               );
-              if (spellingResult.misspelledWords != null) {
-                spellingMessages ??= <String>[];
-                spellingMessages.addAll(
-                  formatSpellingMistakes(
-                    spellingResult,
-                    node.span.start.offset,
-                    "problemMessage has the following word that is "
-                        "not in our dictionary",
-                    "problemMessage has the following word that is "
-                        "on our deny-list",
-                  ),
-                );
-              }
-              break;
-
-            case "correctionMessage":
-              if (skipSpellCheck) continue;
-              spell.SpellingResult spellingResult = spell.spellcheckString(
-                node.span.text
-                    .replaceAll(placeholderPattern, '*')
-                    .replaceAll(r"\n", "\n\n"),
-                dictionaries: const [
-                  spell.Dictionaries.common,
-                  spell.Dictionaries.cfeMessages,
-                ],
-              );
-              if (spellingResult.misspelledWords != null) {
-                spellingMessages ??= <String>[];
-                spellingMessages.addAll(
-                  formatSpellingMistakes(
-                    spellingResult,
-                    node.span.start.offset,
-                    "correctionMessage has the following word that is "
-                        "not in our dictionary",
-                    "correctionMessage has the following word that is "
-                        "on our deny-list",
-                  ),
-                );
-              }
-              break;
-
-            case "severity":
-              severity = severityEnumValues[value];
-              break;
-
-            case "exampleAllowOtherCodes":
-              if (value is! bool) {
-                throw new ArgumentError(
-                  'exampleAllowOtherCodes should be a bool: '
-                  '"$value" (${node.span.start.toolString}).',
-                );
-              }
-              exampleAllowOtherCodes = value;
-              break;
-
-            case "exampleAllowMultipleReports":
-              if (value is! bool) {
-                throw new ArgumentError(
-                  'exampleAllowMultipleReports should be a bool: '
-                  '"$value" (${node.span.start.toolString}).',
-                );
-              }
-              exampleAllowMultipleReports = value;
-              break;
-
-            case "includeErrorContext":
-              if (value is! bool) {
-                throw new ArgumentError(
-                  'includeErrorContext should be a bool: '
-                  '"$value" (${node.span.start.toolString}).',
-                );
-              }
-              includeErrorContext = value;
-              break;
-
-            case "bytes":
-              YamlList list = node as YamlList;
-              if (list.first is List) {
-                for (YamlNode bytes in list.nodes) {
-                  int i = 0;
-                  examples.add(
-                    new BytesExample("bytes${++i}", name, bytes as YamlList),
-                  );
-                }
-              } else {
-                examples.add(new BytesExample("bytes", name, list));
-              }
-              break;
-
-            case "declaration":
-              if (node is YamlList) {
-                int i = 0;
-                for (YamlNode declaration in node.nodes) {
-                  examples.add(
-                    new DeclarationExample(
-                      "declaration${++i}",
-                      name,
-                      declaration,
-                    ),
-                  );
-                }
-              } else {
-                examples.add(new DeclarationExample("declaration", name, node));
-              }
-              break;
-
-            case "expression":
-              if (node is YamlList) {
-                int i = 0;
-                for (YamlNode expression in node.nodes) {
-                  examples.add(
-                    new ExpressionExample("expression${++i}", name, expression),
-                  );
-                }
-              } else {
-                examples.add(new ExpressionExample("expression", name, node));
-              }
-              break;
-
-            case "script":
-              if (node is YamlList) {
-                int i = 0;
-                for (YamlNode script in node.nodes) {
-                  examples.add(
-                    new ScriptExample("script${++i}", name, script, this),
-                  );
-                }
-              } else {
-                examples.add(new ScriptExample("script", name, node, this));
-              }
-              break;
-
-            case "statement":
-              if (node is YamlList) {
-                int i = 0;
-                for (YamlNode statement in node.nodes) {
-                  examples.add(
-                    new StatementExample("statement${++i}", name, statement),
-                  );
-                }
-              } else {
-                examples.add(new StatementExample("statement", name, node));
-              }
-              break;
-
-            case "external":
-              externalTest = node.value;
-              break;
-
-            case "experiments":
-              if (value is String) {
-                experimentalFlags = parseExperimentalFlags(
-                  parseExperimentalArguments(value.split(',')),
-                  onError: (message) => throw new ArgumentError(message),
-                );
-              } else {
-                throw new ArgumentError("Unknown experiments value: $value.");
-              }
-              break;
+            }
           }
         }
 
@@ -465,7 +339,7 @@ class MessageTestSuite extends ChainContext {
           String shortName = "$prefix$name/$subName";
           if (problem != null) {
             String filename = relativize(uri);
-            location ??= message.span.start;
+            location ??= message.valueSpan.start;
             int line = location.line + 1;
             int column = location.column;
             problem = (
@@ -477,7 +351,7 @@ class MessageTestSuite extends ChainContext {
             uri.resolve("#$shortName"),
             shortName,
             name,
-            messageNode,
+            message,
             example,
             problem,
           );
@@ -577,7 +451,7 @@ class MessageTestSuite extends ChainContext {
     Example example,
     List<CfeDiagnosticMessage> messages,
   ) {
-    var span = example.node.span;
+    var span = example.sourceExample.span;
     StringBuffer buffer = new StringBuffer();
     buffer
       ..write(relativize(span.sourceUrl!))
@@ -613,125 +487,34 @@ abstract class Example {
 
   new(this.name, this.expectedCode);
 
-  YamlNode get node;
+  /// The example from `messages.yaml` that this example is derived from.
+  MessageExample get sourceExample;
 
   Map<String, Script> get scripts;
 
   String get mainFilename => "main.dart";
 }
 
-class BytesExample extends Example {
+/// An [Example] that directly corresponds to an example in `messages.yaml`.
+class MessageYamlExample extends Example {
   @override
-  final YamlList node;
+  final MessageExample sourceExample;
 
-  final Uint8List bytes;
-
-  new(String name, String code, this.node)
-    : bytes = new Uint8List.fromList(node.cast<int>()),
-      super(name, code);
+  new(String code, this.sourceExample) : super(sourceExample.name, code);
 
   @override
-  Map<String, Script> get scripts {
-    return {mainFilename: new Script(bytes, '', null)};
-  }
-}
-
-class DeclarationExample extends Example {
-  @override
-  final YamlNode node;
-
-  final String declaration;
-
-  new(String name, String code, this.node)
-    : declaration = node.value,
-      super(name, code);
+  String get mainFilename => MessageExample.mainFileName;
 
   @override
   Map<String, Script> get scripts {
-    return {
-      mainFilename: new Script.fromSource("""
-$declaration
-
-main() {
-}
-"""),
-    };
-  }
-}
-
-class StatementExample extends Example {
-  @override
-  final YamlNode node;
-
-  final String statement;
-
-  new(String name, String code, this.node)
-    : statement = node.value,
-      super(name, code);
-
-  @override
-  Map<String, Script> get scripts {
-    return {
-      mainFilename: new Script.fromSource("""
-main() {
-  $statement
-}
-"""),
-    };
-  }
-}
-
-class ExpressionExample extends Example {
-  @override
-  final YamlNode node;
-
-  final String expression;
-
-  new(String name, String code, this.node)
-    : expression = node.value,
-      super(name, code);
-
-  @override
-  Map<String, Script> get scripts {
-    return {
-      mainFilename: new Script.fromSource("""
-main() {
-  $expression;
-}
-"""),
-    };
-  }
-}
-
-class ScriptExample extends Example {
-  @override
-  final YamlNode node;
-
-  final Object script;
-
-  new(String name, String code, this.node, MessageTestSuite suite)
-    : script = node.value,
-      super(name, code) {
-    if (script is! String && script is! Map) {
-      throw suite.formatProblems(
-        "A script must be either a String or a Map in $code:",
-        this,
-        <CfeDiagnosticMessage>[],
-      );
-    }
-  }
-
-  @override
-  Map<String, Script> get scripts {
-    Object script = this.script;
-    if (script is Map) {
-      Map<String, Script> scriptFiles = <String, Script>{};
-      script.forEach((fileName, value) {
-        scriptFiles[fileName] = new Script.fromSource(value);
-      });
-      return scriptFiles;
-    } else {
-      return {mainFilename: new Script.fromSource(script as String)};
+    switch (sourceExample) {
+      case BytesExample(:var bytes):
+        return {mainFilename: new Script(bytes, '', null)};
+      case SourceExample(:var files):
+        return {
+          for (var MapEntry(key: fileName, value: source) in files.entries)
+            fileName: new Script.fromSource(source),
+        };
     }
   }
 }
@@ -812,7 +595,7 @@ ${preamble}part of "${mainFilename}";
   }
 
   @override
-  YamlNode get node => example.node;
+  MessageExample get sourceExample => example.sourceExample;
 }
 
 class Validate

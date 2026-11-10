@@ -1053,6 +1053,35 @@ var s = '$x$';
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: s
+          equals: =
+          initializer: StringInterpolation
+            elements
+              InterpolationString
+                contents: '
+              InterpolationExpression
+                leftBracket: $
+                expression2: ParsedUnqualifiedName
+                  name: x
+                expression(v1): SimpleIdentifier
+                  token: x
+              InterpolationString
+                contents: <empty> <synthetic>
+              InterpolationExpression
+                leftBracket: $
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+              InterpolationString
+                contents: '
+            stringValue: null
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -1060,19 +1089,19 @@ CompilationUnit
           VariableDeclaration
             name: s
             equals: =
-            initializer2: StringInterpolation
+            initializer: StringInterpolation
               elements
                 InterpolationString
                   contents: '
                 InterpolationExpression
                   leftBracket: $
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: x
                 InterpolationString
                   contents: <empty> <synthetic>
                 InterpolationExpression
                   leftBracket: $
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                 InterpolationString
                   contents: '
@@ -1130,6 +1159,14 @@ CompilationUnit
         literal: ''
       semicolon: ; <synthetic>
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1169,6 +1206,14 @@ CompilationUnit
         literal: ''
       semicolon: ; <synthetic>
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1197,6 +1242,14 @@ CompilationUnit
         literal: "" <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    ClassDeclaration2
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockInstanceDeclarationBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     ClassDeclaration
       classKeyword: class
       namePart: NameWithTypeParameters
@@ -1631,6 +1684,42 @@ void f() {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      returnType: NamedType
+        name: void
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: ParsedUnqualifiedName
+                name: get
+              expression(v1): SimpleIdentifier
+                token: get
+              semicolon: ; <synthetic>
+            ExpressionStatement
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              statements2
+                ReturnStatement
+                  returnKeyword: return
+                  expression2: ParsedUnqualifiedName
+                    name: _x
+                  expression(v1): SimpleIdentifier
+                    token: _x
+                  semicolon: ;
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       returnType: NamedType
         name: void
@@ -1644,11 +1733,11 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: get
                 semicolon: ; <synthetic>
               ExpressionStatement
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: x
                 semicolon: ; <synthetic>
               Block
@@ -1656,7 +1745,7 @@ CompilationUnit
                 statements
                   ReturnStatement
                     returnKeyword: return
-                    expression2: SimpleIdentifier
+                    expression: SimpleIdentifier
                       token: _x
                     semicolon: ;
                 rightBracket: }
@@ -1707,16 +1796,26 @@ class C {
 }
 ''');
 
-    var node = parseResult.findNode.singleMethodDeclaration;
+    var node = parseResult.findNode.singleGetterDeclaration;
     assertParsedNodeText(node, r'''
-MethodDeclaration
+GetterDeclaration
+  returnType: NamedType
+    name: String
+  getKeyword: get
+  name: m
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: IntegerLiteral
+      literal: 0
+    semicolon: ;
+V1: MethodDeclaration
   returnType: NamedType
     name: String
   propertyKeyword: get
   name: m
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: IntegerLiteral
+    expression: IntegerLiteral
       literal: 0
     semicolon: ;
 ''');
@@ -1885,42 +1984,62 @@ var s = 'begin \u{110000}';
 ''');
   }
 
-  @failingTest // TODO(scheglov): fix it
-  void test_invalidCommentReference__new_nonIdentifier() {
+  void test_invalidCodePoint_interpolation_first() {
+    parseTestCodeWithDiagnostics(r"""
+var s = '''\u{110000}${0}''';
+//         ^^^^^^^^^
+// [diag.invalidCodePoint] The escape sequence '\u{...}' isn't a valid code point.
+""");
+  }
+
+  void test_invalidCodePoint_interpolation_last() {
     parseTestCodeWithDiagnostics(r'''
-/// [new 42]
-//       ^^^
-// [diag.invalidCommentReference] Comment references should contain a possibly prefixed identifier and can start with 'new', but shouldn't contain anything else.
-void f() {}
+var s = '${0}\u{110000}';
+//           ^^^^^^^^^
+// [diag.invalidCodePoint] The escape sequence '\u{...}' isn't a valid code point.
 ''');
   }
 
-  @failingTest // TODO(scheglov): fix it
-  void test_invalidCommentReference__new_tooMuch() {
+  void test_invalidCodePoint_interpolation_middle() {
     parseTestCodeWithDiagnostics(r'''
-/// [new a.b.c.d]
-//       ^^^^^^^
-// [diag.invalidCommentReference] Comment references should contain a possibly prefixed identifier and can start with 'new', but shouldn't contain anything else.
-void f() {}
+var s = '${0}\u{110000}${1}';
+//           ^^^^^^^^^
+// [diag.invalidCodePoint] The escape sequence '\u{...}' isn't a valid code point.
 ''');
   }
 
+  void test_invalidCodePoint_multiLine() {
+    parseTestCodeWithDiagnostics(r"""
+var s = '''\u{110000}''';
+//         ^^^^^^^^^
+// [diag.invalidCodePoint] The escape sequence '\u{...}' isn't a valid code point.
+""");
+  }
+
+  void test_invalidCodePoint_multiLine_leadingNewline() {
+    parseTestCodeWithDiagnostics(r"""
+var s = '''
+\u{110000}''';
+// [diag.invalidCodePoint][column 1][length 9] The escape sequence '\u{...}' isn't a valid code point.
+""");
+  }
+
   @failingTest // TODO(scheglov): fix it
-  void test_invalidCommentReference__nonNew_nonIdentifier() {
+  void test_invalidCommentReference_nonIdentifier() {
     parseTestCodeWithDiagnostics(r'''
 /// [42]
 //   ^^
-// [diag.invalidCommentReference] Comment references should contain a possibly prefixed identifier and can start with 'new', but shouldn't contain anything else.
+// [diag.invalidCommentReference] Comment references should contain a possibly prefixed identifier, but shouldn't contain anything else.
 void f() {}
 ''');
   }
 
   @failingTest // TODO(scheglov): fix it
-  void test_invalidCommentReference__nonNew_tooMuch() {
+  void test_invalidCommentReference_tooMuch() {
     parseTestCodeWithDiagnostics(r'''
 /// [a.b.c.d]
 //   ^^^^^^^
-// [diag.invalidCommentReference] Comment references should contain a possibly prefixed identifier and can start with 'new', but shouldn't contain anything else.
+// [diag.invalidCommentReference] Comment references should contain a possibly prefixed identifier, but shouldn't contain anything else.
 void f() {}
 ''');
   }
@@ -2079,12 +2198,52 @@ void f() {
 ''');
   }
 
+  void test_invalidPropertyAccess_class() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var v = x.class;
+//        ^^^^^
+// [diag.expectedIdentifierButGotKeyword] 'class' can't be used as an identifier because it's a keyword.
+''');
+    assertParsedNodeText(
+      parseResult.findNode.singleTopLevelVariable.initializer!,
+      r'''
+ParsedNameAccess
+  operand: ParsedUnqualifiedName
+    name: x
+  operator: .
+  name: class
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: x
+  period: .
+  identifier: SimpleIdentifier
+    token: class
+''',
+    );
+  }
+
   void test_invalidPropertyAccess_this() {
-    parseTestCodeWithDiagnostics(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x.this;
 //        ^^^^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
+    assertParsedNodeText(
+      parseResult.findNode.singleTopLevelVariable.initializer!,
+      r'''
+ParsedNameAccess
+  operand: ParsedUnqualifiedName
+    name: x
+  operator: .
+  name: <empty> <synthetic>
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: x
+  period: .
+  identifier: SimpleIdentifier
+    token: <empty> <synthetic>
+''',
+    );
   }
 
   void test_invalidStarAfterAsync() {
@@ -2230,23 +2389,38 @@ library l;
 class C { m() { @Foo f() {} } }
 ''');
 
-    var node = result.findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleLocalFunctionDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+LocalFunctionDeclaration
   metadata
     Annotation
       atSign: @
-      name: SimpleIdentifier
-        token: Foo
+      expression: ParsedUnqualifiedName
+        name: Foo
   name: f
-  functionExpression: FunctionExpression
-    parameters: FormalParameterList
-      leftParenthesis: (
-      rightParenthesis: )
-    body: BlockFunctionBody
-      block: Block
-        leftBracket: {
-        rightBracket: }
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: FunctionDeclarationStatement
+  functionDeclaration: FunctionDeclaration
+    metadata
+      Annotation
+        atSign: @
+        name: SimpleIdentifier
+          token: Foo
+    name: f
+    functionExpression: FunctionExpression
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
 ''');
   }
 
@@ -2296,7 +2470,23 @@ class C {
 
     var member = result.findNode.singleMethodDeclaration;
     assertParsedNodeText(member, r'''
-MethodDeclaration
+MethodDeclaration2
+  name: f
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: E
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        name: E
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: MethodDeclaration
   name: f
   typeParameters: TypeParameterList
     leftBracket: <
@@ -2305,12 +2495,6 @@ MethodDeclaration
         name: E
     rightBracket: >
   parameters: FormalParameterList
-    leftParenthesis: (
-    requiredPositionalFormalParameters
-      RegularFormalParameter
-        name: E
-    rightParenthesis: )
-  parameters(v1): FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       name: E
@@ -2331,7 +2515,26 @@ class C {
 
     var method = result.findNode.singleMethodDeclaration;
     assertParsedNodeText(method, r'''
-MethodDeclaration
+MethodDeclaration2
+  returnType: NamedType
+    name: void
+  name: m
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: E
+      TypeParameter
+        name: hello
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: MethodDeclaration
   returnType: NamedType
     name: void
   name: m
@@ -2390,9 +2593,20 @@ main() => super;
 // [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
 ''');
 
-    var node = result.findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleTopLevelFunctionDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  name: main
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: InvalidSuperExpression
+      superReference: SuperReference
+        superKeyword: super
+    semicolon: ;
+V1: FunctionDeclaration
   name: main
   functionExpression: FunctionExpression
     parameters: FormalParameterList
@@ -2400,7 +2614,7 @@ FunctionDeclaration
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression2: SuperExpression
+      expression: SuperExpression
         superKeyword: super
       semicolon: ;
 ''');
@@ -2413,9 +2627,24 @@ main() {super;}
 // [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
 ''');
 
-    var node = result.findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleTopLevelFunctionDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  name: main
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements2
+        ExpressionStatement
+          expression2: InvalidSuperExpression
+            superReference: SuperReference
+              superKeyword: super
+          semicolon: ;
+      rightBracket: }
+V1: FunctionDeclaration
   name: main
   functionExpression: FunctionExpression
     parameters: FormalParameterList
@@ -2426,7 +2655,7 @@ FunctionDeclaration
         leftBracket: {
         statements
           ExpressionStatement
-            expression2: SuperExpression
+            expression: SuperExpression
               superKeyword: super
             semicolon: ;
         rightBracket: }
@@ -2569,9 +2798,26 @@ void f { return x;}
 // [diag.missingFunctionParameters] Functions must have an explicit list of parameters.
 ''');
 
-    var node = result.findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleTopLevelFunctionDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  returnType: NamedType
+    name: void
+  name: f
+  formalParameters: FormalParameterList
+    leftParenthesis: ( <synthetic>
+    rightParenthesis: ) <synthetic>
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements2
+        ReturnStatement
+          returnKeyword: return
+          expression2: ParsedUnqualifiedName
+            name: x
+          semicolon: ;
+      rightBracket: }
+V1: FunctionDeclaration
   returnType: NamedType
     name: void
   name: f
@@ -2585,7 +2831,7 @@ FunctionDeclaration
         statements
           ReturnStatement
             returnKeyword: return
-            expression2: SimpleIdentifier
+            expression: SimpleIdentifier
               token: x
             semicolon: ;
         rightBracket: }
@@ -2599,9 +2845,21 @@ void f => x;
 // [diag.missingFunctionParameters] Functions must have an explicit list of parameters.
 ''');
 
-    var node = result.findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleTopLevelFunctionDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  returnType: NamedType
+    name: void
+  name: f
+  formalParameters: FormalParameterList
+    leftParenthesis: ( <synthetic>
+    rightParenthesis: ) <synthetic>
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: ParsedUnqualifiedName
+      name: x
+    semicolon: ;
+V1: FunctionDeclaration
   returnType: NamedType
     name: void
   name: f
@@ -2611,7 +2869,7 @@ FunctionDeclaration
       rightParenthesis: ) <synthetic>
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression2: SimpleIdentifier
+      expression: SimpleIdentifier
         token: x
       semicolon: ;
 ''');
@@ -2735,7 +2993,18 @@ class C {
 
     var member = result.findNode.singleMethodDeclaration;
     assertParsedNodeText(member, r'''
-MethodDeclaration
+MethodDeclaration2
+  returnType: NamedType
+    name: void
+  name: m
+  formalParameters: FormalParameterList
+    leftParenthesis: ( <synthetic>
+    rightParenthesis: ) <synthetic>
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: MethodDeclaration
   returnType: NamedType
     name: void
   name: m
@@ -3086,6 +3355,80 @@ ParenthesizedExpression
 ''');
   }
 
+  void test_namedFunctionExpression_hasReturnType() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = (int f() {});
+//           ^
+// [diag.namedFunctionExpression] Function expressions can't be named.
+''');
+
+    var node = parseResult.findNode.singleTopLevelVariable;
+    assertParsedNodeText(node, r'''
+TopLevelVariable
+  name: x
+  equals: =
+  initializer: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: FunctionExpression
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+    rightParenthesis: )
+''');
+  }
+
+  void test_namedFunctionExpression_nameWhen() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = (when() {});
+//       ^^^^
+// [diag.namedFunctionExpression] Function expressions can't be named.
+''');
+
+    var node = parseResult.findNode.singleTopLevelVariable;
+    assertParsedNodeText(node, r'''
+TopLevelVariable
+  name: x
+  equals: =
+  initializer: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: FunctionExpression
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+    rightParenthesis: )
+''');
+  }
+
+  void test_namedFunctionExpression_nameWhen_hasReturnType() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = (int when() {});
+//           ^^^^
+// [diag.expectedToken] Expected to find ')'.
+''');
+
+    var node = parseResult.findNode.singleTopLevelVariable;
+    assertParsedNodeText(node, r'''
+TopLevelVariable
+  name: x
+  equals: =
+  initializer: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: ParsedUnqualifiedName
+      name: int
+    expression(v1): SimpleIdentifier
+      token: int
+    rightParenthesis: )
+''');
+  }
+
   void test_namedParameterOutsideGroup() {
     var result = parseTestCodeWithDiagnostics(r'''
 void f(a, b : 0) {}
@@ -3198,15 +3541,30 @@ var x = a..();
 // [diag.missingIdentifier] Expected an identifier.
 ''');
 
-    var methodInvocation = result.findNode.singleMethodInvocation;
+    var methodInvocation = result.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(methodInvocation, r'''
-MethodInvocation
-  operator: ..
-  methodName: SimpleIdentifier
-    token: <empty> <synthetic>
-  argumentList: ArgumentList
-    leftParenthesis: (
-    rightParenthesis: )
+CascadeExpression
+  target2: ParsedUnqualifiedName
+    name: a
+  target(v1): SimpleIdentifier
+    token: a
+  sections
+    CascadeSection
+      operator: ..
+      body: ParsedValueArguments
+        operand: ParsedCascadeName
+          name: <empty> <synthetic>
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+  cascadeSections
+    MethodInvocation
+      operator: ..
+      methodName: SimpleIdentifier
+        token: <empty> <synthetic>
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
 ''');
   }
 
@@ -3216,21 +3574,43 @@ var x = a..<E>();
 //         ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var methodInvocation = result.findNode.singleMethodInvocation;
+    var methodInvocation = result.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(methodInvocation, r'''
-MethodInvocation
-  operator: ..
-  methodName: SimpleIdentifier
-    token: <empty> <synthetic>
-  typeArguments: TypeArgumentList
-    leftBracket: <
-    arguments
-      NamedType
-        name: E
-    rightBracket: >
-  argumentList: ArgumentList
-    leftParenthesis: (
-    rightParenthesis: )
+CascadeExpression
+  target2: ParsedUnqualifiedName
+    name: a
+  target(v1): SimpleIdentifier
+    token: a
+  sections
+    CascadeSection
+      operator: ..
+      body: ParsedValueArguments
+        operand: ParsedTypeArguments
+          operand: ParsedCascadeName
+            name: <empty> <synthetic>
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: E
+            rightBracket: >
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+  cascadeSections
+    MethodInvocation
+      operator: ..
+      methodName: SimpleIdentifier
+        token: <empty> <synthetic>
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: E
+        rightBracket: >
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
 ''');
   }
 
@@ -3322,9 +3702,9 @@ void f() {
   void test_staticAfterConst() {
     parseTestCodeWithDiagnostics(r'''
 class C {
-  final static int f = 0;
+  const static int f = 0;
 //      ^^^^^^
-// [diag.modifierOutOfOrder] The modifier 'static' should be before the modifier 'final'.
+// [diag.modifierOutOfOrder] The modifier 'static' should be before the modifier 'const'.
 }
 ''');
   }
@@ -3332,9 +3712,9 @@ class C {
   void test_staticAfterFinal() {
     parseTestCodeWithDiagnostics(r'''
 class C {
-  const static int f = 0;
+  final static int f = 0;
 //      ^^^^^^
-// [diag.modifierOutOfOrder] The modifier 'static' should be before the modifier 'const'.
+// [diag.modifierOutOfOrder] The modifier 'static' should be before the modifier 'final'.
 }
 ''');
   }
@@ -3540,7 +3920,7 @@ TopLevelGetterDeclaration
     expression2: IntegerLiteral
       literal: 7
     semicolon: ;
-FunctionDeclaration
+V1: FunctionDeclaration
   propertyKeyword: get
   name: x
   functionExpression: FunctionExpression
@@ -3820,11 +4200,11 @@ void main() {
     var binaryExpression = result.findNode.singleBinaryOperatorInvocation;
     assertParsedNodeText(binaryExpression, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: +
-  rightOperand: SimpleIdentifier
-    token: x
+  rightOperand: ParsedUnqualifiedName
+    name: x
   binaryOperator: add
 V1: BinaryExpression
   leftOperand: SimpleIdentifier

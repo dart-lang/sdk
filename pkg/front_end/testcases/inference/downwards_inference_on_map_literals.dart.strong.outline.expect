@@ -1,10 +1,24 @@
 library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:11:77: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+//     /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE,error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/ "hello":
+//                                                                             ^
+//
 import self as self;
 import "dart:core" as core;
 
-static method foo([has-declared-initializer core::Map<core::int, core::String> m1, has-declared-initializer core::Map<core::int, core::String> m2]) → void
+static method foo([core::Map<core::int, core::String> m1 = const <core::int, core::String>{1: "hello"}, core::Map<core::int, core::String> m2 = const <core::int, core::String>{invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_map_literals.dart:11:77: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+    /*error:MAP_KEY_TYPE_NOT_ASSIGNABLE,error:MAP_KEY_TYPE_NOT_ASSIGNABLE*/ \"hello\":
+                                                                            ^" in "hello" as{TypeError} core::int: "world"}]) → void
   ;
 static method test() → void
   ;
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: MapLiteral @ org-dartlang-testcase:///downwards_inference_on_map_literals.dart:8:25 -> MapConstant(const <int, String>{1: "hello"})
+Extra constant evaluation: evaluated: 2, effectively constant: 1

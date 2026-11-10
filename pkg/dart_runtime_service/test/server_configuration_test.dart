@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dart_runtime_service/dart_runtime_service.dart';
@@ -62,5 +63,71 @@ void main() {
       expect(service.uri.host, equals('::1'));
       expect(service.isServerRunning, true);
     });
+
+    test('allows non-HTTP backend to start and stop without binding an HTTP '
+        'server', () async {
+      final service = await DartRuntimeService.initialize(
+        config: const DartRuntimeServiceOptions(),
+        backendBuilder: _NonHttpBackend.new,
+      );
+      addTearDown(service.shutdown);
+
+      expect(service.isServerRunning, isTrue);
+      expect(
+        () => service.uri,
+        throwsA(isA<DartRuntimeServiceServerNotRunning>()),
+      );
+
+      await service.serverControl(enable: false);
+      expect(service.isServerRunning, isFalse);
+
+      await service.serverControl(enable: true);
+      expect(service.isServerRunning, isTrue);
+    });
+
+    test('default writeLogRecord prints via the current Zone', () async {
+      final printed = <String>[];
+      await runZoned(
+        () async {
+          final service = await DartRuntimeService.initialize(
+            config: const DartRuntimeServiceOptions(
+              autoStart: false,
+              enableLogging: true,
+            ),
+            backendBuilder: _NonHttpBackend.new,
+          );
+          await service.shutdown();
+        },
+        zoneSpecification: ZoneSpecification(
+          print: (_, _, _, line) => printed.add(line),
+        ),
+      );
+      expect(printed, isNotEmpty);
+    });
   });
+}
+
+final class _NonHttpBackend extends DartRuntimeServiceBackend {
+  _NonHttpBackend(DartRuntimeService frontend) : super(frontend: frontend);
+
+  @override
+  IsolateManager get isolateManager => throw UnimplementedError();
+
+  @override
+  Future<void> initialize() async {}
+
+  @override
+  Future<void> onServiceReady(DartRuntimeService service) async {}
+
+  @override
+  Future<void> shutdown() async {}
+
+  @override
+  Future<void> clearState() async {}
+
+  @override
+  Future<void> onServerStarted() async {}
+
+  @override
+  Future<void> onServerShutdown() async {}
 }

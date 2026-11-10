@@ -37,6 +37,9 @@ class LspAnalysisServer {
     required this.commandName,
     required this.argResults,
     required this._usePlugins,
+    this._trustPlugins = false,
+    this._alwaysTrustPlugins = false,
+    this._neverTrustPlugins = false,
     this.enabledExperiments = const [],
     this.suppressAnalytics = false,
     this._useAotSnapshot = false,
@@ -55,7 +58,10 @@ class LspAnalysisServer {
   final List<String> enabledExperiments;
   final bool suppressAnalytics;
   final bool _useAotSnapshot;
-  final bool _usePlugins;
+  final bool? _usePlugins;
+  final bool _trustPlugins;
+  final bool _alwaysTrustPlugins;
+  final bool _neverTrustPlugins;
 
   Process? _process;
 
@@ -86,6 +92,11 @@ class LspAnalysisServer {
       Method.textDocument_publishDiagnostics,
       PublishDiagnosticsParams.fromJson,
     );
+  }
+
+  /// A stream of work done progress notifications from the analysis server.
+  Stream<ProgressParams> get onProgress {
+    return _stream(Method.progress, ProgressParams.fromJson);
   }
 
   Future<int> _onExit = Future.value(0);
@@ -172,9 +183,7 @@ class LspAnalysisServer {
               .map(
                 (rootPath) => WorkspaceFolder(
                   name: path.basename(rootPath),
-                  uri: Uri.file(
-                    rootPath,
-                  ),
+                  uri: Uri.file(rootPath),
                 ),
               )
               .toList()
@@ -211,10 +220,7 @@ class LspAnalysisServer {
       ),
     );
 
-    _sendNotification(
-      Method.initialized,
-      InitializedParams(),
-    );
+    _sendNotification(Method.initialized, InitializedParams());
 
     return process.pid;
   }
@@ -237,7 +243,13 @@ class LspAnalysisServer {
       if (_packagesFile != null) '--packages=${_packagesFile.path}',
       if (enabledExperiments.isNotEmpty)
         '--$experimentFlagName=${enabledExperiments.join(',')}',
-      if (!_usePlugins) '--no-plugins',
+      if (_usePlugins == true)
+        '--${Driver.pluginsFlag}'
+      else if (_usePlugins == false)
+        '--no-${Driver.pluginsFlag}',
+      if (_trustPlugins) '--${Driver.trustPluginsFlag}',
+      if (_alwaysTrustPlugins) '--${Driver.alwaysTrustPluginsFlag}',
+      if (_neverTrustPlugins) '--${Driver.neverTrustPluginsFlag}',
       '--protocol=lsp',
     ];
 
@@ -262,6 +274,8 @@ class LspAnalysisServer {
     List<Uri> uris, {
     bool? apply,
     List<MigrationStep>? steps,
+    String? targetSdk,
+    ProgressToken? workDoneToken,
   }) {
     return _expectSuccessfulResponse(
       CustomMethods.migrate,
@@ -269,6 +283,8 @@ class LspAnalysisServer {
         uris: uris,
         apply: apply,
         steps: steps,
+        targetSdk: targetSdk,
+        workDoneToken: workDoneToken,
       ),
       DartMigrateResult.fromJson,
     );
@@ -376,6 +392,13 @@ class LspAnalysisServer {
   void _handleShowMessage(ShowMessageParams message) {
     if (message.type == MessageType.Error) {
       _handleServerError(message.message);
+    } else {
+      final format = argResults?.options.contains('format') == true
+          ? argResults?.option('format')
+          : null;
+      if (format != 'machine' && format != 'json') {
+        log.stdout(message.message);
+      }
     }
   }
 
@@ -402,17 +425,27 @@ class LspAnalysisServer {
     var response = await _sendRequest(method, params);
 
     if (response.error case var error?) {
-      throw _RequestError(error);
+      throw LspRequestError(error);
     }
 
     return converter(response.result as R);
   }
+
+  Future<DartGetWorkspaceFixesResult> getFixes(List<String> codes) async {
+    return _expectSuccessfulResponse(
+      CustomMethods.getWorkspaceFixes,
+      DartGetWorkspaceFixesParams(
+        diagnosticCodes: codes.isEmpty ? null : codes,
+      ),
+      DartGetWorkspaceFixesResult.fromJson,
+    );
+  }
 }
 
-class _RequestError implements Exception {
+class LspRequestError implements Exception {
   final ResponseError error;
 
-  _RequestError(this.error);
+  LspRequestError(this.error);
 
   @override
   String toString() => 'LspException: ${error.code}: ${error.message}';

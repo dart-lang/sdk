@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -67,7 +68,7 @@ class AddSuperConstructorInvocation extends MultiCorrectionProducer {
     for (var superConstructor in superType.constructors) {
       // Only propose public constructors.
       var name = superConstructor.name;
-      if (name != null && !Identifier.isPrivateName(name)) {
+      if (name != null && !name.isPrivateName) {
         producers.add(
           _AddInvocation(
             context: context,
@@ -142,7 +143,7 @@ class AddSuperConstructorInvocation extends MultiCorrectionProducer {
     for (var superConstructor in superType.constructors) {
       // Only propose public constructors.
       var name = superConstructor.name;
-      if (name != null && !Identifier.isPrivateName(name)) {
+      if (name != null && !name.isPrivateName) {
         producers.add(
           _AddInvocation(
             context: context,

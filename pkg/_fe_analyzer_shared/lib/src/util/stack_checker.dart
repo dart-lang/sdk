@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:math';
+
 import '../messages/codes.dart';
 import 'value_kind.dart';
 
@@ -77,7 +78,7 @@ mixin StackChecker {
   ///      assert(checkStackState(
   ///          uri, fileOffset, [ValuesKind.Foo], base: stackBase));
   ///
-  bool checkStackBaseStateForAssert(Uri uri, int? fileOffset, int base) {
+  bool checkStackBaseStateForAssert(Uri uri, int fileOffset, int base) {
     if (base < 0) {
       _throwProblem(
         uri,

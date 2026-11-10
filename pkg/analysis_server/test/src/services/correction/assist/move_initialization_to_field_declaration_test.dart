@@ -15,7 +15,8 @@ void main() {
 }
 
 @reflectiveTest
-class MoveInitializationToFieldDeclarationTest extends AssistProcessorTest {
+class MoveInitializationToFieldDeclarationTest
+    extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.moveInitializationToFieldDeclaration;
 

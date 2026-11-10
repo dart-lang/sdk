@@ -22,19 +22,27 @@ Constant jsonToKernelConstant(Object jsonObject) {
   }
 
   if (jsonObject is List) {
-    return ListConstant(DynamicType(), [
-      for (final element in jsonObject) jsonToKernelConstant(element as Object),
-    ]);
+    return ListConstant(
+      DynamicType(),
+      ConstantList.mapped(jsonObject, (e) => jsonToKernelConstant(e as Object)),
+    );
   }
 
   if (jsonObject is Map) {
-    return MapConstant(DynamicType(), DynamicType(), [
-      for (final entry in jsonObject.entries)
-        ConstantMapEntry(
-          jsonToKernelConstant(entry.key as Object),
-          jsonToKernelConstant(entry.value as Object),
-        ),
-    ]);
+    return MapConstant(
+      DynamicType(),
+      DynamicType(),
+      jsonObject.isEmpty
+          ? ConstantMapEntryList.empty
+          : ConstantMapEntryList.of(
+              jsonObject.entries.map(
+                (entry) => ConstantMapEntry(
+                  jsonToKernelConstant(entry.key as Object),
+                  jsonToKernelConstant(entry.value as Object),
+                ),
+              ),
+            ),
+    );
   }
 
   throw UnsupportedError(

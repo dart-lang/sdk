@@ -217,6 +217,8 @@ void SnapshotAnalyzer::DumpClassInstanceSlots(
           slots = sizeof(simd128_value_t) / kCompressedWordSize;
         } else if (type.IsFloat64x2Type()) {
           slots = sizeof(simd128_value_t) / kCompressedWordSize;
+        } else if (type.IsInt32x4Type()) {
+          slots = sizeof(simd128_value_t) / kCompressedWordSize;
         } else {
           // Rare: Could be that the field type isn't telling us the unboxed
           // type but field is still unboxed (e.g. `dynamic` field which TFA
@@ -382,6 +384,8 @@ void SnapshotAnalyzer::DumpField(const Field& field) {
       unboxed_type = "Float32x4";
     } else if (type.IsFloat64x2Type()) {
       unboxed_type = "Float64x2";
+    } else if (type.IsInt32x4Type()) {
+      unboxed_type = "Int32x4";
     } else {
       unboxed_type = "unknown";
     }

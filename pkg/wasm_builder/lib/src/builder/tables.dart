@@ -8,22 +8,24 @@ import 'util.dart';
 
 /// The interface for the tables in a module.
 class TablesBuilder with Builder<ir.Tables> {
-  final ModuleBuilder _moduleBuilder;
-  final _tableBuilders = <TableBuilder>[];
+  final ir.Module _module;
+  final _definedTables = <ir.DefinedTable>[];
   final _importedTables = <ir.ImportedTable>[];
 
-  TablesBuilder(this._moduleBuilder);
+  TablesBuilder(this._module);
+
+  List<ir.DefinedTable> get defined => _definedTables;
 
   /// Defines a new table in this module.
-  TableBuilder define(ir.RefType type, int minSize, [int? maxSize]) {
-    final table = TableBuilder(
-      _moduleBuilder,
+  ir.DefinedTable define(ir.RefType type, int minSize, [int? maxSize]) {
+    final table = ir.DefinedTable(
+      _module,
       ir.FinalizableIndex(),
       type,
       minSize,
       maxSize,
     );
-    _tableBuilders.add(table);
+    _definedTables.add(table);
     return table;
   }
 
@@ -36,7 +38,7 @@ class TablesBuilder with Builder<ir.Tables> {
     int? maxSize,
   ]) {
     final table = ir.ImportedTable(
-      _moduleBuilder.module,
+      _module,
       module,
       name,
       ir.FinalizableIndex(),
@@ -50,21 +52,7 @@ class TablesBuilder with Builder<ir.Tables> {
 
   @override
   ir.Tables forceBuild() {
-    final built = finalizeImportsAndBuilders<ir.DefinedTable>(
-      _importedTables,
-      _tableBuilders,
-    );
-    return ir.Tables(_importedTables, built);
-  }
-
-  void collectUsedTypes(Set<ir.DefType> types) {
-    for (final table in _tableBuilders) {
-      final defType = table.type.containedDefType;
-      if (defType != null) types.add(defType);
-    }
-    for (final table in _importedTables) {
-      final defType = table.type.containedDefType;
-      if (defType != null) types.add(defType);
-    }
+    finalizeImportsAndDefinitions(_importedTables, _definedTables);
+    return ir.Tables(_importedTables, _definedTables);
   }
 }

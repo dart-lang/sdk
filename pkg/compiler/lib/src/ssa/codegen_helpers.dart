@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:math' as math;
+
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../inferrer/abstract_value_domain.dart';
@@ -1483,13 +1484,19 @@ class SsaPhiConditioning extends HGraphVisitor implements CodegenPhase {
 
   void handlePhi(HBasicBlock block, HBasicBlock dominator, HPhi root) {
     final Map<HInstruction, List<(HPhi, int)>> phiTreeInputs = {};
-    final List<HPhi> phiTreeNodes = [];
+
+    // The 'tree' of phi nodes is really a DAG, since a phi can be an input to
+    // several other phis. Make sure we only recurse from each phis once. We
+    // only collect 'valid' phis and afterwards add these to the [_handled] set.
+    // The initial checks in [collect] are all O(1) so the work we re-do if we
+    // revisit a phi is minimal.
+    final Set<HPhi> collected = {};
 
     void collect(HPhi phi) {
       if (dominator == phi.block) return;
       if (!dominator.dominates(phi.block!)) return;
       if (generateAtUseSite.contains(phi)) return;
-      phiTreeNodes.add(phi);
+      if (!collected.add(phi)) return;
       for (int i = 0; i < phi.inputs.length; i++) {
         final input = phi.inputs[i];
         if (input is HPhi) {
@@ -1517,6 +1524,8 @@ class SsaPhiConditioning extends HGraphVisitor implements CodegenPhase {
     }
 
     collect(root);
+
+    _handled.addAll(collected);
 
     late HInstruction best;
     List<(HPhi, int)> bestReferences = const [];
@@ -1554,14 +1563,19 @@ class SsaPhiConditioning extends HGraphVisitor implements CodegenPhase {
         break;
       }
 
+      // The block containing HTry must contain only the HTry control flow
+      // instruction, so hoisted values must be placed in its dominator, before
+      // the try statement.
+      while (dominator.last is HTry) {
+        dominator = dominator.dominator!;
+      }
+
       dominator.addBefore(dominator.last, value);
 
       for (final (phi, index) in bestReferences) {
         phi.replaceInput(index, value);
       }
     }
-
-    _handled.addAll(phiTreeNodes);
   }
 
   void _markHandled(HPhi phi, HBasicBlock dominator) {

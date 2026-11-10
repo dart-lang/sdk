@@ -89,8 +89,8 @@ File::~File() {
 
 void File::Close() {
   ASSERT(handle_->fd() >= 0);
-  if (handle_->fd() == STDOUT_FILENO) {
-    // If stdout, redirect fd to /dev/null.
+  if (handle_->fd() == STDOUT_FILENO || handle_->fd() == STDERR_FILENO) {
+    // If stdout/err, redirect fd to /dev/null.
     int null_fd = TEMP_FAILURE_RETRY(open("/dev/null", O_WRONLY));
     ASSERT(null_fd >= 0);
     VOID_TEMP_FAILURE_RETRY(dup2(null_fd, handle_->fd()));
@@ -529,7 +529,9 @@ bool File::Copy(Namespace* namespc,
   intptr_t result = 1;
   while (result > 0) {
     // Loop to ensure we copy everything, and not only up to 2GB.
-    result = NO_RETRY_EXPECTED(sendfile64(new_fd, old_fd, &offset, kMaxUint32));
+    // sendfile64 can fail with EINTR if no data was written yet.
+    result =
+        TEMP_FAILURE_RETRY(sendfile64(new_fd, old_fd, &offset, kMaxUint32));
   }
   // From sendfile man pages:
   //   Applications may wish to fall back to read(2)/write(2) in the case

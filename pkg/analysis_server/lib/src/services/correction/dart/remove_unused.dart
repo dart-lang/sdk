@@ -14,7 +14,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class RemoveUnusedElement extends _RemoveUnused {
+class RemoveUnusedElement extends ResolvedCorrectionProducer {
   new({required super.context});
 
   @override
@@ -48,7 +48,7 @@ class RemoveUnusedElement extends _RemoveUnused {
       return;
     }
 
-    var references = _findAllReferences(unit, element);
+    var references = element.findAllReferences(unit);
     // TODO(pq): consider filtering for references that are limited to within the class.
     if (references.isEmpty) {
       var parent = node.parent;
@@ -106,7 +106,7 @@ class RemoveUnusedElement extends _RemoveUnused {
   }
 }
 
-class RemoveUnusedField extends _RemoveUnused {
+class RemoveUnusedField extends ResolvedCorrectionProducer {
   new({required super.context});
 
   @override
@@ -141,7 +141,7 @@ class RemoveUnusedField extends _RemoveUnused {
     }
 
     var sourceRanges = <SourceRange>[];
-    var references = [node, ..._findAllReferences(unit, element)];
+    var references = [node, ...element.findAllReferences(unit)];
     for (var reference in references) {
       // TODO(pq): consider scoping this to parent or parent.parent.
       var referenceNode = reference.thisOrAncestorMatching(
@@ -166,9 +166,61 @@ class RemoveUnusedField extends _RemoveUnused {
           grandParent,
         );
       } else if (referenceNode is ConstructorFieldInitializer) {
+        if (referenceNode.fieldName.name != element.name) return;
+
         sourceRange = _forConstructorFieldInitializer(referenceNode);
       } else if (referenceNode is FieldFormalParameter) {
+        var constructor = referenceNode
+            .thisOrAncestorOfType<ConstructorDeclaration>();
+        var hasOtherReference =
+            constructor != null &&
+            element.hasReferenceInConstructor(constructor);
+        if (hasOtherReference) {
+          // TODO(srawlins): Consider converting `FieldFormalParameter` into a
+          // normal formal parameter (e.g. `A(this._a) : _b = compute(_a)` ->
+          // `A(int a) : _b = compute(a)`) when the field is referenced in other
+          // initializers or the constructor body.
+          return;
+        }
+
+        var declaration = referenceNode.thisOrAncestorMatching(
+          (node) =>
+              node is ClassDeclaration ||
+              node is EnumDeclaration ||
+              node is ExtensionTypeDeclaration,
+        );
+        if (declaration != null) {
+          var members = switch (declaration) {
+            ClassDeclaration(:BlockClassBody body) => body.members,
+            EnumDeclaration(:BlockEnumBody body) => body.members,
+            ExtensionTypeDeclaration(:BlockClassBody body) => body.members,
+            _ => const <ClassMember>[],
+          };
+          for (var primaryBody in members.whereType<PrimaryConstructorBody>()) {
+            if (element.hasReferenceInPrimaryConstructorBody(primaryBody)) {
+              // TODO(srawlins): Consider converting `FieldFormalParameter` into
+              // a normal formal parameter in primary constructors as well.
+              return;
+            }
+          }
+        }
+
         sourceRange = _forFieldFormalParameter(referenceNode);
+      } else if (referenceNode is ExpressionStatement) {
+        if (referenceNode.expression case AssignmentExpression(
+          :var leftHandSide,
+        )) {
+          var isFieldAssignment = switch (leftHandSide) {
+            SimpleIdentifier(:var name) => name == element.name,
+            PropertyAccess(:var propertyName) =>
+              propertyName.name == element.name,
+            _ => false,
+          };
+          if (!isFieldAssignment) return;
+        } else {
+          return;
+        }
+        sourceRange = utils.getLinesRange(range.node(referenceNode));
       } else {
         sourceRange = utils.getLinesRange(range.node(referenceNode));
       }
@@ -186,12 +238,21 @@ class RemoveUnusedField extends _RemoveUnused {
   SourceRange _forConstructorFieldInitializer(
     ConstructorFieldInitializer node,
   ) {
-    var constructor = node.parent as ConstructorDeclaration;
-    if (constructor.initializers.length == 1) {
-      return range.endEnd(constructor.parameters, node);
-    } else {
-      return range.nodeInList(constructor.initializers, node);
+    var parent = node.parent;
+    if (parent is ConstructorDeclaration) {
+      if (parent.initializers.length == 1) {
+        return range.endEnd(parent.parameters, node);
+      } else {
+        return range.nodeInList(parent.initializers, node);
+      }
+    } else if (parent is PrimaryConstructorBody) {
+      if (parent.initializers.length == 1) {
+        return range.endEnd(parent.thisKeyword, node);
+      } else {
+        return range.nodeInList(parent.initializers, node);
+      }
     }
+    return range.node(node);
   }
 
   SourceRange _forFieldFormalParameter(FieldFormalParameter node) {
@@ -308,11 +369,47 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
   }
 }
 
-abstract class _RemoveUnused extends ResolvedCorrectionProducer {
-  new({required super.context});
+extension on VariableElement {
+  /// Returns whether `this` has any references in [constructor], other than
+  /// an initializer assigning to `this`.
+  bool hasReferenceInConstructor(ConstructorDeclaration constructor) =>
+      _hasReferenceInConstructorLike(
+        initializers: constructor.initializers,
+        body: constructor.body,
+      );
 
-  List<AstNode> _findAllReferences(AstNode root, Element element) {
-    var collector = _ElementReferenceCollector(element);
+  /// Returns whether `this` has any references in [body], other than
+  /// an initializer assigning to `this`.
+  bool hasReferenceInPrimaryConstructorBody(PrimaryConstructorBody body) =>
+      _hasReferenceInConstructorLike(
+        initializers: body.initializers,
+        body: body.body,
+      );
+
+  bool _hasReferenceInConstructorLike({
+    required NodeList<ConstructorInitializer> initializers,
+    required FunctionBody body,
+  }) {
+    for (var initializer in initializers) {
+      if (initializer is ConstructorFieldInitializer &&
+          initializer.fieldName.name == name) {
+        continue;
+      }
+      var references = findAllReferences(initializer);
+      if (references.isNotEmpty) return true;
+    }
+    if (body is BlockFunctionBody) {
+      var references = findAllReferences(body);
+      if (references.isNotEmpty) return true;
+    }
+    return false;
+  }
+}
+
+extension on Element {
+  /// Returns all references to `this` under [root].
+  List<AstNode> findAllReferences(AstNode root) {
+    var collector = _ElementReferenceCollector(this);
     root.accept(collector);
     return collector.references;
   }

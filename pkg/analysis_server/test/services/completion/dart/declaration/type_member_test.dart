@@ -57,10 +57,7 @@ suggestions
   }
 
   Future<void> test_argDefaults_method_with_optional_positional() async {
-    writeTestPackageConfig(meta: true);
     await computeSuggestions('''
-import 'package:meta/meta.dart';
-
 class A {
   bool f0(int bar, [bool boo, int baz]) => false;
 }
@@ -79,12 +76,9 @@ suggestions
   }
 
   Future<void> test_argDefaults_method_with_required_named() async {
-    writeTestPackageConfig(meta: true);
     await computeSuggestions('''
-import 'package:meta/meta.dart';
-
 class A {
-  bool f0(int bar, {bool boo, @required int baz}) => false;
+  bool f0(int bar, {bool boo, required int baz}) => false;
 }
 
 void f() {

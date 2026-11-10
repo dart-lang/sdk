@@ -35,7 +35,7 @@ DEFINE_FLAG(int,
             "The desired maximum percentage of time spent in old gen GC");
 DEFINE_FLAG(int,
             old_gen_growth_rate,
-            280,
+            70,
             "The max number of pages the old generation can grow at a time");
 DEFINE_FLAG(bool, log_growth, false, "Log PageSpace growth policy decisions.");
 
@@ -1162,12 +1162,16 @@ void PageSpace::CollectGarbageHelper(Thread* thread,
     }
     if (!new_space_is_swept) {
       sweep_new_ = heap_->new_space()->head();
-      heap_->new_space()->set_freed_in_words(0);
     }
     sweep_executable_ = exec_pages_;
   }
 
   {
+    if (!new_space_is_swept) {
+      // Without holding pages_lock_.
+      heap_->isolate_group()->AbandonRemainingTLABs(heap_->new_space());
+      heap_->new_space()->ResetForSweep();
+    }
     // STW sweeping: executable and new pages.
     // Executable pages are always swept during the STW phase to simplify
     // code protection.
@@ -1411,19 +1415,17 @@ void PageSpace::SweepNew() {
   TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "SweepNew");
 
   GCSweeper sweeper;
-  intptr_t free = 0;
   {
     MutexLocker ml(&pages_lock_);
     while (sweep_new_ != nullptr) {
       Page* page = sweep_new_;
       sweep_new_ = page->next();
       ml.Unlock();
-      page->Release();
-      free += sweeper.SweepNewPage(page);
+      sweeper.SweepNewPage(page);
       ml.Lock();
     }
   }
-  heap_->new_space()->add_freed_in_words(free >> kWordSizeLog2);
+  sweeper.FinalizeNewSweep(heap_->new_space());
 }
 
 void PageSpace::SweepLarge() {
@@ -1619,7 +1621,6 @@ void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
   page->forwarding_page_ = nullptr;
   page->card_table_ = nullptr;
   page->progress_bar_ = 0;
-  page->owner_ = nullptr;
   page->top_ = memory->end();
   page->end_ = memory->end();
   page->survivor_end_ = 0;

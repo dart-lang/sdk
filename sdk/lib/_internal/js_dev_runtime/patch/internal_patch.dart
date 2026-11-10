@@ -7,13 +7,9 @@ import 'dart:core' as core show Symbol;
 import 'dart:async' show Completer;
 import 'dart:_js_primitives' show printString;
 import 'dart:_internal' show patch;
-import 'dart:_interceptors' show JSArray;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_runtime' as dart;
 import 'dart:typed_data' show Uint8List;
-
-@patch
-bool typeAcceptsNull<T>() => null is T;
 
 int? getHotRestartGeneration() => dart.hotRestartGeneration();
 
@@ -28,7 +24,7 @@ bool isCurrentHotRestartGeneration(int generation) =>
     generation == dart.hotRestartGeneration();
 
 @patch
-class Symbol implements core.Symbol {
+class Symbol {
   @patch
   const Symbol(String name) : this._name = name;
 
@@ -52,18 +48,6 @@ class Symbol implements core.Symbol {
 @patch
 void printToConsole(String line) {
   printString('$line');
-}
-
-@patch
-List<T> makeListFixedLength<T>(List<T> growableList) {
-  JSArray.markFixedList(growableList);
-  return growableList;
-}
-
-@patch
-List<T> makeFixedListUnmodifiable<T>(List<T> fixedLengthList) {
-  JSArray.markUnmodifiableList(fixedLengthList);
-  return fixedLengthList;
 }
 
 @patch
@@ -112,14 +96,6 @@ Future<Object?> loadDynamicModule({Uri? uri, Uint8List? bytes}) {
     completer.completeError(e, st);
   }
   return completer.future;
-}
-
-@patch
-@pragma("vm:entry-point")
-abstract interface class IsolateGroup {
-  @patch
-  static Object? _runSync(Object computation) =>
-      throw UnsupportedError("_runSync");
 }
 
 final List<Object> _toStringVisiting = [];

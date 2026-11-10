@@ -22,6 +22,7 @@
 #include "bin/socket.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
+#include "bin/utils_win.h"
 #include "platform/syslog.h"
 
 #include "platform/utils.h"
@@ -735,108 +736,32 @@ StdHandle* StdHandle::Stdin(HANDLE handle) {
   return stdin_;
 }
 
-void StdHandle::RunWriteLoop() {
-  MonitorLocker ml(&monitor_);
-  write_thread_running_ = true;
-  thread_handle_ = GetCurrentThreadHandle();
-  // Notify we have started.
-  ml.Notify();
-
-  while (write_thread_running_) {
-    ml.Wait(Monitor::kNoTimeout);
-    if (HasPendingWrite()) {
-      // We woke up and had a pending write. Execute it.
-      WriteSyncCompleteAsync();
-    }
-  }
-
-  write_thread_exists_ = false;
-  ml.Notify();
-}
-
-void StdHandle::WriteSyncCompleteAsync() {
-  ASSERT(HasPendingWrite());
-
-  DWORD bytes_written = -1;
-  BOOL ok =
-      ::WriteFile(handle_, pending_write_->GetBufferStart(),
-                  pending_write_->GetBufferSize(), &bytes_written, nullptr);
-  if (!ok) {
-    bytes_written = 0;
-  }
-  thread_wrote_ += bytes_written;
-  OVERLAPPED* overlapped = pending_write_->GetCleanOverlapped();
-  ok = PostQueuedCompletionStatus(
-      EventHandler::delegate()->completion_port(), bytes_written,
-      reinterpret_cast<ULONG_PTR>(this), overlapped);
-  if (!ok) {
-    FATAL("PostQueuedCompletionStatus failed");
-  }
-}
-
-intptr_t StdHandle::Write(const void* buffer, intptr_t num_bytes) {
-  MonitorLocker ml(&monitor_);
-  if (HasPendingWrite()) {
-    return 0;
-  }
-  if (num_bytes > kBufferSize) {
-    num_bytes = kBufferSize;
-  }
-  // In the case of stdout and stderr, OverlappedIO is not supported.
-  // Here we'll instead use a thread, to make it async.
-  // This code is actually never exposed to the user, as stdout and stderr is
-  // not available as a RawSocket, but only wrapped in a Socket.
-  // Note that we return '0', unless a thread have already completed a write.
-  if (thread_wrote_ > 0) {
-    if (num_bytes > thread_wrote_) {
-      num_bytes = thread_wrote_;
-    }
-    thread_wrote_ -= num_bytes;
-    return num_bytes;
-  }
-  if (!write_thread_exists_) {
-    write_thread_exists_ = true;
-    // The write thread gets a reference to the Handle, which it places in
-    // the events it puts on the IO completion port.
-    Retain();
-    Thread::Start(
-        "dart:io WriteFile",
-        [](uword args) {
-          auto handle = reinterpret_cast<StdHandle*>(args);
-          handle->RunWriteLoop();
-          handle->Release();
-        },
-        reinterpret_cast<uword>(this));
-    while (!write_thread_running_) {
-      // Wait until we the thread is running.
-      ml.Wait(Monitor::kNoTimeout);
-    }
-  }
-  // Only queue up to INT_MAX bytes.
-  int truncated_bytes = Utils::Minimum<intptr_t>(num_bytes, INT_MAX);
-  // Create buffer and notify thread about the new handle.
-  pending_write_ =
-      OverlappedBuffer::AllocateWriteBuffer(this, truncated_bytes).release();
-  pending_write_->Write(buffer, truncated_bytes);
-  ml.Notify();
-  return 0;
-}
-
 void StdHandle::DoCloseLocked(MonitorLocker* ml) {
-  if (write_thread_exists_) {
-    write_thread_running_ = false;
-    ml->Notify();
-    while (write_thread_exists_) {
-      ml->Wait(Monitor::kNoTimeout);
-    }
-    // Join the thread.
-    DWORD res = WaitForSingleObject(thread_handle_, INFINITE);
-    CloseHandle(thread_handle_);
-    ASSERT(res == WAIT_OBJECT_0);
-  }
-  Handle::DoCloseLocked(ml);
-
   MutexLocker stdin_mutex_locker(stdin_mutex_);
+
+  HANDLE nul_handle = INVALID_HANDLE_VALUE;
+  if (handle_ == GetStdHandle(STD_INPUT_HANDLE)) {
+    nul_handle = OpenNul();
+    SetStdHandle(STD_INPUT_HANDLE, nul_handle);
+  }
+  if (handle_ == reinterpret_cast<HANDLE>(_get_osfhandle(STDIN_FILENO))) {
+    int nul_fd = _open("NUL", _O_RDONLY);
+    ASSERT(nul_fd >= 0);
+    _dup2(nul_fd, STDIN_FILENO);
+    _close(nul_fd);
+
+    // dup2 closes the handle which is overwritten.
+    handle_ = INVALID_HANDLE_VALUE;
+
+    // If CRT overwrote STD_INPUT_HANDLE, then close nul_handle.
+    if ((nul_handle != INVALID_HANDLE_VALUE) &&
+        (nul_handle != GetStdHandle(STD_INPUT_HANDLE))) {
+      CloseHandle(nul_handle);
+    }
+  } else {
+    Handle::DoCloseLocked(ml);
+  }
+
   stdin_->Release();
   StdHandle::stdin_ = nullptr;
 }

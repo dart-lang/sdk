@@ -435,42 +435,6 @@ class DateTime implements Comparable<DateTime> {
     bool isUtc = false,
   });
 
-  /// Throws an error if the millisecondsSinceEpoch and microsecond components
-  /// are out of range.
-  ///
-  /// Returns the millisecondsSinceEpoch component.
-  static int _validate(
-    int millisecondsSinceEpoch,
-    int microsecond,
-    bool isUtc,
-  ) {
-    if (microsecond < 0 || microsecond > 999) {
-      throw RangeError.range(microsecond, 0, 999, "microsecond");
-    }
-    if (millisecondsSinceEpoch < -_maxMillisecondsSinceEpoch ||
-        millisecondsSinceEpoch > _maxMillisecondsSinceEpoch) {
-      throw RangeError.range(
-        millisecondsSinceEpoch,
-        -_maxMillisecondsSinceEpoch,
-        _maxMillisecondsSinceEpoch,
-        "millisecondsSinceEpoch",
-      );
-    }
-    if (millisecondsSinceEpoch == _maxMillisecondsSinceEpoch &&
-        microsecond != 0) {
-      throw ArgumentError.value(
-        microsecond,
-        "microsecond",
-        "Time including microseconds is outside valid range",
-      );
-    }
-
-    // For backwards compatibility with legacy mode.
-    checkNotNullable(isUtc, "isUtc");
-
-    return millisecondsSinceEpoch;
-  }
-
   /// Whether [other] is a [DateTime] at the same moment and in the
   /// same time zone (UTC or local).
   ///

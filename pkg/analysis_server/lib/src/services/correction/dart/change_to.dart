@@ -6,11 +6,14 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/levenshtein.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -24,10 +27,6 @@ class ChangeTo extends ResolvedCorrectionProducer {
 
   /// The name to which the undefined name will be changed.
   String _proposedName = '';
-
-  /// Initializes a newly created instance that will propose classes and mixins.
-  new annotation({required super.context})
-    : _kind = _ReplacementKind.annotation;
 
   /// Initializes a newly created instance that will propose classes and mixins.
   new classOrMixin({required super.context})
@@ -70,7 +69,6 @@ class ChangeTo extends ResolvedCorrectionProducer {
     // TODO(brianwilkerson): Consider proposing all of the names within a
     //  reasonable distance, rather than just the first near match we find.
     await switch (_kind) {
-      _ReplacementKind.annotation => _proposeAnnotation(builder),
       _ReplacementKind.classOrMixin => _proposeClassOrMixin(builder, node),
       _ReplacementKind.field => _proposeField(builder),
       _ReplacementKind.function => _proposeFunction(builder),
@@ -95,16 +93,67 @@ class ChangeTo extends ResolvedCorrectionProducer {
     );
   }
 
-  Future<void> _proposeAnnotation(ChangeBuilder builder) async {
-    var node = this.node;
-    if (node is Annotation) {
-      var name = node.name;
-      if (name.element == null) {
-        if (node.arguments != null) {
-          await _proposeClassOrMixin(builder, name);
-        }
-      }
+  /// Whether [element] is a getter or a field whose value can be invoked.
+  bool _hasInvocableValue(Element element) {
+    var type = switch (element) {
+      GetterElement() => element.returnType,
+      FieldElement() => element.type,
+      _ => null,
+    };
+    if (type == null) {
+      return false;
     }
+    type = typeSystem.resolveToBound(type);
+    if (type is DynamicType) {
+      return true;
+    }
+    if (typeSystem.isPotentiallyNullable(type)) {
+      return false;
+    }
+    return type is FunctionType ||
+        type.isDartCoreFunction ||
+        type is InterfaceType &&
+            type.lookUpMethod('call', unitResult.libraryElement) != null;
+  }
+
+  /// Proposes a static constant for the undefined [node], which is the name,
+  /// or the last part of the name, of an annotation.
+  ///
+  /// Among members, an annotation can reference only a static constant.
+  /// Static members are not inherited, so the candidates are the constants
+  /// declared in the [target] of a qualified name, or, for an unqualified
+  /// name, in the declaration whose body contains the annotation. The
+  /// metadata of a declaration is not in the scope of its body. A [target]
+  /// that is a type alias denotes the declaration of the aliased type.
+  ///
+  /// Top-level constants are not proposed.
+  Future<void> _proposeAnnotationStaticConstant(
+    ChangeBuilder builder,
+    SimpleIdentifier node,
+    Expression? target,
+  ) async {
+    var container = switch (target) {
+      null =>
+        node
+            .thisOrAncestorMatching(
+              (node) => node is ClassMember || node is EnumConstantDeclaration,
+            )
+            ?.enclosingInstanceElement,
+      Identifier(:InstanceElement element) => element,
+      Identifier(
+        element: TypeAliasElement(aliasedType: InterfaceType(:var element)),
+      ) =>
+        element,
+      _ => null,
+    };
+    if (container == null) {
+      return;
+    }
+    var finder = _ClosestElementFinder(node.name, (element) {
+      return element is FieldElement && element.isStatic && element.isConst;
+    });
+    finder._updateList(container.fields);
+    await _suggest(builder, node.token, finder._element?.displayName);
   }
 
   Future<void> _proposeClassOrMixin(ChangeBuilder builder, AstNode node) async {
@@ -240,17 +289,27 @@ class ChangeTo extends ResolvedCorrectionProducer {
   Future<void> _proposeFunction(ChangeBuilder builder) async {
     var node = this.node;
     if (node is SimpleIdentifier) {
-      // Prepare the optional import prefix name.
-      String? prefixName;
-      {
-        var invocation = node.parent;
-        if (invocation is MethodInvocation && invocation.methodName == node) {
-          var target = invocation.target;
-          if (target is SimpleIdentifier && target.element is PrefixElement) {
-            prefixName = target.name;
-          }
-        }
+      // A function can be invoked or torn off, but it can't be an annotation,
+      // or be written, as in `foo += 1`.
+      if (node.annotationContainingName != null || node.inSetterContext()) {
+        return;
       }
+      // Prepare the optional import prefix name, for `p.foo()` and `p.foo`.
+      var prefixName = switch (node.parent) {
+        MethodInvocation(
+          target: SimpleIdentifier(:var name, element: PrefixElement()),
+          :var methodName,
+        )
+            when methodName == node =>
+          name,
+        PrefixedIdentifier(
+          prefix: SimpleIdentifier(:var name, element: PrefixElement()),
+          :var identifier,
+        )
+            when identifier == node =>
+          name,
+        _ => null,
+      };
       // Prepare for selecting the closest element.
       var finder = _ClosestElementFinder(
         node.name,
@@ -294,11 +353,25 @@ class ChangeTo extends ResolvedCorrectionProducer {
         target = parent.prefix;
       } else if (parent is PropertyAccess) {
         target = parent.target;
+      } else if (parent is MethodInvocation && parent.methodName == node) {
+        target = parent.realTarget;
+      } else if (parent is Annotation && parent.constructorName == node) {
+        // In `@p.C.name`, the target of `name` is `p.C`.
+        target = parent.name;
+      }
+      if (node.annotationContainingName != null) {
+        await _proposeAnnotationStaticConstant(builder, node, target);
+        return;
       }
       // find getter or setter
       var wantGetter = node.inGetterContext();
       var wantSetter = node.inSetterContext();
+      // In `foo()` the value of the getter is invoked.
+      var wantInvocable = node.isInvocationName;
       await _proposeClassOrMixinMember(builder, node.token, target, (element) {
+        if (wantInvocable && !_hasInvocableValue(element)) {
+          return false;
+        }
         if (element is GetterElement) {
           return wantGetter;
         } else if (element is SetterElement) {
@@ -449,7 +522,6 @@ class _ClosestElementFinder {
 
 /// A representation of the kind of element that should be suggested.
 enum _ReplacementKind {
-  annotation,
   classOrMixin,
   field,
   function,

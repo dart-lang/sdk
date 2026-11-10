@@ -10,9 +10,11 @@ for more details about the presubmit API built into gcl.
 
 import datetime
 import importlib.util
+import json
 import importlib.machinery
 import os
 import os.path
+import re
 from typing import Callable
 import scm
 import subprocess
@@ -303,12 +305,24 @@ def _CheckLayering(input_api, output_api):
     return []
 
 
+def _ClangToolPath(name):
+    """Returns the clang tool path for this host, or None if not enabled here."""
+    system, machine = platform.system(), platform.machine()
+    if system == 'Linux' and machine == 'x86_64':
+        plat = 'linux-x64'
+    elif system == 'Darwin':
+        plat = 'mac-arm64' if machine == 'arm64' else 'mac-x64'
+    elif system == 'Windows':
+        plat = 'win-x64'
+        name = name + '.exe'
+    else:
+        return None
+    path = 'buildtools/%s/clang/bin/%s' % (plat, name)
+    return path if os.path.isfile(path) else None
+
+
 def _CheckClangTidy(input_api, output_api):
     """Run clang-tidy on VM changes."""
-
-    # Only run clang-tidy on linux x64.
-    if platform.system() != 'Linux' or platform.machine() != 'x86_64':
-        return []
 
     # Run only for modified .cc or .h files.
     files = []
@@ -318,6 +332,13 @@ def _CheckClangTidy(input_api, output_api):
 
     if not files:
         return []
+
+    # clang-tidy currently only runs on linux-x64.
+    if platform.system() != 'Linux' or platform.machine() != 'x86_64':
+        return [
+            output_api.PresubmitNotifyResult(
+                'clang-tidy not enabled on this platform.')
+        ]
 
     args = [
         'tools/sdks/dart-sdk/bin/dart',
@@ -338,10 +359,6 @@ def _CheckClangTidy(input_api, output_api):
 def _CheckClangFormat(input_api, output_api):
     """Run clang-format on VM changes."""
 
-    # Only run clang-format on linux x64.
-    if platform.system() != 'Linux' or platform.machine() != 'x86_64':
-        return []
-
     # Run only for modified .cc or .h files, except for DEPS changes.
     files = []
     is_deps = False
@@ -355,6 +372,16 @@ def _CheckClangFormat(input_api, output_api):
         if is_cpp_file(path) and os.path.isfile(
                 path) and not path.startswith('third_party/'):
             files.append(path)
+
+    if not is_deps and not files:
+        return []
+
+    clang_format = _ClangToolPath('clang-format')
+    if clang_format is None:
+        return [
+            output_api.PresubmitNotifyResult(
+                'clang-format not enabled on this platform.')
+        ]
 
     if is_deps:
         find_args = [
@@ -372,7 +399,7 @@ def _CheckClangFormat(input_api, output_api):
         return []
 
     args = [
-        'buildtools/linux-x64/clang/bin/clang-format',
+        clang_format,
         '--dry-run',
         '--Werror',
     ]
@@ -533,9 +560,250 @@ def _CheckDartApiWinCSync(input_api, output_api):
     return []
 
 
+def _CheckStressTestListEntriesExist(input_api, output_api):
+    """Ensure that stress_test_list.json only lists files that exist."""
+    STRESS_TEST_LIST = "runtime/tests/concurrency/stress_test_list.json"
+
+    # Run only if the list was modified or the CL deletes (or renames) files.
+    if not any(f.LocalPath() == STRESS_TEST_LIST or f.Action() == 'D'
+               for f in input_api.AffectedFiles()):
+        return []
+
+    local_root = input_api.change.RepositoryRoot()
+    list_path = os.path.join(local_root, STRESS_TEST_LIST)
+    if not os.path.isfile(list_path):
+        return []
+
+    # Entries are relative to the directory containing the list.
+    list_dir = os.path.dirname(list_path)
+    with open(list_path, encoding='utf-8') as f:
+        entries = json.load(f)
+    missing = [
+        entry for entry in entries
+        if not os.path.isfile(os.path.join(list_dir, entry))
+    ]
+    if not missing:
+        return []
+
+    return [
+        output_api.PresubmitError(
+            f"{STRESS_TEST_LIST} lists files that do not exist. Remove these "
+            "entries (or update them if the tests were moved):",
+            long_text="\n".join(missing))
+    ]
+
+
+# Directories whose changes require a TEST=/Tested: description. Keep in sync
+# with the Gerrit "Commit-Message-Has-TEST" submit requirement, which is the
+# source of truth and lives in the project config on refs/meta/config:
+#   git fetch <remote> refs/meta/config && git show FETCH_HEAD:project.config
+_TEST_REQUIRED_DIRS = (
+    'runtime/vm/',
+    'runtime/bin/',
+    'runtime/lib/',
+    'runtime/include/',
+    'runtime/observatory/',
+    'runtime/observatory_2/',
+    'pkg/vm/',
+    'sdk/lib/_internal/vm/',
+)
+
+
+def _CheckHasTestField(input_api, output_api):
+    """Warns when a CL touching Dart VM sources lacks a TEST=/Tested: line.
+
+    Early upload-time reminder mirroring the Gerrit Commit-Message-Has-TEST
+    submit requirement (which stays the authoritative check). See
+    docs/Gerrit-Submit-Requirements.md#commit-message-has-test.
+    """
+    if not any(
+            f.LocalPath().startswith(_TEST_REQUIRED_DIRS)
+            for f in input_api.AffectedFiles()):
+        return []
+
+    # Pure reverts restore already-tested code and are exempt.
+    if input_api.change.DescriptionText().lstrip().startswith('Revert "'):
+        return []
+
+    # A `TEST=`/`TESTED=` line or a `Tested:` footer satisfies the rule.
+    has_test = bool(
+        input_api.change.tags.get('TEST') or
+        input_api.change.tags.get('TESTED'))
+    has_tested_footer = bool(
+        input_api.change.GitFootersFromDescription().get('Tested'))
+    if has_test or has_tested_footer:
+        return []
+
+    return [
+        output_api.PresubmitPromptWarning(
+            'This CL touches Dart VM sources but has no TEST= line or Tested: '
+            'footer describing how it was tested. Add one, e.g.:\n'
+            '  TEST=vm/cc/MyNewUnitTest\n'
+            '  TEST=ci   (existing CI coverage is sufficient)\n'
+            'See docs/Gerrit-Submit-Requirements.md#commit-message-has-test.')
+    ]
+
+
+# Lines in the commit message controlling automated publishing of packages in
+# pkg/ and third_party/pkg/, see docs/Publishing-SDK-packages.md. Anchored at
+# the start of the line so that quoted lines in reverts (`> PUBLISH=...`) are
+# ignored.
+_PUBLISH_RE = re.compile(r'^PUBLISH=([a-z0-9_]+)-v(\S+)$')
+_SKIP_PUBLISH_RE = re.compile(r'^SKIP_PUBLISH=([a-z0-9_]+)$')
+_PUBLISH_LIKE_RE = re.compile(r'^\s*(SKIP_)?PUBLISH\s*=')
+_PKG_PUBSPEC_RE = re.compile(
+    r'^(?:pkg|third_party/pkg)/([a-z0-9_]+)/pubspec\.yaml$')
+_CHANGELOG_VERSION_RE = re.compile(r'^#{1,2}\s+v?([0-9]\S*)')
+
+
+def _PubspecField(lines, key):
+    """Returns the scalar value of a top-level pubspec field, or None."""
+    field = re.compile(r'^' + key + r':\s*[\'"]?([^\'"\s#]+)')
+    for line in lines:
+        m = field.match(line)
+        if m:
+            return m.group(1)
+    return None
+
+
+def _IsReleaseVersion(version):
+    return not version.endswith(('-wip', '-dev'))
+
+
+def _HasPublishTo(lines):
+    """Whether the pubspec has a publish_to field (and is not published)."""
+    return any(line.startswith('publish_to:') for line in lines)
+
+
+def _TrackedPubspec(input_api, pkg):
+    """Returns the path of the pubspec.yaml tracked in git for pkg, or None.
+
+    Packages from DEPS are present on disk but not tracked, so they are never
+    returned.
+    """
+    candidates = [
+        'pkg/%s/pubspec.yaml' % pkg,
+        'third_party/pkg/%s/pubspec.yaml' % pkg,
+    ]
+    tracked = scm.GIT.Capture(['ls-files', '--'] + candidates,
+                              cwd=input_api.change.RepositoryRoot()).split()
+    return tracked[0] if tracked else None
+
+
+def _CheckPackagePublish(input_api, output_api):
+    """Checks PUBLISH= lines for packages that are published to pub.dev.
+
+    A PUBLISH=<package>-v<version> line in the commit message causes the
+    package to be published once the commit lands on main, see
+    docs/Publishing-SDK-packages.md. This check requires such a line (or
+    SKIP_PUBLISH=<package>) when the version of a publishable package is
+    changed to a release version, and validates PUBLISH= lines against the
+    pubspec and changelog.
+    """
+    # Packages are only published from main.
+    gerrit = input_api.gerrit
+    if gerrit and gerrit.branch and gerrit.branch != 'refs/heads/main':
+        return []
+
+    publish = []
+    skip_pkgs = set()
+    errors = []
+    for line in input_api.change.FullDescriptionText().splitlines():
+        m = _PUBLISH_RE.match(line)
+        if m:
+            publish.append(m.groups())
+            continue
+        m = _SKIP_PUBLISH_RE.match(line)
+        if m:
+            skip_pkgs.add(m.group(1))
+            continue
+        if _PUBLISH_LIKE_RE.match(line):
+            errors.append(
+                '"%s" is not a valid PUBLISH= line. It must be exactly '
+                'PUBLISH=<package>-v<version> or SKIP_PUBLISH=<package> at '
+                'the start of the line.' % line)
+    publish_pkgs = set(pkg for pkg, _ in publish)
+
+    # Changing to a release version requires PUBLISH= or SKIP_PUBLISH=. Pure
+    # reverts restore an already published version and are exempt.
+    is_revert = input_api.change.DescriptionText().lstrip().startswith(
+        'Revert "')
+    for f in input_api.AffectedFiles(include_deletes=False):
+        path = f.LocalPath().replace(os.sep, '/')
+        m = _PKG_PUBSPEC_RE.match(path)
+        if not m or is_revert:
+            continue
+        pkg = m.group(1)
+        if pkg in publish_pkgs or pkg in skip_pkgs:
+            continue
+        if _HasPublishTo(f.NewContents()):
+            continue
+        new_version = _PubspecField(f.NewContents(), 'version')
+        if new_version is None or not _IsReleaseVersion(new_version):
+            continue
+        # Unchanged, unless the package was not publishable before.
+        if (new_version == _PubspecField(f.OldContents(), 'version') and
+                not _HasPublishTo(f.OldContents())):
+            continue
+        errors.append(
+            '%s has version %s, which will not be published to pub.dev.\n'
+            'Add PUBLISH=%s-v%s to the commit message to publish it, or '
+            'SKIP_PUBLISH=%s to not publish it.' %
+            (path, new_version, pkg, new_version, pkg))
+
+    # Validate PUBLISH= lines.
+    root = input_api.change.RepositoryRoot()
+    for pkg, version in publish:
+        if pkg in skip_pkgs:
+            errors.append('PUBLISH=%s-v%s conflicts with SKIP_PUBLISH=%s.' %
+                          (pkg, version, pkg))
+            continue
+        pubspec = _TrackedPubspec(input_api, pkg)
+        if pubspec is None:
+            errors.append(
+                'PUBLISH=%s-v%s: there is no pkg/%s/pubspec.yaml or '
+                'third_party/pkg/%s/pubspec.yaml in this repository.' %
+                (pkg, version, pkg, pkg))
+            continue
+        pkg_dir = os.path.dirname(pubspec)
+        with open(os.path.join(root, pubspec), encoding='utf-8') as f:
+            lines = f.read().splitlines()
+        if _HasPublishTo(lines):
+            errors.append('PUBLISH=%s-v%s: %s has publish_to.' %
+                          (pkg, version, pubspec))
+            continue
+        if not _IsReleaseVersion(version):
+            errors.append(
+                'PUBLISH=%s-v%s: versions ending with -wip or -dev are not '
+                'published.' % (pkg, version))
+            continue
+        pubspec_version = _PubspecField(lines, 'version')
+        if version != pubspec_version:
+            errors.append('PUBLISH=%s-v%s: %s has version %s.' %
+                          (pkg, version, pubspec, pubspec_version))
+            continue
+        changelog = os.path.join(root, pkg_dir, 'CHANGELOG.md')
+        if os.path.isfile(changelog):
+            with open(changelog, encoding='utf-8') as f:
+                lines = f.read().splitlines()
+            headings = [
+                m.group(1) for m in map(_CHANGELOG_VERSION_RE.match, lines) if m
+            ]
+            if not headings or headings[0] != version:
+                errors.append(
+                    'PUBLISH=%s-v%s: the first version in %s/CHANGELOG.md '
+                    'is %s, expected %s.' %
+                    (pkg, version, pkg_dir, headings[0] if headings else None,
+                     version))
+
+    return [output_api.PresubmitError(e) for e in errors]
+
+
 def _CommonChecks(input_api, output_api):
     results = []
     results.extend(_CheckValidHostsInDEPS(input_api, output_api))
+    results.extend(_CheckHasTestField(input_api, output_api))
+    results.extend(_CheckPackagePublish(input_api, output_api))
     results.extend(_CheckDartFormat(input_api, output_api))
     results.extend(_CheckStatusFiles(input_api, output_api))
     results.extend(_CheckLayering(input_api, output_api))
@@ -548,6 +816,7 @@ def _CommonChecks(input_api, output_api):
     results.extend(_CheckAnalyzerFiles(input_api, output_api))
     results.extend(_CheckDevCompilerSync(input_api, output_api))
     results.extend(_CheckDartApiWinCSync(input_api, output_api))
+    results.extend(_CheckStressTestListEntriesExist(input_api, output_api))
     return results
 
 

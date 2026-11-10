@@ -457,6 +457,8 @@ final friendlyNameForDartOperator = {
 // Invalid characters for identifiers, which would need to be escaped.
 final invalidCharInIdentifier = RegExp(r'[^A-Za-z_$0-9]');
 
+final digitCharacters = RegExp('[0-9]');
+
 /// Escape [name] to make it into a valid identifier.
 String toJSIdentifier(String name) {
   if (name.isEmpty) return r'$';
@@ -470,13 +472,21 @@ String toJSIdentifier(String name) {
       buffer ??= StringBuffer(name.substring(0, i));
     }
 
-    buffer?.write(needsEscape ? '\$${ch.codeUnits.join("")}' : ch);
+    if (buffer != null) {
+      if (needsEscape) {
+        // Rewrite invalid characters like "#" -> "$35".
+        buffer.write(r'$');
+        buffer.write(ch.codeUnitAt(0));
+      } else {
+        buffer.write(ch);
+      }
+    }
   }
 
   var result = buffer != null ? '$buffer' : name;
   // Ensure the identifier first character is not numeric and that the whole
   // identifier is not a keyword.
-  if (result.startsWith(RegExp('[0-9]')) || invalidVariableName(result)) {
+  if (result.startsWith(digitCharacters) || invalidVariableName(result)) {
     return '\$$result';
   }
   return result;
@@ -490,14 +500,35 @@ String toJSIdentifier(String name) {
 ///   2) An escaped '/' or '\' appears in a filename (a/b and a$47b).
 String pathToJSIdentifier(String path) {
   path = p.normalize(path);
-  if (path.startsWith('/') || path.startsWith('\\')) {
-    path = path.substring(1, path.length);
+  if (path.startsWith('/') || path.startsWith(r'\')) {
+    path = path.substring(1);
   }
-  return toJSIdentifier(
-    path
-        .replaceAll('\\', '__')
-        .replaceAll('/', '__')
-        .replaceAll('..', '__')
-        .replaceAll('-', '_'),
-  );
+  final length = path.length;
+  StringBuffer? buffer;
+  for (var i = 0; i < length; i++) {
+    final character = path[i];
+    if (character == '/' || character == r'\') {
+      // Replace "/" or "\" -> "__".
+      buffer ??= StringBuffer(path.substring(0, i));
+      buffer.write('__');
+    } else if (character == '-') {
+      // Replace "-" -> "_".
+      buffer ??= StringBuffer(path.substring(0, i));
+      buffer.write('_');
+    } else if (character == '.') {
+      if (i + 1 < length && path[i + 1] == '.') {
+        // Replace ".." -> "__".
+        buffer ??= StringBuffer(path.substring(0, i));
+        buffer.write('__');
+        // Skip the next dot.
+        i++;
+      } else {
+        buffer?.write(character);
+      }
+    } else {
+      buffer?.write(character);
+    }
+  }
+  final transformed = buffer != null ? '$buffer' : path;
+  return toJSIdentifier(transformed);
 }

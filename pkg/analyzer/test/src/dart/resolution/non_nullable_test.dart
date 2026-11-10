@@ -53,9 +53,22 @@ class C {
 }
 ''');
 
-    var node = result.findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldsDeclaration;
     assertResolvedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  type: NamedType
+    name: F
+    question: ?
+    element: <testLibrary>::@typeAlias::F
+    type: T Function<T>(int, T)?
+      alias: <testLibrary>::@typeAlias::F
+        nullabilitySuffix: NullabilitySuffix.question
+  fields
+    Field
+      name: f
+      declaredFragment: <testLibraryFragment> f@51
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     type: NamedType
       name: F
@@ -80,7 +93,10 @@ f(int? x) {
 }
 ''');
 
-    assertType(result.findNode.propertyAccess('x?.isEven'), 'bool?');
+    assertType(
+      result.findNode.receiverPropertyExtraction('x?.isEven'),
+      'bool?',
+    );
   }
 
   test_local_interfaceType() async {
@@ -134,7 +150,7 @@ f(C? c) {
 }
 ''');
 
-    assertType(result.findNode.methodInvocation('c?.x()'), 'bool?');
+    assertType(result.findNode.receiverMethodInvocation('c?.x()'), 'bool?');
   }
 
   test_local_nullCoalesceAssign_nullableInt_int() async {
@@ -226,8 +242,8 @@ m<T extends Function>() {
 }
 ''');
     // Do not assert no test errors. Deliberately invokes nullable type.
-    var invocation = result.findNode.functionExpressionInvocation('first()');
-    assertType(invocation.function2, 'T?');
+    var invocation = result.findNode.callInvocation('first()');
+    assertType(invocation.receiver, 'T?');
   }
 
   test_mixin_hierarchy() async {
@@ -676,7 +692,10 @@ void f(int? x) {
 }
 ''');
 
-    assertType(result.findNode.propertyAccess('x?.isEven'), 'bool?');
+    assertType(
+      result.findNode.receiverPropertyExtraction('x?.isEven'),
+      'bool?',
+    );
   }
 
   test_parameter_interfaceType() async {
@@ -712,7 +731,7 @@ void f(C? c) {
 }
 ''');
 
-    assertType(result.findNode.methodInvocation('c?.x()'), 'bool?');
+    assertType(result.findNode.receiverMethodInvocation('c?.x()'), 'bool?');
   }
 
   test_parameter_nullCoalesceAssign_nullableInt_int() async {

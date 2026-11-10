@@ -7,8 +7,8 @@ part of 'fragment.dart';
 class PrimaryConstructorBodyFragment implements Fragment, FunctionFragment {
   static const String nameSentinel = '_primary-constructor-body_';
 
-  final Uri fileUri;
-  final int thisOffset;
+  @override
+  final UriOffsetLength uriOffset;
   final List<MetadataBuilder>? metadata;
 
   /// The scope in which the constructor body is declared.
@@ -46,8 +46,7 @@ class PrimaryConstructorBodyFragment implements Fragment, FunctionFragment {
   SourceConstructorBuilder? _builder;
 
   new({
-    required this.fileUri,
-    required this.thisOffset,
+    required this.uriOffset,
     required this.metadata,
     required this.enclosingScope,
     required this.enclosingDeclaration,
@@ -64,12 +63,9 @@ class PrimaryConstructorBodyFragment implements Fragment, FunctionFragment {
     return result;
   }
 
-  @override
-  late final UriOffsetLength uriOffset = new UriOffsetLength(
-    fileUri,
-    thisOffset,
-    4,
-  );
+  Uri get fileUri => uriOffset.fileUri;
+  // Coverage-ignore(suite): Not run.
+  int get thisOffset => uriOffset.fileOffset;
 
   @override
   SourceConstructorBuilder get builder {

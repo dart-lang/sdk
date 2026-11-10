@@ -26,7 +26,7 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
   /// If the class is not sealed, then `null`.
   ManifestItemIdList? directSubtypesOfSealed;
 
-  ClassItem({
+  new({
     required super.id,
     required _ClassItemFlags super.flags,
     required super.metadata,
@@ -47,7 +47,7 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
     required this.directSubtypesOfSealed,
   });
 
-  factory ClassItem.fromElement({
+  factory fromElement({
     required ManifestItemId id,
     required EncodeContext context,
     required ClassElementImpl element,
@@ -76,7 +76,7 @@ class ClassItem extends InterfaceItem<ClassElementImpl> {
     });
   }
 
-  factory ClassItem.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return ClassItem(
       id: ManifestItemId.read(reader),
       flags: _ClassItemFlags.read(reader),
@@ -127,7 +127,7 @@ class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
   final ManifestElement? redirectedConstructor;
   final ManifestElement? superConstructor;
 
-  ConstructorItem({
+  new({
     required super.id,
     required _ConstructorItemFlags super.flags,
     required super.metadata,
@@ -138,7 +138,7 @@ class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
     required this.superConstructor,
   });
 
-  factory ConstructorItem.fromElement({
+  factory fromElement({
     required ManifestItemId id,
     required EncodeContext context,
     required ConstructorElementImpl element,
@@ -166,7 +166,7 @@ class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
     });
   }
 
-  factory ConstructorItem.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return ConstructorItem(
       id: ManifestItemId.read(reader),
       flags: _ConstructorItemFlags.read(reader),
@@ -220,7 +220,7 @@ class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
 }
 
 class EnumItem extends InterfaceItem<EnumElementImpl> {
-  EnumItem({
+  new({
     required super.id,
     required super.flags,
     required super.metadata,
@@ -239,7 +239,7 @@ class EnumItem extends InterfaceItem<EnumElementImpl> {
     required super.interfaces,
   });
 
-  factory EnumItem.fromElement({
+  factory fromElement({
     required ManifestItemId id,
     required EncodeContext context,
     required EnumElementImpl element,
@@ -266,7 +266,7 @@ class EnumItem extends InterfaceItem<EnumElementImpl> {
     });
   }
 
-  factory EnumItem.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return EnumItem(
       id: ManifestItemId.read(reader),
       flags: _InterfaceItemFlags.read(reader),
@@ -293,7 +293,7 @@ sealed class ExecutableItem<E extends ExecutableElementImpl>
   final ManifestFunctionType functionType;
   final List<ManifestNode?> formalParameterDefaultValues;
 
-  ExecutableItem({
+  new({
     required super.id,
     required _ExecutableItemFlags super.flags,
     required super.metadata,
@@ -335,7 +335,7 @@ sealed class ExecutableItem<E extends ExecutableElementImpl>
 class ExtensionItem<E extends ExtensionElementImpl> extends InstanceItem<E> {
   final ManifestType extendedType;
 
-  ExtensionItem({
+  new({
     required super.id,
     required super.flags,
     required super.metadata,
@@ -350,7 +350,7 @@ class ExtensionItem<E extends ExtensionElementImpl> extends InstanceItem<E> {
     required this.extendedType,
   });
 
-  factory ExtensionItem.fromElement({
+  factory fromElement({
     required ManifestItemId id,
     required EncodeContext context,
     required ExtensionElementImpl element,
@@ -373,7 +373,7 @@ class ExtensionItem<E extends ExtensionElementImpl> extends InstanceItem<E> {
     });
   }
 
-  factory ExtensionItem.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return ExtensionItem(
       id: ManifestItemId.read(reader),
       flags: _InstanceItemFlags.read(reader),
@@ -407,7 +407,7 @@ class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl> {
   final ManifestType representationType;
   final ManifestType typeErasure;
 
-  ExtensionTypeItem({
+  new({
     required super.id,
     required _ExtensionTypeItemFlags super.flags,
     required super.metadata,
@@ -428,7 +428,7 @@ class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl> {
     required this.typeErasure,
   });
 
-  factory ExtensionTypeItem.fromElement({
+  factory fromElement({
     required ManifestItemId id,
     required EncodeContext context,
     required ExtensionTypeElementImpl element,
@@ -457,7 +457,7 @@ class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl> {
     });
   }
 
-  factory ExtensionTypeItem.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return ExtensionTypeItem(
       id: ManifestItemId.read(reader),
       flags: _ExtensionTypeItemFlags.read(reader),
@@ -503,7 +503,7 @@ class ExtensionTypeItem extends InterfaceItem<ExtensionTypeElementImpl> {
 }
 
 class FieldItem extends VariableItem<FieldElementImpl> {
-  FieldItem({
+  new({
     required super.id,
     required _FieldItemFlags super.flags,
     required super.metadata,
@@ -512,7 +512,7 @@ class FieldItem extends VariableItem<FieldElementImpl> {
     required super.typeInferenceError,
   });
 
-  factory FieldItem.fromElement({
+  factory fromElement({
     required ManifestItemId id,
     required EncodeContext context,
     required FieldElementImpl element,
@@ -529,7 +529,7 @@ class FieldItem extends VariableItem<FieldElementImpl> {
     });
   }
 
-  factory FieldItem.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return FieldItem(
       id: ManifestItemId.read(reader),
       flags: _FieldItemFlags.read(reader),
@@ -573,7 +573,7 @@ class FieldItem extends VariableItem<FieldElementImpl> {
 }
 
 class GetterItem extends PropertyAccessorItem<GetterElementImpl> {
-  GetterItem({
+  new({
     required super.id,
     required super.flags,
     required super.metadata,
@@ -581,7 +581,7 @@ class GetterItem extends PropertyAccessorItem<GetterElementImpl> {
     required super.formalParameterDefaultValues,
   });
 
-  factory GetterItem.fromElement({
+  factory fromElement({
     required ManifestItemId id,
     required EncodeContext context,
     required GetterElementImpl element,
@@ -599,7 +599,7 @@ class GetterItem extends PropertyAccessorItem<GetterElementImpl> {
     );
   }
 
-  factory GetterItem.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return GetterItem(
       id: ManifestItemId.read(reader),
       flags: _PropertyAccessorItemFlags.read(reader),
@@ -633,7 +633,7 @@ sealed class InstanceItem<E extends InstanceElementImpl>
   Map<LookupName, ConstructorItem> declaredConstructors;
   Map<LookupName, ManifestItemId> inheritedConstructors;
 
-  InstanceItem({
+  new({
     required super.id,
     required _InstanceItemFlags super.flags,
     required super.metadata,
@@ -781,28 +781,6 @@ sealed class InstanceItem<E extends InstanceElementImpl>
     inheritedConstructors = {};
   }
 
-  ManifestItemId? getConstructorId(LookupName name) {
-    return declaredConstructors[name]?.id ??
-        inheritedConstructors[name] ??
-        declaredConflicts[name];
-  }
-
-  ManifestItemId? getDeclaredFieldId(LookupName name) {
-    return declaredFields[name]?.id ?? declaredConflicts[name];
-  }
-
-  ManifestItemId? getDeclaredGetterId(LookupName name) {
-    return declaredGetters[name]?.id ?? declaredConflicts[name];
-  }
-
-  ManifestItemId? getDeclaredMethodId(LookupName name) {
-    return declaredMethods[name]?.id ?? declaredConflicts[name];
-  }
-
-  ManifestItemId? getDeclaredSetterId(LookupName name) {
-    return declaredSetters[name]?.id ?? declaredConflicts[name];
-  }
-
   @override
   bool match(MatchContext context, E element) {
     context.addTypeParameters(element.typeParameters);
@@ -847,7 +825,7 @@ sealed class InterfaceItem<E extends InterfaceElementImpl>
   final List<ManifestType> mixins;
   final ManifestInterface interface;
 
-  InterfaceItem({
+  new({
     required super.id,
     required _InterfaceItemFlags super.flags,
     required super.metadata,
@@ -868,22 +846,6 @@ sealed class InterfaceItem<E extends InterfaceElementImpl>
 
   @override
   _InterfaceItemFlags get flags => super.flags as _InterfaceItemFlags;
-
-  ManifestItemId? getImplementedMethodId(LookupName name) {
-    return interface.implemented[name];
-  }
-
-  ManifestItemId? getInterfaceMethodId(LookupName name) {
-    return interface.map[name];
-  }
-
-  ManifestItemId? getSuperImplementedMethodId(int index, LookupName name) {
-    if (index < interface.superImplemented.length) {
-      return interface.superImplemented[index][name];
-    } else {
-      return null;
-    }
-  }
 
   /// Intentionally omits [hasNonFinalField], which is tracked as a separate
   /// requirement.
@@ -907,13 +869,9 @@ sealed class InterfaceItem<E extends InterfaceElementImpl>
 }
 
 class LibraryMetadataItem extends ManifestItem<LibraryElementImpl> {
-  LibraryMetadataItem({
-    required super.id,
-    required super.flags,
-    required super.metadata,
-  });
+  new({required super.id, required super.flags, required super.metadata});
 
-  factory LibraryMetadataItem.empty() {
+  factory empty() {
     return LibraryMetadataItem(
       id: ManifestItemId.generate(),
       flags: _ManifestItemFlags.empty(),
@@ -921,7 +879,7 @@ class LibraryMetadataItem extends ManifestItem<LibraryElementImpl> {
     );
   }
 
-  factory LibraryMetadataItem.encode({
+  factory encode({
     required ManifestItemId id,
     required EncodeContext context,
     required MetadataImpl metadata,
@@ -933,7 +891,7 @@ class LibraryMetadataItem extends ManifestItem<LibraryElementImpl> {
     );
   }
 
-  factory LibraryMetadataItem.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return LibraryMetadataItem(
       id: ManifestItemId.read(reader),
       flags: _ManifestItemFlags.read(reader),
@@ -947,9 +905,9 @@ class LibraryMetadataItem extends ManifestItem<LibraryElementImpl> {
 class ManifestAnnotation {
   final ManifestNode ast;
 
-  ManifestAnnotation({required this.ast});
+  new({required this.ast});
 
-  factory ManifestAnnotation.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return ManifestAnnotation(ast: ManifestNode.read(reader));
   }
 
@@ -965,9 +923,17 @@ class ManifestAnnotation {
     EncodeContext context,
     ElementAnnotationImpl annotation,
   ) {
-    return ManifestAnnotation(
-      ast: ManifestNode.encode(context, annotation.annotationAst),
-    );
+    var ast = annotation.annotationAst;
+    ManifestAnnotation encodeAst() {
+      return ManifestAnnotation(ast: ManifestNode.encode(context, ast));
+    }
+
+    if (ast.expression is UnqualifiedNameExpression) {
+      if (annotation.element case var element?) {
+        return context.encodeUnqualifiedNameAnnotation(element, encodeAst);
+      }
+    }
+    return encodeAst();
   }
 }
 
@@ -1007,7 +973,7 @@ class ManifestInterface {
   /// we can fill [combinedIds] with new entries.
   Map<ManifestItemIdList, ManifestItemId> combinedIdsTemp = {};
 
-  ManifestInterface({
+  new({
     required this.id,
     required this.map,
     required this.implemented,
@@ -1016,7 +982,7 @@ class ManifestInterface {
     required this.combinedIds,
   });
 
-  factory ManifestInterface.empty() {
+  factory empty() {
     return ManifestInterface(
       id: ManifestItemId.generate(),
       map: {},
@@ -1027,7 +993,7 @@ class ManifestInterface {
     );
   }
 
-  factory ManifestInterface.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return ManifestInterface(
       id: ManifestItemId.read(reader),
       map: reader.readLookupNameToIdMap(),
@@ -1098,7 +1064,7 @@ sealed class ManifestItem<E extends ElementImpl> {
   final _ManifestItemFlags flags;
   final ManifestMetadata metadata;
 
-  ManifestItem({required this.id, required this.flags, required this.metadata});
+  new({required this.id, required this.flags, required this.metadata});
 
   @mustCallSuper
   bool match(MatchContext context, E element) {
@@ -1119,25 +1085,18 @@ class ManifestLibraryLanguageVersion {
   final Version packageVersion;
   final Version? overrideVersion;
 
-  ManifestLibraryLanguageVersion({
-    required this.packageVersion,
-    required this.overrideVersion,
-  });
+  new({required this.packageVersion, required this.overrideVersion});
 
-  ManifestLibraryLanguageVersion.empty()
-    : packageVersion = Version.none,
-      overrideVersion = null;
+  new empty() : packageVersion = Version.none, overrideVersion = null;
 
-  factory ManifestLibraryLanguageVersion.encode(
-    LibraryLanguageVersion languageVersion,
-  ) {
+  factory encode(LibraryLanguageVersion languageVersion) {
     return ManifestLibraryLanguageVersion(
       packageVersion: languageVersion.package,
       overrideVersion: languageVersion.override,
     );
   }
 
-  factory ManifestLibraryLanguageVersion.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return ManifestLibraryLanguageVersion(
       packageVersion: _readVersion(reader),
       overrideVersion: reader.readOptionalObject(() => _readVersion(reader)),
@@ -1195,12 +1154,9 @@ class ManifestLibraryLanguageVersion {
 class ManifestMetadata {
   final List<ManifestAnnotation> annotations;
 
-  ManifestMetadata({required this.annotations});
+  new({required this.annotations});
 
-  factory ManifestMetadata.encode(
-    EncodeContext context,
-    MetadataImpl metadata,
-  ) {
+  factory encode(EncodeContext context, MetadataImpl metadata) {
     return ManifestMetadata(
       annotations: metadata.annotations.map((annotation) {
         return ManifestAnnotation.encode(context, annotation);
@@ -1208,7 +1164,7 @@ class ManifestMetadata {
     );
   }
 
-  factory ManifestMetadata.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return ManifestMetadata(
       annotations: reader.readTypedList(() {
         return ManifestAnnotation.read(reader);
@@ -1239,7 +1195,7 @@ class ManifestMetadata {
 class MethodItem extends ExecutableItem<MethodElementImpl> {
   final TopLevelInferenceError? typeInferenceError;
 
-  MethodItem({
+  new({
     required super.id,
     required _MethodItemFlags super.flags,
     required super.metadata,
@@ -1248,7 +1204,7 @@ class MethodItem extends ExecutableItem<MethodElementImpl> {
     required this.typeInferenceError,
   });
 
-  factory MethodItem.fromElement({
+  factory fromElement({
     required ManifestItemId id,
     required EncodeContext context,
     required MethodElementImpl element,
@@ -1264,7 +1220,7 @@ class MethodItem extends ExecutableItem<MethodElementImpl> {
     );
   }
 
-  factory MethodItem.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return MethodItem(
       id: ManifestItemId.read(reader),
       flags: _MethodItemFlags.read(reader),
@@ -1306,7 +1262,7 @@ class MixinItem extends InterfaceItem<MixinElementImpl> {
   final List<ManifestType> superclassConstraints;
   final List<LookupName> superInvokedNames;
 
-  MixinItem({
+  new({
     required super.id,
     required _MixinItemFlags super.flags,
     required super.metadata,
@@ -1329,7 +1285,7 @@ class MixinItem extends InterfaceItem<MixinElementImpl> {
        assert(mixins.isEmpty),
        assert(superclassConstraints.isNotEmpty);
 
-  factory MixinItem.fromElement({
+  factory fromElement({
     required ManifestItemId id,
     required EncodeContext context,
     required MixinElementImpl element,
@@ -1360,7 +1316,7 @@ class MixinItem extends InterfaceItem<MixinElementImpl> {
     });
   }
 
-  factory MixinItem.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return MixinItem(
       id: ManifestItemId.read(reader),
       flags: _MixinItemFlags.read(reader),
@@ -1407,7 +1363,7 @@ class MixinItem extends InterfaceItem<MixinElementImpl> {
 
 sealed class PropertyAccessorItem<E extends PropertyAccessorElementImpl>
     extends ExecutableItem<E> {
-  PropertyAccessorItem({
+  new({
     required super.id,
     required _PropertyAccessorItemFlags super.flags,
     required super.metadata,
@@ -1429,7 +1385,7 @@ sealed class PropertyAccessorItem<E extends PropertyAccessorElementImpl>
 }
 
 class SetterItem extends PropertyAccessorItem<SetterElementImpl> {
-  SetterItem({
+  new({
     required super.id,
     required super.flags,
     required super.metadata,
@@ -1437,7 +1393,7 @@ class SetterItem extends PropertyAccessorItem<SetterElementImpl> {
     required super.formalParameterDefaultValues,
   });
 
-  factory SetterItem.fromElement({
+  factory fromElement({
     required ManifestItemId id,
     required EncodeContext context,
     required SetterElementImpl element,
@@ -1455,7 +1411,7 @@ class SetterItem extends PropertyAccessorItem<SetterElementImpl> {
     );
   }
 
-  factory SetterItem.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return SetterItem(
       id: ManifestItemId.read(reader),
       flags: _PropertyAccessorItemFlags.read(reader),
@@ -1474,7 +1430,7 @@ class SetterItem extends PropertyAccessorItem<SetterElementImpl> {
 }
 
 class TopLevelFunctionItem extends ExecutableItem<TopLevelFunctionElementImpl> {
-  TopLevelFunctionItem({
+  new({
     required super.id,
     required _TopLevelFunctionItemFlags super.flags,
     required super.metadata,
@@ -1482,7 +1438,7 @@ class TopLevelFunctionItem extends ExecutableItem<TopLevelFunctionElementImpl> {
     required super.formalParameterDefaultValues,
   });
 
-  factory TopLevelFunctionItem.fromElement({
+  factory fromElement({
     required ManifestItemId id,
     required EncodeContext context,
     required TopLevelFunctionElementImpl element,
@@ -1497,7 +1453,7 @@ class TopLevelFunctionItem extends ExecutableItem<TopLevelFunctionElementImpl> {
     );
   }
 
-  factory TopLevelFunctionItem.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return TopLevelFunctionItem(
       id: ManifestItemId.read(reader),
       flags: _TopLevelFunctionItemFlags.read(reader),
@@ -1520,7 +1476,7 @@ class TopLevelFunctionItem extends ExecutableItem<TopLevelFunctionElementImpl> {
 }
 
 class TopLevelVariableItem extends VariableItem<TopLevelVariableElementImpl> {
-  TopLevelVariableItem({
+  new({
     required super.id,
     required _TopLevelVariableItemFlags super.flags,
     required super.metadata,
@@ -1529,7 +1485,7 @@ class TopLevelVariableItem extends VariableItem<TopLevelVariableElementImpl> {
     required super.typeInferenceError,
   });
 
-  factory TopLevelVariableItem.fromElement({
+  factory fromElement({
     required ManifestItemId id,
     required EncodeContext context,
     required TopLevelVariableElementImpl element,
@@ -1544,7 +1500,7 @@ class TopLevelVariableItem extends VariableItem<TopLevelVariableElementImpl> {
     );
   }
 
-  factory TopLevelVariableItem.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return TopLevelVariableItem(
       id: ManifestItemId.read(reader),
       flags: _TopLevelVariableItemFlags.read(reader),
@@ -1572,7 +1528,7 @@ class TypeAliasItem extends ManifestItem<TypeAliasElementImpl> {
   final List<ManifestTypeParameter> typeParameters;
   final ManifestType aliasedType;
 
-  TypeAliasItem({
+  new({
     required super.id,
     required _TypeAliasItemFlags super.flags,
     required super.metadata,
@@ -1580,7 +1536,7 @@ class TypeAliasItem extends ManifestItem<TypeAliasElementImpl> {
     required this.aliasedType,
   });
 
-  factory TypeAliasItem.fromElement({
+  factory fromElement({
     required ManifestItemId id,
     required EncodeContext context,
     required TypeAliasElementImpl element,
@@ -1596,7 +1552,7 @@ class TypeAliasItem extends ManifestItem<TypeAliasElementImpl> {
     });
   }
 
-  factory TypeAliasItem.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return TypeAliasItem(
       id: ManifestItemId.read(reader),
       flags: _TypeAliasItemFlags.read(reader),
@@ -1613,6 +1569,7 @@ class TypeAliasItem extends ManifestItem<TypeAliasElementImpl> {
   bool match(MatchContext context, TypeAliasElementImpl element) {
     context.addTypeParameters(element.typeParameters);
     return super.match(context, element) &&
+        flags.hasSelfReference == element.hasSelfReference &&
         flags.isSimplyBounded == element.isSimplyBounded &&
         flags.isProperRename == element.isProperRename &&
         typeParameters.match(context, element.typeParameters) &&
@@ -1633,7 +1590,7 @@ sealed class VariableItem<E extends PropertyInducingElementImpl>
   final ManifestNode? constInitializer;
   final TopLevelInferenceError? typeInferenceError;
 
-  VariableItem({
+  new({
     required super.id,
     required _VariableItemFlags super.flags,
     required super.metadata,
@@ -1752,7 +1709,7 @@ enum _TopLevelVariableItemFlag {
   isOriginGetterSetter,
 }
 
-enum _TypeAliasItemFlag { isProperRename, isSimplyBounded }
+enum _TypeAliasItemFlag { hasSelfReference, isProperRename, isSimplyBounded }
 
 enum _VariableItemFlag {
   hasInitializer,
@@ -1768,7 +1725,7 @@ enum _VariableItemFlag {
 extension type _ClassItemFlags._(int _bits) implements _InterfaceItemFlags {
   static final int _base = _InterfaceItemFlags._next;
 
-  factory _ClassItemFlags.encode(ClassElementImpl element) {
+  factory encode(ClassElementImpl element) {
     var bits = _InterfaceItemFlags.encode(element)._bits;
     if (element.isAbstract) {
       bits |= _maskFor(_ClassItemFlag.isAbstract);
@@ -1794,7 +1751,7 @@ extension type _ClassItemFlags._(int _bits) implements _InterfaceItemFlags {
     return _ClassItemFlags._(bits);
   }
 
-  factory _ClassItemFlags.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return _ClassItemFlags._(reader.readUint30());
   }
 
@@ -1845,7 +1802,7 @@ extension type _ConstructorItemFlags._(int _bits)
     implements _ExecutableItemFlags {
   static final int _base = _ExecutableItemFlags._next;
 
-  factory _ConstructorItemFlags.encode(ConstructorElementImpl element) {
+  factory encode(ConstructorElementImpl element) {
     var bits = _ExecutableItemFlags.encode(element)._bits;
     if (element.isConst) {
       bits |= _maskFor(_ConstructorItemFlag.isConst);
@@ -1877,7 +1834,7 @@ extension type _ConstructorItemFlags._(int _bits)
     return _ConstructorItemFlags._(bits);
   }
 
-  factory _ConstructorItemFlags.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return _ConstructorItemFlags._(reader.readUint30());
   }
 
@@ -1936,7 +1893,7 @@ extension type _ExecutableItemFlags._(int _bits) implements _ManifestItemFlags {
   static final int _base = _ManifestItemFlags._next;
   static final int _next = _base + _ExecutableItemFlag.values.length;
 
-  factory _ExecutableItemFlags.encode(ExecutableElementImpl element) {
+  factory encode(ExecutableElementImpl element) {
     var bits = _ManifestItemFlags.encode(element)._bits;
     if (element.hasEnclosingTypeParameterReference) {
       bits |= _maskFor(_ExecutableItemFlag.hasEnclosingTypeParameterReference);
@@ -2016,7 +1973,7 @@ extension type _ExtensionTypeItemFlags._(int _bits)
     implements _InterfaceItemFlags {
   static final int _base = _InterfaceItemFlags._next;
 
-  factory _ExtensionTypeItemFlags.encode(ExtensionTypeElementImpl element) {
+  factory encode(ExtensionTypeElementImpl element) {
     var bits = _InterfaceItemFlags.encode(element)._bits;
     if (element.hasImplementsSelfReference) {
       bits |= _maskFor(_ExtensionTypeItemFlag.hasImplementsSelfReference);
@@ -2027,7 +1984,7 @@ extension type _ExtensionTypeItemFlags._(int _bits)
     return _ExtensionTypeItemFlags._(bits);
   }
 
-  factory _ExtensionTypeItemFlags.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return _ExtensionTypeItemFlags._(reader.readUint30());
   }
 
@@ -2057,7 +2014,7 @@ extension type _ExtensionTypeItemFlags._(int _bits)
 extension type _FieldItemFlags._(int _bits) implements _VariableItemFlags {
   static final int _base = _VariableItemFlags._next;
 
-  factory _FieldItemFlags.encode(FieldElementImpl element) {
+  factory encode(FieldElementImpl element) {
     var bits = _VariableItemFlags.encode(element)._bits;
     if (element.hasEnclosingTypeParameterReference) {
       bits |= _maskFor(_FieldItemFlag.hasEnclosingTypeParameterReference);
@@ -2097,7 +2054,7 @@ extension type _FieldItemFlags._(int _bits) implements _VariableItemFlags {
     return _FieldItemFlags._(bits);
   }
 
-  factory _FieldItemFlags.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return _FieldItemFlags._(reader.readUint30());
   }
 
@@ -2164,7 +2121,7 @@ extension type _InstanceItemFlags._(int _bits) implements _ManifestItemFlags {
   static final int _base = _ManifestItemFlags._next;
   static final int _next = _base + _InstanceItemFlag.values.length;
 
-  factory _InstanceItemFlags.encode(InstanceElementImpl element) {
+  factory encode(InstanceElementImpl element) {
     var bits = _ManifestItemFlags.encode(element)._bits;
     if (element.isSimplyBounded) {
       bits |= _maskFor(_InstanceItemFlag.isSimplyBounded);
@@ -2172,7 +2129,7 @@ extension type _InstanceItemFlags._(int _bits) implements _ManifestItemFlags {
     return _InstanceItemFlags._(bits);
   }
 
-  factory _InstanceItemFlags.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return _InstanceItemFlags._(reader.readUint30());
   }
 
@@ -2199,12 +2156,12 @@ extension type _InterfaceItemFlags._(int _bits) implements _InstanceItemFlags {
   static final int _base = _InstanceItemFlags._next;
   static final int _next = _base + _InterfaceItemFlag.values.length;
 
-  factory _InterfaceItemFlags.encode(InterfaceElementImpl element) {
+  factory encode(InterfaceElementImpl element) {
     var bits = _InstanceItemFlags.encode(element)._bits;
     return _InterfaceItemFlags._(bits);
   }
 
-  factory _InterfaceItemFlags.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return _InterfaceItemFlags._(reader.readUint30());
   }
 
@@ -2217,11 +2174,11 @@ extension type _ManifestItemFlags._(int _bits) {
   static final int _base = 0;
   static final int _next = _base + _ManifestItemFlag.values.length;
 
-  factory _ManifestItemFlags.empty() {
+  factory empty() {
     return _ManifestItemFlags._(0);
   }
 
-  factory _ManifestItemFlags.encode(ElementImpl element) {
+  factory encode(ElementImpl element) {
     var bits = 0;
     if (element.isAugmentationWithoutAugmentedDeclaration) {
       bits |= _maskFor(
@@ -2231,7 +2188,7 @@ extension type _ManifestItemFlags._(int _bits) {
     return _ManifestItemFlags._(bits);
   }
 
-  factory _ManifestItemFlags.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return _ManifestItemFlags._(reader.readUint30());
   }
 
@@ -2257,7 +2214,7 @@ extension type _ManifestItemFlags._(int _bits) {
 extension type _MethodItemFlags._(int _bits) implements _ExecutableItemFlags {
   static final int _base = _ExecutableItemFlags._next;
 
-  factory _MethodItemFlags.encode(MethodElementImpl element) {
+  factory encode(MethodElementImpl element) {
     var bits = _ExecutableItemFlags.encode(element)._bits;
     if (element.isOperatorEqualWithParameterTypeFromObject) {
       bits |= _maskFor(
@@ -2273,7 +2230,7 @@ extension type _MethodItemFlags._(int _bits) implements _ExecutableItemFlags {
     return _MethodItemFlags._(bits);
   }
 
-  factory _MethodItemFlags.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return _MethodItemFlags._(reader.readUint30());
   }
 
@@ -2307,7 +2264,7 @@ extension type _MethodItemFlags._(int _bits) implements _ExecutableItemFlags {
 extension type _MixinItemFlags._(int _bits) implements _InterfaceItemFlags {
   static final int _base = _InterfaceItemFlags._next;
 
-  factory _MixinItemFlags.encode(MixinElementImpl element) {
+  factory encode(MixinElementImpl element) {
     var bits = _InterfaceItemFlags.encode(element)._bits;
     if (element.isBase) {
       bits |= _maskFor(_MixinItemFlag.isBase);
@@ -2315,7 +2272,7 @@ extension type _MixinItemFlags._(int _bits) implements _InterfaceItemFlags {
     return _MixinItemFlags._(bits);
   }
 
-  factory _MixinItemFlags.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return _MixinItemFlags._(reader.readUint30());
   }
 
@@ -2342,9 +2299,7 @@ extension type _PropertyAccessorItemFlags._(int _bits)
     implements _ExecutableItemFlags {
   static final int _base = _ExecutableItemFlags._next;
 
-  factory _PropertyAccessorItemFlags.encode(
-    PropertyAccessorElementImpl element,
-  ) {
+  factory encode(PropertyAccessorElementImpl element) {
     var bits = _ExecutableItemFlags.encode(element)._bits;
     if (element.isOriginDeclaration) {
       bits |= _maskFor(_PropertyAccessorItemFlag.isOriginDeclaration);
@@ -2358,7 +2313,7 @@ extension type _PropertyAccessorItemFlags._(int _bits)
     return _PropertyAccessorItemFlags._(bits);
   }
 
-  factory _PropertyAccessorItemFlags.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return _PropertyAccessorItemFlags._(reader.readUint30());
   }
 
@@ -2393,9 +2348,7 @@ extension type _TopLevelFunctionItemFlags._(int _bits)
     implements _ExecutableItemFlags {
   static final int _base = _ExecutableItemFlags._next;
 
-  factory _TopLevelFunctionItemFlags.encode(
-    TopLevelFunctionElementImpl element,
-  ) {
+  factory encode(TopLevelFunctionElementImpl element) {
     var bits = _ExecutableItemFlags.encode(element)._bits;
     if (element.isOriginDeclaration) {
       bits |= _maskFor(_TopLevelFunctionItemFlag.isOriginDeclaration);
@@ -2406,7 +2359,7 @@ extension type _TopLevelFunctionItemFlags._(int _bits)
     return _TopLevelFunctionItemFlags._(bits);
   }
 
-  factory _TopLevelFunctionItemFlags.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return _TopLevelFunctionItemFlags._(reader.readUint30());
   }
 
@@ -2437,9 +2390,7 @@ extension type _TopLevelVariableItemFlags._(int _bits)
     implements _VariableItemFlags {
   static final int _base = _VariableItemFlags._next;
 
-  factory _TopLevelVariableItemFlags.encode(
-    TopLevelVariableElementImpl element,
-  ) {
+  factory encode(TopLevelVariableElementImpl element) {
     var bits = _VariableItemFlags.encode(element)._bits;
     if (element.isExternal) {
       bits |= _maskFor(_TopLevelVariableItemFlag.isExternal);
@@ -2453,7 +2404,7 @@ extension type _TopLevelVariableItemFlags._(int _bits)
     return _TopLevelVariableItemFlags._(bits);
   }
 
-  factory _TopLevelVariableItemFlags.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return _TopLevelVariableItemFlags._(reader.readUint30());
   }
 
@@ -2487,8 +2438,11 @@ extension type _TopLevelVariableItemFlags._(int _bits)
 extension type _TypeAliasItemFlags._(int _bits) implements _ManifestItemFlags {
   static final int _base = _ManifestItemFlags._next;
 
-  factory _TypeAliasItemFlags.encode(TypeAliasElementImpl element) {
+  factory encode(TypeAliasElementImpl element) {
     var bits = _ManifestItemFlags.encode(element)._bits;
+    if (element.hasSelfReference) {
+      bits |= _maskFor(_TypeAliasItemFlag.hasSelfReference);
+    }
     if (element.isProperRename) {
       bits |= _maskFor(_TypeAliasItemFlag.isProperRename);
     }
@@ -2498,8 +2452,12 @@ extension type _TypeAliasItemFlags._(int _bits) implements _ManifestItemFlags {
     return _TypeAliasItemFlags._(bits);
   }
 
-  factory _TypeAliasItemFlags.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return _TypeAliasItemFlags._(reader.readUint30());
+  }
+
+  bool get hasSelfReference {
+    return _has(_TypeAliasItemFlag.hasSelfReference);
   }
 
   bool get isProperRename {
@@ -2529,7 +2487,7 @@ extension type _VariableItemFlags._(int _bits) implements _ManifestItemFlags {
   static final int _base = _ManifestItemFlags._next;
   static final int _next = _base + _VariableItemFlag.values.length;
 
-  factory _VariableItemFlags.encode(PropertyInducingElementImpl element) {
+  factory encode(PropertyInducingElementImpl element) {
     var bits = _ManifestItemFlags.encode(element)._bits;
     if (element.hasInitializer) {
       bits |= _maskFor(_VariableItemFlag.hasInitializer);

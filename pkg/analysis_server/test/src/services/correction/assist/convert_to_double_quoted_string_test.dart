@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertToDoubleQuotedStringTest extends AssistProcessorTest {
+class ConvertToDoubleQuotedStringTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertToDoubleQuotedString;
 

@@ -70,10 +70,14 @@ class A {
     assertResolvedNodeText(node, r'''
 AwaitExpression
   awaitKeyword: await
-  expression2: SuperExpression
+  expression2: InvalidSuperExpression
+    superReference: SuperReference
+      superKeyword: super
+    staticType: InvalidType
+  expression(v1): SuperExpression
     superKeyword: super
     staticType: A
-  staticType: A
+  staticType: InvalidType
 ''');
   }
 
@@ -90,8 +94,17 @@ class A {
     assertResolvedNodeText(node, r'''
 AwaitExpression
   awaitKeyword: await
-  expression2: PropertyAccess
-    target2: SuperExpression
+  expression2: ReceiverPropertyExtraction
+    receiver: SuperReference
+      superKeyword: super
+    operator: .
+    name: hashCode
+    resolution: GetterInvocationResolution
+      element: dart:core::@class::Object::@getter::hashCode
+      type: int
+    staticType: int
+  expression(v1): PropertyAccess
+    target: SuperExpression
       superKeyword: super
       staticType: A
     operator: .
@@ -109,7 +122,7 @@ AwaitExpression
 void f() async {
   await unresolved;
 //      ^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'unresolved'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'unresolved'.
 }
 ''');
 
@@ -117,7 +130,12 @@ void f() async {
     assertResolvedNodeText(node, r'''
 AwaitExpression
   awaitKeyword: await
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: unresolved
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
+    staticType: InvalidType
+  expression(v1): SimpleIdentifier
     token: unresolved
     element: <null>
     staticType: InvalidType
@@ -132,7 +150,7 @@ import 'dart:math' as prefix;
 void f() async {
   await prefix.unresolved;
 //             ^^^^^^^^^^
-// [diag.undefinedPrefixedName] The name 'unresolved' is being referenced through the prefix 'prefix', but it isn't defined in any of the libraries imported using that prefix.
+// [diag.undefinedPrefixedNameReadNotFound] The name 'unresolved' isn't defined in the libraries imported with the prefix 'prefix'.
 }
 ''');
 
@@ -140,7 +158,16 @@ void f() async {
     assertResolvedNodeText(node, r'''
 AwaitExpression
   awaitKeyword: await
-  expression2: PrefixedIdentifier
+  expression2: ImportPrefixedNameExpression
+    importPrefix: ImportPrefixReference
+      name: prefix
+      period: .
+      element: <testLibraryFragment>::@prefix::prefix
+    name: unresolved
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
+    staticType: InvalidType
+  expression(v1): PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
       element: <testLibraryFragment>::@prefix::prefix
@@ -161,7 +188,7 @@ AwaitExpression
 void f() async {
   await 0.isEven.unresolved;
 //               ^^^^^^^^^^
-// [diag.undefinedGetter] The getter 'unresolved' isn't defined for the type 'bool'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'unresolved' isn't defined for the type 'bool'.
 }
 ''');
 
@@ -175,18 +202,15 @@ AwaitExpression
         literal: 0
         staticType: int
       operator: .
-      propertyName: isEven
+      name: isEven
       resolution: GetterInvocationResolution
         element: dart:core::@class::int::@getter::isEven
-        invokeType: bool Function()
         type: bool
       staticType: bool
     operator: .
-    propertyName: unresolved
+    name: unresolved
     resolution: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
     staticType: InvalidType
   expression(v1): PropertyAccess
     target: PropertyAccess

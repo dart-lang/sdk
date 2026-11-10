@@ -86,7 +86,8 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
   LinearScanRegisterAllocator(super.backEndState, this.constraints);
 
   RegisterClass registerClass(Definition instr) =>
-      instr.type is DoubleType && backEndState.unboxing.hasUnboxedResult(instr)
+      (instr.type is DoubleType || instr.type is SimdType) &&
+          backEndState.unboxing.hasUnboxedResult(instr)
       ? RegisterClass.fpu
       : RegisterClass.cpu;
 
@@ -101,9 +102,16 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
 
   LiveRange liveRangeFor(Definition instr) {
     assert(hasLiveRange(instr));
-    return _liveRanges[instr.id] ??= LiveRange(
+    final result = _liveRanges[instr.id];
+    if (result != null) {
+      return result;
+    }
+    final isUnboxed = backEndState.unboxing.hasUnboxedResult(instr);
+    final isSimdValue = isUnboxed && instr.type is SimdType;
+    return _liveRanges[instr.id] = LiveRange(
       registerClass(instr),
-      isObjectPointer: !backEndState.unboxing.hasUnboxedResult(instr),
+      isObjectPointer: !isUnboxed,
+      isSimdValue: isSimdValue,
     );
   }
 
@@ -376,6 +384,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
       final liveRange = LiveRange(
         constr.registerClass,
         isObjectPointer: !value.isUnboxed,
+        // TODO: SIMD constants
       );
       _liveRanges.add(liveRange);
       liveRange.addInterval(pos - 1, pos);
@@ -765,7 +774,12 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
             return;
           }
           int nextUsePosition =
-              allocated.findRegisterUseAfter(start)?.pos ?? allocated.end;
+              allocated.findRegisterUseAfter(toSplitPosition(start))?.pos ??
+              allocated.end;
+          if (nextUsePosition <= start) {
+            // Do not spill live range which is used immediately.
+            return;
+          }
           if (nextUsePosition < freeUntil) {
             freeUntil = nextUsePosition;
           }
@@ -843,6 +857,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
     if (spillSlot == null) {
       spillSlot = range.spillSlot = backEndState.stackFrame.allocateSpillSlot(
         range.registerClass,
+        range.isSimdValue,
       );
       for (LiveRange? r = range; r != null; r = r.splitNext) {
         recordLiveRangeAtSafepoints(r, spillSlot);
@@ -875,7 +890,12 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
       return false;
     }
     final spillPos = unallocated.start;
-    final nextUse = allocated.findRegisterUseAfter(spillPos);
+    final nextUse = allocated.findRegisterUseAfter(toSplitPosition(spillPos));
+    if (trace) {
+      print(
+        ' ... intersection with $allocated at $intersection, nextUse: $nextUse',
+      );
+    }
     if (nextUse == null) {
       // No more uses which require registers.
       if (trace) {
@@ -1130,6 +1150,7 @@ class LiveRange {
   static const int registerClassMask = 1 << 0;
   static const int isObjectPointerFlag = 1 << 1;
   static const int isPhysicalFlag = 1 << 2;
+  static const int isSimdValueFlag = 1 << 3;
 
   int _flags;
 
@@ -1167,12 +1188,14 @@ class LiveRange {
     RegisterClass registerClass, {
     required bool isObjectPointer,
     bool isPhysical = false,
+    bool isSimdValue = false,
   }) : assert((registerClass.index & registerClassMask) == registerClass.index),
        assert(registerClass == .cpu || !isObjectPointer),
        _flags =
            registerClass.index |
            (isObjectPointer ? isObjectPointerFlag : 0) |
-           (isPhysical ? isPhysicalFlag : 0);
+           (isPhysical ? isPhysicalFlag : 0) |
+           (isSimdValue ? isSimdValueFlag : 0);
 
   RegisterClass get registerClass =>
       RegisterClass.values[_flags & registerClassMask];
@@ -1183,6 +1206,9 @@ class LiveRange {
   // Whether this live range represents a blocked physical register
   // or an allocatable/splittable/spillable live range.
   bool get isPhysical => (_flags & isPhysicalFlag) != 0;
+
+  // Whether this live range is an unboxed SIMD value.
+  bool get isSimdValue => (_flags & isSimdValueFlag) != 0;
 
   /// Add interval [start, end) to this live range.
   ///
@@ -1249,7 +1275,8 @@ class LiveRange {
     if (this == other ||
         this.intersects(other) ||
         this.registerClass != other.registerClass ||
-        this.isObjectPointer != other.isObjectPointer) {
+        this.isObjectPointer != other.isObjectPointer ||
+        this.isSimdValue != other.isSimdValue) {
       return;
     }
     intervals.merge(other.intervals);
@@ -1291,7 +1318,11 @@ class LiveRange {
     assert(!isPhysical);
     assert(mergedTo == null);
     assert(splitNext == null || end <= splitNext!.start);
-    final sibling = LiveRange(registerClass, isObjectPointer: isObjectPointer);
+    final sibling = LiveRange(
+      registerClass,
+      isObjectPointer: isObjectPointer,
+      isSimdValue: isSimdValue,
+    );
     sibling.splitFrom = splitParent;
     sibling.splitNext = splitNext;
     sibling.intervals = intervals.splitAt(pos);
@@ -1335,8 +1366,17 @@ class LiveRange {
 
   UsePosition? findRegisterUseAfter(int pos) {
     assert(!isPhysical);
-    for (int i = currentUse; i <= uses.length; ++i) {
-      final use = uses[uses.length - i];
+    // Look back from 'currentUse' as we may need to check uses
+    // at split position immediately before current position.
+    var i = (currentUse <= uses.length) ? uses.length - currentUse : 0;
+    for (; i < uses.length; ++i) {
+      if (uses[i].pos < pos) {
+        break;
+      }
+    }
+    --i;
+    for (; i >= 0; --i) {
+      final use = uses[i];
       if (use.pos >= pos) {
         final constr = use.constraint;
         if (constr is AnyCpuRegister ||

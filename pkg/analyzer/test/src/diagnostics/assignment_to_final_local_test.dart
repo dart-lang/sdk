@@ -28,6 +28,46 @@ f() {
 }''');
   }
 
+  test_localVariable_assignedInValue() async {
+    await resolveTestCodeWithDiagnostics(r'''
+f() {
+  final int x;
+//          ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
+  x = (x = 1);
+//^
+// [diag.assignmentToFinalLocal] The final variable 'x' can only be set once.
+}
+''');
+  }
+
+  test_localVariable_assignedInValue_otherVariable() async {
+    await resolveTestCodeWithDiagnostics(r'''
+f() {
+  final int x;
+//          ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
+  final int y;
+//          ^
+// [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
+  x = (y = 1);
+}
+''');
+  }
+
+  test_localVariable_assignedInValue_potentially() async {
+    await resolveTestCodeWithDiagnostics(r'''
+f(bool b) {
+  final int x;
+//          ^
+// [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
+  x = b ? (x = 1) : 0;
+//^
+// [diag.assignmentToFinalLocal] The final variable 'x' can only be set once.
+}
+''');
+  }
+
   test_localVariable_forEach() async {
     await resolveTestCodeWithDiagnostics(r'''
 f() {
@@ -149,6 +189,21 @@ f() {
 }''');
   }
 
+  test_postfixPlusPlus_never() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(Never x) {
+  final v = x;
+//      ^
+// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
+  v++;
+//^
+// [diag.receiverOfTypeNever] The receiver is of type 'Never', and will never complete with a value.
+// [diag.assignmentToFinalLocal] The final variable 'v' can only be set once.
+//^^^^
+// [diag.deadCode] Dead code.
+}''');
+  }
+
   test_prefixMinusMinus() async {
     await resolveTestCodeWithDiagnostics(r'''
 f() {
@@ -170,6 +225,21 @@ f() {
   ++x;
 //  ^
 // [diag.assignmentToFinalLocal] The final variable 'x' can only be set once.
+}''');
+  }
+
+  test_prefixPlusPlus_never() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(Never x) {
+  final v = x;
+//      ^
+// [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
+  ++v;
+//^^^^
+// [diag.deadCode] Dead code.
+//  ^
+// [diag.receiverOfTypeNever] The receiver is of type 'Never', and will never complete with a value.
+// [diag.assignmentToFinalLocal] The final variable 'v' can only be set once.
 }''');
   }
 

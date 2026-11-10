@@ -25,12 +25,7 @@ class DartNavigationRequestImpl implements DartNavigationRequest {
   final ResolvedUnitResult result;
 
   /// Initialize a newly create request with the given data.
-  DartNavigationRequestImpl(
-    this.resourceProvider,
-    this.offset,
-    this.length,
-    this.result,
-  );
+  new(this.resourceProvider, this.offset, this.length, this.result);
 
   @override
   String get path => result.path;
@@ -57,7 +52,7 @@ class NavigationCollectorImpl implements NavigationCollector {
 
   final Map<String, int> fileMap = <String, int>{};
 
-  NavigationCollectorImpl();
+  new();
 
   @override
   void addRange(
@@ -146,5 +141,5 @@ class TargetToUpdate {
   final analyzer.Fragment fragment;
   final NavigationTarget target;
 
-  TargetToUpdate(this.fragment, this.target);
+  new(this.fragment, this.target);
 }

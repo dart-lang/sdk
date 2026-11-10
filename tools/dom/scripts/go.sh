@@ -43,7 +43,7 @@ vpython3 ./dartdomgenerator.py --systems="$SYSTEMS" --logging=40 --update-dom-me
 
 # Build the platform dill to be used by the bindings emitter.
 cd ../../..
-./tools/build.py -m release compile_dart2js_platform
+./tools/build.py -m release dart2js_platform
 cd ./tools/dom/scripts
 
 # Calculate, emit, and format the bindings.

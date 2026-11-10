@@ -12,7 +12,7 @@ import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/server_isolate_channel.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
-import 'package:analysis_server/src/session_logger/session_logger.dart';
+import 'package:analysis_server/src/session_logger/session_listener.dart';
 import 'package:analyzer/dart/analysis/context_root.dart' as analyzer;
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -55,8 +55,8 @@ class PluginIsolate {
   /// The instrumentation service that is being used by the analysis server.
   final InstrumentationService _instrumentationService;
 
-  /// The session logger that is to be used by the isolate.
-  final SessionLogger sessionLogger;
+  /// The session listener that is to be used by the isolate.
+  final SessionListener sessionListener;
 
   /// The context roots that are currently using the results produced by the
   /// plugin.
@@ -84,7 +84,7 @@ class PluginIsolate {
     this.packageConfigPath,
     this._notificationManager,
     this._instrumentationService,
-    this.sessionLogger, {
+    this.sessionListener, {
     required this.isLegacy,
   }) {
     // TODO(srawlins): Also print to stdout if this is `dart analyze` or
@@ -214,7 +214,9 @@ class PluginIsolate {
   /// Sets the analysis roots, which may be subdirectories of the context roots.
   void setAnalysisRoots(AnalysisSetAnalysisRootsParams params) {
     _analysisRoots = params;
-    _updatePluginRoots();
+    if (contextRoots.isNotEmpty) {
+      _updatePluginRoots();
+    }
   }
 
   /// Starts a new isolate that is running the plugin.
@@ -247,13 +249,67 @@ class PluginIsolate {
     return doneFuture;
   }
 
+  /// Computes the effective analysis roots for this plugin by intersecting
+  /// any client-specified [_analysisRoots] with [contextRoots].
+  AnalysisSetAnalysisRootsParams _computeEffectiveAnalysisRoots() {
+    var analysisRoots = _analysisRoots;
+    if (analysisRoots == null) {
+      return AnalysisSetAnalysisRootsParams([
+        for (var contextRoot in contextRoots) contextRoot.root.path,
+      ], const []);
+    }
+
+    var effectiveIncluded = <String>{};
+    var effectiveExcluded = <String>{};
+
+    for (var contextRoot in contextRoots) {
+      var pathContext = contextRoot.resourceProvider.pathContext;
+      var contextPath = contextRoot.root.path;
+
+      // Skip if the context root is completely excluded by client excluded
+      // paths.
+      var isContextExcluded = analysisRoots.excluded.any(
+        (e) => pathContext.isWithin(e, contextPath) || e == contextPath,
+      );
+      if (isContextExcluded) continue;
+
+      // Check if any client included path contains this context root.
+      var isContextCovered = analysisRoots.included.any(
+        (i) => pathContext.isWithin(i, contextPath) || i == contextPath,
+      );
+      if (isContextCovered) {
+        effectiveIncluded.add(contextPath);
+      } else {
+        // Check for subpaths within this context root.
+        for (var clientIncluded in analysisRoots.included) {
+          if (pathContext.isWithin(contextPath, clientIncluded)) {
+            effectiveIncluded.add(clientIncluded);
+          }
+        }
+      }
+
+      // Add client exclusions that fall inside this context root.
+      for (var clientExcluded in analysisRoots.excluded) {
+        if (pathContext.isWithin(contextPath, clientExcluded)) {
+          effectiveExcluded.add(clientExcluded);
+        }
+      }
+      effectiveExcluded.addAll(contextRoot.excludedPaths);
+    }
+
+    return AnalysisSetAnalysisRootsParams(
+      effectiveIncluded.toList(),
+      effectiveExcluded.toList(),
+    );
+  }
+
   /// Creates and returns the channel used to communicate with the server.
   ServerCommunicationChannel _createChannel() {
     return ServerIsolateChannel(
       Uri.file(executionPath!, windows: platform.isWindows),
       Uri.file(packageConfigPath!, windows: platform.isWindows),
       _instrumentationService,
-      sessionLogger,
+      sessionListener,
     );
   }
 
@@ -274,15 +330,13 @@ class PluginIsolate {
     );
 
     // If analysis roots have been set by the client, send an
-    // `analysis.setAnalysisRoots` request to the plugin. But if not, go ahead
-    // and send this request using the context roots. New plugins only respect
-    // the `analysis.setAnalysisRoots` request, and not the
-    // `analysis.setContextRoots` request.
-    var analysisRoots =
-        _analysisRoots ??
-        AnalysisSetAnalysisRootsParams([
-          for (var contextRoot in contextRoots) contextRoot.root.path,
-        ], []);
+    // `analysis.setAnalysisRoots` request to the plugin containing the
+    // intersection of the client analysis roots and this plugin's context
+    // roots. But if not, go ahead and send this request using the context
+    // roots. Plugin isolates running on the analysis_server_plugin version
+    // >= 0.3.16 only respect the `analysis.setAnalysisRoots` request, and not
+    // the `analysis.setContextRoots` request.
+    var analysisRoots = _computeEffectiveAnalysisRoots();
     sendRequest(analysisRoots);
   }
 }
@@ -362,7 +416,7 @@ class PluginSession {
       channel!.close();
       channel = null;
     }
-    pluginStoppedCompleter.complete(null);
+    pluginStoppedCompleter.complete();
   }
 
   /// Handles the fact that an unhandled error has occurred in the plugin.
@@ -437,6 +491,10 @@ class PluginSession {
           // The plugin doesn't support this request. It may just be using an
           // older version of the `analysis_server_plugin` package.
           _isolate._instrumentationService.logInfo(
+            "Plugin cannot handle request '${request.method}' with parameters: "
+            '$parameters.',
+          );
+          _isolate.sessionListener.logInfo(
             "Plugin cannot handle request '${request.method}' with parameters: "
             '$parameters.',
           );

@@ -6,7 +6,9 @@ import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart'
     show
         DartType,
+        DartTypeList,
         InvalidType,
+        NamedDartTypeList,
         NamedType,
         Nullability,
         RecordType,
@@ -16,21 +18,19 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/bounds_checks.dart' show VarianceCalculationValue;
 import 'package:kernel/src/unaliasing.dart';
 
-import '../codes/cfe_codes.dart' show noLength;
-import '../kernel/implicit_field_type.dart';
+import '../base/uri_offset.dart';
 import '../kernel/type_algorithms.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_loader.dart';
 import '../source/type_parameter_factory.dart';
 import '../util/helpers.dart';
 import 'declaration_builders.dart';
-import 'inferable_type_builder.dart';
 import 'library_builder.dart';
 import 'metadata_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
 
-abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
+class RecordTypeBuilderImpl extends RecordTypeBuilder {
   @override
   final List<RecordTypeFieldBuilder>? positionalFields;
   @override
@@ -38,60 +38,21 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
   @override
   final NullabilityBuilder nullabilityBuilder;
   @override
-  final Uri fileUri;
-  @override
-  final int charOffset;
+  final UriOffsetLength uriOffset;
 
-  factory(
-    List<RecordTypeFieldBuilder>? positional,
-    List<RecordTypeFieldBuilder>? named,
-    NullabilityBuilder nullabilityBuilder,
-    Uri fileUri,
-    int charOffset,
-  ) {
-    bool isExplicit = true;
-    if (positional != null) {
-      for (RecordTypeFieldBuilder field in positional) {
-        if (!field.type.isExplicit) {
-          isExplicit = false;
-          break;
-        }
-      }
-    }
-    if (isExplicit && named != null) {
-      for (RecordTypeFieldBuilder field in named) {
-        if (!field.type.isExplicit) {
-          isExplicit = false;
-          break;
-        }
-      }
-    }
-    return isExplicit
-        ? new _ExplicitRecordTypeBuilder(
-            positional,
-            named,
-            nullabilityBuilder,
-            fileUri,
-            charOffset,
-          )
-        :
-          // Coverage-ignore(suite): Not run.
-          new _InferredRecordTypeBuilder(
-            positional,
-            named,
-            nullabilityBuilder,
-            fileUri,
-            charOffset,
-          );
-  }
-
-  new _(
+  new(
     this.positionalFields,
     this.namedFields,
     this.nullabilityBuilder,
-    this.fileUri,
-    this.charOffset,
+    this.uriOffset,
   );
+
+  @override
+  Uri get fileUri => uriOffset.fileUri;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  int get charOffset => uriOffset.fileOffset;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -320,8 +281,10 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
     // TODO(johnniwinther): Should we create an [InvalidType] if there is <= 1
     // entries?
     return new RecordType(
-      positionalEntries,
-      namedEntries ?? [],
+      new DartTypeList.from(positionalEntries),
+      namedEntries == null
+          ? NamedDartTypeList.empty
+          : new NamedDartTypeList.from(namedEntries),
       nullabilityBuilder.build(),
     );
   }
@@ -329,7 +292,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   Supertype? buildSupertype(LibraryBuilder library, TypeUse typeUse) {
-    library.addProblem(diag.supertypeIsFunction, charOffset, noLength, fileUri);
+    library.addProblem2(diag.supertypeIsFunction, uriOffset);
     return null;
   }
 
@@ -347,8 +310,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
       positionalFields,
       namedFields,
       nullabilityBuilder,
-      fileUri,
-      charOffset,
+      uriOffset,
     );
   }
 
@@ -479,8 +441,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
         newPositionalFields ?? positionalFields,
         newNamedFields ?? namedFields,
         this.nullabilityBuilder,
-        this.fileUri,
-        this.charOffset,
+        this.uriOffset,
       );
     }
     return null;
@@ -530,26 +491,6 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
     }
     return typesAndDependencies;
   }
-}
-
-/// A record type that is defined without the need for type inference.
-///
-/// This is the normal record type whose field types are either explicit or
-/// omitted.
-class _ExplicitRecordTypeBuilder extends RecordTypeBuilderImpl {
-  new(
-    List<RecordTypeFieldBuilder>? positionalFields,
-    List<RecordTypeFieldBuilder>? namedFields,
-    NullabilityBuilder nullabilityBuilder,
-    Uri fileUri,
-    int charOffset,
-  ) : super._(
-        positionalFields,
-        namedFields,
-        nullabilityBuilder,
-        fileUri,
-        charOffset,
-      );
 
   @override
   bool get isExplicit => true;
@@ -563,52 +504,6 @@ class _ExplicitRecordTypeBuilder extends RecordTypeBuilderImpl {
     ClassHierarchyBase? hierarchy,
   }) {
     return _type ??= _buildInternal(library, typeUse, hierarchy);
-  }
-}
-
-// Coverage-ignore(suite): Not run.
-/// A record type that needs type inference to be fully defined.
-///
-/// This occurs through macros where field types can be defined in terms of
-/// inferred types, making this type indirectly depend on type inference.
-class _InferredRecordTypeBuilder extends RecordTypeBuilderImpl
-    with InferableTypeBuilderMixin {
-  new(
-    List<RecordTypeFieldBuilder>? positionalFields,
-    List<RecordTypeFieldBuilder>? namedFields,
-    NullabilityBuilder nullabilityBuilder,
-    Uri fileUri,
-    int charOffset,
-  ) : super._(
-        positionalFields,
-        namedFields,
-        nullabilityBuilder,
-        fileUri,
-        charOffset,
-      );
-
-  @override
-  bool get isExplicit => false;
-
-  @override
-  DartType build(
-    LibraryBuilder library,
-    TypeUse typeUse, {
-    ClassHierarchyBase? hierarchy,
-  }) {
-    if (hasType) {
-      return type;
-    } else if (hierarchy != null) {
-      return registerType(_buildInternal(library, typeUse, hierarchy));
-    } else {
-      InferableTypeUse inferableTypeUse = new InferableTypeUse(
-        library as SourceLibraryBuilder,
-        this,
-        typeUse,
-      );
-      library.loader.inferableTypes.registerInferableType(inferableTypeUse);
-      return new InferredType.fromInferableTypeUse(inferableTypeUse);
-    }
   }
 }
 

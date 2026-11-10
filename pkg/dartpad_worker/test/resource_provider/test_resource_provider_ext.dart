@@ -22,28 +22,6 @@ void main() {
     target = provider.getFolder('/extract')..create();
   });
 
-  group('FolderExt.createRecursively', () {
-    test('creates nested folders', () {
-      final folder = target.getFolder('a/b/c');
-      check(folder).doesNotExist;
-
-      folder.createRecursively();
-
-      check(folder).exists;
-      check(target).folder('a/b').exists;
-      check(target).folder('a').exists;
-    });
-
-    test('does nothing if folder exists', () {
-      final folder = target.getFolder('a')..create();
-      check(folder).exists;
-
-      folder.createRecursively();
-
-      check(folder).exists;
-    });
-  });
-
   group('FolderExt.extractTarStream', () {
     Stream<List<int>> tarStream(List<TarEntry> entries) =>
         Stream.fromIterable(entries).transform(tarWriter);
@@ -128,7 +106,7 @@ void main() {
         }
       }
 
-      check(entries).has((e) => e.length, 'length').equals(3);
+      check(entries).has2('length', (e) => e.length).equals(3);
       check(entries).containsKey('a.txt');
       check(entries['a.txt']).equals('a');
       check(entries).containsKey('sub/');

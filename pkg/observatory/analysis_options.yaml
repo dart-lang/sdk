@@ -10,3 +10,4 @@ analyzer:
 linter:
   rules:
     - prefer_relative_imports
+    - prefer_generic_function_type_aliases

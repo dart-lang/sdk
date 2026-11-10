@@ -1,0 +1,7 @@
+NOTICE: Stream was rewritten by parser!
+
+const x = null as List<@a*synthetic*><*synthetic*;
+
+
+const[KeywordToken] x[StringToken] =[SimpleToken] null[KeywordToken] as[KeywordToken] List[StringToken]<[BeginToken]@[SimpleToken]a[StringToken][SyntheticStringToken]>[SyntheticToken]<[BeginToken][SyntheticStringToken];[SimpleToken]
+[SimpleToken]

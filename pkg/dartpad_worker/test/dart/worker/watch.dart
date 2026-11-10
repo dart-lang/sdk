@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async/async.dart';
-import 'package:dartpad/src/worker_client.dart';
+import 'package:path/path.dart' as p;
 
 import '../../worker_harness.dart';
 
@@ -16,9 +16,9 @@ void main() {
     await ws.writeFileFromText('main.dart', 'void main() {}');
 
     await check(changes).emits(
-      (e) => e
+      .it()
         ..isA<FileAddedEvent>()
-        ..uri.equals(ws.workspaceFolder.resolve('main.dart')),
+        ..path.equals(p.posix.join(ws.workspaceFolder, 'main.dart')),
     );
 
     await changes.cancel();
@@ -34,9 +34,9 @@ void main() {
     await ws.writeFileFromText('main.dart', 'void main() { print("hello"); }');
 
     await check(changes).emits(
-      (e) => e
+      .it()
         ..isA<FileModifiedEvent>()
-        ..uri.equals(ws.workspaceFolder.resolve('main.dart')),
+        ..path.equals(p.posix.join(ws.workspaceFolder, 'main.dart')),
     );
 
     await changes.cancel();
@@ -52,9 +52,9 @@ void main() {
     await ws.deleteFileSystemEntity('main.dart');
 
     await check(changes).emits(
-      (e) => e
+      .it()
         ..isA<FileRemovedEvent>()
-        ..uri.equals(ws.workspaceFolder.resolve('main.dart')),
+        ..path.equals(p.posix.join(ws.workspaceFolder, 'main.dart')),
     );
 
     await changes.cancel();
@@ -68,17 +68,17 @@ void main() {
     await ws.createFolder('lib');
 
     await check(changes).emits(
-      (e) => e
+      .it()
         ..isA<FileAddedEvent>()
-        ..uri.equals(ws.workspaceFolder.resolve('lib')),
+        ..path.equals(p.posix.join(ws.workspaceFolder, 'lib')),
     );
 
     await ws.deleteFileSystemEntity('lib');
 
     await check(changes).emits(
-      (e) => e
+      .it()
         ..isA<FileRemovedEvent>()
-        ..uri.equals(ws.workspaceFolder.resolve('lib')),
+        ..path.equals(p.posix.join(ws.workspaceFolder, 'lib')),
     );
 
     await changes.cancel();
@@ -98,9 +98,9 @@ void main() {
     );
 
     await check(changes).emits(
-      (e) => e
+      .it()
         ..isA<FileModifiedEvent>()
-        ..uri.path.endsWith('main.dart'),
+        ..path.endsWith('main.dart'),
     );
 
     await changes.cancel();
@@ -128,16 +128,16 @@ void main() {
     // the specific files we care about, ignoring the rest.
 
     await check(changes).emitsThrough(
-      (e) => e
+      .it()
         ..isA<FileAddedEvent>()
-        ..uri.path.startsWith('/pub-cache/')
-        ..uri.path.endsWith('pubspec.yaml'),
+        ..path.startsWith('/pub-cache/')
+        ..path.endsWith('pubspec.yaml'),
     );
 
     await check(changes).emitsThrough(
-      (e) => e
+      .it()
         ..isA<FileModifiedEvent>()
-        ..uri.path.endsWith('pubspec.lock'),
+        ..path.endsWith('pubspec.lock'),
     );
 
     await changes.cancel();

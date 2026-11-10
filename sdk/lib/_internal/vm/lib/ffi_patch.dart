@@ -36,6 +36,7 @@ int get _intPtrSize => (const [
   8, // fuchsiaRiscv64,
   4, // iosArm,
   8, // iosArm64,
+  8, // iosArm64e,
   8, // iosX64,
   4, // linuxArm,
   8, // linuxArm64,
@@ -44,6 +45,7 @@ int get _intPtrSize => (const [
   4, // linuxRiscv32,
   8, // linuxRiscv64,
   8, // macosArm64,
+  8, // macosArm64e,
   8, // macosX64,
   8, // windowsArm64,
   4, // windowsIA32,
@@ -234,7 +236,7 @@ external dynamic _nativeIsolateGroupBoundClosureFunction<NS extends Function>(
 @patch
 @pragma('vm:deeply-immutable')
 @pragma("vm:entry-point")
-final class Pointer<T extends NativeType> implements SizedNativeType {
+final class Pointer<T extends NativeType> {
   @patch
   @pragma('dyn-module:language-impl:callable')
   factory Pointer.fromAddress(int ptr) => _fromAddress(ptr);
@@ -391,7 +393,7 @@ final class _NativeCallableIsolateGroupBound<T extends Function>
 
 @patch
 @pragma("vm:entry-point")
-final class Array<T extends NativeType> extends _Compound {
+final class Array<T extends NativeType> {
   /// The size of the current dimension.
   ///
   /// This is variable if [_variableLength] is true.
@@ -1876,7 +1878,7 @@ abstract final class NativeApi {
 // patch class of [Array].
 
 @patch
-final class _ArraySize<T extends NativeType> implements Array<T> {
+final class _ArraySize<T extends NativeType> {
   _checkIndex(int index) => throw UnsupportedError('_ArraySize._checkIndex');
 
   List<int> get _nestedDimensions =>

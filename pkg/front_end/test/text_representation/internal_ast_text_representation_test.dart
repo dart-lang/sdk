@@ -2166,15 +2166,11 @@ late void foo = 0''',
   testVariableDeclaration(
     new InternalVariableDeclaration(
       new InternalLateVariable(
-          name: 'foo',
-          type: const VoidType(),
-          isImplicitlyTyped: false,
-          fileOffset: TreeNode.noOffset,
-        )
-        ..lateGetter = new LocalFunctionVariable(
-          name: 'foo#getter',
-          type: const VoidType(),
-        ),
+        name: 'foo',
+        type: const VoidType(),
+        isImplicitlyTyped: false,
+        fileOffset: TreeNode.noOffset,
+      ),
       initializer: new InternalIntLiteral(
         0,
         '0',
@@ -2189,16 +2185,11 @@ late void foo = 0''',
   testVariableDeclaration(
     new InternalVariableDeclaration(
       new InternalLateVariable(
-          name: 'foo',
-          type: const DynamicType(),
-          isImplicitlyTyped: false,
-          fileOffset: TreeNode.noOffset,
-        )
-        ..lateGetter = new LocalFunctionVariable(
-          name: 'foo#getter',
-          type: const DynamicType(),
-        )
-        ..lateType = const DynamicType(),
+        name: 'foo',
+        type: const DynamicType(),
+        isImplicitlyTyped: false,
+        fileOffset: TreeNode.noOffset,
+      ),
       initializer: new InternalIntLiteral(
         0,
         '0',
@@ -2372,7 +2363,7 @@ void _testExtensionCompoundSet() {
   Library library = new Library(dummyUri, fileUri: dummyUri);
   Extension extension = new Extension(
     name: 'Extension',
-    typeParameters: [new TypeParameter('T')],
+    typeParameters: new TypeParameterList(new TypeParameter('T')),
     fileUri: dummyUri,
   );
   library.addExtension(extension);
@@ -2934,6 +2925,7 @@ void _testSuperIndexSet() {
       setter: setter,
       index: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
       value: new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
+      forEffect: false,
       fileOffset: TreeNode.noOffset,
     ),
     '''
@@ -2945,7 +2937,7 @@ void _testExtensionIndexGet() {
   Library library = new Library(dummyUri, fileUri: dummyUri);
   Extension extension = new Extension(
     name: 'Extension',
-    typeParameters: [new TypeParameter('T')],
+    typeParameters: new TypeParameterList(new TypeParameter('T')),
     fileUri: dummyUri,
   );
   library.addExtension(extension);
@@ -3022,7 +3014,7 @@ void _testExtensionIndexSet() {
   Library library = new Library(dummyUri, fileUri: dummyUri);
   Extension extension = new Extension(
     name: 'Extension',
-    typeParameters: [new TypeParameter('T')],
+    typeParameters: new TypeParameterList(new TypeParameter('T')),
     fileUri: dummyUri,
   );
   library.addExtension(extension);
@@ -3174,7 +3166,7 @@ void _testExtensionIfNullIndexSet() {
   Library library = new Library(dummyUri, fileUri: dummyUri);
   Extension extension = new Extension(
     name: 'Extension',
-    typeParameters: [new TypeParameter('T')],
+    typeParameters: new TypeParameterList(new TypeParameter('T')),
     fileUri: dummyUri,
   );
   library.addExtension(extension);
@@ -3495,7 +3487,7 @@ void _testExtensionCompoundIndexSet() {
   Library library = new Library(dummyUri, fileUri: dummyUri);
   Extension extension = new Extension(
     name: 'Extension',
-    typeParameters: [new TypeParameter('T')],
+    typeParameters: new TypeParameterList(new TypeParameter('T')),
     fileUri: dummyUri,
   );
   library.addExtension(extension);
@@ -3694,7 +3686,7 @@ void _testExtensionGet() {
   Library library = new Library(dummyUri, fileUri: dummyUri);
   Extension extension = new Extension(
     name: 'Extension',
-    typeParameters: [new TypeParameter('T')],
+    typeParameters: new TypeParameterList(new TypeParameter('T')),
     fileUri: dummyUri,
   );
   library.addExtension(extension);
@@ -3790,7 +3782,7 @@ void _testExtensionGetterInvocation() {
   Library library = new Library(dummyUri, fileUri: dummyUri);
   Extension extension = new Extension(
     name: 'Extension',
-    typeParameters: [new TypeParameter('T')],
+    typeParameters: new TypeParameterList(new TypeParameter('T')),
     fileUri: dummyUri,
   );
   library.addExtension(extension);
@@ -3927,7 +3919,7 @@ void _testExtensionMethodInvocation() {
   Library library = new Library(dummyUri, fileUri: dummyUri);
   Extension extension = new Extension(
     name: 'Extension',
-    typeParameters: [new TypeParameter('T')],
+    typeParameters: new TypeParameterList(new TypeParameter('T')),
     fileUri: dummyUri,
   );
   library.addExtension(extension);
@@ -4064,7 +4056,7 @@ void _testExtensionPostIncDec() {
   Library library = new Library(dummyUri, fileUri: dummyUri);
   Extension extension = new Extension(
     name: 'Extension',
-    typeParameters: [new TypeParameter('T')],
+    typeParameters: new TypeParameterList(new TypeParameter('T')),
     fileUri: dummyUri,
   );
   library.addExtension(extension);
@@ -4285,7 +4277,7 @@ void _testExtensionSet() {
   Library library = new Library(dummyUri, fileUri: dummyUri);
   Extension extension = new Extension(
     name: 'Extension',
-    typeParameters: [new TypeParameter('T')],
+    typeParameters: new TypeParameterList(new TypeParameter('T')),
     fileUri: dummyUri,
   );
   library.addExtension(extension);
@@ -4393,7 +4385,7 @@ void _testExtensionTearOff() {
   Library library = new Library(dummyUri, fileUri: dummyUri);
   Extension extension = new Extension(
     name: 'Extension',
-    typeParameters: [new TypeParameter('T')],
+    typeParameters: new TypeParameterList(new TypeParameter('T')),
     fileUri: dummyUri,
   );
   library.addExtension(extension);

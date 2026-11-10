@@ -200,6 +200,14 @@
       }
     }
   },
+  "wasm_dev": {
+    "include": [
+      {
+        "target": "wasm"
+      }
+    ],
+    "libraries": {}
+  },
   "wasm_js_compatibility": {
     "include": [
       {
@@ -502,7 +510,8 @@
         "uri": "isolate/isolate.dart",
         "patches": [
           "_internal/wasm/common/isolate_patch.dart"
-        ]
+        ],
+        "support_conditional_import": false
       }
     }
   },

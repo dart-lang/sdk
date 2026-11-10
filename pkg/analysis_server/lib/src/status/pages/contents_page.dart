@@ -40,7 +40,10 @@ class ContentsPage extends DiagnosticPageWithNav {
       return;
     }
     var file = server.resourceProvider.getFile(filePath);
-    if (!file.exists) {
+    var content = server.timingResourceProvider.withoutMeasuring(
+      () => file.exists ? file.readAsStringSync() : null,
+    );
+    if (content == null) {
       p('The file <code>${escape(filePath)}</code> does not exist.', raw: true);
       return;
     }
@@ -53,7 +56,7 @@ class ContentsPage extends DiagnosticPageWithNav {
 
     pre(() {
       buf.write('<code>');
-      buf.write(escape(file.readAsStringSync()));
+      buf.write(escape(content));
       buf.writeln('</code>');
     });
   }
@@ -61,7 +64,7 @@ class ContentsPage extends DiagnosticPageWithNav {
   @override
   Future<void> generatePage(Map<String, String> params) async {
     try {
-      _description = params['file'];
+      _description = escape(params['file']);
       await super.generatePage(params);
     } finally {
       _description = null;

@@ -12,6 +12,8 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertToRelativeImportBulkTest);
+    defineReflectiveTests(ConvertToRelativeImportDifferentPackagesTest);
+    defineReflectiveTests(ConvertToRelativeImportSrcTest);
     defineReflectiveTests(ConvertToRelativeImportTest);
   });
 }
@@ -21,6 +23,11 @@ class ConvertToRelativeImportBulkTest extends BulkFixProcessorTest {
   @override
   String get lintCode => LintNames.prefer_relative_imports;
 
+  /// The path to the test file, which, for this class, is the test package's
+  /// `lib/src` directory.
+  @override
+  String get testFilePath => convertPath('$testPackageLibPath/src/test.dart');
+
   Future<void> test_singleFile() async {
     newFile('$testPackageLibPath/foo.dart', '''
 class C {}
@@ -28,7 +35,6 @@ class C {}
     newFile('$testPackageLibPath/bar.dart', '''
 class D {}
 ''');
-    testFilePath = convertPath('$testPackageLibPath/src/test.dart');
 
     await resolveTestCode('''
 import 'package:test/bar.dart';
@@ -46,18 +52,48 @@ D d;
 }
 
 @reflectiveTest
-class ConvertToRelativeImportTest extends FixProcessorLintTest {
+class ConvertToRelativeImportDifferentPackagesTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToRelativeImport;
 
   @override
   String get lintCode => LintNames.prefer_relative_imports;
 
-  Future<void> test_relativeImport() async {
+  /// The path to the test file, which, for this class, is in a different
+  /// package's `lib` directory.
+  @override
+  String get testFilePath => convertPath('/home/test2/lib/bar.dart');
+
+  Future<void> test_relativeImportDifferentPackages() async {
+    // Validate we don't get a fix with imports referencing different packages.
+    newFile('/home/test1/lib/foo.dart', '');
+    await resolveTestCode('''
+import 'package:test1/foo.dart';
+''');
+
+    await assertNoFix();
+  }
+}
+
+@reflectiveTest
+class ConvertToRelativeImportSrcTest
+    extends FixProcessorForBuiltInLintRuleTest {
+  @override
+  FixKind get kind => DartFixKind.convertToRelativeImport;
+
+  @override
+  String get lintCode => LintNames.prefer_relative_imports;
+
+  /// The path to the test file, which, for this class, is in the test package's
+  /// `lib/src` directory.
+  @override
+  String get testFilePath => convertPath('$testPackageLibPath/src/test.dart');
+
+  Future<void> test_inParentDirectory() async {
     newFile('$testPackageLibPath/foo.dart', '''
 class C {}
 ''');
-    testFilePath = convertPath('$testPackageLibPath/src/test.dart');
     await resolveTestCode('''
 import 'package:test/foo.dart';
 C? c;
@@ -68,51 +104,20 @@ import '../foo.dart';
 C? c;
 ''');
   }
+}
 
-  Future<void> test_relativeImportDifferentPackages() async {
-    // Validate we don't get a fix with imports referencing different packages.
-    newFile('/home/test1/lib/foo.dart', '');
-    testFilePath = convertPath('/home/test2/lib/bar.dart');
-    await resolveTestCode('''
-import 'package:test1/foo.dart';
-''');
+@reflectiveTest
+class ConvertToRelativeImportTest extends FixProcessorForBuiltInLintRuleTest {
+  @override
+  FixKind get kind => DartFixKind.convertToRelativeImport;
 
-    await assertNoFix();
-  }
+  @override
+  String get lintCode => LintNames.prefer_relative_imports;
 
-  Future<void> test_relativeImportGarbledUri() async {
-    newFile('$testPackageLibPath/foo.dart', '');
-    testFilePath = convertPath('$testPackageLibPath/bar.dart');
-    await resolveTestCode('''
-import 'package:test/foo';
-''');
-
-    await assertHasFix('''
-import 'foo';
-''', filter: (error) => error.diagnosticCode != diag.uriDoesNotExist);
-  }
-
-  Future<void> test_relativeImportRespectQuoteStyle() async {
+  Future<void> test_inSameDirectory() async {
     newFile('$testPackageLibPath/foo.dart', '''
 class C {}
 ''');
-    testFilePath = convertPath('$testPackageLibPath/bar.dart');
-    await resolveTestCode('''
-import "package:test/foo.dart";
-C? c;
-''');
-
-    await assertHasFix('''
-import "foo.dart";
-C? c;
-''');
-  }
-
-  Future<void> test_relativeImportSameDirectory() async {
-    newFile('$testPackageLibPath/foo.dart', '''
-class C {}
-''');
-    testFilePath = convertPath('$testPackageLibPath/bar.dart');
     await resolveTestCode('''
 import 'package:test/foo.dart';
 C? c;
@@ -124,11 +129,32 @@ C? c;
 ''');
   }
 
-  Future<void> test_relativeImportSubDirectory() async {
+  Future<void> test_inSameDirectory_part() async {
+    newFile('$testPackageLibPath/foo.dart', '''
+class C {}
+''');
+    newFile('$testPackageLibPath/a.dart', '''
+part 'test.dart';
+''');
+    await resolveTestCode('''
+part of 'a.dart';
+
+import 'package:test/foo.dart';
+C? c;
+''');
+
+    await assertHasFix('''
+part of 'a.dart';
+
+import 'foo.dart';
+C? c;
+''');
+  }
+
+  Future<void> test_inSubDirectory() async {
     newFile('$testPackageLibPath/baz/foo.dart', '''
 class C {}
 ''');
-    testFilePath = convertPath('$testPackageLibPath/test.dart');
     await resolveTestCode('''
 import 'package:test/baz/foo.dart';
 C? c;
@@ -136,6 +162,54 @@ C? c;
 
     await assertHasFix('''
 import 'baz/foo.dart';
+C? c;
+''');
+  }
+
+  Future<void> test_inSubDirectory_inPart() async {
+    newFile('$testPackageLibPath/baz/foo.dart', '''
+class C {}
+''');
+    newFile('$testPackageLibPath/a.dart', '''
+part 'test.dart';
+''');
+    await resolveTestCode('''
+part of 'a.dart';
+
+import 'package:test/baz/foo.dart';
+C? c;
+''');
+
+    await assertHasFix('''
+part of 'a.dart';
+
+import 'baz/foo.dart';
+C? c;
+''');
+  }
+
+  Future<void> test_invalidUri() async {
+    newFile('$testPackageLibPath/foo.dart', '');
+    await resolveTestCode('''
+import 'package:test/foo';
+''');
+
+    await assertHasFix('''
+import 'foo';
+''', filter: (error) => error.diagnosticCode != diag.uriDoesNotExist);
+  }
+
+  Future<void> test_respectQuoteStyle() async {
+    newFile('$testPackageLibPath/foo.dart', '''
+class C {}
+''');
+    await resolveTestCode('''
+import "package:test/foo.dart";
+C? c;
+''');
+
+    await assertHasFix('''
+import "foo.dart";
 C? c;
 ''');
   }

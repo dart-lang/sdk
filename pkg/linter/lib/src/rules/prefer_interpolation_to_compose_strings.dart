@@ -86,9 +86,8 @@ class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
 extension on Expression {
   // The flattened list of all consecutive `+` operations.
   List<Expression> get chainedAdditions {
-    var self = this;
-    if (self is! BinaryExpression) return [self];
-    if (self.operator.type != TokenType.PLUS) return const [];
-    return [...self.leftOperand.chainedAdditions, self.rightOperand];
+    if (this is! BinaryExpression) return [this];
+    if (operator.type != TokenType.PLUS) return const [];
+    return [...leftOperand.chainedAdditions, rightOperand];
   }
 }

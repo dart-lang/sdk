@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/util/platform_info.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -26,11 +27,9 @@ final class CorrectionUtils {
 
   String? _endOfLine;
 
-  CorrectionUtils(ParsedUnitResult result)
-    : _unit = result.unit,
-      _buffer = result.content;
+  new(ParsedUnitResult result) : _unit = result.unit, _buffer = result.content;
 
-  CorrectionUtils.fromUnitAndContent(CompilationUnit unit, String content)
+  new fromUnitAndContent(CompilationUnit unit, String content)
     : _unit = unit,
       _buffer = content;
 
@@ -189,7 +188,7 @@ final class CorrectionUtils {
   /// comments.
   String getNodeText(AstNode node, {bool withLeadingComments = false}) {
     var firstToken = withLeadingComments
-        ? node.beginToken.precedingComments ?? node.beginToken
+        ? node.beginToken.precedingCommentOrThis
         : node.beginToken;
     var offset = firstToken.offset;
     var end = node.endToken.end;
@@ -476,7 +475,7 @@ class _InvertedCondition {
 
   final String _source;
 
-  _InvertedCondition(this._precedence, this._source);
+  new(this._precedence, this._source);
 
   static _InvertedCondition _binary(
     int precedence,

@@ -95,7 +95,7 @@ main() {
             expectedStaticType: secondType,
             additionalInfo: '',
           )
-          .at(result.findNode.simple('x')),
+          .at(result.findNode.unqualifiedNameExpression('x')),
     );
 
     var diagnostic = listener.diagnostics[0];
@@ -140,7 +140,7 @@ main() {
             expectedStaticType: secondType,
             additionalInfo: '',
           )
-          .at(result.findNode.simple('x')),
+          .at(result.findNode.unqualifiedNameExpression('x')),
     );
 
     var diagnostic = listener.diagnostics[0];
@@ -161,19 +161,19 @@ main() {
   x;
 }
 ''');
-    var fa = result.findNode.topLevelVariableDeclaration('fa');
-    var fb = result.findNode.topLevelVariableDeclaration('fb');
+    var fa = result.findNode.topLevelVariablesDeclaration('fa');
+    var fb = result.findNode.topLevelVariablesDeclaration('fb');
 
     var source = result.unit.declaredFragment!.source;
     var reporter = DiagnosticReporter(listener, source);
     reporter.report(
       diag.argumentTypeNotAssignable
           .withArguments(
-            actualStaticType: fa.variables.type!.type!,
-            expectedStaticType: fb.variables.type!.type!,
+            actualStaticType: fa.type!.type!,
+            expectedStaticType: fb.type!.type!,
             additionalInfo: '',
           )
-          .at(result.findNode.simple('x')),
+          .at(result.findNode.unqualifiedNameExpression('x')),
     );
 
     var diagnostic = listener.diagnostics[0];
@@ -196,19 +196,19 @@ main() {
   x;
 }
 ''');
-    var ba = result.findNode.topLevelVariableDeclaration('ba');
-    var bb = result.findNode.topLevelVariableDeclaration('bb');
+    var ba = result.findNode.topLevelVariablesDeclaration('ba');
+    var bb = result.findNode.topLevelVariablesDeclaration('bb');
 
     var source = result.unit.declaredFragment!.source;
     var reporter = DiagnosticReporter(listener, source);
     reporter.report(
       diag.argumentTypeNotAssignable
           .withArguments(
-            actualStaticType: ba.variables.type!.type!,
-            expectedStaticType: bb.variables.type!.type!,
+            actualStaticType: ba.type!.type!,
+            expectedStaticType: bb.type!.type!,
             additionalInfo: '',
           )
-          .at(result.findNode.simple('x')),
+          .at(result.findNode.unqualifiedNameExpression('x')),
     );
 
     var diagnostic = listener.diagnostics[0];

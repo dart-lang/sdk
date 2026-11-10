@@ -12,8 +12,8 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
+import 'package:analyzer_testing/src/single_unit.dart';
 
-import '../../../../../abstract_single_unit.dart';
 import '../fix_processor.dart';
 
 /// A base class defining support for writing fix processor tests for
@@ -23,10 +23,11 @@ abstract class DataDrivenBulkFixProcessorTest extends BulkFixProcessorTest
 
 /// A base class defining support for writing fix processor tests for
 /// data-driven fixes.
-abstract class DataDrivenFixProcessorTest extends FixProcessorTest
+abstract class DataDrivenFixProcessorTest
+    extends FixProcessorForBuiltInDiagnosticTest
     with DataDrivenFixProcessorTestMixin {}
 
-mixin DataDrivenFixProcessorTestMixin on AbstractSingleUnitTest {
+mixin DataDrivenFixProcessorTestMixin on SingleUnitTest {
   /// Returns the URI used to import the library created by [setPackageContent].
   String get importUri => 'package:p/lib.dart';
 
@@ -66,7 +67,7 @@ mixin DataDrivenFixProcessorTestMixin on AbstractSingleUnitTest {
   /// data on which this test is based.
   void setPackageContent(String content) {
     newFile('$workspaceRootPath/p/lib/lib.dart', content);
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
     );

@@ -3,117 +3,78 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
+import 'package:analyzer/src/dart/resolver/resolution_result.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for resolving prefix and postfix increment and decrement expressions.
 class IncrementOrDecrementResolver {
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _typeAnalyzer;
   final TypePropertyResolver _typePropertyResolver;
-  final AssignmentExpressionShared _assignmentShared;
   final AssignmentExpressionResolver _assignmentResolver;
 
-  IncrementOrDecrementResolver({required ResolverVisitor resolver})
-    : _resolver = resolver,
-      _typePropertyResolver = resolver.typePropertyResolver,
-      _assignmentShared = AssignmentExpressionShared(resolver: resolver),
-      _assignmentResolver = AssignmentExpressionResolver(resolver: resolver);
+  new({required TypeAnalyzer typeAnalyzer})
+    : _typeAnalyzer = typeAnalyzer,
+      _typePropertyResolver = typeAnalyzer.typePropertyResolver,
+      _assignmentResolver = AssignmentExpressionResolver(
+        typeAnalyzer: typeAnalyzer,
+      );
 
-  DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
+  DiagnosticReporter get _diagnosticReporter =>
+      _typeAnalyzer.diagnosticReporter;
 
-  TypeProviderImpl get _typeProvider => _resolver.typeProvider;
+  TypeProviderImpl get _typeProvider => _typeAnalyzer.typeProvider;
 
-  TypeSystemImpl get _typeSystem => _resolver.typeSystem;
+  TypeSystemImpl get _typeSystem => _typeAnalyzer.typeSystem;
 
   void resolve(IncrementOrDecrementExpressionImpl node) {
-    var isPrefix = _isPrefix(node);
+    var isPrefix = node.position == IncrementOrDecrementPosition.prefix;
     var target = node.target;
-    if (target is InvalidExpressionAssignmentTargetImpl) {
-      _resolver.analyzeExpression(
-        target.expression,
-        SharedTypeSchemaView(UnknownInferredType.instance),
+
+    if (target
+        case CascadeIndexAssignmentTargetImpl() ||
+            CascadePropertyAssignmentTargetImpl()) {
+      throw StateError(
+        'A cascade section cannot be an increment or decrement target',
       );
-      target.expression = _resolver.popRewrite()!;
-      // Keep the child's resolution, but don't expose a partially resolved
-      // read-modify-write operation for a target that cannot be written.
-      node.operatorResultType = InvalidTypeImpl.instance;
-      node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
-      return;
     }
 
-    late TypeImpl readType;
-    late TypeImpl writeAcceptedType;
+    TypeImpl readType;
+    TypeImpl writeAcceptedType;
     InternalVariableElement? variableElement;
-    switch (target) {
-      case CascadeIndexAssignmentTargetImpl():
-      case CascadePropertyAssignmentTargetImpl():
-        throw StateError(
-          'A cascade section cannot be an increment or decrement target',
+    switch (_assignmentResolver.resolveReadWriteTarget(node, target)) {
+      case ResolvedReadWriteTarget result:
+        readType = result.readType;
+        writeAcceptedType = result.writeAcceptedType;
+        variableElement = result.variableElement;
+      case UnresolvedReadWriteTarget():
+        node.operatorResultType = NeverTypeImpl.instance;
+        node.recordStaticType(
+          NeverTypeImpl.instance,
+          typeAnalyzer: _typeAnalyzer,
         );
-      case IndexAssignmentTargetImpl():
-        var result = _assignmentResolver.resolveIndexReadWriteTarget(target);
-        if (result == null) {
-          node.operatorResultType = NeverTypeImpl.instance;
-          node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
-          return;
-        }
-        readType = result.read.type;
-        writeAcceptedType = result.write.acceptedType;
-      case ReceiverPropertyAssignmentTargetImpl():
-        var importResult = _resolveImportPrefixedPropertyTarget(target);
-        if (importResult != null) {
-          readType = importResult.$1;
-          writeAcceptedType = importResult.$2;
-          break;
-        }
-        _assignmentResolver.analyzePropertyTargetReceiver(node, target);
-        var result = _resolver.resolveReceiverPropertyReadWriteAssignmentTarget(
-          target,
+        return;
+      case InvalidReadWriteTarget():
+        // Keep the target's resolution, but don't expose a partially resolved
+        // read-modify-write operation for a target that can't be written.
+        node.operatorResultType = InvalidTypeImpl.instance;
+        node.recordStaticType(
+          InvalidTypeImpl.instance,
+          typeAnalyzer: _typeAnalyzer,
         );
-        if (result == null) {
-          node.operatorResultType = NeverTypeImpl.instance;
-          node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
-          return;
-        }
-        target.read = result.read;
-        target.write = result.write;
-        readType = result.read.type;
-        writeAcceptedType = result.write.acceptedType;
-        if (target.receiver is! ExtensionOverride &&
-            result.read is ExecutableTearOffResolution) {
-          // TODO(scheglov): Review why ordinary method targets replace the
-          // tear-off type with InvalidType, while extension overrides retain
-          // the tear-off type for result recovery.
-          readType = InvalidTypeImpl.instance;
-        }
-      case UnqualifiedNameAssignmentTargetImpl():
-        var result = _resolver.resolveUnqualifiedNameReadWriteAssignmentTarget(
-          target,
-        );
-        target.read = result.read;
-        target.write = result.write;
-        readType = result.read.type;
-        writeAcceptedType = result.write.acceptedType;
-        if (result.write case VariableWriteResolutionImpl(:var element)) {
-          variableElement = element;
-        }
-        _assignmentShared.checkFinalTargetAlreadyAssigned(target);
-      case InvalidExpressionAssignmentTargetImpl():
-        throw StateError('Handled above');
+        return;
     }
 
     _resolveOperator(
@@ -142,14 +103,20 @@ class IncrementOrDecrementResolver {
     if (!_typeSystem.isAssignableTo(
       type,
       operandWriteType,
-      strictCasts: _resolver.analysisOptions.strictCasts,
+      strictCasts: _typeAnalyzer.analysisOptions.strictCasts,
     )) {
-      _resolver.diagnosticReporter.report(
-        diag.invalidAssignment
-            .withArguments(
-              actualStaticType: type,
-              expectedStaticType: operandWriteType,
-            )
+      _typeAnalyzer.diagnosticReporter.report(
+        // An index increment or decrement invokes `operator []=`, so a
+        // non-assignable result is reported as an argument error.
+        (node.target is IndexAssignmentTargetImpl
+                ? const NonAssignabilityReporterForArgument().createDiagnostic(
+                    expectedStaticType: operandWriteType,
+                    actualStaticType: type,
+                  )
+                : diag.invalidAssignment.withArguments(
+                    actualStaticType: type,
+                    expectedStaticType: operandWriteType,
+                  ))
             .at(node),
       );
     }
@@ -163,7 +130,7 @@ class IncrementOrDecrementResolver {
     }
 
     var expectedType = element.formalParameters.single.type;
-    var strictCasts = _resolver.analysisOptions.strictCasts;
+    var strictCasts = _typeAnalyzer.analysisOptions.strictCasts;
     var intType = _typeProvider.intType;
     var doubleType = _typeProvider.doubleType;
     // The implicit argument is the integer literal `1`. Like an explicit
@@ -214,44 +181,6 @@ class IncrementOrDecrementResolver {
     return fallback;
   }
 
-  /// Return the name of the method invoked by the given [expression].
-  String _getOperator(IncrementOrDecrementExpression expression) {
-    return switch (expression) {
-      PrefixIncrement() || PostfixIncrement() => TokenType.PLUS.lexeme,
-      PrefixDecrement() || PostfixDecrement() => TokenType.MINUS.lexeme,
-      _ => throw StateError('Expected an increment or decrement expression'),
-    };
-  }
-
-  bool _isPrefix(IncrementOrDecrementExpression expression) {
-    return switch (expression) {
-      PrefixIncrement() || PrefixDecrement() => true,
-      PostfixIncrement() || PostfixDecrement() => false,
-      _ => throw StateError('Expected an increment or decrement expression'),
-    };
-  }
-
-  (TypeImpl, TypeImpl)? _resolveImportPrefixedPropertyTarget(
-    ReceiverPropertyAssignmentTargetImpl target,
-  ) {
-    // TODO(scheglov): Fold import prefixes into the ordinary property-target
-    // receiver analysis instead of resolving them through a separate path.
-    var receiver = target.receiver;
-    if (receiver is! SimpleIdentifierImpl ||
-        receiver.scopeLookupResult?.getter is! PrefixElementImpl) {
-      return null;
-    }
-    var prefix = receiver.scopeLookupResult!.getter as PrefixElementImpl;
-    receiver.element = prefix;
-    var result = _resolver.resolveImportPrefixedPropertyReadWriteTarget(
-      target,
-      prefix,
-    );
-    target.read = result.read;
-    target.write = result.write;
-    return (result.read.type, result.write.acceptedType);
-  }
-
   void _resolveOperator(
     IncrementOrDecrementExpressionImpl node, {
     required bool isPrefix,
@@ -259,17 +188,7 @@ class IncrementOrDecrementResolver {
     required AstNode errorEntity,
   }) {
     var operator = node.operator;
-    var methodName = _getOperator(node);
-
-    if (node.target case ReceiverPropertyAssignmentTarget(
-      read: ExecutableTearOffResolution(),
-      write: InvalidNamedWriteResolution(),
-    )) {
-      // The selected property is a method, so the write-back has already
-      // reported assignmentToMethod. Looking up `+` or `-` on the tear-off
-      // type would only produce a follow-up diagnostic.
-      return;
-    }
+    var methodName = node.operation.binaryOperatorName;
 
     // TODO(scheglov): Review why an invalid read type stops operator lookup
     // only for prefix increment and decrement.
@@ -277,7 +196,7 @@ class IncrementOrDecrementResolver {
       return;
     }
     if (identical(readType, NeverTypeImpl.instance)) {
-      _resolver.diagnosticReporter.report(
+      _typeAnalyzer.diagnosticReporter.report(
         diag.receiverOfTypeNever.at(errorEntity),
       );
       return;
@@ -294,22 +213,12 @@ class IncrementOrDecrementResolver {
       parentNode: node,
     );
     node.element = result.getter2 as InternalMethodElement?;
-    if (result.needsGetterError) {
-      if (node.target case InvalidExpressionAssignmentTargetImpl(
-        expression: SuperExpression(),
-      )) {
-        _diagnosticReporter.report(
-          diag.undefinedSuperOperator
-              .withArguments(operator: methodName, type: readType)
-              .at(operator),
-        );
-      } else {
-        _diagnosticReporter.report(
-          diag.undefinedOperator
-              .withArguments(operator: methodName, type: readType)
-              .at(operator),
-        );
-      }
+    if (result.getterOutcome == LookupOutcome.notFound) {
+      _diagnosticReporter.report(
+        diag.undefinedOperator
+            .withArguments(operator: methodName, type: readType)
+            .at(operator),
+      );
     }
   }
 
@@ -320,9 +229,14 @@ class IncrementOrDecrementResolver {
     required TypeImpl writeAcceptedType,
     required InternalVariableElement? variableElement,
   }) {
+    _typeAnalyzer.checkWriteOfAssignedFinalLocalVariable(node.target);
+
     if (identical(readType, NeverTypeImpl.instance)) {
       node.operatorResultType = NeverTypeImpl.instance;
-      node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
+      node.recordStaticType(
+        NeverTypeImpl.instance,
+        typeAnalyzer: _typeAnalyzer,
+      );
       return;
     }
 
@@ -349,20 +263,22 @@ class IncrementOrDecrementResolver {
     );
     if (variableElement is PromotableElementImpl) {
       if (isPrefix) {
-        _resolver.flowAnalysis.storeExpressionInfo(
+        _typeAnalyzer.flowAnalysis.storeExpressionInfo(
           node,
-          _resolver.flowAnalysis.flow?.write(
+          _typeAnalyzer.flowAnalysis.flow?.write(
             node,
             variableElement,
             SharedTypeView(operatorResultType),
             null,
+            offset: node.end,
           ),
         );
       } else {
-        _resolver.flowAnalysis.flow?.postIncDec(
+        _typeAnalyzer.flowAnalysis.flow?.postIncDec(
           node,
           variableElement,
           SharedTypeView(operatorResultType),
+          offset: node.operator.offset,
         );
       }
     }
@@ -370,7 +286,7 @@ class IncrementOrDecrementResolver {
     node.operatorResultType = operatorResultType;
     node.recordStaticType(
       isPrefix ? operatorResultType : readType,
-      resolver: _resolver,
+      typeAnalyzer: _typeAnalyzer,
     );
   }
 }

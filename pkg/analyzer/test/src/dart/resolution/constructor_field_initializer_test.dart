@@ -65,7 +65,13 @@ ConstructorFieldInitializer
     element: <testLibrary>::@class::A::@field::f
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
     staticType: int
@@ -90,8 +96,8 @@ ConstructorFieldInitializer
     element: <testLibrary>::@class::A::@field::x
     staticType: null
   equals: =
-  expression2: FunctionExpressionInvocation
-    function2: ParenthesizedExpression
+  expression2: CallInvocation
+    receiver: ParenthesizedExpression
       leftParenthesis: (
       expression2: FunctionExpression
         parameters: FormalParameterList
@@ -100,13 +106,15 @@ ConstructorFieldInitializer
         body: BlockFunctionBody
           block: Block
             leftBracket: {
-            statements
+            statements2
               ReturnStatement
                 returnKeyword: return
                 expression2: BinaryOperatorInvocation
-                  leftOperand: SimpleIdentifier
-                    token: a
-                    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+                  leftOperand: UnqualifiedNameExpression
+                    name: a
+                    resolution: VariableReadResolution
+                      element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+                      type: int
                     staticType: int
                   operator: +
                   rightOperand: IntegerLiteral
@@ -117,6 +125,47 @@ ConstructorFieldInitializer
                   element: dart:core::@class::num::@method::+
                   staticType: int
                 expression(v1): BinaryExpression
+                  leftOperand: SimpleIdentifier
+                    token: a
+                    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+                    staticType: int
+                  operator: +
+                  rightOperand: IntegerLiteral
+                    literal: 1
+                    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+                    staticType: int
+                  element: dart:core::@class::num::@method::+
+                  staticInvokeType: num Function(num)
+                  staticType: int
+                semicolon: ;
+            rightBracket: }
+        declaredFragment: <testLibraryFragment> null@null
+          element: null@null
+            type: int Function()
+        staticType: int Function()
+      rightParenthesis: )
+      staticType: int Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: FunctionTypeInvocationResolution
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): FunctionExpressionInvocation
+    function: ParenthesizedExpression
+      leftParenthesis: (
+      expression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              ReturnStatement
+                returnKeyword: return
+                expression: BinaryExpression
                   leftOperand: SimpleIdentifier
                     token: a
                     element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
@@ -164,8 +213,8 @@ ConstructorFieldInitializer
     element: <testLibrary>::@class::A::@field::x
     staticType: null
   equals: =
-  expression2: FunctionExpressionInvocation
-    function2: ParenthesizedExpression
+  expression2: CallInvocation
+    receiver: ParenthesizedExpression
       leftParenthesis: (
       expression2: FunctionExpression
         parameters: FormalParameterList
@@ -174,9 +223,11 @@ ConstructorFieldInitializer
         body: ExpressionFunctionBody
           functionDefinition: =>
           expression2: BinaryOperatorInvocation
-            leftOperand: SimpleIdentifier
-              token: a
-              element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+            leftOperand: UnqualifiedNameExpression
+              name: a
+              resolution: VariableReadResolution
+                element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+                type: int
               staticType: int
             operator: +
             rightOperand: IntegerLiteral
@@ -187,6 +238,41 @@ ConstructorFieldInitializer
             element: dart:core::@class::num::@method::+
             staticType: int
           expression(v1): BinaryExpression
+            leftOperand: SimpleIdentifier
+              token: a
+              element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+              staticType: int
+            operator: +
+            rightOperand: IntegerLiteral
+              literal: 1
+              correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+              staticType: int
+            element: dart:core::@class::num::@method::+
+            staticInvokeType: num Function(num)
+            staticType: int
+        declaredFragment: <testLibraryFragment> null@null
+          element: null@null
+            type: int Function()
+        staticType: int Function()
+      rightParenthesis: )
+      staticType: int Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: FunctionTypeInvocationResolution
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): FunctionExpressionInvocation
+    function: ParenthesizedExpression
+      leftParenthesis: (
+      expression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression: BinaryExpression
             leftOperand: SimpleIdentifier
               token: a
               element: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
@@ -235,7 +321,13 @@ ConstructorFieldInitializer
     element: <testLibrary>::@class::A::@field::x
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
@@ -263,7 +355,13 @@ ConstructorFieldInitializer
     element: <null>
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
@@ -291,7 +389,13 @@ ConstructorFieldInitializer
     element: <testLibrary>::@class::A::@field::x
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
@@ -321,7 +425,13 @@ ConstructorFieldInitializer
     element: <null>
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
@@ -349,7 +459,13 @@ ConstructorFieldInitializer
     element: <null>
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
@@ -377,7 +493,13 @@ ConstructorFieldInitializer
     element: <testLibrary>::@class::A::@field::x
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
@@ -405,7 +527,13 @@ ConstructorFieldInitializer
     element: <null>
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
@@ -433,7 +561,13 @@ ConstructorFieldInitializer
     element: <null>
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
@@ -460,7 +594,13 @@ ConstructorFieldInitializer
     element: <null>
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int
@@ -487,7 +627,13 @@ ConstructorFieldInitializer
     element: <null>
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: int

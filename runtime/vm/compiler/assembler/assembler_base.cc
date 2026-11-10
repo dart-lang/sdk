@@ -649,7 +649,8 @@ uword ObjIndexPair::Hash(Key key) {
     case ObjectPoolBuilderEntry::kNativeFunction:
       return HashBytes(&key.imm_, sizeof(key.imm_));
     case ObjectPoolBuilderEntry::kTaggedObject:
-      return ObjectHash(*key.obj_);
+      return CombineHashes(ObjectHash(*key.obj_),
+                           ObjectHash(*key.equivalence_));
   }
 
   UNREACHABLE();

@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualDataMap, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
@@ -34,7 +34,7 @@ main(List<String> args) {
 
 class _TypeConstraintGenerationDataComputer
     extends DataComputer<List<GeneratedTypeConstraint>> {
-  const _TypeConstraintGenerationDataComputer();
+  const new();
 
   @override
   DataInterpreter<List<GeneratedTypeConstraint>> get dataValidator =>
@@ -47,7 +47,7 @@ class _TypeConstraintGenerationDataComputer
   void computeUnitData(
     TestingData testingData,
     CompilationUnit unit,
-    Map<Id, ActualData<List<GeneratedTypeConstraint>>> actualMap,
+    ActualDataMap<List<GeneratedTypeConstraint>> actualMap,
   ) {
     _TypeConstraintGenerationDataExtractor(
       testingData.uriToTypeConstraintGenerationData[unit
@@ -64,11 +64,7 @@ class _TypeConstraintGenerationDataExtractor
     extends AstDataExtractor<List<GeneratedTypeConstraint>> {
   final TypeConstraintGenerationDataForTesting dataForTesting;
 
-  _TypeConstraintGenerationDataExtractor(
-    this.dataForTesting,
-    super.uri,
-    super.actualMap,
-  );
+  new(this.dataForTesting, super.uri, super.actualMap);
 
   @override
   List<GeneratedTypeConstraint>? computeNodeValue(Id id, AstNode node) {
@@ -78,7 +74,7 @@ class _TypeConstraintGenerationDataExtractor
 
 class _TypeConstraintGenerationDataInterpreter
     implements DataInterpreter<List<GeneratedTypeConstraint>> {
-  const _TypeConstraintGenerationDataInterpreter();
+  const new();
 
   @override
   String getText(

@@ -154,7 +154,7 @@ NamedBuilder computeAmbiguousDeclarationForImport(
   String name,
   NamedBuilder declaration,
   NamedBuilder other, {
-  required UriOffset uriOffset,
+  required UriOffsetLength uriOffset,
 }) {
   // Prefix fragments are merged to singular prefix builders when computing the
   // import scope.
@@ -201,7 +201,8 @@ NamedBuilder computeAmbiguousDeclarationForImport(
   // more imports but never referred to.'
   return new InvalidBuilder(
     name,
-    message.withLocation(uriOffset.fileUri, uriOffset.fileOffset, name.length),
+    message.withLocation2(uriOffset),
+    uriOffset,
     errorHasBeenReported: false,
   );
 }

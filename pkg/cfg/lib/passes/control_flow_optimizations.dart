@@ -49,10 +49,23 @@ final class ControlFlowOptimizations extends Pass {
     if (successor.predecessors.length > 1) {
       return false;
     }
-    if (successor.exceptionHandler != block.exceptionHandler &&
-        successor.next != successor.lastInstruction) {
-      // Do not merge a non-empty block with different exception handler.
-      return false;
+    if (successor.exceptionHandler != block.exceptionHandler) {
+      final last = successor.lastInstruction;
+      if (successor.next != last) {
+        // Do not merge a non-empty block with different exception handler.
+        return false;
+      }
+      if (last.canThrow) {
+        // The throw needs to go to [successor] exception handler.
+        return false;
+      }
+      if (last is TryEntry) {
+        // Entering [last.tryBody] from [block] would place the new try/catch
+        // inside [block]'s try region -- even if the two try/catch blocks were
+        // not nested in original source code.
+        // This would break structured try/catch nesting in wasm.
+        return false;
+      }
     }
     assert(successor != block);
     if (successor is JoinBlock) {

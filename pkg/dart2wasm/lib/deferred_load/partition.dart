@@ -311,9 +311,8 @@ class _Algorithm {
       namedNodes.namedNodes.values.toList(),
       orderNodes,
     );
-    return psc.KernelBuilder(
-      allConstraints,
-    ).build(allDeferredImportsIncludingRoot);
+    return psc.KernelBuilder(allConstraints)
+        .build(allDeferredImportsIncludingRoot);
   }
 
   ConstraintData? _filterUserConstraints(

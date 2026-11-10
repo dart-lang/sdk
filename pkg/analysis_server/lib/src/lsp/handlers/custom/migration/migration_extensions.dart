@@ -14,7 +14,6 @@ extension MigrationStepExtension on MigrationStep {
 }
 
 extension MigrationStepListExtension on List<MigrationStep> {
-  bool get runAll => runPrepare && runBump && runCleanup;
   bool get runBump =>
       contains(MigrationStep.All) || contains(MigrationStep.Bump);
   bool get runCleanup =>

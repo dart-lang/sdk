@@ -4,8 +4,28 @@
 
 import 'package:kernel/ast.dart';
 
+import 'uri_offset.dart';
+
 final Uri dartCore = Uri.parse('dart:core');
+// Coverage-ignore(suite): Not run.
+final Uri dartAsync = Uri.parse('dart:async');
 final Uri missingUri = Uri.parse('org-dartlang-internal:missing');
+
+final UriOffsetLength dartCoreUriOffset = new UriOffset(
+  dartCore,
+  TreeNode.noOffset,
+);
+
+// Coverage-ignore(suite): Not run.
+final UriOffsetLength dartAsyncUriOffset = new UriOffset(
+  dartAsync,
+  TreeNode.noOffset,
+);
+
+final UriOffsetLength missingUriOffset = new UriOffset(
+  missingUri,
+  TreeNode.noOffset,
+);
 
 const String MALFORMED_URI_SCHEME = "org-dartlang-malformed-uri";
 
@@ -15,55 +35,84 @@ bool isNotMalformedUriScheme(Uri uri) => !uri.isScheme(MALFORMED_URI_SCHEME);
 ///
 /// ```
 /// DartDocTest(
-///   getPartUri(
-///     Uri.parse("file://path/to/parent.dart"),
-///     new LibraryPart([], "simple.dart")
+///   getPartImportUri(
+///     Uri.parse("package:foo/bar/parent.dart"),
+///     new LibraryPart(
+///       [],
+///       "simple.dart",
+///       Uri.parse("file://foo/lib/bar/simple.dart"),
+///     ),
 ///   ),
-///   Uri.parse("file://path/to/simple.dart")
+///   Uri.parse("package:foo/bar/simple.dart"),
 /// )
 /// DartDocTest(
-///   getPartUri(
-///     Uri.parse("file://path/to/parent.dart"),
-///     new LibraryPart([], "dir/simple.dart")
+///   getPartImportUri(
+///     Uri.parse("package:foo/bar/parent.dart"),
+///     new LibraryPart(
+///       [],
+///       "dir/simple.dart",
+///       Uri.parse("file://foo/lib/bar/dir/simple.dart"),
+///     ),
 ///   ),
-///   Uri.parse("file://path/to/dir/simple.dart")
+///   Uri.parse("package:foo/bar/dir/simple.dart"),
 /// )
 /// DartDocTest(
-///   getPartUri(
-///     Uri.parse("file://path/to/parent.dart"),
-///     new LibraryPart([], "../simple.dart")
+///   getPartImportUri(
+///     Uri.parse("package:foo/bar/parent.dart"),
+///     new LibraryPart(
+///       [],
+///       "../simple.dart",
+///       Uri.parse("file://foo/lib/simple.dart"),
+///     ),
 ///   ),
-///   Uri.parse("file://path/simple.dart")
+///   Uri.parse("package:foo/simple.dart"),
 /// )
 /// DartDocTest(
-///   getPartUri(
-///     Uri.parse("file://path/to/parent.dart"),
-///     new LibraryPart([], "file:///my/path/absolute.dart")
+///   getPartImportUri(
+///     Uri.parse("package:foo/bar/parent.dart"),
+///     new LibraryPart(
+///       [],
+///       "file:///my/path/absolute.dart",
+///       Uri.parse("file:///my/path/absolute.dart"),
+///     ),
 ///   ),
-///   Uri.parse("file:///my/path/absolute.dart")
+///   Uri.parse("file:///my/path/absolute.dart"),
 /// )
 /// DartDocTest(
-///   getPartUri(
-///     Uri.parse("file://path/to/parent.dart"),
-///     new LibraryPart([], "package:foo/hello.dart")
+///   getPartImportUri(
+///     Uri.parse("package:foo/bar/parent.dart"),
+///     new LibraryPart(
+///       [],
+///       "package:foo/hello.dart",
+///       Uri.parse("file://foo/lib/hello.dart"),
+///     ),
 ///   ),
-///   Uri.parse("package:foo/hello.dart")
+///   Uri.parse("package:foo/hello.dart"),
 /// )
 /// ```
 /// And with invalid part uri:
 /// ```
 /// DartDocTest(
-///   getPartUri(
-///     Uri.parse("file://path/to/parent.dart"),
-///     new LibraryPart([], ":hello")
+///   getPartImportUri(
+///     Uri.parse("package:foo/bar/parent.dart"),
+///     new LibraryPart(
+///       [],
+///       ":hello",
+///       new Uri(
+///         scheme: MALFORMED_URI_SCHEME,
+///         query: Uri.encodeQueryComponent(":hello"),
+///       ),
+///     ),
 ///   ),
-///   new Uri(scheme: MALFORMED_URI_SCHEME,
-///     query: Uri.encodeQueryComponent(":hello"))
+///   new Uri(
+///     scheme: MALFORMED_URI_SCHEME,
+///     query: Uri.encodeQueryComponent(":hello"),
+///   ),
 /// )
 /// ```
-Uri getPartUri(Uri parentUri, LibraryPart part) {
+Uri getPartImportUri(Uri parentImportUri, LibraryPart part) {
   try {
-    return parentUri.resolve(part.partUri);
+    return parentImportUri.resolve(part.partUri);
   }
   // Coverage-ignore(suite): Not run.
   on FormatException {

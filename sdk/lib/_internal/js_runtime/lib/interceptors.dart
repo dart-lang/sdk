@@ -10,6 +10,7 @@ import 'dart:_js_embedded_names'
 import 'dart:collection' hide LinkedList, LinkedListEntry;
 import 'dart:_foreign_helper'
     show
+        DART_CLOSURE_TO_JS,
         JS_FALSE,
         JS_GET_FLAG,
         TYPE_REF,
@@ -92,6 +93,44 @@ bool isJSExportedDartFunction<T extends Function>(JavaScriptFunction f) {
   // We set this value so we know it always `is Function`.
   return function != null && T == Function ? true : function is T;
 }
+
+JavaScriptFunction dartFunctionToJSVarArgs<T>(Object? Function(T) f) {
+  final result = JS(
+    'JavaScriptFunction',
+    '''
+        (function(_call, f) {
+          return (...args) => _call(f, args);
+        })(#, #)
+      ''',
+    DART_CLOSURE_TO_JS(_callDartFunction1Arg),
+    f,
+  ) as JavaScriptFunction;
+  JS('', '#.# = #', result, DART_CLOSURE_DART_JSINTEROP_PROPERTY_NAME, f);
+  return result;
+}
+
+JavaScriptFunction dartFunctionToJSCaptureThisVarArgs<S, T>(
+  Object? Function(S, T) f,
+) {
+  final result = JS(
+    'JavaScriptFunction',
+    '''
+        (function(_call, f) {
+          return function(...args) {
+            return _call(f, this, args);
+          }
+        })(#, #)
+      ''',
+    DART_CLOSURE_TO_JS(_callDartFunction2Args),
+    f,
+  ) as JavaScriptFunction;
+  JS('', '#.# = #', result, DART_CLOSURE_DART_JSINTEROP_PROPERTY_NAME, f);
+  return result;
+}
+
+_callDartFunction1Arg(Function f, arg) => f(arg);
+
+_callDartFunction2Args(Function f, arg1, arg2) => f(arg1, arg2);
 
 getDispatchProperty(object) {
   return JS(

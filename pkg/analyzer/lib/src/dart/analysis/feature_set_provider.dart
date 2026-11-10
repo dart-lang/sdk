@@ -12,89 +12,71 @@ import 'package:analyzer/src/util/uri.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 class FeatureSetProvider {
-  final Version _sdkLanguageVersion;
+  final Version sdkLanguageVersion;
   final AllowedExperiments _allowedExperiments;
   final ResourceProvider _resourceProvider;
   final Packages _packages;
 
   final Map<String, FeatureSet> _cachedFeatureSets = {};
 
-  FeatureSetProvider._({
-    required Version sdkLanguageVersion,
-    required AllowedExperiments allowedExperiments,
-    required ResourceProvider resourceProvider,
-    required Packages packages,
-  }) : _sdkLanguageVersion = sdkLanguageVersion,
-       _allowedExperiments = allowedExperiments,
-       _resourceProvider = resourceProvider,
-       _packages = packages;
+  new _({
+    required this.sdkLanguageVersion,
+    required this._allowedExperiments,
+    required this._resourceProvider,
+    required this._packages,
+  });
 
   FeatureSet featureSetForExperiments(List<String> experiments) {
     String key = experiments.join("|");
     return _cachedFeatureSets[key] ??= FeatureSet.fromEnableFlags2(
-      sdkLanguageVersion: _sdkLanguageVersion,
+      sdkLanguageVersion: sdkLanguageVersion,
       flags: experiments,
     );
   }
 
-  /// Return the [FeatureSet] for the package that contains the file.
+  /// Returns the [FeatureSet] and the default language [Version] of the file.
   ///
-  /// Note, that [getLanguageVersion] returns the default language version
-  /// for libraries in the package, but this method does not restrict the
-  /// [FeatureSet] of this version. The reason is that we allow libraries to
+  /// SDK libraries use the experiments allowed for them. Files in a package
+  /// use the experiments allowed for the package, or [contextFeatures]. Their
+  /// language version is the language version of the package, or of the SDK
+  /// if the package does not specify one. Files outside of any package use
+  /// [contextFeatures] with the language version of the SDK.
+  ///
+  /// Note, that [Version] returns the default language version
+  /// for libraries in the package, but that does not restrict the
+  /// [FeatureSet]. The reason is that we allow libraries to
   /// "upgrade" to higher version than the default package language version,
   /// and want this to preserve experimental features.
-  FeatureSet getFeatureSet(
+  ///
+  /// Each individual file might use `// @dart` to override this version, to
+  /// be either lower, or higher than the package language version.
+  (FeatureSet, Version) getFeatureSetAndLanguageVersion(
     String path,
     Uri uri, {
     required FeatureSet contextFeatures,
-    required FeatureSet nonPackageFeatureSet,
   }) {
     if (uri.isScheme('dart')) {
       var pathSegments = uri.pathSegments;
       if (pathSegments.isNotEmpty) {
         var libraryName = pathSegments.first;
         var experiments = _allowedExperiments.forSdkLibrary(libraryName);
-        return featureSetForExperiments(experiments);
+        return (featureSetForExperiments(experiments), sdkLanguageVersion);
       } else {
-        return featureSetForExperiments([]);
+        return (featureSetForExperiments([]), sdkLanguageVersion);
       }
     }
 
     var package = _findPackage(uri, path);
     if (package != null) {
       var experiments = _allowedExperiments.forPackage(package.name);
+      var languageVersion = package.languageVersion ?? sdkLanguageVersion;
       if (experiments != null) {
-        return featureSetForExperiments(experiments);
+        return (featureSetForExperiments(experiments), languageVersion);
       }
-      return contextFeatures;
+      return (contextFeatures, languageVersion);
     }
 
-    return nonPackageFeatureSet;
-  }
-
-  /// Return the language version for the package that contains the file.
-  ///
-  /// Each individual file might use `// @dart` to override this version, to
-  /// be either lower, or higher than the package language version.
-  Version getLanguageVersion(
-    String path,
-    Uri uri, {
-    required Version nonPackageLanguageVersion,
-  }) {
-    if (uri.isScheme('dart')) {
-      return _sdkLanguageVersion;
-    }
-    var package = _findPackage(uri, path);
-    if (package != null) {
-      var languageVersion = package.languageVersion;
-      if (languageVersion != null) {
-        return languageVersion;
-      }
-      return _sdkLanguageVersion;
-    }
-
-    return nonPackageLanguageVersion;
+    return (contextFeatures, sdkLanguageVersion);
   }
 
   /// Return the package corresponding to the [uri] or [path], `null` if none.

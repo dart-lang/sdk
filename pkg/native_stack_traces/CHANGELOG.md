@@ -1,3 +1,10 @@
+## 0.7.1
+- Support reading the debugging information of PE/COFF snapshots from PDB
+  files.
+
+## 0.7.0
+- Adjusts snapshot readers for the removal of the VM isolate.
+
 ## 0.6.1
 - Add handling for Mach-O UUID load commands.
 

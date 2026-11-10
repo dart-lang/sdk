@@ -157,6 +157,39 @@ enum E implements A {
 ''');
   }
 
+  test_interfaceType2_matchedFinal_extensionTypeSubtype() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(A x) {
+  if (x case R _) {}
+//           ^
+// [diag.patternNeverMatchesValueType] The matched value type 'A' can never match the required type 'R'.
+}
+
+final class A {}
+extension type E(A it) implements A {}
+class R {}
+''');
+  }
+
+  test_interfaceType2_matchedFinal_hasBaseSubtype() async {
+    await resolveFilesWithDiagnostics({
+      getFile('$testPackageLibPath/a.dart'): r'''
+final class A {}
+base class A2 extends A {}
+''',
+      testFile: r'''
+import 'a.dart';
+
+void f(A x) {
+  if (x case R _) {}
+}
+
+base class B extends A2 implements R {}
+class R {}
+''',
+    });
+  }
+
   test_interfaceType2_matchedFinal_hasSubtypes_noneImplementsRequired() async {
     await resolveTestCodeWithDiagnostics(r'''
 void f(A x) {
@@ -181,6 +214,32 @@ void f(A x) {
 final class A {}
 final class A2 extends R implements A {}
 class R {}
+''');
+  }
+
+  test_interfaceType2_matchedFinal_hasSubtypes_oneImplementsGenericRequired_argumentSubtype() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(A x) {
+  if (x case R<num> _) {}
+}
+
+final class A {}
+final class A2 extends A implements R<int> {}
+class R<T> {}
+''');
+  }
+
+  test_interfaceType2_matchedFinal_hasSubtypes_oneImplementsGenericRequired_argumentUnrelated() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(A x) {
+  if (x case R<String> _) {}
+//           ^^^^^^^^^
+// [diag.patternNeverMatchesValueType] The matched value type 'A' can never match the required type 'R<String>'.
+}
+
+final class A {}
+final class A2 extends A implements R<int> {}
+class R<T> {}
 ''');
   }
 
@@ -232,6 +291,53 @@ class R<T> {}
 ''');
   }
 
+  test_interfaceType2_matchedFinal_it_implementsGenericRequired_isGeneric_argumentSubtype() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(A<num> x) {
+  if (x case R<int> _) {}
+}
+
+final class A<T> extends R<T> {}
+class R<T> {}
+''');
+  }
+
+  test_interfaceType2_matchedFinal_it_implementsGenericRequired_isGeneric_argumentUnrelated() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(A<int> x) {
+  if (x case R<String> _) {}
+//           ^^^^^^^^^
+// [diag.patternNeverMatchesValueType] The matched value type 'A<int>' can never match the required type 'R<String>'.
+}
+
+final class A<T> extends R<T> {}
+class R<T> {}
+''');
+  }
+
+  test_interfaceType2_matchedFinal_it_implementsGenericRequired_notGeneric_argumentExtensionType() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(A x) {
+  if (x case R<int> _) {}
+}
+
+final class A extends R<E> {}
+class R<T> {}
+extension type E(int it) {}
+''');
+  }
+
+  test_interfaceType2_matchedFinal_it_implementsGenericRequired_notGeneric_argumentSubtype() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(A x) {
+  if (x case R<num> _) {}
+}
+
+final class A extends R<int> {}
+class R<T> {}
+''');
+  }
+
   test_interfaceType2_matchedFinal_it_implementsGenericRequired_notGeneric_differentArguments() async {
     await resolveTestCodeWithDiagnostics(r'''
 void f(A x) {
@@ -241,6 +347,54 @@ void f(A x) {
 }
 
 final class A extends R<num> {}
+class R<T> {}
+''');
+  }
+
+  test_interfaceType2_matchedFinal_it_implementsGenericRequired_notGeneric_requiredArgumentTypeParameter() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f<T>(A x) {
+  if (x case R<T> _) {}
+}
+
+final class A extends R<int> {}
+class R<T> {}
+''');
+  }
+
+  test_interfaceType2_matchedFinal_it_implementsGenericRequired_notGeneric_requiredArgumentTypeParameter_contravariant() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f<T>(A x) {
+  if (x case R<void Function(T)> _) {}
+}
+
+final class A extends R<void Function(int)> {}
+class R<T> {}
+''');
+  }
+
+  test_interfaceType2_matchedFinal_it_implementsGenericRequired_notGeneric_requiredArgumentTypeParameter_differentArguments() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f<T>(A x) {
+  if (x case R<Map<int, T>> _) {}
+//           ^^^^^^^^^^^^^^
+// [diag.patternNeverMatchesValueType] The matched value type 'A' can never match the required type 'R<Map<int, T>>'.
+}
+
+final class A extends R<Map<num, Object>> {}
+class R<T> {}
+''');
+  }
+
+  test_interfaceType2_matchedFinal_it_implementsGenericRequired_notGeneric_requiredArgumentTypeParameter_differentElements() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f<T>(A x) {
+  if (x case R<List<T>> _) {}
+//           ^^^^^^^^^^
+// [diag.patternNeverMatchesValueType] The matched value type 'A' can never match the required type 'R<List<T>>'.
+}
+
+final class A extends R<int> {}
 class R<T> {}
 ''');
   }
@@ -265,6 +419,25 @@ void f(A x) {
 final class A extends Object with R {}
 mixin class R {}
 ''');
+  }
+
+  test_interfaceType2_matchedFinal_mixinSubtype() async {
+    await resolveFilesWithDiagnostics({
+      getFile('$testPackageLibPath/a.dart'): r'''
+final class A {}
+base mixin M implements A {}
+''',
+      testFile: r'''
+import 'a.dart';
+
+void f(A x) {
+  if (x case R _) {}
+}
+
+base class B with M implements R {}
+class R {}
+''',
+    });
   }
 
   test_interfaceType2_matchedFinal_requiredFutureOrIt() async {
@@ -437,6 +610,21 @@ enum E implements A {
 ''');
   }
 
+  test_interfaceType2_matchedSealed_extensionTypeSubtype() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(A x) {
+  if (x case R _) {}
+//           ^
+// [diag.patternNeverMatchesValueType] The matched value type 'A' can never match the required type 'R'.
+}
+
+sealed class A {}
+final class A2 extends A {}
+extension type E(A2 it) implements A {}
+class R {}
+''');
+  }
+
   test_interfaceType2_matchedSealed_hasNonFinalSubtype() async {
     await resolveTestCodeWithDiagnostics(r'''
 void f(A x) {
@@ -502,6 +690,25 @@ sealed class A {}
 final class A2 extends A implements R {}
 class R {}
 ''');
+  }
+
+  test_interfaceType2_requiredFinal_hasBaseSubtype() async {
+    await resolveFilesWithDiagnostics({
+      getFile('$testPackageLibPath/r.dart'): r'''
+final class R {}
+base class R2 extends R {}
+''',
+      testFile: r'''
+import 'r.dart';
+
+void f(A x) {
+  if (x case R _) {}
+}
+
+class A {}
+base class B extends R2 implements A {}
+''',
+    });
   }
 
   test_interfaceType2_requiredFinal_matchedSelf() async {

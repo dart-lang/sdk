@@ -8,11 +8,14 @@ library;
 import 'dart:convert';
 import 'dart:io';
 
+// ignore: implementation_imports
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:analyzer_testing/utilities/extensions/string.dart';
 import 'package:analyzer_utilities/analyzer_messages.dart';
 import 'package:analyzer_utilities/lint_messages.dart';
 import 'package:analyzer_utilities/located_error.dart';
+import 'package:analyzer_utilities/message_examples.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart';
 import 'package:source_span/source_span.dart';
@@ -145,9 +148,36 @@ List<T> _loadCfeStyleMessages<T extends CfeStyleMessage>(
 /// In-memory representation of diagnostic information obtained from a
 /// `messages.yaml` file in `pkg/front_end` or `pkg/_fe_analyzer_shared`.
 abstract class CfeStyleMessage extends Message {
+  /// The names of the YAML keys whose values are examples (see
+  /// [MessageExample.decode]).
+  static const List<String> _exampleKeys = [
+    'bytes',
+    'declaration',
+    'expression',
+    'script',
+    'statement',
+  ];
+
   /// The name of the [CfeSeverity] constant describing this diagnostic's CFE
   /// severity.
   final String? cfeSeverity;
+
+  /// Whether the examples are allowed to cause the diagnostic to be reported
+  /// more than once.
+  final bool exampleAllowMultipleReports;
+
+  /// Whether the examples are allowed to cause other diagnostics to be
+  /// reported as well.
+  final bool exampleAllowOtherCodes;
+
+  /// The examples that should cause this diagnostic to be reported, in the
+  /// order in which they appear in the YAML file.
+  final List<MessageExample> examples;
+
+  /// If present, the path (relative to the directory containing
+  /// `messages.yaml`) of an external test that causes this diagnostic to be
+  /// reported.
+  final String? externalExample;
 
   /// The name used by the front end to refer to this diagnostic.
   ///
@@ -155,7 +185,11 @@ abstract class CfeStyleMessage extends Message {
   /// `messages.yaml`.
   final DiagnosticCodeName frontEndCode;
 
-  new(MessageYaml messageYaml)
+  /// Whether the context messages associated with diagnostics reported by the
+  /// examples should be considered when checking the examples.
+  final bool includeErrorContext;
+
+  new(super.messageYaml)
     : cfeSeverity = messageYaml.get(
         'severity',
         decode: (node) {
@@ -172,6 +206,19 @@ abstract class CfeStyleMessage extends Message {
         },
         ifAbsent: () => null,
       ),
+      exampleAllowMultipleReports =
+          messageYaml.getOptionalBool('exampleAllowMultipleReports') ?? false,
+      exampleAllowOtherCodes =
+          messageYaml.getOptionalBool('exampleAllowOtherCodes') ?? false,
+      examples = [
+        for (var key in _exampleKeys)
+          ...messageYaml.get(
+            key,
+            decode: (node) => MessageExample.decode(key, node),
+            ifAbsent: () => const <MessageExample>[],
+          ),
+      ]..sort((a, b) => a.span.start.offset.compareTo(b.span.start.offset)),
+      externalExample = messageYaml.getOptionalString('external'),
       frontEndCode = switch (messageYaml.keyString) {
         var s when s.isCamelCase => DiagnosticCodeName.fromCamelCase(
           messageYaml.keyString,
@@ -181,21 +228,9 @@ abstract class CfeStyleMessage extends Message {
           span: messageYaml.keySpan,
         ),
       },
-      super(messageYaml, requireProblemMessage: true) {
-    // Ignore extra keys related to front end example-based tests.
-    messageYaml.allowExtraKeys({
-      'bytes',
-      'declaration',
-      'exampleAllowMultipleReports',
-      'exampleAllowOtherCodes',
-      'experiments',
-      'expression',
-      'external',
-      'includeErrorContext',
-      'script',
-      'statement',
-    });
-  }
+      includeErrorContext =
+          messageYaml.getOptionalBool('includeErrorContext') ?? false,
+      super(requireProblemMessage: true);
 }
 
 /// Information about how to convert the CFE's internal representation of a
@@ -574,17 +609,32 @@ abstract class Message {
   /// it.
   final List<TemplatePart>? correctionMessage;
 
+  /// If the diagnostic has an associated correctionMessage, the span of its
+  /// YAML value.
+  final SourceSpan? correctionMessageSpan;
+
   /// If non-null, the deprecation message for this error code.
   final String? deprecatedMessage;
 
   /// If present, user-facing documentation for the error.
   final String? documentation;
 
+  /// The names of the experimental features that are related to this
+  /// diagnostic, obtained from the (optional) comma-separated `experiments`
+  /// entry in the yaml file.
+  ///
+  /// Each name is validated against the set of known experiments. If the
+  /// `experiments` entry is absent, this list is empty.
+  final List<String> experiments;
+
   /// Indicates whether this error is caused by an unresolved identifier.
   final bool isUnresolvedIdentifier;
 
   /// The problemMessage for the error code.
   final List<TemplatePart> problemMessage;
+
+  /// If the diagnostic has a problemMessage, the span of its YAML value.
+  final SourceSpan? problemMessageSpan;
 
   /// If present, the SDK version this error code stopped being reported in.
   /// If not null, error codes will not be generated for this error.
@@ -628,8 +678,16 @@ abstract class Message {
         'correctionMessage',
         isRequired: false,
       ),
+      correctionMessageSpan = messageYaml.getOptionalValueSpan(
+        'correctionMessage',
+      ),
       deprecatedMessage = messageYaml.getOptionalString('deprecatedMessage'),
       documentation = messageYaml.getOptionalString('documentation'),
+      experiments = messageYaml.get(
+        'experiments',
+        decode: _decodeExperiments,
+        ifAbsent: () => const [],
+      ),
       isUnresolvedIdentifier =
           messageYaml.getOptionalBool('isUnresolvedIdentifier') ?? false,
       problemMessage =
@@ -638,6 +696,7 @@ abstract class Message {
             isRequired: requireProblemMessage,
           ) ??
           [],
+      problemMessageSpan = messageYaml.getOptionalValueSpan('problemMessage'),
       sharedName = messageYaml.get(
         'sharedName',
         decode: (s) => switch (s) {
@@ -663,6 +722,29 @@ abstract class Message {
   /// A string suitable for identifying the location of this message's key node
   /// in the source YAML file.
   String get location => keySpan.location;
+
+  /// Decodes the value of an `experiments` entry, which should be a string
+  /// containing a comma-separated list of known experiment names.
+  static List<String> _decodeExperiments(YamlNode node) {
+    if (node case YamlScalar(:String value)) {
+      var experiments = value.split(',').map((e) => e.trim()).toList();
+      var seen = <String>{};
+      for (var experiment in experiments) {
+        if (experiment.isEmpty) {
+          throw 'Empty experiment name';
+        }
+        if (!ExperimentStatus.knownFeatures.containsKey(experiment)) {
+          throw 'Unknown experiment ${json.encode(experiment)}';
+        }
+        if (!seen.add(experiment)) {
+          throw 'Duplicate experiment ${json.encode(experiment)}';
+        }
+      }
+      return experiments;
+    } else {
+      throw 'Must be a string';
+    }
+  }
 }
 
 /// The raw YAML key/value pair representing a single diagnostic message.
@@ -703,16 +785,6 @@ class MessageYaml {
   /// The span of the YAML value node from the key/value pair that defines the
   /// message.
   SourceSpan get valueSpan => _map.span;
-
-  /// Adds [extraKeys] to the set of keys that the message is allowed to
-  /// contain.
-  ///
-  /// At the end of the [decode] method, if there are any keys that haven't been
-  /// passed to either this method or one of the `get` methods, an exception
-  /// will be thrown to report them as unexpected keys.
-  void allowExtraKeys(Iterable<String> extraKeys) {
-    _permittedKeys.addAll(extraKeys);
-  }
 
   /// Attempts to decode the YAML value associated with [key].
   ///
@@ -799,6 +871,13 @@ class MessageYaml {
   /// If there is no entry present with the given [key], `null` is returned.
   bool? getOptionalBool(String key) =>
       get(key, decode: _decodeBool, ifAbsent: () => null);
+
+  /// Returns the span of the YAML value associated with [key], or `null` if
+  /// there is no entry present with the given [key].
+  ///
+  /// This method does not add [key] to the set of permitted keys; it is
+  /// intended to be used in conjunction with one of the `get` methods.
+  SourceSpan? getOptionalValueSpan(String key) => _map.nodes[key]?.span;
 
   /// Attempts to decode the YAML value associated with [key] as a string.
   ///

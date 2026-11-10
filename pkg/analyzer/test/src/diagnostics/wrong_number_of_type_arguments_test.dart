@@ -189,8 +189,7 @@ class A {
 }
 
 @A<int>()
-//^^^^^
-// [diag.wrongNumberOfTypeArgumentsElement] The class 'A' is declared with 0 type parameters, but 1 type arguments are given.
+// [diag.wrongNumberOfTypeArguments][column 2][length 6] The type 'A' is declared with 0 type parameters, but 1 type arguments were given.
 void f() {}
 ''');
   }
@@ -415,8 +414,7 @@ class A {
 }
 
 @A<int>()
-//^^^^^
-// [diag.wrongNumberOfTypeArgumentsElement] The class 'A' is declared with 0 type parameters, but 1 type arguments are given.
+// [diag.wrongNumberOfTypeArguments][column 2][length 6] The type 'A' is declared with 0 type parameters, but 1 type arguments were given.
 void f() {}
 ''');
   }
@@ -430,8 +428,7 @@ class A {
 typedef B = A;
 
 @B<int>()
-//^^^^^
-// [diag.wrongNumberOfTypeArgumentsElement] The class 'A' is declared with 0 type parameters, but 1 type arguments are given.
+// [diag.wrongNumberOfTypeArguments][column 2][length 6] The type 'B' is declared with 0 type parameters, but 1 type arguments were given.
 void f() {}
 ''');
   }
@@ -443,8 +440,7 @@ class A<T, U> {
 }
 
 @A<int>()
-//^^^^^
-// [diag.wrongNumberOfTypeArgumentsElement] The class 'A' is declared with 2 type parameters, but 1 type arguments are given.
+// [diag.wrongNumberOfTypeArguments][column 2][length 6] The type 'A' is declared with 2 type parameters, but 1 type arguments were given.
 void f() {}
 ''');
   }
@@ -458,8 +454,7 @@ class A {
 typedef B<T, U> = A;
 
 @B<int>()
-//^^^^^
-// [diag.wrongNumberOfTypeArgumentsElement] The class 'A' is declared with 2 type parameters, but 1 type arguments are given.
+// [diag.wrongNumberOfTypeArguments][column 2][length 6] The type 'B' is declared with 2 type parameters, but 1 type arguments were given.
 void f() {}
 ''');
   }
@@ -471,8 +466,7 @@ class A<T> {
 }
 
 @A<int, String>()
-//^^^^^^^^^^^^^
-// [diag.wrongNumberOfTypeArgumentsElement] The class 'A' is declared with 1 type parameters, but 2 type arguments are given.
+// [diag.wrongNumberOfTypeArguments][column 2][length 14] The type 'A' is declared with 1 type parameters, but 2 type arguments were given.
 void f() {}
 ''');
   }
@@ -486,8 +480,7 @@ class A {
 typedef B<T> = A;
 
 @B<int, String>()
-//^^^^^^^^^^^^^
-// [diag.wrongNumberOfTypeArgumentsElement] The class 'A' is declared with 1 type parameters, but 2 type arguments are given.
+// [diag.wrongNumberOfTypeArguments][column 2][length 14] The type 'B' is declared with 1 type parameters, but 2 type arguments were given.
 void f() {}
 ''');
   }

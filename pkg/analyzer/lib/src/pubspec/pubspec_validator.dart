@@ -145,7 +145,7 @@ final class PubspecValidationContext {
   /// The resource provider used to access the file system.
   final ResourceProvider provider;
 
-  PubspecValidationContext._({
+  new _({
     required this.contents,
     required this.source,
     required this.reporter,

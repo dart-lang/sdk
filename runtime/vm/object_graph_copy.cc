@@ -386,6 +386,7 @@ void InitializeTypedDataView(TypedDataViewPtr obj) {
   obj.untag()->typed_data_ = TypedDataBase::null();
   obj.untag()->offset_in_bytes_ = Smi::New(0);
   obj.untag()->length_ = Smi::New(0);
+  obj.untag()->data_ = nullptr;
 }
 
 void FreeExternalTypedData(void* isolate_callback_data, void* buffer) {
@@ -1793,6 +1794,11 @@ class ObjectCopy : public Base {
     FATAL("Unexpected object: %s\n", obj.ToCString());
   }
 
+  void CopyLocalVarDescriptor(typename Types::LocalVarDescriptor from,
+                              typename Types::LocalVarDescriptor to) {
+    CopyUserdefinedInstanceWithoutUnboxedFields(from, to);
+  }
+
   void CopyUserdefinedInstance(typename Types::Object from,
                                typename Types::Object to,
                                UnboxedFieldBitmap bitmap) {
@@ -2186,6 +2192,10 @@ class FastObjectCopy : public ObjectCopy<FastObjectCopyBase, false> {
                                    to_weak_property.ptr(),
                                    OFFSET_OF(UntaggedWeakProperty, value_));
 
+          if (exception_msg_ != nullptr) {
+            return root_copy;
+          }
+
           // We don't need to process this [WeakProperty] again.
           const intptr_t last = weak_properties.length() - 1;
           if (i < last) {
@@ -2312,11 +2322,6 @@ class SlowObjectCopy : public ObjectCopy<SlowObjectCopyBase, true> {
     Object& from = Object::Handle(Z);
     Object& to = Object::Handle(Z);
     while (true) {
-      if (slow_forward_map_.fill_cursor_ ==
-          slow_forward_map_.from_to_.Length()) {
-        break;
-      }
-
       // Run fixpoint to copy all objects.
       while (slow_forward_map_.fill_cursor_ <
              slow_forward_map_.from_to_.Length()) {
@@ -2361,6 +2366,14 @@ class SlowObjectCopy : public ObjectCopy<SlowObjectCopyBase, true> {
           }
         }
         i++;
+      }
+
+      // Must look at WeakProperty list at least once before terminating in case
+      // the transition to slow copy happened in the middle of weak property
+      // processing.
+      if (slow_forward_map_.fill_cursor_ ==
+          slow_forward_map_.from_to_.Length()) {
+        break;
       }
     }
 

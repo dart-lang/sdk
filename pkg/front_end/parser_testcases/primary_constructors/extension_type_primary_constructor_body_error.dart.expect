@@ -16,10 +16,6 @@ parser/primary_constructors/extension_type_primary_constructor_body_error:10:3: 
   this(this.x) ;
   ^^^^
 
-parser/primary_constructors/extension_type_primary_constructor_body_error:10:3: Extension types can't declare abstract members.
-  this(this.x) ;
-  ^^^^
-
 parser/primary_constructors/extension_type_primary_constructor_body_error:14:3: 'this' can't be used as an identifier because it's a keyword.
   this(this.x)  : assert(1 > 2);
   ^^^^
@@ -171,7 +167,6 @@ beginCompilationUnit(extension)
             handleNoInitializers()
             handleAsyncModifier(null, null)
             handleEmptyFunctionBody(;)
-            handleRecoverableError(ExtensionTypeDeclaresAbstractMember, this, this)
           endMethod(DeclarationKind.ExtensionType, null, this, (, null, ;)
         endMember()
       endClassOrMixinOrExtensionBody(DeclarationKind.ExtensionType, 1, {, })

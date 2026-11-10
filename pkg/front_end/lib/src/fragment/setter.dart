@@ -5,12 +5,8 @@
 part of 'fragment.dart';
 
 class SetterFragment implements Fragment, FunctionFragment {
-  @override
-  final String name;
-
-  final Uri fileUri;
+  final UriOffsetName _uriOffsetName;
   final int startOffset;
-  final int nameOffset;
   final int formalsOffset;
   final int endOffset;
   final bool isTopLevel;
@@ -60,18 +56,18 @@ class SetterFragment implements Fragment, FunctionFragment {
   SourcePropertyBuilder? _builder;
   SetterFragmentDeclaration? _declaration;
 
-  @override
-  late final UriOffsetLength uriOffset = new UriOffsetLength(
-    fileUri,
-    nameOffset,
-    name.length,
-  );
+  late final List<SourceNominalParameterBuilder>?
+  declaredTypeParameterBuilders = declaredTypeParameters
+      // Coverage-ignore(suite): Not run.
+      ?.computeBuilderList;
+
+  Token? _bodyToken;
+
+  bool _hasBuiltBody = false;
 
   new({
-    required this.name,
-    required this.fileUri,
+    required this._uriOffsetName,
     required this.startOffset,
-    required this.nameOffset,
     required this.formalsOffset,
     required this.endOffset,
     required this.isTopLevel,
@@ -87,7 +83,18 @@ class SetterFragment implements Fragment, FunctionFragment {
     required this.nativeMethodName,
     required this.enclosingDeclaration,
     required this.enclosingCompilationUnit,
+    required this._bodyToken,
   });
+
+  Uri get fileUri => _uriOffsetName.fileUri;
+
+  @override
+  String get name => _uriOffsetName.name;
+
+  int get nameOffset => _uriOffsetName.nameOffset;
+
+  @override
+  UriOffsetLength get uriOffset => _uriOffsetName;
 
   @override
   SourcePropertyBuilder get builder {
@@ -117,19 +124,48 @@ class SetterFragment implements Fragment, FunctionFragment {
   }
 
   @override
-  FunctionBodyBuildingContext createFunctionBodyBuildingContext() {
+  FunctionBodyBuildingContext? createFunctionBodyBuildingContext() {
+    if (_hasBuiltBody) return null;
+    _hasBuiltBody = true;
     return new _SetterFunctionBodyBuildingContext(this);
+  }
+
+  void buildBodyForOutline(
+    SourceLibraryBuilder libraryBuilder, {
+    required bool includeBody,
+  }) {
+    Token? bodyToken = _bodyToken;
+    if (includeBody && bodyToken != null) {
+      FunctionBodyBuildingContext? functionBodyBuildingContext =
+          createFunctionBodyBuildingContext();
+      if (functionBodyBuildingContext != null) {
+        libraryBuilder.loader.createResolver().buildFunctionBody(
+          libraryBuilder: libraryBuilder,
+          functionBodyBuildingContext: functionBodyBuildingContext,
+          fileUri: fileUri,
+          startToken: bodyToken,
+          metadata: null,
+        );
+      }
+    }
+    _bodyToken = null;
   }
 
   @override
   String toString() => '$runtimeType($name,$fileUri,$nameOffset)';
 }
 
-class _SetterFunctionBodyBuildingContext
+class _SetterFunctionBodyBuildingContext(final SetterFragment _fragment)
     implements FunctionBodyBuildingContext {
-  SetterFragment _fragment;
+  @override
+  ExtensionScope get extensionScope {
+    return _fragment.enclosingCompilationUnit.extensionScope;
+  }
 
-  new(this._fragment);
+  @override
+  LocalScope get formalParameterScope {
+    return _fragment.declaration.createFormalParameterScope(typeParameterScope);
+  }
 
   @override
   InferenceDataForTesting? get inferenceDataForTesting => _fragment
@@ -157,18 +193,8 @@ class _SetterFunctionBodyBuildingContext
   InternalVariable? get thisVariable => _fragment.declaration.thisVariable;
 
   @override
-  ExtensionScope get extensionScope {
-    return _fragment.enclosingCompilationUnit.extensionScope;
-  }
-
-  @override
   LookupScope get typeParameterScope {
     return _fragment.typeParameterScope;
-  }
-
-  @override
-  LocalScope get formalParameterScope {
-    return _fragment.declaration.createFormalParameterScope(typeParameterScope);
   }
 
   @override

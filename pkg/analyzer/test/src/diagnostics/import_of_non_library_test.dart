@@ -26,6 +26,20 @@ import 'lib1.dart' deferred as p;
 ''');
   }
 
+  test_docImport_part() async {
+    newFile('$testPackageLibPath/part.dart', r'''
+part of 'test.dart';
+''');
+    await resolveTestCodeWithDiagnostics(r'''
+/// @docImport 'part.dart';
+//             ^^^^^^^^^^^
+// [diag.importOfNonLibrary] The imported library 'part.dart' can't have a part-of directive.
+library;
+
+part 'part.dart';
+''');
+  }
+
   test_part() async {
     newFile('$testPackageLibPath/part.dart', r'''
 part of lib;

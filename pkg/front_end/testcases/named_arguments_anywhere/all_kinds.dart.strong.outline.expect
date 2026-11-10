@@ -41,11 +41,11 @@ static extension-member method E|method1(lowered final core::int #this) → dyna
   ;
 static extension-member method E|get#method1(lowered final core::int #this) → () → dynamic
   return () → dynamic => self::E|method1(#this);
-static extension-member method E|method2(lowered final core::int #this, core::int bar, {core::int? foo}) → dynamic
+static extension-member method E|method2(lowered final core::int #this, core::int bar, {core::int? foo = null}) → dynamic
   ;
 static extension-member method E|get#method2(lowered final core::int #this) → (core::int, {foo: core::int?}) → dynamic
   return (core::int bar, {core::int? foo}) → dynamic => self::E|method2(#this, bar, foo: foo);
-static extension-member method E|staticMethod2(core::int bar, {core::int? foo}) → dynamic
+static extension-member method E|staticMethod2(core::int bar, {core::int? foo = null}) → dynamic
   ;
 static method test(dynamic d, core::Function f, self::A a) → dynamic
   ;

@@ -19,6 +19,7 @@ import 'package:linter/src/diagnostic.dart' as diag;
 import 'package:linter/src/rules/avoid_double_and_int_checks.dart';
 import 'package:linter/src/rules/invalid_runtime_check_with_js_interop_types.dart';
 import 'package:path/path.dart' as p;
+
 import 'target.dart' show allowedToImportDartFfiOrUsePragmas;
 
 /// Used to record the type of error in Flutter telemetry.
@@ -200,10 +201,12 @@ class DryRunSummarizer {
     for (final library in component.libraries) {
       if (_shouldSkipLibrary(library)) continue;
       final uri = library.fileUri;
-      pathUriMap[p.normalize(
-            p.absolute(uri.toFilePath(windows: Platform.isWindows)),
-          )] =
-          uri;
+      if (uri.isScheme('file')) {
+        pathUriMap[p.normalize(
+              p.absolute(uri.toFilePath(windows: Platform.isWindows)),
+            )] =
+            uri;
+      }
     }
     if (pathUriMap.isEmpty) return [];
 

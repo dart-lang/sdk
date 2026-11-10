@@ -63,10 +63,15 @@ mixin M {}
     var node = result.findNode.commentReference('a]');
     assertResolvedNodeText(node, r'''
 CommentReference
-  expression2: SimpleIdentifier
+  components
+    CommentReferenceComponent
+      name: a
+      element: <testLibrary>::@getter::a
+  expression: SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: null
+  element: <testLibrary>::@getter::a
 ''');
   }
 
@@ -77,7 +82,13 @@ mixin M;
 
     var node = result.findNode.singleMixinDeclaration;
     assertResolvedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: M
+  body: SemicolonInstanceDeclarationBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> M@6
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: M
   body: EmptyClassBody
@@ -96,7 +107,13 @@ mixin M;
 
     var node = result.findNode.singleMixinDeclaration;
     assertResolvedNodeText(node, r'''
-MixinDeclaration
+MixinDeclaration2
+  mixinKeyword: mixin
+  name: M
+  body: SemicolonInstanceDeclarationBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> M@22
+V1: MixinDeclaration
   mixinKeyword: mixin
   name: M
   body: EmptyClassBody
@@ -112,9 +129,20 @@ mixin M<T> {
 }
 ''');
 
-    var node = result.findNode.singleFieldDeclaration;
+    var node = result.findNode.singleFieldsDeclaration;
     assertResolvedNodeText(node, r'''
-FieldDeclaration
+FieldsDeclaration
+  lateKeyword: late
+  type: NamedType
+    name: T
+    element: #E0 T
+    type: T
+  fields
+    Field
+      name: f
+      declaredFragment: <testLibraryFragment> f@22
+  semicolon: ;
+V1: FieldDeclaration
   fields: VariableDeclarationList
     lateKeyword: late
     type: NamedType
@@ -137,9 +165,25 @@ mixin M {
 }
 ''');
 
-    var node = result.findNode.singleMethodDeclaration;
+    var node = result.findNode.singleGetterDeclaration;
     assertResolvedNodeText(node, r'''
-MethodDeclaration
+GetterDeclaration
+  returnType: NamedType
+    name: int
+    element: dart:core::@class::int
+    type: int
+  getKeyword: get
+  name: foo
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: IntegerLiteral
+      literal: 0
+      staticType: int
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> foo@20
+    element: <testLibrary>::@mixin::M::@getter::foo
+      type: int Function()
+V1: MethodDeclaration
   returnType: NamedType
     name: int
     element: dart:core::@class::int
@@ -148,7 +192,7 @@ MethodDeclaration
   name: foo
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: IntegerLiteral
+    expression: IntegerLiteral
       literal: 0
       staticType: int
     semicolon: ;
@@ -226,6 +270,12 @@ mixin M {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      type: int
+    staticType: int
   name: SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
@@ -243,7 +293,23 @@ mixin M {
 
     var node = result.findNode.singleMethodDeclaration;
     assertResolvedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
+  returnType: NamedType
+    name: void
+    element: <null>
+    type: void
+  name: foo
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> foo@17
+    element: <testLibrary>::@mixin::M::@method::foo
+      type: void Function()
+V1: MethodDeclaration
   returnType: NamedType
     name: void
     element: <null>
@@ -275,10 +341,26 @@ class C<T> {}
 mixin M<T> on C<T> {}
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('f()');
+    var node = result.findNode.callInvocation('f()');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: SimpleIdentifier
+CallInvocation
+  receiver: UnqualifiedNameExpression
+    name: f
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::g::@formalParameter::f
+      type: M<T> Function<T>()
+    staticType: M<T> Function<T>()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: FunctionTypeInvocationResolution
+    invokeType: M<int> Function()
+    type: M<int>
+  staticType: M<int>
+  typeArgumentTypes
+    int
+V1: FunctionExpressionInvocation
+  function: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::g::@formalParameter::f
     staticType: M<T> Function<T>()
@@ -324,16 +406,16 @@ mixin M {
 }
 ''');
 
-    var node = result.findNode.singleMethodDeclaration;
+    var node = result.findNode.singleSetterDeclaration;
     assertResolvedNodeText(node, r'''
-MethodDeclaration
+SetterDeclaration
   returnType: NamedType
     name: void
     element: <null>
     type: void
-  propertyKeyword: set
+  setKeyword: set
   name: foo
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     requiredPositionalFormalParameters
       RegularFormalParameter
@@ -346,7 +428,21 @@ MethodDeclaration
           element: isPrivate
             type: int
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> foo@21
+    element: <testLibrary>::@mixin::M::@setter::foo
+      type: void Function(int)
+V1: MethodDeclaration
+  returnType: NamedType
+    name: void
+    element: <null>
+    type: void
+  propertyKeyword: set
+  name: foo
+  parameters: FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
@@ -383,10 +479,19 @@ mixin M on A {
 class X extends A with M {}
 ''');
 
-    var node = result.findNode.propertyAccess('super.foo;');
+    var node = result.findNode.receiverPropertyExtraction('super.foo;');
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: SuperExpression
+ReceiverPropertyExtraction
+  receiver: SuperReference
+    superKeyword: super
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::A::@getter::foo
+    type: int
+  staticType: int
+V1: PropertyAccess
+  target: SuperExpression
     superKeyword: super
     staticType: M
   operator: .
@@ -413,10 +518,28 @@ mixin M on A {
 class X extends A with M {}
 ''');
 
-    var node = result.findNode.methodInvocation('foo(42)');
+    var node = result.findNode.receiverMethodInvocation('foo(42)');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SuperExpression
+ReceiverMethodInvocation
+  receiver: SuperReference
+    superKeyword: super
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 42
+        correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::x
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::A::@method::foo
+    invokeType: void Function(int)
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SuperExpression
     superKeyword: super
     staticType: M
   operator: .
@@ -426,7 +549,7 @@ MethodInvocation
     staticType: void Function(int)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::x
@@ -452,11 +575,27 @@ mixin M on A {
 class X extends A with M {}
 ''');
 
-    var node = result.findNode.assignment('foo =');
+    var node = result.findNode.directAssignment('foo =');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: SuperExpression
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: SuperReference
+      superKeyword: super
+    operator: .
+    name: foo
+    read: <null>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::foo
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: SuperExpression
       superKeyword: super
       staticType: M
     operator: .
@@ -466,7 +605,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
     staticType: int

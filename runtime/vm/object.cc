@@ -488,6 +488,31 @@ static BytecodePtr CreateVMInternalBytecode(KernelBytecode::Opcode opcode) {
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   return bytecode.ptr();
 }
+
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+// Sets the variable descriptors of shared VM internal [bytecode] to describe
+// the parameters with the given names, in order. Parameter i of n has index
+// n - i. The bytecode is shared, so the parameters are in scope throughout.
+static void SetVMInternalBytecodeLocalVarDescriptors(
+    const Bytecode& bytecode,
+    std::initializer_list<const String*> names) {
+  LocalVarDescriptorsBuilder vars;
+  const intptr_t num_params = names.size();
+  intptr_t i = 0;
+  for (const String* name : names) {
+    LocalVarDescriptorsBuilder::VarDesc desc;
+    desc.name = name;
+    desc.info.set_kind(UntaggedLocalVarDescriptors::kStackVar);
+    desc.info.scope_id = 0;
+    desc.info.set_index(num_params - i++);
+    desc.info.declaration_pos = TokenPosition::kNoSource;
+    desc.info.begin_pos = TokenPosition::kNoSource;
+    desc.info.end_pos = TokenPosition::kMaxSource;
+    vars.Add(desc);
+  }
+  bytecode.set_var_descriptors(LocalVarDescriptors::Handle(vars.Done()));
+}
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 #endif  // defined(DART_DYNAMIC_MODULES)
 
 void Object::InitNullAndBool(IsolateGroup* isolate_group) {
@@ -719,6 +744,27 @@ void Object::InitVtables() {
   }
 }
 
+// V(Name, Instruction)
+#define FOR_EACH_SHARED_BYTECODE_STUB(V)                                       \
+  V(implicit_getter, VMInternal_ImplicitGetter)                                \
+  V(implicit_setter, VMInternal_ImplicitSetter)                                \
+  V(implicit_static_getter, VMInternal_ImplicitStaticGetter)                   \
+  V(implicit_shared_static_getter, VMInternal_ImplicitSharedStaticGetter)      \
+  V(implicit_static_setter, VMInternal_ImplicitStaticSetter)                   \
+  V(implicit_shared_static_setter, VMInternal_ImplicitSharedStaticSetter)      \
+  V(method_extractor_with_ita, VMInternal_MethodExtractorWithITA)              \
+  V(method_extractor_without_ita, VMInternal_MethodExtractorWithoutITA)        \
+  V(invoke_closure, VMInternal_InvokeClosure)                                  \
+  V(invoke_field, VMInternal_InvokeField)                                      \
+  V(nsm_dispatcher, VMInternal_NoSuchMethodDispatcher)                         \
+  V(dynamic_invocation_forwarder, VMInternal_ForwardDynamicInvocation)         \
+  V(implicit_static_closure, VMInternal_ImplicitStaticClosure)                 \
+  V(implicit_instance_closure, VMInternal_ImplicitInstanceClosure)             \
+  V(implicit_constructor_closure, VMInternal_ImplicitConstructorClosure)
+
+#define ROOTS_SHARED_BYTECODE_GETTER(Name) Roots::Name##_bytecode()
+#define OBJECT_SHARED_BYTECODE_GETTER(Name) Object::Name##_bytecode()
+
 void Object::Init(IsolateGroup* isolate_group) {
   Heap* heap = isolate_group->heap();
   Thread* thread = Thread::Current();
@@ -823,6 +869,7 @@ void Object::Init(IsolateGroup* isolate_group) {
       Class::New<CompressedStackMaps, RTN::CompressedStackMaps>(isolate_group);
   cls =
       Class::New<LocalVarDescriptors, RTN::LocalVarDescriptors>(isolate_group);
+  cls = Class::New<LocalVarDescriptor, RTN::LocalVarDescriptor>(isolate_group);
   cls = Class::New<ExceptionHandlers, RTN::ExceptionHandlers>(isolate_group);
   cls = Class::New<Context, RTN::Context>(isolate_group);
   cls = Class::New<ContextScope, RTN::ContextScope>(isolate_group);
@@ -1154,58 +1201,15 @@ void Object::Init(IsolateGroup* isolate_group) {
   // VM isolate snapshot reader references it before Object::FinalizeVMIsolate.
 
 #if defined(DART_DYNAMIC_MODULES)
-  Roots::implicit_getter_bytecode().initRO(
-      CreateVMInternalBytecode(KernelBytecode::kVMInternal_ImplicitGetter));
-  Roots::implicit_setter_bytecode().initRO(
-      CreateVMInternalBytecode(KernelBytecode::kVMInternal_ImplicitSetter));
-  Roots::implicit_static_getter_bytecode().initRO(CreateVMInternalBytecode(
-      KernelBytecode::kVMInternal_ImplicitStaticGetter));
-  Roots::implicit_shared_static_getter_bytecode().initRO(
-      CreateVMInternalBytecode(
-          KernelBytecode::kVMInternal_ImplicitSharedStaticGetter));
-  Roots::implicit_static_setter_bytecode().initRO(CreateVMInternalBytecode(
-      KernelBytecode::kVMInternal_ImplicitStaticSetter));
-  Roots::implicit_shared_static_setter_bytecode().initRO(
-      CreateVMInternalBytecode(
-          KernelBytecode::kVMInternal_ImplicitSharedStaticSetter));
-  Roots::method_extractor_with_ita_bytecode().initRO(CreateVMInternalBytecode(
-      KernelBytecode::kVMInternal_MethodExtractorWithITA));
-  Roots::method_extractor_without_ita_bytecode().initRO(
-      CreateVMInternalBytecode(
-          KernelBytecode::kVMInternal_MethodExtractorWithoutITA));
-  Roots::invoke_closure_bytecode().initRO(
-      CreateVMInternalBytecode(KernelBytecode::kVMInternal_InvokeClosure));
-  Roots::invoke_field_bytecode().initRO(
-      CreateVMInternalBytecode(KernelBytecode::kVMInternal_InvokeField));
-  Roots::nsm_dispatcher_bytecode().initRO(CreateVMInternalBytecode(
-      KernelBytecode::kVMInternal_NoSuchMethodDispatcher));
-  Roots::dynamic_invocation_forwarder_bytecode().initRO(
-      CreateVMInternalBytecode(
-          KernelBytecode::kVMInternal_ForwardDynamicInvocation));
-  Roots::implicit_static_closure_bytecode().initRO(CreateVMInternalBytecode(
-      KernelBytecode::kVMInternal_ImplicitStaticClosure));
-  Roots::implicit_instance_closure_bytecode().initRO(CreateVMInternalBytecode(
-      KernelBytecode::kVMInternal_ImplicitInstanceClosure));
-  Roots::implicit_constructor_closure_bytecode().initRO(
-      CreateVMInternalBytecode(
-          KernelBytecode::kVMInternal_ImplicitConstructorClosure));
+#define INITIALIZE_SHARED_BYTECODE(Name, Instruction)                          \
+  ROOTS_SHARED_BYTECODE_GETTER(Name).initRO(                                   \
+      CreateVMInternalBytecode(KernelBytecode::k##Instruction));
 #else
-  Roots::implicit_getter_bytecode().initRO(Bytecode::null());
-  Roots::implicit_setter_bytecode().initRO(Bytecode::null());
-  Roots::implicit_static_getter_bytecode().initRO(Bytecode::null());
-  Roots::implicit_shared_static_getter_bytecode().initRO(Bytecode::null());
-  Roots::implicit_static_setter_bytecode().initRO(Bytecode::null());
-  Roots::implicit_shared_static_setter_bytecode().initRO(Bytecode::null());
-  Roots::method_extractor_with_ita_bytecode().initRO(Bytecode::null());
-  Roots::method_extractor_without_ita_bytecode().initRO(Bytecode::null());
-  Roots::invoke_closure_bytecode().initRO(Bytecode::null());
-  Roots::invoke_field_bytecode().initRO(Bytecode::null());
-  Roots::nsm_dispatcher_bytecode().initRO(Bytecode::null());
-  Roots::dynamic_invocation_forwarder_bytecode().initRO(Bytecode::null());
-  Roots::implicit_static_closure_bytecode().initRO(Bytecode::null());
-  Roots::implicit_instance_closure_bytecode().initRO(Bytecode::null());
-  Roots::implicit_constructor_closure_bytecode().initRO(Bytecode::null());
+#define INITIALIZE_SHARED_BYTECODE(Name, Instruction)                          \
+  ROOTS_SHARED_BYTECODE_GETTER(Name).initRO(Bytecode::null());
 #endif  // defined(DART_DYNAMIC_MODULES)
+  FOR_EACH_SHARED_BYTECODE_STUB(INITIALIZE_SHARED_BYTECODE)
+#undef INITIALIZE_SHARED_BYTECODE
 
   Roots::uninitialized_index().initRO(
       TypedData::New(kTypedDataUint32ArrayCid,
@@ -1291,32 +1295,11 @@ void Object::Init(IsolateGroup* isolate_group) {
   ASSERT(Roots::synthetic_getter_parameter_types().IsArray());
   ASSERT(!Roots::synthetic_getter_parameter_names().IsSmi());
   ASSERT(Roots::synthetic_getter_parameter_names().IsArray());
-  ASSERT(!Roots::implicit_getter_bytecode().IsSmi());
-  ASSERT(Roots::implicit_getter_bytecode().IsBytecode());
-  ASSERT(!Roots::implicit_setter_bytecode().IsSmi());
-  ASSERT(Roots::implicit_setter_bytecode().IsBytecode());
-  ASSERT(!Roots::implicit_static_getter_bytecode().IsSmi());
-  ASSERT(Roots::implicit_static_getter_bytecode().IsBytecode());
-  ASSERT(!Roots::implicit_static_setter_bytecode().IsSmi());
-  ASSERT(Roots::implicit_static_setter_bytecode().IsBytecode());
-  ASSERT(!Roots::method_extractor_with_ita_bytecode().IsSmi());
-  ASSERT(Roots::method_extractor_with_ita_bytecode().IsBytecode());
-  ASSERT(!Roots::method_extractor_without_ita_bytecode().IsSmi());
-  ASSERT(Roots::method_extractor_without_ita_bytecode().IsBytecode());
-  ASSERT(!Roots::invoke_closure_bytecode().IsSmi());
-  ASSERT(Roots::invoke_closure_bytecode().IsBytecode());
-  ASSERT(!Roots::invoke_field_bytecode().IsSmi());
-  ASSERT(Roots::invoke_field_bytecode().IsBytecode());
-  ASSERT(!Roots::nsm_dispatcher_bytecode().IsSmi());
-  ASSERT(Roots::nsm_dispatcher_bytecode().IsBytecode());
-  ASSERT(!Roots::dynamic_invocation_forwarder_bytecode().IsSmi());
-  ASSERT(Roots::dynamic_invocation_forwarder_bytecode().IsBytecode());
-  ASSERT(!Roots::implicit_static_closure_bytecode().IsSmi());
-  ASSERT(Roots::implicit_static_closure_bytecode().IsBytecode());
-  ASSERT(!Roots::implicit_instance_closure_bytecode().IsSmi());
-  ASSERT(Roots::implicit_instance_closure_bytecode().IsBytecode());
-  ASSERT(!Roots::implicit_constructor_closure_bytecode().IsSmi());
-  ASSERT(Roots::implicit_constructor_closure_bytecode().IsBytecode());
+#define CHECK_SHARED_BYTECODE(Name, _)                                         \
+  ASSERT(!ROOTS_SHARED_BYTECODE_GETTER(Name).IsSmi());                         \
+  ASSERT(ROOTS_SHARED_BYTECODE_GETTER(Name).IsBytecode());
+  FOR_EACH_SHARED_BYTECODE_STUB(CHECK_SHARED_BYTECODE)
+#undef CHECK_SHARED_BYTECODE
   ASSERT(!Roots::uninitialized_index().IsSmi());
   ASSERT(Roots::uninitialized_index().IsTypedData());
   ASSERT(!Roots::uninitialized_data().IsSmi());
@@ -1329,6 +1312,17 @@ void Object::FinishInit(IsolateGroup* isolate_group) {
   // Finish initialization of synthetic_getter_parameter_names_ which was
   // Started in Object::InitOnce()
   Roots::synthetic_getter_parameter_names().SetAt(0, Symbols::This());
+
+#if defined(DART_DYNAMIC_MODULES) && !defined(PRODUCT) &&                      \
+    !defined(DART_PRECOMPILED_RUNTIME)
+  // The shared bytecode stubs for implicit instance field accessors are created
+  // before symbols are available, so add their LocalVarDescriptors here.
+  SetVMInternalBytecodeLocalVarDescriptors(Object::implicit_getter_bytecode(),
+                                           {&Symbols::This()});
+  SetVMInternalBytecodeLocalVarDescriptors(
+      Object::implicit_setter_bytecode(),
+      {&Symbols::This(), &Symbols::Value()});
+#endif
 
   // Set up names for all VM singleton classes.
   Class& cls = Class::Handle();
@@ -1363,6 +1357,7 @@ void Object::FinishInit(IsolateGroup* isolate_group) {
   SET_CLASS_NAME(kPcDescriptorsCid, PcDescriptors);
   SET_CLASS_NAME(kCompressedStackMapsCid, CompressedStackMaps);
   SET_CLASS_NAME(kLocalVarDescriptorsCid, LocalVarDescriptors);
+  SET_CLASS_NAME(kLocalVarDescriptorCid, LocalVarDescriptor);
   SET_CLASS_NAME(kExceptionHandlersCid, ExceptionHandlers);
   SET_CLASS_NAME(kContextCid, Context);
   SET_CLASS_NAME(kContextScopeCid, ContextScope);
@@ -3085,14 +3080,13 @@ typedef UnorderedHashSet<ClassFunctionsTraits> ClassFunctionsSet;
 
 void Class::SetFunctions(const Array& value) const {
   ASSERT(!value.IsNull());
-  const intptr_t len = value.Length();
 #if defined(DEBUG)
   Thread* thread = Thread::Current();
   ASSERT(thread->isolate_group()->program_lock()->IsCurrentThreadWriter());
   if (is_finalized()) {
     Function& function = Function::Handle();
     FunctionType& signature = FunctionType::Handle();
-    for (intptr_t i = 0; i < len; ++i) {
+    for (intptr_t i = 0, n = value.Length(); i < n; ++i) {
       function ^= value.At(i);
       signature = function.signature();
       ASSERT(signature.IsFinalized());
@@ -3100,11 +3094,20 @@ void Class::SetFunctions(const Array& value) const {
   }
 #endif
   set_functions(value);
+  BuildFunctionsHashTable(value);
+}
+
+void Class::BuildFunctionsHashTable(const Array& functions_array) const {
+#if defined(DEBUG)
+  Thread* thread = Thread::Current();
+  ASSERT(thread->isolate_group()->program_lock()->IsCurrentThreadWriter());
+#endif
+  const intptr_t len = functions_array.Length();
   if (len >= kFunctionLookupHashThreshold) {
     ClassFunctionsSet set(HashTables::New<ClassFunctionsSet>(len, Heap::kOld));
     Function& func = Function::Handle();
     for (intptr_t i = 0; i < len; ++i) {
-      func ^= value.At(i);
+      func ^= functions_array.At(i);
       // Verify that all the functions in the array have this class as owner.
       ASSERT(func.Owner() == ptr());
       set.Insert(func);
@@ -3529,6 +3532,8 @@ intptr_t Class::UnboxedFieldSizeInBytesByCid(intptr_t cid) {
       return sizeof(UntaggedFloat32x4::value_);
     case kFloat64x2Cid:
       return sizeof(UntaggedFloat64x2::value_);
+    case kInt32x4Cid:
+      return sizeof(UntaggedInt32x4::value_);
     default:
       return sizeof(UntaggedMint::value_);
   }
@@ -3859,7 +3864,9 @@ FunctionPtr Function::CreateMethodExtractor(const String& getter_name) const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   const bool attach_bytecode = true;
 #else
-  const bool attach_bytecode = is_declared_in_bytecode();
+  // TODO(alexmarkov): generate stubs in modular AOT.
+  const bool attach_bytecode =
+      is_declared_in_bytecode() || thread->isolate_group()->modular_aot_mode();
 #endif
   if (attach_bytecode) {
     // Bytecode method extractor may be used to create a closure instance
@@ -4047,7 +4054,7 @@ bool Library::FindPragma(Thread* T,
     UNREACHABLE();
   }
 
-  if (only_core && !lib.IsAnyCoreLibrary()) {
+  if (only_core && !lib.is_dart_scheme()) {
     return false;
   }
 
@@ -4141,12 +4148,16 @@ FunctionPtr Function::CreateDynamicInvocationForwarder(
   // for example, when the only dynamic callers are in interpreted code.
   const bool attach_bytecode = true;
 #else
-  const bool attach_bytecode = is_declared_in_bytecode();
+  const bool attach_bytecode =
+      is_declared_in_bytecode() && !thread->isolate_group()->modular_aot_mode();
 #endif
   if (attach_bytecode) {
     forwarder.AttachBytecode(Object::dynamic_invocation_forwarder_bytecode());
   }
 #endif
+  if (thread->isolate_group()->modular_aot_mode()) {
+    forwarder.SetInstructionsSafe(StubCode::DynamicInvocationForwarder());
+  }
 
   return forwarder.ptr();
 }
@@ -4189,7 +4200,8 @@ FunctionPtr Function::GetDynamicInvocationForwarder(
 }
 
 bool Function::NeedsDynamicInvocationForwarder() const {
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
 
   // Right now closures do not need a dyn:* forwarder.
   // See https://github.com/dart-lang/sdk/issues/40813
@@ -4245,6 +4257,13 @@ bool Function::NeedsDynamicInvocationForwarder() const {
 
   const auto& type_params = TypeParameters::Handle(zone, type_parameters());
   if (!type_params.IsNull()) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    if (thread->isolate_group()->modular_aot_mode()) {
+      // Generic methods need dynamic invocation forwarder in order to
+      // pass default type arguments.
+      return true;
+    }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
     auto& bound = AbstractType::Handle(zone);
     for (intptr_t i = 0, n = type_params.Length(); i < n; ++i) {
       bound = type_params.BoundAt(i);
@@ -4281,6 +4300,11 @@ void Function::ReadParameterCovariance(
     return;
   }
 #endif
+  // TODO(alexmarkov): add covariant flags into signature,
+  // avoid reading them from kernel.
+  if (IsolateGroup::Current()->modular_aot_mode()) {
+    return;
+  }
 #if !defined(DART_PRECOMPILED_RUNTIME)
   kernel::ReadParameterCovariance(*this, is_covariant,
                                   is_generic_covariant_impl);
@@ -5466,7 +5490,6 @@ ClassPtr Class::NewNativeWrapper(const Library& library,
     // 'is_allocate_finalized' and finalization of member types will not occur.
     cls.set_is_declaration_loaded();
     cls.set_is_type_finalized();
-    cls.set_is_synthesized_class();
     cls.set_is_isolate_unsendable(true);
     cls.set_is_deeply_immutable(true);
     NOT_IN_PRECOMPILED(cls.set_implementor_cid(kDynamicCid));
@@ -5904,15 +5927,6 @@ void Class::set_is_type_finalized() const {
   ASSERT(!is_type_finalized());
   set_state_bits(
       ClassLoadingBits::update(UntaggedClass::kTypeFinalized, state_bits()));
-}
-
-void Class::set_is_synthesized_class() const {
-  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-  set_is_synthesized_class_unsafe();
-}
-
-void Class::set_is_synthesized_class_unsafe() const {
-  set_state_bits(SynthesizedClassBit::update(true, state_bits()));
 }
 
 void Class::set_is_enum_class() const {
@@ -8139,7 +8153,9 @@ void Function::AttachBytecode(const Bytecode& value) const {
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   ASSERT(!value.IsNull());
   // Finish setting up code before activating it.
-  value.set_function(*this);
+  if (!value.IsSharedBytecodeStub()) {
+    value.set_function(*this);
+  }
   ASSERT(untag()->ic_data_array_or_bytecode() == Object::null());
   untag()->set_ic_data_array_or_bytecode(value.ptr());
 
@@ -8576,24 +8592,34 @@ bool Function::FfiCSignatureReturnsHandle() const {
 int32_t Function::FfiCallbackId() const {
   ASSERT(IsFfiCallbackTrampoline());
 
-  const auto& obj = Object::Handle(data());
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const auto& obj = Object::Handle(zone, data());
   ASSERT(!obj.IsNull());
   const auto& trampoline_data = FfiTrampolineData::Cast(obj);
+
+  if (trampoline_data.callback_id() == -1) {
+    static constexpr intptr_t kInitialCallbackIdsReserved = 16;
+    auto isolate_group = thread->isolate_group();
+    SafepointWriteRwLocker ml(thread, isolate_group->program_lock());
+    if (trampoline_data.callback_id() == -1) {
+      auto object_store = isolate_group->object_store();
+      auto& code_array =
+          GrowableObjectArray::Handle(zone, object_store->ffi_callback_code());
+      if (code_array.IsNull()) {
+        code_array =
+            GrowableObjectArray::New(kInitialCallbackIdsReserved, Heap::kOld);
+        object_store->set_ffi_callback_code(code_array);
+      }
+      const intptr_t callback_id = code_array.Length();
+      code_array.Add(Code::null_object(), Heap::kOld);
+      trampoline_data.set_callback_id(callback_id);
+    }
+  }
 
   ASSERT(trampoline_data.callback_id() != -1);
 
   return trampoline_data.callback_id();
-}
-
-void Function::AssignFfiCallbackId(int32_t callback_id) const {
-  ASSERT(IsFfiCallbackTrampoline());
-
-  const auto& obj = Object::Handle(data());
-  ASSERT(!obj.IsNull());
-  const auto& trampoline_data = FfiTrampolineData::Cast(obj);
-
-  ASSERT(trampoline_data.callback_id() == -1);
-  trampoline_data.set_callback_id(callback_id);
 }
 
 bool Function::FfiIsLeaf() const {
@@ -8682,8 +8708,6 @@ void Function::SetForwardingTarget(const Function& target) const {
 //   noSuchMethod dispatcher: Array arguments descriptor
 //   invoke-field dispatcher: Array arguments descriptor
 //   closure function:        ClosureData
-//   irregexp function:       Array[0] = RegExp
-//                            Array[1] = Smi string specialization cid
 //   native function:         Array[0] = String native name
 //                            Array[1] = Function implicit closure function
 //   regular function:        Function for implicit closure function
@@ -8696,6 +8720,27 @@ void Function::set_data(const Object& value) const {
   untag()->set_data<std::memory_order_release>(value.ptr());
 }
 
+#if defined(DART_DYNAMIC_MODULES) && !defined(PRODUCT) &&                      \
+    !defined(DART_PRECOMPILED_RUNTIME)
+bool Function::IsReloadedImplicitClosure(FunctionPtr ptr) {
+  if (!IsImplicitClosureFunction(ptr)) {
+    return false;
+  }
+  return ClosureData::ReloadedImplicitClosure(
+      ClosureData::RawCast(ptr->untag()->data()));
+}
+
+void Function::SetIsReloadedImplicitClosure(bool value) const {
+  if (IsImplicitClosureFunction()) {
+    const Object& obj = Object::Handle(untag()->data());
+    ASSERT(!obj.IsNull());
+    ClosureData::Cast(obj).set_reloaded_implicit_closure(value);
+    return;
+  }
+  UNREACHABLE();
+}
+#endif
+
 void Function::set_name(const String& value) const {
   ASSERT(value.IsSymbol());
   untag()->set_name(value.ptr());
@@ -8704,44 +8749,6 @@ void Function::set_name(const String& value) const {
 void Function::set_owner(const Object& value) const {
   ASSERT(!value.IsNull());
   untag()->set_owner(value.ptr());
-}
-
-RegExpPtr Function::regexp() const {
-  ASSERT(kind() == UntaggedFunction::kIrregexpFunction);
-  const Array& pair = Array::Cast(Object::Handle(data()));
-  return RegExp::RawCast(pair.At(0));
-}
-
-using StickySpecialization = BitField<intptr_t, bool>;
-using StringSpecializationCid = BitField<intptr_t,
-                                         intptr_t,
-                                         StickySpecialization::kNextBit,
-                                         UntaggedObject::ClassIdTag::bitsize()>;
-
-intptr_t Function::string_specialization_cid() const {
-  ASSERT(kind() == UntaggedFunction::kIrregexpFunction);
-  const Array& pair = Array::Cast(Object::Handle(data()));
-  return StringSpecializationCid::decode(Smi::Value(Smi::RawCast(pair.At(1))));
-}
-
-bool Function::is_sticky_specialization() const {
-  ASSERT(kind() == UntaggedFunction::kIrregexpFunction);
-  const Array& pair = Array::Cast(Object::Handle(data()));
-  return StickySpecialization::decode(Smi::Value(Smi::RawCast(pair.At(1))));
-}
-
-void Function::SetRegExpData(const RegExp& regexp,
-                             intptr_t string_specialization_cid,
-                             bool sticky) const {
-  ASSERT(kind() == UntaggedFunction::kIrregexpFunction);
-  ASSERT(IsStringClassId(string_specialization_cid));
-  ASSERT(data() == Object::null());
-  const Array& pair = Array::Handle(Array::New(2, Heap::kOld));
-  pair.SetAt(0, regexp);
-  pair.SetAt(1, Smi::Handle(Smi::New(StickySpecialization::encode(sticky) |
-                                     StringSpecializationCid::encode(
-                                         string_specialization_cid))));
-  set_data(pair);
 }
 
 StringPtr Function::native_name() const {
@@ -9010,7 +9017,7 @@ bool FunctionType::IsRequiredAt(intptr_t index) const {
 }
 
 void FunctionType::SetIsRequiredAt(intptr_t index) const {
-#if defined(DART_PRECOMPILER_RUNTIME)
+#if defined(DART_PRECOMPILER_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
   UNREACHABLE();
 #else
   intptr_t flag_mask;
@@ -9025,7 +9032,7 @@ void FunctionType::SetIsRequiredAt(intptr_t index) const {
 }
 
 void FunctionType::FinalizeNameArray() const {
-#if defined(DART_PRECOMPILER_RUNTIME)
+#if defined(DART_PRECOMPILER_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
   UNREACHABLE();
 #else
   const intptr_t num_named_parameters = NumOptionalNamedParameters();
@@ -10847,7 +10854,9 @@ FunctionPtr Function::ImplicitClosureFunction() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   const bool attach_bytecode = true;
 #else
-  const bool attach_bytecode = is_declared_in_bytecode();
+  // TODO(alexmarkov): generate stubs in modular AOT.
+  const bool attach_bytecode =
+      is_declared_in_bytecode() || thread->isolate_group()->modular_aot_mode();
 #endif
   if (attach_bytecode) {
     if (is_static()) {
@@ -11164,18 +11173,18 @@ ScriptPtr Function::script(FunctionPtr function) {
     return Script::null();
   }
   const UntaggedFunction::Kind kind = KindOf(function);
+  const ObjectPtr data = function->untag()->data<std::memory_order_acquire>();
   if (kind == UntaggedFunction::kDynamicInvocationForwarder) {
-    const FunctionPtr target = Function::RawCast(
-        WeakSerializationReference::Unwrap(function->untag()->data()));
+    const FunctionPtr target =
+        Function::RawCast(WeakSerializationReference::Unwrap(data));
     return script(target);
   }
   if (kind == UntaggedFunction::kImplicitGetter ||
       kind == UntaggedFunction::kImplicitSetter ||
       kind == UntaggedFunction::kImplicitStaticGetter) {
-    const FieldPtr field = Field::RawCast(function->untag()->data());
+    const FieldPtr field = Field::RawCast(data);
     return Field::Script(field);
   }
-  const ObjectPtr data = function->untag()->data();
   if (data->IsArray() && Array::LengthOf(Array::RawCast(data)) ==
                              static_cast<intptr_t>(EvalFunctionData::kLength)) {
     const Array& fdata = Array::Handle(Array::RawCast(data));
@@ -11187,8 +11196,7 @@ ScriptPtr Function::script(FunctionPtr function) {
     return static_cast<PatchClassPtr>(obj)->untag()->script();
   }
   if (kind == UntaggedFunction::kClosureFunction) {
-    const ClosureDataPtr closure_data =
-        static_cast<ClosureDataPtr>(function->untag()->data());
+    const ClosureDataPtr closure_data = static_cast<ClosureDataPtr>(data);
     if (closure_data == ClosureData::null()) {
       return Script::null();
     }
@@ -11881,9 +11889,6 @@ const char* Function::ToCString() const {
     case UntaggedFunction::kInvokeFieldDispatcher:
       buffer.AddString(" invoke-field-dispatcher");
       break;
-    case UntaggedFunction::kIrregexpFunction:
-      buffer.AddString(" irregexp-function");
-      break;
     case UntaggedFunction::kFfiTrampoline:
       buffer.AddString(" ffi-trampoline-function");
       break;
@@ -11926,6 +11931,14 @@ void ClosureData::set_default_type_arguments_instantiation_mode(
     InstantiationMode value) const {
   untag()->packed_fields_.Update<PackedInstantiationMode>(value);
 }
+
+#if defined(DART_DYNAMIC_MODULES) && !defined(PRODUCT) &&                      \
+    !defined(DART_PRECOMPILED_RUNTIME)
+void ClosureData::set_reloaded_implicit_closure(bool value) const {
+  untag()->packed_fields_.Update<UntaggedClosureData::ReloadedImplicitClosure>(
+      value);
+}
+#endif
 
 Function::AwaiterLink ClosureData::awaiter_link() const {
   const uint8_t depth =
@@ -12335,11 +12348,11 @@ void Field::SetFieldType(const AbstractType& value) const {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-void Field::set_exact_type(const AbstractType& value) const {
+void Field::set_inferred_type(const AbstractType& value) const {
   DEBUG_ASSERT(
       IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   ASSERT(IsOriginal());
-  untag()->set_exact_type(value.ptr());
+  untag()->set_inferred_type(value.ptr());
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -12380,6 +12393,7 @@ void Field::InitializeNew(const Field& result,
   result.set_is_unboxed_unsafe(false);
   result.set_initializer_changed_after_initialization(false);
   NOT_IN_PRECOMPILED(result.set_kernel_offset(0));
+  NOT_IN_PRECOMPILED(result.set_is_inferred_type_exact(false));
   result.set_has_pragma(false);
   result.set_static_type_exactness_state_unsafe(
       StaticTypeExactnessState::NotTracking());
@@ -13525,8 +13539,7 @@ StringPtr Script::Source() const {
 
 bool Script::IsPartOfDartColonLibrary() const {
   const String& script_url = String::Handle(url());
-  return (script_url.StartsWith(Symbols::DartScheme()) ||
-          script_url.StartsWith(Symbols::DartSchemePrivate()));
+  return script_url.StartsWith(Symbols::DartScheme());
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -14083,13 +14096,6 @@ static void ReportTooManyImports(const Library& lib) {
   UNREACHABLE();
 }
 
-bool Library::IsAnyCoreLibrary() const {
-  String& url_str = Thread::Current()->StringHandle();
-  url_str = url();
-  return url_str.StartsWith(Symbols::DartScheme()) ||
-         url_str.StartsWith(Symbols::DartSchemePrivate());
-}
-
 void Library::set_num_imports(intptr_t value) const {
   if (!Utils::IsUint(16, value)) {
     ReportTooManyImports(*this);
@@ -14390,42 +14396,6 @@ void Library::AddObject(const Object& obj, const String& name) const {
   }
 }
 
-// Lookup a name in the library's re-export namespace.
-// This lookup can occur from two different threads: background compiler and
-// mutator thread.
-ObjectPtr Library::LookupReExport(const String& name,
-                                  ZoneGrowableArray<intptr_t>* trail) const {
-  if (!HasExports()) {
-    return Object::null();
-  }
-
-  if (trail == nullptr) {
-    trail = new ZoneGrowableArray<intptr_t>();
-  }
-  Object& obj = Object::Handle();
-
-  const intptr_t lib_id = this->index();
-  ASSERT(lib_id >= 0);  // We use -1 to indicate that a cycle was found.
-  trail->Add(lib_id);
-  const Array& exports = Array::Handle(this->exports());
-  Namespace& ns = Namespace::Handle();
-  for (int i = 0; i < exports.Length(); i++) {
-    ns ^= exports.At(i);
-    obj = ns.Lookup(name, trail);
-    if (!obj.IsNull()) {
-      // The Lookup call above may return a setter x= when we are looking
-      // for the name x. Make sure we only return when a matching name
-      // is found.
-      String& obj_name = String::Handle(obj.DictionaryName());
-      if (Field::IsSetterName(obj_name) == Field::IsSetterName(name)) {
-        break;
-      }
-    }
-  }
-  trail->RemoveLast();
-  return obj.ptr();
-}
-
 ObjectPtr Library::LookupEntry(const String& name, intptr_t* index) const {
   ASSERT(!IsNull());
   Thread* thread = Thread::Current();
@@ -14492,11 +14462,36 @@ ArrayPtr Library::LoadedScripts() const {
     Object& entry = Object::Handle();
     Class& cls = Class::Handle();
     Script& owner_script = Script::Handle();
+    Array& members = Array::Handle();
+    Function& func = Function::Handle();
+    Field& field = Field::Handle();
+    Script& member_script = Script::Handle();
     DictionaryIterator it(*this);
     while (it.HasNext()) {
       entry = it.GetNext();
       if (entry.IsClass()) {
-        owner_script = Class::Cast(entry).script();
+        cls ^= entry.ptr();
+        owner_script = cls.script();
+        AddScriptIfUnique(scripts, owner_script);
+        // Members can have a different script than their class, such as
+        // members mixed in from another script.
+        members = cls.current_functions();
+        for (intptr_t i = 0; i < members.Length(); i++) {
+          func ^= members.At(i);
+          member_script = func.script();
+          if (member_script.ptr() != owner_script.ptr()) {
+            AddScriptIfUnique(scripts, member_script);
+          }
+        }
+        members = cls.fields();
+        for (intptr_t i = 0; i < members.Length(); i++) {
+          field ^= members.At(i);
+          member_script = field.Script();
+          if (member_script.ptr() != owner_script.ptr()) {
+            AddScriptIfUnique(scripts, member_script);
+          }
+        }
+        continue;
       } else if (entry.IsFunction()) {
         owner_script = Function::Cast(entry).script();
       } else if (entry.IsField()) {
@@ -14601,16 +14596,6 @@ void Library::EnsureTopLevelClassIsFinalized() const {
 ObjectPtr Library::LookupLocalObject(const String& name) const {
   intptr_t index;
   return LookupEntry(name, &index);
-}
-
-ObjectPtr Library::LookupLocalOrReExportObject(const String& name) const {
-  intptr_t index;
-  EnsureTopLevelClassIsFinalized();
-  const Object& result = Object::Handle(LookupEntry(name, &index));
-  if (!result.IsNull() && !result.IsLibraryPrefix()) {
-    return result.ptr();
-  }
-  return LookupReExport(name);
 }
 
 FieldPtr Library::LookupFieldAllowPrivate(const String& name) const {
@@ -14723,12 +14708,6 @@ void Library::AddImport(const Namespace& ns) const {
   intptr_t index = num_imports();
   imports.SetAt(index, ns);
   set_num_imports(index + 1);
-}
-
-// Convenience function to determine whether the export list is
-// non-empty.
-bool Library::HasExports() const {
-  return exports() != Object::empty_array().ptr();
 }
 
 // We add one namespace at a time to the exports array and don't
@@ -14895,7 +14874,8 @@ ObjectPtr Library::InvokeGetter(const String& getter_name,
                                 bool check_is_entrypoint,
                                 bool respect_reflectable,
                                 bool for_invocation) const {
-  Object& obj = Object::Handle(LookupLocalOrReExportObject(getter_name));
+  EnsureTopLevelClassIsFinalized();
+  Object& obj = Object::Handle(LookupLocalObject(getter_name));
   Function& getter = Function::Handle();
   if (obj.IsField()) {
     const Field& field = Field::Cast(obj);
@@ -14915,13 +14895,13 @@ ObjectPtr Library::InvokeGetter(const String& getter_name,
     // No field found. Check for a getter in the lib.
     const String& internal_getter_name =
         String::Handle(Field::GetterName(getter_name));
-    obj = LookupLocalOrReExportObject(internal_getter_name);
+    obj = LookupLocalObject(internal_getter_name);
     if (obj.IsFunction()) {
       getter = Function::Cast(obj).ptr();
     } else if (!for_invocation) {
       // No need to re-lookup the getter name if coming from Invoke(), since
       // it already failed there.
-      obj = LookupLocalOrReExportObject(getter_name);
+      obj = LookupLocalObject(getter_name);
       if (obj.IsFunction()) {
         const auto& function = Function::Cast(obj);
         if (function.SafeToClosurize()) {
@@ -14965,7 +14945,8 @@ ObjectPtr Library::InvokeSetter(const String& setter_name,
                                 const Instance& value,
                                 bool check_is_entrypoint,
                                 bool respect_reflectable) const {
-  Object& obj = Object::Handle(LookupLocalOrReExportObject(setter_name));
+  EnsureTopLevelClassIsFinalized();
+  Object& obj = Object::Handle(LookupLocalObject(setter_name));
   const String& internal_setter_name =
       String::Handle(Field::SetterName(setter_name));
   AbstractType& setter_type = AbstractType::Handle();
@@ -14996,7 +14977,7 @@ ObjectPtr Library::InvokeSetter(const String& setter_name,
   }
 
   Function& setter = Function::Handle();
-  obj = LookupLocalOrReExportObject(internal_setter_name);
+  obj = LookupLocalObject(internal_setter_name);
   if (obj.IsFunction()) {
     setter ^= obj.ptr();
   }
@@ -15030,6 +15011,7 @@ ObjectPtr Library::Invoke(const String& function_name,
                           bool respect_reflectable) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
+  EnsureTopLevelClassIsFinalized();
 
   // We don't pass any explicit type arguments, which will be understood as
   // using dynamic for any function type arguments by lower layers.
@@ -15040,8 +15022,7 @@ ObjectPtr Library::Invoke(const String& function_name,
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
 
   auto& function = Function::Handle(zone);
-  auto& result =
-      Object::Handle(zone, LookupLocalOrReExportObject(function_name));
+  auto& result = Object::Handle(zone, LookupLocalObject(function_name));
   if (result.IsFunction()) {
     function ^= result.ptr();
   }
@@ -15566,20 +15547,6 @@ ObjectPtr Namespace::Lookup(const String& name,
     }
   }
 
-  // Library prefixes are not exported.
-  if (obj.IsNull() || obj.IsLibraryPrefix()) {
-    // Lookup in the re-exported symbols.
-    obj = lib.LookupReExport(name, trail);
-    if (obj.IsNull() && !Field::IsSetterName(name)) {
-      // LookupReExport() only returns objects that match the given name.
-      // If there is no field/func/getter, try finding a setter.
-      const String& setter_name =
-          String::Handle(zone, Field::LookupSetterSymbol(name));
-      if (!setter_name.IsNull()) {
-        obj = lib.LookupReExport(setter_name, trail);
-      }
-    }
-  }
   if (obj.IsNull() || HidesName(name) || obj.IsLibraryPrefix()) {
     return Object::null();
   }
@@ -16562,18 +16529,55 @@ const char* CompressedStackMaps::ToCString() const {
 
 StringPtr LocalVarDescriptors::GetName(intptr_t var_index) const {
   ASSERT(var_index < Length());
-  ASSERT(Object::Handle(ptr()->untag()->name(var_index)).IsString());
-  return ptr()->untag()->name(var_index);
+  return LocalVarDescriptor::Handle(ptr()->untag()->descriptor(var_index))
+      .name();
+}
+
+const char* LocalVarDescriptor::ToCString() const {
+  return "LocalVarDescriptor";
+}
+
+void LocalVarDescriptor::set_name(const String& value) const {
+  untag()->set_name(value.ptr());
+}
+
+void LocalVarDescriptor::set_static_type(const AbstractType& value) const {
+  untag()->set_static_type(value.ptr());
+}
+
+LocalVarDescriptorPtr LocalVarDescriptor::New(const String& name,
+                                              const AbstractType& static_type,
+                                              Heap::Space space) {
+  ASSERT(IsolateGroup::Current()->class_table()->At(kLocalVarDescriptorCid) !=
+         Class::null());
+  LocalVarDescriptor& result = LocalVarDescriptor::Handle();
+  {
+    ObjectPtr raw = Object::Allocate<LocalVarDescriptor>(space);
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+  }
+  result.set_name(name);
+  result.set_static_type(static_type);
+  return result.ptr();
 }
 
 void LocalVarDescriptors::SetVar(
     intptr_t var_index,
     const String& name,
+    const AbstractType& static_type,
     UntaggedLocalVarDescriptors::VarInfo* info) const {
   ASSERT(var_index < Length());
-  ASSERT(!name.IsNull());
-  ptr()->untag()->set_name(var_index, name.ptr());
+  const LocalVarDescriptor& desc = LocalVarDescriptor::Handle(
+      LocalVarDescriptor::New(name, static_type, Heap::kOld));
+
+  ptr()->untag()->set_descriptor(var_index, desc.ptr());
   ptr()->untag()->data()[var_index] = *info;
+}
+
+AbstractTypePtr LocalVarDescriptors::GetStaticType(intptr_t var_index) const {
+  ASSERT(var_index < Length());
+  return LocalVarDescriptor::Handle(ptr()->untag()->descriptor(var_index))
+      .static_type();
 }
 
 void LocalVarDescriptors::GetInfo(
@@ -18133,8 +18137,6 @@ LocalVarDescriptorsPtr Code::GetLocalVarDescriptors() const {
   const LocalVarDescriptors& v = LocalVarDescriptors::Handle(var_descriptors());
   if (v.IsNull()) {
     ASSERT(!is_optimized());
-    const Function& f = Function::Handle(function());
-    ASSERT(!f.IsIrregexpFunction());  // Not yet implemented.
     Compiler::ComputeLocalVarDescriptors(*this);
   }
   return var_descriptors();
@@ -18160,6 +18162,10 @@ void Code::set_is_optimized(bool value) const {
 
 void Code::set_is_force_optimized(bool value) const {
   set_state_bits(ForceOptimizedBit::update(value, untag()->state_bits_));
+}
+
+void Code::set_can_be_deoptimized(bool value) const {
+  set_state_bits(CanBeDeoptimizedBit::update(value, untag()->state_bits_));
 }
 
 void Code::set_is_alive(bool value) const {
@@ -19166,63 +19172,52 @@ const char* Bytecode::ToCString() const {
                                                   QualifiedName());
 }
 
-static const char* BytecodeStubName(const Bytecode& bytecode) {
-  if (bytecode.ptr() == Object::implicit_getter_bytecode().ptr()) {
-    return "[Bytecode Stub] VMInternal_ImplicitGetter";
-  } else if (bytecode.ptr() == Object::implicit_setter_bytecode().ptr()) {
-    return "[Bytecode Stub] VMInternal_ImplicitSetter";
-  } else if (bytecode.ptr() ==
-             Object::implicit_static_getter_bytecode().ptr()) {
-    return "[Bytecode Stub] VMInternal_ImplicitStaticGetter";
-  } else if (bytecode.ptr() ==
-             Object::implicit_shared_static_getter_bytecode().ptr()) {
-    return "[Bytecode Stub] VMInternal_ImplicitSharedStaticGetter";
-  } else if (bytecode.ptr() ==
-             Object::implicit_static_setter_bytecode().ptr()) {
-    return "[Bytecode Stub] VMInternal_ImplicitStaticSetter";
-  } else if (bytecode.ptr() ==
-             Object::implicit_shared_static_setter_bytecode().ptr()) {
-    return "[Bytecode Stub] VMInternal_ImplicitSharedStaticSetter";
-  } else if (bytecode.ptr() ==
-             Object::method_extractor_with_ita_bytecode().ptr()) {
-    return "[Bytecode Stub] VMInternal_MethodExtractorWithITA";
-  } else if (bytecode.ptr() ==
-             Object::method_extractor_without_ita_bytecode().ptr()) {
-    return "[Bytecode Stub] VMInternal_MethodExtractorWithoutITA";
-  } else if (bytecode.ptr() == Object::invoke_closure_bytecode().ptr()) {
-    return "[Bytecode Stub] VMInternal_InvokeClosure";
-  } else if (bytecode.ptr() == Object::invoke_field_bytecode().ptr()) {
-    return "[Bytecode Stub] VMInternal_InvokeField";
+bool Bytecode::IsSharedBytecodeStub() const {
+#define CHECK_SHARED_BYTECODE(Name, _)                                         \
+  if (ptr() == OBJECT_SHARED_BYTECODE_GETTER(Name).ptr()) {                    \
+    return true;                                                               \
   }
+  FOR_EACH_SHARED_BYTECODE_STUB(CHECK_SHARED_BYTECODE)
+#undef CHECK_SHARED_BYTECODE
+  return false;
+}
+
+static const char* BytecodeStubName(const Bytecode& bytecode) {
+#define RETURN_SHARED_BYTECODE_STUB_NAME(Name, Instruction)                    \
+  if (bytecode.ptr() == OBJECT_SHARED_BYTECODE_GETTER(Name).ptr()) {           \
+    return "[Bytecode Stub] " #Instruction;                                    \
+  }
+  FOR_EACH_SHARED_BYTECODE_STUB(RETURN_SHARED_BYTECODE_STUB_NAME)
+#undef RETURN_SHARED_BYTECODE_STUB_NAME
   return "[unknown stub]";
 }
 
 const char* Bytecode::Name() const {
-  Zone* zone = Thread::Current()->zone();
-  const Function& fun = Function::Handle(zone, function());
-  if (fun.IsNull()) {
+  if (IsSharedBytecodeStub()) {
     return BytecodeStubName(*this);
   }
+  Zone* zone = Thread::Current()->zone();
+  const Function& fun = Function::Handle(zone, function());
   const char* function_name = fun.UserVisibleNameCString();
   return zone->PrintToString("[Bytecode] %s", function_name);
 }
 
 const char* Bytecode::QualifiedName() const {
-  Zone* zone = Thread::Current()->zone();
-  const Function& fun = Function::Handle(zone, function());
-  if (fun.IsNull()) {
+  if (IsSharedBytecodeStub()) {
     return BytecodeStubName(*this);
   }
+  Zone* zone = Thread::Current()->zone();
+  const Function& fun = Function::Handle(zone, function());
   const char* function_name = fun.QualifiedScrubbedNameCString();
   return zone->PrintToString("[Bytecode] %s", function_name);
 }
 
 const char* Bytecode::FullyQualifiedName() const {
-  Zone* zone = Thread::Current()->zone();
-  const Function& fun = Function::Handle(zone, function());
-  if (fun.IsNull()) {
+  if (IsSharedBytecodeStub()) {
     return BytecodeStubName(*this);
   }
+  Zone* zone = Thread::Current()->zone();
+  const Function& fun = Function::Handle(zone, function());
   const char* function_name = fun.ToFullyQualifiedCString();
   return zone->PrintToString("[Bytecode] %s", function_name);
 }
@@ -21262,6 +21257,9 @@ ObjectPtr Instance::GetField(const Field& field) const {
       case kFloat64x2Cid:
         return Float64x2::New(LoadUnaligned(
             reinterpret_cast<simd128_value_t*>(FieldAddr(field))));
+      case kInt32x4Cid:
+        return Int32x4::New(LoadUnaligned(
+            reinterpret_cast<simd128_value_t*>(FieldAddr(field))));
       default:
         return Integer::New(
             LoadUnaligned(reinterpret_cast<int64_t*>(FieldAddr(field))));
@@ -21289,6 +21287,11 @@ void Instance::SetField(const Field& field, const Object& value) const {
             reinterpret_cast<simd128_value_t*>(FieldAddr(field)),
             Float64x2::Cast(value).value());
         break;
+      case kInt32x4Cid:
+        StoreNonPointerUnaligned(
+            reinterpret_cast<simd128_value_t*>(FieldAddr(field)),
+            Int32x4::Cast(value).value());
+        break;
       default:
         StoreNonPointerUnaligned(reinterpret_cast<int64_t*>(FieldAddr(field)),
                                  Integer::Cast(value).Value());
@@ -21315,6 +21318,10 @@ void Instance::SetFieldWithoutFieldGuard(const Field& field,
       case kFloat64x2Cid:
         StoreNonPointer(reinterpret_cast<simd128_value_t*>(FieldAddr(field)),
                         Float64x2::Cast(value).value());
+        break;
+      case kInt32x4Cid:
+        StoreNonPointer(reinterpret_cast<simd128_value_t*>(FieldAddr(field)),
+                        Int32x4::Cast(value).value());
         break;
       default:
         StoreNonPointer(reinterpret_cast<int64_t*>(FieldAddr(field)),
@@ -26008,12 +26015,7 @@ uint32_t Float32x4::CanonicalizeHash() const {
 }
 
 const char* Float32x4::ToCString() const {
-  float _x = x();
-  float _y = y();
-  float _z = z();
-  float _w = w();
-  return OS::SCreate(Thread::Current()->zone(), "[%f, %f, %f, %f]", _x, _y, _z,
-                     _w);
+  return "V128";
 }
 
 Int32x4Ptr Int32x4::New(int32_t v0,
@@ -26093,12 +26095,7 @@ uint32_t Int32x4::CanonicalizeHash() const {
 }
 
 const char* Int32x4::ToCString() const {
-  int32_t _x = x();
-  int32_t _y = y();
-  int32_t _z = z();
-  int32_t _w = w();
-  return OS::SCreate(Thread::Current()->zone(), "[%08x, %08x, %08x, %08x]", _x,
-                     _y, _z, _w);
+  return "V128";
 }
 
 Float64x2Ptr Float64x2::New(double value0, double value1, Heap::Space space) {
@@ -26116,14 +26113,6 @@ Float64x2Ptr Float64x2::New(simd128_value_t value, Heap::Space space) {
   const auto& result = Float64x2::Handle(Object::Allocate<Float64x2>(space));
   result.set_value(value);
   return result.ptr();
-}
-
-double Float64x2::x() const {
-  return untag()->value_[0];
-}
-
-double Float64x2::y() const {
-  return untag()->value_[1];
 }
 
 void Float64x2::set_x(double x) const {
@@ -26154,9 +26143,7 @@ uint32_t Float64x2::CanonicalizeHash() const {
 }
 
 const char* Float64x2::ToCString() const {
-  double _x = x();
-  double _y = y();
-  return OS::SCreate(Thread::Current()->zone(), "[%f, %f]", _x, _y);
+  return "V128";
 }
 
 const intptr_t
@@ -26902,9 +26889,7 @@ static void WriteImageBuildId(BaseTextBuffer* buffer,
     ASSERT(build_id.len > 0);
     buffer->AddString(prefix);
     buffer->AddString("'");
-    for (intptr_t i = 0; i < build_id.len; i++) {
-      buffer->Printf("%2.2x", build_id.data[i]);
-    }
+    build_id.PrintTo(buffer);
     buffer->AddString("'");
   }
 }
@@ -27036,7 +27021,9 @@ const char* StackTrace::ToCString() const {
         continue;
       }
 
-      const uword pc_offset = stack_trace.PcOffsetAtFrame(i);
+      uword pc_offset = stack_trace.PcOffsetAtFrame(i);
+      const bool is_future_listener =
+          pc_offset == StackTraceUtils::kFutureListenerPcOffset;
 
       // A visible frame ends any gap we might be in.
       in_gap = false;
@@ -27044,14 +27031,24 @@ const char* StackTrace::ToCString() const {
 #if defined(DART_DYNAMIC_MODULES)
       if (code_object.IsBytecode()) {
         const auto& bytecode = Bytecode::Cast(code_object);
-        function = bytecode.function();
+        // Shared bytecode stubs should never show up in stack traces, as
+        // they do not have a unique function to which they are attached.
+        // Usually the bytecode stub is being executed, and so the function
+        // that should be reported in the stack trace is also on the stack.
+        if (!bytecode.IsSharedBytecodeStub()) {
+          function = bytecode.function();
 
-        if (!function.IsNull() &&
-            (FLAG_show_invisible_frames || function.is_visible())) {
-          auto const pos =
-              bytecode.GetTokenIndexOfPC(bytecode.PayloadStart() + pc_offset);
-          PrintSymbolicStackFrame(zone, &buffer, function, pos, frame_index);
-          frame_index++;
+          if (FLAG_show_invisible_frames || function.is_visible()) {
+            auto const pos =
+                bytecode.GetTokenIndexOfPC(bytecode.PayloadStart() + pc_offset);
+            PrintSymbolicStackFrame(zone, &buffer, function, pos, frame_index);
+            frame_index++;
+          }
+        } else {
+          // One case where this is not true is for future listeners, in which
+          // case AsyncAwareStackUnwinder::Unwind substitutes the code or
+          // bytecode of the target function in place of the shared stub.
+          ASSERT(!is_future_listener);
         }
         continue;
       }
@@ -27066,10 +27063,15 @@ const char* StackTrace::ToCString() const {
       } else {
         function = Function::null();
       }
-      const uword pc = code.PayloadStart() + pc_offset;
-
-      const bool is_future_listener =
-          pc_offset == StackTraceUtils::kFutureListenerPcOffset;
+      uword pc = code.PayloadStart() + pc_offset;
+      if (is_future_listener) {
+        // Note that the value of pc does not make sense for closures registered
+        // as future listeners, since the pc_offset is a special marker. Uses of
+        // pc or pc_offset below should special case when is_future_listener is
+        // true, so both are set to invalid values to detect misuses.
+        pc = 0;
+        pc_offset = -code.PayloadStart();
+      }
 
 #if defined(DART_PRECOMPILED_RUNTIME)
       // When printing non-symbolic frames, we normally print call
@@ -27077,11 +27079,9 @@ const char* StackTrace::ToCString() const {
       // get an address within the preceding instruction.
       //
       // The one exception is a normal closure registered as a listener on a
-      // future. In this case, the returned pc_offset will be pointing to the
-      // entry pooint of the function, which will be invoked when the future
-      // completes. To make things more uniform stack unwinding code offets
-      // pc_offset by 1 for such cases.
-      const uword call_addr = pc - 1;
+      // future. In this case, the entry point of the closure is used as the
+      // call address.
+      const uword call_addr = is_future_listener ? code.EntryPoint() : pc - 1;
 
       if (T->isolate_group()->dwarf_stack_traces()) {
         if (have_footnote_callback) {
@@ -27839,7 +27839,6 @@ intptr_t Function::MaxNumberOfParametersInRegisters(Zone* zone) const {
     case UntaggedFunction::kMethodExtractor:
     case UntaggedFunction::kFfiTrampoline:
     case UntaggedFunction::kFieldInitializer:
-    case UntaggedFunction::kIrregexpFunction:
       return 0;
 
     default:

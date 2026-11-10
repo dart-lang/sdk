@@ -15,11 +15,7 @@ final class BuiltInReference extends Reference implements ExportableReference {
 
   final _BuiltInReferenceKind _kind;
 
-  BuiltInReference._({
-    required this.library,
-    required _BuiltInReferenceKind kind,
-  }) : _kind = kind,
-       super._();
+  new _({required this.library, required this._kind}) : super._();
 }
 
 sealed class DeclarationReference extends Reference {
@@ -31,17 +27,14 @@ sealed class DeclarationReference extends Reference {
   /// declarations receive generated keys.
   final String _key;
 
-  DeclarationReference._({required String key}) : _key = key, super._();
+  new _({required this._key}) : super._();
 }
 
 sealed class ExportableReference implements Reference {}
 
 final class LeafTopLevelReference extends TopLevelReference {
-  LeafTopLevelReference._({
-    required super.library,
-    required super.key,
-    required super.kind,
-  }) : super._();
+  new _({required super.library, required super.key, required super.kind})
+    : super._();
 }
 
 final class LibraryReference extends Reference {
@@ -53,7 +46,7 @@ final class LibraryReference extends Reference {
   );
   List<BuiltInReference?>? _builtInByKind;
 
-  LibraryReference._({required this.uriString}) : super._();
+  new _({required this.uriString}) : super._();
 
   @override
   List<Reference> get children => [
@@ -278,7 +271,7 @@ final class LibraryReferenceBuilder {
   final LibraryReference reference;
   final Map<Reference, _KeyAllocator> _keyAllocatorByReference = Map.identity();
 
-  LibraryReferenceBuilder(this.reference);
+  new(this.reference);
 
   MemberContainerReference declareClass(String? name) {
     return reference.declareClass(
@@ -437,11 +430,8 @@ final class MemberContainerReference extends TopLevelReference {
     null,
   );
 
-  MemberContainerReference._({
-    required super.library,
-    required super.key,
-    required super.kind,
-  }) : super._();
+  new _({required super.library, required super.key, required super.kind})
+    : super._();
 
   @override
   List<Reference> get children => [
@@ -519,12 +509,8 @@ final class MemberReference extends DeclarationReference {
   final MemberContainerReference container;
   final _MemberReferenceKind _kind;
 
-  MemberReference._({
-    required this.container,
-    required super.key,
-    required _MemberReferenceKind kind,
-  }) : _kind = kind,
-       super._();
+  new _({required this.container, required super.key, required this._kind})
+    : super._();
 }
 
 /// A canonical identity node for an analyzer element.
@@ -550,7 +536,7 @@ sealed class Reference {
   /// The corresponding [ElementImpl], or `null` if not created yet.
   ElementImpl? element;
 
-  Reference._();
+  new _();
 
   List<Reference> get children => const [];
 
@@ -614,11 +600,8 @@ final class ReferenceTableReader {
   late final Uint32List _uriStringIndexes;
   late final List<Reference?> _referenceByIndex;
 
-  ReferenceTableReader({
-    required BinaryReader reader,
-    required RootReference rootReference,
-  }) : _stringOfIndex = reader.stringOfIndex,
-       _rootReference = rootReference {
+  new({required BinaryReader reader, required this._rootReference})
+    : _stringOfIndex = reader.stringOfIndex {
     _tagIndexes = reader.readUint8List();
     _parentIndexes = reader.readUint30List();
     _kindIndexes = reader.readUint8List();
@@ -724,7 +707,7 @@ final class ReferenceTableWriter {
   final List<String> _keyStrings = [];
   final List<String> _uriStrings = [];
 
-  ReferenceTableWriter() {
+  new() {
     _appendRow(
       reference: null,
       tag: _SerializedReferenceTag.root,
@@ -820,7 +803,7 @@ final class ReferenceTableWriter {
 final class RootReference extends Reference {
   final Map<String, LibraryReference> _libraries = {};
 
-  RootReference() : super._();
+  new() : super._();
 
   @override
   List<LibraryReference> get children => [..._libraries.values];
@@ -846,12 +829,8 @@ sealed class TopLevelReference extends DeclarationReference
   final LibraryReference library;
   final _TopLevelReferenceKind _kind;
 
-  TopLevelReference._({
-    required this.library,
-    required super.key,
-    required _TopLevelReferenceKind kind,
-  }) : _kind = kind,
-       super._();
+  new _({required this.library, required super.key, required this._kind})
+    : super._();
 }
 
 enum _BuiltInReferenceKind {
@@ -860,14 +839,14 @@ enum _BuiltInReferenceKind {
 
   final String identifier;
 
-  const _BuiltInReferenceKind(this.identifier);
+  new(this.identifier);
 }
 
 final class _KeyAllocator {
   final List<Map<String, int>?> _nextDuplicateIndexByKind;
   int _nextUnnamedIndex = 0;
 
-  _KeyAllocator({required int kindCount})
+  new({required int kindCount})
     : _nextDuplicateIndexByKind = List.filled(kindCount, null);
 
   String allocate({required int kindIndex, required String? name}) {
@@ -896,7 +875,7 @@ enum _MemberReferenceKind {
 
   final String debugName;
 
-  const _MemberReferenceKind(this.debugName);
+  new(this.debugName);
 }
 
 enum _SerializedReferenceTag { root, library, topLevel, member, builtIn }
@@ -916,5 +895,5 @@ enum _TopLevelReferenceKind {
   final String debugName;
   final bool hasMembers;
 
-  const _TopLevelReferenceKind(this.debugName, {this.hasMembers = false});
+  new(this.debugName, {this.hasMembers = false});
 }

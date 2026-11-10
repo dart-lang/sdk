@@ -126,7 +126,8 @@ class C {
 }
 
 @reflectiveTest
-class ConvertToInitializingFormalTest extends FixProcessorLintTest {
+class ConvertToInitializingFormalTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToInitializingFormal;
 

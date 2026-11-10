@@ -890,7 +890,13 @@ PatternVariableDeclaration
     rightParenthesis: )
     matchedValueType: (int, String)
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: (int, String)
+    staticType: (int, String)
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: (int, String)
@@ -944,7 +950,20 @@ PatternVariableDeclaration
     rightParenthesis: )
     matchedValueType: (int, String)
   equals: =
-  expression2: MethodInvocation
+  expression2: UnqualifiedFunctionInvocation
+    name: g
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::g
+      invokeType: (int, String) Function()
+      type: (int, String)
+    staticType: (int, String)
+    typeArgumentTypes
+      int
+      String
+  expression(v1): MethodInvocation
     methodName: SimpleIdentifier
       token: g
       element: <testLibrary>::@function::g

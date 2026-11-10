@@ -53,6 +53,8 @@ abstract final class LintNames {
   static const String analyzer_public_api_impl_in_public_api =
       'analyzer_public_api_impl_in_public_api';
 
+  static const String analyzer_v1_ast_use = 'analyzer_v1_ast_use';
+
   static const String annotate_overrides = 'annotate_overrides';
 
   static const String annotate_redeclares = 'annotate_redeclares';

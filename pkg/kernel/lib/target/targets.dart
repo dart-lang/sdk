@@ -14,6 +14,7 @@ import 'changed_structure_notifier.dart';
 class TargetFlags {
   final bool trackCreationLocations;
   final bool supportMirrors;
+  final bool supportFfi;
 
   /// Whether the backend expects closure contexts to be present in the AST.
   ///
@@ -34,6 +35,7 @@ class TargetFlags {
   const new({
     this.trackCreationLocations = false,
     this.supportMirrors = true,
+    this.supportFfi = true,
     this.isClosureContextLoweringEnabled = false,
     this.constKeepLocalsIndicator,
     this.includeUnsupportedPlatformLibraryStubs = false,
@@ -45,6 +47,7 @@ class TargetFlags {
     return other is TargetFlags &&
         trackCreationLocations == other.trackCreationLocations &&
         supportMirrors == other.supportMirrors &&
+        supportFfi == other.supportFfi &&
         includeUnsupportedPlatformLibraryStubs ==
             other.includeUnsupportedPlatformLibraryStubs &&
         constKeepLocalsIndicator == other.constKeepLocalsIndicator;
@@ -55,6 +58,7 @@ class TargetFlags {
     int hash = 485786;
     hash = 0x3fffffff & (hash * 31 + (hash ^ trackCreationLocations.hashCode));
     hash = 0x3fffffff & (hash * 31 + (hash ^ supportMirrors.hashCode));
+    hash = 0x3fffffff & (hash * 31 + (hash ^ supportFfi.hashCode));
     hash =
         0x3fffffff &
         (hash * 31 + (hash ^ includeUnsupportedPlatformLibraryStubs.hashCode));
@@ -64,7 +68,7 @@ class TargetFlags {
   }
 }
 
-typedef Target _TargetBuilder(TargetFlags flags);
+typedef _TargetBuilder = Target Function(TargetFlags flags);
 
 final Map<String, _TargetBuilder> targets = <String, _TargetBuilder>{
   'none': (TargetFlags flags) => new NoneTarget(flags),
@@ -553,6 +557,11 @@ abstract class Target {
   /// with the accessed getter or field as the interface target.
   bool get supportsExplicitGetterCalls;
 
+  /// Whether mixin in bodies should be included in outlines.
+  ///
+  /// This is currently experimental.
+  bool get enabledMixinInOutline => false;
+
   /// Builds an expression that instantiates an [Invocation] that can be passed
   /// to [noSuchMethod].
   Expression instantiateInvocation(
@@ -819,6 +828,7 @@ class TestTargetFlags extends TargetFlags {
   final bool? forceStaticFieldLoweringForTesting;
   final bool? forceNoExplicitGetterCallsForTesting;
   final int? forceConstructorTearOffLoweringForTesting;
+  final bool? forceMixinInOutlineForTesting;
   final Set<String> supportedDartLibraries;
   final Set<String> unsupportedDartLibraries;
 
@@ -829,6 +839,7 @@ class TestTargetFlags extends TargetFlags {
     this.forceStaticFieldLoweringForTesting,
     this.forceNoExplicitGetterCallsForTesting,
     this.forceConstructorTearOffLoweringForTesting,
+    this.forceMixinInOutlineForTesting,
     this.supportedDartLibraries = const {},
     this.unsupportedDartLibraries = const {},
     bool isClosureContextLoweringEnabled = false,
@@ -865,6 +876,10 @@ mixin TestTargetMixin on Target {
   int get enabledConstructorTearOffLowerings =>
       flags.forceConstructorTearOffLoweringForTesting ??
       super.enabledConstructorTearOffLowerings;
+
+  @override
+  bool get enabledMixinInOutline =>
+      flags.forceMixinInOutlineForTesting ?? super.enabledMixinInOutline;
 
   @override
   late final DartLibrarySupport dartLibrarySupport = new TestDartLibrarySupport(

@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/ast/ast.dart' show ToBeDeprecated;
+import 'package:analyzer/src/dart/ast/ast.dart' show V1Ast, VariableBindingImpl;
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 
@@ -77,7 +77,7 @@ extension ArgumentExtension on Argument {
   }
 }
 
-@ToBeDeprecated('Use AstNodeExtension2 instead.')
+@V1Ast('The V2 counterpart is AstNodeExtension2.')
 extension AstNodeExtension on AstNode? {
   /// Returns the instance creation expression that surrounds this node, if any,
   /// and otherwise `null`.
@@ -206,9 +206,6 @@ extension AstNodeExtension2 on AstNode? {
     if (node is ImportPrefixReference) {
       node = node.parent2;
     }
-    if (node is SimpleIdentifier) {
-      node = node.parent2;
-    }
     if (node is ConstructorSelector) {
       node = node.parent2;
     }
@@ -237,20 +234,14 @@ extension AstNodeExtension2 on AstNode? {
         continue;
       }
 
-      if (node is AssignmentExpression) {
+      if (node is AssignmentExpression2) {
         return null;
       }
 
       var parent = node.parent2;
 
-      if (parent is AssignmentExpression) {
-        if (parent.rightHandSide2 == node) {
-          return node as Expression;
-        }
-        return null;
-      }
-
       if (parent is ArgumentList ||
+          parent is AssignmentExpression2 && parent.value == node ||
           parent is ConditionalExpression && parent.thenExpression2 == node ||
           parent is ConditionalExpression && parent.elseExpression2 == node ||
           parent is ExpressionFunctionBody && parent.expression2 == node ||
@@ -261,7 +252,7 @@ extension AstNodeExtension2 on AstNode? {
           parent is NamedArgument && parent.argumentExpression2 == node ||
           parent is Statement ||
           parent is SwitchExpressionCase && parent.expression2 == node ||
-          parent is VariableDeclaration) {
+          parent is VariableBindingImpl) {
         return node as Expression;
       }
     }
@@ -292,11 +283,6 @@ extension AstNodeExtension2 on AstNode? {
       argument = self;
     } else if (self?.parent2 case NamedArgument parent) {
       argument = parent;
-    } else if (self is SimpleIdentifier) {
-      var parent = self.parent2;
-      if (parent is Label && parent.parent2 is NamedArgument) {
-        argument = parent.parent2 as NamedArgument;
-      }
     }
 
     if (argument == null || argument.name.lexeme != name) {
@@ -563,7 +549,7 @@ extension ElementAnnotationExtension on ElementAnnotation {
   }
 }
 
-@ToBeDeprecated('Use ConstructorInvocationExtension instead.')
+@V1Ast('The V2 counterpart is ConstructorInvocationExtension.')
 extension InstanceCreationExpressionExtension on InstanceCreationExpression {
   /// The named expression representing the `builder` argument, or `null` if
   /// there is none.

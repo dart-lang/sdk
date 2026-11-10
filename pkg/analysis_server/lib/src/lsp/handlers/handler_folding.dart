@@ -15,7 +15,7 @@ typedef StaticOptions =
     Either3<bool, FoldingRangeOptions, FoldingRangeRegistrationOptions>;
 
 class FoldingHandler
-    extends LspMessageHandler<FoldingRangeParams, List<FoldingRange>> {
+    extends SharedMessageHandler<FoldingRangeParams, List<FoldingRange>> {
   new(super.server);
   @override
   Method get handlesMessage => Method.textDocument_foldingRange;
@@ -23,6 +23,9 @@ class FoldingHandler
   @override
   LspJsonHandler<FoldingRangeParams> get jsonHandler =>
       FoldingRangeParams.jsonHandler;
+
+  @override
+  bool get requiresTrustedCaller => false;
 
   @override
   Future<ErrorOr<List<FoldingRange>>> handle(
@@ -37,13 +40,18 @@ class FoldingHandler
     }
 
     var lineFoldingOnly = clientCapabilities.lineFoldingOnly;
-    var path = pathOfDoc(params.textDocument);
 
-    return path.mapResult((path) async {
+    return withPath(textDocument: params.textDocument, token, (
+      path,
+      _,
+      checkAbort,
+    ) async {
       var partialResults = <List<FoldingRegion>>[];
       LineInfo? lineInfo;
 
       var unit = await server.getParsedUnit(path);
+      if (checkAbort() case var reason?) return reason;
+
       if (unit != null) {
         lineInfo = unit.lineInfo;
 

@@ -130,33 +130,36 @@ class FrontendServerTestContext extends TestContext {
 
     _assetReader = webRunner.devFS!.assetServer;
 
-    _loadStrategy = switch (testSettings.moduleFormat) {
-      ModuleFormat.amd => FrontendServerRequireStrategyProvider(
+    _loadStrategy = switch ((
+      testSettings.moduleFormat,
+      buildSettings.canaryFeatures,
+    )) {
+      (ModuleFormat.amd, _) => FrontendServerRequireStrategyProvider(
         testSettings.reloadConfiguration,
-        assetReader,
+        _assetReader!,
         packageUriMapper,
         () async => {},
         buildSettings,
       ).strategy,
-      ModuleFormat.ddc =>
-        buildSettings.canaryFeatures
-            ? FrontendServerDdcLibraryBundleStrategyProvider(
-                testSettings.reloadConfiguration,
-                assetReader,
-                packageUriMapper,
-                () async => {},
-                buildSettings,
-                reloadedSourcesUri: reloadedSourcesUri,
-              ).strategy
-            : FrontendServerDdcStrategyProvider(
-                testSettings.reloadConfiguration,
-                assetReader,
-                packageUriMapper,
-                () async => {},
-                buildSettings,
-              ).strategy,
+      (ModuleFormat.ddc, true) =>
+        FrontendServerDdcLibraryBundleStrategyProvider(
+          testSettings.reloadConfiguration,
+          _assetReader!,
+          packageUriMapper,
+          () async => {},
+          buildSettings,
+          reloadedSourcesUri: reloadedSourcesUri,
+        ).strategy,
+      (ModuleFormat.ddc, false) => FrontendServerDdcStrategyProvider(
+        testSettings.reloadConfiguration,
+        _assetReader!,
+        packageUriMapper,
+        () async => {},
+        buildSettings,
+      ).strategy,
       _ => throw Exception(
-        'Unsupported DDC module format ${testSettings.moduleFormat.name}.',
+        'Unsupported DDC module format '
+        '${testSettings.moduleFormat.name}.',
       ),
     };
   }

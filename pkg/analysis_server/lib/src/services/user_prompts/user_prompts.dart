@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:analysis_server/src/session_logger/session_listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:meta/meta.dart';
@@ -17,10 +18,15 @@ abstract class UserPromptPreferences {
   factory(
     ResourceProvider resourceProvider,
     InstrumentationService instrumentationService,
+    SessionListener sessionListener,
   ) {
     var stateFolder = resourceProvider.getStateLocation('.prompts');
     if (stateFolder == null) {
       instrumentationService.logInfo(
+        'No state location is available for saving user prompt preferences. '
+        'Preferences will assumed opt-outs.',
+      );
+      sessionListener.logInfo(
         'No state location is available for saving user prompt preferences. '
         'Preferences will assumed opt-outs.',
       );
@@ -31,6 +37,7 @@ abstract class UserPromptPreferences {
     return _PersistableUserPromptPreferences(
       preferencesFile,
       instrumentationService,
+      sessionListener,
     );
   }
 
@@ -71,6 +78,8 @@ class _NotPersistableUserPromptPreferences implements UserPromptPreferences {
 class _PersistableUserPromptPreferences implements UserPromptPreferences {
   final InstrumentationService _instrumentationService;
 
+  final SessionListener _sessionListener;
+
   final _jsonEncoder = JsonEncoder.withIndent('  ');
 
   /// The file for storing preferences.
@@ -78,7 +87,11 @@ class _PersistableUserPromptPreferences implements UserPromptPreferences {
   @visibleForTesting
   final File preferencesFile;
 
-  new(this.preferencesFile, this._instrumentationService);
+  new(
+    this.preferencesFile,
+    this._instrumentationService,
+    this._sessionListener,
+  );
 
   @override
   bool get canPersist => true;
@@ -106,6 +119,10 @@ class _PersistableUserPromptPreferences implements UserPromptPreferences {
     } on FormatException catch (e) {
       _instrumentationService.logError(
         'Failed to parse preferences JSON from ${preferencesFile.path}: $e',
+      );
+      _sessionListener.logException(
+        exception:
+            'Failed to parse preferences JSON from ${preferencesFile.path}: $e',
       );
       return null;
     }
@@ -146,6 +163,9 @@ class _PersistableUserPromptPreferences implements UserPromptPreferences {
       // Don't fail if we can't write (eg. file locked by another process).
       _instrumentationService.logError(
         'Failed to write prompt preferences: $e',
+      );
+      _sessionListener.logException(
+        exception: 'Failed to write prompt preferences: $e',
       );
       return false;
     }

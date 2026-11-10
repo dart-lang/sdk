@@ -1,0 +1,11 @@
+augment get topLevelGetter => 0;
+
+augment void set topLevelSetter(int value) {}
+
+augment void topLevelMethod() {}
+
+int get topLevelGetter;
+
+void set topLevelSetter(int value);
+
+void topLevelMethod();

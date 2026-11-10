@@ -4,11 +4,12 @@
 
 import 'dart:io';
 
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualDataMap, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
+import 'package:analyzer/src/dart/ast/ast.dart' show FunctionInvocationImpl;
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 
 import '../util/id_testing_helper.dart';
@@ -32,7 +33,7 @@ main(List<String> args) {
 }
 
 class _InferredTypeArgumentsDataComputer extends DataComputer<List<DartType>> {
-  const _InferredTypeArgumentsDataComputer();
+  const new();
 
   @override
   DataInterpreter<List<DartType>> get dataValidator =>
@@ -45,7 +46,7 @@ class _InferredTypeArgumentsDataComputer extends DataComputer<List<DartType>> {
   void computeUnitData(
     TestingData testingData,
     CompilationUnit unit,
-    Map<Id, ActualData<List<DartType>>> actualMap,
+    ActualDataMap<List<DartType>> actualMap,
   ) {
     var unitUri = unit.declaredFragment!.source.uri;
     _InferredTypeArgumentsDataExtractor(unitUri, actualMap).run(unit);
@@ -54,7 +55,7 @@ class _InferredTypeArgumentsDataComputer extends DataComputer<List<DartType>> {
 
 class _InferredTypeArgumentsDataExtractor
     extends AstDataExtractor<List<DartType>> {
-  _InferredTypeArgumentsDataExtractor(super.uri, super.actualMap);
+  new(super.uri, super.actualMap);
 
   @override
   List<DartType>? computeNodeValue(Id id, AstNode node) {
@@ -63,6 +64,9 @@ class _InferredTypeArgumentsDataExtractor
     if (node is ConstructorInvocation) {
       typeArguments = node.constructorReference.typeReference.typeArguments;
       typeArgumentTypes = (node.staticType as InterfaceType).typeArguments;
+    } else if (node is FunctionInvocation) {
+      typeArguments = node.typeArguments;
+      typeArgumentTypes = (node as FunctionInvocationImpl).typeArgumentTypes!;
     } else if (node is InvocationExpression) {
       typeArguments = node.typeArguments;
       typeArgumentTypes = node.typeArgumentTypes!;
@@ -81,7 +85,7 @@ class _InferredTypeArgumentsDataExtractor
 
 class _InferredTypeArgumentsDataInterpreter
     implements DataInterpreter<List<DartType>> {
-  const _InferredTypeArgumentsDataInterpreter();
+  const new();
 
   @override
   String getText(List<DartType> actualData, [String? indentation]) {

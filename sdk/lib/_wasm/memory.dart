@@ -13,17 +13,28 @@ part of 'dart:_wasm';
 @pragma("wasm:entry-point")
 final class MemoryType {
   /// Minimum and optional maximum size for the memory.
+  @pragma("wasm:entry-point")
   final Limits limits;
 
-  const MemoryType({required this.limits});
+  /// Whether this memory can be shared between WebAssembly threads.
+  ///
+  /// Shared memories must specify [Limits.maximum]. When importing a memory,
+  /// this must match whether the supplied memory instance is shared.
+  @pragma("wasm:entry-point")
+  final bool shared;
+
+  const MemoryType({required this.limits, this.shared = false});
 }
 
 /// Limits for the size of memories or tables in WebAssembly.
+@pragma("wasm:entry-point")
 final class Limits {
   /// The minimum size for the memory instance (in units of WebAssembly pages).
+  @pragma("wasm:entry-point")
   final int minimum;
 
   /// An optional maximum size for the instance (in units of WebAsembly pages).
+  @pragma("wasm:entry-point")
   final int? maximum;
 
   const Limits(this.minimum, [this.maximum]);
@@ -85,6 +96,15 @@ final class Limits {
 /// external Memory get additionalMemory;
 /// ```
 ///
+/// Defined memory instances can be exported by annotating the getter with the
+/// `wasm:export` pragma:
+///
+/// ```
+/// @pragma('wasm:memory-type', MemoryType(limits: Limits(1, 10)))
+/// @pragma('wasm:export', 'additionalMemory')
+/// external Memory get additionalMemory;
+/// ```
+///
 /// Memory instances can also be imported from the host environment by
 /// annotating such getter with the `wasm:import` pragma:
 ///
@@ -93,6 +113,18 @@ final class Limits {
 /// @pragma('wasm:import', 'module.name')
 /// external Memory get mySecondMemory;
 /// ```
+///
+/// To import or define a shared memory, set [MemoryType.shared] and specify a
+/// maximum:
+///
+/// ```
+/// @pragma('wasm:memory-type', MemoryType(limits: Limits(1, 10), shared: true))
+/// @pragma('wasm:import', 'module.sharedMemory')
+/// external Memory get sharedMemory;
+/// ```
+///
+/// Declaring a memory as shared does not make the load and store methods
+/// atomic or provide synchronization with other threads.
 ///
 /// ## Restrictions
 ///

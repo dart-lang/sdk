@@ -307,21 +307,21 @@ library;
 import self as mai6;
 import "dart:core" as core;
 
-static method main(core::List<core::String> args, dynamic other, [dynamic extra]) → void
+static method main(core::List<core::String> args, dynamic other, [dynamic extra = null]) → void
   ;
 
 library;
 import self as mai7;
 import "dart:core" as core;
 
-static method main({has-declared-initializer core::List<core::String> args}) → void
+static method main({core::List<core::String> args = const <core::String>[]}) → void
   ;
 
 library;
 import self as mai8;
 import "dart:core" as core;
 
-static method main([core::List<core::String>? args]) → void
+static method main([core::List<core::String>? args = null]) → void
   ;
 
 library;
@@ -335,7 +335,7 @@ library;
 import self as mai10;
 import "dart:core" as core;
 
-static method main(core::List<core::String> args, [dynamic other]) → void
+static method main(core::List<core::String> args, [dynamic other = null]) → void
   ;
 
 library;
@@ -370,7 +370,7 @@ library;
 import self as mai13;
 import "dart:core" as core;
 
-static method main([has-declared-initializer core::List<core::String> args, dynamic other]) → void
+static method main([core::List<core::String> args = const <core::String>[], dynamic other = null]) → void
   ;
 
 library;
@@ -420,3 +420,9 @@ library;
 import self as mai17;
 
 typedef main = () → void;
+
+
+Extra constant evaluation status:
+Evaluated: ListLiteral @ org-dartlang-testcase:///main_declaration_method_named_parameters_lib.dart:5:32 -> ListConstant(const <String>[])
+Evaluated: ListLiteral @ org-dartlang-testcase:///main_declaration_method_two_optional_parameters_lib.dart:5:32 -> ListConstant(const <String>[])
+Extra constant evaluation: evaluated: 2, effectively constant: 2

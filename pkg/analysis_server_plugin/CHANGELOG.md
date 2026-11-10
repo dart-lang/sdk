@@ -1,7 +1,42 @@
-## 0.3.21-dev
+## 0.3.27-dev
 
-- Require version `14.2.0-dev` of the `analyzer` package.
-- Require version `0.14.15-dev` of the `analyzer_plugin` package.
+- Require version `14.8.0-dev` of the `analyzer` package.
+- Require version `0.14.21-dev` of the `analyzer_plugin` package.
+
+## 0.3.26
+
+- Require version `14.7.0` of the `analyzer` package.
+- Require version `0.14.20` of the `analyzer_plugin` package.
+
+## 0.3.25
+
+- Require version `14.6.0` of the `analyzer` package.
+- Require version `0.14.19` of the `analyzer_plugin` package.
+
+## 0.3.24
+
+- Require version `14.5.0` of the `analyzer` package.
+- Require version `0.14.18` of the `analyzer_plugin` package.
+
+## 0.3.23
+
+- Improve performance of plugin analysis in cases where all of the enabled
+  plugin rules in a given plugin isolate are "parse-only" rules which have a
+  `true` value for `canUseParsedResult`.
+- Improve performance of plugin analysis in cases where plugins are enabled
+  in subdirectories of a workspace.
+- Require version `14.4.0` of the `analyzer` package.
+- Require version `0.14.17` of the `analyzer_plugin` package.
+
+## 0.3.22
+
+- Require version `14.3.0` of the `analyzer` package.
+- Require version `0.14.16` of the `analyzer_plugin` package.
+
+## 0.3.21
+
+- Require version `14.2.0` of the `analyzer` package.
+- Require version `0.14.15` of the `analyzer_plugin` package.
 
 ## 0.3.20
 

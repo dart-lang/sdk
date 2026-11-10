@@ -11,7 +11,9 @@ resolution: workspace
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
   collection: any
+  source_maps: any
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
-dev_dependency:
+dev_dependencies:
+  expect: any
   lints: any

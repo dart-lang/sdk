@@ -384,7 +384,8 @@ class ActivationFrame : public ZoneObject {
                   TokenPosition* declaration_token_pos,
                   TokenPosition* visible_start_token_pos,
                   TokenPosition* visible_end_token_pos,
-                  Object* value);
+                  Object* value,
+                  AbstractType* static_type = nullptr);
 
   ObjectPtr GetParameter(intptr_t index);
   ClosurePtr GetClosure();
@@ -670,6 +671,14 @@ class GroupDebugger {
   IsolateGroup* isolate_group() { return isolate_group_; }
 
  private:
+  // Helper method once a suitable PC for the code breakpoint has been located.
+  void MakeCodeBreakpointAtUnsafeHelper(Thread* thread,
+                                        const Object& code_or_bytecode,
+                                        uword start,
+                                        uword pc,
+                                        UntaggedPcDescriptors::Kind kind,
+                                        BreakpointLocation* loc);
+
   IsolateGroup* isolate_group_;
 
   std::unique_ptr<SafepointRwLock> code_breakpoints_lock_;

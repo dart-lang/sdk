@@ -31,15 +31,14 @@ class PrimaryConstructorFieldDeclaration
   FieldQuality get fieldQuality => FieldQuality.Concrete;
 
   @override
-  DartType get fieldType => _encoding.type;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  DartType get fieldTypeInternal => _encoding.type;
-
-  @override
-  void set fieldTypeInternal(DartType value) {
-    _encoding.type = value;
+  void registerInferredFieldTypeInternal({
+    required DartType inferredType,
+    required bool isCovariantByClass,
+  }) {
+    _encoding.registerInferredFieldType(
+      inferredType: inferredType,
+      isCovariantByClass: isCovariantByClass,
+    );
   }
 
   @override
@@ -98,10 +97,9 @@ class PrimaryConstructorFieldDeclaration
       !hasSetter ? SetterQuality.Absent : SetterQuality.Implicit;
 
   @override
-  TypeBuilder get type => _fragment.type;
+  TypeBuilder get typeBuilder => _fragment.type;
 
   @override
-  // Coverage-ignore(suite): Not run.
   UriOffsetLength get uriOffset => _fragment.uriOffset;
 
   @override
@@ -130,7 +128,7 @@ class PrimaryConstructorFieldDeclaration
     required DeclarationBuilder? declarationBuilder,
     required List<Annotatable> annotatables,
     required Uri annotatablesFileUri,
-    required bool forConstantConstructor,
+    required bool includeBody,
   }) {
     BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
     for (Annotatable annotatable in annotatables) {
@@ -148,24 +146,24 @@ class PrimaryConstructorFieldDeclaration
   }
 
   @override
-  void buildFieldOutlineNode(
-    SourceLibraryBuilder libraryBuilder,
-    NameScheme nameScheme,
-    BuildNodesCallback f,
-    PropertyReferences references, {
+  void buildFieldOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required NameScheme nameScheme,
+    required BuildNodesCallback callback,
+    required PropertyReferences? references,
     required List<TypeParameter>? classTypeParameters,
   }) {
-    _encoding.buildOutlineNode(
+    ensureDeclaredType(libraryBuilder);
+    _encoding.buildFieldOutlineNode(
       libraryBuilder,
       nameScheme,
       references,
+      type: fieldType,
+      isCovariantByClass: isCovariantByClass,
+      callback: callback,
       isAbstractOrExternal: false,
       classTypeParameters: classTypeParameters,
     );
-    if (type is! InferableTypeBuilder) {
-      fieldType = type.build(libraryBuilder, TypeUse.fieldType);
-    }
-    _encoding.registerMembers(f);
   }
 
   @override
@@ -176,16 +174,28 @@ class PrimaryConstructorFieldDeclaration
     required SourcePropertyBuilder propertyBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required bool includeBody,
   }) {}
 
   @override
   void buildGetterOutlineNode({
     required SourceLibraryBuilder libraryBuilder,
     required NameScheme nameScheme,
-    required BuildNodesCallback f,
+    required BuildNodesCallback callback,
     required PropertyReferences? references,
     required List<TypeParameter>? classTypeParameters,
-  }) {}
+  }) {
+    ensureDeclaredType(libraryBuilder);
+    _encoding.buildGetterOutlineNode(
+      libraryBuilder,
+      nameScheme,
+      references,
+      type: fieldType,
+      callback: callback,
+      isAbstractOrExternal: false,
+      classTypeParameters: classTypeParameters,
+    );
+  }
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -219,6 +229,7 @@ class PrimaryConstructorFieldDeclaration
     required SourcePropertyBuilder propertyBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required bool includeBody,
   }) {}
 
   @override
@@ -226,28 +237,20 @@ class PrimaryConstructorFieldDeclaration
     required SourceLibraryBuilder libraryBuilder,
     required ProblemReporting problemReporting,
     required NameScheme nameScheme,
-    required BuildNodesCallback f,
+    required BuildNodesCallback callback,
     required PropertyReferences? references,
     required List<TypeParameter>? classTypeParameters,
-  }) {}
-
-  @override
-  void checkFieldTypes(
-    ProblemReporting problemReporting,
-    TypeEnvironment typeEnvironment,
-    SourcePropertyBuilder? setterBuilder,
-  ) {
-    problemReporting.checkTypesInField(
-      typeEnvironment: typeEnvironment,
-      isInstanceMember: builder.isDeclarationInstanceMember,
-      isLate: isLate,
-      isExternal: false,
-      hasInitializer: hasInitializer,
-      fieldType: fieldType,
-      name: _fragment.name,
-      nameLength: _fragment.name.length,
-      nameOffset: nameOffset,
-      fileUri: fileUri,
+  }) {
+    ensureDeclaredType(libraryBuilder);
+    _encoding.buildSetterOutlineNode(
+      libraryBuilder,
+      nameScheme,
+      references,
+      type: fieldType,
+      isCovariantByClass: isCovariantByClass,
+      callback: callback,
+      isAbstractOrExternal: false,
+      classTypeParameters: classTypeParameters,
     );
   }
 
@@ -262,8 +265,7 @@ class PrimaryConstructorFieldDeclaration
       isInstanceMember: !isStatic,
       hasSetter: hasSetter,
       isCovariantByDeclaration: false,
-      fileUri: fileUri,
-      fileOffset: nameOffset,
+      uriOffset: uriOffset,
     );
   }
 
@@ -295,9 +297,9 @@ class PrimaryConstructorFieldDeclaration
 
   @override
   int computeFieldDefaultTypes(ComputeDefaultTypeContext context) {
-    if (type is! OmittedTypeBuilder) {
-      context.reportInboundReferenceIssuesForType(type);
-      context.recursivelyReportGenericFunctionTypesAsBoundsForType(type);
+    if (typeBuilder is! OmittedTypeBuilder) {
+      context.reportInboundReferenceIssuesForType(typeBuilder);
+      context.recursivelyReportGenericFunctionTypesAsBoundsForType(typeBuilder);
     }
     return 0;
   }
@@ -341,40 +343,42 @@ class PrimaryConstructorFieldDeclaration
     }
 
     Token? defaultValueToken = _fragment.takeDefaultValueToken();
-    type.registerInferredTypeListener(this);
-    if (type is InferableTypeBuilder) {
+    typeBuilder.registerInferredTypeListener(this);
+    if (typeBuilder is InferableTypeBuilder) {
       // A field with no type and initializer or an instance field without
       // type and initializer need to have the type inferred.
-      _encoding.type = new InferredType(
-        libraryBuilder: libraryBuilder,
-        typeBuilder: type,
-        inferType: inferType,
-        computeType: _computeInferredType,
-        fileUri: fileUri,
-        name: _fragment.name,
-        nameOffset: nameOffset,
-        nameLength: _fragment.name.length,
-        token: defaultValueToken,
+      registerFieldType(
+        new InferredType(
+          libraryBuilder: libraryBuilder,
+          typeBuilder: typeBuilder,
+          inferType: inferType,
+          computeType: _computeInferredType,
+          fileUri: fileUri,
+          name: _fragment.name,
+          nameOffset: nameOffset,
+          nameLength: _fragment.name.length,
+          token: defaultValueToken,
+        ),
       );
-      type.registerInferable(this);
+      typeBuilder.registerInferable(this);
     }
   }
 
   @override
-  void createGetterEncoding(
-    ProblemReporting problemReporting,
-    SourcePropertyBuilder builder,
-    PropertyEncodingStrategy encodingStrategy,
-    TypeParameterFactory typeParameterFactory,
-  ) {}
+  void createGetterEncoding({
+    required ProblemReporting problemReporting,
+    required SourcePropertyBuilder builder,
+    required PropertyEncodingStrategy encodingStrategy,
+    required TypeParameterFactory typeParameterFactory,
+  }) {}
 
   @override
-  void createSetterEncoding(
-    ProblemReporting problemReporting,
-    SourcePropertyBuilder builder,
-    PropertyEncodingStrategy encodingStrategy,
-    TypeParameterFactory typeParameterFactory,
-  ) {}
+  void createSetterEncoding({
+    required ProblemReporting problemReporting,
+    required SourcePropertyBuilder builder,
+    required PropertyEncodingStrategy encodingStrategy,
+    required TypeParameterFactory typeParameterFactory,
+  }) {}
 
   @override
   void ensureGetterTypes({
@@ -404,17 +408,15 @@ class PrimaryConstructorFieldDeclaration
           builder.declarationBuilder as SourceClassBuilder;
       membersBuilder.inferFieldType(
         classBuilder,
-        type,
+        typeBuilder,
         [...?getterOverrideDependencies, ...?setterOverrideDependencies],
         name: _fragment.name,
-        fileUri: fileUri,
-        nameOffset: nameOffset,
-        nameLength: _fragment.name.length,
+        uriOffset: uriOffset,
         isAssignable: hasSetter,
       );
     } else {
       // Coverage-ignore-block(suite): Not run.
-      type.build(
+      typeBuilder.build(
         builder.libraryBuilder,
         TypeUse.fieldType,
         hierarchy: membersBuilder.hierarchyBuilder,
@@ -424,29 +426,8 @@ class PrimaryConstructorFieldDeclaration
 
   @override
   // Coverage-ignore(suite): Not run.
-  Iterable<Reference> getExportedGetterReferences(
-    PropertyReferences references,
-  ) {
-    return [references.getterReference];
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Iterable<Reference> getExportedSetterReferences(
-    PropertyReferences references,
-  ) {
-    return hasSetter ? [references.setterReference] : const [];
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
   void registerSuperCall() {
     _encoding.registerSuperCall();
-  }
-
-  @override
-  void setCovariantByClassInternal() {
-    _encoding.setCovariantByClass();
   }
 
   (DartType, Expression?, ScopeProviderInfo?) _computeInferredType(
@@ -493,15 +474,13 @@ class PrimaryConstructorFieldDeclaration
       '$runtimeType.takePrimaryConstructorFieldInitializer()',
     );
   }
+
+  @override
+  String toString() => '$runtimeType($_fragment)';
 }
 
 class PrimaryConstructorFieldFragment implements Fragment {
-  @override
-  final String name;
-
-  final Uri fileUri;
-
-  final int nameOffset;
+  final UriOffsetName _uriOffsetName;
 
   final List<MetadataBuilder>? metadata;
 
@@ -519,17 +498,8 @@ class PrimaryConstructorFieldFragment implements Fragment {
   SourcePropertyBuilder? _builder;
   PrimaryConstructorFieldDeclaration? _declaration;
 
-  @override
-  late final UriOffsetLength uriOffset = new UriOffsetLength(
-    fileUri,
-    nameOffset,
-    name.length,
-  );
-
   new({
-    required this.name,
-    required this.fileUri,
-    required this.nameOffset,
+    required this._uriOffsetName,
     required this.metadata,
     required this.modifiers,
     required this.type,
@@ -538,6 +508,16 @@ class PrimaryConstructorFieldFragment implements Fragment {
     required this.enclosingCompilationUnit,
     required Token? defaultValueToken,
   }) : _defaultValueToken = defaultValueToken;
+
+  Uri get fileUri => _uriOffsetName.fileUri;
+
+  @override
+  String get name => _uriOffsetName.name;
+
+  int get nameOffset => _uriOffsetName.nameOffset;
+
+  @override
+  UriOffsetLength get uriOffset => _uriOffsetName;
 
   @override
   SourcePropertyBuilder get builder {

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -20,7 +19,7 @@ void main() {
 }
 
 @reflectiveTest
-class AddAwaitTest extends FixProcessorLintTest {
+class AddAwaitTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.addAwait;
 
@@ -147,6 +146,25 @@ void f() async {
 ''');
   }
 
+  Future<void> test_methodInvocation_futureOr() async {
+    await resolveTestCode('''
+import 'dart:async';
+FutureOr doSomething() => Future.value('');
+
+void f() async {
+  doSomething();
+}
+''');
+    await assertHasFix('''
+import 'dart:async';
+FutureOr doSomething() => Future.value('');
+
+void f() async {
+  await doSomething();
+}
+''');
+  }
+
   Future<void> test_methodInvocationWithParserError() async {
     await resolveTestCode('''
 Future doSomething() => Future.value('');
@@ -197,7 +215,8 @@ Future<void> f() async {
 }
 
 @reflectiveTest
-class AddAwaitTestArgumentAndAssignment extends FixProcessorTest {
+class AddAwaitTestArgumentAndAssignment
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addAwait;
 
@@ -232,6 +251,57 @@ void foo(Stream<int> stream) async {
     await assertHasFix('''
 void foo(Stream<int> stream) async {
   await for (var _ in stream) {}
+}
+''');
+  }
+
+  Future<void> test_indexAssignment_value() async {
+    await resolveTestCode('''
+Future<String> bar() async => '';
+
+void baz(List<String> list) {
+  list[0] = bar();
+}
+''');
+    await assertHasFix('''
+Future<String> bar() async => '';
+
+Future<void> baz(List<String> list) async {
+  list[0] = await bar();
+}
+''');
+  }
+
+  Future<void> test_indexExpression_assignment_index() async {
+    await resolveTestCode('''
+class C {
+  void operator []=(int a, int b) {}
+}
+
+void f(C c, Future<int> a) async {
+  c[a] = 0;
+}
+''');
+    await assertHasFix('''
+class C {
+  void operator []=(int a, int b) {}
+}
+
+void f(C c, Future<int> a) async {
+  c[await a] = 0;
+}
+''');
+  }
+
+  Future<void> test_indexExpression_read_index() async {
+    await resolveTestCode('''
+void f(List<int> list, Future<int> a) async {
+  list[a];
+}
+''');
+    await assertHasFix('''
+void f(List<int> list, Future<int> a) async {
+  list[await a];
 }
 ''');
   }
@@ -355,7 +425,7 @@ Future<void> baz() async {
 }
 
 @reflectiveTest
-class AsyncReturnWithNoAwaitTest extends FixProcessorLintTest {
+class AsyncReturnWithNoAwaitTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.addAwait;
 
@@ -394,10 +464,8 @@ class A {
 }
 
 @reflectiveTest
-class UnawaitedReturnInTryBlockTest extends FixProcessorErrorCodeTest {
-  @override
-  DiagnosticCode get diagnosticCode => diag.unawaitedReturnInTryBlock;
-
+class UnawaitedReturnInTryBlockTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addAwait;
 

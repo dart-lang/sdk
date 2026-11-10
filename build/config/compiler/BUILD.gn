@@ -15,6 +15,7 @@ declare_args() {
   enable_cfi = false
 }
 
+import("//build/config/clang/clang.gni")
 import("//build/config/sysroot.gni")
 
 import("//build/config/android/config.gni")
@@ -42,7 +43,7 @@ config("default_include_dirs") {
 
 if (is_win && (is_asan || is_ubsan)) {
   copy("copy_sanitizer_runtime") {
-    sources = [ "//buildtools/win-x64/clang/lib/clang/23/lib/x86_64-pc-windows-msvc/clang_rt.asan_dynamic.dll" ]
+    sources = [ "//buildtools/win-x64/clang/lib/clang/24/lib/x86_64-pc-windows-msvc/clang_rt.asan_dynamic.dll" ]
     outputs = [ "$root_out_dir/{{source_file_part}}" ]
   }
 }
@@ -135,7 +136,7 @@ config("compiler") {
         # linking. Hence, pass the runtime libraries instead of
         # -fsanitize=address or -fsanitize=fuzzer.
         _clang_lib_dir =
-            "//buildtools/win-x64/clang/lib/clang/23/lib/x86_64-pc-windows-msvc"
+            "//buildtools/win-x64/clang/lib/clang/24/lib/x86_64-pc-windows-msvc"
         libs = [ "$_clang_lib_dir/clang_rt.asan_dynamic.lib" ]
         ldflags += [ "-libpath:" + rebase_path("$_clang_lib_dir") ]
         if (is_shared_library) {
@@ -185,7 +186,7 @@ config("compiler") {
         # linking.  Hence, pass the runtime libraries instead of
         # -fsanitize=undefined.
         _clang_lib_dir =
-            "//buildtools/win-x64/clang/lib/clang/23/lib/x86_64-pc-windows-msvc"
+            "//buildtools/win-x64/clang/lib/clang/24/lib/x86_64-pc-windows-msvc"
         libs = [ "$_clang_lib_dir/clang_rt.ubsan_standalone.lib" ]
         ldflags += [ "-libpath:" + rebase_path("$_clang_lib_dir") ]
       } else {
@@ -200,15 +201,15 @@ config("compiler") {
     if (is_mac && (is_asan || is_lsan || is_tsan || is_ubsan)) {
       ldflags += [
         "-rpath",
-        "buildtools/mac-$host_cpu/clang/lib/clang/23/lib/darwin",
+        "buildtools/mac-$host_cpu/clang/lib/clang/24/lib/darwin",
 
         # Back from xcodebuild/ReleaseTSAN/dart
         "-rpath",
-        "@loader_path/../../buildtools/mac-$host_cpu/clang/lib/clang/23/lib/darwin",
+        "@loader_path/../../buildtools/mac-$host_cpu/clang/lib/clang/24/lib/darwin",
 
         # Back from xcodebuild/ReleaseTSAN/dart-sdk/bin/dart
         "-rpath",
-        "@loader_path/../../../../buildtools/mac-$host_cpu/clang/lib/clang/23/lib/darwin",
+        "@loader_path/../../../../buildtools/mac-$host_cpu/clang/lib/clang/24/lib/darwin",
       ]
     }
   }
@@ -452,7 +453,8 @@ config("compiler") {
   # changes since artifacts from an older version of the toolchain may or may
   # not be compatible with newer ones. To achieve this, we insert a synthetic
   # define into the compile line.
-  if (is_clang && (is_linux || is_mac || is_ios) && dart_sysroot != "alpine") {
+  if (is_clang && clang_prefix == default_clang_prefix &&
+      (is_linux || is_mac || is_ios)) {
     if (is_linux && host_cpu == "arm64") {
       toolchain_stamp_file =
           "//buildtools/linux-arm64/clang/.versions/clang.cipd_version"
@@ -469,18 +471,19 @@ config("compiler") {
     }
     toolchain_cipd_version = read_file(toolchain_stamp_file, "json")
     defines = [ "TOOLCHAIN_VERSION=${toolchain_cipd_version.instance_id}" ]
+  }
 
-    if (is_linux) {
-      if (current_cpu == "riscv64") {
-        sysroot_stamp_file =
-            "//buildtools/sysroot/focal/.versions/sysroot.cipd_version"
-      } else {
-        sysroot_stamp_file =
-            "//buildtools/sysroot/linux/.versions/sysroot.cipd_version"
-      }
-      sysroot_cipd_version = read_file(sysroot_stamp_file, "json")
-      defines += [ "SYSROOT_VERSION=${sysroot_cipd_version.instance_id}" ]
+  # Likewise for the sysroot.
+  if (is_linux && dart_sysroot == "debian") {
+    if (current_cpu == "x64") {
+      sysroot_stamp_file =
+          "//buildtools/sysroot/linux/.versions/sysroot.cipd_version"
+    } else {
+      sysroot_stamp_file =
+          "//buildtools/sysroot/jammy/.versions/sysroot.cipd_version"
     }
+    sysroot_cipd_version = read_file(sysroot_stamp_file, "json")
+    defines += [ "SYSROOT_VERSION=${sysroot_cipd_version.instance_id}" ]
   }
 
   # Assign any flags set for the C compiler to asmflags so that they are sent
@@ -776,10 +779,15 @@ config("chromium_code") {
       # disabled, so only do that for Release build.
       defines += [ "_FORTIFY_SOURCE=2" ]
     }
+    if (current_cpu == "ia32" || current_cpu == "arm" ||
+        current_cpu == "riscv32") {
+      defines += [ "_TIME_BITS=64" ]
+    }
   }
   cflags += default_warning_flags
   cflags_cc = default_warning_flags_cc
 }
+
 config("no_chromium_code") {
   cflags = []
   cflags_cc = []
@@ -805,6 +813,7 @@ config("rtti") {
     cflags_cc = [ "/GR" ]
   }
 }
+
 config("no_rtti") {
   if (is_win) {
     cflags_cc = [ "/GR-" ]
@@ -900,6 +909,7 @@ if (is_win) {
       # See http://lwn.net/Articles/192624/ .
       "-Wl,-O2",
       "-Wl,--gc-sections",
+      "-Wl,--no-keep-memory",
     ]
 
     if (!using_sanitizer) {
@@ -910,10 +920,13 @@ if (is_win) {
     }
   }
 
-  if (is_clang && !using_sanitizer && current_cpu != "arm64e") {
+  if (is_clang && !using_sanitizer && current_cpu != "arm64e" &&
+      clang_prefix == default_clang_prefix) {
     # Identical code folding to reduce size.
     # Warning: This changes C/C++ semantics of function pointer comparison.
     # Needs lld/gold/mold instead of GNU ld/Mac ld.
+    # arm64e as-yet-unimplemented by lld, uses Mac ld.
+    # Non-Fuchsia-vended Clang might default to ld.
     common_optimize_on_ldflags += [ "-Wl,--icf=all" ]
   }
 }
@@ -976,11 +989,19 @@ config("symbols") {
     cflags = [ "/Zi" ]  # Produce PDB file, no edit and continue.
     ldflags = [ "/DEBUG" ]
   } else {
-    cflags = [
-      "-g3",
-      "-ggdb3",
-    ]
+    cflags = [ "-g" ]
     asmflags = [ "-g" ]
+    if (is_clang) {
+      # On Android riscv64, -gsplit-dwarf is unsupported with RISC-V linker
+      # relaxation (-mrelax)
+      if (!is_android || current_cpu != "riscv64") {
+        cflags += [ "-gsplit-dwarf=single" ]
+        asmflags += [ "-gsplit-dwarf=single" ]
+      }
+    } else {
+      cflags += [ "-gsplit-dwarf" ]
+      asmflags += [ "-gsplit-dwarf" ]
+    }
   }
 }
 

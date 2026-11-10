@@ -10,7 +10,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 ///
 /// The visitor returns `null` if the type wasn't changed.
 class DemotionVisitor extends ReplacementVisitor {
-  const DemotionVisitor();
+  const new();
 
   @override
   TypeParameterTypeImpl? visitTypeParameterType(TypeParameterType type) {

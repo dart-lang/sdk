@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/interactive_forms/interactive_forms.dart';
@@ -32,6 +34,21 @@ class ComputeStatusFailure extends ComputeStatus {
 /// The result that signals the success.
 class ComputeStatusSuccess extends ComputeStatus {}
 
+/// The result that signals the refactor can proceed but has errors/warnings.
+///
+/// Usually this will result in a "Refactor anyway?" prompt for the user to
+/// continue/abort.
+///
+/// It is important that when a refactoring produces this result, it still
+/// proceeds with computing the edits and does not exit out early (like
+/// [ComputeStatusFailure]), otherwise the continue action will not apply edits.
+class ComputeStatusWarning extends ComputeStatus {
+  final String message;
+
+  new(String? message)
+    : message = message ?? 'The refactor introduces new issues.';
+}
+
 /// A version of [RefactoringProducer] that has parameters, allowing the user
 /// to provide additional values (such as a name or target file) when executed.
 abstract class ParameterizedRefactoringProducer extends RefactoringProducer {
@@ -46,7 +63,7 @@ abstract class ParameterizedRefactoringProducer extends RefactoringProducer {
   }
 
   /// Builds the interative form for this refactor.
-  ErrorOr<InteractiveForm> buildInteractiveForm();
+  FutureOr<ErrorOr<InteractiveForm>> buildInteractiveForm();
 
   /// A helper to create an [InteractiveForm] with client capabilities.
   InteractiveForm createForm(List<FormField> fields) {
@@ -75,8 +92,13 @@ abstract class ParameterizedRefactoringProducer extends RefactoringProducer {
       );
     }
 
-    return buildInteractiveForm().mapResultSync((form) {
-      form.processResponse(command.formAnswers ?? []);
+    return (await buildInteractiveForm()).mapResultSync((form) {
+      // Only process answers if they are non-null. Otherwise this is the very
+      // first resolve, and we don't want to trigger errors on mandatory fields
+      // that had no defaults yet.
+      if (command.formAnswers case var answers?) {
+        form.processResponse(answers);
+      }
 
       return success(
         InteractiveExecuteCommandParams(

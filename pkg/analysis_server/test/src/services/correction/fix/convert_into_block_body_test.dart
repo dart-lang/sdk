@@ -20,7 +20,8 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertIntoBlockBodyMissingBodyTest extends FixProcessorTest {
+class ConvertIntoBlockBodyMissingBodyTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.convertIntoBlockBody;
 
@@ -209,7 +210,8 @@ class C {
 }
 
 @reflectiveTest
-class ConvertIntoBlockBodyPrimaryConstructorTest extends FixProcessorTest {
+class ConvertIntoBlockBodyPrimaryConstructorTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.convertIntoBlockBody;
 
@@ -258,7 +260,8 @@ void f() {
 }
 
 @reflectiveTest
-class ConvertIntoBlockBodySetLiteralMultiTest extends FixProcessorTest {
+class ConvertIntoBlockBodySetLiteralMultiTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.convertIntoBlockBodyMulti;
 
@@ -289,7 +292,8 @@ void f() {
 }
 
 @reflectiveTest
-class ConvertIntoBlockBodySetLiteralTest extends FixProcessorTest {
+class ConvertIntoBlockBodySetLiteralTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.convertIntoBlockBody;
 

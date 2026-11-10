@@ -31,6 +31,7 @@ Future<({String log})> pub({
   required String command,
   required List<String> args,
   required DartPadConfig config,
+  required VersionInfo version,
 }) async {
   if (!supportedPubCommands.contains(command)) {
     throw ArgumentError.value(
@@ -52,7 +53,7 @@ Future<({String log})> pub({
     stdout: stdout.sink,
     stderr: stdout.sink,
     stdin: const Stream.empty(),
-    platformVersion: '3.12.0',
+    platformVersion: version.dartVersion,
     environment: {
       'PUB_CACHE': '/pub-cache',
       'DART_ROOT': config.dartSdkPath,
@@ -60,7 +61,7 @@ Future<({String log})> pub({
       if (config.pubHostedUrl?.isNotEmpty == true)
         'PUB_HOSTED_URL': ?config.pubHostedUrl,
     },
-    httpClient: http.Client(),
+    httpClient: _HeaderStrippingClient(http.Client()),
   ).run(['pub', command, ...args]);
 
   if (exitCode != 0) {
@@ -70,6 +71,36 @@ Future<({String log})> pub({
   }
 
   return (log: stdout.log);
+}
+
+/// An [http.Client] that strips harmless request headers that would otherwise
+/// trigger a CORS preflight (`OPTIONS`) request in browsers.
+///
+/// `package:pub` attaches headers such as `User-Agent: Dart pub ...` and
+/// `Accept: application/vnd.pub.v2+json`, which trigger CORS preflight requests
+/// in Firefox and Safari.
+final class _HeaderStrippingClient extends http.BaseClient {
+  static const _headersToStrip = [
+    'user-agent',
+    'accept',
+    'if-none-match',
+    'if-modified-since',
+  ];
+
+  final http.Client _inner;
+
+  _HeaderStrippingClient(this._inner);
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) {
+    for (final header in _headersToStrip) {
+      request.headers.remove(header);
+    }
+    return _inner.send(request);
+  }
+
+  @override
+  void close() => _inner.close();
 }
 
 typedef _MakeException = Exception Function(String message, {Object? data});

@@ -24,6 +24,9 @@ enum TypeParameterKind {
 
 sealed class TypeParameterBuilder extends TypeDeclarationBuilderImpl
     implements TypeDeclarationBuilder {
+  @override
+  UriOffsetLength get uriOffset;
+
   abstract TypeBuilder? bound;
 
   abstract TypeBuilder? defaultType;

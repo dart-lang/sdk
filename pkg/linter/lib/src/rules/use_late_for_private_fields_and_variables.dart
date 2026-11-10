@@ -142,7 +142,7 @@ class _Visitor(final AnalysisRule rule, final RuleContext context)
           // that we'd need to ensure that there are no instances of either the
           // enclosing class or any subclass of the enclosing class that are ever
           // accessible outside this library.
-          if (Identifier.isPrivateName(variable.name.lexeme)) {
+          if (variable.name.lexeme.isPrivateName) {
             _visit(variable);
           }
         }
@@ -180,7 +180,7 @@ class _Visitor(final AnalysisRule rule, final RuleContext context)
         // enclosing class or any subclass of the enclosing class that are ever
         // accessible outside this library.
         var name = parameter.name?.lexeme;
-        if (name != null && Identifier.isPrivateName(name)) {
+        if (name != null && name.isPrivateName) {
           var parameterElement = parameter.declaredFragment!.element;
           if (parameterElement is FieldFormalParameterElement &&
               !parameterElement.isDeclaring) {
@@ -215,7 +215,7 @@ class _Visitor(final AnalysisRule rule, final RuleContext context)
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     for (var variable in node.variables.variables) {
-      if (Identifier.isPrivateName(variable.name.lexeme)) {
+      if (variable.name.lexeme.isPrivateName) {
         _visit(variable);
       }
     }

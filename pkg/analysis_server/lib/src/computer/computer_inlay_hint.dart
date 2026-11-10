@@ -14,6 +14,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:path/path.dart' as path;
 
 /// A computer for LSP Inlay Hints.
@@ -25,6 +26,7 @@ class DartInlayHintComputer {
   final path.Context pathContext;
   final LineInfo _lineInfo;
   final CompilationUnit _unit;
+  final SourceRange? range;
   final List<InlayHint> _hints = [];
   final LspClientInlayHintsConfiguration _config;
 
@@ -34,6 +36,7 @@ class DartInlayHintComputer {
     // This parameter is optional because this class is used internally
     // and does not currently pass config.
     LspClientInlayHintsConfiguration? config,
+    this.range,
   ]) : _unit = result.unit,
        _lineInfo = result.lineInfo,
        _config = config ?? LspClientInlayHintsConfiguration(null);
@@ -69,6 +72,12 @@ class DartInlayHintComputer {
       return;
     }
     var offset = nodeOrToken.offset;
+    var kind = hasLiteralValue
+        ? _InlayHintKind.parameterNameLiteral
+        : _InlayHintKind.parameterNameNonLiteral;
+    if (!_shouldAddHint(offset, kind)) {
+      return;
+    }
     var position = toPosition(_lineInfo.getLocation(offset));
     var labelParts = Either2<List<InlayHintLabelPart>, String>.t1([
       InlayHintLabelPart(
@@ -76,16 +85,13 @@ class DartInlayHintComputer {
         location: _locationForElement(parameter),
       ),
     ]);
-    _addHint(
+    _hints.add(
       InlayHint(
         label: labelParts,
         position: position,
         kind: InlayHintKind.Parameter,
         paddingRight: true,
       ),
-      hasLiteralValue
-          ? _InlayHintKind.parameterNameLiteral
-          : _InlayHintKind.parameterNameNonLiteral,
     );
   }
 
@@ -126,11 +132,15 @@ class DartInlayHintComputer {
     }
 
     var offset = suffix ? nodeOrToken.end : nodeOrToken.offset;
+    if (!_shouldAddHint(offset, _InlayHintKind.typeArgument)) {
+      return;
+    }
+
     var position = toPosition(_lineInfo.getLocation(offset));
     var labelParts = <InlayHintLabelPart>[];
     _appendTypeArgumentParts(labelParts, types);
 
-    _addHint(
+    _hints.add(
       InlayHint(
         label: Either2<List<InlayHintLabelPart>, String>.t1(
           labelParts.toList(),
@@ -138,7 +148,6 @@ class DartInlayHintComputer {
         position: position,
         kind: InlayHintKind.Type,
       ),
-      _InlayHintKind.typeArgument,
     );
   }
 
@@ -178,25 +187,6 @@ class DartInlayHintComputer {
     addTypeArguments(token, typeArgumentTypes, suffix: suffix);
   }
 
-  /// Record [hint] if the user configuration has [kind] enabled.
-  void _addHint(InlayHint hint, _InlayHintKind kind) {
-    var isEnabled = switch (kind) {
-      _InlayHintKind.dotShorthandType => _config.dotShorthandTypesEnabled,
-      _InlayHintKind.parameterNameLiteral =>
-        _config.parameterNamesMode != InlayHintsParameterNamesMode.none,
-      _InlayHintKind.parameterNameNonLiteral =>
-        _config.parameterNamesMode == InlayHintsParameterNamesMode.all,
-      _InlayHintKind.returnType => _config.returnTypesEnabled,
-      _InlayHintKind.parameterType => _config.parameterTypesEnabled,
-      _InlayHintKind.variableType => _config.variableTypesEnabled,
-      _InlayHintKind.typeArgument => _config.typeArgumentsEnabled,
-    };
-
-    if (isEnabled) {
-      _hints.add(hint);
-    }
-  }
-
   /// Adds a type hint before [nodeOrToken] showing a label for the type [type].
   ///
   /// If [paddingRight] is `true`, padding will be added to the right of the
@@ -209,17 +199,20 @@ class DartInlayHintComputer {
     required bool paddingRight,
   }) {
     var offset = nodeOrToken.offset;
+    if (!_shouldAddHint(offset, inlayHintKind)) {
+      return;
+    }
+
     var position = toPosition(_lineInfo.getLocation(offset));
     var labelParts = <InlayHintLabelPart>[];
     _appendTypePart(labelParts, type);
-    _addHint(
+    _hints.add(
       InlayHint(
         label: Either2<List<InlayHintLabelPart>, String>.t1(labelParts),
         position: position,
         kind: InlayHintKind.Type,
         paddingRight: paddingRight,
       ),
-      inlayHintKind,
     );
   }
 
@@ -325,6 +318,29 @@ class DartInlayHintComputer {
       uri: pathContext.toUri(path),
       range: toRange(lineInfo, nameOffset, firstFragment.name?.length ?? 0),
     );
+  }
+
+  /// Returns whether a hint of [kind] at [offset] should be included.
+  ///
+  /// Hints may be excluded due to config settings or a [range] being specified.
+  bool _shouldAddHint(int offset, _InlayHintKind kind) {
+    if (range case var range?) {
+      if (offset < range.offset || offset > range.end) {
+        return false;
+      }
+    }
+
+    return switch (kind) {
+      _InlayHintKind.dotShorthandType => _config.dotShorthandTypesEnabled,
+      _InlayHintKind.parameterNameLiteral =>
+        _config.parameterNamesMode != InlayHintsParameterNamesMode.none,
+      _InlayHintKind.parameterNameNonLiteral =>
+        _config.parameterNamesMode == InlayHintsParameterNamesMode.all,
+      _InlayHintKind.returnType => _config.returnTypesEnabled,
+      _InlayHintKind.parameterType => _config.parameterTypesEnabled,
+      _InlayHintKind.variableType => _config.variableTypesEnabled,
+      _InlayHintKind.typeArgument => _config.typeArgumentsEnabled,
+    };
   }
 }
 
@@ -486,6 +502,18 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
     var token = node.endToken;
     var type = node.type;
     _computer.maybeAddTypeArguments(token, type, suffix: true);
+  }
+
+  @override
+  void visitNode(AstNode node) {
+    var range = _computer.range;
+    // If this node is outside of the range, we can skip walking down the
+    // children to make things faster. Pruning of nodes themselves is done
+    // in `DartInlayHintComputer._shouldAddHint`.
+    if (range != null && (node.end < range.offset || node.offset > range.end)) {
+      return;
+    }
+    super.visitNode(node);
   }
 
   @override

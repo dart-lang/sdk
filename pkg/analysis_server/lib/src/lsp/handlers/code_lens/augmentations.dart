@@ -12,7 +12,6 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 class AugmentationCodeLensProvider extends AbstractCodeLensProvider {
   new(super.server);
@@ -22,28 +21,18 @@ class AugmentationCodeLensProvider extends AbstractCodeLensProvider {
 
   @override
   Future<ErrorOr<List<CodeLens>>> handle(
+    LspClientCapabilities clientCapabilities,
     CodeLensParams params,
     MessageInfo message,
-    CancellationToken token,
+    ResolvedUnitResult result,
+    ErrorOr<List<CodeLens>>? Function() checkAbort,
   ) async {
-    var clientCapabilities = message.clientCapabilities;
-    if (clientCapabilities == null) {
-      return serverNotInitializedError;
-    }
-
-    var performance = message.performance;
-    var path = pathOfDoc(params.textDocument);
-    var unit = await performance.runAsync(
-      'requireResolvedUnit',
-      (_) => path.mapResult(requireResolvedUnit),
+    var codeLenses = message.performance.run(
+      '_getCodeLenses',
+      (_) => _getCodeLenses(clientCapabilities, result),
     );
-    return await unit.mapResult((result) {
-      return performance.runAsync(
-        '_getCodeLenses',
-        (performance) =>
-            _getCodeLenses(clientCapabilities, result, token, performance),
-      );
-    });
+
+    return codeLenses;
   }
 
   @override
@@ -57,12 +46,10 @@ class AugmentationCodeLensProvider extends AbstractCodeLensProvider {
         clientSupportsGoToLocationCommand(clientCapabilities);
   }
 
-  Future<ErrorOr<List<CodeLens>>> _getCodeLenses(
+  ErrorOr<List<CodeLens>> _getCodeLenses(
     LspClientCapabilities clientCapabilities,
     ResolvedUnitResult result,
-    CancellationToken token,
-    OperationPerformanceImpl performance,
-  ) async {
+  ) {
     var codeLenses = <CodeLens>[];
 
     /// Helper to add a CodeLens at [thisFragment] to [targetFragment] with

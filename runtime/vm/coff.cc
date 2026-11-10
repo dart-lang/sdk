@@ -86,6 +86,11 @@ const GrowableArray<const Code*>& CoffWriter::debug_codes() {
   return dwarf()->codes();
 }
 
+const GrowableArray<const Function*>& CoffWriter::debug_functions() {
+  ASSERT(dwarf() != nullptr);
+  return dwarf()->functions();
+}
+
 const GrowableArray<const Script*>& CoffWriter::debug_scripts() {
   ASSERT(dwarf() != nullptr);
   return dwarf()->scripts();
@@ -99,6 +104,11 @@ const Trie<const char>* CoffWriter::debug_deobfuscation_trie() {
 intptr_t CoffWriter::LookupDebugCodeLabel(const Code& code) {
   ASSERT(dwarf() != nullptr);
   return dwarf()->LookupCodeLabel(code);
+}
+
+intptr_t CoffWriter::LookupDebugFunction(const Function& function) {
+  ASSERT(dwarf() != nullptr);
+  return dwarf()->LookupFunction(function);
 }
 
 intptr_t CoffWriter::LookupDebugScript(const Script& script) {
@@ -327,6 +337,8 @@ void CoffWriter::TranslateAndApply(
     return;
   }
 
+  // The build ID of PE images is not stored in the snapshot (see
+  // Image::build_id()), so emit the sentinel.
   if (target_label == kBuildIdLabel &&
       !label_to_symbol_index_.HasKey(kBuildIdLabel)) {
     write_inline(0);
@@ -334,21 +346,23 @@ void CoffWriter::TranslateAndApply(
   }
 
   // Relocation value is relocated address of the target plus an offset.
+  //
+  // As in ELF, where relocated addresses are virtual addresses for a load
+  // base of 0, the relocated address is the target's RVA. This lets the
+  // runtime compute the image base from it (see Image::shared_object_start())
+  // and print virtual addresses in stack traces that match the PDB.
   if (source_label == R::kSnapshotRelative) {
-    // Special-case kBuildIdLabel during stripped builds: emit the sentinel.
-    // (Image::kNoRelocatedAddress is private to Image; its value is 0.)
     int64_t addend = static_cast<int64_t>(target_offset - source_offset);
     if (target_label == R::kSelfRelative) {
       target_label = kSelfSectionSymbolLabel;
       addend += inline_offset;
     }
     ASSERT(target_label > 0 || target_label == kSelfSectionSymbolLabel);
+    // ADDR32NB only patches the low 32 bits, so the upper 32 bits of an 8-byte
+    // relocation stay zero.
+    RELEASE_ASSERT(Utils::IsUint(32, addend));
     write_inline(addend);
-    if (size_in_bytes == 8) {
-      emit_reloc(coff::PE_REL_AMD64_ADDR64);
-    } else {
-      emit_reloc(coff::PE_REL_AMD64_ADDR32);
-    }
+    emit_reloc(coff::PE_REL_AMD64_ADDR32NB);
     return;
   }
 

@@ -29,8 +29,6 @@ class AsyncStateTest extends PubPackageResolutionTest {
 
   FindNode get findNode => FindNode(result.content, result.unit);
 
-  String get testFilePath => convertPath('$testPackageLibPath/$testFileName');
-
   Future<void> resolveCode(String code) async {
     newFile(testFilePath, code);
     result = await resolveFile(testFilePath);

@@ -74,7 +74,7 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
   );
 
   late final _emptyList = ConstantValue(
-    ast.ListConstant(const ast.DynamicType(), const []),
+    ast.ListConstant(const ast.DynamicType(), ast.ConstantList.empty),
   );
 
   @override

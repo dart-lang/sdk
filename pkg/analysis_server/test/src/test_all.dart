@@ -16,6 +16,7 @@ import 'plugin2/test_all.dart' as plugin2;
 import 'server/test_all.dart' as server;
 import 'services/test_all.dart' as services;
 import 'session_logger/test_all.dart' as session_logger;
+import 'status/test_all.dart' as status;
 import 'utilities/test_all.dart' as utilities;
 
 void main() {
@@ -32,6 +33,7 @@ void main() {
     session_logger.main();
     server.main();
     services.main();
+    status.main();
     utilities.main();
   }, name: 'src');
 }

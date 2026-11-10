@@ -53,8 +53,8 @@ File::~File() {
 
 void File::Close() {
   ASSERT(handle_->fd() >= 0);
-  if (handle_->fd() == STDOUT_FILENO) {
-    // If stdout, redirect fd to Fuchsia's equivalent of /dev/null.
+  if (handle_->fd() == STDOUT_FILENO || handle_->fd() == STDERR_FILENO) {
+    // If stdout/err, redirect fd to Fuchsia's equivalent of /dev/null.
     auto* null_fdio = fdio_null_create();
     ASSERT(null_fdio != nullptr);
     int null_fd = NO_RETRY_EXPECTED(fdio_bind_to_fd(null_fdio, -1, 0));

@@ -7,10 +7,13 @@ import 'package:analysis_server/src/session_logger/entry_kind.dart';
 import 'package:analysis_server/src/session_logger/log_entry.dart';
 import 'package:analysis_server/src/session_logger/log_normalizer.dart';
 import 'package:analysis_server/src/session_logger/process_id.dart';
+import 'package:analysis_server/src/session_logger/session_listener.dart';
 import 'package:analysis_server/src/session_logger/session_logger_sink.dart';
+import 'package:analyzer/exception/exception.dart';
+import 'package:analyzer/instrumentation/instrumentation.dart';
 
 /// Used to write information about a session to a log.
-class SessionLogger {
+class SessionLogger implements SessionListener {
   /// The normalizer used to normalize paths in log entries.
   final LogNormalizer normalizer;
 
@@ -35,9 +38,7 @@ class SessionLogger {
 
   new _({required this.sink, required this.normalizer});
 
-  /// Adds normalization replacements for the package roots.
-  ///
-  /// The [packageRoots] maps package names to package root paths.
+  @override
   void addPackageRoots({
     required int index,
     required Map<String, Uri> packageRoots,
@@ -50,7 +51,7 @@ class SessionLogger {
     }
   }
 
-  /// Log that the given [arguments] were included on the command-line.
+  @override
   void logCommandLine({required List<String> arguments}) {
     sink?.writeLogEntry({
       key.time: DateTime.now().millisecondsSinceEpoch,
@@ -59,7 +60,46 @@ class SessionLogger {
     });
   }
 
-  /// Logs that the given [message] was sent [from] one process [to] another.
+  @override
+  void logException({
+    required Object exception,
+    StackTrace? stackTrace,
+    List<InstrumentationServiceAttachment>? attachments,
+  }) {
+    // TODO(brianwilkerson): `InstrumentationService` is defined in the
+    //  `analyzer` package and is used in several places to report exceptions.
+    //  Those eceptions are not currently being recorded. There are two possible
+    //  paths:
+    //  - move `SessionLogger` to the analyzer package
+    //  - pass in an `InstrumentationService` that forwards exceptions to a
+    //    session logger
+    sink?.writeLogEntry({
+      key.time: DateTime.now().millisecondsSinceEpoch,
+      key.kind: EntryKind.exception.name,
+      key.message: exception.toString(),
+      key.stackTrace: ?stackTrace?.toString(),
+      key.attachments: ?attachments
+          ?.map(
+            (attachment) => {
+              'id': attachment.id,
+              'stringValue': attachment.stringValue,
+            },
+          )
+          .toList(),
+      key.nestedException: ?_nestedException(exception),
+    });
+  }
+
+  @override
+  void logInfo(String message) {
+    sink?.writeLogEntry({
+      key.time: DateTime.now().millisecondsSinceEpoch,
+      key.kind: EntryKind.info.name,
+      key.message: message,
+    });
+  }
+
+  @override
   void logMessage({
     required ProcessId from,
     required ProcessId to,
@@ -80,8 +120,25 @@ class SessionLogger {
     });
   }
 
-  /// Shuts down the logger.
+  @override
   Future<void> shutdown() async {
     await sink?.close();
+  }
+
+  /// Returns a map representing the exception nested inside the [exception]
+  /// when the [exception] is a [CaughtException].
+  Map<String, Object>? _nestedException(Object exception) {
+    if (exception is CaughtException) {
+      var nestedException = exception.exception;
+      var stackTrace = nestedException is CaughtException
+          ? nestedException.stackTrace
+          : null;
+      return {
+        key.message: nestedException.toString(),
+        key.stackTrace: ?stackTrace?.toString(),
+        key.nestedException: ?_nestedException(nestedException),
+      };
+    }
+    return null;
   }
 }

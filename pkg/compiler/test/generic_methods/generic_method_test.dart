@@ -12,7 +12,9 @@ import 'package:compiler/src/js_model/js_strategy.dart';
 import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
+
 import '../helpers/d8_helper.dart';
+
 import 'package:compiler/src/util/memory_compiler.dart';
 
 const String SOURCE = r'''
@@ -201,20 +203,16 @@ main(List<String> args) {
           className,
         );
         Expect.isNotNull(cls, "Class '$className' not found.");
-        method =
-            elementEnvironment.lookupClassMember(
-                  cls!,
-                  Name(methodName, cls.library.canonicalUri),
-                )
-                as FunctionEntity?;
+        method = elementEnvironment.lookupClassMember(
+          cls!,
+          Name(methodName, cls.library.canonicalUri),
+        ) as FunctionEntity?;
         Expect.isNotNull(method, "Method '$methodName' not found in $cls.");
       } else {
-        method =
-            elementEnvironment.lookupLibraryMember(
-                  elementEnvironment.mainLibrary!,
-                  methodName,
-                )
-                as FunctionEntity?;
+        method = elementEnvironment.lookupLibraryMember(
+          elementEnvironment.mainLibrary!,
+          methodName,
+        ) as FunctionEntity?;
         Expect.isNotNull(method, "Method '$methodName' not found.");
       }
       js.Fun fun = backendStrategy.generatedCode[method] as js.Fun;

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'function.dart';
+import 'ir.dart';
 
 /// The interface for the functions in a module.
 class Functions {
@@ -19,4 +19,13 @@ class Functions {
       : defined[index - imported.length];
 
   int get length => imported.length + defined.length;
+
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    for (final f in defined) {
+      f.collectUsedTypes(usedTypes);
+    }
+    for (final f in imported) {
+      f.collectUsedTypes(usedTypes);
+    }
+  }
 }

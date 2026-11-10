@@ -250,6 +250,58 @@ addressReceiver = DiagnosticWithoutArgumentsImpl(
   expectedTypes: [],
 );
 
+/// Reported for a name in a comment reference that is imported, or
+/// doc-imported, from more than one library.
+///
+/// Parameters:
+/// String name: the ambiguous name
+/// String libraries: the names of the libraries containing the conflicting
+///                   declarations
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String name,
+    required String libraries,
+  })
+>
+ambiguousCommentReferenceName = DiagnosticWithArguments(
+  name: 'ambiguous_comment_reference',
+  problemMessage:
+      "The name '{0}' is ambiguous because it is defined in the libraries {1}.",
+  correctionMessage:
+      "Try using a prefix for one of the import directives, or hiding the "
+      "name from all but one of the imports.",
+  type: DiagnosticType.STATIC_WARNING,
+  uniqueName: 'ambiguous_comment_reference_name',
+  withArguments: _withArgumentsAmbiguousCommentReferenceName,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Reported for a comment reference that consists of only an import prefix,
+/// such as `[p]`, which references the library imported with this prefix,
+/// when more than one library is imported with this prefix.
+///
+/// Parameters:
+/// String prefix: the prefix used alone in the comment reference
+/// String libraries: the names of the libraries imported with the prefix
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String prefix,
+    required String libraries,
+  })
+>
+ambiguousCommentReferencePrefix = DiagnosticWithArguments(
+  name: 'ambiguous_comment_reference',
+  problemMessage:
+      "The prefix '{0}' can't be used to reference a library, because it's used "
+      "to import more than one library: {1}.",
+  correctionMessage:
+      "Try using a prefix that is used to import only one library.",
+  type: DiagnosticType.STATIC_WARNING,
+  uniqueName: 'ambiguous_comment_reference_prefix',
+  withArguments: _withArgumentsAmbiguousCommentReferencePrefix,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
 /// Parameters:
 /// String name: the name of the ambiguous element
 /// Uri firstUri: the name of the first library in which the type is found
@@ -328,17 +380,21 @@ ambiguousExtensionMemberAccessTwo = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String name: the name of the ambiguous type
-/// String libraries: the names of the libraries that the type is found
+/// String kind: the kind of conflicting declarations, or 'name' for other
+///              conflicts
+/// String name: the ambiguous name
+/// String libraries: the names of the libraries containing the conflicting
+///                   declarations
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
+    required String kind,
     required String name,
     required String libraries,
   })
 >
 ambiguousImport = DiagnosticWithArguments(
   name: 'ambiguous_import',
-  problemMessage: "The name '{0}' is defined in the libraries {1}.",
+  problemMessage: "The {0} '{1}' is defined in the libraries {2}.",
   correctionMessage:
       "Try using 'as prefix' for one of the import directives, or hiding the "
       "name from all but one of the imports.",
@@ -346,7 +402,11 @@ ambiguousImport = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'ambiguous_import',
   withArguments: _withArgumentsAmbiguousImport,
-  expectedTypes: [ExpectedType.string, ExpectedType.string],
+  expectedTypes: [
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+  ],
 );
 
 /// No parameters.
@@ -499,19 +559,19 @@ annotationWithTypeArgumentsUninstantiated = DiagnosticWithoutArgumentsImpl(
 );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-anonymousMethodWrongParameterList = DiagnosticWithoutArgumentsImpl(
-  name: 'anonymous_method_wrong_parameter_list',
-  problemMessage:
-      "An anonymous method with a parameter list must have exactly one required, "
-      "positional parameter.",
-  correctionMessage:
-      "Try removing the parameter list, or changing it to have exactly one "
-      "required positional parameter.",
-  type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'anonymous_method_wrong_parameter_list',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments anonymousMethodWrongParameterList =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'anonymous_method_wrong_parameter_list',
+      problemMessage:
+          "An anonymous method with a parameter list must have exactly one required, "
+          "positional parameter.",
+      correctionMessage:
+          "Try removing the parameter list, or changing it to have exactly one "
+          "required positional parameter.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'anonymous_method_wrong_parameter_list',
+      expectedTypes: [],
+    );
 
 /// Parameters:
 /// Type receiverType: the name of the type of the receiver
@@ -657,19 +717,19 @@ assetDoesNotExist = DiagnosticWithArguments(
 );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-assetFieldNotList = DiagnosticWithoutArgumentsImpl(
-  name: 'asset_field_not_list',
-  problemMessage:
-      "The value of the 'assets' field is expected to be a list of relative file "
-      "paths.",
-  correctionMessage:
-      "Try converting the value to be a list of relative file paths.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'asset_field_not_list',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments assetFieldNotList =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'asset_field_not_list',
+      problemMessage:
+          "The value of the 'assets' field is expected to be a list of relative file "
+          "paths.",
+      correctionMessage:
+          "Try converting the value to be a list of relative file paths.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.STATIC_WARNING,
+      uniqueName: 'asset_field_not_list',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments assetMissingPath =
@@ -743,38 +803,6 @@ assignmentOfDoNotStore = DiagnosticWithArguments(
   expectedTypes: [ExpectedType.string],
 );
 
-/// No parameters.
-const DiagnosticWithoutArguments
-assignmentToConst = DiagnosticWithoutArgumentsImpl(
-  name: 'assignment_to_const',
-  problemMessage:
-      "Constant variables can't be assigned a value after initialization.",
-  correctionMessage:
-      "Try removing the assignment, or remove the modifier 'const' from the "
-      "variable.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'assignment_to_const',
-  expectedTypes: [],
-);
-
-/// Parameters:
-/// String variableName: the name of the final variable
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String variableName})
->
-assignmentToFinal = DiagnosticWithArguments(
-  name: 'assignment_to_final',
-  problemMessage: "'{0}' can't be used as a setter because it's final.",
-  correctionMessage:
-      "Try finding a different setter, or making '{0}' non-final.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'assignment_to_final',
-  withArguments: _withArgumentsAssignmentToFinal,
-  expectedTypes: [ExpectedType.string],
-);
-
 /// Parameters:
 /// String variableName: the name of the variable
 const DiagnosticWithArguments<
@@ -791,50 +819,6 @@ assignmentToFinalLocal = DiagnosticWithArguments(
   expectedTypes: [ExpectedType.string],
 );
 
-/// Parameters:
-/// String variableName: the name of the reference
-/// String className: the name of the class
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({
-    required String variableName,
-    required String className,
-  })
->
-assignmentToFinalNoSetter = DiagnosticWithArguments(
-  name: 'assignment_to_final_no_setter',
-  problemMessage: "There isn't a setter named '{0}' in class '{1}'.",
-  correctionMessage:
-      "Try correcting the name to reference an existing setter, or declare "
-      "the setter.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'assignment_to_final_no_setter',
-  withArguments: _withArgumentsAssignmentToFinalNoSetter,
-  expectedTypes: [ExpectedType.string, ExpectedType.string],
-);
-
-/// No parameters.
-const DiagnosticWithoutArguments assignmentToFunction =
-    DiagnosticWithoutArgumentsImpl(
-      name: 'assignment_to_function',
-      problemMessage: "Functions can't be assigned a value.",
-      hasPublishedDocs: true,
-      type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'assignment_to_function',
-      expectedTypes: [],
-    );
-
-/// No parameters.
-const DiagnosticWithoutArguments assignmentToMethod =
-    DiagnosticWithoutArgumentsImpl(
-      name: 'assignment_to_method',
-      problemMessage: "Methods can't be assigned a value.",
-      hasPublishedDocs: true,
-      type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'assignment_to_method',
-      expectedTypes: [],
-    );
-
 /// No parameters.
 const DiagnosticWithoutArguments
 assignmentToPrimaryConstructorParameter = DiagnosticWithoutArgumentsImpl(
@@ -846,17 +830,6 @@ assignmentToPrimaryConstructorParameter = DiagnosticWithoutArgumentsImpl(
   uniqueName: 'assignment_to_primary_constructor_parameter',
   expectedTypes: [],
 );
-
-/// No parameters.
-const DiagnosticWithoutArguments assignmentToType =
-    DiagnosticWithoutArgumentsImpl(
-      name: 'assignment_to_type',
-      problemMessage: "Types can't be assigned a value.",
-      hasPublishedDocs: true,
-      type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'assignment_to_type',
-      expectedTypes: [],
-    );
 
 /// No parameters.
 const DiagnosticWithoutArguments asyncForInWrongContext =
@@ -965,19 +938,19 @@ augmentationFormalParameterTypeMismatch = DiagnosticWithArguments(
 );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-augmentationInducedGetterAlreadyComplete = DiagnosticWithoutArgumentsImpl(
-  name: 'declaration_already_complete',
-  problemMessage:
-      "The getter induced by this augmentation is complete, but the getter being "
-      "augmented is already complete.",
-  correctionMessage:
-      "Try removing the augmentation, or making one of the declarations "
-      "'abstract'.",
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'augmentation_induced_getter_already_complete',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments augmentationInducedGetterAlreadyComplete =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'declaration_already_complete',
+      problemMessage:
+          "The getter induced by this augmentation is complete, but the getter being "
+          "augmented is already complete.",
+      correctionMessage:
+          "Try removing the augmentation, or making one of the declarations "
+          "'abstract'.",
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'augmentation_induced_getter_already_complete',
+      expectedTypes: [],
+    );
 
 /// Parameters:
 /// Type expectedType: the return type of the getter being augmented
@@ -1003,19 +976,19 @@ augmentationInducedGetterReturnTypeMismatch = DiagnosticWithArguments(
 );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-augmentationInducedSetterAlreadyComplete = DiagnosticWithoutArgumentsImpl(
-  name: 'declaration_already_complete',
-  problemMessage:
-      "The setter induced by this augmentation is complete, but the setter being "
-      "augmented is already complete.",
-  correctionMessage:
-      "Try removing the augmentation, or making one of the declarations "
-      "'abstract'.",
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'augmentation_induced_setter_already_complete',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments augmentationInducedSetterAlreadyComplete =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'declaration_already_complete',
+      problemMessage:
+          "The setter induced by this augmentation is complete, but the setter being "
+          "augmented is already complete.",
+      correctionMessage:
+          "Try removing the augmentation, or making one of the declarations "
+          "'abstract'.",
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'augmentation_induced_setter_already_complete',
+      expectedTypes: [],
+    );
 
 /// Parameters:
 /// String modifier: the lexeme of the modifier.
@@ -1042,8 +1015,7 @@ const DiagnosticWithArguments<
 >
 augmentationModifierMissing = DiagnosticWithArguments(
   name: 'augmentation_modifier_missing',
-  problemMessage:
-      "The augmentation is missing the '{0}' modifier that the declaration has.",
+  problemMessage: "The augmentation is missing the '{0}' modifier that the declaration has.",
   correctionMessage:
       "Try adding the '{0}' modifier, or removing it from the declaration.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
@@ -1349,16 +1321,15 @@ augmentedExpressionIsNotSetter = DiagnosticWithoutArgumentsImpl(
 );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-augmentedExpressionIsSetter = DiagnosticWithoutArgumentsImpl(
-  name: 'augmented_expression_is_setter',
-  problemMessage:
-      "The augmented declaration is a setter, it can't be used to read a value.",
-  correctionMessage: "Try assigning a value to the augmented setter.",
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'augmented_expression_is_setter',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments augmentedExpressionIsSetter =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'augmented_expression_is_setter',
+      problemMessage: "The augmented declaration is a setter, it can't be used to read a value.",
+      correctionMessage: "Try assigning a value to the augmented setter.",
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'augmented_expression_is_setter',
+      expectedTypes: [],
+    );
 
 /// Parameters:
 /// String operator: the lexeme of the operator.
@@ -1814,8 +1785,7 @@ castToNonType = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments catchSyntax = DiagnosticWithoutArgumentsImpl(
   name: 'catch_syntax',
-  problemMessage:
-      "'catch' must be followed by '(identifier)' or '(identifier, identifier)'.",
+  problemMessage: "'catch' must be followed by '(identifier)' or '(identifier, identifier)'.",
   correctionMessage:
       "No types are needed, the first is given by 'on', the second is always "
       "'StackTrace'.",
@@ -1828,8 +1798,7 @@ const DiagnosticWithoutArguments catchSyntax = DiagnosticWithoutArgumentsImpl(
 const DiagnosticWithoutArguments
 catchSyntaxExtraParameters = DiagnosticWithoutArgumentsImpl(
   name: 'catch_syntax_extra_parameters',
-  problemMessage:
-      "'catch' must be followed by '(identifier)' or '(identifier, identifier)'.",
+  problemMessage: "'catch' must be followed by '(identifier)' or '(identifier, identifier)'.",
   correctionMessage:
       "No types are needed, the first is given by 'on', the second is always "
       "'StackTrace'.",
@@ -2874,16 +2843,16 @@ const DiagnosticWithoutArguments constEvalTypeBool =
 /// for text about "An expression of the form e1 & e2".
 ///
 /// No parameters.
-const DiagnosticWithoutArguments
-constEvalTypeBoolInt = DiagnosticWithoutArgumentsImpl(
-  name: 'const_eval_type_bool_int',
-  problemMessage:
-      "In constant expressions, operands of this operator must be of type 'bool' "
-      "or 'int'.",
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'const_eval_type_bool_int',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments constEvalTypeBoolInt =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'const_eval_type_bool_int',
+      problemMessage:
+          "In constant expressions, operands of this operator must be of type 'bool' "
+          "or 'int'.",
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'const_eval_type_bool_int',
+      expectedTypes: [],
+    );
 
 /// See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
 /// for text about "A literal string".
@@ -2905,44 +2874,42 @@ const DiagnosticWithoutArguments constEvalTypeBoolNumString =
 /// the forms e1 >> e2".
 ///
 /// No parameters.
-const DiagnosticWithoutArguments
-constEvalTypeInt = DiagnosticWithoutArgumentsImpl(
-  name: 'const_eval_type_int',
-  problemMessage:
-      "In constant expressions, operands of this operator must be of type 'int'.",
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'const_eval_type_int',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments constEvalTypeInt =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'const_eval_type_int',
+      problemMessage: "In constant expressions, operands of this operator must be of type 'int'.",
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'const_eval_type_int',
+      expectedTypes: [],
+    );
 
 /// See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
 /// for text about "An expression of the form e1 - e2".
 ///
 /// No parameters.
-const DiagnosticWithoutArguments
-constEvalTypeNum = DiagnosticWithoutArgumentsImpl(
-  name: 'const_eval_type_num',
-  problemMessage:
-      "In constant expressions, operands of this operator must be of type 'num'.",
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'const_eval_type_num',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments constEvalTypeNum =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'const_eval_type_num',
+      problemMessage: "In constant expressions, operands of this operator must be of type 'num'.",
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'const_eval_type_num',
+      expectedTypes: [],
+    );
 
 /// See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
 /// for text about "An expression of the form e1 + e2".
 ///
 /// No parameters.
-const DiagnosticWithoutArguments
-constEvalTypeNumString = DiagnosticWithoutArgumentsImpl(
-  name: 'const_eval_type_num_string',
-  problemMessage:
-      "In constant expressions, operands of this operator must be of type 'num' "
-      "or 'String'.",
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'const_eval_type_num_string',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments constEvalTypeNumString =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'const_eval_type_num_string',
+      problemMessage:
+          "In constant expressions, operands of this operator must be of type 'num' "
+          "or 'String'.",
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'const_eval_type_num_string',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments constEvalTypeString =
@@ -3097,33 +3064,32 @@ constNotInitialized = DiagnosticWithArguments(
 );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-constPrimaryConstructorWithBlockBody = DiagnosticWithoutArgumentsImpl(
-  name: 'const_primary_constructor_with_body',
-  problemMessage:
-      "The body part of a constant primary constructor can't have a block body.",
-  correctionMessage:
-      "Try replacing the block body with a semicolon, or removing the "
-      "'const' modifier.",
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'const_primary_constructor_with_block_body',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments constPrimaryConstructorWithBlockBody =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'const_primary_constructor_with_body',
+      problemMessage: "The body part of a constant primary constructor can't have a block body.",
+      correctionMessage:
+          "Try replacing the block body with a semicolon, or removing the "
+          "'const' modifier.",
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'const_primary_constructor_with_block_body',
+      expectedTypes: [],
+    );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-constPrimaryConstructorWithExpressionBody = DiagnosticWithoutArgumentsImpl(
-  name: 'const_primary_constructor_with_body',
-  problemMessage:
-      "The body part of a constant primary constructor can't have an expression "
-      "body.",
-  correctionMessage:
-      "Try replacing the expression body with a semicolon, or removing the "
-      "'const' modifier.",
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'const_primary_constructor_with_expression_body',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments constPrimaryConstructorWithExpressionBody =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'const_primary_constructor_with_body',
+      problemMessage:
+          "The body part of a constant primary constructor can't have an expression "
+          "body.",
+      correctionMessage:
+          "Try replacing the expression body with a semicolon, or removing the "
+          "'const' modifier.",
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'const_primary_constructor_with_expression_body',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments
@@ -3268,18 +3234,17 @@ constWithNonType = DiagnosticWithArguments(
 );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-constWithoutPrimaryConstructor = DiagnosticWithoutArgumentsImpl(
-  name: 'const_without_primary_constructor',
-  problemMessage:
-      "'const' can only be used together with a primary constructor declaration.",
-  correctionMessage:
-      "Try removing the 'const' keyword or adding a primary constructor "
-      "declaration.",
-  type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'const_without_primary_constructor',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments constWithoutPrimaryConstructor =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'const_without_primary_constructor',
+      problemMessage: "'const' can only be used together with a primary constructor declaration.",
+      correctionMessage:
+          "Try removing the 'const' keyword or adding a primary constructor "
+          "declaration.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'const_without_primary_constructor',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments constWithTypeParameters =
@@ -3367,43 +3332,41 @@ constWithUndefinedConstructorDefault = DiagnosticWithArguments(
 );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-continueLabelInvalid = DiagnosticWithoutArgumentsImpl(
-  name: 'continue_label_invalid',
-  problemMessage:
-      "The label used in a 'continue' statement must be defined on either a loop "
-      "or a switch member.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'continue_label_invalid',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments continueLabelInvalid =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'continue_label_invalid',
+      problemMessage:
+          "The label used in a 'continue' statement must be defined on either a loop "
+          "or a switch member.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'continue_label_invalid',
+      expectedTypes: [],
+    );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-continueOutsideOfLoop = DiagnosticWithoutArgumentsImpl(
-  name: 'continue_outside_of_loop',
-  problemMessage:
-      "A continue statement can't be used outside of a loop or switch statement.",
-  correctionMessage: "Try removing the continue statement.",
-  type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'continue_outside_of_loop',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments continueOutsideOfLoop =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'continue_outside_of_loop',
+      problemMessage: "A continue statement can't be used outside of a loop or switch statement.",
+      correctionMessage: "Try removing the continue statement.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'continue_outside_of_loop',
+      expectedTypes: [],
+    );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-continueWithoutLabelInCase = DiagnosticWithoutArgumentsImpl(
-  name: 'continue_without_label_in_case',
-  problemMessage:
-      "A continue statement in a switch statement must have a label as a target.",
-  correctionMessage:
-      "Try adding a label associated with one of the case clauses to the "
-      "continue statement.",
-  type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'continue_without_label_in_case',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments continueWithoutLabelInCase =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'continue_without_label_in_case',
+      problemMessage: "A continue statement in a switch statement must have a label as a target.",
+      correctionMessage:
+          "Try adding a label associated with one of the case clauses to the "
+          "continue statement.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'continue_without_label_in_case',
+      expectedTypes: [],
+    );
 
 /// Parameters:
 /// String typeParameterName: the name of the type parameter
@@ -3461,19 +3424,19 @@ const DiagnosticWithoutArguments covariantMember =
     );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-creationOfStructOrUnion = DiagnosticWithoutArgumentsImpl(
-  name: 'creation_of_struct_or_union',
-  problemMessage:
-      "Subclasses of 'Struct' and 'Union' are backed by native memory, and can't "
-      "be instantiated by a generative constructor.",
-  correctionMessage:
-      "Try allocating it via allocation, or load from a 'Pointer'.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'creation_of_struct_or_union',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments creationOfStructOrUnion =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'creation_of_struct_or_union',
+      problemMessage:
+          "Subclasses of 'Struct' and 'Union' are backed by native memory, and can't "
+          "be instantiated by a generative constructor.",
+      correctionMessage:
+          "Try allocating it via allocation, or load from a 'Pointer'.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'creation_of_struct_or_union',
+      expectedTypes: [],
+    );
 
 /// Dead code is code that is never reached, this can happen for instance if a
 /// statement follows a return statement.
@@ -3495,36 +3458,36 @@ const DiagnosticWithoutArguments deadCode = DiagnosticWithoutArgumentsImpl(
 /// user has catch clauses after `catch (e)` or `on Object catch (e)`.
 ///
 /// No parameters.
-const DiagnosticWithoutArguments
-deadCodeCatchFollowingCatch = DiagnosticWithoutArgumentsImpl(
-  name: 'dead_code_catch_following_catch',
-  problemMessage:
-      "Dead code: Catch clauses after a 'catch (e)' or an 'on Object catch (e)' "
-      "are never reached.",
-  correctionMessage:
-      "Try reordering the catch clauses so that they can be reached, or "
-      "removing the unreachable catch clauses.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'dead_code_catch_following_catch',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments deadCodeCatchFollowingCatch =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'dead_code_catch_following_catch',
+      problemMessage:
+          "Dead code: Catch clauses after a 'catch (e)' or an 'on Object catch (e)' "
+          "are never reached.",
+      correctionMessage:
+          "Try reordering the catch clauses so that they can be reached, or "
+          "removing the unreachable catch clauses.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.STATIC_WARNING,
+      uniqueName: 'dead_code_catch_following_catch',
+      expectedTypes: [],
+    );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-deadCodeLateWildcardVariableInitializer = DiagnosticWithoutArgumentsImpl(
-  name: 'dead_code',
-  problemMessage:
-      "Dead code: The assigned-to wildcard variable is marked late and can never "
-      "be referenced so this initializer will never be evaluated.",
-  correctionMessage:
-      "Try removing the code, removing the late modifier or changing the "
-      "variable to a non-wildcard.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'dead_code_late_wildcard_variable_initializer',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments deadCodeLateWildcardVariableInitializer =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'dead_code',
+      problemMessage:
+          "Dead code: The assigned-to wildcard variable is marked late and can never "
+          "be referenced so this initializer will never be evaluated.",
+      correctionMessage:
+          "Try removing the code, removing the late modifier or changing the "
+          "variable to a non-wildcard.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.STATIC_WARNING,
+      uniqueName: 'dead_code_late_wildcard_variable_initializer',
+      expectedTypes: [],
+    );
 
 /// Dead code is code that is never reached. This case covers cases where the
 /// user has an on-catch clause such as `on A catch (e)`, where a supertype of
@@ -3890,6 +3853,84 @@ deprecatedMemberUse = DiagnosticWithArguments(
 );
 
 /// Parameters:
+/// String name: the name of the implicitly invoked super constructor
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+deprecatedMemberUseImplicitSuperConstructorInvocation = DiagnosticWithArguments(
+  name: 'deprecated_member_use',
+  problemMessage:
+      "The implicitly invoked super constructor '{0}' is deprecated and "
+      "shouldn't be used.",
+  correctionMessage: "Try explicitly invoking a replacement super constructor.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.HINT,
+  uniqueName: 'deprecated_member_use_implicit_super_constructor_invocation',
+  withArguments:
+      _withArgumentsDeprecatedMemberUseImplicitSuperConstructorInvocation,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the implicitly invoked super constructor
+/// String details: message details
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required String details})
+>
+deprecatedMemberUseImplicitSuperConstructorInvocationWithMessage =
+    DiagnosticWithArguments(
+      name: 'deprecated_member_use',
+      problemMessage:
+          "The implicitly invoked super constructor '{0}' is deprecated and "
+          "shouldn't be used. {1}",
+      correctionMessage:
+          "Try explicitly invoking a replacement super constructor.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.HINT,
+      uniqueName: 'deprecated_member_use_implicit_super_constructor_invocation_with_message',
+      withArguments:
+          _withArgumentsDeprecatedMemberUseImplicitSuperConstructorInvocationWithMessage,
+      expectedTypes: [ExpectedType.string, ExpectedType.string],
+    );
+
+/// Parameters:
+/// String name: the name of the implicitly referenced type
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+deprecatedMemberUseImplicitType = DiagnosticWithArguments(
+  name: 'deprecated_member_use',
+  problemMessage: "The implicitly referenced type '{0}' is deprecated and shouldn't be used.",
+  correctionMessage:
+      "Try replacing the use of the deprecated type with the replacement.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.HINT,
+  uniqueName: 'deprecated_member_use_implicit_type',
+  withArguments: _withArgumentsDeprecatedMemberUseImplicitType,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the implicitly referenced type
+/// String details: message details
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required String details})
+>
+deprecatedMemberUseImplicitTypeWithMessage = DiagnosticWithArguments(
+  name: 'deprecated_member_use',
+  problemMessage:
+      "The implicitly referenced type '{0}' is deprecated and shouldn't be used. "
+      "{1}",
+  correctionMessage:
+      "Try replacing the use of the deprecated type with the replacement.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.HINT,
+  uniqueName: 'deprecated_member_use_implicit_type_with_message',
+  withArguments: _withArgumentsDeprecatedMemberUseImplicitTypeWithMessage,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
 /// String name: the name of the member
 /// String details: message details
 const DiagnosticWithArguments<
@@ -3935,19 +3976,6 @@ const DiagnosticWithoutArguments deprecatedMixinFunction =
       expectedTypes: [],
     );
 
-/// No parameters.
-const DiagnosticWithoutArguments deprecatedNewInCommentReference =
-    DiagnosticWithoutArgumentsImpl(
-      name: 'deprecated_new_in_comment_reference',
-      problemMessage:
-          "Using the 'new' keyword in a comment reference is deprecated.",
-      correctionMessage: "Try referring to a constructor by its name.",
-      hasPublishedDocs: true,
-      type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'deprecated_new_in_comment_reference',
-      expectedTypes: [],
-    );
-
 /// Parameters:
 /// String parameterName: the name of the parameter
 const DiagnosticWithArguments<
@@ -3979,6 +4007,23 @@ deprecatedSubclass = DiagnosticWithArguments(
   type: DiagnosticType.STATIC_WARNING,
   uniqueName: 'deprecated_subclass',
   withArguments: _withArgumentsDeprecatedSubclass,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String libraryName: the name of the deprecated web library
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String libraryName})
+>
+deprecatedWebConfiguration = DiagnosticWithArguments(
+  name: 'deprecated_web_configuration',
+  problemMessage:
+      "'dart:{0}' is deprecated and shouldn't be used as an import/export "
+      "configuration.",
+  correctionMessage: "Try using 'dart.library.js_interop' instead.",
+  type: DiagnosticType.STATIC_WARNING,
+  uniqueName: 'deprecated_web_configuration',
+  withArguments: _withArgumentsDeprecatedWebConfiguration,
   expectedTypes: [ExpectedType.string],
 );
 
@@ -4244,18 +4289,6 @@ const DiagnosticWithoutArguments docImportCannotBeDeferred =
     );
 
 /// No parameters.
-const DiagnosticWithoutArguments docImportCannotHaveCombinators =
-    DiagnosticWithoutArgumentsImpl(
-      name: 'doc_import_cannot_have_combinators',
-      problemMessage: "Doc imports can't have show or hide combinators.",
-      correctionMessage: "Try removing the combinator.",
-      hasPublishedDocs: true,
-      type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'doc_import_cannot_have_combinators',
-      expectedTypes: [],
-    );
-
-/// No parameters.
 const DiagnosticWithoutArguments docImportCannotHaveConfigurations =
     DiagnosticWithoutArgumentsImpl(
       name: 'doc_import_cannot_have_configurations',
@@ -4267,15 +4300,18 @@ const DiagnosticWithoutArguments docImportCannotHaveConfigurations =
       expectedTypes: [],
     );
 
+/// Reported for a doc import on a `part of` directive when the
+/// 'enhanced-parts' language feature is not enabled. Such doc imports are
+/// not used to resolve documentation comments.
+///
 /// No parameters.
-const DiagnosticWithoutArguments docImportCannotHavePrefix =
+const DiagnosticWithoutArguments docImportInPartFile =
     DiagnosticWithoutArgumentsImpl(
-      name: 'doc_import_cannot_have_prefix',
-      problemMessage: "Doc imports can't have prefixes.",
-      correctionMessage: "Try removing the prefix.",
-      hasPublishedDocs: true,
+      name: 'doc_import_in_part_file',
+      problemMessage: "Doc imports in part files require the 'enhanced-parts' language feature.",
+      correctionMessage: "Try moving the doc import to the library file.",
       type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'doc_import_cannot_have_prefix',
+      uniqueName: 'doc_import_in_part_file',
       expectedTypes: [],
     );
 
@@ -4290,55 +4326,6 @@ const DiagnosticWithoutArguments dotShorthandMissingContext =
       uniqueName: 'dot_shorthand_missing_context',
       expectedTypes: [],
     );
-
-/// Parameters:
-/// String getterName: the name of the static getter
-/// String typeName: the name of the enclosing type where the getter is being
-///                  looked for
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({
-    required String getterName,
-    required String typeName,
-  })
->
-dotShorthandUndefinedGetter = DiagnosticWithArguments(
-  name: 'dot_shorthand_undefined_member',
-  problemMessage:
-      "The static getter '{0}' isn't defined for the context type '{1}'.",
-  correctionMessage:
-      "Try correcting the name to the name of an existing static getter, or "
-      "defining a getter or field named '{0}'.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'dot_shorthand_undefined_getter',
-  withArguments: _withArgumentsDotShorthandUndefinedGetter,
-  expectedTypes: [ExpectedType.string, ExpectedType.string],
-);
-
-/// Parameters:
-/// String name: the name of the static method or constructor
-/// String contextType: the name of the enclosing type where the method or
-///                     constructor is being looked for
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({
-    required String name,
-    required String contextType,
-  })
->
-dotShorthandUndefinedInvocation = DiagnosticWithArguments(
-  name: 'dot_shorthand_undefined_member',
-  problemMessage:
-      "The static method or constructor '{0}' isn't defined for the context type "
-      "'{1}'.",
-  correctionMessage:
-      "Try correcting the name to the name of an existing static method or "
-      "constructor, or defining a static method or constructor named '{0}'.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'dot_shorthand_undefined_invocation',
-  withArguments: _withArgumentsDotShorthandUndefinedInvocation,
-  expectedTypes: [ExpectedType.string, ExpectedType.string],
-);
 
 /// No parameters.
 const DiagnosticWithoutArguments duplicateConstructorDefault =
@@ -4424,6 +4411,24 @@ const DiagnosticWithoutArguments duplicateExport =
       expectedTypes: [],
     );
 
+/// Duplicate exports.
+///
+/// Parameters:
+/// String fileName: the name of the file containing the duplicated export
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String fileName})
+>
+duplicateExportInPart = DiagnosticWithArguments(
+  name: 'duplicate_export',
+  problemMessage: "Duplicate of export in '{0}'.",
+  correctionMessage: "Try removing all but one export of the library.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.STATIC_WARNING,
+  uniqueName: 'duplicate_export_in_part',
+  withArguments: _withArgumentsDuplicateExportInPart,
+  expectedTypes: [ExpectedType.string],
+);
+
 /// Parameters:
 /// String name: the name of the field
 const DiagnosticWithArguments<
@@ -4505,6 +4510,24 @@ const DiagnosticWithoutArguments duplicateImport =
       uniqueName: 'duplicate_import',
       expectedTypes: [],
     );
+
+/// Duplicate imports.
+///
+/// Parameters:
+/// String fileName: the name of the file containing the duplicated import
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String fileName})
+>
+duplicateImportInPart = DiagnosticWithArguments(
+  name: 'duplicate_import',
+  problemMessage: "Duplicate of import in '{0}'.",
+  correctionMessage: "Try removing all but one import of the library.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.STATIC_WARNING,
+  uniqueName: 'duplicate_import_in_part',
+  withArguments: _withArgumentsDuplicateImportInPart,
+  expectedTypes: [ExpectedType.string],
+);
 
 /// Parameters:
 /// 0: the label that was duplicated
@@ -5600,18 +5623,18 @@ const DiagnosticWithoutArguments extensionDeclaresInstanceField =
     );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-extensionDeclaresMemberOfObject = DiagnosticWithoutArgumentsImpl(
-  name: 'extension_declares_member_of_object',
-  problemMessage:
-      "Extensions can't declare members with the same name as a member declared "
-      "by 'Object'.",
-  correctionMessage: "Try specifying a different name for the member.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'extension_declares_member_of_object',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments extensionDeclaresMemberOfObject =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'extension_declares_member_of_object',
+      problemMessage:
+          "Extensions can't declare members with the same name as a member declared "
+          "by 'Object'.",
+      correctionMessage: "Try specifying a different name for the member.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'extension_declares_member_of_object',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments
@@ -5695,8 +5718,7 @@ const DiagnosticWithoutArguments
 extensionTypeAugmentationSpecifiesRepresentationField =
     DiagnosticWithoutArgumentsImpl(
       name: 'extension_type_augmentation_specifies_representation_field',
-      problemMessage:
-          "An extension type augmentation can't specify a representation field.",
+      problemMessage: "An extension type augmentation can't specify a representation field.",
       correctionMessage: "Try removing the representation field.",
       type: DiagnosticType.SYNTACTIC_ERROR,
       uniqueName: 'extension_type_augmentation_specifies_representation_field',
@@ -6119,18 +6141,18 @@ const DiagnosticWithoutArguments externalVariableInitializer =
     );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-extraAnnotationOnStructField = DiagnosticWithoutArgumentsImpl(
-  name: 'extra_annotation_on_struct_field',
-  problemMessage:
-      "Fields in a struct class must have exactly one annotation indicating the "
-      "native type.",
-  correctionMessage: "Try removing the extra annotation.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'extra_annotation_on_struct_field',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments extraAnnotationOnStructField =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'extra_annotation_on_struct_field',
+      problemMessage:
+          "Fields in a struct class must have exactly one annotation indicating the "
+          "native type.",
+      correctionMessage: "Try removing the extra annotation.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'extra_annotation_on_struct_field',
+      expectedTypes: [],
+    );
 
 /// Parameters:
 /// Token lexeme: The token that was found.
@@ -6325,15 +6347,12 @@ const DiagnosticWithoutArguments ffiNativeMustBeExternal =
 const DiagnosticWithoutArguments
 ffiNativeOnlyClassesExtendingNativefieldwrapperclass1CanBePointer =
     DiagnosticWithoutArgumentsImpl(
-      name:
-          'ffi_native_only_classes_extending_nativefieldwrapperclass1_can_be_pointer',
-      problemMessage:
-          "Only classes extending NativeFieldWrapperClass1 can be passed as Pointer.",
+      name: 'ffi_native_only_classes_extending_nativefieldwrapperclass1_can_be_pointer',
+      problemMessage: "Only classes extending NativeFieldWrapperClass1 can be passed as Pointer.",
       correctionMessage: "Pass as Handle instead.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName:
-          'ffi_native_only_classes_extending_nativefieldwrapperclass1_can_be_pointer',
+      uniqueName: 'ffi_native_only_classes_extending_nativefieldwrapperclass1_can_be_pointer',
       expectedTypes: [],
     );
 
@@ -6400,15 +6419,13 @@ fieldInitializedByMultipleInitializers = DiagnosticWithArguments(
 const DiagnosticWithoutArguments
 fieldInitializedInDeclarationAndInitializerOfPrimaryConstructor =
     DiagnosticWithoutArgumentsImpl(
-      name:
-          'field_initialized_in_declaration_and_initializer_of_primary_constructor',
+      name: 'field_initialized_in_declaration_and_initializer_of_primary_constructor',
       problemMessage:
           "Fields can't be initialized in both the primary constructor and at their "
           "declaration.",
       correctionMessage: "Try removing one of the initializations.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName:
-          'field_initialized_in_declaration_and_initializer_of_primary_constructor',
+      uniqueName: 'field_initialized_in_declaration_and_initializer_of_primary_constructor',
       expectedTypes: [],
     );
 
@@ -6416,31 +6433,29 @@ fieldInitializedInDeclarationAndInitializerOfPrimaryConstructor =
 const DiagnosticWithoutArguments
 fieldInitializedInDeclarationAndParameterOfPrimaryConstructor =
     DiagnosticWithoutArgumentsImpl(
-      name:
-          'field_initialized_in_declaration_and_parameter_of_primary_constructor',
+      name: 'field_initialized_in_declaration_and_parameter_of_primary_constructor',
       problemMessage:
           "Fields can't be initialized in both the primary constructor parameter "
           "list and at their declaration.",
       correctionMessage: "Try removing one of the initializations.",
       type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName:
-          'field_initialized_in_declaration_and_parameter_of_primary_constructor',
+      uniqueName: 'field_initialized_in_declaration_and_parameter_of_primary_constructor',
       expectedTypes: [],
     );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-fieldInitializedInInitializerAndDeclaration = DiagnosticWithoutArgumentsImpl(
-  name: 'field_initialized_in_initializer_and_declaration',
-  problemMessage:
-      "Fields can't be initialized in the constructor if they are final and were "
-      "already initialized at their declaration.",
-  correctionMessage: "Try removing one of the initializations.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'field_initialized_in_initializer_and_declaration',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments fieldInitializedInInitializerAndDeclaration =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'field_initialized_in_initializer_and_declaration',
+      problemMessage:
+          "Fields can't be initialized in the constructor if they are final and were "
+          "already initialized at their declaration.",
+      correctionMessage: "Try removing one of the initializations.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'field_initialized_in_initializer_and_declaration',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments fieldInitializedInParameterAndInitializer =
@@ -7089,17 +7104,17 @@ hack = DiagnosticWithArguments(
 );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-ifElementConditionFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
-  name: 'if_element_condition_from_deferred_library',
-  problemMessage:
-      "Constant values from a deferred library can't be used as values in an if "
-      "condition inside a const collection literal.",
-  correctionMessage: "Try making the deferred import non-deferred.",
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'if_element_condition_from_deferred_library',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments ifElementConditionFromDeferredLibrary =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'if_element_condition_from_deferred_library',
+      problemMessage:
+          "Constant values from a deferred library can't be used as values in an if "
+          "condition inside a const collection literal.",
+      correctionMessage: "Try making the deferred import non-deferred.",
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'if_element_condition_from_deferred_library',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments illegalAssignmentToNonAssignable =
@@ -8036,8 +8051,7 @@ const DiagnosticWithArguments<
 >
 inferenceFailureOnUninitializedVariable = DiagnosticWithArguments(
   name: 'inference_failure_on_uninitialized_variable',
-  problemMessage:
-      "The type of '{0}' can't be inferred without either a type or initializer.",
+  problemMessage: "The type of '{0}' can't be inferred without either a type or initializer.",
   correctionMessage: "Try specifying the type of the variable.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
@@ -8056,8 +8070,7 @@ const DiagnosticWithArguments<
 >
 inferenceFailureOnUntypedParameter = DiagnosticWithArguments(
   name: 'inference_failure_on_untyped_parameter',
-  problemMessage:
-      "The type of '{0}' can't be inferred; a type must be explicitly provided.",
+  problemMessage: "The type of '{0}' can't be inferred; a type must be explicitly provided.",
   correctionMessage: "Try specifying the type of the parameter.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
@@ -8355,25 +8368,24 @@ const DiagnosticWithoutArguments interfaceMixinClass =
     );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-invalidAnnotation = DiagnosticWithoutArgumentsImpl(
-  name: 'invalid_annotation',
-  problemMessage:
-      "Annotation must be either a const variable reference or const constructor "
-      "invocation.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'invalid_annotation',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments invalidAnnotation =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'invalid_annotation',
+      problemMessage:
+          "Annotation must be either a const variable reference or const constructor "
+          "invocation.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'invalid_annotation',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments
 invalidAnnotationConstantValueFromDeferredLibrary =
     DiagnosticWithoutArgumentsImpl(
       name: 'invalid_annotation_constant_value_from_deferred_library',
-      problemMessage:
-          "Constant values from a deferred library can't be used in annotations.",
+      problemMessage: "Constant values from a deferred library can't be used in annotations.",
       correctionMessage:
           "Try moving the constant from the deferred library, or removing "
           "'deferred' from the import.",
@@ -8485,8 +8497,8 @@ const DiagnosticWithoutArguments
 invalidCommentReference = DiagnosticWithoutArgumentsImpl(
   name: 'invalid_comment_reference',
   problemMessage:
-      "Comment references should contain a possibly prefixed identifier and can "
-      "start with 'new', but shouldn't contain anything else.",
+      "Comment references should contain a possibly prefixed identifier, but "
+      "shouldn't contain anything else.",
   type: DiagnosticType.SYNTACTIC_ERROR,
   uniqueName: 'invalid_comment_reference',
   expectedTypes: [],
@@ -8662,17 +8674,17 @@ const DiagnosticWithoutArguments invalidDeprecatedImplementAnnotation =
     );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-invalidDeprecatedInstantiateAnnotation = DiagnosticWithoutArgumentsImpl(
-  name: 'invalid_deprecated_instantiate_annotation',
-  problemMessage:
-      "The annotation '@Deprecated.instantiate' can only be applied to classes.",
-  correctionMessage: "Try removing the '@Deprecated.instantiate' annotation.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'invalid_deprecated_instantiate_annotation',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments invalidDeprecatedInstantiateAnnotation =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'invalid_deprecated_instantiate_annotation',
+      problemMessage: "The annotation '@Deprecated.instantiate' can only be applied to classes.",
+      correctionMessage:
+          "Try removing the '@Deprecated.instantiate' annotation.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.STATIC_WARNING,
+      uniqueName: 'invalid_deprecated_instantiate_annotation',
+      expectedTypes: [],
+    );
 
 /// This warning is generated anywhere where `@Deprecated.mixin` annotates
 /// something other than a mixin class.
@@ -8708,18 +8720,18 @@ invalidDeprecatedOptionalAnnotation = DiagnosticWithoutArgumentsImpl(
 );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-invalidDeprecatedSubclassAnnotation = DiagnosticWithoutArgumentsImpl(
-  name: 'invalid_deprecated_subclass_annotation',
-  problemMessage:
-      "The annotation '@Deprecated.subclass' can only be applied to subclassable "
-      "classes and mixins.",
-  correctionMessage: "Try removing the '@Deprecated.subclass' annotation.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'invalid_deprecated_subclass_annotation',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments invalidDeprecatedSubclassAnnotation =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'invalid_deprecated_subclass_annotation',
+      problemMessage:
+          "The annotation '@Deprecated.subclass' can only be applied to subclassable "
+          "classes and mixins.",
+      correctionMessage: "Try removing the '@Deprecated.subclass' annotation.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.STATIC_WARNING,
+      uniqueName: 'invalid_deprecated_subclass_annotation',
+      expectedTypes: [],
+    );
 
 /// Parameters:
 /// String methodName: the name of the method
@@ -8852,18 +8864,18 @@ const DiagnosticWithoutArguments invalidFieldNameFromObject =
     );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-invalidFieldNamePositional = DiagnosticWithoutArgumentsImpl(
-  name: 'invalid_field_name',
-  problemMessage:
-      "Record field names can't be a dollar sign followed by an integer when the "
-      "integer is the index of a positional field.",
-  correctionMessage: "Try using a different name for the field.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'invalid_field_name_positional',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments invalidFieldNamePositional =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'invalid_field_name',
+      problemMessage:
+          "Record field names can't be a dollar sign followed by an integer when the "
+          "integer is the index of a positional field.",
+      correctionMessage: "Try using a different name for the field.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'invalid_field_name_positional',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments invalidFieldNamePrivate =
@@ -8912,16 +8924,16 @@ invalidGenericFunctionType = DiagnosticWithoutArgumentsImpl(
 );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-invalidHexEscape = DiagnosticWithoutArgumentsImpl(
-  name: 'invalid_hex_escape',
-  problemMessage:
-      "An escape sequence starting with '\\x' must be followed by 2 hexadecimal "
-      "digits.",
-  type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'invalid_hex_escape',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments invalidHexEscape =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'invalid_hex_escape',
+      problemMessage:
+          "An escape sequence starting with '\\x' must be followed by 2 hexadecimal "
+          "digits.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'invalid_hex_escape',
+      expectedTypes: [],
+    );
 
 /// The parameters of this error code must be kept in sync with those of
 /// [diag.invalidOverride].
@@ -9049,17 +9061,17 @@ invalidInsideUnaryPattern = DiagnosticWithoutArgumentsImpl(
 );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-invalidInternalAnnotation = DiagnosticWithoutArgumentsImpl(
-  name: 'invalid_internal_annotation',
-  problemMessage:
-      "Only public elements in a package's private API can be annotated as being "
-      "internal.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'invalid_internal_annotation',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments invalidInternalAnnotation =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'invalid_internal_annotation',
+      problemMessage:
+          "Only public elements in a package's private API can be annotated as being "
+          "internal.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.STATIC_WARNING,
+      uniqueName: 'invalid_internal_annotation',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments invalidLanguageVersionOverrideAtSign =
@@ -9077,20 +9089,20 @@ const DiagnosticWithoutArguments invalidLanguageVersionOverrideAtSign =
     );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-invalidLanguageVersionOverrideEquals = DiagnosticWithoutArgumentsImpl(
-  name: 'invalid_language_version_override',
-  problemMessage:
-      "The Dart language version override comment must be specified with an '=' "
-      "character.",
-  correctionMessage:
-      "Specify a Dart language version override with a comment like '// "
-      "@dart = 2.0'.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'invalid_language_version_override_equals',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments invalidLanguageVersionOverrideEquals =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'invalid_language_version_override',
+      problemMessage:
+          "The Dart language version override comment must be specified with an '=' "
+          "character.",
+      correctionMessage:
+          "Specify a Dart language version override with a comment like '// "
+          "@dart = 2.0'.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.STATIC_WARNING,
+      uniqueName: 'invalid_language_version_override_equals',
+      expectedTypes: [],
+    );
 
 /// Parameters:
 /// int latestMajor: the latest major version
@@ -9115,19 +9127,19 @@ invalidLanguageVersionOverrideGreater = DiagnosticWithArguments(
 );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-invalidLanguageVersionOverrideLocation = DiagnosticWithoutArgumentsImpl(
-  name: 'invalid_language_version_override',
-  problemMessage:
-      "The language version override must be specified before any declaration or "
-      "directive.",
-  correctionMessage:
-      "Try moving the language version override to the top of the file.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'invalid_language_version_override_location',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments invalidLanguageVersionOverrideLocation =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'invalid_language_version_override',
+      problemMessage:
+          "The language version override must be specified before any declaration or "
+          "directive.",
+      correctionMessage:
+          "Try moving the language version override to the top of the file.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.STATIC_WARNING,
+      uniqueName: 'invalid_language_version_override_location',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments
@@ -9195,20 +9207,20 @@ invalidLanguageVersionOverrideTrailingCharacters =
     );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-invalidLanguageVersionOverrideTwoSlashes = DiagnosticWithoutArgumentsImpl(
-  name: 'invalid_language_version_override',
-  problemMessage:
-      "The Dart language version override comment must be specified with exactly "
-      "two slashes.",
-  correctionMessage:
-      "Specify a Dart language version override with a comment like '// "
-      "@dart = 2.0'.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'invalid_language_version_override_two_slashes',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments invalidLanguageVersionOverrideTwoSlashes =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'invalid_language_version_override',
+      problemMessage:
+          "The Dart language version override comment must be specified with exactly "
+          "two slashes.",
+      correctionMessage:
+          "Specify a Dart language version override with a comment like '// "
+          "@dart = 2.0'.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.STATIC_WARNING,
+      uniqueName: 'invalid_language_version_override_two_slashes',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments invalidLiteralAnnotation =
@@ -9281,17 +9293,16 @@ invalidNonVirtualAnnotation = DiagnosticWithoutArgumentsImpl(
 );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-invalidNullAwareElement = DiagnosticWithoutArgumentsImpl(
-  name: 'invalid_null_aware_operator',
-  problemMessage:
-      "The element can't be null, so the null-aware operator '?' is unnecessary.",
-  correctionMessage: "Try removing the operator '?'.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'invalid_null_aware_element',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments invalidNullAwareElement =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'invalid_null_aware_operator',
+      problemMessage: "The element can't be null, so the null-aware operator '?' is unnecessary.",
+      correctionMessage: "Try removing the operator '?'.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.STATIC_WARNING,
+      uniqueName: 'invalid_null_aware_element',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments invalidNullAwareMapEntryKey =
@@ -9496,8 +9507,7 @@ const DiagnosticWithArguments<
 >
 invalidOverrideSetter = DiagnosticWithArguments(
   name: 'invalid_override',
-  problemMessage:
-      "The setter '{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}').",
+  problemMessage: "The setter '{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}').",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'invalid_override_setter',
@@ -9526,17 +9536,16 @@ const DiagnosticWithoutArguments invalidPlatformsField =
     );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-invalidReferenceToGenerativeEnumConstructor = DiagnosticWithoutArgumentsImpl(
-  name: 'invalid_reference_to_generative_enum_constructor',
-  problemMessage:
-      "Generative enum constructors can only be used to create an enum constant.",
-  correctionMessage: "Try using an enum value, or a factory constructor.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'invalid_reference_to_generative_enum_constructor',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments invalidReferenceToGenerativeEnumConstructor =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'invalid_reference_to_generative_enum_constructor',
+      problemMessage: "Generative enum constructors can only be used to create an enum constant.",
+      correctionMessage: "Try using an enum value, or a factory constructor.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'invalid_reference_to_generative_enum_constructor',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments
@@ -9739,28 +9748,28 @@ const DiagnosticWithoutArguments invalidUnicodeEscapeUBracket =
     );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-invalidUnicodeEscapeUNoBracket = DiagnosticWithoutArgumentsImpl(
-  name: 'invalid_unicode_escape_u_no_bracket',
-  problemMessage:
-      "An escape sequence starting with '\\u' must be followed by 4 hexadecimal "
-      "digits.",
-  type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'invalid_unicode_escape_u_no_bracket',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments invalidUnicodeEscapeUNoBracket =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'invalid_unicode_escape_u_no_bracket',
+      problemMessage:
+          "An escape sequence starting with '\\u' must be followed by 4 hexadecimal "
+          "digits.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'invalid_unicode_escape_u_no_bracket',
+      expectedTypes: [],
+    );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-invalidUnicodeEscapeUStarted = DiagnosticWithoutArgumentsImpl(
-  name: 'invalid_unicode_escape_u_started',
-  problemMessage:
-      "An escape sequence starting with '\\u' must be followed by 4 hexadecimal "
-      "digits or from 1 to 6 digits between '{' and '}'.",
-  type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'invalid_unicode_escape_u_started',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments invalidUnicodeEscapeUStarted =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'invalid_unicode_escape_u_started',
+      problemMessage:
+          "An escape sequence starting with '\\u' must be followed by 4 hexadecimal "
+          "digits or from 1 to 6 digits between '{' and '}'.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'invalid_unicode_escape_u_started',
+      expectedTypes: [],
+    );
 
 /// Parameters:
 /// String uri: the URI that is invalid
@@ -9980,17 +9989,17 @@ invalidVisibleOutsideTemplateAnnotation = DiagnosticWithoutArgumentsImpl(
 );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-invalidWidgetPreviewApplication = DiagnosticWithoutArgumentsImpl(
-  name: 'invalid_widget_preview_application',
-  problemMessage:
-      "The '@Preview(...)' annotation can only be applied to public, statically "
-      "accessible constructors and functions.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'invalid_widget_preview_application',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments invalidWidgetPreviewApplication =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'invalid_widget_preview_application',
+      problemMessage:
+          "The '@Preview(...)' annotation can only be applied to public, statically "
+          "accessible constructors and functions.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.STATIC_WARNING,
+      uniqueName: 'invalid_widget_preview_application',
+      expectedTypes: [],
+    );
 
 /// Parameters:
 /// String privateSymbolName: the name of the private symbol
@@ -10060,6 +10069,23 @@ invocationOfNonFunctionExpression = DiagnosticWithoutArgumentsImpl(
   uniqueName: 'invocation_of_non_function_expression',
   expectedTypes: [],
 );
+
+/// No parameters.
+const DiagnosticWithoutArguments
+jsInteropExtensionConstructorJsAnnotationHasNoEffect =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'js_interop_extension_constructor_js_annotation_has_no_effect',
+      problemMessage:
+          "The '@JS' annotation on an extension type constructor has no effect and "
+          "is disallowed.",
+      correctionMessage:
+          "Try removing the '@JS' annotation from the constructor, and putting "
+          "it on the extension type to rename non-object literal constructors.",
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName:
+          'js_interop_extension_constructor_js_annotation_has_no_effect',
+      expectedTypes: [],
+    );
 
 /// Parameters:
 /// String name: the name of the unresolvable label
@@ -10263,18 +10289,18 @@ const DiagnosticWithoutArguments localFunctionDeclarationModifier =
     );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-mainFirstPositionalParameterType = DiagnosticWithoutArgumentsImpl(
-  name: 'main_first_positional_parameter_type',
-  problemMessage:
-      "The type of the first positional parameter of the 'main' function must be "
-      "a supertype of 'List<String>'.",
-  correctionMessage: "Try changing the type of the parameter.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'main_first_positional_parameter_type',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments mainFirstPositionalParameterType =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'main_first_positional_parameter_type',
+      problemMessage:
+          "The type of the first positional parameter of the 'main' function must be "
+          "a supertype of 'List<String>'.",
+      correctionMessage: "Try changing the type of the parameter.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'main_first_positional_parameter_type',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments mainHasRequiredNamedParameters =
@@ -10727,18 +10753,18 @@ const DiagnosticWithoutArguments missingExpressionInThrow =
     );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-missingFieldTypeInStruct = DiagnosticWithoutArgumentsImpl(
-  name: 'missing_field_type_in_struct',
-  problemMessage:
-      "Fields in struct classes must have an explicitly declared type of 'int', "
-      "'double' or 'Pointer'.",
-  correctionMessage: "Try using 'int', 'double' or 'Pointer'.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'missing_field_type_in_struct',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments missingFieldTypeInStruct =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'missing_field_type_in_struct',
+      problemMessage:
+          "Fields in struct classes must have an explicitly declared type of 'int', "
+          "'double' or 'Pointer'.",
+      correctionMessage: "Try using 'int', 'double' or 'Pointer'.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'missing_field_type_in_struct',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments missingFunctionBody =
@@ -11111,17 +11137,17 @@ const DiagnosticWithoutArguments missingTypedefParameters =
     );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-missingVariableInForEach = DiagnosticWithoutArgumentsImpl(
-  name: 'missing_variable_in_for_each',
-  problemMessage:
-      "A loop variable must be declared in a for-each loop before the 'in', but "
-      "none was found.",
-  correctionMessage: "Try declaring a loop variable.",
-  type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'missing_variable_in_for_each',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments missingVariableInForEach =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'missing_variable_in_for_each',
+      problemMessage:
+          "A loop variable must be declared in a for-each loop before the 'in', but "
+          "none was found.",
+      correctionMessage: "Try declaring a loop variable.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'missing_variable_in_for_each',
+      expectedTypes: [],
+    );
 
 /// Parameters:
 /// String name: the name of the variable pattern
@@ -11286,8 +11312,7 @@ const DiagnosticWithArguments<
 >
 mixinClassDeclarationWithClause = DiagnosticWithArguments(
   name: 'mixin_class_declaration_with_clause',
-  problemMessage:
-      "The class '{0}' can't be declared a mixin because it has a 'with' clause.",
+  problemMessage: "The class '{0}' can't be declared a mixin because it has a 'with' clause.",
   correctionMessage:
       "Try removing the 'with' clause or removing the 'mixin' modifier from "
       "the class.",
@@ -11305,8 +11330,7 @@ const DiagnosticWithArguments<
 >
 mixinClassDeclaresNonTrivialGenerativeConstructor = DiagnosticWithArguments(
   name: 'mixin_class_declares_non_trivial_generative_constructor',
-  problemMessage:
-      "The mixin class '{0}' can't declare a non-trivial generative constructor.",
+  problemMessage: "The mixin class '{0}' can't declare a non-trivial generative constructor.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'mixin_class_declares_non_trivial_generative_constructor',
@@ -11638,18 +11662,33 @@ multipleClauses = DiagnosticWithArguments(
 );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-multipleCombinators = DiagnosticWithoutArgumentsImpl(
-  name: 'multiple_combinators',
-  problemMessage:
-      "Using multiple 'hide' or 'show' combinators is never necessary and often "
-      "produces surprising results.",
-  correctionMessage: "Try using a single combinator.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'multiple_combinators',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments multipleCombinators =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'multiple_combinators',
+      problemMessage:
+          "At most one 'show' or 'hide' combinator can be used on an import or "
+          "export directive.",
+      correctionMessage:
+          "Try combining all of the combinators into a single combinator.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'multiple_combinators',
+      expectedTypes: [],
+    );
+
+/// No parameters.
+const DiagnosticWithoutArguments multipleCombinatorsDeprecated =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'multiple_combinators',
+      problemMessage:
+          "Using multiple 'hide' or 'show' combinators is never necessary and often "
+          "produces surprising results.",
+      correctionMessage: "Try using a single combinator.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.STATIC_WARNING,
+      uniqueName: 'multiple_combinators_deprecated',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments multipleExtendsClauses =
@@ -11743,17 +11782,17 @@ multiplePlugins = DiagnosticWithArguments(
 );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-multiplePositionalParameterGroups = DiagnosticWithoutArgumentsImpl(
-  name: 'multiple_positional_parameter_groups',
-  problemMessage:
-      "Can't have multiple groups of positional parameters in a single parameter "
-      "list.",
-  correctionMessage: "Try combining all of the groups into a single group.",
-  type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'multiple_positional_parameter_groups',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments multiplePositionalParameterGroups =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'multiple_positional_parameter_groups',
+      problemMessage:
+          "Can't have multiple groups of positional parameters in a single parameter "
+          "list.",
+      correctionMessage: "Try combining all of the groups into a single group.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'multiple_positional_parameter_groups',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments multiplePrimaryConstructorBodyDeclarations =
@@ -11986,17 +12025,17 @@ const DiagnosticWithoutArguments nameNotString = DiagnosticWithoutArgumentsImpl(
 );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-nativeClauseInNonSdkCode = DiagnosticWithoutArgumentsImpl(
-  name: 'native_clause_in_non_sdk_code',
-  problemMessage:
-      "Native clause can only be used in the SDK and code that is loaded through "
-      "native extensions.",
-  correctionMessage: "Try removing the native clause.",
-  type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'native_clause_in_non_sdk_code',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments nativeClauseInNonSdkCode =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'native_clause_in_non_sdk_code',
+      problemMessage:
+          "Native clause can only be used in the SDK and code that is loaded through "
+          "native extensions.",
+      correctionMessage: "Try removing the native clause.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'native_clause_in_non_sdk_code',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments nativeClauseShouldBeAnnotation =
@@ -12032,20 +12071,20 @@ nativeFieldInvalidType = DiagnosticWithArguments(
 );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-nativeFieldMissingType = DiagnosticWithoutArgumentsImpl(
-  name: 'native_field_missing_type',
-  problemMessage:
-      "The native type of this field could not be inferred and must be specified "
-      "in the annotation.",
-  correctionMessage:
-      "Try adding a type parameter extending `NativeType` to the `@Native` "
-      "annotation.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'native_field_missing_type',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments nativeFieldMissingType =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'native_field_missing_type',
+      problemMessage:
+          "The native type of this field could not be inferred and must be specified "
+          "in the annotation.",
+      correctionMessage:
+          "Try adding a type parameter extending `NativeType` to the `@Native` "
+          "annotation.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'native_field_missing_type',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments nativeFieldNotStatic =
@@ -12060,17 +12099,17 @@ const DiagnosticWithoutArguments nativeFieldNotStatic =
     );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-nativeFunctionBodyInNonSdkCode = DiagnosticWithoutArgumentsImpl(
-  name: 'native_function_body_in_non_sdk_code',
-  problemMessage:
-      "Native functions can only be declared in the SDK and code that is loaded "
-      "through native extensions.",
-  correctionMessage: "Try removing the word 'native'.",
-  type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'native_function_body_in_non_sdk_code',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments nativeFunctionBodyInNonSdkCode =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'native_function_body_in_non_sdk_code',
+      problemMessage:
+          "Native functions can only be declared in the SDK and code that is loaded "
+          "through native extensions.",
+      correctionMessage: "Try removing the word 'native'.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'native_function_body_in_non_sdk_code',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments nativeFunctionMissingType =
@@ -12128,18 +12167,17 @@ const DiagnosticWithoutArguments newConstructorNewName =
     );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-newConstructorQualifiedName = DiagnosticWithoutArgumentsImpl(
-  name: 'new_constructor_qualified_name',
-  problemMessage:
-      "Constructors declared with the 'new' keyword can't have qualified names.",
-  correctionMessage:
-      "Try removing the class name prefix from the qualified name or "
-      "removing the 'new' keyword.",
-  type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'new_constructor_qualified_name',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments newConstructorQualifiedName =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'new_constructor_qualified_name',
+      problemMessage: "Constructors declared with the 'new' keyword can't have qualified names.",
+      correctionMessage:
+          "Try removing the class name prefix from the qualified name or "
+          "removing the 'new' keyword.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'new_constructor_qualified_name',
+      expectedTypes: [],
+    );
 
 /// Parameters:
 /// String name: the name of the non-type element
@@ -12496,17 +12534,6 @@ nonBoolOperand = DiagnosticWithArguments(
 );
 
 /// No parameters.
-const DiagnosticWithoutArguments nonConstantAnnotationConstructor =
-    DiagnosticWithoutArgumentsImpl(
-      name: 'non_constant_annotation_constructor',
-      problemMessage: "Annotation creation can only call a const constructor.",
-      hasPublishedDocs: true,
-      type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'non_constant_annotation_constructor',
-      expectedTypes: [],
-    );
-
-/// No parameters.
 const DiagnosticWithoutArguments nonConstantCaseExpression =
     DiagnosticWithoutArgumentsImpl(
       name: 'non_constant_case_expression',
@@ -12771,8 +12798,8 @@ const DiagnosticWithArguments<
 nonConstCallToLiteralConstructor = DiagnosticWithArguments(
   name: 'non_const_call_to_literal_constructor',
   problemMessage:
-      "This instance creation must be 'const', because the {0} constructor is "
-      "marked as '@literal'.",
+      "This instance creation must be 'const', because '{0}' is marked as "
+      "'@literal'.",
   correctionMessage: "Try adding a 'const' keyword.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
@@ -12792,8 +12819,8 @@ const DiagnosticWithArguments<
 nonConstCallToLiteralConstructorUsingNew = DiagnosticWithArguments(
   name: 'non_const_call_to_literal_constructor',
   problemMessage:
-      "This instance creation must be 'const', because the {0} constructor is "
-      "marked as '@literal'.",
+      "This instance creation must be 'const', because '{0}' is marked as "
+      "'@literal'.",
   correctionMessage: "Try replacing the 'new' keyword with 'const'.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
@@ -12819,16 +12846,16 @@ const DiagnosticWithoutArguments nonConstGenerativeEnumConstructor =
 /// statement is expected.
 ///
 /// No parameters.
-const DiagnosticWithoutArguments
-nonConstMapAsExpressionStatement = DiagnosticWithoutArgumentsImpl(
-  name: 'non_const_map_as_expression_statement',
-  problemMessage:
-      "A non-constant map or set literal without type arguments can't be used as "
-      "an expression statement.",
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'non_const_map_as_expression_statement',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments nonConstMapAsExpressionStatement =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'non_const_map_as_expression_statement',
+      problemMessage:
+          "A non-constant map or set literal without type arguments can't be used as "
+          "an expression statement.",
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'non_const_map_as_expression_statement',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments nonConstructorFactory =
@@ -13793,8 +13820,7 @@ partOfDifferentLibrary = DiagnosticWithArguments(
 /// No parameters.
 const DiagnosticWithoutArguments partOfName = DiagnosticWithoutArgumentsImpl(
   name: 'part_of_name',
-  problemMessage:
-      "The 'part of' directive can't use a name with the enhanced-parts feature.",
+  problemMessage: "The 'part of' directive can't use a name with the enhanced-parts feature.",
   correctionMessage: "Try using 'part of' with a URI instead.",
   type: DiagnosticType.SYNTACTIC_ERROR,
   uniqueName: 'part_of_name',
@@ -14128,17 +14154,16 @@ const DiagnosticWithoutArguments positionalFieldInObjectPattern =
     );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-positionalParameterOutsideGroup = DiagnosticWithoutArgumentsImpl(
-  name: 'positional_parameter_outside_group',
-  problemMessage:
-      "Positional parameters must be enclosed in square brackets ('[' and ']').",
-  correctionMessage:
-      "Try surrounding the positional parameters in square brackets.",
-  type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'positional_parameter_outside_group',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments positionalParameterOutsideGroup =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'positional_parameter_outside_group',
+      problemMessage: "Positional parameters must be enclosed in square brackets ('[' and ']').",
+      correctionMessage:
+          "Try surrounding the positional parameters in square brackets.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'positional_parameter_outside_group',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments
@@ -14194,8 +14219,7 @@ const DiagnosticWithArguments<
 >
 prefixIdentifierNotFollowedByDot = DiagnosticWithArguments(
   name: 'prefix_identifier_not_followed_by_dot',
-  problemMessage:
-      "The name '{0}' refers to an import prefix, so it must be followed by '.'.",
+  problemMessage: "The name '{0}' refers to an import prefix, so it must be followed by '.'.",
   correctionMessage:
       "Try correcting the name to refer to something other than a prefix, or "
       "renaming the prefix.",
@@ -14304,17 +14328,17 @@ privateCollisionInMixinApplication = DiagnosticWithArguments(
 );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-privateNamedNonFieldParameter = DiagnosticWithoutArgumentsImpl(
-  name: 'private_named_non_field_parameter',
-  problemMessage:
-      "Named parameters that don't refer to instance variables can't start with "
-      "underscore.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'private_named_non_field_parameter',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments privateNamedNonFieldParameter =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'private_named_non_field_parameter',
+      problemMessage:
+          "Named parameters that don't refer to instance variables can't start with "
+          "underscore.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'private_named_non_field_parameter',
+      expectedTypes: [],
+    );
 
 /// Parameters:
 /// String name: the corresponding public name of private named parameter
@@ -14335,17 +14359,17 @@ privateNamedParameterDuplicatePublicName = DiagnosticWithArguments(
 );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-privateNamedParameterWithoutPublicName = DiagnosticWithoutArgumentsImpl(
-  name: 'private_named_parameter_without_public_name',
-  problemMessage:
-      "A private named parameter must be a public identifier after removing the "
-      "leading underscore.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'private_named_parameter_without_public_name',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments privateNamedParameterWithoutPublicName =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'private_named_parameter_without_public_name',
+      problemMessage:
+          "A private named parameter must be a public identifier after removing the "
+          "leading underscore.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'private_named_parameter_without_public_name',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments privateOptionalParameter =
@@ -14357,24 +14381,6 @@ const DiagnosticWithoutArguments privateOptionalParameter =
       uniqueName: 'private_optional_parameter',
       expectedTypes: [],
     );
-
-/// Parameters:
-/// String name: the name of the setter
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String name})
->
-privateSetter = DiagnosticWithArguments(
-  name: 'private_setter',
-  problemMessage:
-      "The setter '{0}' is private and can't be accessed outside the library "
-      "that declares it.",
-  correctionMessage: "Try making it public.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'private_setter',
-  withArguments: _withArgumentsPrivateSetter,
-  expectedTypes: [ExpectedType.string],
-);
 
 /// Parameters:
 /// String name: the name of the variable
@@ -14493,32 +14499,30 @@ const DiagnosticWithoutArguments recursiveConstantConstructor =
 /// https://code.google.com/p/dart/issues/detail?id=954
 ///
 /// No parameters.
-const DiagnosticWithoutArguments
-recursiveConstructorRedirect = DiagnosticWithoutArgumentsImpl(
-  name: 'recursive_constructor_redirect',
-  problemMessage:
-      "Constructors can't redirect to themselves either directly or indirectly.",
-  correctionMessage:
-      "Try changing one of the constructors in the loop to not redirect.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'recursive_constructor_redirect',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments recursiveConstructorRedirect =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'recursive_constructor_redirect',
+      problemMessage: "Constructors can't redirect to themselves either directly or indirectly.",
+      correctionMessage:
+          "Try changing one of the constructors in the loop to not redirect.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'recursive_constructor_redirect',
+      expectedTypes: [],
+    );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-recursiveFactoryRedirect = DiagnosticWithoutArgumentsImpl(
-  name: 'recursive_constructor_redirect',
-  problemMessage:
-      "Constructors can't redirect to themselves either directly or indirectly.",
-  correctionMessage:
-      "Try changing one of the constructors in the loop to not redirect.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'recursive_factory_redirect',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments recursiveFactoryRedirect =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'recursive_constructor_redirect',
+      problemMessage: "Constructors can't redirect to themselves either directly or indirectly.",
+      correctionMessage:
+          "Try changing one of the constructors in the loop to not redirect.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'recursive_factory_redirect',
+      expectedTypes: [],
+    );
 
 /// An error code indicating a specified include file includes itself recursively.
 ///
@@ -14767,8 +14771,7 @@ const DiagnosticWithArguments<
 >
 redirectToInvalidFunctionType = DiagnosticWithArguments(
   name: 'redirect_to_invalid_function_type',
-  problemMessage:
-      "The redirected constructor '{0}' has incompatible parameters with '{1}'.",
+  problemMessage: "The redirected constructor '{0}' has incompatible parameters with '{1}'.",
   correctionMessage: "Try redirecting to a different constructor.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
@@ -14856,18 +14859,18 @@ const DiagnosticWithoutArguments redirectToNonConstConstructor =
     );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-redirectToTypeAliasExpandsToTypeParameter = DiagnosticWithoutArgumentsImpl(
-  name: 'redirect_to_type_alias_expands_to_type_parameter',
-  problemMessage:
-      "A redirecting constructor can't redirect to a type alias that expands to "
-      "a type parameter.",
-  correctionMessage: "Try replacing it with a class.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'redirect_to_type_alias_expands_to_type_parameter',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments redirectToTypeAliasExpandsToTypeParameter =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'redirect_to_type_alias_expands_to_type_parameter',
+      problemMessage:
+          "A redirecting constructor can't redirect to a type alias that expands to "
+          "a type parameter.",
+      correctionMessage: "Try replacing it with a class.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'redirect_to_type_alias_expands_to_type_parameter',
+      expectedTypes: [],
+    );
 
 /// Parameters:
 /// String name: the name of the variable
@@ -15534,17 +15537,16 @@ settingOrientationOnActivity = DiagnosticWithoutArgumentsImpl(
 );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-sharedDeferredPrefix = DiagnosticWithoutArgumentsImpl(
-  name: 'shared_deferred_prefix',
-  problemMessage:
-      "The prefix of a deferred import can't be used in other import directives.",
-  correctionMessage: "Try renaming one of the prefixes.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'shared_deferred_prefix',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments sharedDeferredPrefix =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'shared_deferred_prefix',
+      problemMessage: "The prefix of a deferred import can't be used in other import directives.",
+      correctionMessage: "Try renaming one of the prefixes.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'shared_deferred_prefix',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments
@@ -16345,8 +16347,7 @@ const DiagnosticWithArguments<
 >
 typeTestWithUndefinedName = DiagnosticWithArguments(
   name: 'type_test_with_undefined_name',
-  problemMessage:
-      "The name '{0}' isn't defined, so it can't be used in an 'is' expression.",
+  problemMessage: "The name '{0}' isn't defined, so it can't be used in an 'is' expression.",
   correctionMessage:
       "Try changing the name to the name of an existing type, or creating a "
       "type with the name '{0}'.",
@@ -16369,6 +16370,20 @@ const DiagnosticWithoutArguments unawaitedReturnInTryBlock =
       uniqueName: 'unawaited_return_in_try_block',
       expectedTypes: [],
     );
+
+/// No parameters.
+const DiagnosticWithoutArguments
+uncheckedInstantiationOfNullableValue = DiagnosticWithoutArgumentsImpl(
+  name: 'unchecked_use_of_nullable_value',
+  problemMessage:
+      "The function can't be unconditionally instantiated because it can be "
+      "'null'.",
+  correctionMessage: "Try adding a null check ('!').",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'unchecked_instantiation_of_nullable_value',
+  expectedTypes: [],
+);
 
 /// No parameters.
 const DiagnosticWithoutArguments
@@ -16500,24 +16515,6 @@ const DiagnosticWithoutArguments uncheckedUseOfNullableValueInYieldEach =
     );
 
 /// Parameters:
-/// String name: the name of the annotation
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String name})
->
-undefinedAnnotation = DiagnosticWithArguments(
-  name: 'undefined_annotation',
-  problemMessage: "Undefined name '{0}' used as an annotation.",
-  correctionMessage:
-      "Try defining the name or importing it from another library.",
-  hasPublishedDocs: true,
-  isUnresolvedIdentifier: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_annotation',
-  withArguments: _withArgumentsUndefinedAnnotation,
-  expectedTypes: [ExpectedType.string],
-);
-
-/// Parameters:
 /// String name: the name of the undefined class
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String name})
@@ -16598,28 +16595,6 @@ undefinedConstructorInInitializerDefault = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String memberName: the name of the enum value that is not defined
-/// Type type: the type of the enum used to access the constant
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({
-    required String memberName,
-    required DartType type,
-  })
->
-undefinedEnumConstant = DiagnosticWithArguments(
-  name: 'undefined_enum_constant',
-  problemMessage: "There's no constant named '{0}' in '{1}'.",
-  correctionMessage:
-      "Try correcting the name to the name of an existing constant, or "
-      "defining a constant named '{0}'.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_enum_constant',
-  withArguments: _withArgumentsUndefinedEnumConstant,
-  expectedTypes: [ExpectedType.string, ExpectedType.type],
-);
-
-/// Parameters:
 /// String name: the name of the constructor that is undefined
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String name})
@@ -16652,49 +16627,155 @@ const DiagnosticWithoutArguments undefinedEnumConstructorUnnamed =
     );
 
 /// Parameters:
-/// String getterName: the name of the getter that is undefined
-/// String extensionName: the name of the extension that was explicitly
-///                       specified
+/// String name: the name of the member
+/// String extensionName: the name of the extension
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String getterName,
+    required String name,
     required String extensionName,
   })
 >
-undefinedExtensionGetter = DiagnosticWithArguments(
-  name: 'undefined_extension_getter',
-  problemMessage: "The getter '{0}' isn't defined for the extension '{1}'.",
+undefinedExtensionMemberReadNotFound = DiagnosticWithArguments(
+  name: 'undefined_extension_member_read',
+  problemMessage:
+      "The extension '{1}' doesn't have an instance member named '{0}'.",
   correctionMessage:
-      "Try correcting the name to the name of an existing getter, or "
-      "defining a getter named '{0}'.",
+      "Try correcting the name to the name of an existing member, or "
+      "defining a method or getter named '{0}' in the extension.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_extension_getter',
-  withArguments: _withArgumentsUndefinedExtensionGetter,
+  uniqueName: 'undefined_extension_member_read_not_found',
+  withArguments: _withArgumentsUndefinedExtensionMemberReadNotFound,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
 /// Parameters:
-/// String methodName: the name of the method that is undefined
-/// String extensionName: the name of the extension that was explicitly
-///                       specified
+/// String name: the name of the member
+/// Uri libraryUri: the URI of the library that declares the private member
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required Uri libraryUri})
+>
+undefinedExtensionMemberReadPrivate = DiagnosticWithArguments(
+  name: 'undefined_extension_member_read',
+  problemMessage:
+      "The member '{0}' is declared in '{1}', but private names are visible only "
+      "in their own library.",
+  correctionMessage: "Try making the member public.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_extension_member_read_private',
+  withArguments: _withArgumentsUndefinedExtensionMemberReadPrivate,
+  expectedTypes: [ExpectedType.string, ExpectedType.uri],
+);
+
+/// Parameters:
+/// String name: the name of the setter
+/// String extensionName: the name of the extension
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String methodName,
+    required String name,
     required String extensionName,
   })
 >
-undefinedExtensionMethod = DiagnosticWithArguments(
-  name: 'undefined_extension_method',
-  problemMessage: "The method '{0}' isn't defined for the extension '{1}'.",
-  correctionMessage:
-      "Try correcting the name to the name of an existing method, or "
-      "defining a method named '{0}'.",
+undefinedExtensionMemberReadSetterOnly = DiagnosticWithArguments(
+  name: 'undefined_extension_member_read',
+  problemMessage:
+      "There's a setter '{0}' in the extension '{1}', but no getter.",
+  correctionMessage: "Try defining a getter named '{0}' in the extension.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_extension_method',
-  withArguments: _withArgumentsUndefinedExtensionMethod,
+  uniqueName: 'undefined_extension_member_read_setter_only',
+  withArguments: _withArgumentsUndefinedExtensionMemberReadSetterOnly,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the getter
+/// String extensionName: the name of the extension
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String name,
+    required String extensionName,
+  })
+>
+undefinedExtensionMemberWriteGetterOnly = DiagnosticWithArguments(
+  name: 'undefined_extension_member_write',
+  problemMessage:
+      "There's a getter '{0}' in the extension '{1}', but no setter.",
+  correctionMessage: "Try defining a setter named '{0}' in the extension.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_extension_member_write_getter_only',
+  withArguments: _withArgumentsUndefinedExtensionMemberWriteGetterOnly,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the setter
+/// String extensionName: the name of the extension
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String name,
+    required String extensionName,
+  })
+>
+undefinedExtensionMemberWriteNotFound = DiagnosticWithArguments(
+  name: 'undefined_extension_member_write',
+  problemMessage:
+      "The extension '{1}' doesn't have an instance setter named '{0}'.",
+  correctionMessage:
+      "Try correcting the name to the name of an existing setter, or "
+      "defining a setter named '{0}' in the extension.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_extension_member_write_not_found',
+  withArguments: _withArgumentsUndefinedExtensionMemberWriteNotFound,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the member
+/// Uri libraryUri: the URI of the library that declares the private member
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required Uri libraryUri})
+>
+undefinedExtensionMemberWritePrivate = DiagnosticWithArguments(
+  name: 'undefined_extension_member_write',
+  problemMessage:
+      "The member '{0}' is declared in '{1}', but private names are visible only "
+      "in their own library.",
+  correctionMessage: "Try making the member public.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_extension_member_write_private',
+  withArguments: _withArgumentsUndefinedExtensionMemberWritePrivate,
+  expectedTypes: [ExpectedType.string, ExpectedType.uri],
+);
+
+/// Parameters:
+/// String kind: the kind of the declaration that was found, such as 'method'
+/// String name: the name of the declaration
+/// String extensionName: the name of the extension
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String kind,
+    required String name,
+    required String extensionName,
+  })
+>
+undefinedExtensionMemberWriteWrongKind = DiagnosticWithArguments(
+  name: 'undefined_extension_member_write',
+  problemMessage: "The {0} '{1}' in the extension '{2}' can't be assigned to.",
+  correctionMessage: "Try assigning to a setter instead.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_extension_member_write_wrong_kind',
+  withArguments: _withArgumentsUndefinedExtensionMemberWriteWrongKind,
+  expectedTypes: [
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+  ],
 );
 
 /// Parameters:
@@ -16719,93 +16800,6 @@ undefinedExtensionOperator = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String setterName: the name of the setter that is undefined
-/// String extensionName: the name of the extension that was explicitly
-///                       specified
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({
-    required String setterName,
-    required String extensionName,
-  })
->
-undefinedExtensionSetter = DiagnosticWithArguments(
-  name: 'undefined_extension_setter',
-  problemMessage: "The setter '{0}' isn't defined for the extension '{1}'.",
-  correctionMessage:
-      "Try correcting the name to the name of an existing setter, or "
-      "defining a setter named '{0}'.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_extension_setter',
-  withArguments: _withArgumentsUndefinedExtensionSetter,
-  expectedTypes: [ExpectedType.string, ExpectedType.string],
-);
-
-/// Parameters:
-/// String name: the name of the method that is undefined
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String name})
->
-undefinedFunction = DiagnosticWithArguments(
-  name: 'undefined_function',
-  problemMessage: "The function '{0}' isn't defined.",
-  correctionMessage:
-      "Try importing the library that defines '{0}', correcting the name to "
-      "the name of an existing function, or defining a function named '{0}'.",
-  hasPublishedDocs: true,
-  isUnresolvedIdentifier: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_function',
-  withArguments: _withArgumentsUndefinedFunction,
-  expectedTypes: [ExpectedType.string],
-);
-
-/// Parameters:
-/// String memberName: the name of the getter
-/// Type type: the type where the getter is being looked for
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({
-    required String memberName,
-    required DartType type,
-  })
->
-undefinedGetter = DiagnosticWithArguments(
-  name: 'undefined_getter',
-  problemMessage: "The getter '{0}' isn't defined for the type '{1}'.",
-  correctionMessage:
-      "Try importing the library that defines '{0}', correcting the name to "
-      "the name of an existing getter, or defining a getter or field named "
-      "'{0}'.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_getter',
-  withArguments: _withArgumentsUndefinedGetter,
-  expectedTypes: [ExpectedType.string, ExpectedType.type],
-);
-
-/// Parameters:
-/// String getterName: the name of the getter
-/// String functionTypeAliasName: the name of the function type alias
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({
-    required String getterName,
-    required String functionTypeAliasName,
-  })
->
-undefinedGetterOnFunctionType = DiagnosticWithArguments(
-  name: 'undefined_getter',
-  problemMessage: "The getter '{0}' isn't defined for the '{1}' function type.",
-  correctionMessage:
-      "Try wrapping the function type alias in parentheses in order to "
-      "access '{0}' as an extension getter on 'Type'.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_getter_on_function_type',
-  withArguments: _withArgumentsUndefinedGetterOnFunctionType,
-  expectedTypes: [ExpectedType.string, ExpectedType.string],
-);
-
-/// Parameters:
 /// String library: the name of the library being imported
 /// String name: the name in the hide clause that isn't defined in the library
 const DiagnosticWithArguments<
@@ -16823,24 +16817,6 @@ undefinedHiddenName = DiagnosticWithArguments(
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
-/// Parameters:
-/// String name: the name of the identifier
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String name})
->
-undefinedIdentifier = DiagnosticWithArguments(
-  name: 'undefined_identifier',
-  problemMessage: "Undefined name '{0}'.",
-  correctionMessage:
-      "Try correcting the name to one that is defined, or defining the name.",
-  hasPublishedDocs: true,
-  isUnresolvedIdentifier: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_identifier',
-  withArguments: _withArgumentsUndefinedIdentifier,
-  expectedTypes: [ExpectedType.string],
-);
-
 /// No parameters.
 const DiagnosticWithoutArguments
 undefinedIdentifierAwait = DiagnosticWithoutArgumentsImpl(
@@ -16854,6 +16830,159 @@ undefinedIdentifierAwait = DiagnosticWithoutArgumentsImpl(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_identifier_await',
   expectedTypes: [],
+);
+
+/// Parameters:
+/// String name: the name of the member
+/// Type type: the static type of the receiver
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required DartType type})
+>
+undefinedInstanceMemberReadNotFound = DiagnosticWithArguments(
+  name: 'undefined_instance_member_read',
+  problemMessage: "The member '{0}' isn't defined for the type '{1}'.",
+  correctionMessage:
+      "Try importing the library that defines '{0}', correcting the name to "
+      "the name of an existing member, or defining a method, getter, or "
+      "field named '{0}'.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_instance_member_read_not_found',
+  withArguments: _withArgumentsUndefinedInstanceMemberReadNotFound,
+  expectedTypes: [ExpectedType.string, ExpectedType.type],
+);
+
+/// Parameters:
+/// String name: the name of the member
+/// Uri libraryUri: the URI of the library that declares the private member
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required Uri libraryUri})
+>
+undefinedInstanceMemberReadPrivate = DiagnosticWithArguments(
+  name: 'undefined_instance_member_read',
+  problemMessage:
+      "The member '{0}' is declared in '{1}', but private names are visible only "
+      "in their own library.",
+  correctionMessage: "Try making the member public.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_instance_member_read_private',
+  withArguments: _withArgumentsUndefinedInstanceMemberReadPrivate,
+  expectedTypes: [ExpectedType.string, ExpectedType.uri],
+);
+
+/// Parameters:
+/// String name: the name of the setter
+/// Type type: the static type of the receiver
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required DartType type})
+>
+undefinedInstanceMemberReadSetterOnly = DiagnosticWithArguments(
+  name: 'undefined_instance_member_read',
+  problemMessage: "There's a setter '{0}' for the type '{1}', but no getter.",
+  correctionMessage: "Try defining a getter or field named '{0}'.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_instance_member_read_setter_only',
+  withArguments: _withArgumentsUndefinedInstanceMemberReadSetterOnly,
+  expectedTypes: [ExpectedType.string, ExpectedType.type],
+);
+
+/// Parameters:
+/// String name: the name of the field
+/// Type type: the static type of the receiver
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required DartType type})
+>
+undefinedInstanceMemberWriteFinal = DiagnosticWithArguments(
+  name: 'undefined_instance_member_write',
+  problemMessage:
+      "The field '{0}' of the type '{1}' is final, so it can't be assigned to.",
+  correctionMessage:
+      "Try making the field non-final, or removing the assignment.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_instance_member_write_final',
+  withArguments: _withArgumentsUndefinedInstanceMemberWriteFinal,
+  expectedTypes: [ExpectedType.string, ExpectedType.type],
+);
+
+/// Parameters:
+/// String name: the name of the getter
+/// Type type: the static type of the receiver
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required DartType type})
+>
+undefinedInstanceMemberWriteGetterOnly = DiagnosticWithArguments(
+  name: 'undefined_instance_member_write',
+  problemMessage: "There's a getter '{0}' for the type '{1}', but no setter.",
+  correctionMessage: "Try defining a setter named '{0}'.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_instance_member_write_getter_only',
+  withArguments: _withArgumentsUndefinedInstanceMemberWriteGetterOnly,
+  expectedTypes: [ExpectedType.string, ExpectedType.type],
+);
+
+/// Parameters:
+/// String name: the name of the setter
+/// Type type: the static type of the receiver
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required DartType type})
+>
+undefinedInstanceMemberWriteNotFound = DiagnosticWithArguments(
+  name: 'undefined_instance_member_write',
+  problemMessage: "The setter '{0}' isn't defined for the type '{1}'.",
+  correctionMessage:
+      "Try importing the library that defines '{0}', correcting the name to "
+      "the name of an existing setter, or defining a setter or field named "
+      "'{0}'.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_instance_member_write_not_found',
+  withArguments: _withArgumentsUndefinedInstanceMemberWriteNotFound,
+  expectedTypes: [ExpectedType.string, ExpectedType.type],
+);
+
+/// Parameters:
+/// String name: the name of the member
+/// Uri libraryUri: the URI of the library that declares the private member
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required Uri libraryUri})
+>
+undefinedInstanceMemberWritePrivate = DiagnosticWithArguments(
+  name: 'undefined_instance_member_write',
+  problemMessage:
+      "The member '{0}' is declared in '{1}', but private names are visible only "
+      "in their own library.",
+  correctionMessage: "Try making the member public.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_instance_member_write_private',
+  withArguments: _withArgumentsUndefinedInstanceMemberWritePrivate,
+  expectedTypes: [ExpectedType.string, ExpectedType.uri],
+);
+
+/// Parameters:
+/// String kind: the kind of the declaration that was found, such as 'method'
+/// String name: the name of the declaration
+/// Type type: the static type of the receiver
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String kind,
+    required String name,
+    required DartType type,
+  })
+>
+undefinedInstanceMemberWriteWrongKind = DiagnosticWithArguments(
+  name: 'undefined_instance_member_write',
+  problemMessage: "The {0} '{1}' of the type '{2}' can't be assigned to.",
+  correctionMessage: "Try assigning to a setter or a non-final field instead.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_instance_member_write_wrong_kind',
+  withArguments: _withArgumentsUndefinedInstanceMemberWriteWrongKind,
+  expectedTypes: [ExpectedType.string, ExpectedType.string, ExpectedType.type],
 );
 
 /// An error code indicating an undefined lint rule.
@@ -16872,51 +17001,6 @@ undefinedLint = DiagnosticWithArguments(
   uniqueName: 'undefined_lint',
   withArguments: _withArgumentsUndefinedLint,
   expectedTypes: [ExpectedType.string],
-);
-
-/// Parameters:
-/// String methodName: the name of the method that is undefined
-/// String typeName: the resolved type name that the method lookup is
-///                  happening on
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({
-    required String methodName,
-    required String typeName,
-  })
->
-undefinedMethod = DiagnosticWithArguments(
-  name: 'undefined_method',
-  problemMessage: "The method '{0}' isn't defined for the type '{1}'.",
-  correctionMessage:
-      "Try correcting the name to the name of an existing method, or "
-      "defining a method named '{0}'.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_method',
-  withArguments: _withArgumentsUndefinedMethod,
-  expectedTypes: [ExpectedType.string, ExpectedType.string],
-);
-
-/// Parameters:
-/// String methodName: the name of the method
-/// String functionTypeAliasName: the name of the function type alias
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({
-    required String methodName,
-    required String functionTypeAliasName,
-  })
->
-undefinedMethodOnFunctionType = DiagnosticWithArguments(
-  name: 'undefined_method',
-  problemMessage: "The method '{0}' isn't defined for the '{1}' function type.",
-  correctionMessage:
-      "Try wrapping the function type alias in parentheses in order to "
-      "access '{0}' as an extension method on 'Type'.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_method_on_function_type',
-  withArguments: _withArgumentsUndefinedMethodOnFunctionType,
-  expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
 /// Parameters:
@@ -16958,27 +17042,228 @@ undefinedOperator = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String referenceName: the name of the reference
-/// String prefixName: the name of the prefix
+/// String name: the name of the declaration
+/// String prefix: the name of the import prefix
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required String prefix})
+>
+undefinedPrefixedNameReadNotFound = DiagnosticWithArguments(
+  name: 'undefined_prefixed_name_read',
+  problemMessage:
+      "The name '{0}' isn't defined in the libraries imported with the prefix "
+      "'{1}'.",
+  correctionMessage:
+      "Try correcting the name to the name of an existing declaration, or "
+      "importing the library that defines '{0}' with the prefix '{1}'.",
+  isUnresolvedIdentifier: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_prefixed_name_read_not_found',
+  withArguments: _withArgumentsUndefinedPrefixedNameReadNotFound,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the declaration
+/// String prefix: the name of the import prefix
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required String prefix})
+>
+undefinedPrefixedNameReadNotFoundAnnotation = DiagnosticWithArguments(
+  name: 'undefined_prefixed_name_read',
+  problemMessage:
+      "The name '{0}' isn't defined in the libraries imported with the prefix "
+      "'{1}'.",
+  correctionMessage:
+      "Try correcting the name to the name of a constant variable, or "
+      "importing the library that defines the constant '{0}' with the prefix "
+      "'{1}'.",
+  isUnresolvedIdentifier: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_prefixed_name_read_not_found_annotation',
+  withArguments: _withArgumentsUndefinedPrefixedNameReadNotFoundAnnotation,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the declaration
+/// String prefix: the name of the import prefix
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required String prefix})
+>
+undefinedPrefixedNameReadNotFoundConstant = DiagnosticWithArguments(
+  name: 'undefined_prefixed_name_read',
+  problemMessage:
+      "The name '{0}' isn't defined in the libraries imported with the prefix "
+      "'{1}'.",
+  correctionMessage:
+      "Try correcting the name to the name of a constant variable, function, "
+      "or type, or importing the library that defines '{0}' with the prefix "
+      "'{1}'.",
+  isUnresolvedIdentifier: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_prefixed_name_read_not_found_constant',
+  withArguments: _withArgumentsUndefinedPrefixedNameReadNotFoundConstant,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the declaration
+/// Uri libraryUri: the URI of the library that declares the private
+///                 declaration
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required Uri libraryUri})
+>
+undefinedPrefixedNameReadPrivate = DiagnosticWithArguments(
+  name: 'undefined_prefixed_name_read',
+  problemMessage:
+      "The name '{0}' is declared in '{1}', but private names are visible only "
+      "in their own library.",
+  correctionMessage: "Try making the declaration public.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_prefixed_name_read_private',
+  withArguments: _withArgumentsUndefinedPrefixedNameReadPrivate,
+  expectedTypes: [ExpectedType.string, ExpectedType.uri],
+);
+
+/// Parameters:
+/// String name: the name of the setter
+/// String prefix: the name of the import prefix
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required String prefix})
+>
+undefinedPrefixedNameReadSetterOnly = DiagnosticWithArguments(
+  name: 'undefined_prefixed_name_read',
+  problemMessage:
+      "There's a setter '{0}' in the libraries imported with the prefix '{1}', "
+      "but no getter.",
+  correctionMessage: "Try defining a getter or variable named '{0}'.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_prefixed_name_read_setter_only',
+  withArguments: _withArgumentsUndefinedPrefixedNameReadSetterOnly,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the constant
+/// String prefix: the name of the import prefix
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required String prefix})
+>
+undefinedPrefixedNameWriteConst = DiagnosticWithArguments(
+  name: 'undefined_prefixed_name_write',
+  problemMessage:
+      "The constant '{0}' imported with the prefix '{1}' can't be assigned to.",
+  correctionMessage:
+      "Try making it a non-constant variable, or removing the assignment.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_prefixed_name_write_const',
+  withArguments: _withArgumentsUndefinedPrefixedNameWriteConst,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the variable
+/// String prefix: the name of the import prefix
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required String prefix})
+>
+undefinedPrefixedNameWriteFinal = DiagnosticWithArguments(
+  name: 'undefined_prefixed_name_write',
+  problemMessage:
+      "The variable '{0}' imported with the prefix '{1}' is final, so it can't "
+      "be assigned to.",
+  correctionMessage:
+      "Try making the variable non-final, or removing the assignment.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_prefixed_name_write_final',
+  withArguments: _withArgumentsUndefinedPrefixedNameWriteFinal,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the getter
+/// String prefix: the name of the import prefix
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required String prefix})
+>
+undefinedPrefixedNameWriteGetterOnly = DiagnosticWithArguments(
+  name: 'undefined_prefixed_name_write',
+  problemMessage:
+      "There's a getter '{0}' in the libraries imported with the prefix '{1}', "
+      "but no setter.",
+  correctionMessage: "Try defining a setter named '{0}'.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_prefixed_name_write_getter_only',
+  withArguments: _withArgumentsUndefinedPrefixedNameWriteGetterOnly,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the setter
+/// String prefix: the name of the import prefix
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required String prefix})
+>
+undefinedPrefixedNameWriteNotFound = DiagnosticWithArguments(
+  name: 'undefined_prefixed_name_write',
+  problemMessage:
+      "The setter '{0}' isn't defined in the libraries imported with the prefix "
+      "'{1}'.",
+  correctionMessage:
+      "Try correcting the name to the name of an existing setter, or "
+      "importing the library that defines '{0}' with the prefix '{1}'.",
+  isUnresolvedIdentifier: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_prefixed_name_write_not_found',
+  withArguments: _withArgumentsUndefinedPrefixedNameWriteNotFound,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the declaration
+/// Uri libraryUri: the URI of the library that declares the private
+///                 declaration
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required Uri libraryUri})
+>
+undefinedPrefixedNameWritePrivate = DiagnosticWithArguments(
+  name: 'undefined_prefixed_name_write',
+  problemMessage:
+      "The name '{0}' is declared in '{1}', but private names are visible only "
+      "in their own library.",
+  correctionMessage: "Try making the declaration public.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_prefixed_name_write_private',
+  withArguments: _withArgumentsUndefinedPrefixedNameWritePrivate,
+  expectedTypes: [ExpectedType.string, ExpectedType.uri],
+);
+
+/// Parameters:
+/// String kind: the kind of the declaration that was found, such as
+///              'function'
+/// String name: the name of the declaration
+/// String prefix: the name of the import prefix
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String referenceName,
-    required String prefixName,
+    required String kind,
+    required String name,
+    required String prefix,
   })
 >
-undefinedPrefixedName = DiagnosticWithArguments(
-  name: 'undefined_prefixed_name',
+undefinedPrefixedNameWriteWrongKind = DiagnosticWithArguments(
+  name: 'undefined_prefixed_name_write',
   problemMessage:
-      "The name '{0}' is being referenced through the prefix '{1}', but it isn't "
-      "defined in any of the libraries imported using that prefix.",
+      "The {0} '{1}' imported with the prefix '{2}' can't be assigned to.",
   correctionMessage:
-      "Try correcting the prefix or importing the library that defines "
-      "'{0}'.",
-  hasPublishedDocs: true,
+      "Try assigning to a setter or a non-final variable instead.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_prefixed_name',
-  withArguments: _withArgumentsUndefinedPrefixedName,
-  expectedTypes: [ExpectedType.string, ExpectedType.string],
+  uniqueName: 'undefined_prefixed_name_write_wrong_kind',
+  withArguments: _withArgumentsUndefinedPrefixedNameWriteWrongKind,
+  expectedTypes: [
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+  ],
 );
 
 /// Parameters:
@@ -17001,51 +17286,6 @@ undefinedReferencedParameter = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String setterName: the name of the setter
-/// Type type: the enclosing type where the setter is being looked for
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({
-    required String setterName,
-    required DartType type,
-  })
->
-undefinedSetter = DiagnosticWithArguments(
-  name: 'undefined_setter',
-  problemMessage: "The setter '{0}' isn't defined for the type '{1}'.",
-  correctionMessage:
-      "Try importing the library that defines '{0}', correcting the name to "
-      "the name of an existing setter, or defining a setter or field named "
-      "'{0}'.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_setter',
-  withArguments: _withArgumentsUndefinedSetter,
-  expectedTypes: [ExpectedType.string, ExpectedType.type],
-);
-
-/// Parameters:
-/// String setterName: the name of the setter
-/// String functionTypeAliasName: the name of the function type alias
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({
-    required String setterName,
-    required String functionTypeAliasName,
-  })
->
-undefinedSetterOnFunctionType = DiagnosticWithArguments(
-  name: 'undefined_setter',
-  problemMessage: "The setter '{0}' isn't defined for the '{1}' function type.",
-  correctionMessage:
-      "Try wrapping the function type alias in parentheses in order to "
-      "access '{0}' as an extension getter on 'Type'.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_setter_on_function_type',
-  withArguments: _withArgumentsUndefinedSetterOnFunctionType,
-  expectedTypes: [ExpectedType.string, ExpectedType.string],
-);
-
-/// Parameters:
 /// String library: the name of the library being imported
 /// String name: the name in the show clause that isn't defined in the library
 const DiagnosticWithArguments<
@@ -17064,48 +17304,629 @@ undefinedShownName = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String getterName: the name of the getter
-/// Type type: the enclosing type where the getter is being looked for
+/// String name: the name of the member
+/// String aliasName: the name of the function type alias, with its import
+///                   prefix
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String getterName,
-    required DartType type,
+    required String name,
+    required String aliasName,
   })
 >
-undefinedSuperGetter = DiagnosticWithArguments(
-  name: 'undefined_super_member',
-  problemMessage: "The getter '{0}' isn't defined in a superclass of '{1}'.",
+undefinedStaticMemberReadNoStaticMembers = DiagnosticWithArguments(
+  name: 'undefined_static_member_read',
+  problemMessage:
+      "The function type '{1}' doesn't have a static member named '{0}'.",
   correctionMessage:
-      "Try correcting the name to the name of an existing getter, or "
-      "defining a getter or field named '{0}' in a superclass.",
+      "Try wrapping the function type alias in parentheses to access '{0}' "
+      "on the 'Type' object.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_super_getter',
-  withArguments: _withArgumentsUndefinedSuperGetter,
+  uniqueName: 'undefined_static_member_read_no_static_members',
+  withArguments: _withArgumentsUndefinedStaticMemberReadNoStaticMembers,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the member
+/// String contextType: the context type of the dot shorthand
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String name,
+    required String contextType,
+  })
+>
+undefinedStaticMemberReadNoStaticMembersDotShorthand = DiagnosticWithArguments(
+  name: 'undefined_static_member_read',
+  problemMessage:
+      "The context type '{1}' doesn't have static members or constructors.",
+  correctionMessage:
+      "Try qualifying '{0}' with the name of the declaration that has it.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_static_member_read_no_static_members_dot_shorthand',
+  withArguments:
+      _withArgumentsUndefinedStaticMemberReadNoStaticMembersDotShorthand,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the member
+/// String containerKind: the kind of the declaration, such as 'class' or
+///                       'extension'
+/// String containerName: the name of the declaration
+/// String expectedKinds: the kinds of declarations that the lookup could have
+///                       found, such as 'static member or constructor'
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String name,
+    required String containerKind,
+    required String containerName,
+    required String expectedKinds,
+  })
+>
+undefinedStaticMemberReadNotFound = DiagnosticWithArguments(
+  name: 'undefined_static_member_read',
+  problemMessage: "The {1} '{2}' doesn't have a {3} named '{0}'.",
+  correctionMessage:
+      "Try correcting the name to the name of an existing {3}, or defining a "
+      "static member named '{0}'.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_static_member_read_not_found',
+  withArguments: _withArgumentsUndefinedStaticMemberReadNotFound,
+  expectedTypes: [
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+  ],
+);
+
+/// Parameters:
+/// String name: the name of the member
+/// String containerKind: the kind of the declaration, such as 'class' or
+///                       'extension'
+/// String containerName: the name of the declaration
+/// String expectedKinds: the kinds of declarations that the lookup could have
+///                       found, such as 'static member or constructor'
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String name,
+    required String containerKind,
+    required String containerName,
+    required String expectedKinds,
+  })
+>
+undefinedStaticMemberReadNotFoundAnnotation = DiagnosticWithArguments(
+  name: 'undefined_static_member_read',
+  problemMessage: "The {1} '{2}' doesn't have a {3} named '{0}'.",
+  correctionMessage:
+      "Try correcting the name to the name of an existing static constant, "
+      "or defining a static constant named '{0}'.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_static_member_read_not_found_annotation',
+  withArguments: _withArgumentsUndefinedStaticMemberReadNotFoundAnnotation,
+  expectedTypes: [
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+  ],
+);
+
+/// Parameters:
+/// String name: the name of the member
+/// String containerKind: the kind of the declaration, such as 'class' or
+///                       'extension'
+/// String containerName: the name of the declaration
+/// String expectedKinds: the kinds of declarations that the lookup could have
+///                       found, such as 'static member or constructor'
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String name,
+    required String containerKind,
+    required String containerName,
+    required String expectedKinds,
+  })
+>
+undefinedStaticMemberReadNotFoundConstant = DiagnosticWithArguments(
+  name: 'undefined_static_member_read',
+  problemMessage: "The {1} '{2}' doesn't have a {3} named '{0}'.",
+  correctionMessage:
+      "Try correcting the name to the name of an existing static constant or "
+      "static method, or defining a static constant named '{0}'.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_static_member_read_not_found_constant',
+  withArguments: _withArgumentsUndefinedStaticMemberReadNotFoundConstant,
+  expectedTypes: [
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+  ],
+);
+
+/// Parameters:
+/// String name: the name of the member
+/// String contextType: the name of the declaration that the context type of
+///                     the dot shorthand denotes
+/// String expectedKinds: the kinds of declarations that the lookup could have
+///                       found, such as 'static member or constructor'
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String name,
+    required String contextType,
+    required String expectedKinds,
+  })
+>
+undefinedStaticMemberReadNotFoundDotShorthand = DiagnosticWithArguments(
+  name: 'undefined_static_member_read',
+  problemMessage: "The context type '{1}' doesn't have a {2} named '{0}'.",
+  correctionMessage:
+      "Try correcting the name to the name of an existing {2}, or defining a "
+      "static member named '{0}'.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_static_member_read_not_found_dot_shorthand',
+  withArguments: _withArgumentsUndefinedStaticMemberReadNotFoundDotShorthand,
+  expectedTypes: [
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+  ],
+);
+
+/// Parameters:
+/// String name: the name of the member
+/// String contextType: the name of the declaration that the context type of
+///                     the dot shorthand denotes
+/// String expectedKinds: the kinds of declarations that the lookup could have
+///                       found, such as 'static member or constructor'
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String name,
+    required String contextType,
+    required String expectedKinds,
+  })
+>
+undefinedStaticMemberReadNotFoundDotShorthandConstant = DiagnosticWithArguments(
+  name: 'undefined_static_member_read',
+  problemMessage: "The context type '{1}' doesn't have a {2} named '{0}'.",
+  correctionMessage:
+      "Try correcting the name to the name of an existing static constant or "
+      "static method, or defining a static constant named '{0}'.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_static_member_read_not_found_dot_shorthand_constant',
+  withArguments:
+      _withArgumentsUndefinedStaticMemberReadNotFoundDotShorthandConstant,
+  expectedTypes: [
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+  ],
+);
+
+/// Parameters:
+/// String name: the name of the member
+/// Uri libraryUri: the URI of the library that declares the private member
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required Uri libraryUri})
+>
+undefinedStaticMemberReadPrivate = DiagnosticWithArguments(
+  name: 'undefined_static_member_read',
+  problemMessage:
+      "The member '{0}' is declared in '{1}', but private names are visible only "
+      "in their own library.",
+  correctionMessage: "Try making the member public.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_static_member_read_private',
+  withArguments: _withArgumentsUndefinedStaticMemberReadPrivate,
+  expectedTypes: [ExpectedType.string, ExpectedType.uri],
+);
+
+/// Parameters:
+/// String name: the name of the member
+/// String contextType: the name of the private declaration that the context
+///                     type of the dot shorthand denotes
+/// Uri libraryUri: the URI of the library that declares the private
+///                 declaration
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String name,
+    required String contextType,
+    required Uri libraryUri,
+  })
+>
+undefinedStaticMemberReadPrivateDotShorthand = DiagnosticWithArguments(
+  name: 'undefined_static_member_read',
+  problemMessage:
+      "The context type '{1}' is declared in '{2}', but private names are "
+      "visible only in their own library.",
+  correctionMessage:
+      "Try qualifying '{0}' with a public name for the declaration, or "
+      "making the declaration public.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_static_member_read_private_dot_shorthand',
+  withArguments: _withArgumentsUndefinedStaticMemberReadPrivateDotShorthand,
+  expectedTypes: [ExpectedType.string, ExpectedType.string, ExpectedType.uri],
+);
+
+/// Parameters:
+/// String name: the name of the setter
+/// String containerKind: the kind of the declaration, such as 'class' or
+///                       'extension'
+/// String containerName: the name of the declaration
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String name,
+    required String containerKind,
+    required String containerName,
+  })
+>
+undefinedStaticMemberReadSetterOnly = DiagnosticWithArguments(
+  name: 'undefined_static_member_read',
+  problemMessage:
+      "There's a static setter '{0}' in the {1} '{2}', but no getter.",
+  correctionMessage: "Try defining a static getter named '{0}'.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_static_member_read_setter_only',
+  withArguments: _withArgumentsUndefinedStaticMemberReadSetterOnly,
+  expectedTypes: [
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+  ],
+);
+
+/// Parameters:
+/// String name: the name of the constant
+/// String containerKind: the kind of the declaration, such as 'class' or
+///                       'extension'
+/// String containerName: the name of the declaration
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String name,
+    required String containerKind,
+    required String containerName,
+  })
+>
+undefinedStaticMemberWriteConst = DiagnosticWithArguments(
+  name: 'undefined_static_member_write',
+  problemMessage: "The constant '{0}' in the {1} '{2}' can't be assigned to.",
+  correctionMessage:
+      "Try making it a non-constant field, or removing the assignment.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_static_member_write_const',
+  withArguments: _withArgumentsUndefinedStaticMemberWriteConst,
+  expectedTypes: [
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+  ],
+);
+
+/// Parameters:
+/// String name: the name of the field
+/// String containerKind: the kind of the declaration, such as 'class' or
+///                       'extension'
+/// String containerName: the name of the declaration
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String name,
+    required String containerKind,
+    required String containerName,
+  })
+>
+undefinedStaticMemberWriteFinal = DiagnosticWithArguments(
+  name: 'undefined_static_member_write',
+  problemMessage:
+      "The static field '{0}' in the {1} '{2}' is final, so it can't be assigned "
+      "to.",
+  correctionMessage:
+      "Try making the field non-final, or removing the assignment.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_static_member_write_final',
+  withArguments: _withArgumentsUndefinedStaticMemberWriteFinal,
+  expectedTypes: [
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+  ],
+);
+
+/// Parameters:
+/// String name: the name of the getter
+/// String containerKind: the kind of the declaration, such as 'class' or
+///                       'extension'
+/// String containerName: the name of the declaration
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String name,
+    required String containerKind,
+    required String containerName,
+  })
+>
+undefinedStaticMemberWriteGetterOnly = DiagnosticWithArguments(
+  name: 'undefined_static_member_write',
+  problemMessage:
+      "There's a static getter '{0}' in the {1} '{2}', but no setter.",
+  correctionMessage: "Try defining a static setter named '{0}'.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_static_member_write_getter_only',
+  withArguments: _withArgumentsUndefinedStaticMemberWriteGetterOnly,
+  expectedTypes: [
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+  ],
+);
+
+/// Parameters:
+/// String name: the name of the setter
+/// String aliasName: the name of the function type alias, with its import
+///                   prefix
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String name,
+    required String aliasName,
+  })
+>
+undefinedStaticMemberWriteNoStaticMembers = DiagnosticWithArguments(
+  name: 'undefined_static_member_write',
+  problemMessage:
+      "The function type '{1}' doesn't have a static setter named '{0}'.",
+  correctionMessage:
+      "Try wrapping the function type alias in parentheses to access '{0}' "
+      "on the 'Type' object.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_static_member_write_no_static_members',
+  withArguments: _withArgumentsUndefinedStaticMemberWriteNoStaticMembers,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the setter
+/// String containerKind: the kind of the declaration, such as 'class' or
+///                       'extension'
+/// String containerName: the name of the declaration
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String name,
+    required String containerKind,
+    required String containerName,
+  })
+>
+undefinedStaticMemberWriteNotFound = DiagnosticWithArguments(
+  name: 'undefined_static_member_write',
+  problemMessage: "The {1} '{2}' doesn't have a static setter named '{0}'.",
+  correctionMessage:
+      "Try correcting the name to the name of an existing static setter, or "
+      "defining a static setter or field named '{0}'.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_static_member_write_not_found',
+  withArguments: _withArgumentsUndefinedStaticMemberWriteNotFound,
+  expectedTypes: [
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+  ],
+);
+
+/// Parameters:
+/// String name: the name of the member
+/// Uri libraryUri: the URI of the library that declares the private member
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required Uri libraryUri})
+>
+undefinedStaticMemberWritePrivate = DiagnosticWithArguments(
+  name: 'undefined_static_member_write',
+  problemMessage:
+      "The member '{0}' is declared in '{1}', but private names are visible only "
+      "in their own library.",
+  correctionMessage: "Try making the member public.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_static_member_write_private',
+  withArguments: _withArgumentsUndefinedStaticMemberWritePrivate,
+  expectedTypes: [ExpectedType.string, ExpectedType.uri],
+);
+
+/// Parameters:
+/// String kind: the kind of the declaration that was found, such as 'method'
+/// String name: the name of the declaration
+/// String containerKind: the kind of the declaration, such as 'class' or
+///                       'extension'
+/// String containerName: the name of the declaration
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String kind,
+    required String name,
+    required String containerKind,
+    required String containerName,
+  })
+>
+undefinedStaticMemberWriteWrongKind = DiagnosticWithArguments(
+  name: 'undefined_static_member_write',
+  problemMessage: "The {0} '{1}' in the {2} '{3}' can't be assigned to.",
+  correctionMessage: "Try assigning to a static setter or field instead.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_static_member_write_wrong_kind',
+  withArguments: _withArgumentsUndefinedStaticMemberWriteWrongKind,
+  expectedTypes: [
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+  ],
+);
+
+/// Parameters:
+/// String name: the name of the member
+/// Type type: the type of `this` in the enclosing declaration
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required DartType type})
+>
+undefinedSuperMemberReadNotFound = DiagnosticWithArguments(
+  name: 'undefined_super_member_read',
+  problemMessage: "The member '{0}' isn't defined in a superclass of '{1}'.",
+  correctionMessage:
+      "Try correcting the name to the name of an existing member, or "
+      "defining a method, getter, or field named '{0}' in a superclass.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_super_member_read_not_found',
+  withArguments: _withArgumentsUndefinedSuperMemberReadNotFound,
   expectedTypes: [ExpectedType.string, ExpectedType.type],
 );
 
 /// Parameters:
-/// String methodName: the name of the method that is undefined
-/// String typeName: the resolved type name that the method lookup is
-///                  happening on
+/// String name: the name of the member
+/// Uri libraryUri: the URI of the library that declares the private member
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({
-    required String methodName,
-    required String typeName,
-  })
+  LocatableDiagnostic Function({required String name, required Uri libraryUri})
 >
-undefinedSuperMethod = DiagnosticWithArguments(
-  name: 'undefined_super_member',
-  problemMessage: "The method '{0}' isn't defined in a superclass of '{1}'.",
-  correctionMessage:
-      "Try correcting the name to the name of an existing method, or "
-      "defining a method named '{0}' in a superclass.",
+undefinedSuperMemberReadPrivate = DiagnosticWithArguments(
+  name: 'undefined_super_member_read',
+  problemMessage:
+      "The member '{0}' is declared in '{1}', but private names are visible only "
+      "in their own library.",
+  correctionMessage: "Try making the member public.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_super_method',
-  withArguments: _withArgumentsUndefinedSuperMethod,
-  expectedTypes: [ExpectedType.string, ExpectedType.string],
+  uniqueName: 'undefined_super_member_read_private',
+  withArguments: _withArgumentsUndefinedSuperMemberReadPrivate,
+  expectedTypes: [ExpectedType.string, ExpectedType.uri],
+);
+
+/// Parameters:
+/// String name: the name of the setter
+/// Type type: the type of `this` in the enclosing declaration
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required DartType type})
+>
+undefinedSuperMemberReadSetterOnly = DiagnosticWithArguments(
+  name: 'undefined_super_member_read',
+  problemMessage:
+      "There's a setter '{0}' in a superclass of '{1}', but no getter.",
+  correctionMessage:
+      "Try defining a getter or field named '{0}' in a superclass.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_super_member_read_setter_only',
+  withArguments: _withArgumentsUndefinedSuperMemberReadSetterOnly,
+  expectedTypes: [ExpectedType.string, ExpectedType.type],
+);
+
+/// Parameters:
+/// String name: the name of the field
+/// Type type: the type of `this` in the enclosing declaration
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required DartType type})
+>
+undefinedSuperMemberWriteFinal = DiagnosticWithArguments(
+  name: 'undefined_super_member_write',
+  problemMessage:
+      "The field '{0}' in a superclass of '{1}' is final, so it can't be "
+      "assigned to.",
+  correctionMessage:
+      "Try making the field non-final, or removing the assignment.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_super_member_write_final',
+  withArguments: _withArgumentsUndefinedSuperMemberWriteFinal,
+  expectedTypes: [ExpectedType.string, ExpectedType.type],
+);
+
+/// Parameters:
+/// String name: the name of the getter
+/// Type type: the type of `this` in the enclosing declaration
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required DartType type})
+>
+undefinedSuperMemberWriteGetterOnly = DiagnosticWithArguments(
+  name: 'undefined_super_member_write',
+  problemMessage:
+      "There's a getter '{0}' in a superclass of '{1}', but no setter.",
+  correctionMessage: "Try defining a setter named '{0}' in a superclass.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_super_member_write_getter_only',
+  withArguments: _withArgumentsUndefinedSuperMemberWriteGetterOnly,
+  expectedTypes: [ExpectedType.string, ExpectedType.type],
+);
+
+/// Parameters:
+/// String name: the name of the setter
+/// Type type: the type of `this` in the enclosing declaration
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required DartType type})
+>
+undefinedSuperMemberWriteNotFound = DiagnosticWithArguments(
+  name: 'undefined_super_member_write',
+  problemMessage: "The setter '{0}' isn't defined in a superclass of '{1}'.",
+  correctionMessage:
+      "Try correcting the name to the name of an existing setter, or "
+      "defining a setter or field named '{0}' in a superclass.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_super_member_write_not_found',
+  withArguments: _withArgumentsUndefinedSuperMemberWriteNotFound,
+  expectedTypes: [ExpectedType.string, ExpectedType.type],
+);
+
+/// Parameters:
+/// String name: the name of the member
+/// Uri libraryUri: the URI of the library that declares the private member
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required Uri libraryUri})
+>
+undefinedSuperMemberWritePrivate = DiagnosticWithArguments(
+  name: 'undefined_super_member_write',
+  problemMessage:
+      "The member '{0}' is declared in '{1}', but private names are visible only "
+      "in their own library.",
+  correctionMessage: "Try making the member public.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_super_member_write_private',
+  withArguments: _withArgumentsUndefinedSuperMemberWritePrivate,
+  expectedTypes: [ExpectedType.string, ExpectedType.uri],
+);
+
+/// Parameters:
+/// String kind: the kind of the declaration that was found, such as 'method'
+/// String name: the name of the declaration
+/// Type type: the type of `this` in the enclosing declaration
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String kind,
+    required String name,
+    required DartType type,
+  })
+>
+undefinedSuperMemberWriteWrongKind = DiagnosticWithArguments(
+  name: 'undefined_super_member_write',
+  problemMessage:
+      "The {0} '{1}' in a superclass of '{2}' can't be assigned to.",
+  correctionMessage: "Try assigning to a setter or a non-final field instead.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_super_member_write_wrong_kind',
+  withArguments: _withArgumentsUndefinedSuperMemberWriteWrongKind,
+  expectedTypes: [ExpectedType.string, ExpectedType.string, ExpectedType.type],
 );
 
 /// Parameters:
@@ -17118,7 +17939,7 @@ const DiagnosticWithArguments<
   })
 >
 undefinedSuperOperator = DiagnosticWithArguments(
-  name: 'undefined_super_member',
+  name: 'undefined_super_operator',
   problemMessage: "The operator '{0}' isn't defined in a superclass of '{1}'.",
   correctionMessage: "Try defining the operator '{0}' in a superclass.",
   hasPublishedDocs: true,
@@ -17129,25 +17950,156 @@ undefinedSuperOperator = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String setterName: the name of the setter
-/// Type type: the enclosing type where the setter is being looked for
+/// String name: the name that isn't defined
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({
-    required String setterName,
-    required DartType type,
-  })
+  LocatableDiagnostic Function({required String name})
 >
-undefinedSuperSetter = DiagnosticWithArguments(
-  name: 'undefined_super_member',
-  problemMessage: "The setter '{0}' isn't defined in a superclass of '{1}'.",
+undefinedUnqualifiedNameReadNotFound = DiagnosticWithArguments(
+  name: 'undefined_unqualified_name_read',
+  problemMessage: "Undefined name '{0}'.",
   correctionMessage:
-      "Try correcting the name to the name of an existing setter, or "
-      "defining a setter or field named '{0}' in a superclass.",
-  hasPublishedDocs: true,
+      "Try importing the library that defines '{0}', correcting the name to "
+      "one that is defined, or defining the name.",
+  isUnresolvedIdentifier: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_super_setter',
-  withArguments: _withArgumentsUndefinedSuperSetter,
-  expectedTypes: [ExpectedType.string, ExpectedType.type],
+  uniqueName: 'undefined_unqualified_name_read_not_found',
+  withArguments: _withArgumentsUndefinedUnqualifiedNameReadNotFound,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name that isn't defined
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+undefinedUnqualifiedNameReadNotFoundAnnotation = DiagnosticWithArguments(
+  name: 'undefined_unqualified_name_read',
+  problemMessage: "Undefined name '{0}' used as an annotation.",
+  correctionMessage:
+      "Try correcting the name to the name of a constant variable, importing "
+      "the library that defines it, or defining a constant variable named "
+      "'{0}'.",
+  isUnresolvedIdentifier: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_unqualified_name_read_not_found_annotation',
+  withArguments: _withArgumentsUndefinedUnqualifiedNameReadNotFoundAnnotation,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name that isn't defined
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+undefinedUnqualifiedNameReadNotFoundConstant = DiagnosticWithArguments(
+  name: 'undefined_unqualified_name_read',
+  problemMessage: "Undefined name '{0}'.",
+  correctionMessage:
+      "Try correcting the name to the name of a constant variable, function, "
+      "or type, importing the library that defines it, or defining a "
+      "constant variable named '{0}'.",
+  isUnresolvedIdentifier: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_unqualified_name_read_not_found_constant',
+  withArguments: _withArgumentsUndefinedUnqualifiedNameReadNotFoundConstant,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the setter
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+undefinedUnqualifiedNameReadSetterOnly = DiagnosticWithArguments(
+  name: 'undefined_unqualified_name_read',
+  problemMessage: "There's a setter '{0}', but no getter.",
+  correctionMessage: "Try defining a getter or variable named '{0}'.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_unqualified_name_read_setter_only',
+  withArguments: _withArgumentsUndefinedUnqualifiedNameReadSetterOnly,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the constant
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+undefinedUnqualifiedNameWriteConst = DiagnosticWithArguments(
+  name: 'undefined_unqualified_name_write',
+  problemMessage: "The constant '{0}' can't be assigned to.",
+  correctionMessage:
+      "Try making it a non-constant variable, or removing the assignment.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_unqualified_name_write_const',
+  withArguments: _withArgumentsUndefinedUnqualifiedNameWriteConst,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the variable or field
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+undefinedUnqualifiedNameWriteFinal = DiagnosticWithArguments(
+  name: 'undefined_unqualified_name_write',
+  problemMessage: "'{0}' is final, so it can't be assigned to.",
+  correctionMessage: "Try making '{0}' non-final, or removing the assignment.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_unqualified_name_write_final',
+  withArguments: _withArgumentsUndefinedUnqualifiedNameWriteFinal,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the getter
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+undefinedUnqualifiedNameWriteGetterOnly = DiagnosticWithArguments(
+  name: 'undefined_unqualified_name_write',
+  problemMessage: "There's a getter '{0}', but no setter.",
+  correctionMessage: "Try defining a setter named '{0}'.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_unqualified_name_write_getter_only',
+  withArguments: _withArgumentsUndefinedUnqualifiedNameWriteGetterOnly,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name that isn't defined
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+undefinedUnqualifiedNameWriteNotFound = DiagnosticWithArguments(
+  name: 'undefined_unqualified_name_write',
+  problemMessage: "Undefined name '{0}'.",
+  correctionMessage:
+      "Try importing the library that defines '{0}', correcting the name to "
+      "one that is defined, or defining a setter or variable named '{0}'.",
+  isUnresolvedIdentifier: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_unqualified_name_write_not_found',
+  withArguments: _withArgumentsUndefinedUnqualifiedNameWriteNotFound,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String kind: the kind of the declaration that was found, such as
+///              'function'
+/// String name: the name of the declaration
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String kind, required String name})
+>
+undefinedUnqualifiedNameWriteWrongKind = DiagnosticWithArguments(
+  name: 'undefined_unqualified_name_write',
+  problemMessage: "The {0} '{1}' can't be assigned to.",
+  correctionMessage:
+      "Try assigning to a setter or a non-final variable instead.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_unqualified_name_write_wrong_kind',
+  withArguments: _withArgumentsUndefinedUnqualifiedNameWriteWrongKind,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
 /// A TODO comment marked as UNDONE.
@@ -17180,17 +18132,17 @@ unexpectedDollarInString = DiagnosticWithoutArgumentsImpl(
 );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-unexpectedSeparatorInNumber = DiagnosticWithoutArgumentsImpl(
-  name: 'unexpected_separator_in_number',
-  problemMessage:
-      "Digit separators ('_') in a number literal can only be placed between two "
-      "digits.",
-  correctionMessage: "Try removing the '_'.",
-  type: DiagnosticType.SYNTACTIC_ERROR,
-  uniqueName: 'unexpected_separator_in_number',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments unexpectedSeparatorInNumber =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'unexpected_separator_in_number',
+      problemMessage:
+          "Digit separators ('_') in a number literal can only be placed between two "
+          "digits.",
+      correctionMessage: "Try removing the '_'.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'unexpected_separator_in_number',
+      expectedTypes: [],
+    );
 
 /// Parameters:
 /// String text: the unexpected text that was found
@@ -17395,19 +18347,19 @@ unnecessaryNullAssertPattern = DiagnosticWithoutArgumentsImpl(
 );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-unnecessaryNullCheckPattern = DiagnosticWithoutArgumentsImpl(
-  name: 'unnecessary_null_check_pattern',
-  problemMessage:
-      "The null-check pattern will have no effect because the matched type isn't "
-      "nullable.",
-  correctionMessage:
-      "Try replacing the null-check pattern with its nested pattern.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.STATIC_WARNING,
-  uniqueName: 'unnecessary_null_check_pattern',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments unnecessaryNullCheckPattern =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'unnecessary_null_check_pattern',
+      problemMessage:
+          "The null-check pattern will have no effect because the matched type isn't "
+          "nullable.",
+      correctionMessage:
+          "Try replacing the null-check pattern with its nested pattern.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.STATIC_WARNING,
+      uniqueName: 'unnecessary_null_check_pattern',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments unnecessaryNullComparisonAlwaysNullFalse =
@@ -18083,17 +19035,16 @@ const DiagnosticWithoutArguments uriWithInterpolation =
     );
 
 /// No parameters.
-const DiagnosticWithoutArguments
-useOfNativeExtension = DiagnosticWithoutArgumentsImpl(
-  name: 'use_of_native_extension',
-  problemMessage:
-      "Dart native extensions are deprecated and aren't available in Dart 2.15.",
-  correctionMessage: "Try using dart:ffi for C interop.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'use_of_native_extension',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments useOfNativeExtension =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'use_of_native_extension',
+      problemMessage: "Dart native extensions are deprecated and aren't available in Dart 2.15.",
+      correctionMessage: "Try using dart:ffi for C interop.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'use_of_native_extension',
+      expectedTypes: [],
+    );
 
 /// Parameters:
 /// String name: the public name of the requested named parameter
@@ -18720,19 +19671,19 @@ yieldEachOfInvalidType = DiagnosticWithArguments(
 /// function that is not a generator function.
 ///
 /// No parameters.
-const DiagnosticWithoutArguments
-yieldInNonGenerator = DiagnosticWithoutArgumentsImpl(
-  name: 'yield_in_non_generator',
-  problemMessage:
-      "Yield statements must be in a generator function (one marked with either "
-      "'async*' or 'sync*').",
-  correctionMessage:
-      "Try adding 'async*' or 'sync*' to the enclosing function.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'yield_in_non_generator',
-  expectedTypes: [],
-);
+const DiagnosticWithoutArguments yieldInNonGenerator =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'yield_in_non_generator',
+      problemMessage:
+          "Yield statements must be in a generator function (one marked with either "
+          "'async*' or 'sync*').",
+      correctionMessage:
+          "Try adding 'async*' or 'sync*' to the enclosing function.",
+      hasPublishedDocs: true,
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'yield_in_non_generator',
+      expectedTypes: [],
+    );
 
 /// Parameters:
 /// Type actualType: the type of the expression after `yield`
@@ -18771,6 +19722,26 @@ LocatableDiagnostic _withArgumentsAbstractSuperMemberReference({
   ]);
 }
 
+LocatableDiagnostic _withArgumentsAmbiguousCommentReferenceName({
+  required String name,
+  required String libraries,
+}) {
+  return LocatableDiagnosticImpl(diag.ambiguousCommentReferenceName, [
+    name,
+    libraries,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsAmbiguousCommentReferencePrefix({
+  required String prefix,
+  required String libraries,
+}) {
+  return LocatableDiagnosticImpl(diag.ambiguousCommentReferencePrefix, [
+    prefix,
+    libraries,
+  ]);
+}
+
 LocatableDiagnostic _withArgumentsAmbiguousExport({
   required String name,
   required Uri firstUri,
@@ -18806,10 +19777,11 @@ LocatableDiagnostic _withArgumentsAmbiguousExtensionMemberAccessTwo({
 }
 
 LocatableDiagnostic _withArgumentsAmbiguousImport({
+  required String kind,
   required String name,
   required String libraries,
 }) {
-  return LocatableDiagnosticImpl(diag.ambiguousImport, [name, libraries]);
+  return LocatableDiagnosticImpl(diag.ambiguousImport, [kind, name, libraries]);
 }
 
 LocatableDiagnostic _withArgumentsAnalysisOptionDeprecated({
@@ -18882,26 +19854,10 @@ LocatableDiagnostic _withArgumentsAssignmentOfDoNotStore({
   return LocatableDiagnosticImpl(diag.assignmentOfDoNotStore, [name]);
 }
 
-LocatableDiagnostic _withArgumentsAssignmentToFinal({
-  required String variableName,
-}) {
-  return LocatableDiagnosticImpl(diag.assignmentToFinal, [variableName]);
-}
-
 LocatableDiagnostic _withArgumentsAssignmentToFinalLocal({
   required String variableName,
 }) {
   return LocatableDiagnosticImpl(diag.assignmentToFinalLocal, [variableName]);
-}
-
-LocatableDiagnostic _withArgumentsAssignmentToFinalNoSetter({
-  required String variableName,
-  required String className,
-}) {
-  return LocatableDiagnosticImpl(diag.assignmentToFinalNoSetter, [
-    variableName,
-    className,
-  ]);
 }
 
 LocatableDiagnostic _withArgumentsAugmentationFormalParameterModifierExtra({
@@ -19638,6 +20594,43 @@ LocatableDiagnostic _withArgumentsDeprecatedMemberUse({required String name}) {
   return LocatableDiagnosticImpl(diag.deprecatedMemberUse, [name]);
 }
 
+LocatableDiagnostic
+_withArgumentsDeprecatedMemberUseImplicitSuperConstructorInvocation({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.deprecatedMemberUseImplicitSuperConstructorInvocation,
+    [name],
+  );
+}
+
+LocatableDiagnostic
+_withArgumentsDeprecatedMemberUseImplicitSuperConstructorInvocationWithMessage({
+  required String name,
+  required String details,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.deprecatedMemberUseImplicitSuperConstructorInvocationWithMessage,
+    [name, details],
+  );
+}
+
+LocatableDiagnostic _withArgumentsDeprecatedMemberUseImplicitType({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.deprecatedMemberUseImplicitType, [name]);
+}
+
+LocatableDiagnostic _withArgumentsDeprecatedMemberUseImplicitTypeWithMessage({
+  required String name,
+  required String details,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.deprecatedMemberUseImplicitTypeWithMessage,
+    [name, details],
+  );
+}
+
 LocatableDiagnostic _withArgumentsDeprecatedMemberUseWithMessage({
   required String name,
   required String details,
@@ -19662,6 +20655,14 @@ LocatableDiagnostic _withArgumentsDeprecatedSubclass({
   required String typeName,
 }) {
   return LocatableDiagnosticImpl(diag.deprecatedSubclass, [typeName]);
+}
+
+LocatableDiagnostic _withArgumentsDeprecatedWebConfiguration({
+  required String libraryName,
+}) {
+  return LocatableDiagnosticImpl(diag.deprecatedWebConfiguration, [
+    libraryName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsDifferentInheritedGetterAndSetterTypes({
@@ -19762,26 +20763,6 @@ LocatableDiagnostic _withArgumentsDocDirectiveUnknown({
   return LocatableDiagnosticImpl(diag.docDirectiveUnknown, [directive]);
 }
 
-LocatableDiagnostic _withArgumentsDotShorthandUndefinedGetter({
-  required String getterName,
-  required String typeName,
-}) {
-  return LocatableDiagnosticImpl(diag.dotShorthandUndefinedGetter, [
-    getterName,
-    typeName,
-  ]);
-}
-
-LocatableDiagnostic _withArgumentsDotShorthandUndefinedInvocation({
-  required String name,
-  required String contextType,
-}) {
-  return LocatableDiagnosticImpl(diag.dotShorthandUndefinedInvocation, [
-    name,
-    contextType,
-  ]);
-}
-
 LocatableDiagnostic _withArgumentsDuplicateConstructorName({
   required String name,
 }) {
@@ -19790,6 +20771,12 @@ LocatableDiagnostic _withArgumentsDuplicateConstructorName({
 
 LocatableDiagnostic _withArgumentsDuplicateDefinition({required String name}) {
   return LocatableDiagnosticImpl(diag.duplicateDefinition, [name]);
+}
+
+LocatableDiagnostic _withArgumentsDuplicateExportInPart({
+  required String fileName,
+}) {
+  return LocatableDiagnosticImpl(diag.duplicateExportInPart, [fileName]);
 }
 
 LocatableDiagnostic _withArgumentsDuplicateFieldFormalParameter({
@@ -19804,6 +20791,12 @@ LocatableDiagnostic _withArgumentsDuplicateFieldName({required String name}) {
 
 LocatableDiagnostic _withArgumentsDuplicateIgnore({required String name}) {
   return LocatableDiagnosticImpl(diag.duplicateIgnore, [name]);
+}
+
+LocatableDiagnostic _withArgumentsDuplicateImportInPart({
+  required String fileName,
+}) {
+  return LocatableDiagnosticImpl(diag.duplicateImportInPart, [fileName]);
 }
 
 LocatableDiagnostic _withArgumentsDuplicateNamedArgument({
@@ -21735,10 +22728,6 @@ LocatableDiagnostic _withArgumentsPrivateNamedParameterDuplicatePublicName({
   );
 }
 
-LocatableDiagnostic _withArgumentsPrivateSetter({required String name}) {
-  return LocatableDiagnosticImpl(diag.privateSetter, [name]);
-}
-
 LocatableDiagnostic _withArgumentsReadPotentiallyUnassignedFinal({
   required String name,
 }) {
@@ -22222,10 +23211,6 @@ LocatableDiagnostic _withArgumentsUncheckedPropertyAccessOfNullableValue({
   ]);
 }
 
-LocatableDiagnostic _withArgumentsUndefinedAnnotation({required String name}) {
-  return LocatableDiagnosticImpl(diag.undefinedAnnotation, [name]);
-}
-
 LocatableDiagnostic _withArgumentsUndefinedClass({required String name}) {
   return LocatableDiagnosticImpl(diag.undefinedClass, [name]);
 }
@@ -22255,38 +23240,80 @@ LocatableDiagnostic _withArgumentsUndefinedConstructorInInitializerDefault({
   );
 }
 
-LocatableDiagnostic _withArgumentsUndefinedEnumConstant({
-  required String memberName,
-  required DartType type,
-}) {
-  return LocatableDiagnosticImpl(diag.undefinedEnumConstant, [
-    memberName,
-    type,
-  ]);
-}
-
 LocatableDiagnostic _withArgumentsUndefinedEnumConstructorNamed({
   required String name,
 }) {
   return LocatableDiagnosticImpl(diag.undefinedEnumConstructorNamed, [name]);
 }
 
-LocatableDiagnostic _withArgumentsUndefinedExtensionGetter({
-  required String getterName,
+LocatableDiagnostic _withArgumentsUndefinedExtensionMemberReadNotFound({
+  required String name,
   required String extensionName,
 }) {
-  return LocatableDiagnosticImpl(diag.undefinedExtensionGetter, [
-    getterName,
+  return LocatableDiagnosticImpl(diag.undefinedExtensionMemberReadNotFound, [
+    name,
     extensionName,
   ]);
 }
 
-LocatableDiagnostic _withArgumentsUndefinedExtensionMethod({
-  required String methodName,
+LocatableDiagnostic _withArgumentsUndefinedExtensionMemberReadPrivate({
+  required String name,
+  required Uri libraryUri,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedExtensionMemberReadPrivate, [
+    name,
+    libraryUri,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedExtensionMemberReadSetterOnly({
+  required String name,
   required String extensionName,
 }) {
-  return LocatableDiagnosticImpl(diag.undefinedExtensionMethod, [
-    methodName,
+  return LocatableDiagnosticImpl(diag.undefinedExtensionMemberReadSetterOnly, [
+    name,
+    extensionName,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedExtensionMemberWriteGetterOnly({
+  required String name,
+  required String extensionName,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedExtensionMemberWriteGetterOnly, [
+    name,
+    extensionName,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedExtensionMemberWriteNotFound({
+  required String name,
+  required String extensionName,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedExtensionMemberWriteNotFound, [
+    name,
+    extensionName,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedExtensionMemberWritePrivate({
+  required String name,
+  required Uri libraryUri,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedExtensionMemberWritePrivate, [
+    name,
+    libraryUri,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedExtensionMemberWriteWrongKind({
+  required String kind,
+  required String name,
+  required String extensionName,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedExtensionMemberWriteWrongKind, [
+    kind,
+    name,
     extensionName,
   ]);
 }
@@ -22301,37 +23328,6 @@ LocatableDiagnostic _withArgumentsUndefinedExtensionOperator({
   ]);
 }
 
-LocatableDiagnostic _withArgumentsUndefinedExtensionSetter({
-  required String setterName,
-  required String extensionName,
-}) {
-  return LocatableDiagnosticImpl(diag.undefinedExtensionSetter, [
-    setterName,
-    extensionName,
-  ]);
-}
-
-LocatableDiagnostic _withArgumentsUndefinedFunction({required String name}) {
-  return LocatableDiagnosticImpl(diag.undefinedFunction, [name]);
-}
-
-LocatableDiagnostic _withArgumentsUndefinedGetter({
-  required String memberName,
-  required DartType type,
-}) {
-  return LocatableDiagnosticImpl(diag.undefinedGetter, [memberName, type]);
-}
-
-LocatableDiagnostic _withArgumentsUndefinedGetterOnFunctionType({
-  required String getterName,
-  required String functionTypeAliasName,
-}) {
-  return LocatableDiagnosticImpl(diag.undefinedGetterOnFunctionType, [
-    getterName,
-    functionTypeAliasName,
-  ]);
-}
-
 LocatableDiagnostic _withArgumentsUndefinedHiddenName({
   required String library,
   required String name,
@@ -22339,29 +23335,90 @@ LocatableDiagnostic _withArgumentsUndefinedHiddenName({
   return LocatableDiagnosticImpl(diag.undefinedHiddenName, [library, name]);
 }
 
-LocatableDiagnostic _withArgumentsUndefinedIdentifier({required String name}) {
-  return LocatableDiagnosticImpl(diag.undefinedIdentifier, [name]);
+LocatableDiagnostic _withArgumentsUndefinedInstanceMemberReadNotFound({
+  required String name,
+  required DartType type,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedInstanceMemberReadNotFound, [
+    name,
+    type,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedInstanceMemberReadPrivate({
+  required String name,
+  required Uri libraryUri,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedInstanceMemberReadPrivate, [
+    name,
+    libraryUri,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedInstanceMemberReadSetterOnly({
+  required String name,
+  required DartType type,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedInstanceMemberReadSetterOnly, [
+    name,
+    type,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedInstanceMemberWriteFinal({
+  required String name,
+  required DartType type,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedInstanceMemberWriteFinal, [
+    name,
+    type,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedInstanceMemberWriteGetterOnly({
+  required String name,
+  required DartType type,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedInstanceMemberWriteGetterOnly, [
+    name,
+    type,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedInstanceMemberWriteNotFound({
+  required String name,
+  required DartType type,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedInstanceMemberWriteNotFound, [
+    name,
+    type,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedInstanceMemberWritePrivate({
+  required String name,
+  required Uri libraryUri,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedInstanceMemberWritePrivate, [
+    name,
+    libraryUri,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedInstanceMemberWriteWrongKind({
+  required String kind,
+  required String name,
+  required DartType type,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedInstanceMemberWriteWrongKind, [
+    kind,
+    name,
+    type,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedLint({required String ruleName}) {
   return LocatableDiagnosticImpl(diag.undefinedLint, [ruleName]);
-}
-
-LocatableDiagnostic _withArgumentsUndefinedMethod({
-  required String methodName,
-  required String typeName,
-}) {
-  return LocatableDiagnosticImpl(diag.undefinedMethod, [methodName, typeName]);
-}
-
-LocatableDiagnostic _withArgumentsUndefinedMethodOnFunctionType({
-  required String methodName,
-  required String functionTypeAliasName,
-}) {
-  return LocatableDiagnosticImpl(diag.undefinedMethodOnFunctionType, [
-    methodName,
-    functionTypeAliasName,
-  ]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedNamedParameter({
@@ -22377,13 +23434,115 @@ LocatableDiagnostic _withArgumentsUndefinedOperator({
   return LocatableDiagnosticImpl(diag.undefinedOperator, [operator, type]);
 }
 
-LocatableDiagnostic _withArgumentsUndefinedPrefixedName({
-  required String referenceName,
-  required String prefixName,
+LocatableDiagnostic _withArgumentsUndefinedPrefixedNameReadNotFound({
+  required String name,
+  required String prefix,
 }) {
-  return LocatableDiagnosticImpl(diag.undefinedPrefixedName, [
-    referenceName,
-    prefixName,
+  return LocatableDiagnosticImpl(diag.undefinedPrefixedNameReadNotFound, [
+    name,
+    prefix,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedPrefixedNameReadNotFoundAnnotation({
+  required String name,
+  required String prefix,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.undefinedPrefixedNameReadNotFoundAnnotation,
+    [name, prefix],
+  );
+}
+
+LocatableDiagnostic _withArgumentsUndefinedPrefixedNameReadNotFoundConstant({
+  required String name,
+  required String prefix,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.undefinedPrefixedNameReadNotFoundConstant,
+    [name, prefix],
+  );
+}
+
+LocatableDiagnostic _withArgumentsUndefinedPrefixedNameReadPrivate({
+  required String name,
+  required Uri libraryUri,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedPrefixedNameReadPrivate, [
+    name,
+    libraryUri,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedPrefixedNameReadSetterOnly({
+  required String name,
+  required String prefix,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedPrefixedNameReadSetterOnly, [
+    name,
+    prefix,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedPrefixedNameWriteConst({
+  required String name,
+  required String prefix,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedPrefixedNameWriteConst, [
+    name,
+    prefix,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedPrefixedNameWriteFinal({
+  required String name,
+  required String prefix,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedPrefixedNameWriteFinal, [
+    name,
+    prefix,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedPrefixedNameWriteGetterOnly({
+  required String name,
+  required String prefix,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedPrefixedNameWriteGetterOnly, [
+    name,
+    prefix,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedPrefixedNameWriteNotFound({
+  required String name,
+  required String prefix,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedPrefixedNameWriteNotFound, [
+    name,
+    prefix,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedPrefixedNameWritePrivate({
+  required String name,
+  required Uri libraryUri,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedPrefixedNameWritePrivate, [
+    name,
+    libraryUri,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedPrefixedNameWriteWrongKind({
+  required String kind,
+  required String name,
+  required String prefix,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedPrefixedNameWriteWrongKind, [
+    kind,
+    name,
+    prefix,
   ]);
 }
 
@@ -22397,23 +23556,6 @@ LocatableDiagnostic _withArgumentsUndefinedReferencedParameter({
   ]);
 }
 
-LocatableDiagnostic _withArgumentsUndefinedSetter({
-  required String setterName,
-  required DartType type,
-}) {
-  return LocatableDiagnosticImpl(diag.undefinedSetter, [setterName, type]);
-}
-
-LocatableDiagnostic _withArgumentsUndefinedSetterOnFunctionType({
-  required String setterName,
-  required String functionTypeAliasName,
-}) {
-  return LocatableDiagnosticImpl(diag.undefinedSetterOnFunctionType, [
-    setterName,
-    functionTypeAliasName,
-  ]);
-}
-
 LocatableDiagnostic _withArgumentsUndefinedShownName({
   required String library,
   required String name,
@@ -22421,20 +23563,283 @@ LocatableDiagnostic _withArgumentsUndefinedShownName({
   return LocatableDiagnosticImpl(diag.undefinedShownName, [library, name]);
 }
 
-LocatableDiagnostic _withArgumentsUndefinedSuperGetter({
-  required String getterName,
-  required DartType type,
+LocatableDiagnostic _withArgumentsUndefinedStaticMemberReadNoStaticMembers({
+  required String name,
+  required String aliasName,
 }) {
-  return LocatableDiagnosticImpl(diag.undefinedSuperGetter, [getterName, type]);
+  return LocatableDiagnosticImpl(
+    diag.undefinedStaticMemberReadNoStaticMembers,
+    [name, aliasName],
+  );
 }
 
-LocatableDiagnostic _withArgumentsUndefinedSuperMethod({
-  required String methodName,
-  required String typeName,
+LocatableDiagnostic
+_withArgumentsUndefinedStaticMemberReadNoStaticMembersDotShorthand({
+  required String name,
+  required String contextType,
 }) {
-  return LocatableDiagnosticImpl(diag.undefinedSuperMethod, [
-    methodName,
-    typeName,
+  return LocatableDiagnosticImpl(
+    diag.undefinedStaticMemberReadNoStaticMembersDotShorthand,
+    [name, contextType],
+  );
+}
+
+LocatableDiagnostic _withArgumentsUndefinedStaticMemberReadNotFound({
+  required String name,
+  required String containerKind,
+  required String containerName,
+  required String expectedKinds,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedStaticMemberReadNotFound, [
+    name,
+    containerKind,
+    containerName,
+    expectedKinds,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedStaticMemberReadNotFoundAnnotation({
+  required String name,
+  required String containerKind,
+  required String containerName,
+  required String expectedKinds,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.undefinedStaticMemberReadNotFoundAnnotation,
+    [name, containerKind, containerName, expectedKinds],
+  );
+}
+
+LocatableDiagnostic _withArgumentsUndefinedStaticMemberReadNotFoundConstant({
+  required String name,
+  required String containerKind,
+  required String containerName,
+  required String expectedKinds,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.undefinedStaticMemberReadNotFoundConstant,
+    [name, containerKind, containerName, expectedKinds],
+  );
+}
+
+LocatableDiagnostic
+_withArgumentsUndefinedStaticMemberReadNotFoundDotShorthand({
+  required String name,
+  required String contextType,
+  required String expectedKinds,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.undefinedStaticMemberReadNotFoundDotShorthand,
+    [name, contextType, expectedKinds],
+  );
+}
+
+LocatableDiagnostic
+_withArgumentsUndefinedStaticMemberReadNotFoundDotShorthandConstant({
+  required String name,
+  required String contextType,
+  required String expectedKinds,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.undefinedStaticMemberReadNotFoundDotShorthandConstant,
+    [name, contextType, expectedKinds],
+  );
+}
+
+LocatableDiagnostic _withArgumentsUndefinedStaticMemberReadPrivate({
+  required String name,
+  required Uri libraryUri,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedStaticMemberReadPrivate, [
+    name,
+    libraryUri,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedStaticMemberReadPrivateDotShorthand({
+  required String name,
+  required String contextType,
+  required Uri libraryUri,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.undefinedStaticMemberReadPrivateDotShorthand,
+    [name, contextType, libraryUri],
+  );
+}
+
+LocatableDiagnostic _withArgumentsUndefinedStaticMemberReadSetterOnly({
+  required String name,
+  required String containerKind,
+  required String containerName,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedStaticMemberReadSetterOnly, [
+    name,
+    containerKind,
+    containerName,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedStaticMemberWriteConst({
+  required String name,
+  required String containerKind,
+  required String containerName,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedStaticMemberWriteConst, [
+    name,
+    containerKind,
+    containerName,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedStaticMemberWriteFinal({
+  required String name,
+  required String containerKind,
+  required String containerName,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedStaticMemberWriteFinal, [
+    name,
+    containerKind,
+    containerName,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedStaticMemberWriteGetterOnly({
+  required String name,
+  required String containerKind,
+  required String containerName,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedStaticMemberWriteGetterOnly, [
+    name,
+    containerKind,
+    containerName,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedStaticMemberWriteNoStaticMembers({
+  required String name,
+  required String aliasName,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.undefinedStaticMemberWriteNoStaticMembers,
+    [name, aliasName],
+  );
+}
+
+LocatableDiagnostic _withArgumentsUndefinedStaticMemberWriteNotFound({
+  required String name,
+  required String containerKind,
+  required String containerName,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedStaticMemberWriteNotFound, [
+    name,
+    containerKind,
+    containerName,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedStaticMemberWritePrivate({
+  required String name,
+  required Uri libraryUri,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedStaticMemberWritePrivate, [
+    name,
+    libraryUri,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedStaticMemberWriteWrongKind({
+  required String kind,
+  required String name,
+  required String containerKind,
+  required String containerName,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedStaticMemberWriteWrongKind, [
+    kind,
+    name,
+    containerKind,
+    containerName,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedSuperMemberReadNotFound({
+  required String name,
+  required DartType type,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedSuperMemberReadNotFound, [
+    name,
+    type,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedSuperMemberReadPrivate({
+  required String name,
+  required Uri libraryUri,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedSuperMemberReadPrivate, [
+    name,
+    libraryUri,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedSuperMemberReadSetterOnly({
+  required String name,
+  required DartType type,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedSuperMemberReadSetterOnly, [
+    name,
+    type,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedSuperMemberWriteFinal({
+  required String name,
+  required DartType type,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedSuperMemberWriteFinal, [
+    name,
+    type,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedSuperMemberWriteGetterOnly({
+  required String name,
+  required DartType type,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedSuperMemberWriteGetterOnly, [
+    name,
+    type,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedSuperMemberWriteNotFound({
+  required String name,
+  required DartType type,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedSuperMemberWriteNotFound, [
+    name,
+    type,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedSuperMemberWritePrivate({
+  required String name,
+  required Uri libraryUri,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedSuperMemberWritePrivate, [
+    name,
+    libraryUri,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedSuperMemberWriteWrongKind({
+  required String kind,
+  required String name,
+  required DartType type,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedSuperMemberWriteWrongKind, [
+    kind,
+    name,
+    type,
   ]);
 }
 
@@ -22445,11 +23850,81 @@ LocatableDiagnostic _withArgumentsUndefinedSuperOperator({
   return LocatableDiagnosticImpl(diag.undefinedSuperOperator, [operator, type]);
 }
 
-LocatableDiagnostic _withArgumentsUndefinedSuperSetter({
-  required String setterName,
-  required DartType type,
+LocatableDiagnostic _withArgumentsUndefinedUnqualifiedNameReadNotFound({
+  required String name,
 }) {
-  return LocatableDiagnosticImpl(diag.undefinedSuperSetter, [setterName, type]);
+  return LocatableDiagnosticImpl(diag.undefinedUnqualifiedNameReadNotFound, [
+    name,
+  ]);
+}
+
+LocatableDiagnostic
+_withArgumentsUndefinedUnqualifiedNameReadNotFoundAnnotation({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.undefinedUnqualifiedNameReadNotFoundAnnotation,
+    [name],
+  );
+}
+
+LocatableDiagnostic _withArgumentsUndefinedUnqualifiedNameReadNotFoundConstant({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.undefinedUnqualifiedNameReadNotFoundConstant,
+    [name],
+  );
+}
+
+LocatableDiagnostic _withArgumentsUndefinedUnqualifiedNameReadSetterOnly({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedUnqualifiedNameReadSetterOnly, [
+    name,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedUnqualifiedNameWriteConst({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedUnqualifiedNameWriteConst, [
+    name,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedUnqualifiedNameWriteFinal({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedUnqualifiedNameWriteFinal, [
+    name,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedUnqualifiedNameWriteGetterOnly({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedUnqualifiedNameWriteGetterOnly, [
+    name,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedUnqualifiedNameWriteNotFound({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedUnqualifiedNameWriteNotFound, [
+    name,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedUnqualifiedNameWriteWrongKind({
+  required String kind,
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedUnqualifiedNameWriteWrongKind, [
+    kind,
+    name,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsUndone({required String message}) {

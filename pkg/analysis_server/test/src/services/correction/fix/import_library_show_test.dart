@@ -17,7 +17,8 @@ void main() {
 }
 
 @reflectiveTest
-class ImportLibraryShowMultipleTest extends FixProcessorTest {
+class ImportLibraryShowMultipleTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.importLibraryCombinatorMultiple;
 
@@ -87,7 +88,7 @@ void f(String s, lib.C c) {
 }
 ''',
       filter: (error) {
-        return error.diagnosticCode == diag.undefinedMethod;
+        return error.offset == testCode.indexOf('m()');
       },
     );
   }
@@ -120,7 +121,7 @@ void f(String s, C c) {
 }
 ''',
       filter: (error) {
-        return error.diagnosticCode == diag.undefinedMethod;
+        return error.offset == testCode.indexOf('m()');
       },
     );
   }
@@ -246,7 +247,8 @@ void f(A a1) {
 }
 ''',
       filter: (error) {
-        return error.diagnosticCode == diag.undefinedIdentifier &&
+        return error.diagnosticCode ==
+                diag.undefinedUnqualifiedNameReadNotFound &&
             testCode.indexOf('E') == error.offset;
       },
     );
@@ -258,7 +260,8 @@ void f(A a1) {
 }
 ''',
       filter: (error) {
-        return error.diagnosticCode == diag.undefinedIdentifier &&
+        return error.diagnosticCode ==
+                diag.undefinedUnqualifiedNameReadNotFound &&
             testCode.indexOf("a')") == error.offset;
       },
     );
@@ -266,7 +269,7 @@ void f(A a1) {
 }
 
 @reflectiveTest
-class ImportLibraryShowTest extends FixProcessorTest {
+class ImportLibraryShowTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.importLibraryCombinator;
 
@@ -519,7 +522,7 @@ import 'lib.dart' as lib show C, E;
 void f(String s, lib.C c) {
   s.m();
 }
-''', matchFixMessage: "Import 'E' from lib.dart");
+''', fixMessageContains: "Import 'E' from lib.dart");
   }
 
   Future<void> test_sdk() async {

@@ -50,6 +50,6 @@ void f() {
 
   void _assertTypeOfV(TestResolvedUnitResult result, String expected) {
     assertType(result.findElement.localVar('v').type, expected);
-    assertType(result.findNode.simple('v;'), expected);
+    assertType(result.findNode.unqualifiedNameExpression('v;'), expected);
   }
 }

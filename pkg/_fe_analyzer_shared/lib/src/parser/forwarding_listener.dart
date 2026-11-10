@@ -11,7 +11,7 @@ class ForwardingListener implements Listener {
   Listener? listener;
   bool forwardErrors = true;
 
-  ForwardingListener([this.listener]);
+  new([this.listener]);
 
   @override
   void beginAnonymousMethodInvocation(Token token) {
@@ -722,6 +722,11 @@ class ForwardingListener implements Listener {
   @override
   void handleCascadeAccess(Token token, Token endToken, bool isNullAware) {
     listener?.handleCascadeAccess(token, endToken, isNullAware);
+  }
+
+  @override
+  void handleCascadeExpressionEnd(int sectionCount) {
+    listener?.handleCascadeExpressionEnd(sectionCount);
   }
 
   @override
@@ -2237,6 +2242,20 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleSendWithoutArguments(
+    Token beginToken,
+    Token endToken,
+    Token nextToken,
+  ) {
+    listener?.handleSendWithoutArguments(beginToken, endToken, nextToken);
+  }
+
+  @override
+  void handleInvocationWithoutTypeArguments(Token beginToken, Token endToken) {
+    listener?.handleInvocationWithoutTypeArguments(beginToken, endToken);
+  }
+
+  @override
   void handleSpreadExpression(Token spreadToken) {
     listener?.handleSpreadExpression(spreadToken);
   }
@@ -2475,11 +2494,13 @@ class ForwardingListener implements Listener {
   @override
   void endPrimaryConstructorBody(
     Token beginToken,
+    Token thisToken,
     Token? beginInitializers,
     Token endToken,
   ) {
     listener?.endPrimaryConstructorBody(
       beginToken,
+      thisToken,
       beginInitializers,
       endToken,
     );

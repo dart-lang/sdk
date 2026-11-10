@@ -288,6 +288,7 @@ void LocalScope::CollectLocalVariables(LocalVarDescriptorsBuilder* vars,
         // own context before calling a closure function.
         LocalVarDescriptorsBuilder::VarDesc desc;
         desc.name = &var->name();
+        desc.static_type = nullptr;
         desc.info.set_kind(UntaggedLocalVarDescriptors::kSavedCurrentContext);
         desc.info.scope_id = 0;
         desc.info.declaration_pos = TokenPosition::kMinSource;
@@ -300,6 +301,7 @@ void LocalScope::CollectLocalVariables(LocalVarDescriptorsBuilder* vars,
         // This is a regular Dart variable, either stack-based or captured.
         LocalVarDescriptorsBuilder::VarDesc desc;
         desc.name = &var->name();
+        desc.static_type = &var->static_type();
         if (var->is_captured()) {
           desc.info.set_kind(UntaggedLocalVarDescriptors::kContextVar);
           ASSERT(var->owner() != nullptr);
@@ -452,6 +454,8 @@ ContextScopePtr LocalScope::PreserveOuterScope(
       context_scope.SetNameAt(captured_idx, variable->name());
       context_scope.ClearFlagsAt(captured_idx);
       context_scope.SetIsFinalAt(captured_idx, variable->is_final());
+      context_scope.SetIsEffectivelyFinalAt(captured_idx,
+                                            variable->is_effectively_final());
       context_scope.SetIsLateAt(captured_idx, variable->is_late());
       if (variable->is_late()) {
         context_scope.SetLateInitOffsetAt(captured_idx,
@@ -461,6 +465,7 @@ ContextScopePtr LocalScope::PreserveOuterScope(
       context_scope.SetTypeAt(captured_idx, *type->ToAbstractType());
       context_scope.SetCidAt(captured_idx, type->ToNullableCid());
       context_scope.SetIsNullableAt(captured_idx, type->is_nullable());
+      context_scope.SetIsExactTypeAt(captured_idx, type->is_exact_type());
       context_scope.SetIsInvisibleAt(captured_idx, variable->is_invisible());
       context_scope.SetContextIndexAt(captured_idx, variable->index().value());
       // Adjust the context level relative to the current context level,
@@ -524,9 +529,9 @@ LocalScope* LocalScope::RestoreOuterScope(const ContextScope& context_scope) {
   for (int i = 0; i < context_scope.num_variables(); i++) {
     const bool is_late = context_scope.IsLateAt(i);
     const auto& static_type = AbstractType::ZoneHandle(context_scope.TypeAt(i));
-    CompileType* inferred_type =
-        new CompileType(context_scope.IsNullableAt(i), is_late,
-                        context_scope.CidAt(i), &static_type);
+    CompileType* inferred_type = new CompileType(
+        context_scope.IsNullableAt(i), is_late, context_scope.CidAt(i),
+        &static_type, context_scope.IsExactTypeAt(i));
     LocalVariable* variable = new LocalVariable(
         context_scope.DeclarationTokenIndexAt(i), context_scope.TokenIndexAt(i),
         String::ZoneHandle(context_scope.NameAt(i)), static_type,
@@ -537,6 +542,9 @@ LocalScope* LocalScope::RestoreOuterScope(const ContextScope& context_scope) {
     variable->set_index(VariableIndex(context_scope.ContextIndexAt(i)));
     if (context_scope.IsFinalAt(i)) {
       variable->set_is_final();
+    }
+    if (context_scope.IsEffectivelyFinalAt(i)) {
+      variable->set_is_effectively_final();
     }
     if (is_late) {
       variable->set_is_late();
@@ -570,6 +578,7 @@ ContextScopePtr LocalScope::CreateImplicitClosureScope(const Function& func) {
   context_scope.SetNameAt(0, Symbols::This());
   context_scope.ClearFlagsAt(0);
   context_scope.SetIsFinalAt(0, true);
+  context_scope.SetIsEffectivelyFinalAt(0, true);
   const AbstractType& type = AbstractType::Handle(func.ParameterTypeAt(0));
   context_scope.SetTypeAt(0, type);
   context_scope.SetCidAt(0, kIllegalCid);
@@ -753,7 +762,10 @@ LocalVarDescriptorsPtr LocalVarDescriptorsBuilder::Done() {
   const LocalVarDescriptors& var_desc =
       LocalVarDescriptors::Handle(LocalVarDescriptors::New(vars_.length()));
   for (int i = 0; i < vars_.length(); i++) {
-    var_desc.SetVar(i, *(vars_[i].name), &vars_[i].info);
+    var_desc.SetVar(i, *(vars_[i].name),
+                    vars_[i].static_type != nullptr ? *vars_[i].static_type
+                                                    : Object::dynamic_type(),
+                    &vars_[i].info);
   }
   return var_desc.ptr();
 }

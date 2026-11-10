@@ -82,9 +82,9 @@ final class _ReceivePortImpl extends Stream implements ReceivePort {
   }
 
   StreamSubscription listen(
-    void onData(message)?, {
+    void Function(dynamic message)? onData, {
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool? cancelOnError,
   }) {
     return _controller.stream.listen(
@@ -104,14 +104,14 @@ final class _ReceivePortImpl extends Stream implements ReceivePort {
   final StreamController _controller;
 }
 
-typedef void _ImmediateCallback();
+typedef _ImmediateCallback = void Function();
 
 /// The callback that has been registered through `scheduleImmediate`.
 _ImmediateCallback? _pendingImmediateCallback;
 
 /// The closure that should be used as scheduleImmediateClosure, when the VM
 /// is responsible for the event loop.
-void _isolateScheduleImmediate(void callback()) {
+void _isolateScheduleImmediate(void Function() callback) {
   assert(
     (_pendingImmediateCallback == null) ||
         (_pendingImmediateCallback == callback),
@@ -258,8 +258,8 @@ final class _SendPort implements SendPort {
   external void _sendInternal(message);
 }
 
-typedef _UnaryFunction(Never args);
-typedef _BinaryFunction(Never args, Never message);
+typedef _UnaryFunction = Function(Never args);
+typedef _BinaryFunction = Function(Never args, Never message);
 
 /**
  * Takes the real entry point as argument and schedules it to run in the message
@@ -364,7 +364,7 @@ final class Isolate {
 
   @patch
   static Future<Isolate> spawn<T>(
-    void entryPoint(T message),
+    void Function(T message) entryPoint,
     T message, {
     bool paused = false,
     bool errorsAreFatal = true,
@@ -730,71 +730,6 @@ final class Isolate {
       throw UnsupportedError("Isolate.exit");
     }
     _exit(finalMessagePort, message);
-  }
-
-  @patch
-  static Isolate create({String? debugName}) {
-    final List created = _create(debugName);
-    final SendPort controlPort = created[0];
-    final List capabilities = created[1];
-    return Isolate(
-      controlPort,
-      pauseCapability: capabilities[0],
-      terminateCapability: capabilities[1],
-    );
-  }
-
-  @pragma("vm:external-name", "Isolate_create_")
-  external static List _create(String? debugName);
-
-  @patch
-  void shutdownSync() {
-    Isolate._shutdownSync(controlPort);
-  }
-
-  @pragma("vm:external-name", "Isolate_shutdownSync_")
-  external static void _shutdownSync(SendPort controlPort);
-
-  @patch
-  R runSync<R>(R Function() f) {
-    return _runSync(controlPort, f);
-  }
-
-  @pragma("vm:external-name", "Isolate_runSync_")
-  external static R _runSync<R>(SendPort controlPort, R Function() f);
-
-  @patch
-  void runEventLoopSync() {
-    _runEventLoopSync(controlPort);
-  }
-
-  @pragma("vm:external-name", "Isolate_pinToCurrentThread")
-  external static bool _pinToCurrentThread();
-
-  @patch
-  static bool pinToCurrentThread() {
-    return _pinToCurrentThread();
-  }
-
-  @pragma("vm:external-name", "Isolate_isPinnedToCurrentThread")
-  external static bool _isPinnedToCurrentThread(SendPort controlPort);
-
-  @patch
-  bool get isPinnedToCurrentThread {
-    return Isolate._isPinnedToCurrentThread(controlPort);
-  }
-
-  @pragma("vm:external-name", "Isolate_runEventLoopSync_")
-  external static void _runEventLoopSync(SendPort controlPort);
-
-  @patch
-  void set onEvent(void Function(Isolate) callback) {
-    throw UnsupportedError("Isolate.onEvent");
-  }
-
-  @patch
-  void handleEvent() {
-    throw UnsupportedError("Isolate.handleEvent");
   }
 }
 

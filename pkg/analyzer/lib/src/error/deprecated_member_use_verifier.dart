@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/element_usage_detector.dart';
 import 'package:analyzer/src/error/listener.dart';
@@ -33,27 +33,42 @@ String? normalizeDeprecationMessage(String message) {
 class DeprecatedElementUsageReporter implements ElementUsageReporter<String> {
   final DiagnosticReporter _diagnosticReporter;
 
-  DeprecatedElementUsageReporter({
-    required DiagnosticReporter diagnosticReporter,
-  }) : _diagnosticReporter = diagnosticReporter;
+  new({required this._diagnosticReporter});
 
   @override
   void report(
-    SyntacticEntity usageSite,
+    SourceRange usageRange,
     String displayName,
     String tagInfo, {
     required bool isInSamePackage,
+    ElementUsageKind usageKind = ElementUsageKind.explicit,
   }) {
     if (isInSamePackage) return;
     if (normalizeDeprecationMessage(tagInfo) case var message?) {
+      var diagnosticCode = switch (usageKind) {
+        ElementUsageKind.explicit => diag.deprecatedMemberUseWithMessage,
+        ElementUsageKind.implicitSuperConstructorInvocation =>
+          diag.deprecatedMemberUseImplicitSuperConstructorInvocationWithMessage,
+        ElementUsageKind.implicitTypeReference =>
+          diag.deprecatedMemberUseImplicitTypeWithMessage,
+      };
       _diagnosticReporter.report(
-        diag.deprecatedMemberUseWithMessage
+        diagnosticCode
             .withArguments(name: displayName, details: message)
-            .at(usageSite),
+            .atSourceRange(usageRange),
       );
     } else {
+      var diagnosticCode = switch (usageKind) {
+        ElementUsageKind.explicit => diag.deprecatedMemberUse,
+        ElementUsageKind.implicitSuperConstructorInvocation =>
+          diag.deprecatedMemberUseImplicitSuperConstructorInvocation,
+        ElementUsageKind.implicitTypeReference =>
+          diag.deprecatedMemberUseImplicitType,
+      };
       _diagnosticReporter.report(
-        diag.deprecatedMemberUse.withArguments(name: displayName).at(usageSite),
+        diagnosticCode
+            .withArguments(name: displayName)
+            .atSourceRange(usageRange),
       );
     }
   }
@@ -61,7 +76,7 @@ class DeprecatedElementUsageReporter implements ElementUsageReporter<String> {
 
 /// Instance of [ElementUsageSet] for deprecated elements.
 class DeprecatedElementUsageSet implements ElementUsageSet<String> {
-  const DeprecatedElementUsageSet();
+  const new();
 
   @override
   bool get reliesOnlyOnElementMetadata => true;

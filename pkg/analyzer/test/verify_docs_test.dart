@@ -30,7 +30,7 @@ class SnippetTester {
 
   final StringBuffer output = StringBuffer();
 
-  factory SnippetTester() {
+  factory() {
     var provider = OverlayResourceProvider(PhysicalResourceProvider.INSTANCE);
     var packageRoot = provider.pathContext.normalize(package_root.packageRoot);
     var analyzerPath = provider.pathContext.join(packageRoot, 'analyzer');
@@ -45,12 +45,8 @@ class SnippetTester {
     return SnippetTester._(provider, docFolder, snippetDirPath, snippetPath);
   }
 
-  SnippetTester._(
-    this.provider,
-    this.docFolder,
-    this.snippetDirPath,
-    this.snippetPath,
-  ) : collection = AnalysisContextCollection(
+  new _(this.provider, this.docFolder, this.snippetDirPath, this.snippetPath)
+    : collection = AnalysisContextCollection(
         resourceProvider: provider,
         includedPaths: [snippetPath],
       );

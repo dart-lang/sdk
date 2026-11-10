@@ -8,12 +8,26 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
+
+/// Returns the names referenced without a prefix, and the names of the
+/// variables declared, in the [Block] enclosing [node].
+Set<String> _namesReferencedInEnclosingBlock(AstNode node) {
+  var enclosingBlock = node.thisOrAncestorOfType<Block>();
+  if (enclosingBlock == null) {
+    return {};
+  }
+
+  var visitor = _ReferencedUnprefixedNamesCollector();
+  enclosingBlock.accept(visitor);
+  return visitor.names;
+}
 
 class ThrowStatement {
   final ExpressionStatement statement;
@@ -74,6 +88,32 @@ extension AnnotatedNodeExtension on AnnotatedNode {
 }
 
 extension AstNodeExtension on AstNode {
+  /// The annotation whose name is, or contains, this identifier.
+  ///
+  /// The name of an annotation is its `name` and, if present, its
+  /// `constructorName`, which is the third identifier of `@p.C.name` whether
+  /// or not it names a constructor.
+  ///
+  /// An undefined name in an annotation is reported at the name, with the
+  /// same diagnostic as any other reference to it. But an annotation can
+  /// reference only a constant variable or a constant constructor, so fixes
+  /// use this to skip what the annotation can't use, such as fields, getters,
+  /// or parameters, and to look at the whole annotation, for example whether
+  /// it has arguments.
+  Annotation? get annotationContainingName {
+    var name = switch (this) {
+      SimpleIdentifier(:PrefixedIdentifier parent) => parent,
+      Identifier self => self,
+      _ => null,
+    };
+    if (name?.parent case Annotation annotation
+        when identical(annotation.name, name) ||
+            identical(annotation.constructorName, name)) {
+      return annotation;
+    }
+    return null;
+  }
+
   /// Return the [IfStatement] associated with `this`.
   IfStatement? get enclosingIfStatement {
     for (var node in withAncestors) {
@@ -88,9 +128,8 @@ extension AstNodeExtension on AstNode {
 
   /// Return `true` if this node has an `override` annotation.
   bool get hasOverride {
-    var node = this;
-    if (node is AnnotatedNode) {
-      for (var annotation in node.metadata) {
+    if (this is AnnotatedNode) {
+      for (var annotation in metadata) {
         if (annotation.name.name == 'override' &&
             annotation.arguments == null) {
           return true;
@@ -199,6 +238,28 @@ extension AstNodeExtension on AstNode {
     }
     return element;
   }
+
+  /// Returns a predicate that tells whether a new local variable with a given
+  /// name, declared in the scope of this node, would conflict with existing
+  /// code.
+  ///
+  /// The name conflicts if it is the name of a local variable, parameter, or
+  /// local function in scope here, including one declared later in the same
+  /// block. It also conflicts if it is referenced without a prefix in the
+  /// enclosing block, because the new variable would capture the reference.
+  bool Function(String name) nameConflictPredicateForNewLocal() {
+    var scope = enclosingNameScope;
+    var referencedNames = _namesReferencedInEnclosingBlock(this);
+    return (name) {
+      if (referencedNames.contains(name)) {
+        return true;
+      }
+      var element = scope?.lookup(name).getter;
+      return element is LocalVariableElement ||
+          element is FormalParameterElement ||
+          element is LocalFunctionElement;
+    };
+  }
 }
 
 extension BinaryExpressionExtension on BinaryExpression {
@@ -257,14 +318,7 @@ extension CompilationUnitExtension on CompilationUnit {
   /// declared at [offset].
   Set<String> findPossibleLocalVariableConflicts(int offset) {
     var enclosingNode = nodeCovering(offset: offset)!;
-    var enclosingBlock = enclosingNode.thisOrAncestorOfType<Block>();
-    if (enclosingBlock == null) {
-      return {};
-    }
-
-    var visitor = _ReferencedUnprefixedNamesCollector();
-    enclosingBlock.accept(visitor);
-    return visitor.names;
+    return _namesReferencedInEnclosingBlock(enclosingNode);
   }
 }
 
@@ -317,14 +371,27 @@ extension DirectiveExtension on Directive {
 }
 
 extension ExpressionExtension on Expression {
+  /// The parameter type if this expression is passed as an argument in an
+  /// argument list or as the index in an index expression.
+  DartType? get argumentParameterType {
+    var parent = this.parent;
+    if (parent case NamedArgument named) {
+      return named.correspondingParameter?.type;
+    }
+    if (parent is ArgumentList ||
+        (parent is IndexExpression && this == parent.index)) {
+      return correspondingParameter?.type;
+    }
+    return null;
+  }
+
   /// Whether this [Expression] should be wrapped with parentheses when we want
   /// to use it as operand of a logical and-expression.
   bool get shouldWrapParenthesisBeforeAnd {
-    var self = this;
-    if (self is! BinaryExpression) {
+    if (this is! BinaryExpression) {
       return false;
     }
-    var precedence = self.operator.type.precedence;
+    var precedence = operator.type.precedence;
     return precedence < TokenClass.LOGICAL_AND_OPERATOR.precedence;
   }
 }
@@ -379,6 +446,18 @@ extension NodeListExtension<E extends AstNode> on NodeList<E> {
   }
 }
 
+extension SimpleIdentifierExtension on SimpleIdentifier {
+  /// Whether this is the name of a method invocation, as in `a.foo()`.
+  ///
+  /// A diagnostic for a failed read covers both `a.foo` and `a.foo()`; the
+  /// fixes that declare something that can only be read, such as a getter or
+  /// a field, don't apply to an invoked name.
+  bool get isInvocationName {
+    var parent = this.parent;
+    return parent is MethodInvocation && parent.methodName == this;
+  }
+}
+
 extension StatementExtension on Statement {
   ThrowStatement? get followingThrow {
     var block = parent;
@@ -395,20 +474,17 @@ extension StatementExtension on Statement {
   }
 
   List<Statement> get selfOrBlockStatements {
-    var self = this;
-    return self is Block ? self.statements : [self];
+    return this is Block ? statements : [this];
   }
 }
 
 extension TokenQuestionExtension on Token? {
   Token? get asFinalKeyword {
-    var self = this;
-    return self != null && self.keyword == Keyword.FINAL ? self : null;
+    return this != null && keyword == Keyword.FINAL ? this : null;
   }
 
   Token? get asVarKeyword {
-    var self = this;
-    return self != null && self.keyword == Keyword.VAR ? self : null;
+    return this != null && keyword == Keyword.VAR ? this : null;
   }
 }
 

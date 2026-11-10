@@ -11,6 +11,8 @@ const vmEntryPointPragmaName = "vm:entry-point";
 const vmExactResultTypePragmaName = "vm:exact-result-type";
 const kResultTypeUsesPassedTypeArguments =
     "result-type-uses-passed-type-arguments";
+const kResultTypeUsesReceiverTypeArguments =
+    "result-type-uses-receiver-type-arguments";
 const vmRecognizedPragmaName = "vm:recognized";
 const vmDisableUnboxedParametersPragmaName = "vm:disable-unboxed-parameters";
 const vmKeepNamePragmaName = "vm:keep-name";
@@ -20,6 +22,8 @@ const vmFfiNative = "vm:ffi:native";
 const vmSharedPragmaName = "vm:shared";
 const vmDeeplyImmutablePragmaName = "vm:deeply-immutable";
 const vmInvisiblePragmaName = "vm:invisible";
+const vmAwaiterLinkPragmaName = "vm:awaiter-link";
+const vmPreferInlinePragmaName = "vm:prefer-inline";
 
 // Pragmas recognized by dart2wasm
 const wasmEntryPointPragmaName = "wasm:entry-point";
@@ -50,6 +54,7 @@ enum PragmaEntryPointType {
   CanBeOverridden,
   GetterOnly,
   SetterOnly,
+  InitializerOnly,
   CallOnly,
   CanBeUsedAsType,
   DynamicallyCallable,
@@ -65,10 +70,12 @@ class ParsedEntryPointPragma implements ParsedPragma {
 class ParsedResultTypeByTypePragma implements ParsedPragma {
   final DartType type;
   final bool resultTypeUsesPassedTypeArguments;
+  final bool resultTypeUsesReceiverTypeArguments;
   const ParsedResultTypeByTypePragma(
-    this.type,
-    this.resultTypeUsesPassedTypeArguments,
-  );
+    this.type, {
+    this.resultTypeUsesPassedTypeArguments = false,
+    this.resultTypeUsesReceiverTypeArguments = false,
+  });
 }
 
 class ParsedResultTypeByPathPragma implements ParsedPragma {
@@ -141,12 +148,14 @@ class ConstantPragmaAnnotationParser implements PragmaAnnotationParser {
         type = PragmaEntryPointType.GetterOnly;
       } else if (options.value == "set") {
         type = PragmaEntryPointType.SetterOnly;
+      } else if (options.value == "init") {
+        type = PragmaEntryPointType.InitializerOnly;
       } else if (options.value == "call") {
         type = PragmaEntryPointType.CallOnly;
       } else {
         throw "Error: string directive to "
             "@pragma('$pragmaName', ...) "
-            "must be either 'get' or 'set' for fields "
+            "must be either 'get', 'set' or 'init' for fields "
             "or 'get' or 'call' for procedures.";
       }
     }
@@ -187,22 +196,30 @@ class ConstantPragmaAnnotationParser implements PragmaAnnotationParser {
 
     switch (pragmaName) {
       case vmEntryPointPragmaName:
+      case wasmEntryPointPragmaName:
         return getEntryPointTypeFromOptions(options, pragmaName);
       case vmExactResultTypePragmaName:
         if (options is TypeLiteralConstant) {
-          return ParsedResultTypeByTypePragma(options.type, false);
+          return ParsedResultTypeByTypePragma(options.type);
         } else if (options is StringConstant) {
           return ParsedResultTypeByPathPragma(options.value);
-        } else if (options is ListConstant &&
-            options.entries.length == 2 &&
-            options.entries[0] is TypeLiteralConstant &&
-            options.entries[1] is StringConstant &&
-            (options.entries[1] as StringConstant).value ==
-                kResultTypeUsesPassedTypeArguments) {
-          return ParsedResultTypeByTypePragma(
-            (options.entries[0] as TypeLiteralConstant).type,
-            true,
-          );
+        } else if (options case ListConstant(
+          entries: [
+            TypeLiteralConstant(:final type),
+            StringConstant(:final value),
+          ],
+        )) {
+          if (value == kResultTypeUsesPassedTypeArguments) {
+            return ParsedResultTypeByTypePragma(
+              type,
+              resultTypeUsesPassedTypeArguments: true,
+            );
+          } else if (value == kResultTypeUsesReceiverTypeArguments) {
+            return ParsedResultTypeByTypePragma(
+              type,
+              resultTypeUsesReceiverTypeArguments: true,
+            );
+          }
         }
         throw "ERROR: Unsupported option to '$vmExactResultTypePragmaName' "
             "pragma: $options";
@@ -236,8 +253,6 @@ class ConstantPragmaAnnotationParser implements PragmaAnnotationParser {
         return options.value ? const ParsedPlatformConstPragma() : null;
       case vmFfiNative:
         return const ParsedFfiNativePragma();
-      case wasmEntryPointPragmaName:
-        return const ParsedEntryPointPragma(PragmaEntryPointType.Default);
       case wasmExportPragmaName:
         // Exports are treated as entry points.
         return const ParsedEntryPointPragma(PragmaEntryPointType.Default);
@@ -283,7 +298,7 @@ class ConstantPragmaAnnotationParser implements PragmaAnnotationParser {
 
 /// Helper methods for accessing pragmas.
 /// Should be used on kernel AST nodes only after all constants are evaluated.
-extension AnnotatblePragmaHelpers on Annotatable {
+extension AnnotatablePragmaHelpers on Annotatable {
   /// Returns true if this node is annotated with pragma [pragmaName].
   bool hasPragma(String pragmaName, CoreTypes coreTypes) {
     for (final annotation in annotations) {
@@ -332,6 +347,10 @@ extension MemberPragmaHelpers on Member {
   bool isInvisible(CoreTypes coreTypes) =>
       hasPragma(vmInvisiblePragmaName, coreTypes);
 
+  /// Returns true if this member is annotated with 'vm:prefer-inline' pragma.
+  bool isPreferInline(CoreTypes coreTypes) =>
+      hasPragma(vmPreferInlinePragmaName, coreTypes);
+
   /// Returns true if this member is annotated with 'dyn-module:entry-point' pragma.
   bool isDynModuleEntryPoint(CoreTypes coreTypes) =>
       hasPragma(dynModuleEntryPointPragmaName, coreTypes);
@@ -341,4 +360,10 @@ extension FunctionDeclarationPragmaHelpers on FunctionDeclaration {
   /// Returns true if this local function is annotated with 'vm:invisible' pragma.
   bool isInvisible(CoreTypes coreTypes) =>
       variable.hasPragma(vmInvisiblePragmaName, coreTypes);
+}
+
+extension VariablePragmaHelpers on Variable {
+  /// Returns true if this variable is annotated with 'vm:awaiter-link' pragma.
+  bool isAwaiterLink(CoreTypes coreTypes) =>
+      hasPragma(vmAwaiterLinkPragmaName, coreTypes);
 }

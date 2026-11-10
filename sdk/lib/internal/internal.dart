@@ -17,7 +17,7 @@ import 'dart:async'
 import 'dart:convert' show Converter;
 import 'dart:core' hide Symbol;
 import 'dart:core' as core show Symbol;
-import 'dart:math' show Random;
+import 'dart:math' show Random, imul32;
 import 'dart:typed_data' show Uint8List;
 
 part 'async_cast.dart';
@@ -32,10 +32,6 @@ part 'patch.dart';
 part 'print.dart';
 part 'sort.dart';
 part 'symbol.dart';
-
-// Returns true iff `null as T` will succeed based on the
-// execution mode.
-external bool typeAcceptsNull<T>();
 
 /// Unsafely treats [value] as type [T].
 ///
@@ -727,9 +723,9 @@ abstract final class SystemHash {
   /// <https://github.com/skeeto/hash-prospector>.
   static int smear(int x) {
     x ^= x >>> 16;
-    x = (x * 0x21f0aaad) & 0xFFFFFFFF;
+    x = imul32(x, 0x21f0aaad).toUnsigned(32);
     x ^= x >>> 15;
-    x = (x * 0xd35a2d97) & 0xFFFFFFFF;
+    x = imul32(x, 0xd35a2d97).toUnsigned(32);
     x ^= x >>> 15;
     return x;
   }
@@ -1108,12 +1104,15 @@ class DoubleLinkedQueueEntry<E> {
 /// Annotation on a class preventing instances from being sent between isolates.
 ///
 /// Applies to class, mixin or enum declarations, and is inherited by subclasses
-/// along extends, with and implements relations.
+/// along extends, with, implements and mixin `on` relations.
 ///
 /// An instance of a class with this annotation will be prevented from being
 /// part of isolate communication. It cannot be sent through a SendPort,
 /// not even if both ends are in the same isolate, and it cannot be part of
 /// the initial message of isolate spawn operations.
+///
+/// Constant instances are not affected by this annotation. Constants are
+/// shared between isolates rather than copied, so they can always be sent.
 ///
 /// The annotation is intended for classes which have a dynamic link
 /// to the current isolate, for example being tied to the event loop
@@ -1152,13 +1151,4 @@ external Future<Object?> loadDynamicModule({Uri? uri, Uint8List? bytes});
 /// Intended use: `TypeTest<T>().test`.
 class TypeTest<T> {
   bool test(Object? v) => v is T;
-}
-
-/// Should be moved to dart:isolate when --experimental-shared-data
-/// flag is removed.
-abstract interface class IsolateGroup {
-  external static Object? _runSync(Object computation);
-
-  /// Runs [computation] in isolate-group bound context.
-  static R runSync<R>(R computation()) => _runSync(computation) as R;
 }

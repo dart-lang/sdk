@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of html_common;
+part of 'dart:html_common';
 
 /**
  * An indexable collection of a node's direct descendants in the document tree,
@@ -29,7 +29,7 @@ class FilteredElementList extends ListBase<Element> implements NodeListWrapper {
   List<Element> get _filtered =>
       new List<Element>.from(_iterable, growable: false);
 
-  void forEach(void f(Element element)) {
+  void forEach(void Function(Element element) f) {
     // This cannot use the iterator, because operations during iteration might
     // modify the collection, e.g. addAll might append a node to another parent.
     _filtered.forEach(f);
@@ -68,7 +68,7 @@ class FilteredElementList extends ListBase<Element> implements NodeListWrapper {
 
   Iterable<Element> get reversed => _filtered.reversed;
 
-  void sort([int compare(Element a, Element b)?]) {
+  void sort([int Function(Element a, Element b)? compare]) {
     throw new UnsupportedError('Cannot sort filtered list');
   }
 

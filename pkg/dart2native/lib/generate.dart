@@ -4,10 +4,8 @@
 
 import 'dart:io';
 
+import 'package:cli_util/cli_logging.dart' show Logger;
 import 'package:code_assets/code_assets.dart' show OS;
-// ignore: implementation_imports (This file is imported in other packages.)
-import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show Verbosity;
 import 'package:path/path.dart' as path;
 
 import 'dart2native.dart';
@@ -46,7 +44,7 @@ extension type KernelGenerator._(_Generator _generator) {
     bool verbose = false,
     String verbosity = 'all',
     required Directory tempDir,
-    bool progressUpdatesOnStderr = false,
+    Logger? logger,
   }) : _generator = _Generator(
          genSnapshot: genSnapshot,
          targetDartAotRuntime: targetDartAotRuntime,
@@ -63,7 +61,7 @@ extension type KernelGenerator._(_Generator _generator) {
          verbose: verbose,
          verbosity: verbosity,
          depFile: depFile,
-         progressUpdatesOnStderr: progressUpdatesOnStderr,
+         logger: logger,
        );
 
   /// Generate a kernel file,
@@ -73,11 +71,9 @@ extension type KernelGenerator._(_Generator _generator) {
   Future<SnapshotGenerator> generate({
     String? recordedUsagesFile,
     List<String>? extraOptions,
-    bool progressUpdatesOnStderr = false,
   }) => _generator.generateKernel(
     recordedUsagesFile: recordedUsagesFile,
     extraOptions: extraOptions,
-    progressUpdatesOnStderr: progressUpdatesOnStderr,
   );
 }
 
@@ -85,12 +81,12 @@ extension type KernelGenerator._(_Generator _generator) {
 ///
 /// See also the docs for [_Generator].
 extension type SnapshotGenerator._(_Generator _generator) {
-  /// Generate a snapshot or executable.
+  /// Generates a snapshot or executable and returns the normalized output path.
   ///
   /// This means concatenating the list of assets to the kernel and then calling
   /// `genSnapshot`. [nativeAssets] is the path to `native_assets.yaml`, and
   /// [extraOptions] is a set of extra options to be passed to `genSnapshot`.
-  Future<void> generate({
+  Future<String> generate({
     String? nativeAssets,
     List<String> extraOptions = const [],
   }) => _generator.generateSnapshotWithAssets(
@@ -134,7 +130,7 @@ class _Generator {
   ///
   final bool _enableAsserts;
   final bool _verbose;
-  final bool _progressUpdatesOnStderr;
+  final Logger? _logger;
 
   /// Specifies the logging verbosity of the CFE.
   final String _verbosity;
@@ -179,7 +175,7 @@ class _Generator {
     required this._verbose,
     required this._verbosity,
     required Directory tempDir,
-    this._progressUpdatesOnStderr = false,
+    this._logger,
   }) : _tempDir = tempDir,
        _programKernelFile = path.join(tempDir.path, 'program.dill'),
        _sourcePath = _normalize(sourceFile)!,
@@ -192,8 +188,8 @@ class _Generator {
   }
 
   void _log(String message) {
-    if (_progressUpdatesOnStderr) {
-      stderr.writeln(message);
+    if (_logger case final logger?) {
+      logger.stdout(message);
     } else {
       print(message);
     }
@@ -202,7 +198,6 @@ class _Generator {
   Future<SnapshotGenerator> generateKernel({
     String? recordedUsagesFile,
     List<String>? extraOptions,
-    bool progressUpdatesOnStderr = false,
   }) async {
     if (_verbose) {
       if (_targetOS != null) {
@@ -230,19 +225,19 @@ class _Generator {
       recordedUsagesFile: recordedUsagesFile,
       aot: true,
     );
-    await _forwardOutput(kernelResult);
+    await _forwardOutput(kernelResult, logger: _logger);
     if (kernelResult.exitCode != 0) {
       throw StateError('Generating AOT kernel dill failed!');
     }
     return SnapshotGenerator._(this);
   }
 
-  Future<void> generateSnapshotWithAssets({
+  Future<String> generateSnapshotWithAssets({
     String? nativeAssets,
     required List<String> extraOptions,
   }) async {
     final kernelFile = await _concatenateAssetsToKernel(nativeAssets);
-    await _generateSnapshot(extraOptions, kernelFile);
+    return await _generateSnapshot(extraOptions, kernelFile);
   }
 
   String get _outputPath {
@@ -255,7 +250,7 @@ class _Generator {
     )!;
   }
 
-  Future<void> _generateSnapshot(
+  Future<String> _generateSnapshot(
     List<String> extraOptions,
     String kernelFile,
   ) async {
@@ -263,8 +258,8 @@ class _Generator {
     final debugPath = _normalize(_debugFile);
 
     if (_verbose) {
-      print('Compiling $_sourcePath to $outputPath using format $_kind:');
-      print('Generating AOT snapshot. $_genSnapshot $extraOptions');
+      _log('Compiling $_sourcePath to $outputPath using format $_kind:');
+      _log('Generating AOT snapshot. $_genSnapshot $extraOptions');
     }
     var format = 'elf';
     var outFlag = 'elf';
@@ -287,7 +282,7 @@ class _Generator {
     );
 
     if (_verbose || snapshotResult.exitCode != 0) {
-      await _forwardOutput(snapshotResult);
+      await _forwardOutput(snapshotResult, logger: _logger);
     }
     if (snapshotResult.exitCode != 0) {
       throw StateError('Generating AOT snapshot failed!');
@@ -312,9 +307,7 @@ class _Generator {
       }
     }
 
-    if (_verbosity != Verbosity.error.name) {
-      _log('Generated: $outputPath');
-    }
+    return outputPath;
   }
 
   Future<String> _concatenateAssetsToKernel(String? nativeAssets) async {
@@ -341,7 +334,7 @@ class _Generator {
         nativeAssets: nativeAssets,
         aot: true,
       );
-      await _forwardOutput(kernelResult);
+      await _forwardOutput(kernelResult, logger: _logger);
       if (kernelResult.exitCode != 0) {
         throw StateError('Generating AOT kernel dill failed!');
       }
@@ -411,7 +404,7 @@ Future<void> generateKernel({
   String? recordedUsagesFile,
   String? depFile,
   List<String>? extraOptions,
-  bool progressUpdatesOnStderr = false,
+  Logger? logger,
 }) async {
   final sourcePath = _normalize(sourceFile)!;
   final outputPath = _normalize(outputFile)!;
@@ -436,7 +429,7 @@ Future<void> generateKernel({
     recordedUsagesFile: recordedUsagesFile,
     product: product,
   );
-  await _forwardOutput(kernelResult);
+  await _forwardOutput(kernelResult, logger: logger);
   if (kernelResult.exitCode != 0) {
     throw StateError('Generating kernel failed!');
   }
@@ -447,29 +440,50 @@ String? _normalize(String? p) {
   return path.canonicalize(path.normalize(p));
 }
 
+String _stripTrailingNewline(String s) {
+  if (s.endsWith('\r\n')) return s.substring(0, s.length - 2);
+  if (s.endsWith('\n')) return s.substring(0, s.length - 1);
+  return s;
+}
+
 /// Forward the output of [result] to stdout and stderr.
-Future<void> _forwardOutput(ProcessResult result) async {
+Future<void> _forwardOutput(
+  ProcessResult result, {
+  Logger? logger,
+}) async {
   if (result.stdout case final resultOutput
       when processOutputIsNotEmpty(resultOutput)) {
     final needsNewLine =
         resultOutput is! String || !resultOutput.endsWith('\n');
     if (result.exitCode == 0) {
-      stdout.write(resultOutput);
-      if (needsNewLine) stdout.writeln();
-      await stdout.flush();
+      if (logger != null && resultOutput is String) {
+        logger.stdout(_stripTrailingNewline(resultOutput));
+      } else {
+        stdout.write(resultOutput);
+        if (needsNewLine) stdout.writeln();
+        await stdout.flush();
+      }
     } else {
-      stderr.write(resultOutput);
-      if (needsNewLine) stderr.writeln();
+      if (logger != null && resultOutput is String) {
+        logger.stderr(_stripTrailingNewline(resultOutput));
+      } else {
+        stderr.write(resultOutput);
+        if (needsNewLine) stderr.writeln();
+      }
     }
   }
   if (result.stderr case final resultErrorOutput
       when processOutputIsNotEmpty(resultErrorOutput)) {
-    final needsNewLine =
-        resultErrorOutput is! String || !resultErrorOutput.endsWith('\n');
-    stderr.write(resultErrorOutput);
-    if (needsNewLine) {
-      stderr.writeln();
+    if (logger != null && resultErrorOutput is String) {
+      logger.stderr(_stripTrailingNewline(resultErrorOutput));
+    } else {
+      final needsNewLine =
+          resultErrorOutput is! String || !resultErrorOutput.endsWith('\n');
+      stderr.write(resultErrorOutput);
+      if (needsNewLine) {
+        stderr.writeln();
+      }
+      await stderr.flush();
     }
-    await stderr.flush();
   }
 }

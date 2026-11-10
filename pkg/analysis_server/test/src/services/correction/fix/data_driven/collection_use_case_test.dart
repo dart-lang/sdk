@@ -27,7 +27,7 @@ extension IterableNullableExtension<T extends Object> on Iterable<T?> {
 }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
     );
@@ -70,14 +70,13 @@ main() {
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/56078')
   Future<void> test_package_collection_whereNotNull_removed() async {
     newFile('$workspaceRootPath/p/lib/it.dart', '''
 extension IterableNullableExtension<T extends Object> on Iterable<T?> {
 }
 ''');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
     );

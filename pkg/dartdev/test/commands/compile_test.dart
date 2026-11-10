@@ -10,7 +10,7 @@ import 'package:dart2native/dart2native_macho.dart' show pipeStream;
 import 'package:dart2native/macho.dart';
 import 'package:dartdev/src/commands/compile.dart'
     show compileErrorExitCode, genericErrorExitCode;
-import 'package:hooks_runner/hooks_runner.dart';
+import 'package:dartdev/src/target.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -827,6 +827,42 @@ void main() {
     final runResult = await Process.run(outFile, []);
     expect(runResult.stdout, isEmpty);
     expect(runResult.stderr, contains(failedAssertionError));
+  }, skip: isRunningOnIA32);
+
+  test('Compile exe with defines', () async {
+    final p = project(
+      mainSrc: '''
+void main() {
+  print(const String.fromEnvironment('flavor'));
+  print(const int.fromEnvironment('number'));
+  print(const bool.fromEnvironment('enabled'));
+}
+''',
+    );
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
+
+    final result = await p.run([
+      'compile',
+      'exe',
+      '-Dflavor=release,number=17',
+      '--define=enabled=true',
+      '-o',
+      outFile,
+      inFile,
+    ]);
+
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+
+    final runResult = await Process.run(outFile, []);
+    expect(runResult.stderr, isEmpty);
+    expect(runResult.exitCode, 0);
+    expect((runResult.stdout as String).trim().split(RegExp(r'\r?\n')), [
+      'release',
+      '17',
+      'true',
+    ]);
   }, skip: isRunningOnIA32);
 
   test('Compile exe from kernel', () async {

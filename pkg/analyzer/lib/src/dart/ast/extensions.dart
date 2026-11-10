@@ -7,10 +7,12 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:collection/collection.dart';
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
+@V1Ast()
 Element? _readElement(AstNode node) {
   var parent = node.parent;
 
@@ -34,22 +36,7 @@ Element? _readElement(AstNode node) {
 }
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
-Element? _readElement2(AstNode node) {
-  var parent = node.parent2;
-
-  if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
-    return parent.readElement;
-  }
-  if (parent is PrefixedIdentifier && parent.identifier == node) {
-    return _readElement2(parent);
-  }
-  if (parent is PropertyAccess && parent.propertyName == node) {
-    return _readElement2(parent);
-  }
-  return null;
-}
-
-// TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
+@V1Ast()
 Element? _writeElement(AstNode node) {
   var parent = node.parent;
 
@@ -73,22 +60,7 @@ Element? _writeElement(AstNode node) {
 }
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
-Element? _writeElement2(AstNode node) {
-  var parent = node.parent2;
-
-  if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
-    return parent.writeElement;
-  }
-  if (parent is PrefixedIdentifier && parent.identifier == node) {
-    return _writeElement2(parent);
-  }
-  if (parent is PropertyAccess && parent.propertyName == node) {
-    return _writeElement2(parent);
-  }
-  return null;
-}
-
-// TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
+@V1Ast()
 DartType? _writeType(AstNode node) {
   var parent = node.parent;
 
@@ -111,24 +83,71 @@ DartType? _writeType(AstNode node) {
   return null;
 }
 
-// TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
-DartType? _writeType2(AstNode node) {
-  var parent = node.parent2;
+/// The range from [_begin] to [_end], both tokens included.
+class _TokenRange extends SyntacticEntity {
+  final Token _begin;
+  final Token _end;
 
-  if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
-    return parent.writeType;
+  new(this._begin, this._end);
+
+  @override
+  int get end => _end.end;
+
+  @override
+  int get length => end - offset;
+
+  @override
+  int get offset => _begin.offset;
+}
+
+extension AnnotationExtension on Annotation {
+  /// The arguments of the annotation's constructor invocation, or `null` if
+  /// the annotation is not a constructor invocation.
+  ArgumentList? get argumentList {
+    return switch (expression) {
+      ConstructorInvocation(:var argumentList) => argumentList,
+      _ => null,
+    };
   }
-  if (parent is PrefixedIdentifier && parent.identifier == node) {
-    return _writeType2(parent);
+
+  /// The annotation's name, to report diagnostics about the annotation at,
+  /// such as `A` in `@A()`, `p.A` in `@p.A.named()`, or `A.named` in
+  /// `@A.named()`.
+  ///
+  /// See [_nameTokens].
+  SyntacticEntity get nameEntity {
+    var (head, tail) = _nameTokens;
+    return _TokenRange(head, tail ?? head);
   }
-  if (parent is PropertyAccess && parent.propertyName == node) {
-    return _writeType2(parent);
+
+  /// The source of [nameEntity].
+  String get nameSource {
+    var (head, tail) = _nameTokens;
+    return tail == null ? head.lexeme : '${head.lexeme}.${tail.lexeme}';
   }
-  return null;
+
+  /// The tokens of the annotation's name: the first token of
+  /// [Annotation.expression], and the token after the following period, if
+  /// any.
+  ///
+  /// This is a syntactic approximation: for `@A.named()` it is `A.named`, but
+  /// for `@p.A.named()` it is `p.A`.
+  (Token, Token?) get _nameTokens {
+    var head = expression.beginToken;
+    var end = expression.endToken;
+    if (!identical(head, end)) {
+      var period = head.next!;
+      if (period.type == TokenType.PERIOD && !identical(period, end)) {
+        return (head, period.next!);
+      }
+    }
+    return (head, null);
+  }
 }
 
 extension ArgumentListExtension on ArgumentList {
   /// Returns the named argument with the given [name], or `null` if none.
+  @V1Ast('The V2 counterpart is byName2.')
   NamedArgument? byName(String name) => arguments
       .whereType<NamedArgument>()
       .firstWhereOrNull((e) => e.name.lexeme == name);
@@ -139,6 +158,7 @@ extension ArgumentListExtension on ArgumentList {
       .firstWhereOrNull((e) => e.name.lexeme == name);
 
   /// Returns the argument with the given [index], or `null` if none.
+  @V1Ast('The V2 counterpart is elementAtOrNull2.')
   Argument? elementAtOrNull(int index) {
     if (index < arguments.length) {
       return arguments[index];
@@ -155,7 +175,7 @@ extension ArgumentListExtension on ArgumentList {
   }
 }
 
-extension ConstructorDeclarationExtension on ConstructorDeclaration {
+extension ConstructorDeclarationExtension on ConstructorDeclaration2 {
   bool get isNonRedirectingGenerative {
     // Must be generative.
     if (externalKeyword != null || factoryKeyword != null) {
@@ -202,6 +222,16 @@ extension DartPatternExtension on DartPattern {
 }
 
 extension ExpressionExtension on Expression {
+  /// Whether this expression is a named read whose resolution failed, such as
+  /// an undefined name.
+  ///
+  /// Resolution reports every such read, at the name or at its root cause.
+  bool get isInvalidNamedRead {
+    var self = this;
+    return self is NameExpression &&
+        self.resolution is InvalidNamedReadResolution;
+  }
+
   /// Return the static type of this expression.
   ///
   /// This accessor should be used on expressions that are expected to
@@ -226,6 +256,7 @@ extension ExpressionImplExtension on ExpressionImpl {
 }
 
 extension FormalParameterExtension on FormalParameter {
+  @V1Ast('The V2 counterpart is isOfLocalFunction2.')
   bool get isOfLocalFunction {
     return thisOrAncestorOfType<FunctionBody>() != null;
   }
@@ -234,6 +265,7 @@ extension FormalParameterExtension on FormalParameter {
     return thisOrAncestorOfType2<FunctionBody>() != null;
   }
 
+  @V1Ast('The V2 counterpart is parentFormalParameterList2.')
   FormalParameterList get parentFormalParameterList {
     return switch (parent) {
       FormalParameterList parent => parent,
@@ -259,111 +291,53 @@ extension FormalParameterExtension on FormalParameter {
 }
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
+@V1Ast('The V2 counterpart is NameExpression or NamedAssignmentTarget.')
 extension IdentifierExtension on Identifier {
   Element? get readElement {
     return _readElement(this);
-  }
-
-  Element? get readElement2 {
-    return _readElement2(this);
-  }
-
-  SimpleIdentifier get simpleName {
-    var self = this;
-    if (self is SimpleIdentifier) {
-      return self;
-    } else {
-      return (self as PrefixedIdentifier).identifier;
-    }
   }
 
   Element? get writeElement {
     return _writeElement(this);
   }
 
-  Element? get writeElement2 {
-    return _writeElement2(this);
-  }
-
   Element? get writeOrReadElement {
     return _writeElement(this) ?? element;
-  }
-
-  Element? get writeOrReadElement2 {
-    return _writeElement2(this) ?? element;
   }
 
   DartType? get writeOrReadType {
     return _writeType(this) ?? staticType;
   }
-
-  DartType? get writeOrReadType2 {
-    return _writeType2(this) ?? staticType;
-  }
-}
-
-extension IdentifierImplExtension on IdentifierImpl {
-  ConstructorTypeReferenceImpl toConstructorTypeReference({
-    required TypeArgumentListImpl? typeArguments,
-  }) {
-    var self = this;
-    if (self is PrefixedIdentifierImpl) {
-      return ConstructorTypeReferenceImpl(
-        importPrefix: ImportPrefixReferenceImpl(
-          name: self.prefix.token,
-          period: self.period,
-        )..element = self.prefix.element,
-        name: self.identifier.token,
-        typeArguments: typeArguments,
-      )..element = self.identifier.element;
-    } else if (self is SimpleIdentifierImpl) {
-      return ConstructorTypeReferenceImpl(
-        importPrefix: null,
-        name: self.token,
-        typeArguments: typeArguments,
-      )..element = self.element;
-    } else {
-      throw UnimplementedError('(${self.runtimeType}) $self');
-    }
-  }
-
-  NamedTypeImpl toNamedType({
-    required TypeArgumentListImpl? typeArguments,
-    required Token? question,
-  }) {
-    var self = this;
-    if (self is PrefixedIdentifierImpl) {
-      return NamedTypeImpl(
-        importPrefix: ImportPrefixReferenceImpl(
-          name: self.prefix.token,
-          period: self.period,
-        )..element = self.prefix.element,
-        name: self.identifier.token,
-        typeArguments: typeArguments,
-        question: question,
-      )..element = self.identifier.element;
-    } else if (self is SimpleIdentifierImpl) {
-      return NamedTypeImpl(
-        importPrefix: null,
-        name: self.token,
-        typeArguments: typeArguments,
-        question: question,
-      )..element = self.element;
-    } else {
-      throw UnimplementedError('(${self.runtimeType}) $self');
-    }
-  }
 }
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
+@V1Ast('The V2 counterpart is IndexExpression2 or IndexAssignmentTarget.')
 extension IndexExpressionExtension on IndexExpression {
   Element? get writeOrReadElement {
     return _writeElement(this) ?? element;
   }
+}
 
-  Element? get writeOrReadElement2 {
-    return _writeElement2(this) ?? element;
-  }
+extension IndexReadResolutionImplExtension on IndexReadResolutionImpl {
+  /// The method selected by successful resolution or error recovery.
+  ///
+  /// Its parameter list need not be valid for `operator []`.
+  InternalMethodElement? get elementOrRecovery => switch (this) {
+    MethodIndexReadResolutionImpl(:var element) => element,
+    InvalidIndexReadResolutionImpl(:var recoveryElement) => recoveryElement,
+    DynamicIndexReadResolutionImpl() => null,
+  };
+}
+
+extension IndexWriteResolutionImplExtension on IndexWriteResolutionImpl {
+  /// The method selected by successful resolution or error recovery.
+  ///
+  /// Its parameter list need not be valid for `operator []=`.
+  InternalMethodElement? get elementOrRecovery => switch (this) {
+    MethodIndexWriteResolutionImpl(:var element) => element,
+    InvalidIndexWriteResolutionImpl(:var recoveryElement) => recoveryElement,
+    DynamicIndexWriteResolutionImpl() => null,
+  };
 }
 
 extension ListOfFormalParameterExtension on List<FormalParameter> {
@@ -411,6 +385,17 @@ extension PatternFieldImplExtension on PatternFieldImpl {
   }
 }
 
+extension ReadResolutionExtension on ReadResolution {
+  /// The element selected by successful resolution or error recovery.
+  ///
+  /// The recovery element need not support reading.
+  Element? get elementOrRecovery => switch (this) {
+    InvalidIndexReadResolution(:var recoveryElement) => recoveryElement,
+    InvalidNamedReadResolution(:var recoveryElement) => recoveryElement,
+    _ => element,
+  };
+}
+
 extension RecordTypeAnnotationExtension on RecordTypeAnnotation {
   List<RecordTypeAnnotationField> get fields {
     return [...positionalFields, ...?namedFields?.fields];
@@ -439,4 +424,15 @@ extension TypeAnnotationImplExtension on TypeAnnotationImpl {
     }
     return type;
   }
+}
+
+extension WriteResolutionExtension on WriteResolution {
+  /// The element selected by successful resolution or error recovery.
+  ///
+  /// The recovery element need not support writing.
+  Element? get elementOrRecovery => switch (this) {
+    InvalidIndexWriteResolution(:var recoveryElement) => recoveryElement,
+    InvalidNamedWriteResolution(:var recoveryElement) => recoveryElement,
+    _ => element,
+  };
 }

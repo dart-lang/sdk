@@ -45,7 +45,7 @@ class UpdateSdkConstraints extends ResolvedCorrectionProducer {
     await builder.addYamlFileEdit(pubspecFile.path, (builder) {
       builder.addSimpleReplacement(
         SourceRange(result.offset, result.length),
-        result.replacement,
+        result.newConstraint,
       );
     });
   }

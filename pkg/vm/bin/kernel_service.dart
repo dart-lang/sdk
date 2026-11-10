@@ -21,7 +21,6 @@
 library;
 
 import 'dart:async' show Future, ZoneSpecification, runZoned;
-import 'dart:collection' show UnmodifiableMapBase;
 import 'dart:convert' show utf8;
 import 'dart:io' show Directory, File, Platform, stderr, stdout;
 import 'dart:isolate';
@@ -91,12 +90,14 @@ CompilerOptions setupCompilerOptions(
   Uri? platformKernelPath,
   bool enableAsserts,
   List<String>? experimentalFlags,
+  List<String>? defines,
   Uri? packagesUri,
   List<String> errorsPlain,
   List<String> errorsColorized,
   String invocationModes,
   String verbosityLevel,
   bool enableMirrors,
+  bool enableFfi,
 ) {
   final expFlags = <String>[];
   if (experimentalFlags != null) {
@@ -105,8 +106,19 @@ CompilerOptions setupCompilerOptions(
     }
   }
 
+  Map<String, String> environmentDefines = {};
+  if (defines != null) {
+    for (int i = 0; i < defines.length - 1; i += 2) {
+      String key = defines[i];
+      String value = defines[i + 1];
+      environmentDefines[key] = value;
+    }
+  }
+
   Verbosity verbosity = Verbosity.parseArgument(verbosityLevel);
-  Target target = new VmTarget(new TargetFlags(supportMirrors: enableMirrors));
+  Target target = new VmTarget(
+    new TargetFlags(supportMirrors: enableMirrors, supportFfi: enableFfi),
+  );
   return new CompilerOptions()
     ..fileSystem = fileSystem
     ..target = target
@@ -125,7 +137,7 @@ CompilerOptions setupCompilerOptions(
         errorsColorized.add(msg);
       },
     )
-    ..environmentDefines = new EnvironmentMap()
+    ..environmentDefines = target.updateEnvironmentDefines(environmentDefines)
     ..onDiagnostic = (CfeDiagnosticMessage message) {
       bool printToStdErr = false;
       bool printToStdOut = false;
@@ -168,10 +180,12 @@ abstract class Compiler {
   final Uri? platformKernelPath;
   final bool enableAsserts;
   final List<String>? experimentalFlags;
+  final List<String>? defines;
   final String? packageConfig;
   final String invocationModes;
   final String verbosityLevel;
   final bool enableMirrors;
+  final bool enableFfi;
   final bool generateBytecode;
 
   final List<String> errorsPlain = <String>[];
@@ -185,10 +199,12 @@ abstract class Compiler {
     this.platformKernelPath, {
     this.enableAsserts = false,
     this.experimentalFlags = null,
+    this.defines = null,
     this.packageConfig = null,
     this.invocationModes = '',
     this.verbosityLevel = Verbosity.defaultValue,
     required this.enableMirrors,
+    required this.enableFfi,
     required this.generateBytecode,
   }) {
     Uri? packagesUri = null;
@@ -209,12 +225,14 @@ abstract class Compiler {
       platformKernelPath,
       enableAsserts,
       experimentalFlags,
+      defines,
       packagesUri,
       errorsPlain,
       errorsColorized,
       invocationModes,
       verbosityLevel,
       enableMirrors,
+      enableFfi,
     );
   }
 
@@ -252,33 +270,6 @@ class CompilerResult {
   );
 }
 
-// Environment map which looks up environment defines in the VM environment
-// at runtime.
-// TODO(askesc): This is a temporary hack to get hold of the environment during
-// JIT compilation. We use a lazy map accessing the VM runtime environment using
-// new String.fromEnvironment, since the VM currently does not support providing
-// the full (isolate specific) environment as a finite, static map.
-class EnvironmentMap extends UnmodifiableMapBase<String, String> {
-  @override
-  bool containsKey(Object? key) {
-    return key is String && new bool.hasEnvironment(key);
-  }
-
-  @override
-  String? operator [](Object? key) {
-    // The fromEnvironment constructor is specified to throw when called using
-    // new. However, the VM implementation actually looks up the given name in
-    // the environment.
-    if (containsKey(key)) {
-      return new String.fromEnvironment(key as String);
-    }
-    return null;
-  }
-
-  @override
-  get keys => throw "Environment map iteration not supported";
-}
-
 class FileSink implements Sink<List<int>> {
   MemoryFileSystemEntity entityForUri;
   List<int> bytes = <int>[];
@@ -305,10 +296,12 @@ class CompilerWrapper extends Compiler {
     Uri? platformKernelPath, {
     bool enableAsserts = false,
     List<String>? experimentalFlags,
+    List<String>? defines,
     String? packageConfig,
     String invocationModes = '',
     String verbosityLevel = Verbosity.defaultValue,
     required bool enableMirrors,
+    required bool enableFfi,
     required super.generateBytecode,
   }) : super(
          isolateGroupId,
@@ -316,10 +309,12 @@ class CompilerWrapper extends Compiler {
          platformKernelPath,
          enableAsserts: enableAsserts,
          experimentalFlags: experimentalFlags,
+         defines: defines,
          packageConfig: packageConfig,
          invocationModes: invocationModes,
          verbosityLevel: verbosityLevel,
          enableMirrors: enableMirrors,
+         enableFfi: enableFfi,
        );
 
   factory CompilerWrapper.forExpressionCompilationOnly(
@@ -329,9 +324,11 @@ class CompilerWrapper extends Compiler {
     Uri? platformKernelPath, {
     bool enableAsserts = false,
     List<String>? experimentalFlags,
+    List<String>? defines,
     String? packageConfig,
     String invocationModes = '',
     required bool enableMirrors,
+    required bool enableFfi,
     required bool generateBytecode,
   }) {
     CompilerWrapper result = CompilerWrapper(
@@ -340,9 +337,11 @@ class CompilerWrapper extends Compiler {
       platformKernelPath,
       enableAsserts: enableAsserts,
       experimentalFlags: experimentalFlags,
+      defines: defines,
       packageConfig: packageConfig,
       invocationModes: invocationModes,
       enableMirrors: enableMirrors,
+      enableFfi: enableFfi,
       generateBytecode: generateBytecode,
     );
     result.generator = new IncrementalCompiler.forExpressionCompilationOnly(
@@ -378,9 +377,11 @@ class CompilerWrapper extends Compiler {
       platformKernelPath,
       enableAsserts: enableAsserts,
       experimentalFlags: experimentalFlags,
+      defines: defines,
       packageConfig: packageConfig,
       invocationModes: invocationModes,
       enableMirrors: enableMirrors,
+      enableFfi: enableFfi,
       generateBytecode: generateBytecode,
     );
     final generator = this.generator!;
@@ -425,12 +426,14 @@ Future<CompilerWrapper> lookupOrBuildNewIncrementalCompiler(
   List<int>? platformKernel, {
   bool enableAsserts = false,
   List<String>? experimentalFlags,
+  List<String>? defines,
   String? packageConfig,
   String? multirootFilepaths,
   String? multirootScheme,
   String invocationModes = '',
   String verbosityLevel = Verbosity.defaultValue,
   required bool enableMirrors,
+  required bool enableFfi,
   required bool generateBytecode,
 }) async {
   CompilerWrapper? compiler = lookupIncrementalCompiler(isolateGroupId);
@@ -466,10 +469,12 @@ Future<CompilerWrapper> lookupOrBuildNewIncrementalCompiler(
         platformKernelPath,
         enableAsserts: enableAsserts,
         experimentalFlags: experimentalFlags,
+        defines: defines,
         packageConfig: packageConfig,
         invocationModes: invocationModes,
         verbosityLevel: verbosityLevel,
         enableMirrors: enableMirrors,
+        enableFfi: enableFfi,
         generateBytecode: generateBytecode,
       );
     }
@@ -529,8 +534,12 @@ Future _processExpressionCompilationRequest(request) async {
   final List<String>? experimentalFlags = request[19] != null
       ? request[19].cast<String>()
       : null;
-  final bool enableMirrors = request[20];
-  final bool generateBytecode = request[21];
+  final List<String>? defines = request[20] != null
+      ? request[20].cast<String>()
+      : null;
+  final bool enableMirrors = request[21];
+  final bool enableFfi = request[22];
+  final bool generateBytecode = request[23];
 
   CompilerWrapper? compiler = isolateCompilers[isolateGroupId];
 
@@ -627,8 +636,10 @@ Future _processExpressionCompilationRequest(request) async {
           null,
           enableAsserts: enableAsserts,
           experimentalFlags: experimentalFlags,
+          defines: defines,
           packageConfig: packageConfigFile,
           enableMirrors: enableMirrors,
+          enableFfi: enableFfi,
           generateBytecode: generateBytecode,
         );
         isolateCompilers[isolateGroupId] = compiler;
@@ -696,8 +707,8 @@ Future _processExpressionCompilationRequest(request) async {
         bytes = bytecodeGenerator!.call(
           component,
           component.libraries,
-          compiler.generator!.lastKnownGoodResult!.coreTypes,
-          compiler.generator!.lastKnownGoodResult!.classHierarchy,
+          compiler.generator!.coreTypes!,
+          compiler.generator!.classHierarchy!,
           compiler.options.target!,
           compiler.enableAsserts,
         );
@@ -836,12 +847,16 @@ Future _processLoadRequest(request) async {
   final List<String>? experimentalFlags = request[10] != null
       ? request[10].cast<String>()
       : null;
-  final String? packageConfig = request[11];
-  final String? multirootFilepaths = request[12];
-  final String? multirootScheme = request[13];
-  final String verbosityLevel = request[14];
-  final bool enableMirrors = request[15];
-  final bool generateBytecode = request[16];
+  final List<String>? defines = request[11] != null
+      ? request[11].cast<String>()
+      : null;
+  final String? packageConfig = request[12];
+  final String? multirootFilepaths = request[13];
+  final String? multirootScheme = request[14];
+  final String verbosityLevel = request[15];
+  final bool enableMirrors = request[16];
+  final bool enableFfi = request[17];
+  final bool generateBytecode = request[18];
   Uri platformKernelPath;
   List<int>? platformKernel = null;
   if (request[3] is String) {
@@ -916,12 +931,14 @@ Future _processLoadRequest(request) async {
       platformKernel,
       enableAsserts: enableAsserts,
       experimentalFlags: experimentalFlags,
+      defines: defines,
       packageConfig: packageConfig,
       multirootFilepaths: multirootFilepaths,
       multirootScheme: multirootScheme,
       invocationModes: invocationModes,
       verbosityLevel: verbosityLevel,
       enableMirrors: enableMirrors,
+      enableFfi: enableFfi,
       generateBytecode: generateBytecode,
     );
     FileSystem fileSystem = compiler.fileSystem;
@@ -1197,11 +1214,13 @@ Future trainInternal(String scriptUri, String? platformKernelPath) async {
     [] /* source files */,
     false /* enable asserts */,
     null /* experimental_flags */,
+    null /* defines */,
     null /* package_config */,
     null /* multirootFilepaths */,
     null /* multirootScheme */,
     'all' /* CFE logging mode */,
     true /* enableMirrors */,
+    true /* enableFfi */,
     false /* generateBytecode */,
   ];
   await _processLoadRequest(request);

@@ -42,8 +42,9 @@ void main() {
     late Foo foo10;
   };
 
-  // ignore: unused_element
   bar() {
     late Foo foo11;
   }
+
+  bar();
 }

@@ -23,6 +23,7 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 
 /// Checks if creating a method with the given [name] in [interfaceElement] will
 /// cause any conflicts.
@@ -209,7 +210,10 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
         // fix it.)
         reference.addEdit(change, correspondingPublicName(newName) ?? newName);
       } else {
-        reference.addEdit(change, newName);
+        reference.addEdit(
+          change,
+          referenceReplacement(sessionHelper.session, reference, newName),
+        );
       }
     }
   }
@@ -568,7 +572,7 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
 
   /// Validates if any usage of [element] renamed to [name] will be invisible.
   void _validateWillBeInvisible() {
-    if (!Identifier.isPrivateName(name)) {
+    if (!name.isPrivateName) {
       return;
     }
     for (var reference in references) {

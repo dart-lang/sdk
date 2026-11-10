@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/binary/binary_reader.dart';
 import 'package:analyzer/src/binary/string_table.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
@@ -28,7 +29,7 @@ class BinaryWriter {
   final ManifestIdTableBuilder _manifestIdTableBuilder;
   final StringTableBuilder _stringTableBuilder;
 
-  BinaryWriter({
+  new({
     StringTableBuilder? stringTableBuilder,
     ManifestIdTableBuilder? manifestIdTableBuilder,
   }) : _stringTableBuilder = stringTableBuilder ?? StringTableBuilder(),
@@ -162,10 +163,10 @@ class BinaryWriter {
     required void Function(V value) writeValue,
   }) {
     writeUint30(map.length);
-    for (var entry in map.entries) {
-      writeKey(entry.key);
-      writeValue(entry.value);
-    }
+    map.forEach((key, value) {
+      writeKey(key);
+      writeValue(value);
+    });
   }
 
   void writeOptionalInt64(int? value) {
@@ -184,6 +185,10 @@ class BinaryWriter {
     } else {
       writeBool(false);
     }
+  }
+
+  void writeOptionalSourceRange(SourceRange? value) {
+    writeOptionalObject(value, writeSourceRange);
   }
 
   void writeOptionalStringReference(String? value) {
@@ -229,6 +234,11 @@ class BinaryWriter {
     } else {
       writeBool(false);
     }
+  }
+
+  void writeSourceRange(SourceRange value) {
+    writeUint30(value.offset);
+    writeUint30(value.length);
   }
 
   void writeStringList(List<String> values) {
@@ -324,6 +334,36 @@ class BinaryWriter {
     writeList(uriList, writeUri);
   }
 
+  /// Writes the WTF-8 encoding of [source], without its length.
+  ///
+  /// Returns the number of written bytes.
+  int writeWtf8(String source) {
+    var length = source.length;
+
+    // Usually the string is ASCII, and fits the current buffer.
+    if (_length + length < _SIZE) {
+      var buffer = _buffer;
+      var start = _length;
+      var i = 0;
+      for (; i < length; i++) {
+        var codeUnit = source.codeUnitAt(i);
+        if (codeUnit >= 0x80) {
+          break;
+        }
+        buffer[start + i] = codeUnit;
+      }
+      if (i == length) {
+        _length = start + length;
+        return length;
+      }
+    }
+
+    // The bytes copied above are not committed, so are overwritten here.
+    var startOffset = offset;
+    _writeWtf8Slow(source);
+    return offset - startOffset;
+  }
+
   @pragma("vm:prefer-inline")
   void _addByte(int byte) {
     _buffer[_length++] = byte;
@@ -357,6 +397,39 @@ class BinaryWriter {
       _addByte(byte2);
       _addByte(byte3);
       _addByte(byte4);
+    }
+  }
+
+  void _writeWtf8Slow(String source) {
+    var end = source.length;
+    int i = 0;
+    while (i < end) {
+      var codeUnit = source.codeUnitAt(i++);
+      if (codeUnit < 128) {
+        // ASCII.
+        writeByte(codeUnit);
+      } else if (codeUnit < 0x800) {
+        // Two-byte sequence (11-bit unicode value).
+        writeByte(0xC0 | (codeUnit >> 6));
+        writeByte(0x80 | (codeUnit & 0x3f));
+      } else if ((codeUnit & 0xFC00) == 0xD800 &&
+          i < end &&
+          (source.codeUnitAt(i) & 0xFC00) == 0xDC00) {
+        // Surrogate pair -> four-byte sequence (non-BMP unicode value).
+        int codeUnit2 = source.codeUnitAt(i++);
+        int unicode =
+            0x10000 + ((codeUnit & 0x3FF) << 10) + (codeUnit2 & 0x3FF);
+        writeByte(0xF0 | (unicode >> 18));
+        writeByte(0x80 | ((unicode >> 12) & 0x3F));
+        writeByte(0x80 | ((unicode >> 6) & 0x3F));
+        writeByte(0x80 | (unicode & 0x3F));
+      } else {
+        // Three-byte sequence (16-bit unicode value), including lone
+        // surrogates.
+        writeByte(0xE0 | (codeUnit >> 12));
+        writeByte(0x80 | ((codeUnit >> 6) & 0x3f));
+        writeByte(0x80 | (codeUnit & 0x3f));
+      }
     }
   }
 }

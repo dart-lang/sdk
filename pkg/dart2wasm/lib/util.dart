@@ -9,6 +9,7 @@ import 'package:kernel/core_types.dart';
 import 'package:vm/metadata/direct_call.dart' show DirectCallMetadataRepository;
 import 'package:vm/metadata/inferred_type.dart'
     show
+        InferredType,
         InferredTypeMetadataRepository,
         InferredReturnTypeMetadataRepository,
         InferredArgTypeMetadataRepository;
@@ -25,7 +26,13 @@ final bool compilerAssertsEnabled = (() {
 })();
 
 bool hasPragma(CoreTypes coreTypes, Annotatable node, String name) {
-  return getPragma(coreTypes, node, name, defaultValue: '') != null;
+  return getPragma<Constant>(
+        coreTypes,
+        node,
+        name,
+        defaultValue: BoolConstant(true),
+      ) !=
+      null;
 }
 
 T? getPragma<T>(
@@ -70,17 +77,14 @@ bool hasWasmImportPragma(CoreTypes coreTypes, Member member) {
 }
 
 ImportName? getWasmImportPragma(CoreTypes coreTypes, Member member) {
-  String? importName = getPragma(coreTypes, member, "wasm:import");
-  if (importName != null) {
-    int dot = importName.indexOf('.');
+  final importName = getPragma<Constant>(coreTypes, member, "wasm:import");
+  if (importName is StringConstant) {
+    final value = importName.value;
+    final dot = value.indexOf('.');
     if (dot != -1) {
-      assert(!member.isInstanceMember);
-      String module = importName.substring(0, dot);
-      String name = importName.substring(dot + 1);
-      return ImportName(module, name);
+      return ImportName(value.substring(0, dot), value.substring(dot + 1));
     }
   }
-
   return null;
 }
 
@@ -123,21 +127,23 @@ bool? getWasmNeverInlinePragma(CoreTypes coreTypes, Member member) {
 }
 
 String? getWasmExportPragma(CoreTypes coreTypes, Member member) {
-  return getPragma<String>(
+  final value = getPragma<Constant>(
     coreTypes,
     member,
     'wasm:export',
-    defaultValue: member.name.text,
+    defaultValue: StringConstant(member.name.text),
   );
+  return value is StringConstant ? value.value : null;
 }
 
 String? getWasmWeakExportPragma(CoreTypes coreTypes, Member member) {
-  return getPragma<String>(
+  final value = getPragma<Constant>(
     coreTypes,
     member,
     'wasm:weak-export',
-    defaultValue: member.name.text,
+    defaultValue: StringConstant(member.name.text),
   );
+  return value is StringConstant ? value.value : null;
 }
 
 bool hasWasmPureFunctionPragma(CoreTypes coreTypes, Member member) {
@@ -154,6 +160,9 @@ bool hasWasmPureFunctionPragma(CoreTypes coreTypes, Member member) {
 T addWasmEntryPointPragma<T extends Annotatable>(T node, CoreTypes coreTypes) =>
     addPragma(node, 'wasm:entry-point', coreTypes);
 
+bool hasWasmCfgPragma(CoreTypes coreTypes, Member member) =>
+    hasPragma(coreTypes, member, 'wasm:cfg');
+
 T addPragma<T extends Annotatable>(
   T node,
   String pragmaName,
@@ -162,7 +171,7 @@ T addPragma<T extends Annotatable>(
 }) => node
   ..addAnnotation(
     ConstantExpression(
-      InstanceConstant(coreTypes.pragmaClass.reference, [], {
+      InstanceConstant(coreTypes.pragmaClass.reference, DartTypeList.empty, {
         coreTypes.pragmaName.fieldReference: StringConstant(pragmaName),
         coreTypes.pragmaOptions.fieldReference: value ?? NullConstant(),
       }),
@@ -248,12 +257,19 @@ String intToMinJsSafeString(int i) {
 }
 
 Component createEmptyComponent() {
+  final canonicalInferredTypes = <InferredType, InferredType>{};
   return Component()
     ..addMetadataRepository(UnreachableNodeMetadataRepository())
     ..addMetadataRepository(ProcedureAttributesMetadataRepository())
     ..addMetadataRepository(TableSelectorMetadataRepository())
     ..addMetadataRepository(DirectCallMetadataRepository())
-    ..addMetadataRepository(InferredTypeMetadataRepository())
-    ..addMetadataRepository(InferredReturnTypeMetadataRepository())
-    ..addMetadataRepository(InferredArgTypeMetadataRepository());
+    ..addMetadataRepository(
+      InferredTypeMetadataRepository(canonicalInferredTypes),
+    )
+    ..addMetadataRepository(
+      InferredReturnTypeMetadataRepository(canonicalInferredTypes),
+    )
+    ..addMetadataRepository(
+      InferredArgTypeMetadataRepository(canonicalInferredTypes),
+    );
 }

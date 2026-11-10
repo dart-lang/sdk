@@ -56,7 +56,7 @@ class InheritanceDataComputer extends CfeDataComputer<String> {
   void computeLibraryData(
     CfeTestResultData testResultData,
     Library library,
-    Map<Id, ActualData<String>> actualMap, {
+    ActualDataMap<String> actualMap, {
     bool? verbose,
   }) {
     new InheritanceDataExtractor(
@@ -69,7 +69,7 @@ class InheritanceDataComputer extends CfeDataComputer<String> {
   void computeClassData(
     CfeTestResultData testResultData,
     Class cls,
-    Map<Id, ActualData<String>> actualMap, {
+    ActualDataMap<String> actualMap, {
     bool? verbose,
   }) {
     new InheritanceDataExtractor(
@@ -97,7 +97,7 @@ class InheritanceDataComputer extends CfeDataComputer<String> {
 class InheritanceDataExtractor extends CfeDataExtractor<String> {
   final CfeTestResultData _testResultData;
 
-  new(this._testResultData, Map<Id, ActualData<String>> actualMap)
+  new(this._testResultData, ActualDataMap<String> actualMap)
     : super(_testResultData.compilerResult, actualMap);
 
   CfeTestConfig get _config => _testResultData.config;

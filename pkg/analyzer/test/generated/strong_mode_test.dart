@@ -98,7 +98,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
    ''');
 
     void check(String name, Asserter<InterfaceType> typeTest) {
-      MethodDeclaration test = AstFinder.getMethodInClass(
+      MethodDeclaration2 test = AstFinder.getMethodInClass(
         result.unit,
         "A",
         name,
@@ -109,7 +109,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
         returnExp = body.expression2;
       } else {
         var stmt =
-            (body as BlockFunctionBody).block.statements[0] as ReturnStatement;
+            (body as BlockFunctionBody).block.statements2[0] as ReturnStatement;
         returnExp = stmt.expression2!;
       }
       DartType type = returnExp.typeOrThrow;
@@ -156,17 +156,17 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
    ''');
 
     void check(String name, Asserter<InterfaceType> typeTest) {
-      FunctionDeclaration test = AstFinder.getTopLevelFunction(
+      TopLevelFunctionDeclaration test = AstFinder.getTopLevelFunction(
         result.unit,
         name,
       );
-      var body = test.functionExpression.body;
+      var body = test.body;
       Expression returnExp;
       if (body is ExpressionFunctionBody) {
         returnExp = body.expression2;
       } else {
         var stmt =
-            (body as BlockFunctionBody).block.statements[0] as ReturnStatement;
+            (body as BlockFunctionBody).block.statements2[0] as ReturnStatement;
         returnExp = stmt.expression2!;
       }
       DartType type = returnExp.typeOrThrow;
@@ -210,9 +210,9 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       "main",
     );
     CascadeExpression fetch(int i) {
-      var stmt = statements[i] as VariableDeclarationStatement;
-      VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer2 as CascadeExpression;
+      var stmt = statements[i] as LocalVariablesDeclarationStatement;
+      LocalVariable decl = stmt.declaration.variables[0];
+      var exp = decl.initializer as CascadeExpression;
       return exp;
     }
 
@@ -223,7 +223,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
 
     CascadeExpression cascade = fetch(0);
     _isInstantiationOf(_hasElement(elementA))([_isInt])(cascade.typeOrThrow);
-    var invoke = cascade.cascadeSections2[0] as MethodInvocation;
+    var invoke = cascade.sections[0].body as CascadeMethodInvocation;
     var function = invoke.argumentList.arguments2[1] as FunctionExpression;
     ExecutableElement f0 = function.declaredFragment!.element;
     _isListOf(_isInt)(f0.type.returnType as InterfaceType);
@@ -247,9 +247,9 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       result.unit,
       "test",
     );
-    var stmt = statements[0] as VariableDeclarationStatement;
-    VariableDeclaration decl = stmt.variables.variables[0];
-    Expression call = decl.initializer2!;
+    var stmt = statements[0] as LocalVariablesDeclarationStatement;
+    LocalVariable decl = stmt.declaration.variables[0];
+    Expression call = decl.initializer!;
     _isInt(call.typeOrThrow);
   }
 
@@ -270,9 +270,9 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       result.unit,
       "test",
     );
-    var stmt = statements[0] as VariableDeclarationStatement;
-    VariableDeclaration decl = stmt.variables.variables[0];
-    Expression call = decl.initializer2!;
+    var stmt = statements[0] as LocalVariablesDeclarationStatement;
+    LocalVariable decl = stmt.declaration.variables[0];
+    Expression call = decl.initializer!;
     _isInt(call.typeOrThrow);
   }
 
@@ -290,9 +290,9 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       result.unit,
       "test",
     );
-    var stmt = statements[0] as VariableDeclarationStatement;
-    VariableDeclaration decl = stmt.variables.variables[0];
-    Expression call = decl.initializer2!;
+    var stmt = statements[0] as LocalVariablesDeclarationStatement;
+    LocalVariable decl = stmt.declaration.variables[0];
+    Expression call = decl.initializer!;
     _isInt(call.typeOrThrow);
   }
 
@@ -315,9 +315,9 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       result.unit,
       "test",
     );
-    var stmt = statements[0] as VariableDeclarationStatement;
-    VariableDeclaration decl = stmt.variables.variables[0];
-    Expression call = decl.initializer2!;
+    var stmt = statements[0] as LocalVariablesDeclarationStatement;
+    LocalVariable decl = stmt.declaration.variables[0];
+    Expression call = decl.initializer!;
     _isInt(call.typeOrThrow);
   }
 
@@ -345,9 +345,9 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       result.unit,
       "test",
     );
-    var stmt = statements[0] as VariableDeclarationStatement;
-    VariableDeclaration decl = stmt.variables.variables[0];
-    Expression call = decl.initializer2!;
+    var stmt = statements[0] as LocalVariablesDeclarationStatement;
+    LocalVariable decl = stmt.declaration.variables[0];
+    Expression call = decl.initializer!;
     _isType(call.typeOrThrow);
   }
 
@@ -359,7 +359,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       }
    ''';
     var result = await resolveTestCodeWithDiagnostics(code);
-    ConstructorDeclaration constructor = AstFinder.getConstructorInClass(
+    ConstructorDeclaration2 constructor = AstFinder.getConstructorInClass(
       result.unit,
       "A",
       null,
@@ -379,13 +379,13 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
 // [diag.noGenerativeConstructorsInSuperclass] The class 'B' can't extend 'A' because 'A' only has factory constructors (no generative constructors), and 'B' has at least one generative constructor.
    ''');
 
-    ConstructorDeclaration constructor = AstFinder.getConstructorInClass(
+    ConstructorDeclaration2 constructor = AstFinder.getConstructorInClass(
       result.unit,
       "A",
       null,
     );
     var body = constructor.body as BlockFunctionBody;
-    var stmt = body.block.statements[0] as ReturnStatement;
+    var stmt = body.block.statements2[0] as ReturnStatement;
     var exp = stmt.expression2 as ConstructorInvocation;
     ClassElement elementB = AstFinder.getClass(
       result.unit,
@@ -414,13 +414,9 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
    ''';
     var result = await resolveTestCodeWithDiagnostics(code);
 
-    VariableDeclaration field = AstFinder.getFieldInClass(
-      result.unit,
-      "A",
-      "f0",
-    );
+    Field2 field = AstFinder.getFieldInClass(result.unit, "A", "f0");
 
-    _isListOf(_isString)(field.initializer2!.staticType as InterfaceType);
+    _isListOf(_isString)(field.initializer!.staticType as InterfaceType);
   }
 
   test_functionDeclaration_body_propagation() async {
@@ -441,11 +437,11 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
 
     Asserter<InterfaceType> assertListOfInt = _isListOf(_isInt);
 
-    FunctionDeclaration test1 = AstFinder.getTopLevelFunction(
+    TopLevelFunctionDeclaration test1 = AstFinder.getTopLevelFunction(
       result.unit,
       "test1",
     );
-    var body = test1.functionExpression.body as ExpressionFunctionBody;
+    var body = test1.body as ExpressionFunctionBody;
     assertListOfInt(body.expression2.staticType as InterfaceType);
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
@@ -453,10 +449,9 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       "test2",
     );
 
-    FunctionDeclaration inner =
-        (statements[0] as FunctionDeclarationStatement).functionDeclaration;
-    var body0 = inner.functionExpression.body as BlockFunctionBody;
-    var return0 = body0.block.statements[0] as ReturnStatement;
+    var inner = statements[0] as LocalFunctionDeclaration;
+    var body0 = inner.body as BlockFunctionBody;
+    var return0 = body0.block.statements2[0] as ReturnStatement;
     Expression anon0 = return0.expression2!;
     var type0 = anon0.staticType as FunctionType;
     expect(type0.returnType, result.typeProvider.intType);
@@ -505,9 +500,9 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       "main",
     );
     DartType literal(int i) {
-      var stmt = statements[i] as VariableDeclarationStatement;
-      VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer2 as FunctionExpression;
+      var stmt = statements[i] as LocalVariablesDeclarationStatement;
+      LocalVariable decl = stmt.declaration.variables[0];
+      var exp = decl.initializer as FunctionExpression;
       return exp.declaredFragment!.element.type;
     }
 
@@ -552,9 +547,9 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       "main",
     );
     DartType literal(int i) {
-      var stmt = statements[i] as VariableDeclarationStatement;
-      VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer2 as FunctionExpression;
+      var stmt = statements[i] as LocalVariablesDeclarationStatement;
+      LocalVariable decl = stmt.declaration.variables[0];
+      var exp = decl.initializer as FunctionExpression;
       return exp.declaredFragment!.element.type;
     }
 
@@ -596,14 +591,14 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       "main",
     );
     Expression functionReturnValue(int i) {
-      var stmt = statements[i] as VariableDeclarationStatement;
-      VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer2 as FunctionExpression;
+      var stmt = statements[i] as LocalVariablesDeclarationStatement;
+      LocalVariable decl = stmt.declaration.variables[0];
+      var exp = decl.initializer as FunctionExpression;
       FunctionBody body = exp.body;
       if (body is ExpressionFunctionBody) {
         return body.expression2;
       } else {
-        Statement stmt = (body as BlockFunctionBody).block.statements[0];
+        Statement stmt = (body as BlockFunctionBody).block.statements2[0];
         return (stmt as ReturnStatement).expression2!;
       }
     }
@@ -646,7 +641,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     );
     DartType literal(int i) {
       var stmt = statements[i] as ExpressionStatement;
-      var invk = stmt.expression2 as FunctionExpressionInvocation;
+      var invk = stmt.expression2 as CallInvocation;
       var exp = invk.argumentList.arguments2[0] as FunctionExpression;
       return exp.declaredFragment!.element.type;
     }
@@ -687,7 +682,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     );
     DartType literal(int i) {
       var stmt = statements[i] as ExpressionStatement;
-      var invk = stmt.expression2 as FunctionExpressionInvocation;
+      var invk = stmt.expression2 as CallInvocation;
       var exp = invk.argumentList.arguments2[0] as FunctionExpression;
       return exp.declaredFragment!.element.type;
     }
@@ -728,7 +723,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     );
     DartType literal(int i) {
       var stmt = statements[i] as ExpressionStatement;
-      var invk = stmt.expression2 as MethodInvocation;
+      var invk = stmt.expression2 as UnqualifiedFunctionInvocation;
       var exp = invk.argumentList.arguments2[0] as FunctionExpression;
       return exp.declaredFragment!.element.type;
     }
@@ -767,7 +762,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     );
     DartType literal(int i) {
       var stmt = statements[i] as ExpressionStatement;
-      var invk = stmt.expression2 as MethodInvocation;
+      var invk = stmt.expression2 as UnqualifiedFunctionInvocation;
       var exp = invk.argumentList.arguments2[0] as FunctionExpression;
       return exp.declaredFragment!.element.type;
     }
@@ -810,7 +805,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     );
     DartType literal(int i) {
       var stmt = statements[i] as ExpressionStatement;
-      var invk = stmt.expression2 as MethodInvocation;
+      var invk = stmt.expression2 as NamedFunctionInvocation;
       var exp = invk.argumentList.arguments2[0] as FunctionExpression;
       return exp.declaredFragment!.element.type;
     }
@@ -851,7 +846,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     );
     DartType literal(int i) {
       var stmt = statements[i] as ExpressionStatement;
-      var invk = stmt.expression2 as MethodInvocation;
+      var invk = stmt.expression2 as NamedFunctionInvocation;
       var exp = invk.argumentList.arguments2[0] as FunctionExpression;
       return exp.declaredFragment!.element.type;
     }
@@ -883,7 +878,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
 //                             ^^
 // [diag.unusedLocalVariable] The value of the local variable 'l3' isn't used.
 //                                           ^^^^^^^^^^^
-// [diag.undefinedMethod] The method 'toLowerCase' isn't defined for the type 'int'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'toLowerCase' isn't defined for the type 'int'.
         Function2<String, String> l4 = (x) => x.toLowerCase();
 //                                ^^
 // [diag.unusedLocalVariable] The value of the local variable 'l4' isn't used.
@@ -895,14 +890,14 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       "main",
     );
     Expression functionReturnValue(int i) {
-      var stmt = statements[i] as VariableDeclarationStatement;
-      VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer2 as FunctionExpression;
+      var stmt = statements[i] as LocalVariablesDeclarationStatement;
+      LocalVariable decl = stmt.declaration.variables[0];
+      var exp = decl.initializer as FunctionExpression;
       FunctionBody body = exp.body;
       if (body is ExpressionFunctionBody) {
         return body.expression2;
       } else {
-        Statement stmt = (body as BlockFunctionBody).block.statements[0];
+        Statement stmt = (body as BlockFunctionBody).block.statements2[0];
         return (stmt as ReturnStatement).expression2!;
       }
     }
@@ -916,7 +911,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
 
   test_futureOr_assignFromFuture() async {
     // Test a Future<T> can be assigned to FutureOr<T>.
-    MethodInvocation invoke = await _testFutureOr(r'''
+    _TestInvocation invoke = await _testFutureOr(r'''
     FutureOr<T> mk<T>(Future<T> x) => x;
     test() => mk(new Future<int>.value(42));
     ''');
@@ -925,7 +920,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
 
   test_futureOr_assignFromValue() async {
     // Test a T can be assigned to FutureOr<T>.
-    MethodInvocation invoke = await _testFutureOr(r'''
+    _TestInvocation invoke = await _testFutureOr(r'''
     FutureOr<T> mk<T>(T x) => x;
     test() => mk(42);
     ''');
@@ -934,7 +929,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
 
   test_futureOr_asyncExpressionBody() async {
     // A FutureOr<T> can be used as the expression body for an async function
-    MethodInvocation invoke = await _testFutureOr(r'''
+    _TestInvocation invoke = await _testFutureOr(r'''
     Future<T> mk<T>(FutureOr<T> x) async => x;
     test() => mk(42);
     ''');
@@ -943,7 +938,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
 
   test_futureOr_asyncReturn() async {
     // A FutureOr<T> can be used as the return value for an async function
-    MethodInvocation invoke = await _testFutureOr(r'''
+    _TestInvocation invoke = await _testFutureOr(r'''
     Future<T> mk<T>(FutureOr<T> x) async { return x; }
     test() => mk(42);
     ''');
@@ -952,7 +947,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
 
   test_futureOr_await() async {
     // Test a FutureOr<T> can be awaited.
-    MethodInvocation invoke = await _testFutureOr(r'''
+    _TestInvocation invoke = await _testFutureOr(r'''
     Future<T> mk<T>(FutureOr<T> x) async => await x;
     test() => mk(42);
     ''');
@@ -962,7 +957,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   test_futureOr_downwards1() async {
     // Test that downwards inference interacts correctly with FutureOr
     // parameters.
-    MethodInvocation invoke = await _testFutureOr(r'''
+    _TestInvocation invoke = await _testFutureOr(r'''
     Future<T> mk<T>(FutureOr<T> x) => null;
 //                                    ^^^^
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'mk' because it has a return type of 'Future<T>'.
@@ -974,7 +969,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   test_futureOr_downwards2() async {
     // Test that downwards inference interacts correctly with FutureOr
     // parameters when the downwards context is FutureOr
-    MethodInvocation invoke = await _testFutureOr(r'''
+    _TestInvocation invoke = await _testFutureOr(r'''
     Future<T> mk<T>(FutureOr<T> x) => null;
 //                                    ^^^^
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'mk' because it has a return type of 'Future<T>'.
@@ -986,7 +981,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   test_futureOr_downwards3() async {
     // Test that downwards inference correctly propagates into
     // arguments.
-    MethodInvocation invoke = await _testFutureOr(r'''
+    _TestInvocation invoke = await _testFutureOr(r'''
     Future<T> mk<T>(FutureOr<T> x) => null;
 //                                    ^^^^
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'mk' because it has a return type of 'Future<T>'.
@@ -1002,7 +997,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   test_futureOr_downwards4() async {
     // Test that downwards inference interacts correctly with FutureOr
     // parameters when the downwards context is FutureOr
-    MethodInvocation invoke = await _testFutureOr(r'''
+    _TestInvocation invoke = await _testFutureOr(r'''
     Future<T> mk<T>(FutureOr<T> x) => null;
 //                                    ^^^^
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'mk' because it has a return type of 'Future<T>'.
@@ -1018,7 +1013,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   test_futureOr_downwards5() async {
     // Test that downwards inference correctly pins the type when it
     // comes from a FutureOr
-    MethodInvocation invoke = await _testFutureOr(r'''
+    _TestInvocation invoke = await _testFutureOr(r'''
     Future<T> mk<T>(FutureOr<T> x) => null;
 //                                    ^^^^
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'mk' because it has a return type of 'Future<T>'.
@@ -1034,7 +1029,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   test_futureOr_downwards6() async {
     // Test that downwards inference doesn't decompose FutureOr
     // when instantiating type variables.
-    MethodInvocation invoke = await _testFutureOr(r'''
+    _TestInvocation invoke = await _testFutureOr(r'''
     T mk<T>(T x) => null;
 //                  ^^^^
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'mk' because it has a return type of 'T'.
@@ -1050,7 +1045,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   test_futureOr_downwards7() async {
     // Test that downwards inference incorporates bounds correctly
     // when instantiating type variables.
-    MethodInvocation invoke = await _testFutureOr(r'''
+    _TestInvocation invoke = await _testFutureOr(r'''
       T mk<T extends Future<int>>(T x) => null;
 //                                        ^^^^
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'mk' because it has a return type of 'T'.
@@ -1068,7 +1063,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     // when instantiating type variables.
     // TODO(leafp): I think this should pass once the inference changes
     // that jmesserly is adding are landed.
-    MethodInvocation invoke = await _testFutureOr(r'''
+    _TestInvocation invoke = await _testFutureOr(r'''
     T mk<T extends Future<Object>>(T x) => null;
 //                                         ^^^^
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'mk' because it has a return type of 'T'.
@@ -1084,7 +1079,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   test_futureOr_downwards9() async {
     // Test that downwards inference decomposes correctly with
     // other composite types
-    MethodInvocation invoke = await _testFutureOr(r'''
+    _TestInvocation invoke = await _testFutureOr(r'''
     List<T> mk<T>(T x) => null;
 //                        ^^^^
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'mk' because it has a return type of 'List<T>'.
@@ -1096,7 +1091,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
 
   test_futureOr_methods1() async {
     // Test that FutureOr has the Object methods
-    MethodInvocation invoke = await _testFutureOr(r'''
+    _TestInvocation invoke = await _testFutureOr(r'''
     dynamic test(FutureOr<int> x) => x.toString();
     ''');
     _isString(invoke.typeOrThrow);
@@ -1104,27 +1099,27 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
 
   test_futureOr_methods2() async {
     // Test that FutureOr does not have the constituent type methods
-    MethodInvocation invoke = await _testFutureOr(r'''
+    _TestInvocation invoke = await _testFutureOr(r'''
     dynamic test(FutureOr<int> x) => x.abs();
 //                                     ^^^
-// [diag.undefinedMethod] The method 'abs' isn't defined for the type 'FutureOr'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'abs' isn't defined for the type 'FutureOr<int>'.
     ''');
     _isInvalidType(invoke.typeOrThrow);
   }
 
   test_futureOr_methods3() async {
     // Test that FutureOr does not have the Future type methods
-    MethodInvocation invoke = await _testFutureOr(r'''
+    _TestInvocation invoke = await _testFutureOr(r'''
     dynamic test(FutureOr<int> x) => x.then((x) => x);
 //                                     ^^^^
-// [diag.undefinedMethod] The method 'then' isn't defined for the type 'FutureOr'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'then' isn't defined for the type 'FutureOr<int>'.
     ''');
     _isInvalidType(invoke.typeOrThrow);
   }
 
   test_futureOr_methods4() async {
     // Test that FutureOr<dynamic> does not have all methods
-    MethodInvocation invoke = await _testFutureOr(r'''
+    _TestInvocation invoke = await _testFutureOr(r'''
     dynamic test(FutureOr<dynamic> x) => x.abs();
 //                                         ^^^
 // [diag.uncheckedMethodInvocationOfNullableValue] The method 'abs' can't be unconditionally invoked because the receiver can be 'null'.
@@ -1133,7 +1128,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_futureOr_no_return() async {
-    MethodInvocation invoke = await _testFutureOr(r'''
+    _TestInvocation invoke = await _testFutureOr(r'''
     FutureOr<T> mk<T>(Future<T> x) => x;
     Future<int> f;
 //              ^
@@ -1147,7 +1142,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_futureOr_no_return_value() async {
-    MethodInvocation invoke = await _testFutureOr(r'''
+    _TestInvocation invoke = await _testFutureOr(r'''
     FutureOr<T> mk<T>(Future<T> x) => x;
     Future<int> f;
 //              ^
@@ -1161,7 +1156,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_futureOr_return_null() async {
-    MethodInvocation invoke = await _testFutureOr(r'''
+    _TestInvocation invoke = await _testFutureOr(r'''
     FutureOr<T> mk<T>(Future<T> x) => x;
     Future<int> f;
 //              ^
@@ -1177,7 +1172,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   test_futureOr_upwards1() async {
     // Test that upwards inference correctly prefers to instantiate type
     // variables with the "smaller" solution when both are possible.
-    MethodInvocation invoke = await _testFutureOr(r'''
+    _TestInvocation invoke = await _testFutureOr(r'''
     Future<T> mk<T>(FutureOr<T> x) => null;
 //                                    ^^^^
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'mk' because it has a return type of 'Future<T>'.
@@ -1189,7 +1184,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   test_futureOr_upwards2() async {
     // Test that upwards inference fails when the solution doesn't
     // match the bound.
-    MethodInvocation invoke = await _testFutureOr(r'''
+    _TestInvocation invoke = await _testFutureOr(r'''
     T mk<T extends Future<Object>>(FutureOr<T> x) => null;
 //                                                   ^^^^
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'mk' because it has a return type of 'T'.
@@ -1199,7 +1194,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_futureOrNull_no_return() async {
-    MethodInvocation invoke = await _testFutureOr(r'''
+    _TestInvocation invoke = await _testFutureOr(r'''
     FutureOr<T> mk<T>(Future<T> x) => x;
     Future<int> f;
 //              ^
@@ -1213,7 +1208,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_futureOrNull_no_return_value() async {
-    MethodInvocation invoke = await _testFutureOr(r'''
+    _TestInvocation invoke = await _testFutureOr(r'''
     FutureOr<T> mk<T>(Future<T> x) => x;
     Future<int> f;
 //              ^
@@ -1227,7 +1222,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   }
 
   test_futureOrNull_return_null() async {
-    MethodInvocation invoke = await _testFutureOr(r'''
+    _TestInvocation invoke = await _testFutureOr(r'''
     FutureOr<T> mk<T>(Future<T> x) => x;
     Future<int> f;
 //              ^
@@ -1287,9 +1282,9 @@ void test() {
       "test",
     );
     void check(int i) {
-      var stmt = statements[i] as VariableDeclarationStatement;
-      VariableDeclaration decl = stmt.variables.variables[0];
-      Expression init = decl.initializer2!;
+      var stmt = statements[i] as LocalVariablesDeclarationStatement;
+      LocalVariable decl = stmt.declaration.variables[0];
+      Expression init = decl.initializer!;
       _isInstantiationOf(_hasElement(elementA))([_isInt])(init.typeOrThrow);
     }
 
@@ -1397,16 +1392,41 @@ test() {
 }
  ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleUnqualifiedFunctionInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: max
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 1
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@function::max::@formalParameter::x
+          substitution: {T: Never}
+        staticType: int
+      IntegerLiteral
+        literal: 2
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@function::max::@formalParameter::y
+          substitution: {T: Never}
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::max
+    invokeType: Never Function(Never, Never)
+    type: Never
+  staticType: Never
+  typeArgumentTypes
+    Never
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: max
     element: <testLibrary>::@function::max
     staticType: T Function<T extends num>(T, T)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 1
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1519,16 +1539,78 @@ void _mergeSort<T>(T Function(T) list, int compare(T a, T b), T Function(T) targ
     assertResolvedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
-      expression2: MethodInvocation
+      expression2: UnqualifiedFunctionInvocation
+        name: _mergeSort
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            UnqualifiedNameExpression
+              name: list
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                type: T Function(T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              staticType: T Function(T)
+            UnqualifiedNameExpression
+              name: compare
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                type: int Function(T, T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              staticType: int Function(T, T)
+            UnqualifiedNameExpression
+              name: target
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                type: T Function(T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              staticType: T Function(T)
+          arguments(v1)
+            SimpleIdentifier
+              token: list
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+              staticType: T Function(T)
+            SimpleIdentifier
+              token: compare
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+              staticType: int Function(T, T)
+            SimpleIdentifier
+              token: target
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+              staticType: T Function(T)
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::_mergeSort
+          invokeType: void Function(T Function(T), int Function(T, T), T Function(T))
+          type: void
+        staticType: void
+        typeArgumentTypes
+          T
+      expression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: _mergeSort
           element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(T Function(T), int Function(T, T), T Function(T))
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments2
+          arguments
             SimpleIdentifier
               token: list
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1557,14 +1639,76 @@ Block
           T
       semicolon: ;
     ExpressionStatement
-      expression2: MethodInvocation
+      expression2: UnqualifiedFunctionInvocation
+        name: _mergeSort
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            UnqualifiedNameExpression
+              name: list
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                type: T Function(T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              staticType: T Function(T)
+            UnqualifiedNameExpression
+              name: compare
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                type: int Function(T, T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              staticType: int Function(T, T)
+            UnqualifiedNameExpression
+              name: list
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                type: T Function(T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              staticType: T Function(T)
+          arguments(v1)
+            SimpleIdentifier
+              token: list
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+              staticType: T Function(T)
+            SimpleIdentifier
+              token: compare
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+              staticType: int Function(T, T)
+            SimpleIdentifier
+              token: list
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+              staticType: T Function(T)
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::_mergeSort
+          invokeType: void Function(T Function(T), int Function(T, T), T Function(T))
+          type: void
+        staticType: void
+        typeArgumentTypes
+          T
+      expression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: _mergeSort
           element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(T Function(T), int Function(T, T), T Function(T))
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments2
+          arguments
             SimpleIdentifier
               token: list
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1593,14 +1737,76 @@ Block
           T
       semicolon: ;
     ExpressionStatement
-      expression2: MethodInvocation
+      expression2: UnqualifiedFunctionInvocation
+        name: _mergeSort
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            UnqualifiedNameExpression
+              name: target
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                type: T Function(T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              staticType: T Function(T)
+            UnqualifiedNameExpression
+              name: compare
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                type: int Function(T, T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              staticType: int Function(T, T)
+            UnqualifiedNameExpression
+              name: target
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                type: T Function(T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              staticType: T Function(T)
+          arguments(v1)
+            SimpleIdentifier
+              token: target
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+              staticType: T Function(T)
+            SimpleIdentifier
+              token: compare
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+              staticType: int Function(T, T)
+            SimpleIdentifier
+              token: target
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+              staticType: T Function(T)
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::_mergeSort
+          invokeType: void Function(T Function(T), int Function(T, T), T Function(T))
+          type: void
+        staticType: void
+        typeArgumentTypes
+          T
+      expression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: _mergeSort
           element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(T Function(T), int Function(T, T), T Function(T))
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments2
+          arguments
             SimpleIdentifier
               token: target
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1629,14 +1835,76 @@ Block
           T
       semicolon: ;
     ExpressionStatement
-      expression2: MethodInvocation
+      expression2: UnqualifiedFunctionInvocation
+        name: _mergeSort
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            UnqualifiedNameExpression
+              name: target
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                type: T Function(T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              staticType: T Function(T)
+            UnqualifiedNameExpression
+              name: compare
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                type: int Function(T, T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              staticType: int Function(T, T)
+            UnqualifiedNameExpression
+              name: list
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                type: T Function(T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              staticType: T Function(T)
+          arguments(v1)
+            SimpleIdentifier
+              token: target
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+              staticType: T Function(T)
+            SimpleIdentifier
+              token: compare
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+              staticType: int Function(T, T)
+            SimpleIdentifier
+              token: list
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+              staticType: T Function(T)
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::_mergeSort
+          invokeType: void Function(T Function(T), int Function(T, T), T Function(T))
+          type: void
+        staticType: void
+        typeArgumentTypes
+          T
+      expression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: _mergeSort
           element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(T Function(T), int Function(T, T), T Function(T))
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments2
+          arguments
             SimpleIdentifier
               token: target
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1687,16 +1955,78 @@ void _mergeSort<T>(List<T> list, int compare(T a, T b), List<T> target) {
     assertResolvedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
-      expression2: MethodInvocation
+      expression2: UnqualifiedFunctionInvocation
+        name: _mergeSort
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            UnqualifiedNameExpression
+              name: list
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                type: List<T>
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              staticType: List<T>
+            UnqualifiedNameExpression
+              name: compare
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                type: int Function(T, T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              staticType: int Function(T, T)
+            UnqualifiedNameExpression
+              name: target
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                type: List<T>
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              staticType: List<T>
+          arguments(v1)
+            SimpleIdentifier
+              token: list
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+              staticType: List<T>
+            SimpleIdentifier
+              token: compare
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+              staticType: int Function(T, T)
+            SimpleIdentifier
+              token: target
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+              staticType: List<T>
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::_mergeSort
+          invokeType: void Function(List<T>, int Function(T, T), List<T>)
+          type: void
+        staticType: void
+        typeArgumentTypes
+          T
+      expression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: _mergeSort
           element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(List<T>, int Function(T, T), List<T>)
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments2
+          arguments
             SimpleIdentifier
               token: list
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1725,14 +2055,76 @@ Block
           T
       semicolon: ;
     ExpressionStatement
-      expression2: MethodInvocation
+      expression2: UnqualifiedFunctionInvocation
+        name: _mergeSort
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            UnqualifiedNameExpression
+              name: list
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                type: List<T>
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              staticType: List<T>
+            UnqualifiedNameExpression
+              name: compare
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                type: int Function(T, T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              staticType: int Function(T, T)
+            UnqualifiedNameExpression
+              name: list
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                type: List<T>
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              staticType: List<T>
+          arguments(v1)
+            SimpleIdentifier
+              token: list
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+              staticType: List<T>
+            SimpleIdentifier
+              token: compare
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+              staticType: int Function(T, T)
+            SimpleIdentifier
+              token: list
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+              staticType: List<T>
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::_mergeSort
+          invokeType: void Function(List<T>, int Function(T, T), List<T>)
+          type: void
+        staticType: void
+        typeArgumentTypes
+          T
+      expression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: _mergeSort
           element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(List<T>, int Function(T, T), List<T>)
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments2
+          arguments
             SimpleIdentifier
               token: list
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1761,14 +2153,76 @@ Block
           T
       semicolon: ;
     ExpressionStatement
-      expression2: MethodInvocation
+      expression2: UnqualifiedFunctionInvocation
+        name: _mergeSort
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            UnqualifiedNameExpression
+              name: target
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                type: List<T>
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              staticType: List<T>
+            UnqualifiedNameExpression
+              name: compare
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                type: int Function(T, T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              staticType: int Function(T, T)
+            UnqualifiedNameExpression
+              name: target
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                type: List<T>
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              staticType: List<T>
+          arguments(v1)
+            SimpleIdentifier
+              token: target
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+              staticType: List<T>
+            SimpleIdentifier
+              token: compare
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+              staticType: int Function(T, T)
+            SimpleIdentifier
+              token: target
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+              staticType: List<T>
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::_mergeSort
+          invokeType: void Function(List<T>, int Function(T, T), List<T>)
+          type: void
+        staticType: void
+        typeArgumentTypes
+          T
+      expression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: _mergeSort
           element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(List<T>, int Function(T, T), List<T>)
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments2
+          arguments
             SimpleIdentifier
               token: target
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1797,14 +2251,76 @@ Block
           T
       semicolon: ;
     ExpressionStatement
-      expression2: MethodInvocation
+      expression2: UnqualifiedFunctionInvocation
+        name: _mergeSort
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            UnqualifiedNameExpression
+              name: target
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                type: List<T>
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              staticType: List<T>
+            UnqualifiedNameExpression
+              name: compare
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                type: int Function(T, T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              staticType: int Function(T, T)
+            UnqualifiedNameExpression
+              name: list
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                type: List<T>
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              staticType: List<T>
+          arguments(v1)
+            SimpleIdentifier
+              token: target
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+              staticType: List<T>
+            SimpleIdentifier
+              token: compare
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+              staticType: int Function(T, T)
+            SimpleIdentifier
+              token: list
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+              staticType: List<T>
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::_mergeSort
+          invokeType: void Function(List<T>, int Function(T, T), List<T>)
+          type: void
+        staticType: void
+        typeArgumentTypes
+          T
+      expression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: _mergeSort
           element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(List<T>, int Function(T, T), List<T>)
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments2
+          arguments
             SimpleIdentifier
               token: target
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1855,16 +2371,78 @@ void _mergeSort<T>(T list, int compare(T a, T b), T target) {
     assertResolvedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
-      expression2: MethodInvocation
+      expression2: UnqualifiedFunctionInvocation
+        name: _mergeSort
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            UnqualifiedNameExpression
+              name: list
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                type: T
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              staticType: T
+            UnqualifiedNameExpression
+              name: compare
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                type: int Function(T, T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              staticType: int Function(T, T)
+            UnqualifiedNameExpression
+              name: target
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                type: T
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              staticType: T
+          arguments(v1)
+            SimpleIdentifier
+              token: list
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+              staticType: T
+            SimpleIdentifier
+              token: compare
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+              staticType: int Function(T, T)
+            SimpleIdentifier
+              token: target
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+              staticType: T
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::_mergeSort
+          invokeType: void Function(T, int Function(T, T), T)
+          type: void
+        staticType: void
+        typeArgumentTypes
+          T
+      expression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: _mergeSort
           element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(T, int Function(T, T), T)
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments2
+          arguments
             SimpleIdentifier
               token: list
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1893,14 +2471,76 @@ Block
           T
       semicolon: ;
     ExpressionStatement
-      expression2: MethodInvocation
+      expression2: UnqualifiedFunctionInvocation
+        name: _mergeSort
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            UnqualifiedNameExpression
+              name: list
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                type: T
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              staticType: T
+            UnqualifiedNameExpression
+              name: compare
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                type: int Function(T, T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              staticType: int Function(T, T)
+            UnqualifiedNameExpression
+              name: list
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                type: T
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              staticType: T
+          arguments(v1)
+            SimpleIdentifier
+              token: list
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+              staticType: T
+            SimpleIdentifier
+              token: compare
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+              staticType: int Function(T, T)
+            SimpleIdentifier
+              token: list
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+              staticType: T
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::_mergeSort
+          invokeType: void Function(T, int Function(T, T), T)
+          type: void
+        staticType: void
+        typeArgumentTypes
+          T
+      expression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: _mergeSort
           element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(T, int Function(T, T), T)
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments2
+          arguments
             SimpleIdentifier
               token: list
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1929,14 +2569,76 @@ Block
           T
       semicolon: ;
     ExpressionStatement
-      expression2: MethodInvocation
+      expression2: UnqualifiedFunctionInvocation
+        name: _mergeSort
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            UnqualifiedNameExpression
+              name: target
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                type: T
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              staticType: T
+            UnqualifiedNameExpression
+              name: compare
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                type: int Function(T, T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              staticType: int Function(T, T)
+            UnqualifiedNameExpression
+              name: target
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                type: T
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              staticType: T
+          arguments(v1)
+            SimpleIdentifier
+              token: target
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+              staticType: T
+            SimpleIdentifier
+              token: compare
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+              staticType: int Function(T, T)
+            SimpleIdentifier
+              token: target
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+              staticType: T
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::_mergeSort
+          invokeType: void Function(T, int Function(T, T), T)
+          type: void
+        staticType: void
+        typeArgumentTypes
+          T
+      expression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: _mergeSort
           element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(T, int Function(T, T), T)
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments2
+          arguments
             SimpleIdentifier
               token: target
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1965,14 +2667,76 @@ Block
           T
       semicolon: ;
     ExpressionStatement
-      expression2: MethodInvocation
+      expression2: UnqualifiedFunctionInvocation
+        name: _mergeSort
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            UnqualifiedNameExpression
+              name: target
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                type: T
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              staticType: T
+            UnqualifiedNameExpression
+              name: compare
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                type: int Function(T, T)
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              staticType: int Function(T, T)
+            UnqualifiedNameExpression
+              name: list
+              resolution: VariableReadResolution
+                element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                type: T
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              staticType: T
+          arguments(v1)
+            SimpleIdentifier
+              token: target
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::list
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::target
+              staticType: T
+            SimpleIdentifier
+              token: compare
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::compare
+              staticType: int Function(T, T)
+            SimpleIdentifier
+              token: list
+              correspondingParameter: SubstitutedFormalParameterElementImpl
+                baseElement: <testLibrary>::@function::_mergeSort::@formalParameter::target
+                substitution: {T: T}
+              element: <testLibrary>::@function::_mergeSort::@formalParameter::list
+              staticType: T
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::_mergeSort
+          invokeType: void Function(T, int Function(T, T), T)
+          type: void
+        staticType: void
+        typeArgumentTypes
+          T
+      expression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: _mergeSort
           element: <testLibrary>::@function::_mergeSort
           staticType: void Function<T>(T, int Function(T, T), T)
         argumentList: ArgumentList
           leftParenthesis: (
-          arguments2
+          arguments
             SimpleIdentifier
               token: target
               correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -2018,18 +2782,44 @@ test() {
 }
     ''');
 
-    var node = result.findNode.methodInvocation('f(g)');
+    var node = result.findNode.unqualifiedFunctionInvocation('f(g)');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      ImplicitFunctionInstantiation
+        operand: UnqualifiedNameExpression
+          name: g
+          resolution: ExecutableTearOffResolution
+            element: <testLibrary>::@function::g
+            type: S Function<S>(S)
+          staticType: S Function<S>(S)
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@function::f::@formalParameter::x
+          substitution: {T: dynamic}
+        staticType: dynamic Function(dynamic)
+        typeArgumentTypes
+          dynamic
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::f
+    invokeType: dynamic Function(dynamic Function(dynamic))
+    type: dynamic
+  staticType: dynamic
+  typeArgumentTypes
+    dynamic
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::f
     staticType: T Function<T>(T Function(T))
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       FunctionReference
-        function2: SimpleIdentifier
+        function: SimpleIdentifier
           token: g
           element: <testLibrary>::@function::g
           staticType: S Function<S>(S)
@@ -2061,10 +2851,70 @@ num test(Iterable values) => values.fold(values.first as num, max);
 // [diag.argumentTypeNotAssignable] The argument type 'num Function(num, num)' can't be assigned to the parameter type 'num Function(num, dynamic)'.
     ''');
 
-    var node = result.findNode.methodInvocation('values.fold');
+    var node = result.findNode.receiverMethodInvocation('values.fold');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: values
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::test::@formalParameter::values
+      type: Iterable<dynamic>
+    staticType: Iterable<dynamic>
+  operator: .
+  name: fold
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      AsExpression
+        expression2: ReceiverPropertyExtraction
+          receiver: UnqualifiedNameExpression
+            name: values
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::test::@formalParameter::values
+              type: Iterable<dynamic>
+            staticType: Iterable<dynamic>
+          operator: .
+          name: first
+          resolution: GetterInvocationResolution
+            element: SubstitutedGetterElementImpl
+              baseElement: <testLibrary>::@class::Iterable::@getter::first
+              substitution: {T: dynamic}
+            type: dynamic
+          staticType: dynamic
+        asOperator: as
+        type: NamedType
+          name: num
+          element: dart:core::@class::num
+          type: num
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: s@null
+          substitution: {S: num}
+        staticType: num
+      ImplicitFunctionInstantiation
+        operand: UnqualifiedNameExpression
+          name: max
+          resolution: ExecutableTearOffResolution
+            element: <testLibrary>::@function::max
+            type: T Function<T extends num>(T, T)
+          staticType: T Function<T extends num>(T, T)
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: f@null
+          substitution: {S: num}
+        staticType: num Function(num, num)
+        typeArgumentTypes
+          num
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@class::Iterable::@method::fold
+      substitution: {T: dynamic, S: S}
+    invokeType: num Function(num, num Function(num, dynamic))
+    type: num
+  staticType: num
+  typeArgumentTypes
+    num
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: values
     element: <testLibrary>::@function::test::@formalParameter::values
     staticType: Iterable<dynamic>
@@ -2077,9 +2927,9 @@ MethodInvocation
     staticType: S Function<S>(S, S Function(S, dynamic))
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       AsExpression
-        expression2: PrefixedIdentifier
+        expression: PrefixedIdentifier
           prefix: SimpleIdentifier
             token: values
             element: <testLibrary>::@function::test::@formalParameter::values
@@ -2105,7 +2955,7 @@ MethodInvocation
           substitution: {S: num}
         staticType: num
       FunctionReference
-        function2: SimpleIdentifier
+        function: SimpleIdentifier
           token: max
           element: <testLibrary>::@function::max
           staticType: T Function<T extends num>(T, T)
@@ -2144,12 +2994,8 @@ MethodInvocation
       (DartType type) => assertListOfInt(type as InterfaceType),
     );
 
-    VariableDeclaration mapB = AstFinder.getFieldInClass(
-      result.unit,
-      "B",
-      "map",
-    );
-    MethodDeclaration mapC = AstFinder.getMethodInClass(
+    Field2 mapB = AstFinder.getFieldInClass(result.unit, "B", "map");
+    GetterDeclaration mapC = AstFinder.getGetterInClass(
       result.unit,
       "C",
       "map",
@@ -2161,7 +3007,7 @@ MethodInvocation
       mapC.declaredFragment!.element.returnType as InterfaceType,
     );
 
-    var mapLiteralB = mapB.initializer2 as SetOrMapLiteral;
+    var mapLiteralB = mapB.initializer as SetOrMapLiteral;
     var mapLiteralC =
         (mapC.body as ExpressionFunctionBody).expression2 as SetOrMapLiteral;
     assertMapOfIntToListOfInt(mapLiteralB.staticType as InterfaceType);
@@ -2407,9 +3253,9 @@ MethodInvocation
       }''');
 
     Expression rhs(AstNode stmt) {
-      stmt as VariableDeclarationStatement;
-      VariableDeclaration decl = stmt.variables.variables[0];
-      Expression exp = decl.initializer2!;
+      stmt as LocalVariablesDeclarationStatement;
+      LocalVariable decl = stmt.declaration.variables[0];
+      Expression exp = decl.initializer!;
       return exp;
     }
 
@@ -2458,7 +3304,7 @@ MethodInvocation
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
         result.unit,
         "test0",
-      ).cast<VariableDeclarationStatement>();
+      ).cast<LocalVariablesDeclarationStatement>();
 
       hasType(assertAOf([_isInt, _isString]), rhs(statements[0]));
       hasType(assertAOf([_isInt, _isString]), rhs(statements[0]));
@@ -2473,7 +3319,7 @@ MethodInvocation
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
         result.unit,
         "test1",
-      ).cast<VariableDeclarationStatement>();
+      ).cast<LocalVariablesDeclarationStatement>();
       hasType(assertAOf([_isInt, _isString]), rhs(statements[0]));
       hasType(assertAOf([_isInt, _isString]), rhs(statements[1]));
     }
@@ -2482,7 +3328,7 @@ MethodInvocation
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
         result.unit,
         "test2",
-      ).cast<VariableDeclarationStatement>();
+      ).cast<LocalVariablesDeclarationStatement>();
       hasType(assertBOf([_isString, _isInt]), rhs(statements[0]));
       hasType(assertBOf([_isString, _isInt]), rhs(statements[1]));
       hasType(assertBOf([_isString, _isInt]), rhs(statements[2]));
@@ -2495,7 +3341,7 @@ MethodInvocation
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
         result.unit,
         "test3",
-      ).cast<VariableDeclarationStatement>();
+      ).cast<LocalVariablesDeclarationStatement>();
       hasType(assertBOf([_isString, _isInt]), rhs(statements[0]));
       hasType(assertBOf([_isString, _isInt]), rhs(statements[1]));
     }
@@ -2504,7 +3350,7 @@ MethodInvocation
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
         result.unit,
         "test4",
-      ).cast<VariableDeclarationStatement>();
+      ).cast<LocalVariablesDeclarationStatement>();
       hasType(assertCOf([_isInt]), rhs(statements[0]));
       hasType(assertCOf([_isInt]), rhs(statements[1]));
       hasType(assertCOf([_isInt]), rhs(statements[2]));
@@ -2517,7 +3363,7 @@ MethodInvocation
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
         result.unit,
         "test5",
-      ).cast<VariableDeclarationStatement>();
+      ).cast<LocalVariablesDeclarationStatement>();
       hasType(assertCOf([_isInt]), rhs(statements[0]));
       hasType(assertCOf([_isInt]), rhs(statements[1]));
     }
@@ -2529,7 +3375,7 @@ MethodInvocation
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
         result.unit,
         "test6",
-      ).cast<VariableDeclarationStatement>();
+      ).cast<LocalVariablesDeclarationStatement>();
       hasType(assertDOf([_isDynamic, _isString]), rhs(statements[0]));
       hasType(assertDOf([_isDynamic, _isString]), rhs(statements[1]));
       hasType(assertDOf([_isInt, _isString]), rhs(statements[2]));
@@ -2542,7 +3388,7 @@ MethodInvocation
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
         result.unit,
         "test7",
-      ).cast<VariableDeclarationStatement>();
+      ).cast<LocalVariablesDeclarationStatement>();
       hasType(assertDOf([_isDynamic, _isString]), rhs(statements[0]));
       hasType(assertDOf([_isDynamic, _isString]), rhs(statements[1]));
     }
@@ -2551,7 +3397,7 @@ MethodInvocation
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
         result.unit,
         "test8",
-      ).cast<VariableDeclarationStatement>();
+      ).cast<LocalVariablesDeclarationStatement>();
       hasType(assertEOf([_isInt, _isString]), rhs(statements[0]));
     }
 
@@ -2559,7 +3405,7 @@ MethodInvocation
       List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
         result.unit,
         "test9",
-      ).cast<VariableDeclarationStatement>();
+      ).cast<LocalVariablesDeclarationStatement>();
       hasType(assertFOf([_isInt, _isString]), rhs(statements[0]));
       hasType(assertFOf([_isInt, _isString]), rhs(statements[1]));
       hasType(assertFOf([_isInt, _isString]), rhs(statements[2]));
@@ -2594,9 +3440,9 @@ MethodInvocation
       "main",
     );
     ListLiteral literal(int i) {
-      var stmt = statements[i] as VariableDeclarationStatement;
-      VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer2 as ListLiteral;
+      var stmt = statements[i] as LocalVariablesDeclarationStatement;
+      LocalVariable decl = stmt.declaration.variables[0];
+      var exp = decl.initializer as ListLiteral;
       return exp;
     }
 
@@ -2648,9 +3494,9 @@ MethodInvocation
       "main",
     );
     DartType literal(int i) {
-      var stmt = statements[i] as VariableDeclarationStatement;
-      VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer2 as ListLiteral;
+      var stmt = statements[i] as LocalVariablesDeclarationStatement;
+      LocalVariable decl = stmt.declaration.variables[0];
+      var exp = decl.initializer as ListLiteral;
       return exp.typeOrThrow;
     }
 
@@ -2689,9 +3535,9 @@ MethodInvocation
       "main",
     );
     DartType literal(int i) {
-      var stmt = statements[i] as VariableDeclarationStatement;
-      VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer2 as ListLiteral;
+      var stmt = statements[i] as LocalVariablesDeclarationStatement;
+      LocalVariable decl = stmt.declaration.variables[0];
+      var exp = decl.initializer as ListLiteral;
       return exp.typeOrThrow;
     }
 
@@ -2734,9 +3580,9 @@ MethodInvocation
       "main",
     );
     DartType literal(int i) {
-      var stmt = statements[i] as VariableDeclarationStatement;
-      VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer2 as ListLiteral;
+      var stmt = statements[i] as LocalVariablesDeclarationStatement;
+      LocalVariable decl = stmt.declaration.variables[0];
+      var exp = decl.initializer as ListLiteral;
       return exp.typeOrThrow;
     }
 
@@ -2773,9 +3619,9 @@ MethodInvocation
       "main",
     );
     InterfaceType literal(int i) {
-      var stmt = statements[i] as VariableDeclarationStatement;
-      VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer2 as ListLiteral;
+      var stmt = statements[i] as LocalVariablesDeclarationStatement;
+      LocalVariable decl = stmt.declaration.variables[0];
+      var exp = decl.initializer as ListLiteral;
       return exp.staticType as InterfaceType;
     }
 
@@ -2821,9 +3667,9 @@ MethodInvocation
       "main",
     );
     SetOrMapLiteral literal(int i) {
-      var stmt = statements[i] as VariableDeclarationStatement;
-      VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer2 as SetOrMapLiteral;
+      var stmt = statements[i] as LocalVariablesDeclarationStatement;
+      LocalVariable decl = stmt.declaration.variables[0];
+      var exp = decl.initializer as SetOrMapLiteral;
       return exp;
     }
 
@@ -2891,9 +3737,9 @@ MethodInvocation
       "main",
     );
     InterfaceType literal(int i) {
-      var stmt = statements[i] as VariableDeclarationStatement;
-      VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer2 as SetOrMapLiteral;
+      var stmt = statements[i] as LocalVariablesDeclarationStatement;
+      LocalVariable decl = stmt.declaration.variables[0];
+      var exp = decl.initializer as SetOrMapLiteral;
       return exp.staticType as InterfaceType;
     }
 
@@ -2941,9 +3787,9 @@ MethodInvocation
       "main",
     );
     InterfaceType literal(int i) {
-      var stmt = statements[i] as VariableDeclarationStatement;
-      VariableDeclaration decl = stmt.variables.variables[0];
-      var exp = decl.initializer2 as SetOrMapLiteral;
+      var stmt = statements[i] as LocalVariablesDeclarationStatement;
+      LocalVariable decl = stmt.declaration.variables[0];
+      var exp = decl.initializer as SetOrMapLiteral;
       return exp.staticType as InterfaceType;
     }
 
@@ -2969,7 +3815,7 @@ MethodInvocation
    ''');
 
     Expression methodReturnValue(String methodName) {
-      MethodDeclaration method = AstFinder.getMethodInClass(
+      MethodDeclaration2 method = AstFinder.getMethodInClass(
         result.unit,
         "A",
         methodName,
@@ -2978,7 +3824,7 @@ MethodInvocation
       if (body is ExpressionFunctionBody) {
         return body.expression2;
       } else {
-        Statement stmt = (body as BlockFunctionBody).block.statements[0];
+        Statement stmt = (body as BlockFunctionBody).block.statements2[0];
         return (stmt as ReturnStatement).expression2!;
       }
     }
@@ -3000,13 +3846,13 @@ MethodInvocation
     String test() => f((l) => l.length);
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+    TopLevelFunctionDeclaration test = AstFinder.getTopLevelFunction(
       result.unit,
       "test",
     );
-    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var body = test.body as ExpressionFunctionBody;
     _isString(body.expression2.typeOrThrow);
-    var invoke = body.expression2 as MethodInvocation;
+    var invoke = body.expression2 as UnqualifiedFunctionInvocation;
     var function = invoke.argumentList.arguments2[0] as FunctionExpression;
     ExecutableElement f0 = function.declaredFragment!.element;
     FunctionType type = f0.type;
@@ -3032,11 +3878,11 @@ MethodInvocation
 // [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'Never'.
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+    TopLevelFunctionDeclaration test = AstFinder.getTopLevelFunction(
       result.unit,
       "test",
     );
-    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var body = test.body as ExpressionFunctionBody;
     DartType type = body.expression2.typeOrThrow;
 
     Element elementB = AstFinder.getClass(
@@ -3063,11 +3909,11 @@ MethodInvocation
     A<num, num> test() => new B(3);
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+    TopLevelFunctionDeclaration test = AstFinder.getTopLevelFunction(
       result.unit,
       "test",
     );
-    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var body = test.body as ExpressionFunctionBody;
     DartType type = body.expression2.typeOrThrow;
 
     Element elementB = AstFinder.getClass(
@@ -3097,11 +3943,11 @@ MethodInvocation
 // [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'Never'.
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+    TopLevelFunctionDeclaration test = AstFinder.getTopLevelFunction(
       result.unit,
       "test",
     );
-    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var body = test.body as ExpressionFunctionBody;
     DartType type = body.expression2.typeOrThrow;
 
     Element elementB = AstFinder.getClass(
@@ -3129,11 +3975,11 @@ MethodInvocation
     A<int, num> test() => new B();
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+    TopLevelFunctionDeclaration test = AstFinder.getTopLevelFunction(
       result.unit,
       "test",
     );
-    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var body = test.body as ExpressionFunctionBody;
     DartType type = body.expression2.typeOrThrow;
 
     Element elementB = AstFinder.getClass(
@@ -3163,11 +4009,11 @@ MethodInvocation
     Contra1<A<int, String>> test() => mkA();
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+    TopLevelFunctionDeclaration test = AstFinder.getTopLevelFunction(
       result.unit,
       "test",
     );
-    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var body = test.body as ExpressionFunctionBody;
     var functionType = body.expression2.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
@@ -3197,11 +4043,11 @@ MethodInvocation
     Contra1<A<num, num>> test() => mkA();
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+    TopLevelFunctionDeclaration test = AstFinder.getTopLevelFunction(
       result.unit,
       "test",
     );
-    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var body = test.body as ExpressionFunctionBody;
     var functionType = body.expression2.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
@@ -3232,11 +4078,11 @@ MethodInvocation
     Contra1<A<int, double>> test() => mkA();
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+    TopLevelFunctionDeclaration test = AstFinder.getTopLevelFunction(
       result.unit,
       "test",
     );
-    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var body = test.body as ExpressionFunctionBody;
     var functionType = body.expression2.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
@@ -3267,11 +4113,11 @@ MethodInvocation
     Contra1<A<int, num>> test() => mkA();
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+    TopLevelFunctionDeclaration test = AstFinder.getTopLevelFunction(
       result.unit,
       "test",
     );
-    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var body = test.body as ExpressionFunctionBody;
     var functionType = body.expression2.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
@@ -3295,9 +4141,9 @@ class B<T2, U2> {
    ''';
     var result = await resolveTestCodeWithDiagnostics(code);
 
-    var b = result.unit.declarations[1] as ClassDeclaration;
-    var classBody = b.body as BlockClassBody;
-    var bConstructor = classBody.members[0] as ConstructorDeclaration;
+    var b = result.unit.declarations2[1] as ClassDeclaration2;
+    var classBody = b.body as BlockInstanceDeclarationBody;
+    var bConstructor = classBody.members[0] as ConstructorDeclaration2;
     var redirected = bConstructor.factoryRedirectionTarget!;
 
     var constructorMember = redirected.element!;
@@ -3328,9 +4174,9 @@ class B<T2, U2> {
 }
 ''');
 
-    var b = result.unit.declarations[1] as ClassDeclaration;
-    var classBody = b.body as BlockClassBody;
-    var bConstructor = classBody.members[0] as ConstructorDeclaration;
+    var b = result.unit.declarations2[1] as ClassDeclaration2;
+    var classBody = b.body as BlockInstanceDeclarationBody;
+    var bConstructor = classBody.members[0] as ConstructorDeclaration2;
     var redirected = bConstructor.factoryRedirectionTarget!;
 
     var constructorMember = redirected.element!;
@@ -3350,7 +4196,7 @@ class B<T2, U2> {
    ''';
     var result = await resolveTestCodeWithDiagnostics(code);
 
-    ConstructorDeclaration constructor = AstFinder.getConstructorInClass(
+    ConstructorDeclaration2 constructor = AstFinder.getConstructorInClass(
       result.unit,
       "A",
       null,
@@ -3372,14 +4218,14 @@ class B<T2, U2> {
     Func1<num, String> test() => f(42);
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+    TopLevelFunctionDeclaration test = AstFinder.getTopLevelFunction(
       result.unit,
       "test",
     );
-    var body = test.functionExpression.body as ExpressionFunctionBody;
-    var invoke = body.expression2 as MethodInvocation;
+    var body = test.body as ExpressionFunctionBody;
+    var invoke = body.expression2 as UnqualifiedFunctionInvocation;
     _isFunction2Of(_isNum, _isFunction2Of(_isNum, _isString))(
-      invoke.staticInvokeType!,
+      (invoke.resolution as StaticInvocationResolution).invokeType,
     );
   }
 
@@ -3394,14 +4240,14 @@ class B<T2, U2> {
     Func1<String, num> test() => f(42);
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+    TopLevelFunctionDeclaration test = AstFinder.getTopLevelFunction(
       result.unit,
       "test",
     );
-    var body = test.functionExpression.body as ExpressionFunctionBody;
-    var invoke = body.expression2 as MethodInvocation;
+    var body = test.body as ExpressionFunctionBody;
+    var invoke = body.expression2 as UnqualifiedFunctionInvocation;
     _isFunction2Of(_isNum, _isFunction2Of(_isString, _isNum))(
-      invoke.staticInvokeType!,
+      (invoke.resolution as StaticInvocationResolution).invokeType,
     );
   }
 
@@ -3417,11 +4263,11 @@ class B<T2, U2> {
     dynamic test() => f(42, (num x) => x);
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+    TopLevelFunctionDeclaration test = AstFinder.getTopLevelFunction(
       result.unit,
       "test",
     );
-    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var body = test.body as ExpressionFunctionBody;
     var functionType = body.expression2.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
     _isInt(type);
@@ -3439,11 +4285,11 @@ class B<T2, U2> {
     dynamic test() => f(42, (num x) => x);
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+    TopLevelFunctionDeclaration test = AstFinder.getTopLevelFunction(
       result.unit,
       "test",
     );
-    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var body = test.body as ExpressionFunctionBody;
     var functionType = body.expression2.staticType as FunctionType;
     DartType type = functionType.returnType;
     _isInt(type);
@@ -3463,15 +4309,15 @@ class B<T2, U2> {
     num test() => g(f(3));
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+    TopLevelFunctionDeclaration test = AstFinder.getTopLevelFunction(
       result.unit,
       "test",
     );
-    var body = test.functionExpression.body as ExpressionFunctionBody;
-    var call = body.expression2 as MethodInvocation;
+    var body = test.body as ExpressionFunctionBody;
+    var call = body.expression2 as UnqualifiedFunctionInvocation;
     _isNum(call.typeOrThrow);
     _isFunction2Of(_isFunction2Of(_isNum, _isString), _isNum)(
-      call.staticInvokeType!,
+      (call.resolution as StaticInvocationResolution).invokeType,
     );
   }
 
@@ -3489,15 +4335,15 @@ class B<T2, U2> {
     num test() => g(f(3));
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+    TopLevelFunctionDeclaration test = AstFinder.getTopLevelFunction(
       result.unit,
       "test",
     );
-    var body = test.functionExpression.body as ExpressionFunctionBody;
-    var call = body.expression2 as MethodInvocation;
+    var body = test.body as ExpressionFunctionBody;
+    var call = body.expression2 as UnqualifiedFunctionInvocation;
     _isNum(call.typeOrThrow);
     _isFunction2Of(_isFunction2Of(_isString, _isNum), _isNum)(
-      call.staticInvokeType!,
+      (call.resolution as StaticInvocationResolution).invokeType,
     );
   }
 
@@ -3512,7 +4358,7 @@ class B<T2, U2> {
    ''';
     var result = await resolveTestCodeWithDiagnostics(code);
 
-    ConstructorDeclaration constructor = AstFinder.getConstructorInClass(
+    ConstructorDeclaration2 constructor = AstFinder.getConstructorInClass(
       result.unit,
       "A",
       null,
@@ -3574,7 +4420,7 @@ class B<T2, U2> {
   ///
   /// Validates that [code] defines a function "test", whose body is an
   /// expression that invokes a method. Returns that invocation.
-  Future<MethodInvocation> _testFutureOr(String code) async {
+  Future<_TestInvocation> _testFutureOr(String code) async {
     var fullCode =
         """
 import "dart:async";
@@ -3583,12 +4429,12 @@ $code
 """;
     var result = await resolveTestCodeWithDiagnostics(fullCode);
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+    TopLevelFunctionDeclaration test = AstFinder.getTopLevelFunction(
       result.unit,
       "test",
     );
-    var body = test.functionExpression.body as ExpressionFunctionBody;
-    return body.expression2 as MethodInvocation;
+    var body = test.body as ExpressionFunctionBody;
+    return _TestInvocation(body.expression2);
   }
 }
 
@@ -3668,9 +4514,45 @@ T f<T>(T x) => null;
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'T'.
 ''');
 
-    var node = result.findNode.functionDeclaration('f<T>');
+    var node = result.findNode.topLevelFunctionDeclaration('f<T>');
     assertResolvedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  returnType: NamedType
+    name: T
+    element: #E0 T
+    type: T
+  name: f
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@4
+          defaultType: dynamic
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: T
+          element: #E0 T
+          type: T
+        name: x
+        declaredFragment: <testLibraryFragment> x@9
+          element: isPublic
+            type: T
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: NullLiteral
+      literal: null
+      staticType: Null
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> f@2
+    element: <testLibrary>::@function::f
+      type: T Function<T>(T)
+V1: FunctionDeclaration
   returnType: NamedType
     name: T
     element: #E0 T
@@ -3687,19 +4569,6 @@ FunctionDeclaration
       rightBracket: >
     parameters: FormalParameterList
       leftParenthesis: (
-      requiredPositionalFormalParameters
-        RegularFormalParameter
-          type: NamedType
-            name: T
-            element: #E0 T
-            type: T
-          name: x
-          declaredFragment: <testLibraryFragment> x@9
-            element: isPublic
-              type: T
-      rightParenthesis: )
-    parameters(v1): FormalParameterList
-      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: T
@@ -3712,7 +4581,7 @@ FunctionDeclaration
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression2: NullLiteral
+      expression: NullLiteral
         literal: null
         staticType: Null
       semicolon: ;
@@ -3733,9 +4602,50 @@ T f<T extends num>(T x) => null;
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'T'.
 ''');
 
-    var node = result.findNode.functionDeclaration('f<T');
+    var node = result.findNode.topLevelFunctionDeclaration('f<T');
     assertResolvedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  returnType: NamedType
+    name: T
+    element: #E0 T
+    type: T
+  name: f
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        extendsKeyword: extends
+        bound: NamedType
+          name: num
+          element: dart:core::@class::num
+          type: num
+        declaredFragment: <testLibraryFragment> T@4
+          defaultType: num
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: T
+          element: #E0 T
+          type: T
+        name: x
+        declaredFragment: <testLibraryFragment> x@21
+          element: isPublic
+            type: T
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: NullLiteral
+      literal: null
+      staticType: Null
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> f@2
+    element: <testLibrary>::@function::f
+      type: T Function<T extends num>(T)
+V1: FunctionDeclaration
   returnType: NamedType
     name: T
     element: #E0 T
@@ -3757,19 +4667,6 @@ FunctionDeclaration
       rightBracket: >
     parameters: FormalParameterList
       leftParenthesis: (
-      requiredPositionalFormalParameters
-        RegularFormalParameter
-          type: NamedType
-            name: T
-            element: #E0 T
-            type: T
-          name: x
-          declaredFragment: <testLibraryFragment> x@21
-            element: isPublic
-              type: T
-      rightParenthesis: )
-    parameters(v1): FormalParameterList
-      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: T
@@ -3782,7 +4679,7 @@ FunctionDeclaration
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression2: NullLiteral
+      expression: NullLiteral
         literal: null
         staticType: Null
       semicolon: ;
@@ -3817,7 +4714,44 @@ class C<E> {
 
     var node = result.findNode.methodDeclaration('f<T>');
     assertResolvedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
+  staticKeyword: static
+  returnType: NamedType
+    name: T
+    element: #E0 T
+    type: T
+  name: f
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@26
+          defaultType: dynamic
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: T
+          element: #E0 T
+          type: T
+        name: x
+        declaredFragment: <testLibraryFragment> x@31
+          element: isPublic
+            type: T
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: NullLiteral
+      literal: null
+      staticType: Null
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> f@24
+    element: <testLibrary>::@class::C::@method::f
+      type: T Function<T>(T)
+V1: MethodDeclaration
   modifierKeyword: static
   returnType: NamedType
     name: T
@@ -3834,19 +4768,6 @@ MethodDeclaration
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
-    requiredPositionalFormalParameters
-      RegularFormalParameter
-        type: NamedType
-          name: T
-          element: #E0 T
-          type: T
-        name: x
-        declaredFragment: <testLibraryFragment> x@31
-          element: isPublic
-            type: T
-    rightParenthesis: )
-  parameters(v1): FormalParameterList
-    leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
         name: T
@@ -3859,7 +4780,7 @@ MethodDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: NullLiteral
+    expression: NullLiteral
       literal: null
       staticType: Null
     semicolon: ;
@@ -3916,7 +4837,7 @@ class D<S> {
 ''');
 
     checkBody(String className) {
-      var statements = result.findNode.block('{ // $className').statements;
+      var statements = result.findNode.block('{ // $className').statements2;
 
       for (int i = 1; i <= 5; i++) {
         Expression exp = (statements[i] as ExpressionStatement).expression2;
@@ -3994,8 +4915,8 @@ main() {
 // [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'cOfString' must be assigned before it can be used.
 }
 ''');
-    var f = result.findNode.simple('f<int>').parent2 as MethodInvocation;
-    var ft = f.staticInvokeType as FunctionType;
+    var f = result.findNode.receiverMethodInvocation('f<int>');
+    var ft = (f.resolution as ExecutableInvocationResolution).invokeType;
     assertType(ft, 'List<int> Function(String)');
 
     var x = result.findElement.localVar('x');
@@ -4334,20 +5255,17 @@ void foo() {
   list.map((e) => 3);
 }''');
 
-    var node1 = result.findNode.methodInvocation('map((e) => e);');
+    var node1 = result.findNode.receiverMethodInvocation('map((e) => e);');
     assertResolvedNodeText(node1, r'''
-MethodInvocation
-  target2: SimpleIdentifier
-    token: list
-    element: list@68
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: list
+    resolution: VariableReadResolution
+      element: list@68
+      type: List<dynamic>
     staticType: List<dynamic>
   operator: .
-  methodName: SimpleIdentifier
-    token: map
-    element: SubstitutedMethodElementImpl
-      baseElement: <testLibrary>::@class::List::@method::map
-      substitution: {E: dynamic, T: T}
-    staticType: T Function<T>(T Function(dynamic))
+  name: map
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -4361,7 +5279,48 @@ MethodInvocation
                 element: hasImplicitType isPublic
                   type: dynamic
           rightParenthesis: )
-        parameters(v1): FormalParameterList
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression2: UnqualifiedNameExpression
+            name: e
+            resolution: VariableReadResolution
+              element: e@93
+              type: dynamic
+            staticType: dynamic
+        declaredFragment: <testLibraryFragment> null@null
+          element: null@null
+            type: dynamic Function(dynamic)
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: f@null
+          substitution: {T: dynamic}
+        staticType: dynamic Function(dynamic)
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@class::List::@method::map
+      substitution: {E: dynamic, T: T}
+    invokeType: dynamic Function(dynamic Function(dynamic))
+    type: dynamic
+  staticType: dynamic
+  typeArgumentTypes
+    dynamic
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: list
+    element: list@68
+    staticType: List<dynamic>
+  operator: .
+  methodName: SimpleIdentifier
+    token: map
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@class::List::@method::map
+      substitution: {E: dynamic, T: T}
+    staticType: T Function<T>(T Function(dynamic))
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      FunctionExpression
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: e
@@ -4371,7 +5330,7 @@ MethodInvocation
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: SimpleIdentifier
+          expression: SimpleIdentifier
             token: e
             element: e@93
             staticType: dynamic
@@ -4389,20 +5348,17 @@ MethodInvocation
     dynamic
 ''');
 
-    var node2 = result.findNode.methodInvocation('map((e) => 3);');
+    var node2 = result.findNode.receiverMethodInvocation('map((e) => 3);');
     assertResolvedNodeText(node2, r'''
-MethodInvocation
-  target2: SimpleIdentifier
-    token: list
-    element: list@68
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: list
+    resolution: VariableReadResolution
+      element: list@68
+      type: List<dynamic>
     staticType: List<dynamic>
   operator: .
-  methodName: SimpleIdentifier
-    token: map
-    element: SubstitutedMethodElementImpl
-      baseElement: <testLibrary>::@class::List::@method::map
-      substitution: {E: dynamic, T: T}
-    staticType: T Function<T>(T Function(dynamic))
+  name: map
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -4416,7 +5372,45 @@ MethodInvocation
                 element: hasImplicitType isPublic
                   type: dynamic
           rightParenthesis: )
-        parameters(v1): FormalParameterList
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression2: IntegerLiteral
+            literal: 3
+            staticType: int
+        declaredFragment: <testLibraryFragment> null@null
+          element: null@null
+            type: int Function(dynamic)
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: f@null
+          substitution: {T: int}
+        staticType: int Function(dynamic)
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@class::List::@method::map
+      substitution: {E: dynamic, T: T}
+    invokeType: int Function(int Function(dynamic))
+    type: int
+  staticType: int
+  typeArgumentTypes
+    int
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: list
+    element: list@68
+    staticType: List<dynamic>
+  operator: .
+  methodName: SimpleIdentifier
+    token: map
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@class::List::@method::map
+      substitution: {E: dynamic, T: T}
+    staticType: T Function<T>(T Function(dynamic))
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      FunctionExpression
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: e
@@ -4426,7 +5420,7 @@ MethodInvocation
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: IntegerLiteral
+          expression: IntegerLiteral
             literal: 3
             staticType: int
         declaredFragment: <testLibraryFragment> null@null
@@ -4528,10 +5522,10 @@ class C<T> {
 }
 ''');
 
-    var node1 = result.findNode.methodInvocation('f<int>(3);');
+    var node1 = result.findNode.receiverMethodInvocation('f<int>(3);');
     assertResolvedNodeText(node1, r'''
-MethodInvocation
-  target2: ConstructorInvocation
+ReceiverMethodInvocation
+  receiver: ConstructorInvocation
     keyword: new
     constructorReference: ConstructorReference2
       typeReference: ConstructorTypeReference
@@ -4553,7 +5547,37 @@ MethodInvocation
       leftParenthesis: (
       rightParenthesis: )
     staticType: C<S>
-  target(v1): InstanceCreationExpression
+  operator: .
+  name: f
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 3
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: x@null
+          substitution: {S: int}
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@class::C::@method::f
+      substitution: {T: S, S: S}
+    invokeType: S Function(int)
+    type: S
+  staticType: S
+  typeArgumentTypes
+    int
+V1: MethodInvocation
+  target: InstanceCreationExpression
     keyword: new
     constructorName: ConstructorName
       type: NamedType
@@ -4592,7 +5616,7 @@ MethodInvocation
     rightBracket: >
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 3
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -4622,10 +5646,10 @@ class C<T> {
 }
 ''');
 
-    var node1 = result.findNode.methodInvocation('f<int>(3);');
+    var node1 = result.findNode.receiverMethodInvocation('f<int>(3);');
     assertResolvedNodeText(node1, r'''
-MethodInvocation
-  target2: ConstructorInvocation
+ReceiverMethodInvocation
+  receiver: ConstructorInvocation
     keyword: new
     constructorReference: ConstructorReference2
       typeReference: ConstructorTypeReference
@@ -4647,7 +5671,37 @@ MethodInvocation
       leftParenthesis: (
       rightParenthesis: )
     staticType: C<S>
-  target(v1): InstanceCreationExpression
+  operator: .
+  name: f
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 3
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: x@null
+          substitution: {S: int}
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@class::C::@method::f
+      substitution: {T: S, S: S}
+    invokeType: S Function(int)
+    type: S
+  staticType: S
+  typeArgumentTypes
+    int
+V1: MethodInvocation
+  target: InstanceCreationExpression
     keyword: new
     constructorName: ConstructorName
       type: NamedType
@@ -4686,7 +5740,7 @@ MethodInvocation
     rightBracket: >
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 3
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -4700,13 +5754,69 @@ MethodInvocation
     int
 ''');
 
-    var node2 = result.findNodeV1.simple('f;');
+    var node2 = result.findNode.receiverPropertyExtraction('f; // tear-off');
     assertResolvedNodeText(node2, r'''
-SimpleIdentifier
-  token: f
-  element: SubstitutedMethodElementImpl
-    baseElement: <testLibrary>::@class::C::@method::f
-    substitution: {T: S, S: S}
+ReceiverPropertyExtraction
+  receiver: ConstructorInvocation
+    keyword: new
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: C
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: S
+              element: #E0 S
+              type: S
+          rightBracket: >
+        element: <testLibrary>::@class::C
+        type: C<S>
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::C::@constructor::new
+        substitution: {T: S}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C<S>
+  operator: .
+  name: f
+  resolution: ExecutableTearOffResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@class::C::@method::f
+      substitution: {T: S, S: S}
+    type: S Function<S₀ extends S>(S₀)
+  staticType: S Function<S₀ extends S>(S₀)
+V1: PropertyAccess
+  target: InstanceCreationExpression
+    keyword: new
+    constructorName: ConstructorName
+      type: NamedType
+        name: C
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: S
+              element: #E0 S
+              type: S
+          rightBracket: >
+        element: <testLibrary>::@class::C
+        type: C<S>
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::C::@constructor::new
+        substitution: {T: S}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C<S>
+  operator: .
+  propertyName: SimpleIdentifier
+    token: f
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@class::C::@method::f
+      substitution: {T: S, S: S}
+    staticType: S Function<S₀ extends S>(S₀)
   staticType: S Function<S₀ extends S>(S₀)
 ''');
   }
@@ -4745,7 +5855,43 @@ class D extends C {
 
     var node = result.findNode.methodDeclaration('f<T>(T y)');
     assertResolvedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
+  returnType: NamedType
+    name: T
+    element: #E0 T
+    type: T
+  name: f
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@61
+          defaultType: dynamic
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: T
+          element: #E0 T
+          type: T
+        name: y
+        declaredFragment: <testLibraryFragment> y@66
+          element: isPublic
+            type: T
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: NullLiteral
+      literal: null
+      staticType: Null
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> f@59
+    element: <testLibrary>::@class::D::@method::f
+      type: T Function<T>(T)
+V1: MethodDeclaration
   returnType: NamedType
     name: T
     element: #E0 T
@@ -4761,19 +5907,6 @@ MethodDeclaration
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
-    requiredPositionalFormalParameters
-      RegularFormalParameter
-        type: NamedType
-          name: T
-          element: #E0 T
-          type: T
-        name: y
-        declaredFragment: <testLibraryFragment> y@66
-          element: isPublic
-            type: T
-    rightParenthesis: )
-  parameters(v1): FormalParameterList
-    leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
         name: T
@@ -4786,7 +5919,7 @@ MethodDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: NullLiteral
+    expression: NullLiteral
       literal: null
       staticType: Null
     semicolon: ;
@@ -5032,13 +6165,17 @@ void test<S>(T pf<T>(T e)) {
   var paramTearOffInst = pf<int>;
 }
 ''');
-    expectIdentifierType(result, 'methodTearOffInst', "int Function(int)");
-    expectIdentifierType(result, 'staticTearOffInst', "int Function(int)");
-    expectIdentifierType(result, 'staticFieldTearOffInst', "int Function(int)");
-    expectIdentifierType(result, 'topFunTearOffInst', "int Function(int)");
-    expectIdentifierType(result, 'topFieldTearOffInst', "int Function(int)");
-    expectIdentifierType(result, 'localTearOffInst', "int Function(int)");
-    expectIdentifierType(result, 'paramTearOffInst', "int Function(int)");
+    expectLocalVariableType(result, 'methodTearOffInst', "int Function(int)");
+    expectLocalVariableType(result, 'staticTearOffInst', "int Function(int)");
+    expectLocalVariableType(
+      result,
+      'staticFieldTearOffInst',
+      "int Function(int)",
+    );
+    expectLocalVariableType(result, 'topFunTearOffInst', "int Function(int)");
+    expectLocalVariableType(result, 'topFieldTearOffInst', "int Function(int)");
+    expectLocalVariableType(result, 'localTearOffInst', "int Function(int)");
+    expectLocalVariableType(result, 'paramTearOffInst', "int Function(int)");
   }
 
   test_genericMethod_then() async {
@@ -5343,9 +6480,37 @@ class C<T> {
 }
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleUnqualifiedFunctionInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: m
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      NullLiteral
+        literal: null
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: p0@null
+          substitution: {S0: T, S1: List<T>}
+        staticType: Null
+      NullLiteral
+        literal: null
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: p1@null
+          substitution: {S0: T, S1: List<T>}
+        staticType: Null
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@class::C::@method::m
+      substitution: {T: T, S0: S0, S1: S1}
+    invokeType: void Function(T, List<T>)
+    type: void
+  staticType: void
+  typeArgumentTypes
+    T
+    List<T>
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: m
     element: SubstitutedMethodElementImpl
@@ -5354,7 +6519,7 @@ MethodInvocation
     staticType: void Function<S0 extends T, S1 extends List<S0>>(S0, S1)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       NullLiteral
         literal: null
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -5389,9 +6554,24 @@ class C<T> {
 }
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleUnqualifiedFunctionInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: m
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@class::C::@method::m
+      substitution: {T: T, S0: S0, S1: S1}
+    invokeType: Map<T, List<T>> Function()
+    type: Map<T, List<T>>
+  staticType: Map<T, List<T>>
+  typeArgumentTypes
+    T
+    List<T>
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: m
     element: SubstitutedMethodElementImpl
@@ -5422,9 +6602,30 @@ class C<T> {
 }
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleUnqualifiedFunctionInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: m
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      NullLiteral
+        literal: null
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: p0@null
+          substitution: {S: T}
+        staticType: Null
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@class::C::@method::m
+      substitution: {T: T, S: S}
+    invokeType: void Function(T)
+    type: void
+  staticType: void
+  typeArgumentTypes
+    T
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: m
     element: SubstitutedMethodElementImpl
@@ -5433,7 +6634,7 @@ MethodInvocation
     staticType: void Function<S extends T>(S)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       NullLiteral
         literal: null
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -5461,9 +6662,23 @@ class C<T> {
 }
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleUnqualifiedFunctionInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: m
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@class::C::@method::m
+      substitution: {T: T, S: S}
+    invokeType: T Function()
+    type: T
+  staticType: T
+  typeArgumentTypes
+    T
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: m
     element: SubstitutedMethodElementImpl
@@ -5851,7 +7066,9 @@ main() {
   v; // marker
 }''');
     assertTypeDynamic(result.findElement.localVar('v').type);
-    assertTypeDynamic(result.findNode.simple('v; // marker'));
+    assertTypeDynamic(
+      result.findNode.unqualifiedNameExpression('v; // marker'),
+    );
   }
 
   test_localVariableInference_constant() async {
@@ -5861,7 +7078,10 @@ main() {
   v; // marker
 }''');
     assertType(result.findElement.localVar('v').type, 'int');
-    assertType(result.findNode.simple('v; // marker'), 'int');
+    assertType(
+      result.findNode.unqualifiedNameExpression('v; // marker'),
+      'int',
+    );
   }
 
   test_localVariableInference_declaredType_disabled() async {
@@ -5871,7 +7091,9 @@ main() {
   v; // marker
 }''');
     assertTypeDynamic(result.findElement.localVar('v').type);
-    assertTypeDynamic(result.findNode.simple('v; // marker'));
+    assertTypeDynamic(
+      result.findNode.unqualifiedNameExpression('v; // marker'),
+    );
   }
 
   test_localVariableInference_noInitializer_disabled() async {
@@ -5881,9 +7103,22 @@ main() {
   v = 3;
   v; // marker
 }''');
-    var node = result.findNode.assignment('= 3');
+    var node = result.findNode.directAssignment('= 3');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
+DirectAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: v
+    read: <null>
+    write: VariableWriteResolution
+      element: v@15
+      acceptedType: dynamic
+  operator: =
+  value: IntegerLiteral
+    literal: 3
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: v
     element: v@15
@@ -5900,7 +7135,9 @@ AssignmentExpression
   element: <null>
   staticType: int
 ''');
-    assertTypeDynamic(result.findNode.simple('v; // marker'));
+    assertTypeDynamic(
+      result.findNode.unqualifiedNameExpression('v; // marker'),
+    );
   }
 
   test_localVariableInference_transitive_field_inferred_lexical() async {
@@ -5916,7 +7153,10 @@ main() {
 }
 ''');
     assertType(result.findElement.localVar('v').type, 'int');
-    assertType(result.findNode.simple('v; // marker'), 'int');
+    assertType(
+      result.findNode.unqualifiedNameExpression('v; // marker'),
+      'int',
+    );
   }
 
   test_localVariableInference_transitive_field_inferred_reversed() async {
@@ -5932,7 +7172,10 @@ main() {
 }
 ''');
     assertType(result.findElement.localVar('v').type, 'int');
-    assertType(result.findNode.simple('v; // marker'), 'int');
+    assertType(
+      result.findNode.unqualifiedNameExpression('v; // marker'),
+      'int',
+    );
   }
 
   test_localVariableInference_transitive_field_lexical() async {
@@ -5948,7 +7191,10 @@ main() {
 }
 ''');
     assertType(result.findElement.localVar('v').type, 'int');
-    assertType(result.findNode.simple('v; // marker'), 'int');
+    assertType(
+      result.findNode.unqualifiedNameExpression('v; // marker'),
+      'int',
+    );
   }
 
   test_localVariableInference_transitive_field_reversed() async {
@@ -5964,7 +7210,10 @@ main() {
 }
 ''');
     assertType(result.findElement.localVar('v').type, 'int');
-    assertType(result.findNode.simple('v; // marker'), 'int');
+    assertType(
+      result.findNode.unqualifiedNameExpression('v; // marker'),
+      'int',
+    );
   }
 
   test_localVariableInference_transitive_list_local() async {
@@ -5975,7 +7224,10 @@ main() {
   v; // marker
 }''');
     assertType(result.findElement.localVar('v').type, 'int');
-    assertType(result.findNode.simple('v; // marker'), 'int');
+    assertType(
+      result.findNode.unqualifiedNameExpression('v; // marker'),
+      'int',
+    );
   }
 
   test_localVariableInference_transitive_local() async {
@@ -5986,7 +7238,10 @@ main() {
   v; // marker
 }''');
     assertType(result.findElement.localVar('v').type, 'int');
-    assertType(result.findNode.simple('v; // marker'), 'int');
+    assertType(
+      result.findNode.unqualifiedNameExpression('v; // marker'),
+      'int',
+    );
   }
 
   test_localVariableInference_transitive_topLevel_inferred_lexical() async {
@@ -5998,7 +7253,10 @@ main() {
 }
 ''');
     assertType(result.findElement.localVar('v').type, 'int');
-    assertType(result.findNode.simple('v; // marker'), 'int');
+    assertType(
+      result.findNode.unqualifiedNameExpression('v; // marker'),
+      'int',
+    );
   }
 
   test_localVariableInference_transitive_toplevel_inferred_reversed() async {
@@ -6010,7 +7268,10 @@ main() {
 final x = 3;
 ''');
     assertType(result.findElement.localVar('v').type, 'int');
-    assertType(result.findNode.simple('v; // marker'), 'int');
+    assertType(
+      result.findNode.unqualifiedNameExpression('v; // marker'),
+      'int',
+    );
   }
 
   test_localVariableInference_transitive_topLevel_lexical() async {
@@ -6022,7 +7283,10 @@ main() {
 }
 ''');
     assertType(result.findElement.localVar('v').type, 'int');
-    assertType(result.findNode.simple('v; // marker'), 'int');
+    assertType(
+      result.findNode.unqualifiedNameExpression('v; // marker'),
+      'int',
+    );
   }
 
   test_localVariableInference_transitive_topLevel_reversed() async {
@@ -6034,6 +7298,24 @@ main() {
 int x = 3;
 ''');
     assertType(result.findElement.localVar('v').type, 'int');
-    assertType(result.findNode.simple('v; // marker'), 'int');
+    assertType(
+      result.findNode.unqualifiedNameExpression('v; // marker'),
+      'int',
+    );
   }
+}
+
+final class _TestInvocation {
+  final Expression expression;
+  final ArgumentList argumentList;
+
+  new(this.expression)
+    : argumentList = switch (expression) {
+        FunctionInvocation(:var argumentList) => argumentList,
+        _ => throw StateError('Not an invocation: $expression'),
+      };
+
+  DartType? get staticType => expression.staticType;
+
+  TypeImpl get typeOrThrow => expression.typeOrThrow;
 }

@@ -34,9 +34,9 @@ WhileStatement
     literal: true
     staticType: bool
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       BreakStatement
         breakKeyword: break
         semicolon: ;
@@ -61,16 +61,16 @@ LabeledStatement
       name: L
       colon: :
       declaredFragment: <testLibraryFragment> L@13
-  statement: WhileStatement
+  statement2: WhileStatement
     whileKeyword: while
     leftParenthesis: (
     condition2: BooleanLiteral
       literal: true
       staticType: bool
     rightParenthesis: )
-    body: Block
+    body2: Block
       leftBracket: {
-      statements
+      statements2
         BreakStatement
           breakKeyword: break
           label: LabelReference
@@ -101,9 +101,9 @@ WhileStatement
     literal: true
     staticType: bool
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       BreakStatement
         breakKeyword: break
         label: LabelReference
@@ -121,7 +121,6 @@ class A {
     while (super) {}
 //         ^^^^^
 // [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
-// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
   }
 }
 ''');
@@ -131,11 +130,15 @@ class A {
 WhileStatement
   whileKeyword: while
   leftParenthesis: (
-  condition2: SuperExpression
+  condition2: InvalidSuperExpression
+    superReference: SuperReference
+      superKeyword: super
+    staticType: InvalidType
+  condition(v1): SuperExpression
     superKeyword: super
     staticType: A
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -159,9 +162,9 @@ WhileStatement
     literal: true
     staticType: bool
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ContinueStatement
         continueKeyword: continue
         semicolon: ;
@@ -186,16 +189,16 @@ LabeledStatement
       name: L
       colon: :
       declaredFragment: <testLibraryFragment> L@13
-  statement: WhileStatement
+  statement2: WhileStatement
     whileKeyword: while
     leftParenthesis: (
     condition2: BooleanLiteral
       literal: true
       staticType: bool
     rightParenthesis: )
-    body: Block
+    body2: Block
       leftBracket: {
-      statements
+      statements2
         ContinueStatement
           continueKeyword: continue
           label: LabelReference
@@ -226,9 +229,9 @@ WhileStatement
     literal: true
     staticType: bool
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ContinueStatement
         continueKeyword: continue
         label: LabelReference

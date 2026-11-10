@@ -4,6 +4,8 @@
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:convert';
+import 'dart:io' show ContentType;
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
@@ -29,6 +31,7 @@ import 'package:analysis_server/src/status/pages/exception_page.dart';
 import 'package:analysis_server/src/status/pages/exceptions_page.dart';
 import 'package:analysis_server/src/status/pages/feedback_page.dart';
 import 'package:analysis_server/src/status/pages/file_byte_store_timing_page.dart';
+import 'package:analysis_server/src/status/pages/file_io_timing_page.dart';
 import 'package:analysis_server/src/status/pages/fixes_page.dart';
 import 'package:analysis_server/src/status/pages/legacy_plugins_page.dart';
 import 'package:analysis_server/src/status/pages/lsp_capabilities_page.dart';
@@ -37,6 +40,7 @@ import 'package:analysis_server/src/status/pages/lsp_registrations_page.dart';
 import 'package:analysis_server/src/status/pages/memory_and_cpu_page.dart';
 import 'package:analysis_server/src/status/pages/message_scheduler_page.dart';
 import 'package:analysis_server/src/status/pages/not_found_page.dart';
+import 'package:analysis_server/src/status/pages/performance_page.dart';
 import 'package:analysis_server/src/status/pages/plugins_page.dart';
 import 'package:analysis_server/src/status/pages/refactorings_page.dart';
 import 'package:analysis_server/src/status/pages/session_log_page.dart';
@@ -242,6 +246,13 @@ abstract class DiagnosticPage extends Page {
 }
 
 abstract class DiagnosticPageWithNav extends DiagnosticPage {
+  /// The name of the query parameter that, when present, asks a page for its
+  /// navigation detail ([navDetail] and [navDetailClass]), as JSON, instead of
+  /// for its HTML.
+  ///
+  /// See [loadsNavDetailAsynchronously].
+  static const navDetailParameter = 'navDetail';
+
   final bool indentInNav;
 
   new(
@@ -259,9 +270,32 @@ abstract class DiagnosticPageWithNav extends DiagnosticPage {
   @override
   bool get isNavPage => true;
 
+  /// Whether the browser loads [navDetail] after displaying a page, instead of
+  /// the detail being computed when rendering any page that has this page in its
+  /// navigation.
+  ///
+  /// This should be `true` for a page whose [navDetail] is expensive to compute,
+  /// so that rendering other pages does not wait on it.
+  ///
+  /// The navigation link of such a page is rendered without a detail, and a
+  /// script then requests the detail from the page itself, using
+  /// [navDetailParameter]. The page responds with a JSON object containing the
+  /// `detail` and `detailClass` properties.
+  bool get loadsNavDetailAsynchronously => false;
+
   String? get navDetail => null;
 
+  String? get navDetailClass => null;
+
   bool get showInNav => true;
+
+  @override
+  ContentType contentType(Map<String, String> params) {
+    if (params[navDetailParameter] != null) {
+      return ContentType.json;
+    }
+    return super.contentType(params);
+  }
 
   /// Information regarding the analysis context currently being displayed.
   ({Folder folder, analysis.AnalysisDriver driver}) currentContext(
@@ -280,6 +314,22 @@ abstract class DiagnosticPageWithNav extends DiagnosticPage {
       );
       return (folder: entry.key, driver: entry.value);
     }
+  }
+
+  String formatAdditional(RequestPerformance performance) {
+    var additional = performance
+        .additionalTimings
+        ?.timingsInMilliseconds
+        .entries
+        .map((entry) => '${entry.key}: ${printMilliseconds(entry.value)}');
+    return additional?.join(', ') ?? '';
+  }
+
+  String formatExcludingAdditional(RequestPerformance performance) {
+    var totalAdditional = performance.additionalTimings?.totalTime ?? 0;
+    return printMilliseconds(
+      performance.performance.elapsed.inMilliseconds - totalAdditional,
+    );
   }
 
   String formatLatencyTiming(int elapsed, int? latency) {
@@ -313,17 +363,26 @@ abstract class DiagnosticPageWithNav extends DiagnosticPage {
         if (page == this) 'selected',
         if (page.indentInNav) 'pl-5',
       ];
-      buf.write(
-        '<a class="${classes.join(' ')}" '
-        'href="${page.path}">${escape(page.title)}',
-      );
-      var detail = page.navDetail;
+      var attributes = [
+        'class="${classes.join(' ')}"',
+        'href="${page.path}"',
+        if (page.loadsNavDetailAsynchronously)
+          'data-nav-detail-url="${page.path}?$navDetailParameter"',
+      ];
+      buf.write('<a ${attributes.join(' ')}>${escape(page.title)}');
+      // The detail of a page that loads it asynchronously is not computed
+      // here, as that can be slow; see [_writeNavDetailScript].
+      var detail = page.loadsNavDetailAsynchronously ? null : page.navDetail;
       if (detail != null) {
-        buf.write('<span class="counter">$detail</span>');
+        var detailClass = ['counter', ?page.navDetailClass].join(' ');
+        buf.write('<span class="$detailClass">$detail</span>');
       }
       buf.writeln('</a>');
     }
     buf.writeln('</nav>');
+    if (navPages.any((page) => page.loadsNavDetailAsynchronously)) {
+      _writeNavDetailScript();
+    }
     buf.writeln('</div>');
 
     buf.writeln('<div class="four-fifths column markdown-body">');
@@ -335,6 +394,18 @@ abstract class DiagnosticPageWithNav extends DiagnosticPage {
     buf.writeln('</div>');
 
     buf.writeln('</div>');
+  }
+
+  @override
+  Future<void> generatePage(Map<String, String> params) async {
+    if (params[navDetailParameter] != null) {
+      // No added header etc.
+      buf.write(
+        json.encode({'detail': navDetail, 'detailClass': navDetailClass}),
+      );
+      return;
+    }
+    return await super.generatePage(params);
   }
 
   /// Returns the list of analysis options objects used to analyze the context
@@ -383,6 +454,35 @@ abstract class DiagnosticPageWithNav extends DiagnosticPage {
     }
     buf.writeln('</nav>');
     buf.writeln('</div>');
+  }
+
+  /// Writes a script which, once the page is displayed, requests the navigation
+  /// detail of each navigation link which has a `data-nav-detail-url`
+  /// attribute, and adds the detail to the link.
+  ///
+  /// A link whose detail cannot be loaded, or which has no detail, is left
+  /// without one.
+  ///
+  /// See [loadsNavDetailAsynchronously].
+  void _writeNavDetailScript() {
+    buf.writeln('''
+<script>
+  document.querySelectorAll('a[data-nav-detail-url]').forEach(async (link) => {
+    try {
+      const response = await fetch(link.dataset.navDetailUrl, {cache: 'no-store'});
+      if (!response.ok) return;
+      const {detail, detailClass} = await response.json();
+      if (detail == null) return;
+      const counter = document.createElement('span');
+      counter.className = ['counter', detailClass].filter(Boolean).join(' ');
+      counter.textContent = detail;
+      link.appendChild(counter);
+    } catch (e) {
+      // Leave the link without a detail.
+    }
+  });
+</script>
+''');
   }
 }
 
@@ -457,6 +557,11 @@ class DiagnosticsSite extends Site implements AbstractHttpHandler {
   border-radius: 20px;
 }
 
+.counter-red {
+  background-color: #d73a49;
+  color: #fff;
+}
+
 .menu-item .counter {
   float: right;
   margin-left: 5px;
@@ -514,6 +619,7 @@ td.pre {
     pages.add(ContextsPage(this));
     pages.add(EnvironmentVariablesPage(this));
     pages.add(ExceptionsPage(this));
+    pages.add(PerformancePage(this));
     // pages.add(new InstrumentationPage(this));
     if (includeDeveloperSupport) {
       pages.add(AnalyticsPage(this));
@@ -567,6 +673,7 @@ td.pre {
     pages.add(AnalysisDriverPage(this));
     pages.add(AssistsPage(this));
     pages.add(FileByteStoreTimingPage(this));
+    pages.add(FileIoTimingPage(this));
     pages.add(CodeCompletionPage(this));
     pages.add(FixesPage(this));
     pages.add(MessageSchedulerPage(this));

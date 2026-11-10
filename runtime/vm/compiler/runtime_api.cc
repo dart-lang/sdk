@@ -397,8 +397,6 @@ bool IsTypedDataClassId(intptr_t cid) {
   return dart::IsTypedDataClassId(cid);
 }
 
-const word Class::kNoTypeArguments = dart::Class::kNoTypeArguments;
-
 classid_t Class::GetId(const dart::Class& handle) {
   return handle.id();
 }
@@ -1049,6 +1047,10 @@ word Number::NextFieldOffset() {
   return TranslateOffsetInWords(dart::Number::NextFieldOffset());
 }
 
+word LocalVarDescriptor::InstanceSize() {
+  return dart::LocalVarDescriptor::InstanceSize();
+}
+
 void UnboxFieldIfSupported(const dart::Field& field,
                            const dart::AbstractType& type) {
   if (field.is_static() || field.is_late()) {
@@ -1069,6 +1071,10 @@ void UnboxFieldIfSupported(const dart::Field& field,
   } else if (type.IsFloat64x2Type()) {
     if (FlowGraphCompiler::SupportsUnboxedSimd128()) {
       cid = kFloat64x2Cid;
+    }
+  } else if (type.IsInt32x4Type()) {
+    if (FlowGraphCompiler::SupportsUnboxedSimd128()) {
+      cid = kInt32x4Cid;
     }
   }
 

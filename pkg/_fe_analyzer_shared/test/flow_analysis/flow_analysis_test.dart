@@ -38,13 +38,13 @@ main() {
   group('API', () {
     test('asExpression_end promotes variables', () {
       var x = Var('x');
-      late SsaNode ssaBeforePromotion;
+      late ValueVersion versionBeforePromotion;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
+        getVersions((nodes) => versionBeforePromotion = nodes[x]!),
         x.as_('int'),
         checkPromoted(x, 'int'),
-        getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
+        getVersions((nodes) => expect(nodes[x], same(versionBeforePromotion))),
       ]);
     });
 
@@ -207,11 +207,11 @@ main() {
       ]);
     });
 
-    test('declare() sets Ssa', () {
+    test('declare() sets value version', () {
       var x = Var('x');
       h.run([
         declare(x, type: 'Object'),
-        getSsaNodes((nodes) {
+        getVersions((nodes) {
           expect(nodes[x], isNotNull);
         }),
       ]);
@@ -219,21 +219,25 @@ main() {
 
     test('equalityOp(x != null) promotes true branch', () {
       var x = Var('x');
-      late SsaNode ssaBeforePromotion;
+      late ValueVersion versionBeforePromotion;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
+        getVersions((nodes) => versionBeforePromotion = nodes[x]!),
         if_(
           x.notEq(nullLiteral),
           [
             checkReachable(true),
             checkPromoted(x, 'int'),
-            getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
+            getVersions(
+              (nodes) => expect(nodes[x], same(versionBeforePromotion)),
+            ),
           ],
           [
             checkReachable(true),
             checkNotPromoted(x),
-            getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
+            getVersions(
+              (nodes) => expect(nodes[x], same(versionBeforePromotion)),
+            ),
           ],
         ),
       ]);
@@ -285,21 +289,25 @@ main() {
 
     test('equalityOp(x == null) promotes false branch', () {
       var x = Var('x');
-      late SsaNode ssaBeforePromotion;
+      late ValueVersion versionBeforePromotion;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
+        getVersions((nodes) => versionBeforePromotion = nodes[x]!),
         if_(
           x.eq(nullLiteral),
           [
             checkReachable(true),
             checkNotPromoted(x),
-            getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
+            getVersions(
+              (nodes) => expect(nodes[x], same(versionBeforePromotion)),
+            ),
           ],
           [
             checkReachable(true),
             checkPromoted(x, 'int'),
-            getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
+            getVersions(
+              (nodes) => expect(nodes[x], same(versionBeforePromotion)),
+            ),
           ],
         ),
       ]);
@@ -345,19 +353,23 @@ main() {
 
     test('equalityOp(null != x) promotes true branch', () {
       var x = Var('x');
-      late SsaNode ssaBeforePromotion;
+      late ValueVersion versionBeforePromotion;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
+        getVersions((nodes) => versionBeforePromotion = nodes[x]!),
         if_(
           nullLiteral.notEq(x),
           [
             checkPromoted(x, 'int'),
-            getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
+            getVersions(
+              (nodes) => expect(nodes[x], same(versionBeforePromotion)),
+            ),
           ],
           [
             checkNotPromoted(x),
-            getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
+            getVersions(
+              (nodes) => expect(nodes[x], same(versionBeforePromotion)),
+            ),
           ],
         ),
       ]);
@@ -377,19 +389,23 @@ main() {
 
     test('equalityOp(null == x) promotes false branch', () {
       var x = Var('x');
-      late SsaNode ssaBeforePromotion;
+      late ValueVersion versionBeforePromotion;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
+        getVersions((nodes) => versionBeforePromotion = nodes[x]!),
         if_(
           nullLiteral.eq(x),
           [
             checkNotPromoted(x),
-            getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
+            getVersions(
+              (nodes) => expect(nodes[x], same(versionBeforePromotion)),
+            ),
           ],
           [
             checkPromoted(x, 'int'),
-            getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
+            getVersions(
+              (nodes) => expect(nodes[x], same(versionBeforePromotion)),
+            ),
           ],
         ),
       ]);
@@ -425,36 +441,36 @@ main() {
       ]);
     });
 
-    test('declare(initialized: false) assigns new SSA ids', () {
+    test('declare(initialized: false) assigns new value versions', () {
       var x = Var('x');
       var y = Var('y');
       h.run([
         declare(x, type: 'int?'),
         declare(y, type: 'int?'),
-        getSsaNodes((nodes) => expect(nodes[y], isNot(nodes[x]))),
+        getVersions((nodes) => expect(nodes[y], isNot(nodes[x]))),
       ]);
     });
 
-    test('declare(initialized: true) assigns new SSA ids', () {
+    test('declare(initialized: true) assigns new value versions', () {
       var x = Var('x');
       var y = Var('y');
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
-        getSsaNodes((nodes) => expect(nodes[y], isNot(nodes[x]))),
+        getVersions((nodes) => expect(nodes[y], isNot(nodes[x]))),
       ]);
     });
 
     test('doStatement_bodyBegin() un-promotes', () {
       var x = Var('x');
-      late SsaNode ssaBeforeLoop;
+      late ValueVersion versionBeforeLoop;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         x.as_('int'),
         checkPromoted(x, 'int'),
-        getSsaNodes((nodes) => ssaBeforeLoop = nodes[x]!),
+        getVersions((nodes) => versionBeforeLoop = nodes[x]!),
         do_([
-          getSsaNodes((nodes) => expect(nodes[x], isNot(ssaBeforeLoop))),
+          getVersions((nodes) => expect(nodes[x], isNot(versionBeforeLoop))),
           checkNotPromoted(x),
           x.write(expr('Null')),
         ], expr('bool')),
@@ -617,18 +633,20 @@ main() {
 
     test('for_conditionBegin() un-promotes', () {
       var x = Var('x');
-      late SsaNode ssaBeforeLoop;
+      late ValueVersion versionBeforeLoop;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         x.as_('int'),
         checkPromoted(x, 'int'),
-        getSsaNodes((nodes) => ssaBeforeLoop = nodes[x]!),
+        getVersions((nodes) => versionBeforeLoop = nodes[x]!),
         for_(
           null,
           second(
             listLiteral(elementType: 'dynamic', [
               checkNotPromoted(x),
-              getSsaNodes((nodes) => expect(nodes[x], isNot(ssaBeforeLoop))),
+              getVersions(
+                (nodes) => expect(nodes[x], isNot(versionBeforeLoop)),
+              ),
             ]),
             expr('bool'),
           ),
@@ -747,38 +765,38 @@ main() {
       ]);
     });
 
-    test('for_end() with break updates Ssa of modified vars', () {
+    test('for_end() with break updates value versions of modified vars', () {
       var x = Var('x');
       var y = Var('y');
-      late SsaNode xSsaInsideLoop;
-      late SsaNode ySsaInsideLoop;
+      late ValueVersion xVersionInsideLoop;
+      late ValueVersion yVersionInsideLoop;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
         for_(null, expr('bool'), null, [
           x.write(expr('int?')),
           if_(expr('bool'), [break_()]),
-          getSsaNodes((nodes) {
-            xSsaInsideLoop = nodes[x]!;
-            ySsaInsideLoop = nodes[y]!;
+          getVersions((nodes) {
+            xVersionInsideLoop = nodes[x]!;
+            yVersionInsideLoop = nodes[y]!;
           }),
         ]),
-        getSsaNodes((nodes) {
-          // x's Ssa should have been changed because of the join at the end of
-          // of the loop.  y's should not, since it retains the value it had
-          // prior to the loop.
-          expect(nodes[x], isNot(xSsaInsideLoop));
-          expect(nodes[y], same(ySsaInsideLoop));
+        getVersions((nodes) {
+          // x's value version should have been changed because of the join at
+          // the end of of the loop. y's should not, since it retains the value
+          // it had prior to the loop.
+          expect(nodes[x], isNot(xVersionInsideLoop));
+          expect(nodes[y], same(yVersionInsideLoop));
         }),
       ]);
     });
 
-    test('for_end() with break updates Ssa of modified vars when types were '
-        'tested', () {
+    test('for_end() with break updates value versions of modified vars when '
+        'types were tested', () {
       var x = Var('x');
       var y = Var('y');
-      late SsaNode xSsaInsideLoop;
-      late SsaNode ySsaInsideLoop;
+      late ValueVersion xVersionInsideLoop;
+      late ValueVersion yVersionInsideLoop;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
@@ -786,32 +804,32 @@ main() {
           x.write(expr('int?')),
           if_(expr('bool'), [break_()]),
           if_(x.is_('int'), []),
-          getSsaNodes((nodes) {
-            xSsaInsideLoop = nodes[x]!;
-            ySsaInsideLoop = nodes[y]!;
+          getVersions((nodes) {
+            xVersionInsideLoop = nodes[x]!;
+            yVersionInsideLoop = nodes[y]!;
           }),
         ]),
-        getSsaNodes((nodes) {
-          // x's Ssa should have been changed because of the join at the end of
-          // the loop.  y's should not, since it retains the value it had prior
-          // to the loop.
-          expect(nodes[x], isNot(xSsaInsideLoop));
-          expect(nodes[y], same(ySsaInsideLoop));
+        getVersions((nodes) {
+          // x's value version should have been changed because of the join at
+          // the end of the loop. y's should not, since it retains the value it
+          // had prior to the loop.
+          expect(nodes[x], isNot(xVersionInsideLoop));
+          expect(nodes[y], same(yVersionInsideLoop));
         }),
       ]);
     });
 
     test('forEach_bodyBegin() un-promotes', () {
       var x = Var('x');
-      late SsaNode ssaBeforeLoop;
+      late ValueVersion versionBeforeLoop;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         x.as_('int'),
         checkPromoted(x, 'int'),
-        getSsaNodes((nodes) => ssaBeforeLoop = nodes[x]!),
+        getVersions((nodes) => versionBeforeLoop = nodes[x]!),
         forEachWithNonVariable(expr('List<int?>'), [
           checkNotPromoted(x),
-          getSsaNodes((nodes) => expect(nodes[x], isNot(ssaBeforeLoop))),
+          getVersions((nodes) => expect(nodes[x], isNot(versionBeforeLoop))),
           x.write(expr('int?')),
         ]),
       ]);
@@ -851,6 +869,47 @@ main() {
           if_(x.notEq(nullLiteral), [checkPromoted(x, 'int')]),
         ]),
         checkAssigned(x, false),
+      ]);
+    });
+
+    test(
+      'forEach_bodyBegin() does not write capture declared loop variable',
+      () {
+        // Each iteration gets a fresh copy of `x`, so a closure created later
+        // in the loop body can't affect the promotion.
+        var x = Var('x');
+        h.run([
+          forEachWithVariableDecl(x, expr('List<int?>'), [
+            if_(x.notEq(nullLiteral), [checkPromoted(x, 'int')]),
+            localFunction([x.write(expr('int?'))]),
+          ]),
+        ]);
+      },
+    );
+
+    test('forEach_bodyBegin() declared loop variable: write capture earlier '
+        'in the iteration', () {
+      var x = Var('x');
+      h.run([
+        forEachWithVariableDecl(x, expr('List<int?>'), [
+          localFunction([x.write(expr('int?'))]),
+          if_(x.notEq(nullLiteral), [checkNotPromoted(x)]),
+        ]),
+      ]);
+    });
+
+    test('forEach_bodyBegin() declared loop variable: write capture in a '
+        'nested loop', () {
+      // A closure created in an earlier iteration of the inner loop writes
+      // the same copy of `x`.
+      var x = Var('x');
+      h.run([
+        forEachWithVariableDecl(x, expr('List<int?>'), [
+          while_(expr('bool'), [
+            if_(x.notEq(nullLiteral), [checkNotPromoted(x)]),
+            localFunction([x.write(expr('int?'))]),
+          ]),
+        ]),
       ]);
     });
 
@@ -896,14 +955,14 @@ main() {
           y.as_('int'),
           checkPromoted(x, 'int'),
           checkPromoted(y, 'int'),
-          getSsaNodes((nodes) {
+          getVersions((nodes) {
             expect(nodes[x], isNotNull);
             expect(nodes[y], isNotNull);
           }),
           localFunction([
             // x is unpromoted within the local function
             checkNotPromoted(x), checkPromoted(y, 'int'),
-            getSsaNodes((nodes) {
+            getVersions((nodes) {
               expect(nodes[x], isNull);
               expect(nodes[y], isNotNull);
             }),
@@ -911,7 +970,7 @@ main() {
           ]),
           // x is unpromoted after the local function too
           checkNotPromoted(x), checkPromoted(y, 'int'),
-          getSsaNodes((nodes) {
+          getVersions((nodes) {
             expect(nodes[x], isNull);
             expect(nodes[y], isNotNull);
           }),
@@ -956,19 +1015,21 @@ main() {
     test('functionExpression_begin() cancels promotions of written vars', () {
       var x = Var('x');
       var y = Var('y');
-      late SsaNode ssaBeforeFunction;
+      late ValueVersion versionBeforeFunction;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
         x.as_('int'), y.as_('int'),
         checkPromoted(x, 'int'),
-        getSsaNodes((nodes) => ssaBeforeFunction = nodes[x]!),
+        getVersions((nodes) => versionBeforeFunction = nodes[x]!),
         checkPromoted(y, 'int'),
         localFunction([
           // x is unpromoted within the local function, because the write
           // might have happened by the time the local function executes.
           checkNotPromoted(x),
-          getSsaNodes((nodes) => expect(nodes[x], isNot(ssaBeforeFunction))),
+          getVersions(
+            (nodes) => expect(nodes[x], isNot(versionBeforeFunction)),
+          ),
           checkPromoted(y, 'int'),
           // But it can be re-promoted because the write isn't captured.
           x.as_('int'),
@@ -977,7 +1038,7 @@ main() {
         // x is still promoted after the local function, though, because the
         // write hasn't occurred yet.
         checkPromoted(x, 'int'),
-        getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforeFunction))),
+        getVersions((nodes) => expect(nodes[x], same(versionBeforeFunction))),
         checkPromoted(y, 'int'),
         x.write(expr('int?')),
         // x is unpromoted now.
@@ -1067,6 +1128,77 @@ main() {
       },
     );
 
+    test('functionExpression_begin() marks final vars that are not definitely '
+        'assigned as not definitely unassigned', () {
+      // final int? x;
+      // () {
+      //   x is not definitely unassigned (the closure might execute after
+      //   the assignment below)
+      // };
+      // x = <int>;
+      var x = Var('x', isFinal: true);
+      h.run([
+        declare(x, type: 'int?'),
+        checkUnassigned(x, true),
+        localFunction([checkUnassigned(x, false)]),
+        checkUnassigned(x, true),
+        x.write(expr('int')),
+      ]);
+    });
+
+    test('functionExpression_begin() marks final vars that are not definitely '
+        'assigned as not definitely unassigned with inference-update-4 '
+        'disabled', () {
+      // See test for "functionExpression_begin() marks final vars that are not
+      // definitely assigned as not definitely unassigned" for enabled
+      // behavior.
+      var x = Var('x', isFinal: true);
+      h.disableInferenceUpdate4();
+      h.run([
+        declare(x, type: 'int?'),
+        checkUnassigned(x, true),
+        localFunction([checkUnassigned(x, false)]),
+        checkUnassigned(x, true),
+        x.write(expr('int')),
+      ]);
+    });
+
+    test('functionExpression_begin() preserves promotions of potentially '
+        'assigned late final vars', () {
+      // late final int? x;
+      // if (<bool>) x = <int>;
+      // if (x != null) {
+      //   () => x is promoted to int (because the read of `x` succeeded,
+      //         `x` has been assigned, and can't be assigned again)
+      // }
+      var x = Var('x', isFinal: true);
+      h.run([
+        declare(x, isLate: true, type: 'int?'),
+        if_(expr('bool'), [x.write(expr('int'))]),
+        checkAssigned(x, false),
+        checkUnassigned(x, false),
+        if_(x.notEq(nullLiteral), [
+          localFunction([checkPromoted(x, 'int')]),
+        ]),
+      ]);
+    });
+
+    test('functionExpression_begin() cancels promotions of potentially '
+        'assigned late final vars with inference-update-4 disabled', () {
+      // See test for "functionExpression_begin() preserves promotions of
+      // potentially assigned late final vars" for enabled behavior.
+      var x = Var('x', isFinal: true);
+      h.disableInferenceUpdate4();
+      h.run([
+        declare(x, isLate: true, type: 'int?'),
+        if_(expr('bool'), [x.write(expr('int'))]),
+        if_(x.notEq(nullLiteral), [
+          checkPromoted(x, 'int'),
+          localFunction([checkNotPromoted(x)]),
+        ]),
+      ]);
+    });
+
     test(
       'functionExpression_begin() preserves promotions of initialized vars',
       () {
@@ -1115,9 +1247,9 @@ main() {
           declare(x, type: 'int?', initializer: expr('int?')),
           declare(y, type: 'int?', initializer: expr('int?')),
           y.as_('int'),
-          getSsaNodes((nodes) => expect(nodes[x], isNotNull)),
+          getVersions((nodes) => expect(nodes[x], isNotNull)),
           localFunction([
-            getSsaNodes((nodes) => expect(nodes[x], isNot(nodes[y]))),
+            getVersions((nodes) => expect(nodes[x], isNot(nodes[y]))),
             x.as_('int'),
             // Promotion should not occur, because x might be write-captured by
             // the time this code is reached.
@@ -1355,54 +1487,54 @@ main() {
       var x = Var('x');
       var y = Var('y');
       var z = Var('z');
-      late SsaNode xSsaNodeBeforeIf;
+      late ValueVersion xVersionBeforeIf;
       h.run([
         declare(w, type: 'Object', initializer: expr('Object')),
         declare(x, type: 'bool', initializer: expr('bool')),
         declare(y, type: 'bool', initializer: expr('bool')),
         declare(z, type: 'bool', initializer: expr('bool')),
         x.write(w.is_('int')),
-        getSsaNodes((nodes) {
-          xSsaNodeBeforeIf = nodes[x]!;
-          expect(xSsaNodeBeforeIf.conditionVariableState, isNotNull);
+        getVersions((nodes) {
+          xVersionBeforeIf = nodes[x]!;
+          expect(xVersionBeforeIf.conditionVariableState, isNotNull);
         }),
         if_(expr('bool'), [y.write(w.is_('String'))], [z.write(w.is_('bool'))]),
-        getSsaNodes((nodes) {
-          expect(nodes[x], same(xSsaNodeBeforeIf));
+        getVersions((nodes) {
+          expect(nodes[x], same(xVersionBeforeIf));
           expect(nodes[y]!.conditionVariableState, isNull);
           expect(nodes[z]!.conditionVariableState, isNull);
         }),
       ]);
     });
 
-    test('ifStatement_end() ignores non-matching SSA info from "then" path if '
-        'unreachable', () {
+    test('ifStatement_end() ignores non-matching value version info from '
+        '"then" path if unreachable', () {
       var x = Var('x');
-      late SsaNode xSsaNodeBeforeIf;
+      late ValueVersion xVersionBeforeIf;
       h.run([
         declare(x, type: 'Object', initializer: expr('Object')),
-        getSsaNodes((nodes) {
-          xSsaNodeBeforeIf = nodes[x]!;
+        getVersions((nodes) {
+          xVersionBeforeIf = nodes[x]!;
         }),
         if_(expr('bool'), [x.write(expr('Object')), return_()]),
-        getSsaNodes((nodes) {
-          expect(nodes[x], same(xSsaNodeBeforeIf));
+        getVersions((nodes) {
+          expect(nodes[x], same(xVersionBeforeIf));
         }),
       ]);
     });
 
-    test('ifStatement_end() ignores non-matching SSA info from "else" path if '
-        'unreachable', () {
+    test('ifStatement_end() ignores non-matching value version info from '
+        '"else" path if unreachable', () {
       var x = Var('x');
-      late SsaNode xSsaNodeBeforeIf;
+      late ValueVersion xVersionBeforeIf;
       h.run([
         declare(x, type: 'Object', initializer: expr('Object')),
-        getSsaNodes((nodes) {
-          xSsaNodeBeforeIf = nodes[x]!;
+        getVersions((nodes) {
+          xVersionBeforeIf = nodes[x]!;
         }),
         if_(expr('bool'), [], [x.write(expr('Object')), return_()]),
-        getSsaNodes((nodes) {
-          expect(nodes[x], same(xSsaNodeBeforeIf));
+        getVersions((nodes) {
+          expect(nodes[x], same(xVersionBeforeIf));
         }),
       ]);
     });
@@ -1508,7 +1640,7 @@ main() {
       h.run([
         declare(y, type: 'int?', initializer: expr('int?')),
         declare(x, type: 'Object', initializer: y.eq(nullLiteral)),
-        getSsaNodes((nodes) {
+        getVersions((nodes) {
           var info = nodes[x]!.conditionVariableState!;
           var key = h.promotionKeyStore.keyForVariable(y);
           expect(
@@ -1539,7 +1671,7 @@ main() {
           type: 'Object',
           initializer: y.eq(nullLiteral),
         ),
-        getSsaNodes((nodes) {
+        getVersions((nodes) {
           expect(nodes[x]!.conditionVariableState, isNull);
         }),
       ]);
@@ -1553,7 +1685,7 @@ main() {
       h.run([
         declare(y, type: 'int?', initializer: expr('int?')),
         declare(x, initializer: y.eq(nullLiteral), expectInferredType: 'bool'),
-        getSsaNodes((nodes) {
+        getVersions((nodes) {
           expect(nodes[x]!.conditionVariableState, isNull);
         }),
       ]);
@@ -1566,7 +1698,7 @@ main() {
       h.run([
         declare(y, type: 'int?', initializer: expr('int?')),
         declare(x, initializer: y.eq(nullLiteral), expectInferredType: 'bool'),
-        getSsaNodes((nodes) {
+        getVersions((nodes) {
           expect(nodes[x]!.conditionVariableState, isNotNull);
         }),
       ]);
@@ -1580,7 +1712,7 @@ main() {
       h.run([
         declare(y, type: 'int?', initializer: expr('int?')),
         declare(x, type: 'Object', initializer: y.eq(nullLiteral)),
-        getSsaNodes((nodes) {
+        getVersions((nodes) {
           expect(nodes[x]!.conditionVariableState, isNotNull);
         }),
       ]);
@@ -1603,7 +1735,7 @@ main() {
                 .eq(nullLiteral)
                 .getExpressionInfo((info) => expect(info, isNotNull)),
           ),
-          getSsaNodes((nodes) {
+          getVersions((nodes) {
             expect(nodes[x]!.conditionVariableState, isNull);
           }),
         ]);
@@ -1620,21 +1752,25 @@ main() {
       bool expectedReachableElse = true,
     }) {
       var x = Var('x');
-      late SsaNode ssaBeforePromotion;
+      late ValueVersion versionBeforePromotion;
       h.run([
         declare(x, type: declaredType, initializer: expr(declaredType)),
-        getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
+        getVersions((nodes) => versionBeforePromotion = nodes[x]!),
         if_(
           x.is_(tryPromoteType, isInverted: inverted),
           [
             checkReachable(expectedReachableThen),
             checkPromoted(x, expectedPromotedTypeThen),
-            getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
+            getVersions(
+              (nodes) => expect(nodes[x], same(versionBeforePromotion)),
+            ),
           ],
           [
             checkReachable(expectedReachableElse),
             checkPromoted(x, expectedPromotedTypeElse),
-            getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
+            getVersions(
+              (nodes) => expect(nodes[x], same(versionBeforePromotion)),
+            ),
           ],
         ),
       ]);
@@ -1904,13 +2040,13 @@ main() {
 
     test('nonNullAssert_end(x) promotes', () {
       var x = Var('x');
-      late SsaNode ssaBeforePromotion;
+      late ValueVersion versionBeforePromotion;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
+        getVersions((nodes) => versionBeforePromotion = nodes[x]!),
         x.nonNullAssert,
         checkPromoted(x, 'int'),
-        getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
+        getVersions((nodes) => expect(nodes[x], same(versionBeforePromotion))),
       ]);
     });
 
@@ -1924,20 +2060,22 @@ main() {
 
     test('nullAwareAccess temporarily promotes', () {
       var x = Var('x');
-      late SsaNode ssaBeforePromotion;
+      late ValueVersion versionBeforePromotion;
       h.addMember('int', 'f', 'Null Function(Object?)');
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
+        getVersions((nodes) => versionBeforePromotion = nodes[x]!),
         x.invokeMethod('f', [
           listLiteral(elementType: 'dynamic', [
             checkReachable(true),
             checkPromoted(x, 'int'),
-            getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
+            getVersions(
+              (nodes) => expect(nodes[x], same(versionBeforePromotion)),
+            ),
           ]),
         ], isNullAware: true),
         checkNotPromoted(x),
-        getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
+        getVersions((nodes) => expect(nodes[x], same(versionBeforePromotion))),
       ]);
     });
 
@@ -1977,9 +2115,8 @@ main() {
     test('nullAwareAccess sets reachability correctly for `Null` type', () {
       h.addMember('Never', 'f', 'Null Function(Object?)');
       h.run([
-        expr(
-          'Null',
-        ).invokeMethod('f', [checkReachable(false)], isNullAware: true),
+        expr('Null')
+            .invokeMethod('f', [checkReachable(false)], isNullAware: true),
         checkReachable(true),
       ]);
     });
@@ -2317,9 +2454,8 @@ main() {
     test('switchExpression throw in scrutinee makes all cases unreachable', () {
       h.run([
         switchExpr(throw_(expr('C')), [
-          intLiteral(
-            0,
-          ).pattern.thenExpr(second(checkReachable(false), intLiteral(1))),
+          intLiteral(0).pattern
+              .thenExpr(second(checkReachable(false), intLiteral(1))),
           wildcard().thenExpr(second(checkReachable(false), intLiteral(2))),
         ]),
         checkReachable(false),
@@ -2452,7 +2588,7 @@ main() {
 
     test('switchStatement_beginCase(true) un-promotes', () {
       var x = Var('x');
-      late SsaNode ssaBeforeSwitch;
+      late ValueVersion versionBeforeSwitch;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         x.as_('int'),
@@ -2460,7 +2596,7 @@ main() {
           expr('int').thenStmt(
             block([
               checkPromoted(x, 'int'),
-              getSsaNodes((nodes) => ssaBeforeSwitch = nodes[x]!),
+              getVersions((nodes) => versionBeforeSwitch = nodes[x]!),
             ]),
           ),
           [
@@ -2468,8 +2604,8 @@ main() {
               [intLiteral(0).pattern],
               [
                 checkNotPromoted(x),
-                getSsaNodes(
-                  (nodes) => expect(nodes[x], isNot(ssaBeforeSwitch)),
+                getVersions(
+                  (nodes) => expect(nodes[x], isNot(versionBeforeSwitch)),
                 ),
                 x.write(expr('int?')),
                 checkNotPromoted(x),
@@ -2512,9 +2648,8 @@ main() {
         y.as_('int'),
         z.as_('int'),
         switch_(expr('int'), [
-          intLiteral(
-            0,
-          ).pattern.then([x.as_('int'), y.write(expr('int?')), break_()]),
+          intLiteral(0).pattern
+              .then([x.as_('int'), y.write(expr('int?')), break_()]),
         ]),
         checkNotPromoted(x),
         checkNotPromoted(y),
@@ -2600,14 +2735,11 @@ main() {
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
         y.as_('int'),
-        try_([
-          x.as_('int'),
-          checkPromoted(x, 'int'),
-          checkPromoted(y, 'int'),
-        ]).catch_(
-          type: 'dynamic',
-          body: [checkNotPromoted(x), checkPromoted(y, 'int')],
-        ),
+        try_([x.as_('int'), checkPromoted(x, 'int'), checkPromoted(y, 'int')])
+            .catch_(
+              type: 'dynamic',
+              body: [checkNotPromoted(x), checkPromoted(y, 'int')],
+            ),
       ]);
     });
 
@@ -2615,7 +2747,7 @@ main() {
       'tryCatchStatement_bodyEnd() un-promotes variables assigned in body',
       () {
         var x = Var('x');
-        late SsaNode ssaAfterTry;
+        late ValueVersion versionAfterTry;
         h.run([
           declare(x, type: 'int?', initializer: expr('int?')),
           x.as_('int'),
@@ -2624,17 +2756,48 @@ main() {
             x.write(expr('int?')),
             x.as_('int'),
             checkPromoted(x, 'int'),
-            getSsaNodes((nodes) => ssaAfterTry = nodes[x]!),
+            getVersions((nodes) => versionAfterTry = nodes[x]!),
           ]).catch_(
             type: 'dynamic',
             body: [
               checkNotPromoted(x),
-              getSsaNodes((nodes) => expect(nodes[x], isNot(ssaAfterTry))),
+              getVersions((nodes) => expect(nodes[x], isNot(versionAfterTry))),
             ],
           ),
         ]);
       },
     );
+
+    test('tryCatchStatement_bodyEnd() marks final vars assigned in body as not '
+        'definitely unassigned', () {
+      // final int? x;
+      // try {
+      //   x = <int>;
+      // } catch (_) {
+      //   x is not definitely unassigned
+      // }
+      var x = Var('x', isFinal: true);
+      h.run([
+        declare(x, type: 'int?'),
+        checkUnassigned(x, true),
+        try_([x.write(expr('int'))])
+            .catch_(type: 'dynamic', body: [checkUnassigned(x, false)]),
+      ]);
+    });
+
+    test('tryCatchStatement_bodyEnd() marks final vars assigned in body as not '
+        'definitely unassigned with inference-update-4 disabled', () {
+      // See test for "tryCatchStatement_bodyEnd() marks final vars assigned in
+      // body as not definitely unassigned" for enabled behavior.
+      var x = Var('x', isFinal: true);
+      h.disableInferenceUpdate4();
+      h.run([
+        declare(x, type: 'int?'),
+        checkUnassigned(x, true),
+        try_([x.write(expr('int'))])
+            .catch_(type: 'dynamic', body: [checkUnassigned(x, false)]),
+      ]);
+    });
 
     test('tryCatchStatement_bodyEnd() preserves write captures in body', () {
       // Note: it's not necessary for the write capture to survive to the end of
@@ -2739,10 +2902,8 @@ main() {
           declare(x, type: 'int?', initializer: expr('int?')),
           declare(y, type: 'int?', initializer: expr('int?')),
           declare(z, type: 'int?', initializer: expr('int?')),
-          try_([
-            x.as_('int'),
-            y.as_('int'),
-          ]).catch_(type: 'dynamic', body: [x.as_('int'), z.as_('int')]),
+          try_([x.as_('int'), y.as_('int')])
+              .catch_(type: 'dynamic', body: [x.as_('int'), z.as_('int')]),
           // Only x should be promoted, because it's the only variable
           // promoted in both the try body and the catch handler.
           checkPromoted(x, 'int'), checkNotPromoted(y), checkNotPromoted(z),
@@ -2774,37 +2935,34 @@ main() {
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
         y.as_('int'),
-        try_([
-          x.as_('int'),
-          checkPromoted(x, 'int'),
-          checkPromoted(y, 'int'),
-        ]).finally_([checkNotPromoted(x), checkPromoted(y, 'int')]),
+        try_([x.as_('int'), checkPromoted(x, 'int'), checkPromoted(y, 'int')])
+            .finally_([checkNotPromoted(x), checkPromoted(y, 'int')]),
       ]);
     });
 
     test('tryFinallyStatement_finallyBegin() un-promotes variables assigned in '
         'body', () {
       var x = Var('x');
-      late SsaNode ssaAtStartOfTry;
-      late SsaNode ssaAfterTry;
+      late ValueVersion versionAtStartOfTry;
+      late ValueVersion versionAfterTry;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         x.as_('int'),
         checkPromoted(x, 'int'),
         try_([
-          getSsaNodes((nodes) => ssaAtStartOfTry = nodes[x]!),
+          getVersions((nodes) => versionAtStartOfTry = nodes[x]!),
           x.write(expr('int?')),
           x.as_('int'),
           checkPromoted(x, 'int'),
-          getSsaNodes((nodes) => ssaAfterTry = nodes[x]!),
+          getVersions((nodes) => versionAfterTry = nodes[x]!),
         ]).finally_([
           checkNotPromoted(x),
-          // The SSA node for X should be different from what it was at any time
-          // during the try block, because there is no telling at what point an
-          // exception might have occurred.
-          getSsaNodes((nodes) {
-            expect(nodes[x], isNot(ssaAtStartOfTry));
-            expect(nodes[x], isNot(ssaAfterTry));
+          // The value version for X should be different from what it was at any
+          // time during the try block, because there is no telling at what
+          // point an exception might have occurred.
+          getVersions((nodes) {
+            expect(nodes[x], isNot(versionAtStartOfTry));
+            expect(nodes[x], isNot(versionAfterTry));
           }),
         ]),
       ]);
@@ -2848,8 +3006,8 @@ main() {
         'variables assigned in finally', () {
       var x = Var('x');
       var y = Var('y');
-      late SsaNode xSsaAtEndOfFinally;
-      late SsaNode ySsaAtEndOfFinally;
+      late ValueVersion xVersionAtEndOfFinally;
+      late ValueVersion yVersionAtEndOfFinally;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
@@ -2859,63 +3017,63 @@ main() {
           y.write(expr('int?')),
           y.as_('int'),
           checkPromoted(y, 'int'),
-          getSsaNodes((nodes) {
-            xSsaAtEndOfFinally = nodes[x]!;
-            ySsaAtEndOfFinally = nodes[y]!;
+          getVersions((nodes) {
+            xVersionAtEndOfFinally = nodes[x]!;
+            yVersionAtEndOfFinally = nodes[y]!;
           }),
         ]),
         // x should not be re-promoted, because it might have been assigned a
         // non-promoted value in the "finally" block.  But y's promotion still
         // stands, because y was promoted in the finally block.
         checkNotPromoted(x), checkPromoted(y, 'int'),
-        // Both x and y should have the same SSA nodes they had at the end of
-        // the finally block, since the finally block is guaranteed to have
+        // Both x and y should have the same value versions they had at the end
+        // of the finally block, since the finally block is guaranteed to have
         // executed.
-        getSsaNodes((nodes) {
-          expect(nodes[x], same(xSsaAtEndOfFinally));
-          expect(nodes[y], same(ySsaAtEndOfFinally));
+        getVersions((nodes) {
+          expect(nodes[x], same(xVersionAtEndOfFinally));
+          expect(nodes[y], same(yVersionAtEndOfFinally));
         }),
       ]);
     });
 
     group('allowLocalBooleanVarsToPromote', () {
-      test('tryFinallyStatement_end() restores SSA nodes from try block when it'
-          'is sound to do so', () {
+      test('tryFinallyStatement_end() restores value versions from try block '
+          'when it is sound to do so', () {
         var x = Var('x');
         var y = Var('y');
-        late SsaNode xSsaAtEndOfTry;
-        late SsaNode ySsaAtEndOfTry;
-        late SsaNode xSsaAtEndOfFinally;
-        late SsaNode ySsaAtEndOfFinally;
+        late ValueVersion xVersionAtEndOfTry;
+        late ValueVersion yVersionAtEndOfTry;
+        late ValueVersion xVersionAtEndOfFinally;
+        late ValueVersion yVersionAtEndOfFinally;
         h.run([
           declare(x, type: 'int?', initializer: expr('int?')),
           declare(y, type: 'int?', initializer: expr('int?')),
           try_([
             x.write(expr('int?')),
             y.write(expr('int?')),
-            getSsaNodes((nodes) {
-              xSsaAtEndOfTry = nodes[x]!;
-              ySsaAtEndOfTry = nodes[y]!;
+            getVersions((nodes) {
+              xVersionAtEndOfTry = nodes[x]!;
+              yVersionAtEndOfTry = nodes[y]!;
             }),
           ]).finally_([
             if_(expr('bool'), [x.write(expr('int?'))]),
             if_(expr('bool'), [y.write(expr('int?')), return_()]),
-            getSsaNodes((nodes) {
-              xSsaAtEndOfFinally = nodes[x]!;
-              ySsaAtEndOfFinally = nodes[y]!;
-              expect(xSsaAtEndOfFinally, isNot(same(xSsaAtEndOfTry)));
-              expect(ySsaAtEndOfFinally, isNot(same(ySsaAtEndOfTry)));
+            getVersions((nodes) {
+              xVersionAtEndOfFinally = nodes[x]!;
+              yVersionAtEndOfFinally = nodes[y]!;
+              expect(xVersionAtEndOfFinally, isNot(same(xVersionAtEndOfTry)));
+              expect(yVersionAtEndOfFinally, isNot(same(yVersionAtEndOfTry)));
             }),
           ]),
-          // x's SSA node should still match what it was at the end of the
-          // finally block, because it might have been written to.  But y
-          // can't have been written to, because once we reach here, we know
-          // that the finally block completed normally, and the write to y
-          // always leads to the explicit return.  So y's SSA node should be
-          // restored back to match that from the end of the try block.
-          getSsaNodes((nodes) {
-            expect(nodes[x], same(xSsaAtEndOfFinally));
-            expect(nodes[y], same(ySsaAtEndOfTry));
+          // x's value version should still match what it was at the end of the
+          // finally block, because it might have been written to. But y can't
+          // have been written to, because once we reach here, we know that the
+          // finally block completed normally, and the write to y always leads
+          // to the explicit return. So y's value version should be restored
+          // back to match that from the end of the try block.
+          getVersions((nodes) {
+            expect(nodes[x], same(xVersionAtEndOfFinally));
+            expect(nodes[y], same(yVersionAtEndOfTry));
           }),
         ]);
       });
@@ -2923,10 +3081,8 @@ main() {
       test('tryFinallyStatement_end() sets unreachable if end of try block '
           'unreachable', () {
         h.run([
-          try_([
-            return_(),
-            checkReachable(false),
-          ]).finally_([checkReachable(true)]),
+          try_([return_(), checkReachable(false)])
+              .finally_([checkReachable(true)]),
           checkReachable(false),
         ]);
       });
@@ -2934,9 +3090,8 @@ main() {
       test('tryFinallyStatement_end() sets unreachable if end of finally block '
           'unreachable', () {
         h.run([
-          try_([
-            checkReachable(true),
-          ]).finally_([return_(), checkReachable(false)]),
+          try_([checkReachable(true)])
+              .finally_([return_(), checkReachable(false)]),
           checkReachable(false),
         ]);
       });
@@ -2945,9 +3100,8 @@ main() {
           'try block', () {
         var x = Var('x');
         h.run([
-          try_([
-            declare(x, type: 'int?', initializer: expr('int?')),
-          ]).finally_([]),
+          try_([declare(x, type: 'int?', initializer: expr('int?'))])
+              .finally_([]),
         ]);
       });
 
@@ -2955,9 +3109,8 @@ main() {
           'finally block', () {
         var x = Var('x');
         h.run([
-          try_(
-            [],
-          ).finally_([declare(x, type: 'int?', initializer: expr('int?'))]),
+          try_([])
+              .finally_([declare(x, type: 'int?', initializer: expr('int?'))]),
         ]);
       });
 
@@ -3295,17 +3448,19 @@ main() {
 
     test('whileStatement_conditionBegin() un-promotes', () {
       var x = Var('x');
-      late SsaNode ssaBeforeLoop;
+      late ValueVersion versionBeforeLoop;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         x.as_('int'),
         checkPromoted(x, 'int'),
-        getSsaNodes((nodes) => ssaBeforeLoop = nodes[x]!),
+        getVersions((nodes) => versionBeforeLoop = nodes[x]!),
         while_(
           second(
             listLiteral(elementType: 'dynamic', [
               checkNotPromoted(x),
-              getSsaNodes((nodes) => expect(nodes[x], isNot(ssaBeforeLoop))),
+              getVersions(
+                (nodes) => expect(nodes[x], isNot(versionBeforeLoop)),
+              ),
             ]),
             expr('bool'),
           ),
@@ -3337,6 +3492,87 @@ main() {
       },
     );
 
+    test(
+      'whileStatement_conditionBegin() marks final vars assigned in the loop '
+      'as not definitely unassigned',
+      () {
+        // final int? x;
+        // while (<bool>) {
+        //   x is not definitely unassigned
+        //   x = <int>;
+        // }
+        var x = Var('x', isFinal: true);
+        h.run([
+          declare(x, type: 'int?'),
+          checkUnassigned(x, true),
+          while_(expr('bool'), [
+            checkUnassigned(x, false),
+            x.write(expr('int')),
+          ]),
+        ]);
+      },
+    );
+
+    test(
+      'whileStatement_conditionBegin() marks final vars assigned in the loop '
+      'as not definitely unassigned with inference-update-4 disabled',
+      () {
+        // See test for "whileStatement_conditionBegin() marks final vars
+        // assigned in the loop as not definitely unassigned" for enabled
+        // behavior.
+        var x = Var('x', isFinal: true);
+        h.disableInferenceUpdate4();
+        h.run([
+          declare(x, type: 'int?'),
+          checkUnassigned(x, true),
+          while_(expr('bool'), [
+            checkUnassigned(x, false),
+            x.write(expr('int')),
+          ]),
+        ]);
+      },
+    );
+
+    test('whileStatement_conditionBegin() preserves promotions of potentially '
+        'assigned late final vars', () {
+      // late final int? x;
+      // if (<bool>) x = <int>;
+      // if (x != null) {
+      //   while (<bool>) {
+      //     x is promoted to int (because the read of `x` succeeded, `x`
+      //     has been assigned, so the assignment below will throw)
+      //     x = <int?>;
+      //   }
+      // }
+      var x = Var('x', isFinal: true);
+      h.run([
+        declare(x, isLate: true, type: 'int?'),
+        if_(expr('bool'), [x.write(expr('int'))]),
+        if_(x.notEq(nullLiteral), [
+          while_(expr('bool'), [
+            checkPromoted(x, 'int'),
+            x.write(expr('int?')),
+          ]),
+        ]),
+      ]);
+    });
+
+    test('whileStatement_conditionBegin() cancels promotions of potentially '
+        'assigned late final vars with inference-update-4 disabled', () {
+      // See test for "whileStatement_conditionBegin() preserves promotions of
+      // potentially assigned late final vars" for enabled behavior.
+      var x = Var('x', isFinal: true);
+      h.disableInferenceUpdate4();
+      h.run([
+        declare(x, isLate: true, type: 'int?'),
+        if_(expr('bool'), [x.write(expr('int'))]),
+        if_(x.notEq(nullLiteral), [
+          checkPromoted(x, 'int'),
+          while_(expr('bool'), [checkNotPromoted(x), x.write(expr('int?'))]),
+        ]),
+      ]);
+    });
+
     test('whileStatement_bodyBegin() promotes', () {
       var x = Var('x');
       h.run([
@@ -3366,38 +3602,39 @@ main() {
       ]);
     });
 
-    test('whileStatement_end() with break updates Ssa of modified vars', () {
+    test('whileStatement_end() with break updates value versions of modified '
+        'vars', () {
       var x = Var('x');
       var y = Var('y');
-      late SsaNode xSsaInsideLoop;
-      late SsaNode ySsaInsideLoop;
+      late ValueVersion xVersionInsideLoop;
+      late ValueVersion yVersionInsideLoop;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
         while_(expr('bool'), [
           x.write(expr('int?')),
           if_(expr('bool'), [break_()]),
-          getSsaNodes((nodes) {
-            xSsaInsideLoop = nodes[x]!;
-            ySsaInsideLoop = nodes[y]!;
+          getVersions((nodes) {
+            xVersionInsideLoop = nodes[x]!;
+            yVersionInsideLoop = nodes[y]!;
           }),
         ]),
-        getSsaNodes((nodes) {
-          // x's Ssa should have been changed because of the join at the end of
-          // the loop.  y's should not, since it retains the value it had prior
-          // to the loop.
-          expect(nodes[x], isNot(xSsaInsideLoop));
-          expect(nodes[y], same(ySsaInsideLoop));
+        getVersions((nodes) {
+          // x's value version should have been changed because of the join at
+          // the end of the loop. y's should not, since it retains the value it
+          // had prior to the loop.
+          expect(nodes[x], isNot(xVersionInsideLoop));
+          expect(nodes[y], same(yVersionInsideLoop));
         }),
       ]);
     });
 
-    test('whileStatement_end() with break updates Ssa of modified vars when '
-        'types were tested', () {
+    test('whileStatement_end() with break updates value versions of modified '
+        'vars when types were tested', () {
       var x = Var('x');
       var y = Var('y');
-      late SsaNode xSsaInsideLoop;
-      late SsaNode ySsaInsideLoop;
+      late ValueVersion xVersionInsideLoop;
+      late ValueVersion yVersionInsideLoop;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
@@ -3405,32 +3642,33 @@ main() {
           x.write(expr('int?')),
           if_(expr('bool'), [break_()]),
           if_(x.is_('int'), []),
-          getSsaNodes((nodes) {
-            xSsaInsideLoop = nodes[x]!;
-            ySsaInsideLoop = nodes[y]!;
+          getVersions((nodes) {
+            xVersionInsideLoop = nodes[x]!;
+            yVersionInsideLoop = nodes[y]!;
           }),
         ]),
-        getSsaNodes((nodes) {
-          // x's Ssa should have been changed because of the join at the end of
-          // the loop.  y's should not, since it retains the value it had prior
-          // to the loop.
-          expect(nodes[x], isNot(xSsaInsideLoop));
-          expect(nodes[y], same(ySsaInsideLoop));
+        getVersions((nodes) {
+          // x's value version should have been changed because of the join at
+          // the end of the loop. y's should not, since it retains the value it
+          // had prior to the loop.
+          expect(nodes[x], isNot(xVersionInsideLoop));
+          expect(nodes[y], same(yVersionInsideLoop));
         }),
       ]);
     });
 
-    test('write() de-promotes and updates Ssa of a promoted variable', () {
+    test('write() de-promotes and updates value version of a promoted '
+        'variable', () {
       var x = Var('x');
       var y = Var('y');
-      late SsaNode ssaBeforeWrite;
+      late ValueVersion versionBeforeWrite;
       late ExpressionInfo writtenValueInfo;
       h.run([
         declare(x, type: 'Object', initializer: expr('Object')),
         declare(y, type: 'int?', initializer: expr('int?')),
         x.as_('int'),
         checkPromoted(x, 'int'),
-        getSsaNodes((nodes) => ssaBeforeWrite = nodes[x]!),
+        getVersions((nodes) => versionBeforeWrite = nodes[x]!),
         x.write(
           y.eq(nullLiteral).getExpressionInfo((info) {
             expect(info, isNotNull);
@@ -3438,36 +3676,37 @@ main() {
           }),
         ),
         checkNotPromoted(x),
-        getSsaNodes((nodes) {
-          expect(nodes[x], isNot(ssaBeforeWrite));
+        getVersions((nodes) {
+          expect(nodes[x], isNot(versionBeforeWrite));
           expect(nodes[x]!.conditionVariableState, same(writtenValueInfo));
         }),
       ]);
     });
 
-    test('write() updates Ssa', () {
+    test('write() updates value version', () {
       var x = Var('x');
       var y = Var('y');
-      late SsaNode ssaBeforeWrite;
+      late ValueVersion versionBeforeWrite;
       late ExpressionInfo writtenValueInfo;
       h.run([
         declare(x, type: 'Object', initializer: expr('Object')),
         declare(y, type: 'int?', initializer: expr('int?')),
-        getSsaNodes((nodes) => ssaBeforeWrite = nodes[x]!),
+        getVersions((nodes) => versionBeforeWrite = nodes[x]!),
         x.write(
           y.eq(nullLiteral).getExpressionInfo((info) {
             expect(info, isNotNull);
             writtenValueInfo = info!;
           }),
         ),
-        getSsaNodes((nodes) {
-          expect(nodes[x], isNot(ssaBeforeWrite));
+        getVersions((nodes) {
+          expect(nodes[x], isNot(versionBeforeWrite));
           expect(nodes[x]!.conditionVariableState, same(writtenValueInfo));
         }),
       ]);
     });
 
-    test('write() does not copy Ssa from one variable to another', () {
+    test('write() does not copy value versions from one variable to '
+        'another', () {
       // We could do so, and it would enable us to promote in slightly more
       // situations, e.g.:
       //   bool b = x != null;
@@ -3482,19 +3721,19 @@ main() {
 
       var x = Var('x');
       var y = Var('y');
-      late SsaNode xSsaBeforeWrite;
-      late SsaNode ySsa;
+      late ValueVersion xVersionBeforeWrite;
+      late ValueVersion yVersion;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
-        getSsaNodes((nodes) {
-          xSsaBeforeWrite = nodes[x]!;
-          ySsa = nodes[y]!;
+        getVersions((nodes) {
+          xVersionBeforeWrite = nodes[x]!;
+          yVersion = nodes[y]!;
         }),
         x.write(y),
-        getSsaNodes((nodes) {
-          expect(nodes[x], isNot(xSsaBeforeWrite));
-          expect(nodes[x], isNot(ySsa));
+        getVersions((nodes) {
+          expect(nodes[x], isNot(xVersionBeforeWrite));
+          expect(nodes[x], isNot(yVersion));
         }),
       ]);
     });
@@ -3502,12 +3741,12 @@ main() {
     test('write() does not store expressionInfo for trivial expressions', () {
       var x = Var('x');
       var y = Var('y');
-      late SsaNode ssaBeforeWrite;
+      late ValueVersion versionBeforeWrite;
       h.run([
         declare(x, type: 'Object', initializer: expr('Object')),
         declare(y, type: 'int?', initializer: expr('int?')),
         localFunction([y.write(expr('int?'))]),
-        getSsaNodes((nodes) => ssaBeforeWrite = nodes[x]!),
+        getVersions((nodes) => versionBeforeWrite = nodes[x]!),
         // `y == null` is a trivial expression because y has been write
         // captured.
         x.write(
@@ -3515,8 +3754,8 @@ main() {
               .eq(nullLiteral)
               .getExpressionInfo((info) => expect(info, isNotNull)),
         ),
-        getSsaNodes((nodes) {
-          expect(nodes[x], isNot(ssaBeforeWrite));
+        getVersions((nodes) {
+          expect(nodes[x], isNot(versionBeforeWrite));
           expect(nodes[x]!.conditionVariableState, isNull);
         }),
       ]);
@@ -3546,10 +3785,10 @@ main() {
       h.run([
         declare(x, type: 'Object', initializer: expr('Object')),
         localFunction([x.write(expr('Object'))]),
-        getSsaNodes((nodes) => expect(nodes[x], isNull)),
+        getVersions((nodes) => expect(nodes[x], isNull)),
         x.as_('int'),
         checkNotPromoted(x),
-        getSsaNodes((nodes) => expect(nodes[x], isNull)),
+        getVersions((nodes) => expect(nodes[x], isNull)),
       ]);
     });
 
@@ -3845,33 +4084,33 @@ main() {
       });
 
       test('promoted -> unchanged (same)', () {
-        var s1 = FlowModel(
-          Reachability.initial,
-        )._tryPromoteForTypeCheck(h, objectQVar, 'int').ifTrue;
+        var s1 = FlowModel(Reachability.initial)
+            ._tryPromoteForTypeCheck(h, objectQVar, 'int')
+            .ifTrue;
         var s2 = s1._tryPromoteForTypeCheck(h, objectQVar, 'int').ifTrue;
         expect(s2, same(s1));
       });
 
       test('promoted -> unchanged (supertype)', () {
-        var s1 = FlowModel(
-          Reachability.initial,
-        )._tryPromoteForTypeCheck(h, objectQVar, 'int').ifTrue;
+        var s1 = FlowModel(Reachability.initial)
+            ._tryPromoteForTypeCheck(h, objectQVar, 'int')
+            .ifTrue;
         var s2 = s1._tryPromoteForTypeCheck(h, objectQVar, 'Object').ifTrue;
         expect(s2, same(s1));
       });
 
       test('promoted -> unchanged (unrelated)', () {
-        var s1 = FlowModel(
-          Reachability.initial,
-        )._tryPromoteForTypeCheck(h, objectQVar, 'int').ifTrue;
+        var s1 = FlowModel(Reachability.initial)
+            ._tryPromoteForTypeCheck(h, objectQVar, 'int')
+            .ifTrue;
         var s2 = s1._tryPromoteForTypeCheck(h, objectQVar, 'String').ifTrue;
         expect(s2, same(s1));
       });
 
       test('promoted -> subtype', () {
-        var s1 = FlowModel(
-          Reachability.initial,
-        )._tryPromoteForTypeCheck(h, objectQVar, 'int?').ifTrue;
+        var s1 = FlowModel(Reachability.initial)
+            ._tryPromoteForTypeCheck(h, objectQVar, 'int?')
+            .ifTrue;
         var s2 = s1._tryPromoteForTypeCheck(h, objectQVar, 'int').ifTrue;
         expect(s2.reachable.overallReachable, true);
         expect(s2.promotionInfo.unwrap(h), {
@@ -3898,7 +4137,7 @@ main() {
           null,
           objectQVar,
           SharedTypeView(Type('Object?')),
-          new SsaNode(),
+          new ValueVersion(),
         );
         expect(
           s.promotionInfo?.get(
@@ -3916,7 +4155,7 @@ main() {
           null,
           objectQVar,
           SharedTypeView(Type('Object?')),
-          new SsaNode(),
+          new ValueVersion(),
         );
         expect(s2, isNot(same(s1)));
         expect(s2.reachable, same(s1.reachable));
@@ -3938,7 +4177,7 @@ main() {
           null,
           objectQVar,
           SharedTypeView(Type('int?')),
-          new SsaNode(),
+          new ValueVersion(),
         );
         expect(s2.reachable.overallReachable, true);
         expect(
@@ -3966,7 +4205,7 @@ main() {
           _MockNonPromotionReason(),
           objectQVar,
           SharedTypeView(Type('int?')),
-          new SsaNode(),
+          new ValueVersion(),
         );
         expect(s2.reachable.overallReachable, true);
         expect(s2.promotionInfo.unwrap(h), {
@@ -3999,7 +4238,7 @@ main() {
           _MockNonPromotionReason(),
           objectQVar,
           SharedTypeView(Type('num')),
-          new SsaNode(),
+          new ValueVersion(),
         );
         expect(s2.reachable.overallReachable, true);
         expect(s2.promotionInfo.unwrap(h), {
@@ -4034,7 +4273,7 @@ main() {
           _MockNonPromotionReason(),
           objectQVar,
           SharedTypeView(Type('num')),
-          new SsaNode(),
+          new ValueVersion(),
         );
         expect(s2.reachable.overallReachable, true);
         expect(s2.promotionInfo.unwrap(h), {
@@ -4067,7 +4306,7 @@ main() {
           null,
           objectQVar,
           SharedTypeView(Type('num')),
-          new SsaNode(),
+          new ValueVersion(),
         );
         expect(s2.reachable.overallReachable, true);
         expect(s2.promotionInfo, isNot(same(s1.promotionInfo)));
@@ -4101,7 +4340,7 @@ main() {
           null,
           objectQVar,
           SharedTypeView(Type('int')),
-          new SsaNode(),
+          new ValueVersion(),
         );
         expect(s2.reachable.overallReachable, true);
         expect(s2.promotionInfo, isNot(same(s1.promotionInfo)));
@@ -4131,7 +4370,7 @@ main() {
             null,
             x,
             SharedTypeView(Type('int')),
-            new SsaNode(),
+            new ValueVersion(),
           );
           expect(s2.promotionInfo.unwrap(h), {
             h.promotionKeyStore.keyForVariable(x): _matchVariableModel(
@@ -4164,7 +4403,7 @@ main() {
             null,
             x,
             SharedTypeView(Type('int')),
-            new SsaNode(),
+            new ValueVersion(),
           );
           expect(s3.promotionInfo.unwrap(h), {
             h.promotionKeyStore.keyForVariable(x): _matchVariableModel(
@@ -4190,7 +4429,7 @@ main() {
             null,
             objectQVar,
             SharedTypeView(Type('int')),
-            new SsaNode(),
+            new ValueVersion(),
           );
           expect(s2.promotionInfo.unwrap(h), {
             h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
@@ -4216,7 +4455,7 @@ main() {
             null,
             objectQVar,
             SharedTypeView(Type('int')),
-            new SsaNode(),
+            new ValueVersion(),
           );
           expect(s2.promotionInfo.unwrap(h), {
             h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
@@ -4243,7 +4482,7 @@ main() {
           _MockNonPromotionReason(),
           objectQVar,
           SharedTypeView(Type('num?')),
-          new SsaNode(),
+          new ValueVersion(),
         );
         expect(s2.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
@@ -4271,7 +4510,7 @@ main() {
           _MockNonPromotionReason(),
           objectQVar,
           SharedTypeView(Type('int?')),
-          new SsaNode(),
+          new ValueVersion(),
         );
         expect(s2.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(objectQVar): _matchVariableModel(
@@ -4316,7 +4555,7 @@ main() {
               null,
               x,
               SharedTypeView(Type('C')),
-              new SsaNode(),
+              new ValueVersion(),
             );
             expect(s2.promotionInfo.unwrap(h), {
               h.promotionKeyStore.keyForVariable(x): _matchVariableModel(
@@ -4347,7 +4586,7 @@ main() {
               null,
               x,
               SharedTypeView(Type('C')),
-              new SsaNode(),
+              new ValueVersion(),
             );
             expect(s2.promotionInfo.unwrap(h), {
               h.promotionKeyStore.keyForVariable(x): _matchVariableModel(
@@ -4378,7 +4617,7 @@ main() {
               null,
               x,
               SharedTypeView(Type('B')),
-              new SsaNode(),
+              new ValueVersion(),
             );
             expect(s2.promotionInfo.unwrap(h), {
               h.promotionKeyStore.keyForVariable(x): _matchVariableModel(
@@ -4409,7 +4648,7 @@ main() {
               null,
               objectQVar,
               SharedTypeView(Type('List<int>')),
-              new SsaNode(),
+              new ValueVersion(),
             );
             // It's ambiguous whether to promote to List<Object?> or
             // List<dynamic>, so we don't promote.
@@ -4441,7 +4680,7 @@ main() {
             _MockNonPromotionReason(),
             objectQVar,
             SharedTypeView(Type('List<Object?>')),
-            new SsaNode(),
+            new ValueVersion(),
           );
           // It's ambiguous whether to promote to List<Object?> or
           // List<dynamic>, but since the written type is exactly List<Object?>,
@@ -4478,7 +4717,7 @@ main() {
           _MockNonPromotionReason(),
           x,
           SharedTypeView(Type('double')),
-          new SsaNode(),
+          new ValueVersion(),
         );
         expect(s2.promotionInfo.unwrap(h), {
           h.promotionKeyStore.keyForVariable(x): _matchVariableModel(
@@ -4535,17 +4774,17 @@ main() {
       });
 
       test('promoted -> unchanged', () {
-        var s1 = FlowModel(
-          Reachability.initial,
-        )._tryPromoteForTypeCheck(h, objectQVar, 'int').ifTrue;
+        var s1 = FlowModel(Reachability.initial)
+            ._tryPromoteForTypeCheck(h, objectQVar, 'int')
+            .ifTrue;
         var s2 = s1._tryMarkNonNullable(h, objectQVar).ifTrue;
         expect(s2, same(s1));
       });
 
       test('promoted -> re-promoted', () {
-        var s1 = FlowModel(
-          Reachability.initial,
-        )._tryPromoteForTypeCheck(h, objectQVar, 'int?').ifTrue;
+        var s1 = FlowModel(Reachability.initial)
+            ._tryPromoteForTypeCheck(h, objectQVar, 'int?')
+            .ifTrue;
         var s2 = s1._tryMarkNonNullable(h, objectQVar).ifTrue;
         expect(s2.reachable.overallReachable, true);
         expect(s2.promotionInfo.unwrap(h), {
@@ -4658,11 +4897,23 @@ main() {
             ._declare(h, c, false)
             ._declare(h, d, false);
         var s1 = s0
-            ._write(h, null, a, SharedTypeView(Type('int')), new SsaNode())
-            ._write(h, null, b, SharedTypeView(Type('int')), new SsaNode());
+            ._write(h, null, a, SharedTypeView(Type('int')), new ValueVersion())
+            ._write(
+              h,
+              null,
+              b,
+              SharedTypeView(Type('int')),
+              new ValueVersion(),
+            );
         var s2 = s0
-            ._write(h, null, a, SharedTypeView(Type('int')), new SsaNode())
-            ._write(h, null, c, SharedTypeView(Type('int')), new SsaNode());
+            ._write(h, null, a, SharedTypeView(Type('int')), new ValueVersion())
+            ._write(
+              h,
+              null,
+              c,
+              SharedTypeView(Type('int')),
+              new ValueVersion(),
+            );
         var result = s1.rebaseForward(h, s2);
         expect(result._infoFor(h, a).assigned, true);
         expect(result._infoFor(h, b).assigned, true);
@@ -4734,7 +4985,7 @@ main() {
               null,
               x,
               SharedTypeView(Type('Object?')),
-              new SsaNode(),
+              new ValueVersion(),
             );
           }
           if (thisType != null) {
@@ -4802,9 +5053,8 @@ main() {
           List<String> expectedResult,
         ) {
           var x = Var('x')..type = Type('Object?');
-          var initialModel = FlowModel(
-            Reachability.initial,
-          )._declare(h, x, true);
+          var initialModel = FlowModel(Reachability.initial)
+              ._declare(h, x, true);
           for (var t in before) {
             initialModel = initialModel._tryPromoteForTypeCheck(h, x, t).ifTrue;
           }
@@ -5089,6 +5339,95 @@ main() {
         _matchPromotionChain(['A', 'B']),
       );
     });
+
+    test('divergent types followed by common types', () {
+      // E <: D <: B <: A
+      // E <: D <: C <: A
+      // B and C are unrelated.
+      var A = Type('A');
+      var B = Type('B');
+      var C = Type('C');
+      var D = Type('D');
+      var E = Type('E');
+      h.addSuperInterfaces(
+        'D',
+        (_) => [Type('B'), Type('C'), Type('A'), Type('Object')],
+      );
+      h.addSuperInterfaces(
+        'E',
+        (_) => [Type('D'), Type('B'), Type('C'), Type('A'), Type('Object')],
+      );
+      h.addSuperInterfaces('B', (_) => [Type('A'), Type('Object')]);
+      h.addSuperInterfaces('C', (_) => [Type('A'), Type('Object')]);
+      h.addSuperInterfaces('A', (_) => [Type('Object')]);
+
+      var chain1 = [SharedTypeView(A), SharedTypeView(B), SharedTypeView(D)];
+      var chain2 = [SharedTypeView(A), SharedTypeView(C), SharedTypeView(D)];
+
+      // When promotionChainIntersectionJoin is disabled (legacy behavior):
+      // The join stops at B and C (which are unrelated) and drops D.
+      expect(
+        PromotionModel.joinPromotedTypes(
+          chain1,
+          chain2,
+          h.typeOperations,
+          promotionChainIntersectionJoinEnabled: false,
+        ),
+        _matchPromotionChain(['A']),
+      );
+      expect(
+        PromotionModel.joinPromotedTypes(
+          chain2,
+          chain1,
+          h.typeOperations,
+          promotionChainIntersectionJoinEnabled: false,
+        ),
+        _matchPromotionChain(['A']),
+      );
+
+      // When promotionChainIntersectionJoin is enabled:
+      // The join continues and finds common subsequence [A, D].
+      expect(
+        PromotionModel.joinPromotedTypes(
+          chain1,
+          chain2,
+          h.typeOperations,
+          promotionChainIntersectionJoinEnabled: true,
+        ),
+        _matchPromotionChain(['A', 'D']),
+      );
+      expect(
+        PromotionModel.joinPromotedTypes(
+          chain2,
+          chain1,
+          h.typeOperations,
+          promotionChainIntersectionJoinEnabled: true,
+        ),
+        _matchPromotionChain(['A', 'D']),
+      );
+
+      // Multiple common types after divergence:
+      var chain3 = [SharedTypeView(B), SharedTypeView(D), SharedTypeView(E)];
+      var chain4 = [SharedTypeView(C), SharedTypeView(D), SharedTypeView(E)];
+      expect(
+        PromotionModel.joinPromotedTypes(
+          chain3,
+          chain4,
+          h.typeOperations,
+          promotionChainIntersectionJoinEnabled: false,
+        ),
+        isEmpty,
+      );
+      expect(
+        PromotionModel.joinPromotedTypes(
+          chain3,
+          chain4,
+          h.typeOperations,
+          promotionChainIntersectionJoinEnabled: true,
+        ),
+        _matchPromotionChain(['D', 'E']),
+      );
+    });
   });
 
   group('joinTypesOfInterest', () {
@@ -5163,7 +5502,7 @@ main() {
       tested: typesOfInterest ?? promotionChain,
       assigned: assigned,
       unassigned: !assigned,
-      ssaNode: new SsaNode(),
+      version: new ValueVersion(),
     );
 
     group('without input reuse', () {
@@ -5393,6 +5732,70 @@ main() {
         });
       });
     });
+
+    group('promotion-chain-intersection-join', () {
+      late Type bType;
+      late Type cType;
+      late Type dType;
+
+      setUp(() {
+        bType = Type('B');
+        cType = Type('C');
+        dType = Type('D');
+        h.addSuperInterfaces(
+          'D',
+          (_) => [Type('B'), Type('C'), Type('Object')],
+        );
+        h.addSuperInterfaces('B', (_) => [Type('Object')]);
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+      });
+
+      test('disabled', () {
+        h.disablePromotionChainIntersectionJoin();
+        var s0 = FlowModel(Reachability.initial);
+        var s1 = s0._setInfo(h, {
+          x: model([SharedTypeView(bType), SharedTypeView(dType)]),
+        });
+        var s2 = s0._setInfo(h, {
+          x: model([SharedTypeView(cType), SharedTypeView(dType)]),
+        });
+        expect(FlowModel.joinPromotionInfo(h, s1, s2).promotionInfo.unwrap(h), {
+          x: _matchVariableModel(chain: isEmpty, ofInterest: ['B', 'D', 'C']),
+        });
+      });
+
+      test('enabled', () {
+        var s0 = FlowModel(Reachability.initial);
+        var s1 = s0._setInfo(h, {
+          x: model([SharedTypeView(bType), SharedTypeView(dType)]),
+        });
+        var s2 = s0._setInfo(h, {
+          x: model([SharedTypeView(cType), SharedTypeView(dType)]),
+        });
+        expect(FlowModel.joinPromotionInfo(h, s1, s2).promotionInfo.unwrap(h), {
+          x: _matchVariableModel(chain: ['D'], ofInterest: ['B', 'D', 'C']),
+        });
+      });
+
+      test('AST disabled', () {
+        h.disablePromotionChainIntersectionJoin();
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'Object', initializer: expr('Object')),
+          if_(expr('bool'), [x.as_('B'), x.as_('D')], [x.as_('C'), x.as_('D')]),
+          checkNotPromoted(x),
+        ]);
+      });
+
+      test('AST enabled', () {
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'Object', initializer: expr('Object')),
+          if_(expr('bool'), [x.as_('B'), x.as_('D')], [x.as_('C'), x.as_('D')]),
+          checkPromoted(x, 'D'),
+        ]);
+      });
+    });
   });
 
   group('inheritTested', () {
@@ -5412,7 +5815,7 @@ main() {
           tested: typesOfInterest,
           assigned: true,
           unassigned: false,
-          ssaNode: new SsaNode(),
+          version: new ValueVersion(),
         );
 
     test('inherits types of interest from other', () {
@@ -5719,7 +6122,7 @@ main() {
         h.addSuperInterfaces('C', (_) => [Type('Object')]);
         h.run([
           if_(this_.isNot('D'), [return_()]),
-          implicitThis_whyNotPromoted('C', (reasons) {
+          implicitThis_whyNotPromoted((reasons) {
             expect(reasons.keys, unorderedEquals([Type('D')]));
             var nonPromotionReason = reasons.values.single as ThisNotPromoted;
             expect(
@@ -5752,7 +6155,7 @@ main() {
         h.addSuperInterfaces('C', (_) => [Type('Object')]);
         h.run([
           if_(this_.isNot('D'), [return_()]),
-          implicitThis_whyNotPromoted('C', (reasons) {
+          implicitThis_whyNotPromoted((reasons) {
             expect(reasons, isEmpty);
           }),
         ]);
@@ -5826,6 +6229,118 @@ main() {
         h.addSuperInterfaces('C', (_) => [Type('Object')]);
         h.run([
           ifCase(this_, wildcard(type: 'D'), [checkNotPromoted(this_)]),
+        ]);
+      });
+
+      test('nullAssertPattern this promotes', () {
+        h.thisType = 'C?';
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([
+          ifCase(this_, wildcard().nullAssert, [checkPromoted(this_, 'C')]),
+        ]);
+      });
+
+      test('nullAssertPattern this does not promote when disabled', () {
+        h.disableThisPromotion();
+        h.thisType = 'C?';
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([
+          ifCase(this_, wildcard().nullAssert, [checkNotPromoted(this_)]),
+        ]);
+      });
+
+      test('nullCheckPattern this promotes', () {
+        h.thisType = 'C?';
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([
+          ifCase(this_, wildcard().nullCheck, [checkPromoted(this_, 'C')]),
+        ]);
+      });
+
+      test('nullCheckPattern this does not promote when disabled', () {
+        h.disableThisPromotion();
+        h.thisType = 'C?';
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([
+          ifCase(this_, wildcard().nullCheck, [checkNotPromoted(this_)]),
+        ]);
+      });
+
+      test('switchStatement nullAssertPattern this promotes', () {
+        h.thisType = 'C?';
+        h.addExhaustiveness('C?', false);
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([
+          switch_(this_, [
+            wildcard().nullAssert.then([checkPromoted(this_, 'C')]),
+          ]),
+        ]);
+      });
+
+      test('switchStatement nullAssertPattern this does not promote when '
+          'disabled', () {
+        h.disableThisPromotion();
+        h.thisType = 'C?';
+        h.addExhaustiveness('C?', false);
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([
+          switch_(this_, [
+            wildcard().nullAssert.then([checkNotPromoted(this_)]),
+          ]),
+        ]);
+      });
+
+      test('patternAssignment this promotes', () {
+        h.thisType = 'C?';
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([wildcard().nullAssert.assign(this_), checkPromoted(this_, 'C')]);
+      });
+
+      test('patternAssignment this does not promote when disabled', () {
+        h.disableThisPromotion();
+        h.thisType = 'C?';
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([wildcard().nullAssert.assign(this_), checkNotPromoted(this_)]);
+      });
+
+      test('relationalPattern this promotes', () {
+        h.thisType = 'C?';
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([
+          ifCase(this_, relationalPattern('!=', nullLiteral), [
+            checkPromoted(this_, 'C'),
+          ]),
+        ]);
+      });
+
+      test('relationalPattern this does not promote when disabled', () {
+        h.disableThisPromotion();
+        h.thisType = 'C?';
+        h.addSuperInterfaces('C', (_) => [Type('Object')]);
+        h.run([
+          ifCase(this_, relationalPattern('!=', nullLiteral), [
+            checkNotPromoted(this_),
+          ]),
+        ]);
+      });
+
+      test('listPattern element does not promote this', () {
+        // Equivalent Dart code:
+        //     extension on Object? {
+        //       f() {
+        //         if (this case [int _]) {
+        //           // `this` is a `List<Object?>`, but nothing is known about
+        //           // it beyond that; in particular it is *not* an `int`.
+        //         }
+        //       }
+        //     }
+        h.thisType = 'Object?';
+        h.run([
+          ifCase(
+            this_,
+            listPattern([wildcard(type: 'int')], elementType: 'Object?'),
+            [checkPromoted(this_, 'List<Object?>')],
+          ),
         ]);
       });
     });
@@ -5929,6 +6444,323 @@ main() {
         checkPromoted(x.property('_field'), 'int'),
         x.property('_field').checkType('int'),
       ]);
+    });
+
+    group('promotion after promotion of target:', () {
+      // These tests exercise the situation where a property is promoted, then
+      // its target is promoted, causing the property's unpromoted type to
+      // change, and then the property is promoted again.
+      //
+      // When the promotion-chain-intersection-join feature is enabled, and the
+      // last type in the property's promotion chain isn't a subtype of the
+      // property's new unpromoted type, types in the property's promotion
+      // chain that the new promoted type is not a strict subtype of are
+      // discarded, so that the promotion chain remains valid (each type is a
+      // strict subtype of the previous one). See
+      // `FlowModel._filterPropertyPromotionChain`.
+
+      void setUpClasses({required String cFieldType}) {
+        h.addMember('B', '_field', 'Object?', promotable: true);
+        h.addMember('C', '_field', cFieldType, promotable: true);
+        h.addSuperInterfaces('C', (_) => [Type('B'), Type('Object')]);
+        h.addSuperInterfaces('B', (_) => [Type('Object')]);
+      }
+
+      /// Statements that promote `x._field` to [type] (while `x` has type
+      /// `B`), then promote `x` to `C`, then promote `x._field` to non-null.
+      List<ProtoStatement> promoteFieldThenTargetThenField(
+        Var x,
+        String type,
+      ) => [
+        if_(x.property('_field').isNot(type), [return_()]),
+        if_(x.isNot('C'), [return_()]),
+        if_(x.property('_field').eq(nullLiteral), [return_()]),
+      ];
+
+      test('stale promotion discarded', () {
+        setUpClasses(cFieldType: 'String?');
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'B', initializer: expr('B')),
+          if_(x.property('_field').isNot('num'), [return_()]),
+          checkPromotionChain(x.property('_field'), ['num']),
+          if_(x.isNot('C'), [return_()]),
+          // `num` is not a subtype of `String?`, so the promotion is ignored.
+          checkNotPromoted(x.property('_field')),
+          x.property('_field').checkType('String?'),
+          if_(x.property('_field').eq(nullLiteral), [return_()]),
+          checkPromotionChain(x.property('_field'), ['String']),
+          checkPromoted(x.property('_field'), 'String'),
+          x.property('_field').checkType('String'),
+        ]);
+      });
+
+      test('stale promotion not discarded when disabled', () {
+        h.disablePromotionChainIntersectionJoin();
+        setUpClasses(cFieldType: 'String?');
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'B', initializer: expr('B')),
+          ...promoteFieldThenTargetThenField(x, 'num'),
+          checkPromotionChain(x.property('_field'), ['num', 'String']),
+          checkPromoted(x.property('_field'), 'String'),
+          x.property('_field').checkType('String'),
+        ]);
+      });
+
+      test('promotion that is a strict supertype kept', () {
+        setUpClasses(cFieldType: 'int?');
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'B', initializer: expr('B')),
+          if_(x.property('_field').isNot('num'), [return_()]),
+          if_(x.isNot('C'), [return_()]),
+          // `num` is not a subtype of `int?`, so the promotion is ignored.
+          checkNotPromoted(x.property('_field')),
+          x.property('_field').checkType('int?'),
+          if_(x.property('_field').eq(nullLiteral), [return_()]),
+          // But `int` is a strict subtype of `num`, so `num` is kept.
+          checkPromotionChain(x.property('_field'), ['num', 'int']),
+          checkPromoted(x.property('_field'), 'int'),
+          x.property('_field').checkType('int'),
+        ]);
+      });
+
+      test('promotion that is a strict supertype survives join', () {
+        setUpClasses(cFieldType: 'int?');
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'B', initializer: expr('B')),
+          if_(x.property('_field').isNot('num'), [return_()]),
+          if_(x.is_('C'), [
+            if_(x.property('_field').eq(nullLiteral), [return_()]),
+            checkPromotionChain(x.property('_field'), ['num', 'int']),
+          ]),
+          checkPromotionChain(x.property('_field'), ['num']),
+          checkPromoted(x.property('_field'), 'num'),
+          x.property('_field').checkType('num'),
+        ]);
+      });
+
+      group('join is independent of order:', () {
+        // In each branch, `x._field` is promoted to some type while `x` has
+        // type `B`, then `x` is promoted to `C`, then `x._field` is promoted to
+        // `String`. Without filtering, the promotion chains for `x._field` in
+        // the two branches would be `[int, String]` and `[num, String]`, which
+        // aren't valid promotion chains, and the join algorithm would produce
+        // different results depending on the order of the branches.
+        void checkJoin(String thenType, String elseType) {
+          setUpClasses(cFieldType: 'String?');
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'B', initializer: expr('B')),
+            if_(
+              expr('bool'),
+              promoteFieldThenTargetThenField(x, thenType),
+              promoteFieldThenTargetThenField(x, elseType),
+            ),
+            checkPromotionChain(x.property('_field'), ['String']),
+            checkPromoted(x.property('_field'), 'String'),
+            x.property('_field').checkType('String'),
+          ]);
+        }
+
+        test('int then num', () {
+          checkJoin('int', 'num');
+        });
+
+        test('num then int', () {
+          checkJoin('num', 'int');
+        });
+
+        // Without filtering, the promotion chains for `x._field` would be
+        // `[int, String]` and `[String]`, and the join algorithm would fail to
+        // find the common type `String`.
+        void checkJoinWithUnpromoted({required bool promoteInThen}) {
+          setUpClasses(cFieldType: 'String?');
+          var x = Var('x');
+          List<ProtoStatement> promoteTargetThenField = [
+            if_(x.isNot('C'), [return_()]),
+            if_(x.property('_field').eq(nullLiteral), [return_()]),
+          ];
+          List<ProtoStatement> promoteFieldFirst =
+              promoteFieldThenTargetThenField(x, 'int');
+          h.run([
+            declare(x, type: 'B', initializer: expr('B')),
+            if_(
+              expr('bool'),
+              promoteInThen ? promoteFieldFirst : promoteTargetThenField,
+              promoteInThen ? promoteTargetThenField : promoteFieldFirst,
+            ),
+            checkPromotionChain(x.property('_field'), ['String']),
+            checkPromoted(x.property('_field'), 'String'),
+            x.property('_field').checkType('String'),
+          ]);
+        }
+
+        test('promoted before target in then branch only', () {
+          checkJoinWithUnpromoted(promoteInThen: true);
+        });
+
+        test('promoted before target in else branch only', () {
+          checkJoinWithUnpromoted(promoteInThen: false);
+        });
+      });
+
+      test('stale promotions partially discarded', () {
+        setUpClasses(cFieldType: 'String?');
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'B', initializer: expr('B')),
+          if_(x.property('_field').isNot('Object'), [return_()]),
+          if_(x.property('_field').isNot('int'), [return_()]),
+          checkPromotionChain(x.property('_field'), ['Object', 'int']),
+          if_(x.isNot('C'), [return_()]),
+          // `int` is not a subtype of `String?`, so the promotion is ignored.
+          checkPromoted(x.property('_field'), null),
+          x.property('_field').checkType('String?'),
+          if_(x.property('_field').eq(nullLiteral), [return_()]),
+          // `String` is a strict subtype of `Object` but not of `int`, so only
+          // `int` is discarded.
+          checkPromotionChain(x.property('_field'), ['Object', 'String']),
+          checkPromoted(x.property('_field'), 'String'),
+        ]);
+      });
+
+      group('promotion lost after join:', () {
+        // When the promotion-chain-intersection-join feature is enabled,
+        // discarding stale promotions can cause promotions to be lost after a
+        // join, since a promotion chain can't represent an intersection of
+        // unrelated types.
+        void setUpUnrelatedInterfaces() {
+          h.addSuperInterfaces('E', (_) => [Type('Object')]);
+          h.addSuperInterfaces('F', (_) => [Type('Object')]);
+          setUpClasses(cFieldType: 'F?');
+        }
+
+        List<ProtoStatement> promoteThenJoin(Var x) => [
+          declare(x, type: 'B', initializer: expr('B')),
+          if_(x.property('_field').isNot('E'), [return_()]),
+          if_(x.is_('C').and(x.property('_field').notEq(nullLiteral)), []),
+        ];
+
+        test('when enabled', () {
+          setUpUnrelatedInterfaces();
+          var x = Var('x');
+          h.run([
+            ...promoteThenJoin(x),
+            // Joining `[F]` with `[E]` produces `[]`.
+            checkPromotionChain(x.property('_field'), []),
+            checkNotPromoted(x.property('_field')),
+          ]);
+        });
+
+        test('when disabled', () {
+          h.disablePromotionChainIntersectionJoin();
+          setUpUnrelatedInterfaces();
+          var x = Var('x');
+          h.run([
+            ...promoteThenJoin(x),
+            // Joining `[E, F]` with `[E]` produces `[E]`.
+            checkPromotionChain(x.property('_field'), ['E']),
+            checkPromoted(x.property('_field'), 'E'),
+          ]);
+        });
+      });
+    });
+
+    group('pattern promotions of property not filtered:', () {
+      // When a pattern promotes a property, it uses a reference to the
+      // property that was created before the pattern began, so its type
+      // doesn't reflect promotions made by earlier subpatterns or `switch`
+      // cases. Therefore a promotion made by a later subpattern or case might
+      // not be a strict subtype of the last type in the property's promotion
+      // chain. But the target of the property access hasn't been promoted, so
+      // the last type in the property's promotion chain is a subtype of the
+      // property's unpromoted type, and the property's promotion chain is not
+      // filtered (see `FlowModel._filterPropertyPromotionChain`). These tests
+      // verify that the behavior in this situation is unchanged.
+      test('logical-and pattern with unrelated types', () {
+        h.addSuperInterfaces('A', (_) => [Type('Object')]);
+        h.addSuperInterfaces('B', (_) => [Type('Object')]);
+        h.addMember('D', '_field', 'Object?', promotable: true);
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'D', initializer: expr('D')),
+          if_(
+            expr('bool'),
+            [
+              if_(x.property('_field').isNot('A'), [return_()]),
+            ],
+            [
+              ifCase(
+                x.property('_field'),
+                wildcard(type: 'A').and(wildcard(type: 'B')),
+                [],
+                [return_()],
+              ),
+            ],
+          ),
+          checkPromoted(x.property('_field'), 'A'),
+        ]);
+      });
+
+      test('logical-and pattern with subtype then supertype', () {
+        h.addSuperInterfaces('A', (_) => [Type('Object')]);
+        h.addSuperInterfaces('B', (_) => [Type('A'), Type('Object')]);
+        h.addMember('D', '_field', 'Object?', promotable: true);
+        var x = Var('x');
+        h.run(
+          [
+            declare(x, type: 'D', initializer: expr('D')),
+            if_(
+              expr('bool'),
+              [
+                if_(x.property('_field').isNot('B'), [return_()]),
+              ],
+              [
+                ifCase(
+                  x.property('_field'),
+                  wildcard(type: 'B')
+                      .and(wildcard(type: 'A')..errorId = 'WILDCARD'),
+                  [],
+                  [return_()],
+                ),
+              ],
+            ),
+            checkPromoted(x.property('_field'), 'B'),
+          ],
+          expectedErrors: {
+            'unnecessaryWildcardPattern(pattern: WILDCARD, '
+                'kind: logicalAndPatternOperand)',
+          },
+        );
+      });
+
+      test('switch cases', () {
+        h.addMember('D', '_field', 'FutureOr<num>?', promotable: true);
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'D', initializer: expr('D')),
+          if_(
+            expr('bool'),
+            [
+              if_(x.property('_field').eq(nullLiteral), [return_()]),
+            ],
+            [
+              switch_(x.property('_field'), [
+                nullLiteral.pattern.then([return_()]),
+                objectPattern(
+                  requiredType: 'Future<num>',
+                  fields: [],
+                ).then([return_()]),
+                default_.then([break_()]),
+              ]),
+            ],
+          ),
+          checkPromoted(x.property('_field'), 'FutureOr<num>'),
+        ]);
+      });
     });
 
     test('field not promotable after outer variable demoted', () {
@@ -6386,8 +7218,8 @@ main() {
         h.addMember('C', '_field', 'int?', promotable: true);
         var x = Var('x');
         // Even though the two branches of the "if" assign different values to
-        // `x` (and hence the SSA nodes associated with `x._field` in the two
-        // branches are different), the promotion is still preserved by the
+        // `x` (and hence the value versions associated with `x._field` in the
+        // two branches are different), the promotion is still preserved by the
         // join.
         h.run([
           declare(x, type: 'C'),
@@ -6405,8 +7237,8 @@ main() {
         h.addMember('D', '_c', 'C', promotable: true);
         var x = Var('x');
         // Even though the two branches of the "if" assign different values to
-        // `x` (and hence the SSA nodes associated with `x._c._i` in the two
-        // branches are different), the promotion is still preserved by the
+        // `x` (and hence the value versions associated with `x._c._i` in the
+        // two branches are different), the promotion is still preserved by the
         // join.
         h.run([
           declare(x, type: 'D'),
@@ -6535,9 +7367,8 @@ main() {
           declare(c, initializer: expr('C')),
           c.property('_property').nonNullAssert,
           checkPromoted(c.property('_property'), 'int'),
-          try_([
-            checkPromoted(c.property('_property'), 'int'),
-          ]).finally_([checkPromoted(c.property('_property'), 'int')]),
+          try_([checkPromoted(c.property('_property'), 'int')])
+              .finally_([checkPromoted(c.property('_property'), 'int')]),
           checkPromoted(c.property('_property'), 'int'),
         ]);
       });
@@ -6896,6 +7727,87 @@ main() {
             if_(b, [checkNotPromoted(c.property('_field'))]),
           ]);
         });
+      });
+    });
+
+    group('And list pattern:', () {
+      test('No promotion from element subpattern', () {
+        // Equivalent Dart code:
+        //     f(C c) {
+        //       if (c._property case [int _]) {
+        //         // `c._property` is a `List<Object?>`, but nothing is known
+        //         // about it beyond that; in particular it is *not* an `int`.
+        //       }
+        //     }
+        h.addMember('C', '_property', 'Object?', promotable: true);
+        var c = Var('c');
+        h.run([
+          declare(c, initializer: expr('C')),
+          ifCase(
+            c.property('_property'),
+            listPattern([wildcard(type: 'int')], elementType: 'Object?'),
+            [checkPromoted(c.property('_property'), 'List<Object?>')],
+          ),
+        ]);
+      });
+
+      test('No promotion from element subpattern null assert', () {
+        // Equivalent Dart code:
+        //     f(C c) {
+        //       if (c._property case [_!]) {
+        //         // `c._property` is a `List<Object?>`; the null assert
+        //         // applies to the list element, not to `c._property`.
+        //       }
+        //     }
+        h.addMember('C', '_property', 'Object?', promotable: true);
+        var c = Var('c');
+        h.run([
+          declare(c, initializer: expr('C')),
+          ifCase(
+            c.property('_property'),
+            listPattern([wildcard().nullAssert], elementType: 'Object?'),
+            [checkPromoted(c.property('_property'), 'List<Object?>')],
+          ),
+        ]);
+      });
+
+      test('Scrutinee restored after list pattern', () {
+        var x = Var('x');
+        h.run([
+          declare(x, initializer: expr('List<int>?')),
+          ifCase(
+            x,
+            listPattern([wildcard(type: 'int')], elementType: 'int').or(
+              // After visiting the list pattern, the scrutinee should now be
+              // restored to point to `x`, so this null check should promote
+              // `x` to `List<int>`.
+              wildcard().nullCheck,
+            ),
+            [checkPromoted(x, 'List<int>')],
+          ),
+        ]);
+      });
+    });
+
+    group('And map pattern:', () {
+      test('No promotion from value subpattern', () {
+        // Equivalent Dart code:
+        //     f(C c) {
+        //       if (c._property case {0: int _}) {
+        //         // `c._property` is a `Map<Object?, Object?>`, but nothing is
+        //         // known about it beyond that.
+        //       }
+        //     }
+        h.addMember('C', '_property', 'Object?', promotable: true);
+        var c = Var('c');
+        h.run([
+          declare(c, initializer: expr('C')),
+          ifCase(
+            c.property('_property'),
+            mapPattern([mapPatternEntry(intLiteral(0), wildcard(type: 'int'))]),
+            [checkPromoted(c.property('_property'), 'Map<Object?, Object?>')],
+          ),
+        ]);
       });
     });
 
@@ -7534,9 +8446,8 @@ main() {
               checkReachable(true),
               checkNotPromoted(x),
             ]),
-            wildcard(
-              expectInferredType: 'int',
-            ).then([checkReachable(true), checkNotPromoted(x)]),
+            wildcard(expectInferredType: 'int')
+                .then([checkReachable(true), checkNotPromoted(x)]),
           ]),
         ]);
       });
@@ -7766,9 +8677,9 @@ main() {
               ifCase(
                 x,
                 recordPattern([
-                  wildcard(
-                    type: 'int',
-                  ).and(wildcard(type: 'num')..errorId = 'NUM').recordField(),
+                  wildcard(type: 'int')
+                      .and(wildcard(type: 'num')..errorId = 'NUM')
+                      .recordField(),
                 ]),
                 [checkPromoted(x, '(int,)')],
               ),
@@ -7802,9 +8713,9 @@ main() {
               ifCase(
                 x,
                 recordPattern([
-                  wildcard(
-                    type: 'int',
-                  ).and(wildcard(type: 'num')..errorId = 'NUM').recordField(),
+                  wildcard(type: 'int')
+                      .and(wildcard(type: 'num')..errorId = 'NUM')
+                      .recordField(),
                 ]),
                 [checkPromoted(x, '(int,)')],
               ),
@@ -8194,9 +9105,9 @@ main() {
             ifCase(
               x,
               recordPattern([
-                wildcard(
-                  type: 'int',
-                ).or(wildcard(type: 'Object')).recordField(),
+                wildcard(type: 'int')
+                    .or(wildcard(type: 'Object'))
+                    .recordField(),
               ]),
               [checkNotPromoted(x)],
             ),
@@ -8210,9 +9121,9 @@ main() {
             ifCase(
               x,
               recordPattern([
-                wildcard(
-                  type: 'Object',
-                ).or(wildcard(type: 'int')).recordField(),
+                wildcard(type: 'Object')
+                    .or(wildcard(type: 'int'))
+                    .recordField(),
               ]),
               [checkNotPromoted(x)],
             ),
@@ -8226,9 +9137,9 @@ main() {
             ifCase(
               x,
               recordPattern([
-                wildcard(
-                  type: 'num',
-                ).or(wildcard(type: 'Object')).recordField(),
+                wildcard(type: 'num')
+                    .or(wildcard(type: 'Object'))
+                    .recordField(),
               ]),
               [checkNotPromoted(x)],
             ),
@@ -8242,9 +9153,9 @@ main() {
             ifCase(
               x,
               recordPattern([
-                wildcard(
-                  type: 'Object',
-                ).or(wildcard(type: 'num')).recordField(),
+                wildcard(type: 'Object')
+                    .or(wildcard(type: 'num'))
+                    .recordField(),
               ]),
               [checkNotPromoted(x)],
             ),
@@ -8261,9 +9172,9 @@ main() {
             ifCase(
               x,
               recordPattern([
-                wildcard(
-                  type: 'int',
-                ).or(wildcard(type: 'double')).recordField(),
+                wildcard(type: 'int')
+                    .or(wildcard(type: 'double'))
+                    .recordField(),
               ]),
               [checkNotPromoted(x)],
             ),
@@ -8693,9 +9604,8 @@ main() {
             wildcard().when(second(c.write(expr('C')), expr('bool'))).then([
               break_(),
             ]),
-            mapPattern([
-              mapPatternEntry(intLiteral(0), wildcard()),
-            ]).then([checkNotPromoted(c.property('_property'))]),
+            mapPattern([mapPatternEntry(intLiteral(0), wildcard())])
+                .then([checkNotPromoted(c.property('_property'))]),
           ]),
         ]);
       });
@@ -9309,9 +10219,8 @@ main() {
             ifCase(
               x,
               recordPattern([
-                recordPattern([
-                  wildcard(type: 'int').recordField(),
-                ]).recordField(),
+                recordPattern([wildcard(type: 'int').recordField()])
+                    .recordField(),
               ]),
               [checkPromoted(x, '((int,),)')],
             ),
@@ -9325,9 +10234,8 @@ main() {
             ifCase(
               x,
               recordPattern([
-                recordPattern([
-                  wildcard(type: 'num').recordField(),
-                ]).recordField(),
+                recordPattern([wildcard(type: 'num').recordField()])
+                    .recordField(),
               ]),
               [checkNotPromoted(x)],
             ),
@@ -9341,9 +10249,8 @@ main() {
             ifCase(
               x,
               recordPattern([
-                recordPattern([
-                  wildcard(type: 'num').recordField(),
-                ]).recordField(),
+                recordPattern([wildcard(type: 'num').recordField()])
+                    .recordField(),
               ]),
               [checkNotPromoted(x)],
             ),
@@ -9384,9 +10291,9 @@ main() {
         h.run([
           declare(c, initializer: expr('C')),
           switch_(c.property('_property'), [
-            recordPattern([]).when(expr('bool')).then([
-              checkPromoted(c.property('_property'), '()'),
-            ]),
+            recordPattern([])
+                .when(expr('bool'))
+                .then([checkPromoted(c.property('_property'), '()')]),
             wildcard().when(second(c.write(expr('C')), expr('bool'))).then([
               break_(),
             ]),
@@ -9480,9 +10387,8 @@ main() {
                 '==',
                 nullLiteral,
               ).then([checkReachable(true), checkNotPromoted(x)]),
-              wildcard(
-                expectInferredType: 'int',
-              ).then([checkReachable(true), checkNotPromoted(x)]),
+              wildcard(expectInferredType: 'int')
+                  .then([checkReachable(true), checkNotPromoted(x)]),
             ]),
           ]);
         });
@@ -9752,9 +10658,9 @@ main() {
           h.run([
             declare(x, type: 'int?'),
             switchExpr(expr('Object?'), [
-              wildcard(
-                type: 'String',
-              ).when(x.eq(nullLiteral)).thenExpr(intLiteral(0)),
+              wildcard(type: 'String')
+                  .when(x.eq(nullLiteral))
+                  .thenExpr(intLiteral(0)),
               wildcard().thenExpr(
                 second(
                   listLiteral(elementType: 'dynamic', [checkNotPromoted(x)]),
@@ -9861,9 +10767,8 @@ main() {
         // following cases still will be useful once the error is fixed.
         h.run([
           switchExpr(expr('num'), [
-            wildcard(
-              type: 'error',
-            ).thenExpr(second(checkReachable(true), intLiteral(0))),
+            wildcard(type: 'error')
+                .thenExpr(second(checkReachable(true), intLiteral(0))),
             wildcard().thenExpr(second(checkReachable(true), intLiteral(1))),
           ]),
         ]);
@@ -10038,17 +10943,15 @@ main() {
                 checkPromoted(x, 'num'),
                 checkNotPromoted(y),
                 switch_(y, [
-                  wildcard(
-                    type: 'int',
-                  ).then([checkPromoted(x, 'num'), checkPromoted(y, 'int')]),
+                  wildcard(type: 'int')
+                      .then([checkPromoted(x, 'num'), checkPromoted(y, 'int')]),
                   default_.then([return_()]),
                 ]),
                 checkPromoted(x, 'num'),
                 checkPromoted(y, 'int'),
               ]),
-              wildcard(
-                type: 'String',
-              ).then([checkPromoted(x, 'String'), checkNotPromoted(y)]),
+              wildcard(type: 'String')
+                  .then([checkPromoted(x, 'String'), checkNotPromoted(y)]),
             ]),
           ]);
         });
@@ -10855,15 +11758,14 @@ main() {
         h.run([
           declare(c, initializer: expr('C')),
           switch_(c.property('_property'), [
-            wildcard(type: 'int').when(expr('bool')).then([
-              checkPromoted(c.property('_property'), 'int'),
-            ]),
+            wildcard(type: 'int')
+                .when(expr('bool'))
+                .then([checkPromoted(c.property('_property'), 'int')]),
             wildcard().when(second(c.write(expr('C')), expr('bool'))).then([
               break_(),
             ]),
-            wildcard(
-              type: 'int',
-            ).then([checkNotPromoted(c.property('_property'))]),
+            wildcard(type: 'int')
+                .then([checkNotPromoted(c.property('_property'))]),
           ]),
         ]);
       });
@@ -11384,9 +12286,8 @@ main() {
         var x = Var('x');
         h.run([
           declare(x, type: 'int'),
-          expr(
-            'C',
-          ).invokeMethod(isNullAware: true, 'foo', [x.write(expr('int'))]),
+          expr('C')
+              .invokeMethod(isNullAware: true, 'foo', [x.write(expr('int'))]),
           checkAssigned(x, true),
         ]);
       });
@@ -11397,9 +12298,8 @@ main() {
         var x = Var('x');
         h.run([
           declare(x, type: 'int'),
-          expr(
-            'C',
-          ).invokeMethod(isNullAware: true, 'foo', [x.write(expr('int'))]),
+          expr('C')
+              .invokeMethod(isNullAware: true, 'foo', [x.write(expr('int'))]),
           checkAssigned(x, false),
         ]);
       });
@@ -12336,9 +13236,8 @@ main() {
           var a = Var('a');
           h.run([
             declare(a, initializer: expr('A')),
-            expr(
-              'bool',
-            ).conditional(nullLiteral, a.property('_i', isNullAware: true)),
+            expr('bool')
+                .conditional(nullLiteral, a.property('_i', isNullAware: true)),
           ]);
         });
       });
@@ -12437,14 +13336,12 @@ main() {
           var x = Var('x');
           h.run([
             declare(x, initializer: expr('Object?')),
-            try_([
-              x.as_('List<Object?>'),
-              checkPromoted(x, 'List<Object?>'),
-            ]).finally_([
-              checkNotPromoted(x),
-              x.as_('List<dynamic>'),
-              checkPromoted(x, 'List<dynamic>'),
-            ]),
+            try_([x.as_('List<Object?>'), checkPromoted(x, 'List<Object?>')])
+                .finally_([
+                  checkNotPromoted(x),
+                  x.as_('List<dynamic>'),
+                  checkPromoted(x, 'List<dynamic>'),
+                ]),
             // After the try/finally, the promotions in the try block are
             // layered over the promotions in the finally block (see
             // https://github.com/dart-lang/language/issues/4382), so the
@@ -12578,14 +13475,12 @@ main() {
           var x = Var('x');
           h.run([
             declare(x, initializer: expr('Object?')),
-            try_([
-              x.as_('List<Object?>'),
-              checkPromoted(x, 'List<Object?>'),
-            ]).finally_([
-              checkNotPromoted(x),
-              x.as_('List<dynamic>'),
-              checkPromoted(x, 'List<dynamic>'),
-            ]),
+            try_([x.as_('List<Object?>'), checkPromoted(x, 'List<Object?>')])
+                .finally_([
+                  checkNotPromoted(x),
+                  x.as_('List<dynamic>'),
+                  checkPromoted(x, 'List<dynamic>'),
+                ]),
             // After the try/finally, the promotions in the finally block are
             // layered over the promotions in the try block, so the
             // promotion to `List<dynamic>` layers over the promotion to
@@ -13185,9 +14080,8 @@ main() {
 
     test('Anonymous method with target having no ExpressionInfo', () {
       h.run([
-        expr(
-          'A',
-        ).invokeAnonymousMethod([checkReachable(true)], returnType: 'void'),
+        expr('A')
+            .invokeAnonymousMethod([checkReachable(true)], returnType: 'void'),
       ]);
     });
 
@@ -13320,12 +14214,15 @@ main() {
         this_.as_('A'),
         this_.property('_field').as_('B'),
         this_.property('_field').property('_subField').as_('num'),
-        this_
-            .property('_field')
-            .invokeAnonymousMethod(isParameterless: false, parameter: p, [
-              checkNotPromoted(p.property('_subField')),
-              p.property('_subField').as_('int'),
-            ], returnType: 'void'),
+        this_.property('_field').invokeAnonymousMethod(
+          isParameterless: false,
+          parameter: p,
+          [
+            checkNotPromoted(p.property('_subField')),
+            p.property('_subField').as_('int'),
+          ],
+          returnType: 'void',
+        ),
         checkPromoted(this_.property('_field').property('_subField'), 'num'),
       ]);
     });
@@ -13383,6 +14280,99 @@ main() {
         ),
       ]);
     });
+
+    test('Three arguments, last argument analyzed first', () {
+      h.addMember(
+        'C',
+        'm',
+        'void Function(void Function(), void Function(), int)',
+      );
+      var x = Var('x');
+      h.run([
+        declare(x, type: 'num', initializer: expr('num')),
+        expr('C').invokeMethod(
+          'm',
+          [
+            localFunction([checkPromoted(x, 'int')]),
+            localFunction([checkPromoted(x, 'int')]),
+            x.as_('int'),
+          ],
+          // Note that argument 1 is analyzed immediately after argument 0, but
+          // it is still out of order, because argument 2 was analyzed first.
+          argumentVisitOrder: [2, 0, 1],
+        ),
+        checkPromoted(x, 'int'),
+      ]);
+    });
+
+    test('Out of order argument followed by in order arguments', () {
+      h.addMember('C', 'm', 'void Function(void Function(), int, int, int)');
+      var x = Var('x');
+      var y = Var('y');
+      h.run([
+        declare(x, type: 'num', initializer: expr('num')),
+        declare(y, type: 'num', initializer: expr('num')),
+        // Promote y so that there will be an observable state change when the
+        // write capture becomes live.
+        y.as_('int'),
+        expr('C').invokeMethod(
+          'm',
+          [
+            localFunction([y.write(expr('num'))]),
+            x.as_('int'),
+            // These arguments are visited in order, and they have no flow
+            // analysis effects of their own, so they don't record anything in
+            // the log. Therefore the write capture performed by argument 0
+            // (which escapes argument 0's out of order region) has to be
+            // accounted for before argument 2 is visited.
+            expr('int'),
+            expr('int'),
+          ],
+          // Note that even though the last argument in source order is also the
+          // last argument to be visited, argument 0 was visited out of order,
+          // so its write capture needs to be accounted for at argument 2. No
+          // further bookkeeping is needed at argument 3, since argument 2 was
+          // visited immediately before it.
+          argumentVisitOrder: [1, 0, 2, 3],
+        ),
+        checkNotPromoted(y),
+      ]);
+    });
+
+    test('Nested out of order arguments', () {
+      h.addMember('C', 'm', 'void Function(void Function(), int)');
+      var x = Var('x');
+      var y = Var('y');
+      h.run([
+        declare(x, type: 'num', initializer: expr('num')),
+        declare(y, type: 'num', initializer: expr('num')),
+        expr('C').invokeMethod(
+          'm',
+          [
+            localFunction([
+              checkPromoted(x, 'int'),
+              checkNotPromoted(y),
+              expr('C').invokeMethod(
+                'm',
+                [
+                  localFunction([
+                    checkPromoted(x, 'int'),
+                    checkPromoted(y, 'int'),
+                  ]),
+                  y.as_('int'),
+                ],
+                argumentVisitOrder: [1, 0],
+              ),
+              checkPromoted(y, 'int'),
+            ]),
+            x.as_('int'),
+          ],
+          argumentVisitOrder: [1, 0],
+        ),
+        checkPromoted(x, 'int'),
+        checkNotPromoted(y),
+      ]);
+    });
   });
 }
 
@@ -13406,18 +14396,18 @@ String _describeMatcher(Matcher matcher) {
 
 Matcher _matchOfInterestSet(List<String> expectedTypes) {
   return predicate(
-    (List<SharedTypeView> x) => unorderedEquals(
-      expectedTypes,
-    ).matches(x.map((t) => t.unwrapTypeView<Type>().type).toList(), {}),
+    (List<SharedTypeView> x) =>
+        unorderedEquals(expectedTypes)
+            .matches(x.map((t) => t.unwrapTypeView<Type>().type).toList(), {}),
     'interest set $expectedTypes',
   );
 }
 
 Matcher _matchPromotionChain(List<String> expectedTypes) {
   return predicate(
-    (List<SharedTypeView> x) => equals(
-      expectedTypes,
-    ).matches(x.map((t) => t.unwrapTypeView<Type>().type).toList(), {}),
+    (List<SharedTypeView> x) =>
+        equals(expectedTypes)
+            .matches(x.map((t) => t.unwrapTypeView<Type>().type).toList(), {}),
     'promotion chain $expectedTypes',
   );
 }
@@ -13498,7 +14488,7 @@ extension on FlowModel {
   PromotionModel _infoFor(FlowAnalysisTestHarness h, Var variable) => infoFor(
     h,
     h.promotionKeyStore.keyForVariable(variable),
-    ssaNode: new SsaNode(),
+    version: new ValueVersion(),
   );
 
   FlowModel _setInfo(
@@ -13543,7 +14533,7 @@ extension on FlowModel {
             .lastOrNull ??
         SharedTypeView(variable.type),
     isThisOrSuper: false,
-    ssaNode: SsaNode(),
+    version: ValueVersion(),
   );
 
   FlowModel _write(
@@ -13551,13 +14541,13 @@ extension on FlowModel {
     NonPromotionReason? nonPromotionReason,
     Var variable,
     SharedTypeView writtenType,
-    SsaNode newSsaNode,
+    ValueVersion newVersion,
   ) => write(
     h,
     nonPromotionReason,
     h.promotionKeyStore.keyForVariable(variable),
     writtenType,
-    newSsaNode,
+    newVersion,
     unpromotedType: SharedTypeView(variable.type),
   );
 }

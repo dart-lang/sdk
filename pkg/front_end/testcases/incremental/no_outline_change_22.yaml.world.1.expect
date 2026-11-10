@@ -497,6 +497,7 @@ library from "org-dartlang-test:///main.dart" as main {
         this.{dart.collection::ListBase::setRange}(index, index.{dart.core::num::+}(iterable.{dart.core::Iterable::length}{dart.core::int}){(dart.core::num) → dart.core::int}, iterable){(dart.core::int, dart.core::int, dart.core::Iterable<dart.core::int>, [dart.core::int]) → void};
       }
       else {
+        dart.core::RangeError::checkValueInInterval(index, 0, this.{dart.core::List::length}{dart.core::int}, "index");
         {
           synthesized dart.core::Iterator<dart.core::int> :sync-for-iterator = iterable.{dart.core::Iterable::iterator}{dart.core::Iterator<dart.core::int>};
           for (; :sync-for-iterator.{dart.core::Iterator::moveNext}(){() → dart.core::bool}; ) {

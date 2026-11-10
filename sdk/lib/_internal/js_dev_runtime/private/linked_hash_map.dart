@@ -15,7 +15,7 @@ abstract base class InternalMap<K, V> extends MapBase<K, V>
   @notNull
   int get _modifications;
 
-  void forEach(void action(K key, V value)) {
+  void forEach(void Function(K key, V value) action) {
     int modifications = _modifications;
     for (var entry in JS('Iterable', '#.entries()', _map)) {
       action(JS('', '#[0]', entry), JS('', '#[1]', entry));
@@ -194,7 +194,7 @@ base class LinkedMap<K, V> extends InternalMap<K, V> {
     }
   }
 
-  V _putIfAbsentKeyMap(K key, V ifAbsent(), Object map) {
+  V _putIfAbsentKeyMap(K key, V Function() ifAbsent, Object map) {
     // Key has non-trivial equality.
     var keyMap = _keyMap;
     var hash = JS<int>('!', '# & 0x3fffffff', key.hashCode);
@@ -220,7 +220,7 @@ base class LinkedMap<K, V> extends InternalMap<K, V> {
     return value;
   }
 
-  V putIfAbsent(K key, V ifAbsent()) {
+  V putIfAbsent(K key, V Function() ifAbsent) {
     var map = _map;
     if (key == null) {
       if (JS<bool>('!', '#.has(null)', map)) return JS('', '#.get(null)', map);
@@ -317,7 +317,7 @@ base class ImmutableMap<K, V> extends LinkedMap<K, V> {
   void addAll(Object other) => throw _unsupported();
   void clear() => throw _unsupported();
   V? remove(Object? key) => throw _unsupported();
-  V putIfAbsent(K key, V ifAbsent()) => throw _unsupported();
+  V putIfAbsent(K key, V Function() ifAbsent) => throw _unsupported();
 
   static Error _unsupported() =>
       UnsupportedError("Cannot modify unmodifiable map");

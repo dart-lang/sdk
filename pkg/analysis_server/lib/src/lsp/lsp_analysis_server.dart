@@ -9,6 +9,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/computer/computer_closing_labels.dart';
 import 'package:analysis_server/src/computer/computer_outline.dart';
+import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/flutter/flutter_outline_computer.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
@@ -53,6 +54,10 @@ import 'package:meta/meta.dart';
 /// that listens on a [LspServerCommunicationChannel] for LSP messages and
 /// processes them.
 class LspAnalysisServer extends AnalysisServer {
+  /// A [Future] used by tests to allow inserting a delay after getting a
+  /// resolved unit.
+  static Future<void>? delayAfterResolveForTests;
+
   /// The capabilities of the LSP client. Will be null prior to initialization.
   LspClientCapabilities? _clientCapabilities;
 
@@ -87,6 +92,7 @@ class LspAnalysisServer extends AnalysisServer {
   /// Capabilities of the server. Will be null prior to initialization as
   /// the server capabilities depend on the client capabilities.
   ServerCapabilities? capabilities;
+
   late ServerCapabilitiesComputer capabilitiesComputer;
 
   /// Whether or not the server is controlling the shutdown and will exit
@@ -125,10 +131,6 @@ class LspAnalysisServer extends AnalysisServer {
   /// imports was modified, etc).
   final Set<String> _filesWithClientDiagnostics = {};
 
-  /// A completer for [lspInitialized].
-  final Completer<InitializedStateMessageHandler> _lspInitializedCompleter =
-      Completer<InitializedStateMessageHandler>();
-
   /// A completer that tracks in-progress workspace folders update.
   ///
   /// Starts completed and will be replaced each time workspace folders are
@@ -153,6 +155,7 @@ class LspAnalysisServer extends AnalysisServer {
     this.detachableFileSystemManager,
     super.enableBlazeWatcher,
     super.dartFixPromptManager,
+    super.providedByteStore,
     super.pluginManager,
     super.messageSchedulerListener,
     super.performanceLogger,
@@ -232,6 +235,9 @@ class LspAnalysisServer extends AnalysisServer {
   /// as 'ssh-remote' or 'wsl' for remote workspaces.
   String? get clientRemoteName => _initializationOptions?.remoteName;
 
+  @override
+  List<String> get configurationWorkspaceFolders => _workspaceFolders.toList();
+
   /// The capabilities of the LSP client. Will be null prior to initialization.
   @override
   LspClientCapabilities? get editorClientCapabilities => _clientCapabilities;
@@ -240,16 +246,11 @@ class LspAnalysisServer extends AnalysisServer {
 
   /// Initialization options provided by the LSP client. Allows opting in/out of
   /// specific server functionality. Will be null prior to initialization.
+  @override
   LspInitializationOptions? get initializationOptions => _initializationOptions;
 
   /// Whether the server has transitioned into the shutting down state.
   bool get isShuttingDown => messageHandler is ShuttingDownStateMessageHandler;
-
-  /// A [Future] that completes with the [InitializedStateMessageHandler] for
-  /// the server once it transitions to the initialized state.
-  @override
-  FutureOr<InitializedStateMessageHandler> get lspInitialized =>
-      _lspInitializedCompleter.future;
 
   @override
   LspNotificationManager get notificationManager =>
@@ -315,80 +316,20 @@ class LspAnalysisServer extends AnalysisServer {
       // If there are no explicit analysis roots, they are inferred from open
       // files and so must be recomputed.
       if (_workspaceFolders.isEmpty) {
-        await _refreshAnalysisRoots();
+        await refreshAnalysisRoots(ContextRebuildReasons.priorityFileAdded);
       }
     }
-  }
-
-  /// Completes [lspInitialized], signalling that the server has moved into an
-  /// initialized state where it can handle standard LSP requests.
-  void completeLspInitialization(InitializedStateMessageHandler handler) {
-    _lspInitializedCompleter.complete(handler);
   }
 
   /// The socket from which messages are being read has been closed.
   void done() {}
 
-  /// Fetches configuration from the client (if supported) and then sends
-  /// register/unregister requests for any supported/enabled dynamic registrations.
-  Future<void> fetchClientConfigurationAndPerformDynamicRegistration() async {
-    if (editorClientCapabilities?.configuration ?? false) {
-      // Take a copy of workspace folders because we need to match up the
-      // responses to the request by index and it's possible _workspaceFolders
-      // will change after we sent the request but before we get the response.
-      var folders = _workspaceFolders.toList();
-
-      // Fetch all configuration we care about from the client. This is just
-      // "dart" for now, but in future this may be extended to include
-      // others (for example "flutter").
-      var response = await sendLspRequest(
-        Method.workspace_configuration,
-        ConfigurationParams(
-          items: [
-            // Dart settings for each workspace folder.
-            for (var folder in folders)
-              ConfigurationItem(
-                scopeUri: uriConverter.toClientUri(folder),
-                section: 'dart',
-              ),
-            // Global Dart settings. This comes last to simplify matching up the
-            // indexes in the results (folder[i] is the i'th item).
-            ConfigurationItem(section: 'dart'),
-          ],
-        ),
-      );
-
-      var result = response.result;
-
-      // Expect the result to be a list with 1 + folders.length items to
-      // match the request above, and each should be a standard map of settings.
-      // If the above code is extended to support multiple sets of config
-      // this will need tweaking to handle the item for each section.
-      if (result != null &&
-          result is List<Object?> &&
-          result.length == 1 + folders.length) {
-        // Config is stored as a map keyed by the workspace folder, and a key of
-        // null for the global config
-        var workspaceFolderConfig = {
-          for (var i = 0; i < folders.length; i++)
-            folders[i]: result[i] as Map<String, Object?>? ?? {},
-        };
-        var newGlobalConfig = result.last as Map<String, Object?>? ?? {};
-
-        var oldGlobalConfig = lspClientConfiguration.global;
-        lspClientConfiguration.replace(newGlobalConfig, workspaceFolderConfig);
-
-        if (lspClientConfiguration.affectsAnalysisRoots(oldGlobalConfig)) {
-          await _refreshAnalysisRoots();
-        } else if (lspClientConfiguration.affectsAnalysisResults(
-          oldGlobalConfig,
-        )) {
-          // Some settings affect analysis results and require re-analysis
-          // (such as showTodos).
-          await reanalyze();
-        }
-      }
-    }
+  /// Fetches the configuration from the client (if supported) and then sends
+  /// register/unregister requests for any supported/enabled dynamic
+  /// registrations.
+  @override
+  Future<void> fetchClientConfiguration(String reason) async {
+    await super.fetchClientConfiguration(reason);
 
     // Client config can affect capabilities, so this should only be done after
     // we have the initial/updated config.
@@ -401,7 +342,7 @@ class LspAnalysisServer extends AnalysisServer {
   FutureOr<void> handleAnalysisStatusChange(
     analysis.AnalysisStatus status,
   ) async {
-    super.handleAnalysisStatusChange(status);
+    await super.handleAnalysisStatusChange(status);
     await sendStatusNotification(status);
   }
 
@@ -423,10 +364,13 @@ class LspAnalysisServer extends AnalysisServer {
         'MessageScheduler.allowOverlappingHandlers set to '
         '$allowOverlappingHandlers by LSP client initializationOptions',
       );
+      sessionListener.logInfo(
+        'MessageScheduler.allowOverlappingHandlers set to '
+        '$allowOverlappingHandlers by LSP client initializationOptions',
+      );
     }
 
     performanceAfterStartup = ServerPerformance();
-    performance = performanceAfterStartup!;
 
     checkAnalytics();
     enableSurveys();
@@ -495,91 +439,102 @@ class LspAnalysisServer extends AnalysisServer {
   }) {
     var startTime = DateTime.now();
     performance.logRequestTiming(message.clientRequestTime);
-    runZonedGuarded(() async {
-      try {
-        if (message is ResponseMessage) {
-          handleClientResponse(message);
-        } else if (message is IncomingMessage) {
-          // Record performance information for the request.
-          var rootPerformance = OperationPerformanceImpl('<root>');
-          RequestPerformance? requestPerformance;
-          await rootPerformance.runAsync('request[${message.method}]', (
-            performance,
-          ) async {
-            requestPerformance = RequestPerformance(
-              operation: message.method.toString(),
-              performance: performance,
-              requestLatency: message.timeSinceRequest,
-              startTime: startTime,
-            );
-            recentPerformance.requests.add(requestPerformance!);
 
-            var messageInfo = MessageInfo(
-              performance: performance,
-              clientCapabilities: editorClientCapabilities,
-              timeSinceRequest: message.timeSinceRequest,
-              completer: completer,
-              isTrustedCaller: true,
-            );
-
-            if (message is RequestMessage) {
-              analyticsManager.startedRequestMessage(
-                request: message,
+    runZonedGuarded(
+      () async {
+        try {
+          if (message is ResponseMessage) {
+            handleClientResponse(message);
+          } else if (message is IncomingMessage) {
+            // Record performance information for the request.
+            var rootPerformance = OperationPerformanceImpl('<root>');
+            RequestPerformance? requestPerformance;
+            await rootPerformance.runAsync('request[${message.method}]', (
+              performance,
+            ) async {
+              requestPerformance = RequestPerformance(
+                operation: message.method.toString(),
+                performance: performance,
+                requestLatency: message.timeSinceRequest,
                 startTime: startTime,
               );
-              await _handleRequestMessage(
-                message,
-                messageInfo,
-                cancellationToken: cancellationToken,
+              recentPerformance.requests.add(requestPerformance!);
+
+              var messageInfo = MessageInfo(
+                performance: performance,
+                clientCapabilities: editorClientCapabilities,
+                timeSinceRequest: message.timeSinceRequest,
+                completer: completer,
+                isTrustedCaller: true,
               );
-            } else if (message is NotificationMessage) {
-              await _handleNotificationMessage(message, messageInfo);
-              analyticsManager.handledNotificationMessage(
-                notification: message,
-                startTime: startTime,
-                endTime: DateTime.now(),
-              );
-            } else {
-              showErrorMessageToUser('Unknown incoming message type');
+
+              if (message is RequestMessage) {
+                analyticsManager.startedRequestMessage(
+                  request: message,
+                  startTime: startTime,
+                );
+                await _handleRequestMessage(
+                  message,
+                  messageInfo,
+                  cancellationToken: cancellationToken,
+                );
+              } else if (message is NotificationMessage) {
+                await _handleNotificationMessage(message, messageInfo);
+                analyticsManager.handledNotificationMessage(
+                  notification: message,
+                  startTime: startTime,
+                  endTime: DateTime.now(),
+                );
+              } else {
+                showErrorMessageToUser('Unknown incoming message type');
+              }
+            });
+            if (requestPerformance != null &&
+                requestPerformance!.performance.elapsed >
+                    ServerRecentPerformance.slowRequestsThreshold) {
+              recentPerformance.slowRequests.add(requestPerformance!);
             }
-          });
-          if (requestPerformance != null &&
-              requestPerformance!.performance.elapsed >
-                  ServerRecentPerformance.slowRequestsThreshold) {
-            recentPerformance.slowRequests.add(requestPerformance!);
+          } else {
+            showErrorMessageToUser('Unknown message type');
           }
-        } else {
-          showErrorMessageToUser('Unknown message type');
+          completer?.setComplete();
+        } on InconsistentAnalysisException {
+          sendErrorResponse(
+            message,
+            ResponseError(
+              code: ErrorCodes.ContentModified,
+              message: 'Document was modified before operation completed',
+            ),
+          );
+          completer?.setComplete();
+        } catch (error, stackTrace) {
+          var errorMessage = message is ResponseMessage
+              ? 'An error occurred while handling the response to request ${message.id}'
+              : message is RequestMessage
+              ? 'An error occurred while handling ${message.method} request'
+              : message is NotificationMessage
+              ? 'An error occurred while handling ${message.method} notification'
+              : 'Unknown message type';
+          sendErrorResponse(
+            message,
+            ResponseError(
+              code: ServerErrorCodes.unhandledError,
+              message: errorMessage,
+            ),
+          );
+          logException(errorMessage, error, stackTrace);
+          completer?.setComplete();
         }
-        completer?.setComplete();
-      } on InconsistentAnalysisException {
-        sendErrorResponse(
-          message,
-          ResponseError(
-            code: ErrorCodes.ContentModified,
-            message: 'Document was modified before operation completed',
-          ),
-        );
-        completer?.setComplete();
-      } catch (error, stackTrace) {
-        var errorMessage = message is ResponseMessage
-            ? 'An error occurred while handling the response to request ${message.id}'
-            : message is RequestMessage
-            ? 'An error occurred while handling ${message.method} request'
-            : message is NotificationMessage
-            ? 'An error occurred while handling ${message.method} notification'
-            : 'Unknown message type';
-        sendErrorResponse(
-          message,
-          ResponseError(
-            code: ServerErrorCodes.unhandledError,
-            message: errorMessage,
-          ),
-        );
-        logException(errorMessage, error, stackTrace);
-        completer?.setComplete();
-      }
-    }, unhandledZoneError);
+      },
+      unhandledZoneError,
+      zoneValues: {
+        // A container for capturing additional timings (such as analysis) stored
+        // in zoneValues so it can be accessed anywhere in the processing of this
+        // request.
+        RequestPerformanceAdditionalTimings.zoneValueKey:
+            RequestPerformanceAdditionalTimings(),
+      },
+    );
   }
 
   /// Logs the error on the client using window/logMessage.
@@ -619,10 +574,12 @@ class LspAnalysisServer extends AnalysisServer {
     // remember the last few exceptions
     exceptions.add(ServerException(message, exception, stackTrace, false));
 
-    instrumentationService.logException(
-      FatalException(message, exception, stackTrace),
-      null,
-      crashReportingAttachmentsBuilder.forException(exception),
+    var fatalException = FatalException(message, exception, stackTrace);
+    var attachments = crashReportingAttachmentsBuilder.forException(exception);
+    instrumentationService.logException(fatalException, null, attachments);
+    sessionListener.logException(
+      exception: fatalException,
+      attachments: attachments,
     );
   }
 
@@ -694,19 +651,6 @@ class LspAnalysisServer extends AnalysisServer {
     );
   }
 
-  void publishClosingLabels(String path, List<ClosingLabel> labels) {
-    var params = PublishClosingLabelsParams(
-      uri: uriConverter.toClientUri(path),
-      labels: labels,
-    );
-    var message = NotificationMessage(
-      method: CustomMethods.publishClosingLabels,
-      params: params,
-      jsonrpc: jsonRpcVersion,
-    );
-    sendLspNotification(message);
-  }
-
   void publishDiagnostics(String path, List<Diagnostic> errors) {
     if (errors.isEmpty && !_filesWithClientDiagnostics.contains(path)) {
       // Don't sent empty set if client is already empty.
@@ -757,6 +701,62 @@ class LspAnalysisServer extends AnalysisServer {
     sendLspNotification(message);
   }
 
+  @override
+  @protected
+  Future<void> refreshAnalysisRoots(String reason) async {
+    // When there are open folders, they are always the roots. If there are no
+    // open workspace folders, then we use the open (priority) files to compute
+    // roots.
+    var includedPaths = _workspaceFolders.isNotEmpty
+        ? _workspaceFolders.toList()
+        : _getRootsForOpenFiles().toList();
+
+    var excludedPaths = lspClientConfiguration.global.analysisExcludedFolders
+        .expand(
+          (excludePath) => resourceProvider.pathContext.isAbsolute(excludePath)
+              ? [excludePath]
+              // Apply the relative path to each open workspace folder.
+              // TODO(dantup): Consider supporting per-workspace config by
+              // calling workspace/configuration whenever workspace folders change
+              // and caching the config for each one.
+              : _workspaceFolders.map(
+                  (root) =>
+                      resourceProvider.pathContext.join(root, excludePath),
+                ),
+        )
+        .map(pathContext.normalize)
+        .toSet()
+        .toList();
+
+    notificationManager.setAnalysisRoots(includedPaths, excludedPaths);
+    if (detachableFileSystemManager != null) {
+      detachableFileSystemManager?.setAnalysisRoots(
+        null,
+        includedPaths,
+        excludedPaths,
+      );
+    } else {
+      var completer = analysisContextRebuildCompleter = Completer();
+      try {
+        await contextManager.setRoots(includedPaths, excludedPaths, reason);
+      } finally {
+        completer.complete();
+      }
+    }
+
+    pluginManager.setAnalysisSetAnalysisRootsParams(
+      plugin.AnalysisSetAnalysisRootsParams(includedPaths, excludedPaths),
+    );
+
+    // If there are no analysis roots, no drivers will be created and the plugin
+    // watcher will not complete the plugin managers initialization so we need
+    // to do it.
+    if (includedPaths.isEmpty &&
+        !pluginManager.initializedCompleter.isCompleted) {
+      pluginManager.initializedCompleter.complete();
+    }
+  }
+
   Future<void> removePriorityFile(String path) async {
     var didRemove = priorityFiles.remove(path);
     assert(didRemove);
@@ -766,7 +766,7 @@ class LspAnalysisServer extends AnalysisServer {
       // If there are no explicit analysis roots, they are inferred from open
       // files and so must be recomputed.
       if (_workspaceFolders.isEmpty) {
-        await _refreshAnalysisRoots();
+        await refreshAnalysisRoots(ContextRebuildReasons.priorityFileRemoved);
       }
     }
   }
@@ -884,10 +884,10 @@ class LspAnalysisServer extends AnalysisServer {
     }
 
     if (isAnalyzing) {
-      analyzingProgressReporter ??= ProgressReporter.serverCreated(
-        this,
-        analyzingProgressToken,
-      )..begin('Analyzing…');
+      analyzingProgressReporter ??=
+          ProgressReporter.serverCreated(this, analyzingProgressToken)
+            // ignore: unawaited_futures
+            ..begin('Analyzing…');
     } else {
       if (analyzingProgressReporter != null) {
         // Do not null this out until after end completes, otherwise we may try
@@ -903,9 +903,12 @@ class LspAnalysisServer extends AnalysisServer {
   bool shouldSendClosingLabelsFor(String file) {
     // Closing labels should only be sent for open (priority) files in the
     // workspace.
-    return (initializationOptions?.closingLabels ?? false) &&
-        priorityFiles.contains(file) &&
-        isAnalyzed(file);
+    var enabled =
+        // Legacy way for Dart-Code sending them
+        (initializationOptions?.closingLabels ?? false) ||
+        // New way (for Dart-Code + LSP-over-Legacy).
+        (_clientCapabilities?.closingLabels ?? false);
+    return enabled && priorityFiles.contains(file) && isAnalyzed(file);
   }
 
   /// Returns `true` if Flutter outlines should be sent for [file] with the
@@ -929,6 +932,7 @@ class LspAnalysisServer extends AnalysisServer {
     showMessageToUser(MessageType.error, message);
   }
 
+  @override
   void showMessageToUser(MessageType type, String message) {
     channel.sendNotification(
       NotificationMessage(
@@ -1035,6 +1039,7 @@ class LspAnalysisServer extends AnalysisServer {
     // is an unhandled exception that was not awaited and is almost certainly a
     // bug.
     instrumentationService.logException(error, stackTrace);
+    sessionListener.logException(exception: error, stackTrace: stackTrace);
 
     sendServerErrorNotification('Unhandled handler error', error, stackTrace);
   }
@@ -1049,6 +1054,7 @@ class LspAnalysisServer extends AnalysisServer {
   Future<void> updateWorkspaceFolders(
     List<String> addedPaths,
     List<String> removedPaths,
+    String reason,
   ) async {
     // TODO(dantup): This is currently case-sensitive!
 
@@ -1065,9 +1071,9 @@ class LspAnalysisServer extends AnalysisServer {
 
     // Capture if there is an existing update in progress, we so can wait for
     // it after replacing the completer. This is required because of the async
-    // work below (`fetchClientConfigurationAndPerformDynamicRegistration`) that
-    // could otherwise allow another request to change the analysis roots before
-    // we've finished setting them up correctly.
+    // work below (`fetchClientConfiguration`) that could otherwise allow
+    // another request to change the analysis roots before we've finished
+    // setting them up correctly.
     var existingUpdateFuture = !workspaceFolderUpdateCompleter.isCompleted
         ? workspaceFolderUpdateCompleter.future
         : null;
@@ -1079,9 +1085,9 @@ class LspAnalysisServer extends AnalysisServer {
     try {
       // This async request is why we need to prevent this code running
       // concurrently because they could overlap with each other.
-      await fetchClientConfigurationAndPerformDynamicRegistration();
+      await fetchClientConfiguration(reason);
 
-      await _refreshAnalysisRoots();
+      await refreshAnalysisRoots(reason);
     } finally {
       completer.complete();
     }
@@ -1186,60 +1192,6 @@ class LspAnalysisServer extends AnalysisServer {
     capabilitiesComputer.performDynamicRegistration();
   }
 
-  Future<void> _refreshAnalysisRoots() async {
-    // When there are open folders, they are always the roots. If there are no
-    // open workspace folders, then we use the open (priority) files to compute
-    // roots.
-    var includedPaths = _workspaceFolders.isNotEmpty
-        ? _workspaceFolders.toList()
-        : _getRootsForOpenFiles().toList();
-
-    var excludedPaths = lspClientConfiguration.global.analysisExcludedFolders
-        .expand(
-          (excludePath) => resourceProvider.pathContext.isAbsolute(excludePath)
-              ? [excludePath]
-              // Apply the relative path to each open workspace folder.
-              // TODO(dantup): Consider supporting per-workspace config by
-              // calling workspace/configuration whenever workspace folders change
-              // and caching the config for each one.
-              : _workspaceFolders.map(
-                  (root) =>
-                      resourceProvider.pathContext.join(root, excludePath),
-                ),
-        )
-        .map(pathContext.normalize)
-        .toSet()
-        .toList();
-
-    notificationManager.setAnalysisRoots(includedPaths, excludedPaths);
-    if (detachableFileSystemManager != null) {
-      detachableFileSystemManager?.setAnalysisRoots(
-        null,
-        includedPaths,
-        excludedPaths,
-      );
-    } else {
-      var completer = analysisContextRebuildCompleter = Completer();
-      try {
-        await contextManager.setRoots(includedPaths, excludedPaths);
-      } finally {
-        completer.complete();
-      }
-    }
-
-    pluginManager.setAnalysisSetAnalysisRootsParams(
-      plugin.AnalysisSetAnalysisRootsParams(includedPaths, excludedPaths),
-    );
-
-    // If there are no analysis roots, no drivers will be created and the plugin
-    // watcher will not complete the plugin managers initialization so we need
-    // to do it.
-    if (includedPaths.isEmpty &&
-        !pluginManager.initializedCompleter.isCompleted) {
-      pluginManager.initializedCompleter.complete();
-    }
-  }
-
   void _updateDriversAndPluginsPriorityFiles() {
     var priorityFilesList = priorityFiles.toList();
     for (var driver in driverMap.values) {
@@ -1273,7 +1225,19 @@ class LspInitializationOptions {
   final String? remoteName;
   final bool onlyAnalyzeProjectsWithOpenFiles;
   final bool suggestFromUnimportedLibraries;
+
+  /// Whether closing labels have been enabled by initialization options.
+  ///
+  /// This is a legacy option that is still here to support older versions of
+  /// the Dart-Code VS Code extension prior to v3.144 (releasing ~2026-10-01).
+  /// Once sufficient time has passed since then (or the number of users on
+  /// Dart-Code versions earlier than v3.144 is low), this can be removed.
+  ///
+  /// The replacement for this (which Dart-Code uses since v3.144 and
+  /// LSP-over-Legacy always used) is in the client capabilities
+  /// (`experimental.closingLabels`).
   final bool closingLabels;
+
   final bool outline;
   final bool flutterOutline;
   final int? completionBudgetMilliseconds;
@@ -1357,7 +1321,7 @@ class LspServerContextManagerCallbacks
         unit,
       ).compute().map((l) => toClosingLabel(result.lineInfo, l)).toList();
 
-      analysisServer.publishClosingLabels(path, labels);
+      analysisServer.publishLspClosingLabels(path, labels);
     }
     if (analysisServer.shouldSendOutlineFor(path)) {
       var outline = DartUnitOutlineComputer(

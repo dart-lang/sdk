@@ -11,13 +11,14 @@ import '../builder/compilation_unit.dart';
 import '../builder/library_builder.dart';
 import '../builder/type_builder.dart';
 import 'messages.dart' show FormattedMessage, LocatedMessage, Message;
+import 'uri_offset.dart';
 
 const String untranslatableUriScheme = "org-dartlang-untranslatable-uri";
 
 abstract class Loader {
   /// Register [message] as a problem with a severity determined by the
   /// intrinsic severity of the message.
-  FormattedMessage? addProblem(
+  FormattedMessage? addLibraryProblem(
     Message message,
     int charOffset,
     int length,
@@ -25,7 +26,6 @@ abstract class Loader {
     bool wasHandled = false,
     List<LocatedMessage>? context,
     CfeSeverity? severity,
-    bool problemOnLibrary = false,
     List<Uri>? involvedFiles,
   });
 
@@ -36,7 +36,10 @@ abstract class Loader {
     ExtensionTypeDeclaration extensionType,
   );
 
-  TypeBuilder computeTypeBuilder(DartType type);
+  TypeBuilder computeTypeBuilder({
+    required DartType type,
+    required UriOffsetLength uriOffset,
+  });
 
   /// The [LibraryBuilder] for 'dart:core'.
   LibraryBuilder get coreLibrary;

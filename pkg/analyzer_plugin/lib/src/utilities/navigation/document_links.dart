@@ -21,7 +21,7 @@ class AnalysisOptionLinkComputer {
 
   final String pubHostedUrl;
 
-  AnalysisOptionLinkComputer(this.pubHostedUrl);
+  new(this.pubHostedUrl);
 
   List<DocumentLink> findLinks(String content) {
     YamlNode node;
@@ -148,8 +148,7 @@ class DartDocumentLinkVisitor extends RecursiveAstVisitor<void> {
     return null;
   }();
 
-  DartDocumentLinkVisitor(this.resourceProvider, this.unit)
-    : filePath = unit.path;
+  new(this.resourceProvider, this.unit) : filePath = unit.path;
 
   path.Context get pathContext => resourceProvider.pathContext;
 
@@ -312,7 +311,7 @@ class DocumentLink {
   final int offset;
   final int length;
 
-  DocumentLink(this.offset, this.length, this.targetUri);
+  new(this.offset, this.length, this.targetUri);
 }
 
 /// Computes [DocumentLink]s for package names in a 'pubspec.yaml'.
@@ -321,7 +320,7 @@ class PubspecDocumentLinkComputer {
 
   final _gitHubSsshUrlPrefixRegExp = RegExp(r'^git@github\.com:');
 
-  PubspecDocumentLinkComputer(this.pubHostedUrl);
+  new(this.pubHostedUrl);
 
   List<DocumentLink> findLinks(String content) {
     YamlNode node;

@@ -1019,13 +1019,6 @@ ObjectPtr IsolateSpawnState::ResolveFunction() {
   const String& main = Symbols::main();
   Function& func = Function::Handle(zone, lib.LookupFunctionAllowPrivate(main));
   if (func.IsNull()) {
-    // Check whether main is reexported from the root library.
-    const Object& obj = Object::Handle(zone, lib.LookupReExport(main));
-    if (obj.IsFunction()) {
-      func ^= obj.ptr();
-    }
-  }
-  if (func.IsNull()) {
     const String& msg = String::Handle(
         zone,
         String::NewFormatted(

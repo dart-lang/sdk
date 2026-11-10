@@ -4,7 +4,7 @@
 
 import 'dart:io' show Directory, Platform;
 
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/id.dart' show Id, ActualDataMap;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:kernel/ast.dart';
@@ -37,7 +37,7 @@ class NullabilityDataComputer extends CfeDataComputer<String> {
   void computeMemberData(
     CfeTestResultData testResultData,
     Member member,
-    Map<Id, ActualData<String>> actualMap, {
+    ActualDataMap<String> actualMap, {
     bool? verbose,
   }) {
     member.accept(
@@ -47,10 +47,7 @@ class NullabilityDataComputer extends CfeDataComputer<String> {
 }
 
 class NullabilityDataExtractor extends CfeDataExtractor<String> {
-  new(
-    InternalCompilerResult compilerResult,
-    Map<Id, ActualData<String>> actualMap,
-  ) : super(compilerResult, actualMap);
+  new(super.compilerResult, super.actualMap);
 
   @override
   String? computeNodeValue(Id id, TreeNode node) {

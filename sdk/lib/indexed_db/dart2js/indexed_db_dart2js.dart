@@ -452,7 +452,7 @@ class Database extends EventTarget {
 
 // WARNING: Do not edit - generated code.
 
-typedef void ObserverCallback(ObserverChanges changes);
+typedef ObserverCallback = void Function(ObserverChanges changes);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -478,8 +478,8 @@ class IdbFactory extends JavaScriptObject {
   Future<Database> open(
     String name, {
     int? version,
-    void onUpgradeNeeded(VersionChangeEvent event)?,
-    void onBlocked(Event event)?,
+    void Function(VersionChangeEvent event)? onUpgradeNeeded,
+    void Function(Event event)? onBlocked,
   }) {
     if ((version == null) != (onUpgradeNeeded == null)) {
       return new Future.error(
@@ -508,7 +508,10 @@ class IdbFactory extends JavaScriptObject {
     }
   }
 
-  Future<IdbFactory> deleteDatabase(String name, {void onBlocked(Event e)?}) {
+  Future<IdbFactory> deleteDatabase(
+    String name, {
+    void Function(Event e)? onBlocked,
+  }) {
     try {
       var request = _deleteDatabase(name);
 

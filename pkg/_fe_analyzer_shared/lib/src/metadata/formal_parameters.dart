@@ -22,7 +22,7 @@ class FormalParameter {
   /// `true` if this parameter is required.
   final bool isRequired;
 
-  FormalParameter(
+  new(
     this.metadata,
     this.typeAnnotation,
     this.name,
@@ -63,5 +63,5 @@ class FormalParameter {
 class FormalParameterGroup {
   final List<FormalParameter> formalParameters;
 
-  FormalParameterGroup(this.formalParameters);
+  new(this.formalParameters);
 }

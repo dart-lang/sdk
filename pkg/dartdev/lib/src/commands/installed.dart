@@ -45,13 +45,13 @@ on `PATH` are non-active.''',
 
     if (packagesToShow.isEmpty) {
       if (all || installedPackages.isEmpty) {
-        print(noToolsInstalledMessage);
+        log.stdout(noToolsInstalledMessage);
       } else {
-        print(noActiveToolsInstalledMessage);
+        log.stdout(noActiveToolsInstalledMessage);
       }
     } else {
       for (final package in packagesToShow) {
-        print(package.toString());
+        log.stdout(package.toString());
       }
     }
 

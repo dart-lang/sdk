@@ -24,7 +24,7 @@ void main() {
 
 @reflectiveTest
 class InvalidCovariantModifierInPrimaryConstructorWithoutTypeTest
-    extends FixProcessorTest {
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.replaceFinalWithVar;
 
@@ -40,7 +40,7 @@ class C(covariant var v);
 
 @reflectiveTest
 class InvalidCovariantModifierInPrimaryConstructorWithTypeTest
-    extends FixProcessorTest {
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeUnnecessaryFinal;
 
@@ -80,7 +80,7 @@ void f() {
 }
 
 @reflectiveTest
-class ReplaceFinalWithVarTest extends FixProcessorLintTest {
+class ReplaceFinalWithVarTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.replaceFinalWithVar;
 
@@ -265,7 +265,8 @@ f() {
 }
 
 @reflectiveTest
-class ReplaceFinalWithVarTypedRemoveTest extends FixProcessorLintTest {
+class ReplaceFinalWithVarTypedRemoveTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeUnnecessaryFinal;
 

@@ -24,9 +24,8 @@ class TopLevelDeclarationsTest extends PubPackageResolutionTest {
     Element element,
     String libraryUri,
   ) async {
-    var publicLibrary = await TopLevelDeclarations(
-      result.analysisResult,
-    ).publiclyExporting(element);
+    var publicLibrary = await TopLevelDeclarations(result.analysisResult)
+        .publiclyExporting(element);
     expect(publicLibrary?.firstFragment.source.uri.toString(), libraryUri);
   }
 

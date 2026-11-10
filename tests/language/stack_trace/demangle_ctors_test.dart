@@ -5,6 +5,7 @@
 // Test that stack traces are properly demangled in constructors (#28740).
 
 import "package:expect/expect.dart";
+import "package:expect/variations.dart";
 
 class SomeClass {
   @pragma("wasm:never-inline")
@@ -34,30 +35,38 @@ void main() {
   try {
     new SomeClass();
   } on Exception catch (e, st) {
-    final stString = st.toString();
-    Expect.isTrue(stString.contains("new SomeClass"));
-    Expect.isFalse(stString.contains("SomeClass."));
+    if (symbolicUnminifiedStackTraces) {
+      final stString = st.toString();
+      Expect.isTrue(stString.contains("new SomeClass"));
+      Expect.isFalse(stString.contains("SomeClass."));
+    }
   }
 
   try {
     new SomeClass.namedConstructor();
   } on Exception catch (e, st) {
-    final stString = st.toString();
-    Expect.isTrue(stString.contains("new SomeClass.namedConstructor"));
+    if (symbolicUnminifiedStackTraces) {
+      final stString = st.toString();
+      Expect.isTrue(stString.contains("new SomeClass.namedConstructor"));
+    }
   }
 
   try {
     new OnlyHasFactory();
   } on Exception catch (e, st) {
-    final stString = st.toString();
-    Expect.isTrue(stString.contains("new OnlyHasFactory"));
-    Expect.isFalse(stString.contains("OnlyHasFactory."));
+    if (symbolicUnminifiedStackTraces) {
+      final stString = st.toString();
+      Expect.isTrue(stString.contains("new OnlyHasFactory"));
+      Expect.isFalse(stString.contains("OnlyHasFactory."));
+    }
   }
 
   try {
     new SomeClass.useFactory();
   } on Exception catch (e, st) {
-    final stString = st.toString();
-    Expect.isTrue(stString.contains("new SomeClass.useFactory"));
+    if (symbolicUnminifiedStackTraces) {
+      final stString = st.toString();
+      Expect.isTrue(stString.contains("new SomeClass.useFactory"));
+    }
   }
 }

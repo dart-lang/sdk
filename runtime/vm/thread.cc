@@ -47,6 +47,10 @@ Thread::~Thread() {
   ASSERT(!ActiveMutatorStolenField::decode(safepoint_state_));
   ASSERT(deopt_context_ ==
          nullptr);  // No deopt in progress when thread is deleted.
+#if defined(DART_INCLUDE_SIMULATOR)
+  delete simulator_;
+  simulator_ = nullptr;
+#endif
 #if defined(DART_DYNAMIC_MODULES)
   delete interpreter_;
   interpreter_ = nullptr;
@@ -229,6 +233,14 @@ void Thread::InitVMConstants() {
   this->object##_handle_ = this->AllocateReusableHandle<object>();
   REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_ALLOCATION)
 #undef REUSABLE_HANDLE_ALLOCATION
+}
+
+void Thread::UpdateCachedVMStubs() {
+#define UPDATE_VALUE(type_name, member_name, init_expr, default_init_value)    \
+  member_name = (init_expr);
+  CACHED_VM_STUBS_LIST(UPDATE_VALUE)
+  CACHED_VM_STUBS_ADDRESSES_LIST(UPDATE_VALUE)
+#undef UPDATE_VALUE
 }
 
 void Thread::FixInitiallyNullFields() {
@@ -564,6 +576,16 @@ void Thread::ExitIsolateGroupAsHelper(bool bypass_safepoint) {
   Roots::ClearCurrent();
 }
 
+DART_FORCE_INLINE static void SetThreadStackLimit(Thread* thread) {
+#if defined(DART_INCLUDE_SIMULATOR)
+  if (FLAG_use_simulator) {
+    thread->SetStackLimit(Simulator::Current()->overflow_stack_limit());
+    return;
+  }
+#endif
+  thread->SetStackLimit(OSThread::Current()->overflow_stack_limit());
+}
+
 void Thread::EnterIsolateGroupAsMutator(IsolateGroup* isolate_group,
                                         bool bypass_safepoint,
                                         Thread* suspended_thread) {
@@ -599,15 +621,7 @@ void Thread::EnterIsolateGroupAsMutator(IsolateGroup* isolate_group,
   thread->SetupDartMutatorStateDependingOnSnapshot(isolate_group);
 
   ResumeThreadInternal(thread);
-#if defined(DART_INCLUDE_SIMULATOR)
-  if (FLAG_use_simulator) {
-    thread->SetStackLimit(Simulator::Current()->overflow_stack_limit());
-  } else {
-    thread->SetStackLimit(OSThread::Current()->overflow_stack_limit());
-  }
-#else
-  thread->SetStackLimit(OSThread::Current()->overflow_stack_limit());
-#endif
+  SetThreadStackLimit(thread);
 
   thread->set_thread_locals(Array::empty_array());
   thread->AssertDartMutatorInvariants();
@@ -672,15 +686,7 @@ void Thread::ExitIsolateGroupAsNonMutator() {
 
 void Thread::ResumeDartMutatorThreadInternal(Thread* thread) {
   ResumeThreadInternal(thread);
-#if defined(DART_INCLUDE_SIMULATOR)
-  if (FLAG_use_simulator) {
-    thread->SetStackLimit(Simulator::Current()->overflow_stack_limit());
-  } else {
-    thread->SetStackLimit(OSThread::Current()->overflow_stack_limit());
-  }
-#else
-  thread->SetStackLimit(OSThread::Current()->overflow_stack_limit());
-#endif
+  SetThreadStackLimit(thread);
 }
 
 void Thread::SuspendDartMutatorThreadInternal(Thread* thread,
@@ -1713,6 +1719,11 @@ void Thread::ResetDartMutatorState() {
   thread_locals_ = Array::null();
   ONLY_IN_PRECOMPILED(global_object_pool_ = ObjectPool::null());
   ONLY_IN_PRECOMPILED(dispatch_table_array_ = nullptr);
+
+#if defined(DART_DYNAMIC_MODULES)
+  delete interpreter_;
+  interpreter_ = nullptr;
+#endif
 }
 
 void Thread::set_forward_table_new(WeakTable* table) {

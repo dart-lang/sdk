@@ -22,7 +22,7 @@ void main() {
 /// type is retained.
 @reflectiveTest
 class ConvertToInitializingFormalDifferentTypesTest
-    extends AssistProcessorTest {
+    extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertToInitializingFormal;
 
@@ -161,7 +161,8 @@ class C([String? this.a]) {
 
 /// Tests where the cursor can and can't be while triggering the assist.
 @reflectiveTest
-class ConvertToInitializingFormalLocationTest extends AssistProcessorTest {
+class ConvertToInitializingFormalLocationTest
+    extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertToInitializingFormal;
 
@@ -345,7 +346,7 @@ class C(this.test) {
 }
 
 @reflectiveTest
-class ConvertToInitializingFormalOtherTest extends AssistProcessorTest {
+class ConvertToInitializingFormalOtherTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertToInitializingFormal;
 
@@ -574,7 +575,8 @@ class C extends B {
 
 /// Tests how privacy interacts with the assist.
 @reflectiveTest
-class ConvertToInitializingFormalPrivateTest extends AssistProcessorTest {
+class ConvertToInitializingFormalPrivateTest
+    extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertToInitializingFormal;
 
@@ -739,7 +741,7 @@ class C {
 /// Tests when the assist can and can't apply if the field and parameter names
 /// aren't the same.
 @reflectiveTest
-class ConvertToInitializingFormalRenameTest extends AssistProcessorTest {
+class ConvertToInitializingFormalRenameTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertToInitializingFormal;
 

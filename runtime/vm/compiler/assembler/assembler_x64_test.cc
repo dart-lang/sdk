@@ -4291,6 +4291,95 @@ ASSEMBLER_TEST_RUN(PackedLogicalAnd, test) {
       "ret\n");
 }
 
+ASSEMBLER_TEST_GENERATE(PackedShiftLeft, assembler) {
+  static const struct ALIGN16 {
+    uint32_t a;
+    uint32_t b;
+    uint32_t c;
+    uint32_t d;
+  } constant1 = {1, 2, 3, 0x20000000};
+  __ movq(RAX, CallingConventions::kArg1Reg);
+  __ movq(RDX, Immediate(reinterpret_cast<intptr_t>(&constant1)));
+  __ movups(XMM0, Address(RDX, 0));
+  __ movl(RDX, Immediate(2));
+  __ movd(XMM1, RDX);
+  __ pslld(XMM0, XMM1);
+  __ movups(Address(RAX, 0), XMM0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(PackedShiftLeft, test) {
+  typedef void (*PackedShiftLeftCode)(uint32_t* result);
+  uint32_t result[4] = {0, 0, 0, 0};
+  reinterpret_cast<PackedShiftLeftCode>(test->entry())(result);
+  EXPECT_EQ(1u << 2, result[0]);
+  EXPECT_EQ(2u << 2, result[1]);
+  EXPECT_EQ(3u << 2, result[2]);
+  EXPECT_EQ(0x20000000u << 2, result[3]);
+  EXPECT_DISASSEMBLY_ENDS_WITH(
+      "pslld xmm0,xmm1\n"
+      "movups [rax],xmm0\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(PackedShiftRightArithmetic, assembler) {
+  static const struct ALIGN16 {
+    uint32_t a;
+    uint32_t b;
+    uint32_t c;
+    uint32_t d;
+  } constant1 = {0xFFFFFFF8, 8, 0x80000000, 0x7FFFFFFF};
+  __ movq(RAX, CallingConventions::kArg1Reg);
+  __ movq(RDX, Immediate(reinterpret_cast<intptr_t>(&constant1)));
+  __ movups(XMM0, Address(RDX, 0));
+  __ movl(RDX, Immediate(1));
+  __ movd(XMM1, RDX);
+  __ psrad(XMM0, XMM1);
+  __ movups(Address(RAX, 0), XMM0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(PackedShiftRightArithmetic, test) {
+  typedef void (*PackedShiftRightArithmeticCode)(uint32_t* result);
+  uint32_t result[4] = {0, 0, 0, 0};
+  reinterpret_cast<PackedShiftRightArithmeticCode>(test->entry())(result);
+  EXPECT_EQ(0xFFFFFFFCu, result[0]);
+  EXPECT_EQ(4u, result[1]);
+  EXPECT_EQ(0xC0000000u, result[2]);
+  EXPECT_EQ(0x3FFFFFFFu, result[3]);
+  EXPECT_DISASSEMBLY_ENDS_WITH(
+      "psrad xmm0,xmm1\n"
+      "movups [rax],xmm0\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(PackedShiftRightLogical, assembler) {
+  __ movq(RAX, CallingConventions::kArg1Reg);
+  __ movups(XMM0, Address(RAX, 0));
+  __ movd(XMM1, CallingConventions::kArg2Reg);
+  __ psrld(XMM0, XMM1);
+  __ movups(Address(RAX, 0), XMM0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(PackedShiftRightLogical, test) {
+  typedef void (*PackedShiftRightLogicalCode)(uint32_t* data, intptr_t count);
+  auto check = [&](intptr_t count, const uint32_t (&expected)[4]) {
+    uint32_t data[4] = {0xFFFFFFF8, 8, 0x80000000, 0x7FFFFFFF};
+    reinterpret_cast<PackedShiftRightLogicalCode>(test->entry())(data, count);
+    for (intptr_t i = 0; i < 4; i++) {
+      EXPECT_EQ(expected[i], data[i]);
+    }
+  };
+  check(1, {0x7FFFFFFC, 4, 0x40000000, 0x3FFFFFFF});
+  // A count of 32 or more shifts every bit out.
+  check(32, {0, 0, 0, 0});
+  EXPECT_DISASSEMBLY_ENDS_WITH(
+      "psrld xmm0,xmm1\n"
+      "movups [rax],xmm0\n"
+      "ret\n");
+}
+
 ASSEMBLER_TEST_GENERATE(PackedLogicalNot, assembler) {
   static const struct ALIGN16 {
     uint32_t a;
@@ -5329,6 +5418,95 @@ ASSEMBLER_TEST_RUN(Pcmpeqd, test) {
   EXPECT_DISASSEMBLY(
       "pcmpeqd xmm0,xmm0\n"
       "movmskps rax,xmm0\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(Pcmpgtd, assembler) {
+  __ movq(RAX, CallingConventions::kArg1Reg);
+  __ movups(XMM0, Address(RAX, 0));
+  __ movups(XMM1, Address(RAX, 16));
+  __ pcmpgtd(XMM0, XMM1);
+  __ movups(Address(RAX, 32), XMM0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Pcmpgtd, test) {
+  typedef void (*PcmpgtdCode)(int32_t* data);
+  auto check = [&](const int32_t (&left)[4], const int32_t (&right)[4],
+                   const int32_t (&expected)[4]) {
+    int32_t data[12];
+    for (intptr_t i = 0; i < 4; i++) {
+      data[i] = left[i];
+      data[4 + i] = right[i];
+      data[8 + i] = static_cast<int32_t>(0xAAAAAAAA);
+    }
+    reinterpret_cast<PcmpgtdCode>(test->entry())(data);
+    for (intptr_t i = 0; i < 4; i++) {
+      EXPECT_EQ(expected[i], data[8 + i]);
+    }
+  };
+  check({5, -6, 7, kMinInt32}, {5, 0, 3, kMaxInt32}, {0, 0, -1, 0});
+  check({5, 0, 3, kMaxInt32}, {5, -6, 7, kMinInt32}, {0, -1, 0, -1});
+  check({0, -1, kMinInt32, 1}, {-1, 0, kMaxInt32, -1}, {-1, 0, 0, -1});
+  EXPECT_DISASSEMBLY_ENDS_WITH(
+      "pcmpgtd xmm0,xmm1\n"
+      "movups [rax+0x20],xmm0\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(Ptest, assembler) {
+  // Zero vector: ptest sets ZF=1, so setcc(EQUAL) yields 1.
+  __ xorps(XMM0, XMM0);
+  __ ptest(XMM0, XMM0);
+  __ setcc(EQUAL, ByteRegisterOf(RAX));
+  __ movzxb(RAX, RAX);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Ptest, test) {
+  typedef intptr_t (*PtestCode)();
+  intptr_t res = reinterpret_cast<PtestCode>(test->entry())();
+  EXPECT_EQ(1, res);
+  EXPECT_DISASSEMBLY(
+      "xorps xmm0,xmm0\n"
+      "ptest xmm0,xmm0\n"
+      "setz al\n"
+      "movzxbq rax,rax\n"
+      "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(Pshufd, assembler) {
+  static const struct ALIGN16 {
+    uint32_t a;
+    uint32_t b;
+    uint32_t c;
+    uint32_t d;
+  } constant1 = {0x01234567, 0x89ABCDEF, 0x76543210, 0xFEDCBA98};
+  __ movq(RAX, CallingConventions::kArg1Reg);
+  __ movq(RDX, Immediate(reinterpret_cast<intptr_t>(&constant1)));
+  __ movups(XMM0, Address(RDX, 0));
+  __ pshufd(XMM1, XMM0, Immediate(0x9C));
+  __ movups(Address(RAX, 0), XMM1);
+  __ movups(Address(RAX, 16), XMM0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Pshufd, test) {
+  typedef void (*PshufdCode)(uint32_t* result);
+  uint32_t result[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+  reinterpret_cast<PshufdCode>(test->entry())(result);
+  EXPECT_EQ(0x01234567u, result[0]);
+  EXPECT_EQ(0xFEDCBA98u, result[1]);
+  EXPECT_EQ(0x89ABCDEFu, result[2]);
+  EXPECT_EQ(0x76543210u, result[3]);
+  EXPECT_EQ(0x01234567u, result[4]);
+  EXPECT_EQ(0x89ABCDEFu, result[5]);
+  EXPECT_EQ(0x76543210u, result[6]);
+  EXPECT_EQ(0xFEDCBA98u, result[7]);
+  EXPECT_DISASSEMBLY_ENDS_WITH(
+      "pshufd xmm1,xmm0 [9c]\n"
+      "movups [rax],xmm1\n"
+      "movups [rax+0x10],xmm0\n"
       "ret\n");
 }
 

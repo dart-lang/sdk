@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -10,8 +11,143 @@ import '../dart/resolution/node_text_expectations.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SuperInInvalidContextTest);
+    defineReflectiveTests(SuperInInvalidContextAnonymousMethodTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
+}
+
+@reflectiveTest
+class SuperInInvalidContextAnonymousMethodTest
+    extends PubPackageResolutionTest {
+  @override
+  List<Feature> get experimentalFeatures => [
+    ...super.experimentalFeatures,
+    Feature.anonymous_methods,
+  ];
+
+  test_call() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int call() => 0;
+}
+
+class B extends A {}
+
+void f(B b) {
+  b.{
+    super();
+//  ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
+  };
+}
+''');
+
+    var node = result.findNode.singleCallInvocation;
+    assertResolvedNodeText(node, r'''
+CallInvocation
+  receiver: SuperReference
+    superKeyword: super
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: FunctionExpressionInvocation
+  function: SuperExpression
+    superKeyword: super
+    staticType: B
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  element: <null>
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_index() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int operator [](int index) => 0;
+}
+
+class B extends A {}
+
+void f(B b) {
+  b.{
+    super[0];
+//  ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
+  };
+}
+''');
+
+    var node = result.findNode.singleReceiverIndexExpression;
+    assertResolvedNodeText(node, r'''
+ReceiverIndexExpression
+  receiver: SuperReference
+    superKeyword: super
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  rightBracket: ]
+  resolution: InvalidIndexReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: IndexExpression
+  target: SuperExpression
+    superKeyword: super
+    staticType: B
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  rightBracket: ]
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_unaryOperator() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int operator -() => 0;
+}
+
+class B extends A {}
+
+void f(B b) {
+  b.{
+    -super;
+//   ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
+  };
+}
+''');
+
+    var node = result.findNode.singleUnaryOperatorInvocation;
+    assertResolvedNodeText(node, r'''
+UnaryOperatorInvocation
+  operator: -
+  operand: SuperReference
+    superKeyword: super
+  unaryOperator: negate
+  element: <null>
+  staticType: InvalidType
+V1: PrefixExpression
+  operator: -
+  operand: SuperExpression
+    superKeyword: super
+    staticType: B
+  element: <null>
+  staticType: InvalidType
+''');
+  }
 }
 
 @reflectiveTest
@@ -119,6 +255,175 @@ class C extends S {
 //                 ^^^^^
 // [diag.superInInvalidContext] Invalid context for 'super' invocation.
   C.other(int a) : super(a);
+}
+''');
+  }
+
+  test_defaultValue_constructor() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int get foo => 0;
+}
+
+class B extends A {
+  B([int x = super.foo]);
+//           ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
+}
+''');
+  }
+
+  test_defaultValue_lateFieldClosure() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int get foo => 0;
+}
+
+class B extends A {
+  late var f = ([int x = super.foo]) => x;
+//                       ^^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+}
+''');
+  }
+
+  test_defaultValue_localFunction() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int get foo => 0;
+}
+
+class B extends A {
+  void m() {
+    void g([int x = super.foo]) {}
+//                  ^^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+    g();
+  }
+}
+''');
+  }
+
+  test_defaultValue_method_binaryExpression() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int operator +(int other) => 0;
+}
+
+class B extends A {
+  void m([int x = super + 1]) {}
+//                ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
+}
+''');
+  }
+
+  test_defaultValue_method_closureBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int get foo => 0;
+}
+
+class B extends A {
+  void m([int Function() f = () => super.foo]) {}
+//                           ^^^^^^^^^^^^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+//                                 ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
+}
+''');
+  }
+
+  test_defaultValue_method_closureDefaultValue() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int get foo => 0;
+}
+
+class B extends A {
+  void m([int Function([int]) f = ([int x = super.foo]) => x]) {}
+//                                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+//                                          ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
+}
+''');
+  }
+
+  test_defaultValue_method_indexExpression() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int operator [](int index) => 0;
+}
+
+class B extends A {
+  void m([int x = super[0]]) {}
+//                ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
+}
+''');
+  }
+
+  test_defaultValue_method_methodInvocation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int foo() => 0;
+}
+
+class B extends A {
+  void m([int x = super.foo()]) {}
+//                ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
+}
+''');
+  }
+
+  test_defaultValue_method_propertyAccess() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int get foo => 0;
+}
+
+class B extends A {
+  void m([int x = super.foo]) {}
+//                ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
+}
+''');
+
+    var node = result.findNode.singleReceiverPropertyExtraction;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: SuperReference
+    superKeyword: super
+  operator: .
+  name: foo
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PropertyAccess
+  target: SuperExpression
+    superKeyword: super
+    staticType: InvalidType
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_defaultValue_mixin() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int get foo => 0;
+}
+
+mixin M on A {
+  void m([int x = super.foo]) {}
+//                ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
 }
 ''');
   }
@@ -269,12 +574,24 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('super.m()');
+    var node = result.findNode.receiverMethodInvocation('super.m()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SuperExpression
+ReceiverMethodInvocation
+  receiver: SuperReference
     superKeyword: super
-    staticType: B
+  operator: .
+  name: m
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SuperExpression
+    superKeyword: super
+    staticType: InvalidType
   operator: .
   methodName: SimpleIdentifier
     token: m
@@ -300,12 +617,20 @@ class B extends A {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: SuperExpression
+ReceiverPropertyExtraction
+  receiver: SuperReference
     superKeyword: super
-    staticType: B
+  operator: .
+  name: a
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PropertyAccess
+  target: SuperExpression
+    superKeyword: super
+    staticType: InvalidType
   operator: .
   propertyName: SimpleIdentifier
     token: a

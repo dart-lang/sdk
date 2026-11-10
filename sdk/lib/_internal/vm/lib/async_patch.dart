@@ -44,6 +44,10 @@ class _AsyncStarStreamController<T> {
   StreamController<T> controller;
   @pragma("vm:entry-point")
   void Function(Object?)? asyncStarBody;
+
+  /// Zone that async* function body runs in.
+  /// Used to schedule runs of body code.
+  Zone zone = Zone.current; // Set to actual value in onListen.
   bool isAdding = false;
   bool onListenReceived = false;
   bool isScheduled = false;
@@ -69,7 +73,7 @@ class _AsyncStarStreamController<T> {
       return;
     }
     isScheduled = true;
-    scheduleMicrotask(runBody);
+    zone.scheduleMicrotask(runBody);
   }
 
   // Adds element to stream.
@@ -129,35 +133,36 @@ class _AsyncStarStreamController<T> {
     // of the generator and do not need to run the generator again.
   }
 
-  close() {
+  void close() {
     final future = cancellationFuture;
     if ((future != null) && future._mayComplete) {
-      // If the stream has been cancelled, complete the cancellation future
-      // with the error.
+      // If the stream has been cancelled, complete the cancellation future.
       future._completeWithValue(null);
     }
     controller.close();
   }
 
   _AsyncStarStreamController() : controller = StreamController(sync: true) {
-    controller.onListen = this.onListen;
-    controller.onResume = this.onResume;
-    controller.onCancel = this.onCancel;
+    controller
+      ..onListen = this.onListen
+      ..onResume = this.onResume
+      ..onCancel = this.onCancel;
   }
 
-  onListen() {
+  void onListen() {
     assert(!onListenReceived);
     onListenReceived = true;
+    zone = Zone.current;
     scheduleGenerator();
   }
 
-  onResume() {
+  void onResume() {
     if (isSuspendedAtYield) {
       scheduleGenerator();
     }
   }
 
-  onCancel() {
+  Future<void>? onCancel() {
     if (controller.isClosed) {
       return null;
     }
@@ -367,8 +372,16 @@ class _SuspendState {
     } else {
       future = unsafeCast<_Future>(suspendState);
     }
+    // NOTE: We don't check whether the function suspended:
+    //   * if the body completes synchronously, the very next thing we'll
+    //     synchronously do is return the future from the call before running
+    //     any microtasks (so there are no listeners yet). `_chainFuture` will
+    //     not complete with an error synchronously, and completing with a value
+    //     synchronously is safe.
+    //   * if the body completes after a suspend point, we will already be in a
+    //     microtask queue and can run any listener callbacks immediately.
     if (returnValue is Future) {
-      future._asyncCompleteUnchecked(returnValue);
+      future._chainFutureOrCompleteWithValue(returnValue);
     } else {
       future._completeWithValue(returnValue);
     }
@@ -435,19 +448,23 @@ class _SuspendState {
     StackTrace stackTrace,
   ) {
     Object? functionData;
-    bool isSync = true;
+    bool hasSuspended;
     if (suspendState is _SuspendState) {
       functionData = suspendState._functionData;
+      hasSuspended = true;
     } else {
       functionData = suspendState;
-      isSync = false;
+      hasSuspended = false;
     }
     if (functionData is _Future) {
-      // async function.
-      if (!isSync) {
-        functionData._asyncCompleteError(exception, stackTrace);
+      // async function: if throwing synchronously, delay error completion to a
+      // microtask so the caller can attach an error handler before the error is
+      // reported as uncaught.
+      final error = _interceptCaughtError(exception, stackTrace);
+      if (hasSuspended) {
+        functionData._completeErrorObject(error);
       } else {
-        functionData._completeError(exception, stackTrace);
+        functionData._asyncCompleteErrorObject(error);
       }
     } else if (functionData is _AsyncStarStreamController) {
       // async* function.

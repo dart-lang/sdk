@@ -18,8 +18,10 @@ import '../../kernel/body_builder_context.dart';
 import '../../kernel/hierarchy/class_member.dart';
 import '../../kernel/hierarchy/members_builder.dart';
 import '../../kernel/internal_ast.dart';
+import '../../kernel/kernel_helper.dart';
 import '../../kernel/type_algorithms.dart';
 import '../../source/name_scheme.dart';
+import '../../source/parameters.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_library_builder.dart';
 import '../../source/source_loader.dart';
@@ -57,22 +59,18 @@ abstract class MethodDeclaration {
     required SourceMethodBuilder methodBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+    required bool includeBody,
   });
 
-  void buildOutlineNode(
-    SourceLibraryBuilder libraryBuilder,
-    ProblemReporting problemReporting,
-    NameScheme nameScheme,
-    BuildNodesCallback f, {
-    required Reference reference,
-    required Reference? tearOffReference,
+  void buildOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required ProblemReporting problemReporting,
+    required NameScheme nameScheme,
+    required BuildNodesCallback callback,
+    required MethodReferences? references,
     required List<TypeParameter>? classTypeParameters,
   });
-
-  void checkTypes(
-    ProblemReporting problemReporting,
-    TypeEnvironment typeEnvironment,
-  );
 
   void checkVariance(
     SourceClassBuilder sourceClassBuilder,
@@ -81,12 +79,14 @@ abstract class MethodDeclaration {
 
   int computeDefaultTypes(ComputeDefaultTypeContext context);
 
-  void createEncoding(
-    ProblemReporting problemReporting,
-    SourceMethodBuilder builder,
-    MethodEncodingStrategy encodingStrategy,
-    TypeParameterFactory typeParameterFactory,
-  );
+  void createEncoding({
+    required ProblemReporting problemReporting,
+    required SourceMethodBuilder builder,
+    required Parameters parameters,
+    required MethodEncodingStrategy encodingStrategy,
+    required TypeParameterFactory typeParameterFactory,
+    required bool isImplementation,
+  });
 
   void ensureTypes(
     ClassMembersBuilder membersBuilder,
@@ -108,6 +108,7 @@ class MethodDeclarationImpl
   UriOffsetLength get uriOffset => _fragment.uriOffset;
 
   @override
+  // Coverage-ignore(suite): Not run.
   Uri get fileUri => _fragment.fileUri;
 
   @override
@@ -152,6 +153,8 @@ class MethodDeclarationImpl
     required SourceMethodBuilder methodBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+    required bool includeBody,
   }) {
     _encoding.buildOutlineExpressions(
       classHierarchy: classHierarchy,
@@ -161,38 +164,30 @@ class MethodDeclarationImpl
       bodyBuilderContext: createBodyBuilderContext(methodBuilder),
       annotatable: annotatable,
       annotatableFileUri: annotatableFileUri,
+      delayedDefaultValueCloners: delayedDefaultValueCloners,
+      includeBody: includeBody,
     );
   }
 
   @override
-  void buildOutlineNode(
-    SourceLibraryBuilder libraryBuilder,
-    ProblemReporting problemReporting,
-    NameScheme nameScheme,
-    BuildNodesCallback f, {
-    required Reference reference,
-    required Reference? tearOffReference,
+  void buildOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required ProblemReporting problemReporting,
+    required NameScheme nameScheme,
+    required BuildNodesCallback callback,
+    required MethodReferences? references,
     required List<TypeParameter>? classTypeParameters,
   }) {
     _encoding.buildOutlineNode(
-      libraryBuilder,
-      problemReporting,
-      nameScheme,
-      f,
-      reference: reference,
-      tearOffReference: tearOffReference,
+      libraryBuilder: libraryBuilder,
+      problemReporting: problemReporting,
+      nameScheme: nameScheme,
+      callback: callback,
+      references: references,
       isAbstractOrExternal:
           _fragment.modifiers.isAbstract || _fragment.modifiers.isExternal,
       classTypeParameters: classTypeParameters,
     );
-  }
-
-  @override
-  void checkTypes(
-    ProblemReporting problemReporting,
-    TypeEnvironment typeEnvironment,
-  ) {
-    _encoding.checkTypes(problemReporting, typeEnvironment);
   }
 
   @override
@@ -220,12 +215,14 @@ class MethodDeclarationImpl
   }
 
   @override
-  void createEncoding(
-    ProblemReporting problemReporting,
-    SourceMethodBuilder builder,
-    MethodEncodingStrategy encodingStrategy,
-    TypeParameterFactory typeParameterFactory,
-  ) {
+  void createEncoding({
+    required ProblemReporting problemReporting,
+    required SourceMethodBuilder builder,
+    required MethodEncodingStrategy encodingStrategy,
+    required Parameters parameters,
+    required TypeParameterFactory typeParameterFactory,
+    required bool isImplementation,
+  }) {
     _encoding = encodingStrategy.createMethodEncoding(
       builder,
       _fragment,
@@ -238,6 +235,7 @@ class MethodDeclarationImpl
       allowNameConflict: true,
     );
     returnType.registerInferredTypeListener(_encoding);
+    parameters.registerParameters(formals, isImplementation: isImplementation);
   }
 
   @override
@@ -259,20 +257,13 @@ class MethodDeclarationImpl
         _fragment.declaredFormals,
         overrideDependencies,
         name: _fragment.name,
-        fileUri: fileUri,
-        nameOffset: _fragment.nameOffset,
-        nameLength: _fragment.name.length,
+        uriOffset: uriOffset,
       );
     }
     _encoding.ensureTypes(
       enclosingClassBuilder.libraryBuilder,
       membersBuilder.hierarchyBuilder,
     );
-  }
-
-  @override
-  FunctionParameter? getTearOffParameter(int index) {
-    return _encoding.getTearOffParameter(index);
   }
 
   @override
@@ -327,6 +318,4 @@ abstract class MethodFragmentDeclaration {
   BodyBuilderContext createBodyBuilderContext(SourceMethodBuilder builder);
 
   LocalScope createFormalParameterScope(LookupScope typeParameterScope);
-
-  FunctionParameter? getTearOffParameter(int index);
 }

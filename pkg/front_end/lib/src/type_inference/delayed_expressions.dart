@@ -1269,15 +1269,14 @@ class DelayedDynamicInvocation extends AbstractDelayedExpression {
       ),
       _methodName,
       new Arguments(
-        _arguments
-            .map(
-              (e) => e.createExpression(
-                typeEnvironment,
-                effects: effects,
-                inCacheInitializer: inCacheInitializer,
-              ),
-            )
-            .toList(),
+        ExpressionList.mapped(
+          _arguments,
+          (DelayedExpression argument) => argument.createExpression(
+            typeEnvironment,
+            effects: effects,
+            inCacheInitializer: inCacheInitializer,
+          ),
+        ),
       )..fileOffset = fileOffset,
     )..fileOffset = fileOffset;
   }
@@ -1441,15 +1440,14 @@ class DelayedInstanceInvocation extends AbstractDelayedExpression {
       ),
       _target.name,
       new Arguments(
-        _arguments
-            .map(
-              (e) => e.createExpression(
-                typeEnvironment,
-                effects: effects,
-                inCacheInitializer: inCacheInitializer,
-              ),
-            )
-            .toList(),
+        ExpressionList.mapped(
+          _arguments,
+          (DelayedExpression argument) => argument.createExpression(
+            typeEnvironment,
+            effects: effects,
+            inCacheInitializer: inCacheInitializer,
+          ),
+        ),
       )..fileOffset = fileOffset,
       interfaceTarget: _target,
       functionType: _functionType,
@@ -1490,7 +1488,7 @@ class DelayedInstanceInvocation extends AbstractDelayedExpression {
 class DelayedExtensionInvocation extends AbstractDelayedExpression {
   final Procedure _target;
   final List<DelayedExpression> _arguments;
-  final List<DartType> _typeArguments;
+  final DartTypeList _typeArguments;
   final DartType _resultType;
   final int fileOffset;
 
@@ -1511,15 +1509,14 @@ class DelayedExtensionInvocation extends AbstractDelayedExpression {
     return new StaticInvocation(
       _target,
       new Arguments(
-        _arguments
-            .map(
-              (e) => e.createExpression(
-                typeEnvironment,
-                effects: effects,
-                inCacheInitializer: inCacheInitializer,
-              ),
-            )
-            .toList(),
+        ExpressionList.mapped(
+          _arguments,
+          (DelayedExpression argument) => argument.createExpression(
+            typeEnvironment,
+            effects: effects,
+            inCacheInitializer: inCacheInitializer,
+          ),
+        ),
         types: _typeArguments,
       )..fileOffset = fileOffset,
     )..fileOffset = fileOffset;

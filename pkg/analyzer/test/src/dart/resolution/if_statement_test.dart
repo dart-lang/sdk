@@ -30,7 +30,13 @@ void f(x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: dynamic
+    staticType: dynamic
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: dynamic
@@ -43,7 +49,7 @@ IfStatement
           staticType: int
         matchedValueType: dynamic
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -63,7 +69,13 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -102,9 +114,11 @@ IfStatement
       whenClause: WhenClause
         whenKeyword: when
         expression2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: a
-            element: a@null
+          leftOperand: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: a@null
+              type: int
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -128,11 +142,17 @@ IfStatement
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
-        expression2: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@null
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: a
           element: a@null
           staticType: int
@@ -157,7 +177,13 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -198,9 +224,11 @@ IfStatement
       whenClause: WhenClause
         whenKeyword: when
         expression2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: a
-            element: a@null
+          leftOperand: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: a@null
+              type: int
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -224,11 +252,17 @@ IfStatement
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
-        expression2: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@null
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: a
           element: a@null
           staticType: int
@@ -253,7 +287,13 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -293,9 +333,11 @@ IfStatement
       whenClause: WhenClause
         whenKeyword: when
         expression2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: a
-            element: a@null
+          leftOperand: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: a@null
+              type: int
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -319,11 +361,17 @@ IfStatement
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
-        expression2: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@null
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: a
           element: a@null
           staticType: int
@@ -348,7 +396,13 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -387,9 +441,11 @@ IfStatement
       whenClause: WhenClause
         whenKeyword: when
         expression2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: a
-            element: a@null
+          leftOperand: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: a@null
+              type: InvalidType
             staticType: InvalidType
           operator: >
           rightOperand: IntegerLiteral
@@ -413,11 +469,17 @@ IfStatement
           staticInvokeType: null
           staticType: InvalidType
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
-        expression2: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@null
+            type: InvalidType
+          staticType: InvalidType
+        expression(v1): SimpleIdentifier
           token: a
           element: a@null
           staticType: InvalidType
@@ -444,7 +506,13 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -480,9 +548,11 @@ IfStatement
       whenClause: WhenClause
         whenKeyword: when
         expression2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: a
-            element: a@null
+          leftOperand: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: a@null
+              type: int
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -506,11 +576,17 @@ IfStatement
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
-        expression2: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@null
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: a
           element: a@null
           staticType: int
@@ -535,7 +611,13 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -576,9 +658,11 @@ IfStatement
       whenClause: WhenClause
         whenKeyword: when
         expression2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: a
-            element: a@null
+          leftOperand: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: a@null
+              type: int
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -602,11 +686,17 @@ IfStatement
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
-        expression2: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@null
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: a
           element: a@null
           staticType: int
@@ -629,7 +719,13 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -675,9 +771,11 @@ IfStatement
       whenClause: WhenClause
         whenKeyword: when
         expression2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: a
-            element: a@null
+          leftOperand: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: a@null
+              type: int
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -701,11 +799,17 @@ IfStatement
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
-        expression2: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@null
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: a
           element: a@null
           staticType: int
@@ -730,7 +834,13 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -771,9 +881,11 @@ IfStatement
       whenClause: WhenClause
         whenKeyword: when
         expression2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: a
-            element: a@null
+          leftOperand: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: a@null
+              type: int
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -797,11 +909,17 @@ IfStatement
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
-        expression2: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@null
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: a
           element: a@null
           staticType: int
@@ -828,7 +946,13 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -864,9 +988,11 @@ IfStatement
       whenClause: WhenClause
         whenKeyword: when
         expression2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: a
-            element: a@null
+          leftOperand: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: a@null
+              type: int
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -890,11 +1016,17 @@ IfStatement
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
-        expression2: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@null
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: a
           element: a@null
           staticType: int
@@ -919,7 +1051,13 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -960,9 +1098,11 @@ IfStatement
       whenClause: WhenClause
         whenKeyword: when
         expression2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: a
-            element: a@null
+          leftOperand: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: a@null
+              type: int
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -986,11 +1126,17 @@ IfStatement
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
-        expression2: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@null
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: a
           element: a@null
           staticType: int
@@ -1027,7 +1173,13 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -1049,7 +1201,13 @@ IfStatement
             matchedValueType: Object?
           RelationalPattern
             operator: ==
-            operand2: SimpleIdentifier
+            operand2: UnqualifiedNameExpression
+              name: a
+              resolution: VariableReadResolution
+                element: a@51
+                type: int
+              staticType: int
+            operand(v1): SimpleIdentifier
               token: a
               element: a@51
               staticType: int
@@ -1061,9 +1219,11 @@ IfStatement
       whenClause: WhenClause
         whenKeyword: when
         expression2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: a
-            element: a@51
+          leftOperand: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: a@51
+              type: int
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -1087,22 +1247,34 @@ IfStatement
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
-        expression2: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@51
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: a
           element: a@51
           staticType: int
         semicolon: ;
     rightBracket: }
   elseKeyword: else
-  elseStatement: Block
+  elseStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
-        expression2: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: GetterInvocationResolution
+            element: <testLibrary>::@getter::a
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: a
           element: <testLibrary>::@getter::a
           staticType: int
@@ -1131,7 +1303,13 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -1151,7 +1329,13 @@ IfStatement
           matchedValueType: Object?
         operator: ||
         rightOperand: ConstantPattern
-          expression2: SimpleIdentifier
+          expression2: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: a@null
+              type: InvalidType
+            staticType: InvalidType
+          expression(v1): SimpleIdentifier
             token: a
             element: a@null
             staticType: InvalidType
@@ -1159,27 +1343,45 @@ IfStatement
         matchedValueType: Object?
       whenClause: WhenClause
         whenKeyword: when
-        expression2: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@null
+            type: bool
+          staticType: bool
+        expression(v1): SimpleIdentifier
           token: a
           element: a@null
           staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
-        expression2: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@null
+            type: bool
+          staticType: bool
+        expression(v1): SimpleIdentifier
           token: a
           element: a@null
           staticType: bool
         semicolon: ;
     rightBracket: }
   elseKeyword: else
-  elseStatement: Block
+  elseStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
-        expression2: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: GetterInvocationResolution
+            element: <testLibrary>::@getter::a
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: a
           element: <testLibrary>::@getter::a
           staticType: int
@@ -1196,7 +1398,7 @@ void f(Object? x) {
   } else {
     a; // error
 //  ^
-// [diag.undefinedIdentifier] Undefined name 'a'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'a'.
   }
 }
 ''');
@@ -1206,7 +1408,13 @@ void f(Object? x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: Object?
@@ -1226,9 +1434,11 @@ IfStatement
       whenClause: WhenClause
         whenKeyword: when
         expression2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: a
-            element: a@37
+          leftOperand: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: a@37
+              type: int
             staticType: int
           operator: >
           rightOperand: IntegerLiteral
@@ -1252,22 +1462,33 @@ IfStatement
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
-        expression2: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@37
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: a
           element: a@37
           staticType: int
         semicolon: ;
     rightBracket: }
   elseKeyword: else
-  elseStatement: Block
+  elseStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
-        expression2: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: InvalidNamedReadResolution
+            recoveryElement: <null>
+          staticType: InvalidType
+        expression(v1): SimpleIdentifier
           token: a
           element: <null>
           staticType: InvalidType
@@ -1283,7 +1504,6 @@ class A {
     if (super) {}
 //      ^^^^^
 // [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
-// [diag.nonBoolCondition] Conditions must have a static type of 'bool'.
   }
 }
 ''');
@@ -1293,11 +1513,15 @@ class A {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression2: SuperExpression
+  expression2: InvalidSuperExpression
+    superReference: SuperReference
+      superKeyword: super
+    staticType: InvalidType
+  expression(v1): SuperExpression
     superKeyword: super
     staticType: A
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -1319,7 +1543,13 @@ class A {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: dynamic
+    staticType: dynamic
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: dynamic
@@ -1352,7 +1582,7 @@ IfStatement
           staticType: A
         matchedValueType: dynamic
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -1370,8 +1600,22 @@ void f(bool Function() a) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression2: FunctionExpressionInvocation
-    function2: SimpleIdentifier
+  expression2: CallInvocation
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: bool Function()
+      staticType: bool Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: FunctionTypeInvocationResolution
+      invokeType: bool Function()
+      type: bool
+    staticType: bool
+  expression(v1): FunctionExpressionInvocation
+    function: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
       staticType: bool Function()
@@ -1382,7 +1626,7 @@ IfStatement
     staticInvokeType: bool Function()
     staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -1400,8 +1644,22 @@ void f(int Function() a) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression2: FunctionExpressionInvocation
-    function2: SimpleIdentifier
+  expression2: CallInvocation
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: int Function()
+      staticType: int Function()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    resolution: FunctionTypeInvocationResolution
+      invokeType: int Function()
+      type: int
+    staticType: int
+  expression(v1): FunctionExpressionInvocation
+    function: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
       staticType: int Function()
@@ -1420,7 +1678,7 @@ IfStatement
           staticType: int
         matchedValueType: int
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -1438,7 +1696,13 @@ void f(x, bool Function() a) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: dynamic
+    staticType: dynamic
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: dynamic
@@ -1452,8 +1716,22 @@ IfStatement
         matchedValueType: dynamic
       whenClause: WhenClause
         whenKeyword: when
-        expression2: FunctionExpressionInvocation
-          function2: SimpleIdentifier
+        expression2: CallInvocation
+          receiver: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@function::f::@formalParameter::a
+              type: bool Function()
+            staticType: bool Function()
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+          resolution: FunctionTypeInvocationResolution
+            invokeType: bool Function()
+            type: bool
+          staticType: bool
+        expression(v1): FunctionExpressionInvocation
+          function: SimpleIdentifier
             token: a
             element: <testLibrary>::@function::f::@formalParameter::a
             staticType: bool Function()
@@ -1464,7 +1742,7 @@ IfStatement
           staticInvokeType: bool Function()
           staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -1482,7 +1760,13 @@ void f(x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: dynamic
+    staticType: dynamic
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: dynamic
@@ -1500,7 +1784,7 @@ IfStatement
           literal: true
           staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -1535,7 +1819,13 @@ IfStatement
   ifKeyword: if
   leftParenthesis: (
   expression2: IsExpression
-    expression2: SimpleIdentifier
+    expression2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: x@24
+        type: num
+      staticType: num
+    expression(v1): SimpleIdentifier
       token: x
       element: x@24
       staticType: num
@@ -1546,9 +1836,9 @@ IfStatement
       type: int
     staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: FunctionExpression
           parameters: FormalParameterList
@@ -1556,7 +1846,20 @@ IfStatement
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression2: PrefixedIdentifier
+            expression2: ReceiverPropertyExtraction
+              receiver: UnqualifiedNameExpression
+                name: x
+                resolution: VariableReadResolution
+                  element: x@24
+                  type: int
+                staticType: int
+              operator: .
+              name: isEven
+              resolution: GetterInvocationResolution
+                element: dart:core::@class::int::@getter::isEven
+                type: bool
+              staticType: bool
+            expression(v1): PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: x
                 element: x@24
@@ -1598,7 +1901,13 @@ IfStatement
   ifKeyword: if
   leftParenthesis: (
   expression2: IsExpression
-    expression2: SimpleIdentifier
+    expression2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: x@29
+        type: num
+      staticType: num
+    expression(v1): SimpleIdentifier
       token: x
       element: x@29
       staticType: num
@@ -1609,9 +1918,9 @@ IfStatement
       type: int
     staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: FunctionExpression
           parameters: FormalParameterList
@@ -1619,7 +1928,20 @@ IfStatement
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression2: PrefixedIdentifier
+            expression2: ReceiverPropertyExtraction
+              receiver: UnqualifiedNameExpression
+                name: x
+                resolution: VariableReadResolution
+                  element: x@29
+                  type: int
+                staticType: int
+              operator: .
+              name: isEven
+              resolution: GetterInvocationResolution
+                element: dart:core::@class::int::@getter::isEven
+                type: bool
+              staticType: bool
+            expression(v1): PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: x
                 element: x@29
@@ -1661,9 +1983,11 @@ IfStatement
   ifKeyword: if
   leftParenthesis: (
   expression2: BinaryOperatorInvocation
-    leftOperand: SimpleIdentifier
-      token: x
-      element: x@25
+    leftOperand: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: x@25
+        type: int?
       staticType: int?
     operator: !=
     rightOperand: NullLiteral
@@ -1687,9 +2011,9 @@ IfStatement
     staticInvokeType: bool Function(Object)
     staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: FunctionExpression
           parameters: FormalParameterList
@@ -1697,7 +2021,20 @@ IfStatement
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression2: PrefixedIdentifier
+            expression2: ReceiverPropertyExtraction
+              receiver: UnqualifiedNameExpression
+                name: x
+                resolution: VariableReadResolution
+                  element: x@25
+                  type: int
+                staticType: int
+              operator: .
+              name: isEven
+              resolution: GetterInvocationResolution
+                element: dart:core::@class::int::@getter::isEven
+                type: bool
+              staticType: bool
+            expression(v1): PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: x
                 element: x@25
@@ -1739,9 +2076,11 @@ IfStatement
   ifKeyword: if
   leftParenthesis: (
   expression2: BinaryOperatorInvocation
-    leftOperand: SimpleIdentifier
-      token: x
-      element: x@30
+    leftOperand: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: x@30
+        type: int?
       staticType: int?
     operator: !=
     rightOperand: NullLiteral
@@ -1765,9 +2104,9 @@ IfStatement
     staticInvokeType: bool Function(Object)
     staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: FunctionExpression
           parameters: FormalParameterList
@@ -1775,7 +2114,20 @@ IfStatement
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression2: PrefixedIdentifier
+            expression2: ReceiverPropertyExtraction
+              receiver: UnqualifiedNameExpression
+                name: x
+                resolution: VariableReadResolution
+                  element: x@30
+                  type: int
+                staticType: int
+              operator: .
+              name: isEven
+              resolution: GetterInvocationResolution
+                element: dart:core::@class::int::@getter::isEven
+                type: bool
+              staticType: bool
+            expression(v1): PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: x
                 element: x@30

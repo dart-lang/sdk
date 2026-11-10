@@ -25,6 +25,7 @@ import '../base/messages.dart';
 import '../base/modifiers.dart';
 import '../base/problems.dart';
 import '../base/scope.dart';
+import '../base/uri_offset.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/member_builder.dart';
@@ -40,8 +41,6 @@ import '../source/source_library_builder.dart';
 import '../source/stack_listener_impl.dart' show AsyncModifier;
 import '../type_inference/context_allocation_strategy.dart';
 import '../type_inference/inference_results.dart';
-import '../type_inference/inference_visitor_base.dart'
-    show InferenceVisitorBase;
 import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart'
     show
@@ -71,8 +70,6 @@ class Resolver {
   final TypeInferenceEngineImpl _typeInferenceEngine;
 
   final Benchmarker? _benchmarker;
-
-  late CloneVisitorNotMembers _simpleCloner = new CloneVisitorNotMembers();
 
   new({
     required ClassHierarchy classHierarchy,
@@ -228,14 +225,20 @@ class Resolver {
         fileOffset: fileOffset,
         hasInferredTypeArguments: false,
       );
+      InternalThisVariable? internalThisVariable = bodyBuilderContext
+          .createInternalThisVariable();
       ExpressionInferenceResult inferenceResult = context.typeInferrer
           .inferFieldInitializer(
             fileUri: fileUri,
             declaredType: const UnknownType(),
             initializer: internalInitializer,
             inferenceDefaultType: InferenceDefaultType.Dynamic,
-            internalThisVariable: bodyBuilderContext
-                .createInternalThisVariable(),
+            internalThisVariable: internalThisVariable,
+            thisType:
+                internalThisVariable
+                    // Coverage-ignore(suite): Not run.
+                    ?.type ??
+                bodyBuilderContext.thisType,
           )
           .expressionInferenceResult;
       initializer = inferenceResult.expression;
@@ -253,7 +256,7 @@ class Resolver {
     required ExtensionScope extensionScope,
     required LookupScope scope,
     required bool isLate,
-    DartType? declaredFieldType,
+    DartType? fieldType,
     required Token startToken,
     required InferenceDataForTesting? inferenceDataForTesting,
     required InferenceDefaultType inferenceDefaultType,
@@ -293,10 +296,11 @@ class Resolver {
     InferredFieldInitializer inferredFieldInitializer = context.typeInferrer
         .inferFieldInitializer(
           fileUri: fileUri,
-          declaredType: declaredFieldType,
+          declaredType: fieldType,
           initializer: result.initializer,
           inferenceDefaultType: inferenceDefaultType,
           internalThisVariable: internalThisVariable,
+          thisType: internalThisVariable?.type ?? bodyBuilderContext.thisType,
         );
     context.performBacklog(result.annotations);
     return inferredFieldInitializer;
@@ -360,6 +364,7 @@ class Resolver {
         fileUri: fileUri,
         initializer: initializer,
         internalThisVariable: bodyBuilderContext.createInternalThisVariable(),
+        bodyBuilderContext: bodyBuilderContext,
       );
     }
     context.performBacklog(result.annotations);
@@ -520,7 +525,10 @@ class Resolver {
         ],
         internalThisVariable: internalThisVariable,
         contextAllocationStrategy:
-            InferenceVisitorBase.createContextAllocationStrategy(),
+            ContextAllocationStrategy.createContextAllocationStrategy(
+              isClosureContextLoweringEnabled:
+                  libraryBuilder.loader.isClosureContextLoweringEnabled,
+            ),
       );
     }
     context.performBacklog(result.annotations);
@@ -732,7 +740,7 @@ class Resolver {
     required SourceConstructorBuilder constructorBuilder,
     required FunctionBodyBuildingContext functionBodyBuildingContext,
     required Uri fileUri,
-    required Token startToken,
+    required Token thisToken,
     required Token? metadata,
   }) {
     _benchmarker
@@ -776,7 +784,7 @@ class Resolver {
     try {
       BuildPrimaryConstructorBodyResult result = bodyBuilder
           .buildPrimaryConstructorBody(
-            startToken: startToken,
+            thisToken: thisToken,
             metadata: metadata,
           );
       _finishFunction(
@@ -801,7 +809,7 @@ class Resolver {
     on DebugAbort {
       rethrow;
     } catch (e, s) {
-      throw new Crash(fileUri, startToken.charOffset, e, s);
+      throw new Crash(fileUri, thisToken.charOffset, e, s);
     }
     _benchmarker
         // Coverage-ignore(suite): Not run.
@@ -901,14 +909,14 @@ class Resolver {
       if (parameter == extensionThis) {
         internalExtensionThis = formal;
       }
+      UriOffsetLength uriOffset = new UriOffset(fileUri, formal.fileOffset);
       return new FormalParameterBuilder(
         kind: FormalParameterKind.requiredPositional,
         modifiers: Modifiers.empty,
-        type: const ImplicitTypeBuilder(),
+        type: new ImplicitTypeBuilder(uriOffset),
         name: formalName,
         nameOffset: null,
-        fileOffset: formal.fileOffset,
-        fileUri: fileUri,
+        uriOffset: uriOffset,
         hasImmediatelyDeclaredDefaultValue: false,
         wildcardIndex: wildcardIndex,
         variable: formal,
@@ -982,6 +990,7 @@ class Resolver {
         new DillNominalParameterBuilder(
           typeParameter,
           loader: libraryBuilder.loader,
+          uriOffset: new UriOffset(fileUri, typeParameter.fileOffset),
         ),
       );
     }
@@ -1038,8 +1047,15 @@ class Resolver {
           body: internalReturn,
           expressionEvaluationHelper: expressionEvaluationHelper,
           contextAllocationStrategy:
-              InferenceVisitorBase.createContextAllocationStrategy(),
+              ContextAllocationStrategy.createContextAllocationStrategy(
+                isClosureContextLoweringEnabled:
+                    libraryBuilder.loader.isClosureContextLoweringEnabled,
+              ),
           constructorContext: null,
+          thisType:
+              extensionThis?.type ??
+              internalThisVariable?.type ??
+              bodyBuilderContext.thisType,
         );
     ReturnStatement returnStatement =
         inferredFunctionBody.body as ReturnStatement;
@@ -1364,10 +1380,10 @@ class Resolver {
       //  along with the thisVariable in the ScopeProviderInfo object in the
       //  call below.
       ScopeProviderInfo? scopeProviderInfo;
-      if (internalThisVariable?.astVariable case var thisVariable?) {
+      if (internalThisVariable != null) {
         scopeProviderInfo = new ScopeProviderInfo(
           kind: ScopeProviderInfoKind.FunctionNodeWithThis,
-        )..thisVariable = thisVariable;
+        )..thisVariable = internalThisVariable.astVariable;
       }
       bodyBuilderContext.registerNoBodyConstructor(
         scopeProviderInfo: scopeProviderInfo,
@@ -1428,77 +1444,24 @@ class Resolver {
       thisVariable: thisVariable,
       formals: bodyBuilderContext.formals,
     );
-    if (bodyBuilderContext.formals != null) {
-      // TODO(johnniwinther): Avoid the need for this.
-      int declaredParameterIndex = 0;
-      for (FormalParameterBuilder parameter in bodyBuilderContext.formals!) {
-        if (parameter.isExtensionThis) continue;
-        InternalExpression? defaultValue = parameter.variable.defaultValue;
-        bool inferDefaultValue;
-        if (parameter.isSuperInitializingFormal) {
-          // Super-parameters can inherit the default value from the super
-          // constructor so we only handle explicit default values here.
-          inferDefaultValue = parameter.hasImmediatelyDeclaredDefaultValue;
-        } else if (defaultValue != null) {
-          inferDefaultValue = true;
-        } else {
-          inferDefaultValue = parameter.isOptional;
-        }
-        if (inferDefaultValue) {
-          Expression? inferredDefaultValue;
-          if (!parameter.defaultValueWasInferred) {
-            // Coverage-ignore(suite): Not run.
-            defaultValue ??= intern.createNullLiteral(
-              // TODO(ahe): Should store: originParameter.fileOffset
-              // https://github.com/dart-lang/sdk/issues/32289
-              noLocation,
-            );
-            InternalFunctionParameter originParameter = parameter.variable;
-            inferredDefaultValue = context.typeInferrer
-                .inferParameterDefaultValue(
-                  fileUri: fileUri,
-                  defaultValue: defaultValue,
-                  declaredType: originParameter.type,
-                  hasDeclaredDefaultValue: parameter.hasDeclaredDefaultValue,
-                );
-            originParameter.setInferredDefaultValue(inferredDefaultValue);
-            if (inferredDefaultValue is InvalidExpression) {
-              originParameter.hasErroneousDefaultValue = true;
-            }
-            parameter.defaultValueWasInferred = true;
-          } else {
-            inferredDefaultValue = parameter.variable.inferredDefaultValue;
-          }
-          FunctionParameter? tearOffParameter = bodyBuilderContext
-              .getTearOffParameter(declaredParameterIndex);
-          if (tearOffParameter != null) {
-            Expression tearOffDefaultValue = _simpleCloner.cloneInContext(
-              inferredDefaultValue!,
-            );
-            tearOffParameter.defaultValue = tearOffDefaultValue
-              ..parent = tearOffParameter;
-            tearOffParameter.hasErroneousDefaultValue =
-                parameter.variable.hasErroneousDefaultValue;
-          }
-        }
-        declaredParameterIndex++;
-      }
-    }
 
-    late List<InternalVariable>? parameters = [
+    late List<InternalFunctionParameter>? parameters = [
       for (FormalParameterBuilder formal in bodyBuilderContext.formals ?? [])
         formal.variable,
     ];
     ScopeProviderInfo? scopeProviderInfo;
     ContextAllocationStrategy contextAllocationStrategy =
-        InferenceVisitorBase.createContextAllocationStrategy();
+        ContextAllocationStrategy.createContextAllocationStrategy(
+          isClosureContextLoweringEnabled:
+              libraryBuilder.loader.isClosureContextLoweringEnabled,
+        );
     if (libraryBuilder.loader.isClosureContextLoweringEnabled) {
       scopeProviderInfo = contextAllocationStrategy
           .beginClosureContextAllocation(
             [
-              for (InternalVariable parameter in parameters)
+              for (InternalFunctionParameter parameter in parameters)
                 new VariableWithCaptureKind(
-                  parameter.astVariable,
+                  parameter.functionParameter,
                   context.typeInferrer.captureKindForVariable(parameter),
                 ),
             ],
@@ -1556,6 +1519,10 @@ class Resolver {
         body: body,
         contextAllocationStrategy: contextAllocationStrategy,
         constructorContext: bodyBuilderContext.constructorContext,
+        thisType:
+            thisVariable?.type ??
+            internalThisVariable?.type ??
+            bodyBuilderContext.thisType,
       );
       inferredBody = inferredFunctionBody.body;
     } else {

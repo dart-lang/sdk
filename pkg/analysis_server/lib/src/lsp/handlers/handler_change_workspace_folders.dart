@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
@@ -43,7 +44,11 @@ class ChangeWorkspaceFoldersHandler
       removed: removed,
     );
 
-    await server.updateWorkspaceFolders(added, removed);
+    await server.updateWorkspaceFolders(
+      added,
+      removed,
+      ContextRebuildReasons.workspaceFoldersChanged,
+    );
 
     return success(null);
   }

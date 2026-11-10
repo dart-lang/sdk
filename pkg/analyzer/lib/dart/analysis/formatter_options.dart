@@ -11,7 +11,7 @@ final class FormatterOptions {
   /// How trailing commas in various constructs should affect formatting.
   final TrailingCommas? trailingCommas;
 
-  FormatterOptions({this.pageWidth, this.trailingCommas});
+  new({this.pageWidth, this.trailingCommas});
 }
 
 /// How trailing commas in various constructs should affect formatting.

@@ -72,8 +72,8 @@ MyCla^ss? a;
       codeActionTitles,
       // With no preference, server defaults to absolute.
       containsAllInOrder([
-        "Import library 'package:test/class.dart'",
-        "Import library 'class.dart'",
+        "Add 'import' of 'package:test/class.dart'",
+        "Add 'import' of 'class.dart'",
       ]),
     );
   }
@@ -101,7 +101,7 @@ MyCla^ss? a;
 
     expect(
       codeActionTitles,
-      containsAllInOrder(["Import library 'package:test/class.dart'"]),
+      containsAllInOrder(["Add 'import' of 'package:test/class.dart'"]),
     );
   }
 
@@ -128,7 +128,7 @@ MyCla^ss? a;
 
     expect(
       codeActionTitles,
-      containsAllInOrder(["Import library 'class.dart'"]),
+      containsAllInOrder(["Add 'import' of 'class.dart'"]),
     );
   }
 

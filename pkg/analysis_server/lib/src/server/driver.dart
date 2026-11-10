@@ -5,11 +5,11 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:math';
 
 import 'package:analysis_server/protocol/protocol_constants.dart'
     show PROTOCOL_VERSION;
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
+import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/lsp_socket_server.dart';
 import 'package:analysis_server/src/server/crash_reporting.dart';
@@ -59,6 +59,10 @@ class Driver implements ServerStarter {
 
   /// The name of the option used to set the version for the client.
   static const String clientVersionOption = 'client-version';
+
+  /// The name of the option used to specify the reason the server was
+  /// started.
+  static const String startReasonOption = 'start-reason';
 
   /// The name of the option used to disable exception handling.
   static const String disableServerExceptionHandlingOption =
@@ -150,13 +154,23 @@ class Driver implements ServerStarter {
   /// train an analysis server snapshot.
   static const String trainUsingOption = 'train-using';
 
-  /// Flag to not use a (Evicting)FileByteStore.
+  /// Flag to disable the persistent byte store.
   static const String disableFileByteStoreOption = 'disable-file-byte-store';
+
+  /// The name of the flag to use the experimental single-file byte store.
+  static const String useSingleFileByteStoreOption =
+      'use-single-file-byte-store';
 
   /// The name of the flag to enable fine-grained dependencies.
   static const String withFineDependenciesOption = 'with-fine-dependencies';
 
   static const String pluginsFlag = 'plugins';
+
+  static const String trustPluginsFlag = 'trust-plugins';
+
+  static const String alwaysTrustPluginsFlag = 'always-trust-plugins';
+
+  static const String neverTrustPluginsFlag = 'never-trust-plugins';
 
   /// The builder for attachments that should be included into crash reports.
   CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder =
@@ -209,7 +223,12 @@ class Driver implements ServerStarter {
             : 'unknown.client.classic');
     analysisServerOptions.clientId = clientId;
     analysisServerOptions.clientVersion = results.option(clientVersionOption);
+    analysisServerOptions.startReason =
+        results.option(startReasonOption) ?? ContextRebuildReasons.unknown;
     analysisServerOptions.cacheFolder = results.option(cacheFolderOption);
+    analysisServerOptions.useSingleFileByteStore = results.flag(
+      useSingleFileByteStoreOption,
+    );
     analysisServerOptions.packagesFile = results.option(packagesFileOption);
     analysisServerOptions.reportProtocolVersion = results.option(
       reportProtocolVersionOption,
@@ -226,7 +245,16 @@ class Driver implements ServerStarter {
     var sdkConfig = SdkConfiguration.readFromSdk();
     analysisServerOptions.configurationOverrides = sdkConfig;
 
-    analysisServerOptions.usePlugins = results.flag(pluginsFlag);
+    analysisServerOptions.usePlugins = results.wasParsed(pluginsFlag)
+        ? results.flag(pluginsFlag)
+        : null;
+    analysisServerOptions.trustPlugins = results.flag(trustPluginsFlag);
+    analysisServerOptions.alwaysTrustPlugins = results.flag(
+      alwaysTrustPluginsFlag,
+    );
+    analysisServerOptions.neverTrustPlugins = results.flag(
+      neverTrustPluginsFlag,
+    );
 
     var defaultSdkPath = _getSdkPath(results);
     var dartSdkManager = DartSdkManager(defaultSdkPath);
@@ -238,25 +266,22 @@ class Driver implements ServerStarter {
 
     // Create the analytics manager.
 
-    var tool =
-        env.topLevelTool ??
-        switch (clientId) {
-          'VS-Code' || 'VS-Code-Remote' => DashTool.vscodePlugins,
-          'IntelliJ-IDEA' => DashTool.intellijPlugins,
-          'Android-Studio' => DashTool.androidStudioPlugins,
-          _ => null,
-        };
+    // The analysis server is a shared component, so it is reported as the
+    // leaf tool. unified_analytics resolves the root tool (the IDE) from
+    // `DASH__TOOL`, falling back to the tool identified by the client id for
+    // IDE plugins that don't set `DASH__TOOL`. If no root tool can be
+    // resolved, `Analytics` returns a `NoOpAnalytics`.
+    var fallbackRootTool = env.fallbackRootToolForClientId(clientId);
 
     // Analytics (legacy, and unified).
     var disableAnalyticsForSession =
-        tool == null ||
         areAnalyticsSuppressed() ||
         results.flag(suppressAnalyticsFlag) ||
         results.wasParsed(trainUsingOption);
 
     var analytics = disableAnalyticsForSession
         ? NoOpAnalytics()
-        : _createAnalytics(defaultSdk, defaultSdkPath, tool);
+        : _createAnalytics(defaultSdk, defaultSdkPath, fallbackRootTool);
     var analyticsManager = AnalyticsManager(analytics);
 
     bool shouldSendCallback() {
@@ -304,9 +329,8 @@ class Driver implements ServerStarter {
       clientId: clientId,
       clientVersion: analysisServerOptions.clientVersion,
     );
-    //
+
     // Initialize the instrumentation service.
-    //
     var logFilePath =
         results.option(protocolTrafficLogOption) ??
         results.option(protocolTrafficLogAliasOption);
@@ -330,17 +354,6 @@ class Driver implements ServerStarter {
       allInstrumentationServices,
     );
 
-    _instrumentationService.logVersion(
-      results.option(trainUsingOption) != null
-          ? 'training-0'
-          : _readUuid(_instrumentationService),
-      analysisServerOptions.clientId ?? '',
-      analysisServerOptions.clientVersion ?? '',
-      PROTOCOL_VERSION,
-      defaultSdk.languageVersion.toString(),
-    );
-    AnalysisEngine.instance.instrumentationService = _instrumentationService;
-
     // Initialize the session logging service.
     var sessionLogFilePath = results.option(sessionLogOption);
     _sessionLogger = SessionLogger(filePath: sessionLogFilePath);
@@ -348,6 +361,19 @@ class Driver implements ServerStarter {
       defaultSdkPath,
       'dartSdkRoot',
     );
+
+    // Log the command-line.
+    //
+    // Note that we used to pass in a uuid as the first argument, but it isn't
+    // used anywhere and doesn't appear to have any value.
+    _instrumentationService.logVersion(
+      '',
+      analysisServerOptions.clientId ?? '',
+      analysisServerOptions.clientVersion ?? '',
+      PROTOCOL_VERSION,
+      defaultSdk.languageVersion.toString(),
+    );
+    AnalysisEngine.instance.instrumentationService = _instrumentationService;
     _sessionLogger.logCommandLine(arguments: arguments);
 
     int? diagnosticServerPort;
@@ -377,9 +403,9 @@ class Driver implements ServerStarter {
     // implement the debouncing when it hasn't been disabled.
     // var disableDebouncing = results[DISABLE_STATUS_NOTIFICATION_DEBOUNCING] as bool;
 
-    var environment = env.map(
-      tool: tool,
-      suppressAnalytics: disableAnalyticsForSession,
+    var environment = getEnvironment(
+      currentTool: DashTool.analysisServer,
+      suppressAnalytics: analytics is NoOpAnalytics,
     );
 
     if (analysisServerOptions.useLanguageServerProtocol) {
@@ -442,7 +468,7 @@ class Driver implements ServerStarter {
     Map<String, String>? environment,
   ) {
     var capture = results.flag(disableServerExceptionHandlingOption)
-        ? (_, Function f, {void Function(String)? print}) => f()
+        ? (_, _, Function f, {void Function(String)? print}) => f()
         : _captureExceptions;
     var trainDirectory = results.option(trainUsingOption);
     if (trainDirectory != null) {
@@ -525,6 +551,7 @@ class Driver implements ServerStarter {
     } else {
       capture(
         instrumentationService,
+        sessionLogger,
         () {
           Future<void> serveResult;
           if (sendPort == null) {
@@ -565,7 +592,7 @@ class Driver implements ServerStarter {
     Map<String, String>? environment,
   ) {
     var capture = args.flag(disableServerExceptionHandlingOption)
-        ? (_, Function f, {void Function(String)? print}) => f()
+        ? (_, _, Function f, {void Function(String)? print}) => f()
         : _captureExceptions;
 
     linter.registerLintRules();
@@ -585,16 +612,20 @@ class Driver implements ServerStarter {
       performanceLogger,
       environment: environment,
     );
-    errorNotifier.server = socketServer.analysisServer;
     diagnosticServer.httpServer = HttpAnalysisServer(socketServer);
 
     if (diagnosticServerPort != null) {
       diagnosticServer.startOnPort(diagnosticServerPort);
     }
 
-    capture(instrumentationService, () {
+    capture(instrumentationService, sessionLogger, () {
       var stdioServer = LspStdioAnalysisServer(socketServer);
-      stdioServer.serveStdio().then((_) {
+      var serveResult = stdioServer.serveStdio();
+      errorNotifier.server = socketServer.analysisServer;
+      if (args.flag(disableSilentAnalysisExceptionsOption)) {
+        errorNotifier.sendSilentExceptionsToClient = true;
+      }
+      serveResult.then((_) {
         // Only shutdown the server and exit if the server is not already
         // handling the shutdown.
         if (!socketServer.analysisServer!.willExit) {
@@ -611,6 +642,7 @@ class Driver implements ServerStarter {
   /// capture any data printed by the callback and redirect it to the function.
   void _captureExceptions(
     InstrumentationService service,
+    SessionLogger sessionLogger,
     void Function() callback, {
     void Function(String line)? print,
   }) {
@@ -622,6 +654,7 @@ class Driver implements ServerStarter {
       StackTrace stackTrace,
     ) {
       service.logException(exception, stackTrace);
+      sessionLogger.logException(exception: exception, stackTrace: stackTrace);
       throw exception;
     }
 
@@ -640,10 +673,13 @@ class Driver implements ServerStarter {
   }
 
   /// Create the `Analytics` instance to be used to report analytics.
+  ///
+  /// The analysis server is reported as the leaf tool. The [fallbackRootTool]
+  /// is used as the root tool when `DASH__TOOL` doesn't name a valid tool.
   Analytics _createAnalytics(
     DartSdk dartSdk,
     String dartSdkPath,
-    DashTool tool,
+    DashTool? fallbackRootTool,
   ) {
     // TODO(brianwilkerson): Find out whether there's a way to get the channel
     //  without running `flutter channel`.
@@ -661,10 +697,12 @@ class Driver implements ServerStarter {
       // If we can't read the file, ignore it.
     }
     return Analytics(
-      tool: tool,
+      tool: DashTool.analysisServer,
+      fallbackRootTool: fallbackRootTool,
       dartVersion: dartSdk.sdkVersion,
       // flutterChannel: '',
       flutterVersion: flutterVersion,
+      agent: env.aiAgent,
     );
   }
 
@@ -674,13 +712,6 @@ class Driver implements ServerStarter {
       resourceProvider,
       resourceProvider.getFolder(defaultSdkPath),
     );
-  }
-
-  /// Constructs a uuid combining the current date and a random integer.
-  String _generateUuidString() {
-    var millisecondsSinceEpoch = DateTime.now().millisecondsSinceEpoch;
-    var random = Random().nextInt(0x3fffffff);
-    return '$millisecondsSinceEpoch$random';
   }
 
   /// Return a list of the known command-line arguments that were parsed when
@@ -718,6 +749,7 @@ class Driver implements ServerStarter {
       protocolTrafficLogOption,
       protocolTrafficLogAliasOption,
       reportProtocolVersionOption,
+      startReasonOption,
       serverProtocolOption,
       sessionLogOption,
       suppressAnalyticsFlag,
@@ -727,6 +759,7 @@ class Driver implements ServerStarter {
       'use-new-relevance',
       'use-fasta-parser',
       disableFileByteStoreOption,
+      useSingleFileByteStoreOption,
       withFineDependenciesOption,
     ];
     return knownArguments
@@ -760,36 +793,6 @@ class Driver implements ServerStarter {
     print(parser.usage);
   }
 
-  /// Read the UUID from disk, generating and storing a new one if necessary.
-  String _readUuid(InstrumentationService service) {
-    var instrumentationLocation = PhysicalResourceProvider.INSTANCE
-        .getStateLocation('.instrumentation');
-    if (instrumentationLocation == null) {
-      return _generateUuidString();
-    }
-    var uuidFile = File(instrumentationLocation.getChild('uuid.txt').path);
-    try {
-      if (uuidFile.existsSync()) {
-        var uuid = uuidFile.readAsStringSync();
-        if (uuid.length > 5) {
-          return uuid;
-        }
-      }
-    } catch (exception, stackTrace) {
-      service.logException(exception, stackTrace);
-    }
-    var uuid = _generateUuidString();
-    try {
-      uuidFile.parent.createSync(recursive: true);
-      uuidFile.writeAsStringSync(uuid);
-    } catch (exception, stackTrace) {
-      service.logException(exception, stackTrace);
-      // Slightly alter the uuid to indicate it was not persisted
-      uuid = 'temp-$uuid';
-    }
-    return uuid;
-  }
-
   /// Create and return the parser used to parse the command-line arguments.
   static ArgParser createArgParser({
     int? usageLineLength,
@@ -814,6 +817,15 @@ class Driver implements ServerStarter {
       clientVersionOption,
       valueHelp: 'version',
       help: 'The version of the analysis server client.',
+    );
+    parser.addOption(
+      startReasonOption,
+      valueHelp: 'reason',
+      help:
+          'The reason the analysis server was started (for example '
+          '"clean-start", "server-crash-automatic-restart", "manual-restart", '
+          'or another value defined in the ContextRebuildReasons class in the '
+          'analysis_server package).',
     );
     parser.addOption(
       dartSdkOption,
@@ -933,8 +945,12 @@ class Driver implements ServerStarter {
     );
     parser.addFlag(
       disableFileByteStoreOption,
-      help:
-          'Disable use of (Evicting)FileByteStore. Intended for benchmarking.',
+      help: 'Disable persistent byte storage. Intended for benchmarking.',
+      hide: true,
+    );
+    parser.addFlag(
+      useSingleFileByteStoreOption,
+      help: 'Use the experimental single-file persistent byte store.',
       hide: true,
     );
     parser.addFlag(
@@ -965,7 +981,31 @@ class Driver implements ServerStarter {
     parser.addFlag(
       pluginsFlag,
       help: 'Use analyzer plugins',
-      defaultsTo: true,
+      defaultsTo: null,
+      hide: true,
+    );
+    parser.addFlag(
+      trustPluginsFlag,
+      help:
+          'Trust and run the analyzer plugins specified in analysis options, '
+          'with their current contents.',
+      negatable: false,
+      hide: true,
+    );
+    parser.addFlag(
+      alwaysTrustPluginsFlag,
+      help:
+          'Always trust and run the analyzer plugins specified in analysis '
+          'options.',
+      negatable: false,
+      hide: true,
+    );
+    parser.addFlag(
+      neverTrustPluginsFlag,
+      help:
+          'Never trust or run the analyzer plugins specified in analysis '
+          'options.',
+      negatable: false,
       hide: true,
     );
     parser.addFlag(

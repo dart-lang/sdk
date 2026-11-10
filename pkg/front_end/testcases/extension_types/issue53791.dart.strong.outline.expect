@@ -15,12 +15,12 @@ library;
 // pkg/front_end/testcases/extension_types/issue53791.dart:16:39: Error: 'A' can only be implemented once.
 // Try removing 3 of the occurrences.
 // extension type E3(A it) implements A, TA, A, TA {} // Error.
-//                                       ^
+//                                       ^^
 //
 // pkg/front_end/testcases/extension_types/issue53791.dart:18:39: Error: 'E' can only be implemented once.
 // Try removing 3 of the occurrences.
 // extension type E4(E it) implements E, TE, E, TE {} // Error.
-//                                       ^
+//                                       ^^
 //
 import self as self;
 import "dart:core" as core;

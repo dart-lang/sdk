@@ -22,3 +22,6 @@ linter:
     # - always_specify_types
     - use_super_parameters
     - comment_references
+    - prefer_generic_function_type_aliases
+    - unnecessary_const_in_enum_constructor
+    - unnecessary_type_name_in_constructor

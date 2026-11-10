@@ -16,7 +16,7 @@ class AnalysisSessionHelper {
 
   final Map<String, ResolvedLibraryResult> _resolvedLibraries = {};
 
-  AnalysisSessionHelper(this.session);
+  new(this.session);
 
   /// Returns the [ClassElement] with the given [className] that is exported
   /// from the library with the given [libraryUri], or `null` if the library
@@ -52,16 +52,26 @@ class AnalysisSessionHelper {
   Future<ClassElement?> getFlutterClass(String className) =>
       getClass('package:flutter/widgets.dart', className);
 
-  /// Returns the declaration of the [fragment].
+  /// Returns the declaration of the [fragment] in the V1 AST view.
   ///
   /// Returns `null` if the [fragment] is synthetic, or is declared in a file
   /// that is not a part of a library.
   Future<FragmentDeclarationResult?> getFragmentDeclaration(
     Fragment fragment,
   ) async {
-    var libraryPath = fragment.libraryFragment!.source.fullName;
-    var resolvedLibrary = await _getResolvedLibrary(libraryPath);
+    var resolvedLibrary = await _getResolvedLibraryOfFragment(fragment);
     return resolvedLibrary?.getFragmentDeclaration(fragment);
+  }
+
+  /// Returns the declaration of the [fragment] in the V2 AST view.
+  ///
+  /// Returns `null` if the [fragment] is synthetic, or is declared in a file
+  /// that is not a part of a library.
+  Future<FragmentDeclarationResult?> getFragmentDeclaration2(
+    Fragment fragment,
+  ) async {
+    var resolvedLibrary = await _getResolvedLibraryOfFragment(fragment);
+    return resolvedLibrary?.getFragmentDeclaration2(fragment);
   }
 
   /// Return the [MixinElement] with the given [name] that is exported
@@ -121,5 +131,20 @@ class AnalysisSessionHelper {
       }
     }
     return result;
+  }
+
+  /// Returns the resolved library that contains the [fragment].
+  ///
+  /// Returns `null` if the [fragment] is not in any library fragment, e.g.
+  /// for `dynamic`, or for a formal parameter of a function type loaded from
+  /// a summary.
+  Future<ResolvedLibraryResult?> _getResolvedLibraryOfFragment(
+    Fragment fragment,
+  ) async {
+    var libraryFragment = fragment.libraryFragment;
+    if (libraryFragment == null) {
+      return null;
+    }
+    return _getResolvedLibrary(libraryFragment.source.fullName);
   }
 }

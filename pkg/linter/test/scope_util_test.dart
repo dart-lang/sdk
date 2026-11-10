@@ -31,8 +31,8 @@ class ResolveNameInScopeTest extends PubPackageResolutionTest {
   late FindNode findNode;
 
   @override
-  Future<ResolvedUnitResult> resolveFile(String path) async {
-    var result = await super.resolveFile(path);
+  Future<ResolvedUnitResult> resolveFile(String filePath) async {
+    var result = await super.resolveFile(filePath);
 
     findElement = FindElement(result.unit);
     findNode = FindNode(result.content, result.unit);
@@ -684,6 +684,17 @@ class A<T> {
     _resultRequested(node, 'T', false, findElement.typeParameter('T'));
   }
 
+  test_enum_typeParameter_inField() async {
+    await assertNoDiagnostics('''
+enum A<T> {
+  v;
+  final T? a = null;
+}
+''');
+    var node = findNode.namedType('T?');
+    _resultRequested(node, 'T', false, findElement.typeParameter('T'));
+  }
+
   test_extension_method_none_fromExtended() async {
     await assertNoDiagnostics('''
 class A {
@@ -744,6 +755,16 @@ extension on A {
 }
 ''');
     _checkMethodRequested(findElement.method('foo'));
+  }
+
+  test_extension_typeParameter_inGetter() async {
+    await assertNoDiagnostics('''
+extension A<T> on List<T> {
+  T? get f => null;
+}
+''');
+    var node = findNode.namedType('T?');
+    _resultRequested(node, 'T', false, findElement.typeParameter('T'));
   }
 
   test_extension_typeParameter_inMethod() async {

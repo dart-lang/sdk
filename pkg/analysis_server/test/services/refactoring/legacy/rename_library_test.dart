@@ -93,6 +93,6 @@ part of the.new.name;
   }
 
   void _createRenameRefactoring() {
-    createRenameRefactoringForElement2(testLibraryElement);
+    createRenameRefactoringForElement2(testUnit.declaredFragment!.element);
   }
 }

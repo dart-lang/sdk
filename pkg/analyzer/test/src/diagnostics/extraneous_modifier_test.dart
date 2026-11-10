@@ -27,18 +27,21 @@ class A {
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  typeName2: A
-  typeName(v1): SimpleIdentifier
-    token: A
-  parameters: FormalParameterList
+ConstructorDeclaration2
+  typeName: A
+  formalParameters: FormalParameterList
     leftParenthesis: (
     requiredPositionalFormalParameters
       RegularFormalParameter
         constFinalOrVarKeyword: const
         name: a
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: A
+  parameters: FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       constFinalOrVarKeyword: const
@@ -60,18 +63,21 @@ class A {
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  typeName2: A
-  typeName(v1): SimpleIdentifier
-    token: A
-  parameters: FormalParameterList
+ConstructorDeclaration2
+  typeName: A
+  formalParameters: FormalParameterList
     leftParenthesis: (
     requiredPositionalFormalParameters
       RegularFormalParameter
         constFinalOrVarKeyword: final
         name: a
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: A
+  parameters: FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       constFinalOrVarKeyword: final
@@ -92,18 +98,21 @@ class A {
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  typeName2: A
-  typeName(v1): SimpleIdentifier
-    token: A
-  parameters: FormalParameterList
+ConstructorDeclaration2
+  typeName: A
+  formalParameters: FormalParameterList
     leftParenthesis: (
     requiredPositionalFormalParameters
       RegularFormalParameter
         constFinalOrVarKeyword: final
         name: a
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: A
+  parameters: FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       constFinalOrVarKeyword: final
@@ -125,18 +134,21 @@ class A {
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  typeName2: A
-  typeName(v1): SimpleIdentifier
-    token: A
-  parameters: FormalParameterList
+ConstructorDeclaration2
+  typeName: A
+  formalParameters: FormalParameterList
     leftParenthesis: (
     requiredPositionalFormalParameters
       RegularFormalParameter
         constFinalOrVarKeyword: var
         name: a
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: A
+  parameters: FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       constFinalOrVarKeyword: var
@@ -157,18 +169,21 @@ class A {
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  typeName2: A
-  typeName(v1): SimpleIdentifier
-    token: A
-  parameters: FormalParameterList
+ConstructorDeclaration2
+  typeName: A
+  formalParameters: FormalParameterList
     leftParenthesis: (
     requiredPositionalFormalParameters
       RegularFormalParameter
         constFinalOrVarKeyword: var
         name: a
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: A
+  parameters: FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       constFinalOrVarKeyword: var
@@ -190,11 +205,9 @@ class A {
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  typeName2: A
-  typeName(v1): SimpleIdentifier
-    token: A
-  parameters: FormalParameterList
+ConstructorDeclaration2
+  typeName: A
+  formalParameters: FormalParameterList
     leftParenthesis: (
     requiredPositionalFormalParameters
       SuperFormalParameter
@@ -203,7 +216,12 @@ ConstructorDeclaration
         period: .
         name: a
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: A
+  parameters: FormalParameterList
     leftParenthesis: (
     parameter: SuperFormalParameter
       constFinalOrVarKeyword: const
@@ -227,11 +245,9 @@ class A {
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  typeName2: A
-  typeName(v1): SimpleIdentifier
-    token: A
-  parameters: FormalParameterList
+ConstructorDeclaration2
+  typeName: A
+  formalParameters: FormalParameterList
     leftParenthesis: (
     requiredPositionalFormalParameters
       SuperFormalParameter
@@ -240,7 +256,12 @@ ConstructorDeclaration
         period: .
         name: a
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: A
+  parameters: FormalParameterList
     leftParenthesis: (
     parameter: SuperFormalParameter
       constFinalOrVarKeyword: final
@@ -264,11 +285,9 @@ class A {
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  typeName2: A
-  typeName(v1): SimpleIdentifier
-    token: A
-  parameters: FormalParameterList
+ConstructorDeclaration2
+  typeName: A
+  formalParameters: FormalParameterList
     leftParenthesis: (
     requiredPositionalFormalParameters
       SuperFormalParameter
@@ -277,7 +296,12 @@ ConstructorDeclaration
         period: .
         name: a
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: A
+  parameters: FormalParameterList
     leftParenthesis: (
     parameter: SuperFormalParameter
       constFinalOrVarKeyword: var
@@ -301,11 +325,11 @@ class A {
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
   returnType: NamedType
     name: void
   name: foo
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     delimitedFormalParameters: DelimitedFormalParameters
       leftDelimiter: {
@@ -317,7 +341,15 @@ MethodDeclaration
           name: a
       rightDelimiter: }
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: MethodDeclaration
+  returnType: NamedType
+    name: void
+  name: foo
+  parameters: FormalParameterList
     leftParenthesis: (
     leftDelimiter: {
     parameter: RegularFormalParameter
@@ -346,11 +378,11 @@ class A {
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
   returnType: NamedType
     name: void
   name: foo
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     delimitedFormalParameters: DelimitedFormalParameters
       leftDelimiter: {
@@ -362,7 +394,15 @@ MethodDeclaration
           name: a
       rightDelimiter: }
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: MethodDeclaration
+  returnType: NamedType
+    name: void
+  name: foo
+  parameters: FormalParameterList
     leftParenthesis: (
     leftDelimiter: {
     parameter: RegularFormalParameter
@@ -390,11 +430,11 @@ class A {
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
   returnType: NamedType
     name: void
   name: foo
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     delimitedFormalParameters: DelimitedFormalParameters
       leftDelimiter: {
@@ -404,7 +444,15 @@ MethodDeclaration
           name: a
       rightDelimiter: }
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: MethodDeclaration
+  returnType: NamedType
+    name: void
+  name: foo
+  parameters: FormalParameterList
     leftParenthesis: (
     leftDelimiter: {
     parameter: RegularFormalParameter
@@ -430,11 +478,11 @@ class A {
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
   returnType: NamedType
     name: void
   name: foo
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     delimitedFormalParameters: DelimitedFormalParameters
       leftDelimiter: [
@@ -446,7 +494,15 @@ MethodDeclaration
           name: a
       rightDelimiter: ]
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: MethodDeclaration
+  returnType: NamedType
+    name: void
+  name: foo
+  parameters: FormalParameterList
     leftParenthesis: (
     leftDelimiter: [
     parameter: RegularFormalParameter
@@ -475,11 +531,11 @@ class A {
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
   returnType: NamedType
     name: void
   name: foo
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     delimitedFormalParameters: DelimitedFormalParameters
       leftDelimiter: [
@@ -491,7 +547,15 @@ MethodDeclaration
           name: a
       rightDelimiter: ]
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: MethodDeclaration
+  returnType: NamedType
+    name: void
+  name: foo
+  parameters: FormalParameterList
     leftParenthesis: (
     leftDelimiter: [
     parameter: RegularFormalParameter
@@ -519,11 +583,11 @@ class A {
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
   returnType: NamedType
     name: void
   name: foo
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     delimitedFormalParameters: DelimitedFormalParameters
       leftDelimiter: [
@@ -533,7 +597,15 @@ MethodDeclaration
           name: a
       rightDelimiter: ]
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: MethodDeclaration
+  returnType: NamedType
+    name: void
+  name: foo
+  parameters: FormalParameterList
     leftParenthesis: (
     leftDelimiter: [
     parameter: RegularFormalParameter
@@ -559,11 +631,11 @@ class A {
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
   returnType: NamedType
     name: void
   name: foo
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     delimitedFormalParameters: DelimitedFormalParameters
       leftDelimiter: {
@@ -576,7 +648,15 @@ MethodDeclaration
           name: a
       rightDelimiter: }
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: MethodDeclaration
+  returnType: NamedType
+    name: void
+  name: foo
+  parameters: FormalParameterList
     leftParenthesis: (
     leftDelimiter: {
     parameter: RegularFormalParameter
@@ -606,11 +686,11 @@ class A {
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
   returnType: NamedType
     name: void
   name: foo
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     delimitedFormalParameters: DelimitedFormalParameters
       leftDelimiter: {
@@ -623,7 +703,15 @@ MethodDeclaration
           name: a
       rightDelimiter: }
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: MethodDeclaration
+  returnType: NamedType
+    name: void
+  name: foo
+  parameters: FormalParameterList
     leftParenthesis: (
     leftDelimiter: {
     parameter: RegularFormalParameter
@@ -652,11 +740,11 @@ class A {
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
   returnType: NamedType
     name: void
   name: foo
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     delimitedFormalParameters: DelimitedFormalParameters
       leftDelimiter: {
@@ -667,7 +755,15 @@ MethodDeclaration
           name: a
       rightDelimiter: }
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: MethodDeclaration
+  returnType: NamedType
+    name: void
+  name: foo
+  parameters: FormalParameterList
     leftParenthesis: (
     leftDelimiter: {
     parameter: RegularFormalParameter
@@ -694,11 +790,11 @@ class A {
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
   returnType: NamedType
     name: void
   name: foo
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     requiredPositionalFormalParameters
       RegularFormalParameter
@@ -707,7 +803,15 @@ MethodDeclaration
           name: int
         name: a
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: MethodDeclaration
+  returnType: NamedType
+    name: void
+  name: foo
+  parameters: FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       constFinalOrVarKeyword: final
@@ -734,11 +838,11 @@ class A {
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
   returnType: NamedType
     name: void
   name: foo
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     requiredPositionalFormalParameters
       RegularFormalParameter
@@ -747,7 +851,15 @@ MethodDeclaration
           name: int
         name: a
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: MethodDeclaration
+  returnType: NamedType
+    name: void
+  name: foo
+  parameters: FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       constFinalOrVarKeyword: var
@@ -773,18 +885,26 @@ class A {
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
-MethodDeclaration
+MethodDeclaration2
   returnType: NamedType
     name: void
   name: foo
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     requiredPositionalFormalParameters
       RegularFormalParameter
         constFinalOrVarKeyword: var
         name: a
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: MethodDeclaration
+  returnType: NamedType
+    name: void
+  name: foo
+  parameters: FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       constFinalOrVarKeyword: var

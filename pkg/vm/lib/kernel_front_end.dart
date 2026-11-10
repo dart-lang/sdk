@@ -642,17 +642,14 @@ Future<KernelCompilationResults> compileToKernel(
     args.environmentDefines,
   );
 
-  List<Uri> additionalSources = args.additionalSources;
   final dynamicInterface = args.dynamicInterface;
-  if (dynamicInterface != null) {
-    final fileUri = await asFileUri(args.options!.fileSystem, dynamicInterface);
-    final contents = File(fileUri.toFilePath()).readAsStringSync();
-    final dynamicInterfaceYamlFile = DynamicInterfaceYamlFile(contents);
-    additionalSources = [
-      ...additionalSources,
-      ...dynamicInterfaceYamlFile.getUserLibraryUris(dynamicInterface),
-    ];
-  }
+  List<Uri> additionalSources = [
+    ...args.additionalSources,
+    ...await getDynamicInterfaceUserLibraryUris(
+      args.options!.fileSystem,
+      dynamicInterface,
+    ),
+  ];
 
   CompilerResult? compilerResult;
   final fromDillFile = args.fromDillFile;
@@ -749,6 +746,17 @@ Future<KernelCompilationResults> compileToKernel(
     compiledSources: compiledSources,
     usedPackageConfig: usedPackageConfig,
   );
+}
+
+Future<Iterable<Uri>> getDynamicInterfaceUserLibraryUris(
+  FileSystem fileSystem,
+  Uri? dynamicInterface,
+) async {
+  if (dynamicInterface == null) return const <Uri>[];
+  final fileUri = await asFileUri(fileSystem, dynamicInterface);
+  final contents = File(fileUri.toFilePath()).readAsStringSync();
+  final dynamicInterfaceYamlFile = DynamicInterfaceYamlFile(contents);
+  return dynamicInterfaceYamlFile.getUserLibraryUris(dynamicInterface);
 }
 
 Set<Library> createLoadedLibrariesSet(

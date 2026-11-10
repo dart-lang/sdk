@@ -1,5 +1,5 @@
 environment:
-  sdk: ^3.9.0
+  sdk: ^3.13.0
 package:analyzer_plugin/channel/channel.dart:
   PluginCommunicationChannel (class extends Object, abstract):
     new (constructor: PluginCommunicationChannel Function())
@@ -1725,19 +1725,6 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     fromJson (constructor: WatchEventType Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
-package:analyzer_plugin/src/protocol/protocol_internal.dart:
-  HasToJson (non-public)
-  JsonDecoder (non-public)
-  RequestParams (non-public)
-  ResponseResult (non-public)
-package:analyzer_plugin/src/utilities/client_uri_converter.dart:
-  ClientUriConverter (non-public)
-package:analyzer_plugin/src/utilities/completion/completion_target.dart:
-  CompletionTarget (non-public)
-package:analyzer_plugin/src/utilities/completion/element_suggestion_builder.dart:
-  ElementSuggestionBuilder (non-public)
-package:analyzer_plugin/src/utilities/completion/optype.dart:
-  OpType (non-public)
 package:analyzer_plugin/starter.dart:
   ServerPluginStarter (class extends Object, abstract):
     new (constructor: ServerPluginStarter Function(ServerPlugin))
@@ -1821,15 +1808,32 @@ package:analyzer_plugin/utilities/change_builder/change_builder_core.dart:
     write (method: void Function(String))
     writeln (method: void Function([String]))
 package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart:
+  AfterCommentWrite (enum):
+    newLine (enum constant: AfterCommentWrite)
+    nothing (enum constant: AfterCommentWrite)
+    space (enum constant: AfterCommentWrite)
+    values (static const getter: List<AfterCommentWrite>)
+    isNewLine (getter: bool)
+    isNothing (getter: bool)
+    isSpace (getter: bool)
+  BeforeCommentWrite (enum):
+    newLine (enum constant: BeforeCommentWrite)
+    nothing (enum constant: BeforeCommentWrite)
+    space (enum constant: BeforeCommentWrite)
+    values (static const getter: List<BeforeCommentWrite>)
+    isNewLine (getter: bool)
+    isNothing (getter: bool)
+    isSpace (getter: bool)
   DartEditBuilder (class extends Object implements EditBuilder, abstract):
     new (constructor: DartEditBuilder Function())
     addLinkedEdit (method: void Function(String, void Function(DartLinkedEditBuilder)))
     canWriteType (method: bool Function(DartType?, {List<TypeParameterElement>? typeParametersInScope}))
     getIndent (method: String Function(int))
     writeClassDeclaration (method: void Function(String, {Iterable<DartType>? interfaces, bool isAbstract, void Function()? membersWriter, Iterable<DartType>? mixins, String? nameGroupName, DartType? superclass, String? superclassGroupName}))
+    writeComment (method: void Function(CommentToken?, {AfterCommentWrite after, BeforeCommentWrite before, bool indentTrailingNewLine, String? prefix}))
     writeConstructorDeclaration (method: void Function(String, {ArgumentList? argumentList, void Function()? bodyWriter, String? classNameGroupName, String? constructorName, String? constructorNameGroupName, List<String>? fieldNames, void Function()? initializerWriter, bool isConst, void Function()? parameterWriter}))
     writeFieldDeclaration (method: void Function(String, {bool alwaysWriteType, void Function()? initializerWriter, bool isConst, bool isFinal, bool isStatic, String? nameGroupName, DartType? type, String? typeGroupName, List<TypeParameterElement>? typeParametersInScope}))
-    writeFormalParameter (method: void Function(String, {bool isCovariant, bool isRequiredNamed, bool isRequiredType, String? nameGroupName, DartType? type, String? typeGroupName, List<TypeParameterElement>? typeParametersInScope}))
+    writeFormalParameter (method: void Function(String, {bool isCovariant, bool isRequiredNamed, bool isRequiredType, String? nameGroupName, bool onClosure, DartType? type, String? typeGroupName, List<TypeParameterElement>? typeParametersInScope}))
     writeFormalParameters (method: void Function(Iterable<FormalParameterElement>, {bool fillParameterNames, String? groupNamePrefix, bool includeDefaultValues, bool includeParentheses, bool requiredTypes, List<TypeParameterElement>? typeParametersInScope}))
     writeFunctionDeclaration (method: void Function(String, {void Function()? bodyWriter, bool isStatic, String? nameGroupName, void Function()? parameterWriter, DartType? returnType, String? returnTypeGroupName, void Function()? typeParameterWriter, List<TypeParameterElement>? typeParametersInScope}))
     writeGetterDeclaration (method: void Function(String, {bool alwaysWriteType, void Function() bodyWriter, bool isStatic, String nameGroupName, DartType? returnType, String returnTypeGroupName, List<TypeParameterElement>? typeParametersInScope}))
@@ -2159,6 +2163,19 @@ package:analyzer_plugin/utilities/subscriptions/subscription_manager.dart:
     hasSubscriptionForFile (method: bool Function(String, AnalysisService))
     servicesForFile (method: List<AnalysisService> Function(String))
     setSubscriptions (method: Map<String, List<AnalysisService>> Function(Map<AnalysisService, List<String>>))
+package:analyzer_plugin/src/protocol/protocol_internal.dart:
+  HasToJson (non-public)
+  JsonDecoder (non-public)
+  RequestParams (non-public)
+  ResponseResult (non-public)
+package:analyzer_plugin/src/utilities/client_uri_converter.dart:
+  ClientUriConverter (non-public)
+package:analyzer_plugin/src/utilities/completion/completion_target.dart:
+  CompletionTarget (non-public)
+package:analyzer_plugin/src/utilities/completion/element_suggestion_builder.dart:
+  ElementSuggestionBuilder (non-public)
+package:analyzer_plugin/src/utilities/completion/optype.dart:
+  OpType (non-public)
 dart:async:
   Future (referenced)
   FutureOr (referenced)
@@ -2186,6 +2203,7 @@ package:_fe_analyzer_shared/src/base/source_range.dart:
 package:_fe_analyzer_shared/src/base/syntactic_entity.dart:
   SyntacticEntity (referenced)
 package:_fe_analyzer_shared/src/scanner/token.dart:
+  CommentToken (referenced)
   Token (referenced)
 package:analyzer/dart/analysis/analysis_context.dart:
   AnalysisContext (referenced)

@@ -1,0 +1,28 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/private_named_parameters/duplicate_named.dart:5:18: Error: A named parameter that doesn't refer to an instance variable can't start with an underscore ('_').
+// class C({String? _foo, required final String _foo});
+//                  ^^^^
+//
+// pkg/front_end/testcases/private_named_parameters/duplicate_named.dart:5:46: Error: Duplicated parameter name '_foo'.
+// class C({String? _foo, required final String _foo});
+//                                              ^^^^
+// pkg/front_end/testcases/private_named_parameters/duplicate_named.dart:5:18: Context: Other parameter named '_foo'.
+// class C({String? _foo, required final String _foo});
+//                  ^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  final field core::String _foo;
+  constructor •({core::String? _foo = #C1, required final initializing-formal renamed-private-named-parameter core::String foo}) → self::C
+    : self::C::_foo = foo, super core::Object::•()
+    ;
+}
+
+constants  {
+  #C1 = null
+}

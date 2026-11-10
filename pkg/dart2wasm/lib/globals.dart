@@ -54,7 +54,7 @@ class Globals {
         final getterBody = getterFunction.body;
         getterBody.global_get(global);
         getterBody.end();
-        return getterFunction;
+        return getterFunction.build();
       });
 
       translator.callFunction(getter, b);
@@ -81,7 +81,7 @@ class Globals {
         setterBody.local_get(setterFunction.locals.single);
         setterBody.global_set(global);
         setterBody.end();
-        return setterFunction;
+        return setterFunction.build();
       });
       translator.callFunction(setter, b);
     }
@@ -191,7 +191,7 @@ class DartGlobals {
       // We will have to initialize the global lazily, meaning each access will
       // check if it's initialized and if not, cause initialization.
       final w.ValueType newFieldType;
-      final w.GlobalBuilder? initializerFlagGlobal;
+      final w.Global? initializerFlagGlobal;
       if (fieldType is w.RefType && !fieldType.nullable) {
         // Null signals uninitialized
         newFieldType = fieldType.withNullability(true);
@@ -222,7 +222,7 @@ class DartGlobals {
     });
   }
 
-  w.GlobalBuilder _defineInitializerFlag(Field field, w.ModuleBuilder module) {
+  w.Global _defineInitializerFlag(Field field, w.ModuleBuilder module) {
     final memberName = _memberName(field);
     final global = module.globals.define(
       w.GlobalType(w.NumType.i32),
@@ -230,7 +230,7 @@ class DartGlobals {
     );
     global.initializer.i32_const(0);
     global.initializer.end();
-    return global;
+    return global.build();
   }
 
   TableBasedDartGlobal _defineTableBasedField(
@@ -238,7 +238,7 @@ class DartGlobals {
     w.RefType fieldType,
     w.ModuleBuilder module,
     Constant? init,
-    w.GlobalBuilder? initializerFlag,
+    w.Global? initializerFlag,
   ) {
     final table = translator.tableBasedGlobals.getTableForType(
       fieldType.heapType,
@@ -265,7 +265,7 @@ class DartGlobals {
     w.ModuleBuilder module,
     bool mutable,
     Constant? init,
-    w.GlobalBuilder? initializerFlag,
+    w.Global? initializerFlag,
   ) {
     final memberName = _memberName(field);
     final global = module.globals.define(
@@ -284,7 +284,10 @@ class DartGlobals {
           .instantiateLocalDummyValue(global.initializer, fieldType);
     }
     global.initializer.end();
-    return WasmGlobalDartGlobal(global, initializedFlag: initializerFlag);
+    return WasmGlobalDartGlobal(
+      global.build(),
+      initializedFlag: initializerFlag,
+    );
   }
 
   String _memberName(Field field) => field.toString();

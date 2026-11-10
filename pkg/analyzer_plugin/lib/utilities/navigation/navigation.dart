@@ -73,7 +73,7 @@ class NavigationGenerator {
 
   /// Initialize a newly created navigation generator to use the given
   /// [contributors].
-  NavigationGenerator(this.contributors);
+  new(this.contributors);
 
   /// Create an 'analysis.navigation' notification for the portion of the file
   /// specified by the given [request]. If any of the contributors throws an

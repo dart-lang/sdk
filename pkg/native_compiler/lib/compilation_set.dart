@@ -9,11 +9,13 @@ import 'package:cfg/front_end/recognized_methods.dart';
 import 'package:cfg/ir/flow_graph.dart';
 import 'package:cfg/ir/functions.dart';
 import 'package:kernel/ast.dart' as ast;
+import 'package:native_compiler/back_end/asm_intrinsics.dart';
 import 'package:native_compiler/back_end/code.dart';
 import 'package:native_compiler/back_end/stub_code_generator.dart';
 import 'package:native_compiler/configuration.dart';
 import 'package:native_compiler/front_end/recognized_methods.dart';
 import 'package:native_compiler/runtime/type_utils.dart';
+import 'package:native_compiler/runtime/vm_defs.dart';
 import 'package:native_compiler/snapshot/image_writer.dart';
 import 'package:native_compiler/snapshot/snapshot.dart';
 
@@ -27,11 +29,14 @@ class CompilationSet {
   late final RecognizedMethods recognizedMethods = VmRecognizedMethods(
     functionRegistry,
     config.objectLayout,
+    config.targetCPU,
+    config.targetOS,
   );
   late final SnapshotSerializer _snapshot;
   late final StubFactory _stubFactory;
+  late final AsmIntrinsics _asmIntrinsics;
 
-  CompilationSet(this.libraries, this.config)
+  CompilationSet(this.config, this.libraries, ast.Procedure? mainMethod)
     : _imageWriter = config.createImageWriter() {
     _snapshot = SnapshotSerializer(
       config.targetCPU,
@@ -40,6 +45,15 @@ class CompilationSet {
       compilePlatform: config.compilePlatform,
     );
     _stubFactory = config.createStubFactory(_consumeGeneratedCode);
+    _asmIntrinsics = config.createAsmIntrinsics(functionRegistry);
+
+    // Currently VM loads declarations of core libraries from core snapshot.
+    if (!config.compilePlatform) {
+      _snapshot.declareLibraries(libraries);
+      if (mainMethod != null) {
+        _snapshot.addMainMethod(mainMethod);
+      }
+    }
   }
 
   /// Add [function] to be compiled.
@@ -94,6 +108,22 @@ class CompilationSet {
         _compilePendingFunctions();
       }
     }
+
+    if (config.compilePlatform) {
+      // Generate stubs for the VM.
+      _snapshot.addRootStub(
+        StubCode.DynamicInvocationForwarder,
+        _stubFactory.dynamicInvocationForwarderStub,
+      );
+      _snapshot.addRootStub(
+        StubCode.InvokeDartCode,
+        _stubFactory.invokeDartCodeStub,
+      );
+      _snapshot.addRootStub(
+        StubCode.InvokeDartCodeFromBytecode,
+        _stubFactory.invokeDartCodeFromBytecodeStub,
+      );
+    }
   }
 
   void _compileFieldFunctions(ast.Field field) {
@@ -145,6 +175,7 @@ class CompilationSet {
           function,
           functionRegistry,
           _stubFactory,
+          _asmIntrinsics,
           _consumeGeneratedCode,
         )
         .run(graph);

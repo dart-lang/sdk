@@ -18,14 +18,22 @@ B0 = EntryBlock()
 --- B.superCalls
 B0 = EntryBlock()
   v9 = Constant(42)
-  v12 = Constant(null)
+  v22 = Constant(null)
   v1 = Parameter(this)
   v2 = Parameter(arg)
   DirectCall C.m1(v1, v2)
   v8 = DirectCall getter C.m2(v1)
   v10 = BinaryIntOp +(v8, v9)
   DirectCall setter C.m3(v1, v10)
-  Return(v12)
+  v13 = AllocateClosure(len:1)
+  StoreInstanceField(#closure-field[0], v13, v1)
+  DirectCall print(v13)
+  v17 = AllocateClosure(delayed:0, cls:1, len:3)
+  v18 = TypeParameters(v1)
+  StoreInstanceField(#closure-field[1], v17, v18)
+  StoreInstanceField(#closure-field[2], v17, v1)
+  DirectCall print(v17)
+  Return(v22)
 
 --- B.m1
 B0 = EntryBlock()
@@ -58,63 +66,81 @@ B0 = EntryBlock()
 --- C.
 B0 = EntryBlock()
   Constant(1)
-  v14 = Constant(null)
+  v16 = Constant(null)
   Constant(-1)
   v1 = Parameter(this)
   v2 = Parameter(x)
   v3 = Parameter(y)
+  TypeParameters(v1)
   StoreInstanceField(C.x, v1, v2)
   StoreInstanceField(C.y, v1, v3)
   DirectCall Object.(v1)
-  Return(v14)
+  Return(v16)
 
 --- C.m1
 B0 = EntryBlock()
-  v4 = Constant(2)
-  v7 = Constant(null)
-  Parameter(this)
+  v6 = Constant(2)
+  v9 = Constant(null)
+  v1 = Parameter(this)
   v2 = Parameter(a)
-  v5 = BinaryIntOp +(v2, v4)
-  DirectCall print(v5)
-  Return(v7)
+  TypeParameters(v1)
+  v7 = BinaryIntOp +(v2, v6)
+  DirectCall print(v7)
+  Return(v9)
 
 --- getter C.m2
 B0 = EntryBlock()
-  v4 = Constant(2)
+  v6 = Constant(2)
   v1 = Parameter(this)
-  v3 = InterfaceCall getter C.x(v1)
-  v5 = BinaryIntOp +(v3, v4)
-  Return(v5)
+  TypeParameters(v1)
+  v5 = InterfaceCall getter C.x(v1)
+  v7 = BinaryIntOp +(v5, v6)
+  Return(v7)
 
 --- setter C.m3
 B0 = EntryBlock()
-  v5 = Constant(2)
-  v8 = Constant(null)
+  v7 = Constant(2)
+  v10 = Constant(null)
   v1 = Parameter(this)
   v2 = Parameter(b)
-  v6 = BinaryIntOp +(v2, v5)
-  InterfaceCall setter C.y(v1, v6)
-  Return(v8)
+  TypeParameters(v1)
+  v8 = BinaryIntOp +(v2, v7)
+  InterfaceCall setter C.y(v1, v8)
+  Return(v10)
+
+--- C.m4
+B0 = EntryBlock()
+  v9 = Constant(null)
+  v1 = Parameter(#functionTypeParameters)
+  v2 = Parameter(this)
+  v3 = Parameter(x)
+  TypeParameters(v1)
+  v7 = TypeParameters(v2)
+  TypeCast(v3, v7, v9, C.T%)
+  Return(v9)
 
 --- getter C.x
 B0 = EntryBlock()
   v1 = Parameter(this)
-  v3 = LoadInstanceField(C.x, v1)
-  Return(v3)
+  TypeParameters(v1)
+  v5 = LoadInstanceField(C.x, v1)
+  Return(v5)
 
 --- getter C.y
 B0 = EntryBlock()
   v1 = Parameter(this)
-  v3 = LoadInstanceField(C.y, v1)
-  Return(v3)
+  TypeParameters(v1)
+  v5 = LoadInstanceField(C.y, v1)
+  Return(v5)
 
 --- setter C.y
 B0 = EntryBlock()
-  v6 = Constant(null)
+  v8 = Constant(null)
   v1 = Parameter(this)
   v2 = Parameter(#value)
+  TypeParameters(v1)
   StoreInstanceField(C.y, v1, v2)
-  Return(v6)
+  Return(v8)
 
 --- D.
 B0 = EntryBlock()
@@ -126,23 +152,23 @@ B0 = EntryBlock()
 --- M.m1
 B0 = EntryBlock()
   Parameter(this)
-  Unreachable()
+  Unreachable(message: "Original instance members of mixins should not be called.")
 
 --- getter M.m2
 B0 = EntryBlock()
   Parameter(this)
-  Unreachable()
+  Unreachable(message: "Original instance members of mixins should not be called.")
 
 --- setter M.m3
 B0 = EntryBlock()
   Parameter(this)
   Parameter(value)
-  Unreachable()
+  Unreachable(message: "Original instance members of mixins should not be called.")
 
 --- M.abstractSuperCalls
 B0 = EntryBlock()
   Parameter(this)
-  Unreachable()
+  Unreachable(message: "Original instance members of mixins should not be called.")
 
 --- E.
 B0 = EntryBlock()
@@ -176,6 +202,53 @@ B0 = EntryBlock()
   v1 = Parameter(this)
   DirectCall _F&E&M.(v1)
   Return(v4)
+
+--- OperatorEquals.
+B0 = EntryBlock()
+  v8 = Constant(null)
+  v1 = Parameter(this)
+  v2 = Parameter(x)
+  StoreInstanceField(OperatorEquals.x, v1, v2)
+  DirectCall Object.(v1)
+  Return(v8)
+
+--- OperatorEquals.==
+B0 = EntryBlock() dominates:(B4, B3)
+  v6 = Constant(null)
+  v9 = Constant(false)
+  v1 = Parameter(this)
+  v2 = Parameter(other)
+  v7 = Comparison ==(v2, v6)
+  Branch(v7, true: B3, false: B4)
+B3 = TargetBlock() idom:B0
+  Return(v9)
+B4 = TargetBlock() idom:B0 dominates:(B14, B17, B13)
+  v12 = TypeTest(v2, OperatorEquals)
+  Branch(v12, true: B13, false: B14)
+B13 = TargetBlock() idom:B4
+  v20 = InterfaceCall getter OperatorEquals.x(v1)
+  v22 = TypeCast(v2, OperatorEquals, unchecked)
+  v23 = InterfaceCall getter OperatorEquals.x(v22)
+  v24 = Comparison int ==(v20, v23)
+  Goto(B17)
+B14 = TargetBlock() idom:B4
+  Goto(B17)
+B17 = JoinBlock(B14, B13) idom:B4
+  v29 = Phi(v9, v24)
+  Return(v29)
+
+--- getter OperatorEquals.hashCode
+B0 = EntryBlock()
+  v1 = Parameter(this)
+  v3 = InterfaceCall getter OperatorEquals.x(v1)
+  v4 = InterfaceCall getter num.hashCode(v3)
+  Return(v4)
+
+--- getter OperatorEquals.x
+B0 = EntryBlock()
+  v1 = Parameter(this)
+  v3 = LoadInstanceField(OperatorEquals.x, v1)
+  Return(v3)
 
 --- _F&E&M.
 B0 = EntryBlock()

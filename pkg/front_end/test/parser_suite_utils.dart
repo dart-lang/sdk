@@ -298,7 +298,7 @@ StringBuffer tokenStreamToString(
 class ParserTestListenerWithMessageFormatting extends ParserTestListener {
   final bool annotateLines;
   final Source? source;
-  final String? shortName;
+  final String shortName;
   final List<String> errors = <String>[];
   Location? latestSeenLocation;
 

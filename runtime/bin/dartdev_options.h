@@ -9,7 +9,6 @@
 #include "bin/options.h"
 #include "platform/globals.h"
 #include "platform/growable_array.h"
-#include "platform/hashmap.h"
 
 namespace dart {
 namespace bin {
@@ -21,8 +20,7 @@ namespace bin {
 // The value of the flag can then be accessed with Options::field_name().
 #define STRING_OPTIONS_LIST(V)                                                 \
   V(packages, packages_file)                                                   \
-  V(namespace, namespc)                                                        \
-  V(delete_temp_dir_on_shutdown, delete_temp_dir_on_shutdown)
+  V(namespace, namespc)
 
 // As STRING_OPTIONS_LIST but for boolean valued options. The default value is
 // always false, and the presence of the flag switches the value to true.
@@ -83,21 +81,15 @@ class Options {
   SHORT_BOOL_OPTIONS_LIST(SHORT_BOOL_OPTION_GETTER)
 #undef SHORT_BOOL_OPTION_GETTER
 
-  static bool resident() { return resident_; }
-  static const char* resident_compiler_info_file_path() {
-    return resident_compiler_info_file_path_;
-  }
-  static void set_delete_temp_dir_on_shutdown(const char* dir) {
-    delete_temp_dir_on_shutdown_ = dir;
-  }
-
 // Callbacks have to be public.
 #define CB_OPTIONS_DECL(callback)                                              \
   static bool callback(const char* arg, CommandLineOptions* vm_options);
   CB_OPTIONS_LIST(CB_OPTIONS_DECL)
 #undef CB_OPTIONS_DECL
 
-  static dart::SimpleHashMap* environment() { return environment_; }
+  static const char** environment_array() {
+    return OptionProcessor::environment_array();
+  }
 
   static void PrintUsage();
   static void PrintVersion();
@@ -110,7 +102,6 @@ class Options {
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
  private:
-  static void DestroyEnvironment();
 #if defined(DART_PRECOMPILED_RUNTIME)
   static void DestroyEnvArgv();
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
@@ -130,8 +121,6 @@ class Options {
 
   static bool resident_;
   static const char* resident_compiler_info_file_path_;
-
-  static dart::SimpleHashMap* environment_;
 
   static char** env_argv_;
   static int env_argc_;

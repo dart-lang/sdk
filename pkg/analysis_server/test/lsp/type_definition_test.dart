@@ -216,7 +216,7 @@ const a = '^';
     newFile(pubspecFilePath, code.code);
     await initialize();
     var results = await getTypeDefinitionAsLocation(
-      mainFileUri,
+      pubspecFileUri,
       code.position.position,
     );
     expect(results, isEmpty);
@@ -519,6 +519,40 @@ const a = [!'te^st string'!];
     var result = await _getResult(code);
     expect(result.originSelectionRange, code.range.range);
     _expectSdkCoreType(result, 'String');
+  }
+
+  Future<void> test_this() async {
+    var code = TestCode.parse('''
+class /*[0*/A/*0]*/ {
+  void a() {
+    /*[1*/thi^s/*1]*/.a();
+  }
+}
+''');
+
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, code.ranges[1].range);
+    expect(result.targetSelectionRange, code.ranges[0].range);
+  }
+
+  Future<void> test_this_promoted() async {
+    var code = TestCode.parse('''
+class A {
+  void a() {
+    if (this is B) {
+      /*[0*/thi^s/*0]*/.b();
+    }
+  }
+}
+
+class /*[1*/B/*1]*/ extends A {
+  void b() {}
+}
+''');
+
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, code.ranges[0].range);
+    expect(result.targetSelectionRange, code.ranges[1].range);
   }
 
   Future<void> test_type() async {

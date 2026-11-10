@@ -14,14 +14,13 @@ class Tag {
 
 @Tag(named: undefined)
 //          ^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
 // [cfe] Undefined name 'undefined'.
 class A {}
 
 @Tag(named: D.instanceMethod())
 //          ^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
+// [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
 //            ^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.STATIC_ACCESS_TO_INSTANCE_MEMBER
 // [cfe] Member not found: 'D.instanceMethod'.
@@ -31,8 +30,7 @@ class D {
 
 @Tag(named: instanceField)
 //          ^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
 // [cfe] Undefined name 'instanceField'.
 class E {
   var instanceField;
@@ -49,8 +47,7 @@ class F {
 
 @Tag(named: instanceMethod)
 //          ^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
 // [cfe] Undefined name 'instanceMethod'.
 class G {
   instanceMethod() {}

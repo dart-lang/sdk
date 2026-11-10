@@ -8,7 +8,9 @@ import 'dart:_interceptors'
         Interceptor,
         JavaScriptFunction,
         JavaScriptObject,
-        isJSExportedDartFunction;
+        isJSExportedDartFunction,
+        dartFunctionToJSVarArgs,
+        dartFunctionToJSCaptureThisVarArgs;
 import 'dart:_internal' show patch;
 import 'dart:_js_helper' show createObjectLiteral, staticInteropGlobalContext;
 import 'dart:_js_types';
@@ -95,6 +97,32 @@ extension FunctionToJSExportedDartFunction<T extends Function> on T {
   );
 }
 
+@patch
+extension FunctionToJSExportedDartFunctionVarArgs<
+  R extends JSAny?,
+  E extends JSAny?
+>
+    on R Function(JSArray<E>) {
+  @patch
+  JSExportedDartFunction<R Function(JSArray<E>)> get toJSVarArgs =>
+      dartFunctionToJSVarArgs<JSArray<E>>(this)
+          as JSExportedDartFunction<R Function(JSArray<E>)>;
+}
+
+@patch
+extension FunctionToJSExportedDartFunctionCaptureThisVarArgs<
+  R extends JSAny?,
+  T extends JSObject,
+  E extends JSAny?
+>
+    on R Function(T, JSArray<E>) {
+  @patch
+  JSExportedDartFunction<R Function(T, JSArray<E>)>
+  get toJSCaptureThisVarArgs =>
+      dartFunctionToJSCaptureThisVarArgs<T, JSArray<E>>(this)
+          as JSExportedDartFunction<R Function(T, JSArray<E>)>;
+}
+
 // Embedded global property for wrapped Dart objects passed via JS interop.
 //
 // This is a Symbol so that different Dart applications don't share Dart
@@ -178,6 +206,23 @@ bool _isJSTypedArray(Object? any) {
 @pragma('dart2js:prefer-inline')
 bool _isNullableJSTypedArray(Object? any) =>
     any == null || _isJSTypedArray(any);
+
+@pragma('dart2js:prefer-inline')
+bool _isJSError(Object? any) {
+  return _isJSAny(any) &&
+      foreign_helper.JS(
+        'bool',
+        // We have to fall back on `instanceof` even if `Error.isError` exists
+        // because Safari's implementation is incorrect for `DOMException` (see
+        // https://bugs.webkit.org/show_bug.cgi?id=292727).
+        '(Error.isError && Error.isError(#)) || # instanceof Error',
+        any,
+        any,
+      );
+}
+
+@pragma('dart2js:prefer-inline')
+bool _isNullableJSError(Object? any) => any == null || _isJSError(any);
 
 // -----------------------------------------------------------------------------
 // JSBoxedDartObject <-> Object
@@ -690,8 +735,37 @@ extension JSAnyOperatorExtension on JSAny? {
 
   @patch
   @pragma('dart2js:prefer-inline')
+  JSAny leftShift(JSAny? any) =>
+      foreign_helper.JS('Object', '# << #', this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  JSAny rightShift(JSAny? any) =>
+      foreign_helper.JS('Object', '# >> #', this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
   JSNumber unsignedRightShift(JSAny? any) =>
       js_util.unsignedRightShift(this, any).toJS;
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  JSAny bitwiseAnd(JSAny? any) =>
+      foreign_helper.JS('Object', '# & #', this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  JSAny bitwiseOr(JSAny? any) =>
+      foreign_helper.JS('Object', '# | #', this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  JSAny bitwiseXor(JSAny? any) =>
+      foreign_helper.JS('Object', '# ^ #', this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  JSAny get bitwiseNot => foreign_helper.JS('Object', '~#', this);
 
   @patch
   @pragma('dart2js:prefer-inline')

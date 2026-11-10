@@ -57,7 +57,13 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 CastPattern
   pattern: ConstantPattern
-    expression2: SimpleIdentifier
+    expression2: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: a@20
+        type: int
+      staticType: int
+    expression(v1): SimpleIdentifier
       token: a
       element: a@20
       staticType: int
@@ -101,7 +107,13 @@ PatternVariableDeclaration
     rightParenthesis: )
     matchedValueType: dynamic
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: dynamic
+    staticType: dynamic
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: dynamic

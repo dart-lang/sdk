@@ -10,6 +10,7 @@ import 'package:cfg/ir/ir_to_text.dart';
 import 'package:cfg/ir/visitor.dart';
 import 'package:cfg/passes/pass.dart';
 import 'package:cfg/utils/bit_vector.dart';
+import 'package:native_compiler/back_end/asm_intrinsics.dart';
 import 'package:native_compiler/back_end/assembler.dart';
 import 'package:native_compiler/back_end/back_end_state.dart';
 import 'package:native_compiler/back_end/code.dart';
@@ -17,6 +18,7 @@ import 'package:native_compiler/back_end/code_metadata.dart';
 import 'package:native_compiler/back_end/locations.dart';
 import 'package:native_compiler/back_end/safepoint.dart';
 import 'package:native_compiler/back_end/stack_frame.dart';
+import 'package:native_compiler/back_end/stub_code_generator.dart';
 import 'package:native_compiler/runtime/object_layout.dart';
 import 'package:native_compiler/runtime/vm_defs.dart';
 
@@ -27,6 +29,7 @@ import 'package:native_compiler/runtime/vm_defs.dart';
 abstract base class CodeGenerator extends Pass
     implements InstructionVisitor<void> {
   final BackEndState backEndState;
+  final AsmIntrinsics asmIntrinsics;
 
   late final Assembler _asm;
 
@@ -65,10 +68,11 @@ abstract base class CodeGenerator extends Pass
   /// Metadata describing stack maps for the safepoints in the generated code.
   late final CompressedStackMaps _compressedStackMaps;
 
-  CodeGenerator(this.backEndState) : super('CodeGen');
+  CodeGenerator(this.backEndState, this.asmIntrinsics) : super('CodeGen');
 
   VMOffsets get vmOffsets => backEndState.vmOffsets;
   ObjectLayout get objectLayout => backEndState.objectLayout;
+  StubFactory get stubFactory => backEndState.stubFactory;
   List<Block> get codeGenBlockOrder => backEndState.codeGenBlockOrder;
   StackFrame get stackFrame => backEndState.stackFrame;
 
@@ -183,20 +187,22 @@ abstract base class CodeGenerator extends Pass
 
     _asm = createAssembler();
 
-    enterFrame();
-    for (int i = 0, n = blocks.length; i < n; ++i) {
-      _currentBlockIndex = i;
-      final block = currentBlock = blocks[i];
-      generateBlock(block);
-    }
-    _currentBlockIndex = -1;
+    if (!asmIntrinsics.generate(graph.function, _asm)) {
+      enterFrame();
+      for (int i = 0, n = blocks.length; i < n; ++i) {
+        _currentBlockIndex = i;
+        final block = currentBlock = blocks[i];
+        generateBlock(block);
+      }
+      _currentBlockIndex = -1;
 
-    for (final slowPath in _slowPaths) {
-      currentInstruction = _currentInstruction = slowPath.instruction;
-      _asm.bind(slowPath.entry);
-      slowPath.generator();
+      for (final slowPath in _slowPaths) {
+        currentInstruction = _currentInstruction = slowPath.instruction;
+        _asm.bind(slowPath.entry);
+        slowPath.generator();
+      }
+      currentInstruction = _currentInstruction = null;
     }
-    currentInstruction = _currentInstruction = null;
 
     backEndState.consumeGeneratedCode(
       Code(
@@ -312,6 +318,11 @@ abstract base class CodeGenerator extends Pass
     // Generated via ParallelMove instructions inserted by register allocator.
   }
 
+  @override
+  void visitReachabilityFence(ReachabilityFence instr) {
+    // No-op, just keep its input alive.
+  }
+
   /// Ensure that all destinations are distinct and
   /// stack locations are not used both as a source and destination.
   static bool _verifyParallelMoveDestinations(ParallelMove instr) {
@@ -351,10 +362,13 @@ abstract base class CodeGenerator extends Pass
         final to = move.to.physicalLocation;
         if (from != to) {
           if (from is StackLocation && to is StackLocation) {
+            assert((from is SimdSpillSlot) == (to is SimdSpillSlot));
             // Moves into spill slots cannot participate in cycles.
             // Generate them eagerly as they require a temporary register
             // which can be occupied while breaking a cycle.
-            final temp = getMoveTempRegister(RegisterClass.cpu);
+            final temp = getMoveTempRegister(
+              from is SimdSpillSlot ? RegisterClass.fpu : RegisterClass.cpu,
+            );
             generateMove(from, temp);
             generateMove(temp, to);
           } else {

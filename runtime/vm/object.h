@@ -1682,6 +1682,7 @@ class Class : public Object {
     return current_functions();
   }
   void SetFunctions(const Array& value) const;
+  void BuildFunctionsHashTable(const Array& functions_array) const;
   void AddFunction(const Function& function) const;
   intptr_t FindFunctionIndex(const Function& needle) const;
   FunctionPtr FunctionFromIndex(intptr_t idx) const;
@@ -1741,12 +1742,6 @@ class Class : public Object {
     return class_loading_state() >= UntaggedClass::kTypeFinalized;
   }
   void set_is_type_finalized() const;
-
-  bool is_synthesized_class() const {
-    return SynthesizedClassBit::decode(state_bits());
-  }
-  void set_is_synthesized_class() const;
-  void set_is_synthesized_class_unsafe() const;
 
   bool is_enum_class() const { return EnumBit::decode(state_bits()); }
   void set_is_enum_class() const;
@@ -1973,6 +1968,9 @@ class Class : public Object {
   void PatchFieldsAndFunctions() const;
   void MigrateImplicitStaticClosures(ProgramReloadContext* context,
                                      const Class& new_cls) const;
+#if defined(DART_DYNAMIC_MODULES)
+  void MarkReloadedImplicitClosureFunctions() const;
+#endif
   void CopyCanonicalConstants(const Class& old_cls) const;
   void CopyDeclarationType(const Class& old_cls) const;
   void CheckReload(const Class& replacement,
@@ -2062,32 +2060,68 @@ class Class : public Object {
     kConstructor,
     kFactory,
   };
+
+ public:
   using ConstBit = BitField<uint32_t, bool>;
+  static constexpr intptr_t kConstBitPos = ConstBit::shift();
+
   using ImplementedBit = BitField<uint32_t, bool, ConstBit::kNextBit>;
+  static constexpr intptr_t kImplementedBitPos = ImplementedBit::shift();
+
   using ClassFinalizedBits = BitField<uint32_t,
                                       UntaggedClass::ClassFinalizedState,
                                       ImplementedBit::kNextBit,
                                       2>;
+  static constexpr intptr_t kClassFinalizedBitsPos =
+      ClassFinalizedBits::shift();
+  static constexpr intptr_t kClassFinalizedBitsSize =
+      ClassFinalizedBits::bitsize();
+
   using ClassLoadingBits = BitField<uint32_t,
                                     UntaggedClass::ClassLoadingState,
                                     ClassFinalizedBits::kNextBit,
                                     2>;
+  static constexpr intptr_t kClassLoadingBitsPos = ClassLoadingBits::shift();
+  static constexpr intptr_t kClassLoadingBitsSize = ClassLoadingBits::bitsize();
+
   using AbstractBit = BitField<uint32_t, bool, ClassLoadingBits::kNextBit>;
-  using SynthesizedClassBit = BitField<uint32_t, bool, AbstractBit::kNextBit>;
+  static constexpr intptr_t kAbstractBitPos = AbstractBit::shift();
+
   using FieldsMarkedNullableBit =
-      BitField<uint32_t, bool, SynthesizedClassBit::kNextBit>;
+      BitField<uint32_t, bool, AbstractBit::kNextBit>;
+
   using EnumBit = BitField<uint32_t, bool, FieldsMarkedNullableBit::kNextBit>;
+  static constexpr intptr_t kEnumBitPos = EnumBit::shift();
+
   using TransformedMixinApplicationBit =
       BitField<uint32_t, bool, EnumBit::kNextBit>;
+  static constexpr intptr_t kTransformedMixinApplicationBitPos =
+      TransformedMixinApplicationBit::shift();
+
   using IsAllocatedBit =
       BitField<uint32_t, bool, TransformedMixinApplicationBit::kNextBit>;
+
   using IsLoadedBit = BitField<uint32_t, bool, IsAllocatedBit::kNextBit>;
+  static constexpr intptr_t kIsLoadedBitPos = IsLoadedBit::shift();
+
   using HasPragmaBit = BitField<uint32_t, bool, IsLoadedBit::kNextBit>;
+  static constexpr intptr_t kHasPragmaBitPos = HasPragmaBit::shift();
+
   using SealedBit = BitField<uint32_t, bool, HasPragmaBit::kNextBit>;
+  static constexpr intptr_t kSealedBitPos = SealedBit::shift();
+
   using MixinClassBit = BitField<uint32_t, bool, SealedBit::kNextBit>;
+  static constexpr intptr_t kMixinClassBitPos = MixinClassBit::shift();
+
   using BaseClassBit = BitField<uint32_t, bool, MixinClassBit::kNextBit>;
+  static constexpr intptr_t kBaseClassBitPos = BaseClassBit::shift();
+
   using InterfaceClassBit = BitField<uint32_t, bool, BaseClassBit::kNextBit>;
+  static constexpr intptr_t kInterfaceClassBitPos = InterfaceClassBit::shift();
+
   using FinalBit = BitField<uint32_t, bool, InterfaceClassBit::kNextBit>;
+  static constexpr intptr_t kFinalBitPos = FinalBit::shift();
+
   // Whether instances of the class cannot be sent across ports.
   //
   // Will be true iff
@@ -2095,10 +2129,14 @@ class Class : public Object {
   //    - super class / super interface classes are marked as unsendable.
   //    - class has native fields.
   using IsIsolateUnsendableBit = BitField<uint32_t, bool, FinalBit::kNextBit>;
+  static constexpr intptr_t kIsIsolateUnsendableBitPos =
+      IsIsolateUnsendableBit::shift();
+
   // True if this class has `@pragma('vm:isolate-unsendable')` annotation or
   // base class or implemented interfaces has this bit.
   using IsIsolateUnsendableDueToPragmaBit =
       BitField<uint32_t, bool, IsIsolateUnsendableBit::kNextBit>;
+
   // Will be set to 1 for the following classes:
   //
   // 1. Deeply immutable class.
@@ -2110,6 +2148,9 @@ class Class : public Object {
   // See also ImmutableBit in raw_object.h.
   using IsDeeplyImmutableBit =
       BitField<uint32_t, bool, IsIsolateUnsendableDueToPragmaBit::kNextBit>;
+  static constexpr intptr_t kIsDeeplyImmutableBitPos =
+      IsDeeplyImmutableBit::shift();
+
   // This class is a subtype of Future.
   using IsFutureSubtypeBit =
       BitField<uint32_t, bool, IsDeeplyImmutableBit::kNextBit>;
@@ -2124,6 +2165,7 @@ class Class : public Object {
   using IsDeclaredInBytecodeBit =
       BitField<uint32_t, bool, HasDynamicallyExtendableSubtypesBit::kNextBit>;
 
+ private:
   void set_name(const String& value) const;
   void set_user_name(const String& value) const;
   const char* GenerateUserVisibleName() const;
@@ -3032,10 +3074,8 @@ class Function : public Object {
   bool FfiCSignatureReturnsHandle() const;
 
   // Can only be called on FFI trampolines.
+  // Lazily assigns a callback ID if one hasn't been assigned yet.
   int32_t FfiCallbackId() const;
-
-  // Should be called when ffi trampoline function object is created.
-  void AssignFfiCallbackId(int32_t callback_id) const;
 
   // Can only be called on FFI natives and FFI call closures.
   bool FfiIsLeaf() const;
@@ -3098,13 +3138,6 @@ class Function : public Object {
   KernelProgramInfoPtr KernelProgramInfo() const;
 #endif
   ObjectPtr RawOwner() const { return untag()->owner(); }
-
-  RegExpPtr regexp() const;
-  intptr_t string_specialization_cid() const;
-  bool is_sticky_specialization() const;
-  void SetRegExpData(const RegExp& regexp,
-                     intptr_t string_specialization_cid,
-                     bool sticky) const;
 
   StringPtr native_name() const;
   void set_native_name(const String& name) const;
@@ -3438,7 +3471,6 @@ class Function : public Object {
       case UntaggedFunction::kConstructor:
       case UntaggedFunction::kImplicitStaticGetter:
       case UntaggedFunction::kFieldInitializer:
-      case UntaggedFunction::kIrregexpFunction:
         return false;
       default:
         UNREACHABLE();
@@ -3457,7 +3489,6 @@ class Function : public Object {
       case UntaggedFunction::kImplicitSetter:
       case UntaggedFunction::kImplicitStaticGetter:
       case UntaggedFunction::kFieldInitializer:
-      case UntaggedFunction::kIrregexpFunction:
         return true;
       case UntaggedFunction::kClosureFunction:
       case UntaggedFunction::kImplicitClosureFunction:
@@ -3954,11 +3985,6 @@ class Function : public Object {
            (k == UntaggedFunction::kImplicitClosureFunction);
   }
 
-  // Returns true if this function represents a generated irregexp function.
-  bool IsIrregexpFunction() const {
-    return kind() == UntaggedFunction::kIrregexpFunction;
-  }
-
   // Returns true if this function represents an implicit closure function.
   bool IsImplicitClosureFunction() const {
     return kind() == UntaggedFunction::kImplicitClosureFunction;
@@ -4104,6 +4130,15 @@ class Function : public Object {
   // of function.NumParameters() length.
   void ReadParameterCovariance(BitVector* is_covariant,
                                BitVector* is_generic_covariant_impl) const;
+#endif
+
+#if defined(DART_DYNAMIC_MODULES) && !defined(PRODUCT) &&                      \
+    !defined(DART_PRECOMPILED_RUNTIME)
+  static bool IsReloadedImplicitClosure(FunctionPtr ptr);
+  bool IsReloadedImplicitClosure() const {
+    return IsReloadedImplicitClosure(ptr());
+  }
+  void SetIsReloadedImplicitClosure(bool value) const;
 #endif
 
   // Slow function, use in asserts to track changes in important library
@@ -4375,6 +4410,8 @@ class Function : public Object {
   friend class Type;            // To adjust parent_function.
   friend class Precompiler;     // To access closure data.
   friend class ProgramVisitor;  // For set_parameter_types/names.
+  friend class module_snapshot::
+      FunctionDeserializationCluster;  // For set_implicit_closure_function.
 };
 
 class ClosureData : public Object {
@@ -4425,6 +4462,15 @@ class ClosureData : public Object {
   }
   void set_default_type_arguments_instantiation_mode(
       InstantiationMode value) const;
+
+#if defined(DART_DYNAMIC_MODULES) && !defined(PRODUCT) &&                      \
+    !defined(DART_PRECOMPILED_RUNTIME)
+  static bool ReloadedImplicitClosure(ClosureDataPtr ptr) {
+    return ptr->untag()
+        ->packed_fields_.Read<UntaggedClosureData::ReloadedImplicitClosure>();
+  }
+  void set_reloaded_implicit_closure(bool value) const;
+#endif
 
   static ClosureDataPtr New();
 
@@ -4641,8 +4687,14 @@ class Field : public Object {
   void SetFieldTypeSafe(const AbstractType& value) const;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  AbstractTypePtr exact_type() const { return untag()->exact_type(); }
-  void set_exact_type(const AbstractType& value) const;
+  AbstractTypePtr inferred_type() const { return untag()->inferred_type(); }
+  void set_inferred_type(const AbstractType& value) const;
+  bool is_inferred_type_exact() const {
+    return untag()->kind_bits_.Read<IsInferredTypeExactBit>();
+  }
+  void set_is_inferred_type_exact(bool value) const {
+    untag()->kind_bits_.UpdateBool<IsInferredTypeExactBit>(value);
+  }
 #endif
 
   DART_WARN_UNUSED_RESULT
@@ -4934,18 +4986,31 @@ class Field : public Object {
   friend class Interpreter;      // Access to bit field.
   friend class StoreFieldInstr;  // Generated code access to bit field.
 
+ public:
   using ConstBit = BitField<decltype(UntaggedField::kind_bits_), bool>;
+  static constexpr intptr_t kConstBitPos = ConstBit::shift();
+
   using StaticBit =
       BitField<decltype(UntaggedField::kind_bits_), bool, ConstBit::kNextBit>;
+  static constexpr intptr_t kStaticBitPos = StaticBit::shift();
+
   using FinalBit =
       BitField<decltype(UntaggedField::kind_bits_), bool, StaticBit::kNextBit>;
+  static constexpr intptr_t kFinalBitPos = FinalBit::shift();
+
   using HasNontrivialInitializerBit =
       BitField<decltype(UntaggedField::kind_bits_), bool, FinalBit::kNextBit>;
+  static constexpr intptr_t kHasNontrivialInitializerBitPos =
+      HasNontrivialInitializerBit::shift();
+
   using UnboxedBit = BitField<decltype(UntaggedField::kind_bits_),
                               bool,
                               HasNontrivialInitializerBit::kNextBit>;
+  static constexpr intptr_t kUnboxedBitPos = UnboxedBit::shift();
+
   using ReflectableBit =
       BitField<decltype(UntaggedField::kind_bits_), bool, UnboxedBit::kNextBit>;
+
   using InitializerChangedAfterInitializationBit =
       BitField<decltype(UntaggedField::kind_bits_),
                bool,
@@ -4954,29 +5019,48 @@ class Field : public Object {
       BitField<decltype(UntaggedField::kind_bits_),
                bool,
                InitializerChangedAfterInitializationBit::kNextBit>;
+  static constexpr intptr_t kHasPragmaBitPos = HasPragmaBit::shift();
+
   using CovariantBit = BitField<decltype(UntaggedField::kind_bits_),
                                 bool,
                                 HasPragmaBit::kNextBit>;
+  static constexpr intptr_t kCovariantBitPos = CovariantBit::shift();
+
   using GenericCovariantImplBit = BitField<decltype(UntaggedField::kind_bits_),
                                            bool,
                                            CovariantBit::kNextBit>;
+  static constexpr intptr_t kGenericCovariantImplBitPos =
+      GenericCovariantImplBit::shift();
+
   using IsLateBit = BitField<decltype(UntaggedField::kind_bits_),
                              bool,
                              GenericCovariantImplBit::kNextBit>;
+  static constexpr intptr_t kIsLateBitPos = IsLateBit::shift();
+
   using IsExtensionMemberBit =
       BitField<decltype(UntaggedField::kind_bits_), bool, IsLateBit::kNextBit>;
+  static constexpr intptr_t kIsExtensionMemberBitPos =
+      IsExtensionMemberBit::shift();
+
   using IsExtensionTypeMemberBit = BitField<decltype(UntaggedField::kind_bits_),
                                             bool,
                                             IsExtensionMemberBit::kNextBit>;
+  static constexpr intptr_t kIsExtensionTypeMemberBitPos =
+      IsExtensionTypeMemberBit::shift();
+
   using NeedsLoadGuardBit = BitField<decltype(UntaggedField::kind_bits_),
                                      bool,
                                      IsExtensionTypeMemberBit::kNextBit>;
   using HasInitializerBit = BitField<decltype(UntaggedField::kind_bits_),
                                      bool,
                                      NeedsLoadGuardBit::kNextBit>;
+  static constexpr intptr_t kHasInitializerBitPos = HasInitializerBit::shift();
+
   using SharedBit = BitField<decltype(UntaggedField::kind_bits_),
                              bool,
                              HasInitializerBit::kNextBit>;
+  static constexpr intptr_t kSharedBitPos = SharedBit::shift();
+
   using NoSanitizeThreadBit =
       BitField<decltype(UntaggedField::kind_bits_), bool, SharedBit::kNextBit>;
   using HasDeeplyImmutableTypeBit =
@@ -4987,7 +5071,11 @@ class Field : public Object {
       BitField<decltype(UntaggedField::kind_bits_),
                bool,
                HasDeeplyImmutableTypeBit::kNextBit>;
+  using IsInferredTypeExactBit = BitField<decltype(UntaggedField::kind_bits_),
+                                          bool,
+                                          IsDynamicallyCallableBit::kNextBit>;
 
+ private:
   // Force this field's guard to be dynamic and deoptimize dependent code.
   void ForceDynamicGuardedCidAndLength() const;
 
@@ -5280,10 +5368,6 @@ class Library : public Object {
   // more regular.
   void AddClass(const Class& cls) const;
   void AddObject(const Object& obj, const String& name) const;
-  ObjectPtr LookupReExport(
-      const String& name,
-      ZoneGrowableArray<intptr_t>* visited = nullptr) const;
-  ObjectPtr LookupLocalOrReExportObject(const String& name) const;
   LibraryPrefixPtr LookupLocalLibraryPrefix(const String& name) const;
 
   // These lookups are local within the library.
@@ -5412,9 +5496,6 @@ class Library : public Object {
     set_flags(UntaggedLibrary::DartSchemeBit::update(value, untag()->flags_));
   }
 
-  // Includes 'dart:async', 'dart:typed_data', etc.
-  bool IsAnyCoreLibrary() const;
-
   inline intptr_t UrlHash() const;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -5526,7 +5607,6 @@ class Library : public Object {
 
   void set_num_imports(intptr_t value) const;
   void set_flags(uint8_t flags) const;
-  bool HasExports() const;
   ArrayPtr loaded_scripts() const { return untag()->loaded_scripts(); }
   ArrayPtr metadata() const {
     DEBUG_ASSERT(
@@ -6193,14 +6273,37 @@ class InstructionsTable : public Object {
   friend class Deserializer;
 };
 
+class LocalVarDescriptor : public Object {
+ public:
+  StringPtr name() const { return untag()->name(); }
+  AbstractTypePtr static_type() const { return untag()->static_type(); }
+
+  void set_name(const String& value) const;
+  void set_static_type(const AbstractType& value) const;
+
+  static LocalVarDescriptorPtr New(const String& name,
+                                   const AbstractType& static_type,
+                                   Heap::Space space = Heap::kNew);
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(UntaggedLocalVarDescriptor));
+  }
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(LocalVarDescriptor, Object);
+  friend class Class;
+  friend class Object;
+};
+
 class LocalVarDescriptors : public Object {
  public:
   intptr_t Length() const;
 
   StringPtr GetName(intptr_t var_index) const;
+  AbstractTypePtr GetStaticType(intptr_t var_index) const;
 
   void SetVar(intptr_t var_index,
               const String& name,
+              const AbstractType& static_type,
               UntaggedLocalVarDescriptors::VarInfo* info) const;
 
   void GetInfo(intptr_t var_index,
@@ -6208,7 +6311,7 @@ class LocalVarDescriptors : public Object {
 
   static constexpr intptr_t kBytesPerElement =
       sizeof(UntaggedLocalVarDescriptors::VarInfo) +
-      sizeof(CompressedStringPtr);
+      sizeof(CompressedLocalVarDescriptorPtr);
   static constexpr intptr_t kMaxElements =
       UntaggedLocalVarDescriptors::VarInfo::kMaxIndex;
 
@@ -6221,7 +6324,7 @@ class LocalVarDescriptors : public Object {
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(UntaggedLocalVarDescriptors) ==
-           OFFSET_OF_RETURNED_VALUE(UntaggedLocalVarDescriptors, names));
+           OFFSET_OF_RETURNED_VALUE(UntaggedLocalVarDescriptors, descriptors));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t len) {
@@ -6992,6 +7095,11 @@ class Code : public Object {
   }
   void set_is_force_optimized(bool value) const;
 
+  bool can_be_deoptimized() const {
+    return CanBeDeoptimizedBit::decode(untag()->state_bits_);
+  }
+  void set_can_be_deoptimized(bool value) const;
+
   bool is_alive() const { return AliveBit::decode(untag()->state_bits_); }
   void set_is_alive(bool value) const;
 
@@ -7021,7 +7129,7 @@ class Code : public Object {
     return EntryPointOf(code) - entry_offset;
 #else
     auto instr = InstructionsOf(code);
-    if (instr == Instructions::null()) {
+    if (instr->IsRawNull()) {
       return code->untag()->entry_point_;
     }
     return Instructions::PayloadStart(instr);
@@ -7035,17 +7143,12 @@ class Code : public Object {
     return code->untag()->entry_point_;
 #else
     auto instr = InstructionsOf(code);
-    if (instr == Instructions::null()) {
+    // Can be accessed outside of an IsolateGroup,
+    // so Instructions::null() is not available.
+    if (instr->IsRawNull()) {
       return code->untag()->entry_point_;
     }
     return Instructions::EntryPoint(instr);
-#endif
-  }
-  static uword StubEntryPointOf(const CodePtr code) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    return code->untag()->entry_point_;
-#else
-    return Instructions::EntryPoint(InstructionsOf(code));
 #endif
   }
 
@@ -7067,7 +7170,7 @@ class Code : public Object {
     return untag()->monomorphic_entry_point_;
 #else
     auto instr = instructions();
-    if (instr == Instructions::null()) {
+    if (instr->IsRawNull()) {
       return untag()->monomorphic_entry_point_;
     }
     return Instructions::MonomorphicEntryPoint(instr);
@@ -7089,17 +7192,12 @@ class Code : public Object {
     return code->untag()->instructions_length_;
 #else
     auto instr = InstructionsOf(code);
-    if (instr == Instructions::null()) {
+    // Can be accessed outside of an IsolateGroup,
+    // so Instructions::null() is not available.
+    if (instr->IsRawNull()) {
       return code->untag()->instructions_length_;
     }
     return Instructions::Size(instr);
-#endif
-  }
-  static uword StubPayloadSizeOf(const CodePtr code) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-    return code->untag()->instructions_length_;
-#else
-    return Instructions::Size(InstructionsOf(code));
 #endif
   }
 
@@ -7477,9 +7575,13 @@ class Code : public Object {
                                      bool,
                                      OptimizedBit::kNextBit>;
 
+  using CanBeDeoptimizedBit = BitField<decltype(UntaggedCode::state_bits_),
+                                       bool,
+                                       ForceOptimizedBit::kNextBit>;
+
   using AliveBit = BitField<decltype(UntaggedCode::state_bits_),
                             bool,
-                            ForceOptimizedBit::kNextBit>;
+                            CanBeDeoptimizedBit::kNextBit>;
 
   // Set by precompiler if this Code object doesn't contain
   // useful information besides instructions and compressed stack map.
@@ -7623,10 +7725,25 @@ class Bytecode : public Object {
     untag()->set_exception_handlers(handlers.ptr());
   }
 
-  FunctionPtr function() const { return untag()->function(); }
+  // Whether or not this bytecode is a stub that does not have a unique
+  // owning function, generally because it is a wrapper returning the
+  // result of one of the VMInternal_* instructions.
+  bool IsSharedBytecodeStub() const;
 
+  // The function to which this bytecode is attached, or null if this
+  // is a shared bytecode stub.
+  FunctionPtr function() const {
+    ASSERT_EQUAL(untag()->function() == Function::null(),
+                 IsSharedBytecodeStub());
+    return untag()->function();
+  }
+
+  // Sets the function to which this bytecode is attached.
+  // Assumes that this is not a shared bytecode stub.
   void set_function(const Function& function) const {
+    ASSERT(!IsSharedBytecodeStub());
     ASSERT(function.IsOld());
+    ASSERT(untag()->function() == Function::null());
     untag()->set_function(function.ptr());
   }
 
@@ -11608,8 +11725,8 @@ class Float64x2 : public Instance {
   static Float64x2Ptr New(simd128_value_t value,
                           Heap::Space space = Heap::kNew);
 
-  double x() const;
-  double y() const;
+  double x() const { return untag()->value_[0]; }
+  double y() const { return untag()->value_[1]; }
 
   void set_x(double x) const;
   void set_y(double y) const;

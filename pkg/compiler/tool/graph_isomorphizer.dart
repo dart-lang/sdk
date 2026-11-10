@@ -45,6 +45,7 @@ library;
 
 import 'dart:io';
 import 'dart:math';
+
 import 'package:dart_style/dart_style.dart' show DartFormatter;
 
 typedef NameFunc = String Function(List<int>, int);
@@ -64,7 +65,7 @@ void generatePermutedNames(
     for (int i = 0; i < bits.length; i++) {
       if (bits[i] == 1) {
         names.putIfAbsent(i, () => []);
-        names[i]!.add(List.from(bits));
+        names[i]!.add(List.of(bits));
       }
     }
     return;
@@ -499,9 +500,8 @@ class GraphIsomorphizer {
     file.createSync(recursive: true);
     var sink = file.openWrite();
     sink.write(
-      DartFormatter(
-        languageVersion: DartFormatter.latestLanguageVersion,
-      ).format(contents.toString()),
+      DartFormatter(languageVersion: DartFormatter.latestLanguageVersion)
+          .format(contents.toString()),
     );
     sink.close();
   }

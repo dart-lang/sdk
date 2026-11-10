@@ -3,6 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
 
 import '../../models.dart';
@@ -13,7 +17,7 @@ class RenameLocalVariableMutation extends Mutation {
   final String localName;
   final int localOffset;
 
-  RenameLocalVariableMutation({
+  new({
     required super.path,
     required this.localName,
     required this.localOffset,
@@ -25,8 +29,7 @@ class RenameLocalVariableMutation extends Mutation {
   @override
   MutationResult apply(CompilationUnit unit, String content) {
     var declaration = unit.nodeCovering2(offset: localOffset);
-    if (declaration is! VariableDeclaration ||
-        declaration.name.lexeme != localName) {
+    if (declaration is! LocalVariable || declaration.name.lexeme != localName) {
       throw StateError('Did not find expected local variable.');
     }
 
@@ -46,15 +49,11 @@ class RenameLocalVariableMutation extends Mutation {
     );
 
     // Update all references in the same block.
-    block.visitChildren2(
-      FunctionAstVisitor(
-        simpleIdentifier: (node) {
-          if (identical(node.element, declarationElement)) {
-            edits.add(MutationEdit(node.offset, node.length, newName));
-          }
-        },
-      ),
-    );
+    for (var (name, element) in _UnqualifiedReferences.of(block)) {
+      if (identical(element, declarationElement)) {
+        edits.add(MutationEdit(name.offset, name.length, newName));
+      }
+    }
 
     // Apply from end to start.
     edits.sort((a, b) => b.offset.compareTo(a.offset));
@@ -75,14 +74,9 @@ class RenameLocalVariableMutation extends Mutation {
   }
 
   String _freshLocalName(Block block, String base) {
-    var used = <String>{};
-    block.visitChildren2(
-      FunctionAstVisitor(
-        simpleIdentifier: (node) {
-          used.add(node.name);
-        },
-      ),
-    );
+    var used = {
+      for (var (name, _) in _UnqualifiedReferences.of(block)) name.lexeme,
+    };
     for (var i = 1; i < 10000; i++) {
       var candidate = '${base}_$i';
       if (!used.contains(candidate)) return candidate;
@@ -96,10 +90,13 @@ class RenameLocalVariableMutation extends Mutation {
     var bodies = <FunctionBody>[];
     unit.visitChildren2(
       FunctionAstVisitor(
-        functionDeclaration: (node) {
-          bodies.add(node.functionExpression.body);
+        localFunctionDeclaration: (node) {
+          bodies.add(node.body);
         },
         methodDeclaration: (node) {
+          bodies.add(node.body);
+        },
+        topLevelFunctionDeclaration: (node) {
           bodies.add(node.body);
         },
       ),
@@ -107,29 +104,74 @@ class RenameLocalVariableMutation extends Mutation {
 
     // Collect locals in all function/method bodies.
     for (var body in bodies) {
-      var locals = <VariableDeclaration>[];
+      var locals = <LocalVariable>[];
       body.visitChildren2(
         FunctionAstVisitor(
-          variableDeclaration: (node) {
-            // Only locals inside block statements.
-            if (node.parent2?.parent2 is VariableDeclarationStatement) {
+          localVariable: (node) {
+            // Only locals declared by statements, not by `for` loops.
+            if (node.parent2.parent2 is! ForPartsWithDeclarations) {
               locals.add(node);
             }
           },
         ),
       );
 
-      for (var variableDeclaration in locals) {
-        var offset = variableDeclaration.name.offset;
+      for (var localVariable in locals) {
+        var offset = localVariable.name.offset;
         mutations.add(
           RenameLocalVariableMutation(
             path: filePath,
-            localName: variableDeclaration.name.lexeme,
+            localName: localVariable.name.lexeme,
             localOffset: offset,
           ),
         );
       }
     }
     return mutations;
+  }
+}
+
+/// Collects the names written as unqualified references, with the elements
+/// they resolve to.
+///
+/// A local variable is referenced only through these nodes; an invocation
+/// `f()` of a local variable `f` is a call on an [UnqualifiedNameExpression].
+class _UnqualifiedReferences extends RecursiveAstVisitor2<void> {
+  final List<(Token, Element?)> _references = [];
+
+  @override
+  void visitAssignedVariablePattern(AssignedVariablePattern node) {
+    _add(node.name, node);
+    super.visitAssignedVariablePattern(node);
+  }
+
+  @override
+  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
+    _add(node.name, node);
+    super.visitUnqualifiedFunctionInvocation(node);
+  }
+
+  @override
+  void visitUnqualifiedNameAssignmentTarget(
+    UnqualifiedNameAssignmentTarget node,
+  ) {
+    _add(node.name, node);
+    super.visitUnqualifiedNameAssignmentTarget(node);
+  }
+
+  @override
+  void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
+    _add(node.name, node);
+    super.visitUnqualifiedNameExpression(node);
+  }
+
+  void _add(Token name, AstNode node) {
+    _references.add((name, ElementLocatorV2.locate(node)));
+  }
+
+  static List<(Token, Element?)> of(AstNode node) {
+    var collector = _UnqualifiedReferences();
+    node.visitChildren2(collector);
+    return collector._references;
   }
 }

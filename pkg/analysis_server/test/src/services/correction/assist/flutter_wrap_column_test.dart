@@ -15,15 +15,12 @@ void main() {
 }
 
 @reflectiveTest
-class FlutterWrapColumnTest extends AssistProcessorTest {
+class FlutterWrapColumnTest extends BuiltInAssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.flutterWrapColumn;
+  bool get addFlutterPackageDep => true;
 
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  AssistKind get kind => DartAssistKind.flutterWrapColumn;
 
   Future<void> test_controlFlowCollections_if() async {
     await resolveTestCode('''

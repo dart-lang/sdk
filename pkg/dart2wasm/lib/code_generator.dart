@@ -19,6 +19,7 @@ import 'functions.dart';
 import 'globals.dart';
 import 'intrinsics.dart';
 import 'param_info.dart';
+import 'prod/cfg/code_generator.dart';
 import 'records.dart';
 import 'reference_extensions.dart';
 import 'sync_star.dart';
@@ -98,7 +99,9 @@ abstract class AstCodeGenerator
   final LinkedHashMap<LabeledStatement, List<w.Label>> breakFinalizers =
       LinkedHashMap();
 
-  final List<({w.Local exceptionLocal, w.Local stackTraceLocal})>
+  final List<
+    ({w.Local exceptionLocal, w.Local stackTraceLocal, w.Local exnRefLocal})
+  >
   tryBlockLocals = [];
 
   final Map<SwitchCase, w.Label> switchLabels = {};
@@ -188,13 +191,13 @@ abstract class AstCodeGenerator
   /// Returns the old file offset, which can be used to restore the source
   /// mapping after vising a sub-tree.
   int setSourceMapFileOffset(int fileOffset) {
-    if (!b.recordSourceMaps) {
+    if (!b.recordDebugInfo) {
       final old = _sourceMapFileOffset;
       _sourceMapFileOffset = fileOffset;
       return old;
     }
     if (fileOffset == TreeNode.noOffset) {
-      b.stopSourceMapping();
+      b.clearSourcePosition();
       final old = _sourceMapFileOffset;
       _sourceMapFileOffset = fileOffset;
       return old;
@@ -204,7 +207,7 @@ abstract class AstCodeGenerator
     final location = source.getLocation(fileUri, fileOffset);
     final old = _sourceMapFileOffset;
     _sourceMapFileOffset = fileOffset;
-    b.startSourceMapping(
+    b.setSourcePosition(
       fileUri,
       location.line - 1,
       location.column - 1,
@@ -932,37 +935,68 @@ abstract class AstCodeGenerator
 
     final w.RefType exceptionType = translator.topTypeNonNullable;
     final w.RefType stackTraceType = translator.stackTraceType;
+    final w.RefType exnRefType = w.RefType.exn(nullable: true);
 
-    final w.Label wrapperBlock = b.block();
+    // Jump target when `try_table` block exits without exceptions.
+    final w.Label afterTryBlock = b.block();
 
     // Create a block target for each Dart `catch` block, to be able to share
-    // code when generating a `catch` and `catch_all` for the same Dart `catch`
-    // block, when the block can catch both Dart and JS exceptions.
-    // The `end` for the Wasm `try` block works as the first exception handler
-    // target.
+    // code when generating a `catch` for Dart and JS exceptions for the same
+    // Dart `catch` block.
     List<w.Label> catchBlockLabels = List.generate(
-      node.catches.length - 1,
+      node.catches.length,
       (i) => b.block([], [exceptionType, stackTraceType]),
       growable: true,
     );
 
-    w.Label try_ = b.try_legacy([], [exceptionType, stackTraceType]);
-    catchBlockLabels.add(try_);
-
     catchBlockLabels = catchBlockLabels.reversed.toList();
-
-    translateStatement(node.body);
-    b.br(wrapperBlock);
 
     // Stash the original exception in a local so we can push it back onto the
     // stack after each type test. Also, store the stack trace in a local.
     w.Local thrownException = addLocal(exceptionType);
     w.Local thrownStackTrace = addLocal(stackTraceType);
+    w.Local thrownExnRef = addLocal(exnRefType);
 
     tryBlockLocals.add((
       exceptionLocal: thrownException,
       stackTraceLocal: thrownStackTrace,
+      exnRefLocal: thrownExnRef,
     ));
+
+    final bool canCatchJSException =
+        !translator.options.standalone &&
+        node.catches.any((c) => guardCanMatchJSException(translator, c.guard));
+
+    w.Label? catchJsRefJumpLabel;
+    if (canCatchJSException) {
+      catchJsRefJumpLabel = b.block([], [
+        w.RefType.extern(nullable: true),
+        w.RefType.exn(nullable: false),
+      ]);
+    }
+
+    final w.Label catchRefJumpLabel = b.block([], [
+      exceptionType,
+      stackTraceType,
+      w.RefType.exn(nullable: false),
+    ]);
+
+    b.try_table([
+      w.CatchRef(
+        translator.getDartExceptionTag(b.moduleBuilder),
+        catchRefJumpLabel,
+      ),
+      if (catchJsRefJumpLabel != null)
+        w.CatchRef(
+          translator.getJsExceptionTag(b.moduleBuilder),
+          catchJsRefJumpLabel,
+        ),
+    ]);
+
+    translateStatement(node.body);
+    b.br(afterTryBlock);
+    b.end(); // end try_table
+    b.unreachable();
 
     void emitCatchBlock(
       w.Label catchBlockTarget,
@@ -998,12 +1032,12 @@ abstract class AstCodeGenerator
       b.end(); // end catchBlock.
     }
 
-    // Insert a catch instruction which will catch any thrown Dart
-    // exceptions.
-    b.catch_legacy(translator.getDartExceptionTag(b.moduleBuilder));
-
+    // Handle Dart exceptions.
+    b.end(); // catchRefJumpLabel
+    b.local_set(thrownExnRef);
     b.local_set(thrownStackTrace);
     b.local_set(thrownException);
+
     for (
       int catchBlockIndex = 0;
       catchBlockIndex < node.catches.length;
@@ -1025,19 +1059,18 @@ abstract class AstCodeGenerator
       }
     }
 
-    // Rethrow if all the catch blocks fall through
-    b.rethrow_(try_);
+    // Rethrow if all the catch blocks fall through.
+    b.local_get(thrownExnRef);
+    b.throw_ref();
 
-    if (node.catches.any(
-      (c) => guardCanMatchJSException(translator, c.guard),
-    )) {
-      b.catch_legacy(translator.getJsExceptionTag(b.moduleBuilder));
-
+    if (catchJsRefJumpLabel != null) {
+      b.end(); // catchJsRefJumpLabel
+      b.local_set(thrownExnRef);
       final jsExceptionLocal = addLocal(w.RefType.extern(nullable: true));
       b.local_tee(jsExceptionLocal);
 
       call(translator.boxJsException.reference);
-      b.local_tee(thrownException); // ref null #Top
+      b.local_set(thrownException);
 
       b.local_get(jsExceptionLocal);
       call(translator.jsExceptionStackTrace.reference);
@@ -1071,11 +1104,12 @@ abstract class AstCodeGenerator
       }
 
       // Rethrow if the catch block falls through
-      b.rethrow_(try_);
+      b.local_get(thrownExnRef);
+      b.throw_ref();
     }
 
     for (Catch catch_ in node.catches) {
-      b.end();
+      b.end(); // catchBlockLabels[i]
       b.local_set(thrownStackTrace);
       b.local_set(thrownException);
 
@@ -1101,11 +1135,11 @@ abstract class AstCodeGenerator
       }
 
       translateStatement(catch_.body);
-      b.br(wrapperBlock);
+      b.br(afterTryBlock);
     }
 
     tryBlockLocals.removeLast();
-    b.end(); // end tryWrapper
+    b.end(); // end afterTryBlock
   }
 
   @override
@@ -1113,10 +1147,10 @@ abstract class AstCodeGenerator
     // We lower a [TryFinally] to a number of nested blocks, depending on how
     // many different code paths we have that run the finally block.
     //
-    // We emit the finalizer once in a catch, to handle the case where the try
-    // throws. Once outside of the catch, to handle the case where the try does
-    // not throw. If there is a return within the try block, then we emit the
-    // finalizer one more time along with logic to continue walking up the
+    // We emit the finalizer once in a catch block, to handle the case where the
+    // try throws. Once outside of the catch, to handle the case where the try
+    // does not throw. If there is a return within the try block, then we emit
+    // the finalizer one more time along with logic to continue walking up the
     // stack.
     //
     // A `break L` can run more than one finalizer, and each of those
@@ -1139,8 +1173,13 @@ abstract class AstCodeGenerator
     w.Label returnFinalizerBlock = b.block();
     returnFinalizers.add(TryBlockFinalizer(returnFinalizerBlock));
 
-    w.Label tryBlock = b.try_legacy();
+    w.Label normalExecutionBlock = b.block();
+    w.Label catchBlock = b.block(const [], [w.RefType.exn(nullable: false)]);
+
+    b.try_table([w.CatchAllRef(catchBlock)]);
     translateStatement(node.body);
+    b.end(); // try_table
+    b.br(normalExecutionBlock);
 
     final bool mustHandleReturn = returnFinalizers
         .removeLast()
@@ -1154,19 +1193,15 @@ abstract class AstCodeGenerator
           .removeLast();
     }
 
-    // Handle Dart exceptions.
-    b.catch_legacy(translator.getDartExceptionTag(b.moduleBuilder));
+    // Handle exceptions caught by `catch_all_ref`.
+    b.end(); // catchBlock
+    w.Local caughtExn = addLocal(w.RefType.exn(nullable: true));
+    b.local_set(caughtExn);
     translateStatement(node.finalizer);
-    b.rethrow_(tryBlock);
+    b.local_get(caughtExn);
+    b.throw_ref();
 
-    // Handle JS exceptions.
-    if (!translator.options.standalone) {
-      b.catch_legacy(translator.getJsExceptionTag(b.moduleBuilder));
-      translateStatement(node.finalizer);
-      b.rethrow_(tryBlock);
-    }
-
-    b.end(); // tryBlock
+    b.end(); // normalExecutionBlock
 
     // Run finalizer on normal execution (no breaks, throws, or returns).
     translateStatement(node.finalizer);
@@ -1495,7 +1530,7 @@ abstract class AstCodeGenerator
         indexBlocks.add(c == null ? defaultLabel : switchLabels[c]!);
       }
 
-      brTable.emitBrTableExpr(b, switchValueNonNullableLocal);
+      brTable.emitBrTableExpr(b, switchValueNonNullableLocal, defaultLabel);
 
       b.br_table(indexBlocks, defaultLabel);
     } else {
@@ -1654,14 +1689,6 @@ abstract class AstCodeGenerator
       translator.paramInfoForDirectCall(target),
       0,
     );
-
-    if (!translator.isAllocatable(node.target.enclosingClass)) {
-      // Cyclic types cannot be instantiated. Any code that tries to instantiate
-      // them will fail with stack overflow, which is a trap in Wasm. Here we
-      // replace one trap with another.
-      b.unreachable();
-      return expectedType;
-    }
 
     return call(target).single;
   }
@@ -2022,8 +2049,21 @@ abstract class AstCodeGenerator
 
   @override
   w.ValueType visitEqualsNull(EqualsNull node, w.ValueType expectedType) {
-    translateExpression(node.expression, const w.RefType.any(nullable: true));
-    b.ref_is_null();
+    final expressionType = translator.translateType(
+      dartTypeOf(node.expression),
+    );
+    translateExpression(node.expression, expressionType);
+
+    if (expressionType.nullable) {
+      b.ref_is_null();
+    } else {
+      // In rare cases the operand is non-nullable but TFA doesn't optimize away
+      // the null check. If the operand is an unboxed type, the ref_is_null
+      // would fail to compile.
+      b.drop();
+      b.i32_const(0);
+    }
+
     return w.NumType.i32;
   }
 
@@ -2185,6 +2225,7 @@ abstract class AstCodeGenerator
   w.ValueType visitStaticGet(StaticGet node, w.ValueType expectedType) {
     w.ValueType? intrinsicResult = intrinsifier.generateStaticGetterIntrinsic(
       node,
+      expectedType,
     );
     if (intrinsicResult != null) return intrinsicResult;
 
@@ -2741,7 +2782,7 @@ abstract class AstCodeGenerator
       ParameterInfo.fromLocalFunction(decl.function),
       1,
     );
-    b.comment("Local call of ${decl.variable.cosmeticName}");
+    b.comment("Local call of ${decl.variable.name}");
     return translator.outputOrVoid(translator.callTarget(lambda.callTarget, b));
   }
 
@@ -2752,8 +2793,14 @@ abstract class AstCodeGenerator
       int typeCount = type.typeParameters.length;
       int posArgCount = type.positionalParameters.length;
       List<String> argNames = type.namedParameters.map((a) => a.name).toList();
-      ClosureRepresentation representation = translator.closureLayouter
-          .getClosureRepresentation(typeCount, posArgCount, argNames)!;
+      ClosureRepresentation? representation = translator.closureLayouter
+          .getClosureRepresentation(typeCount, posArgCount, argNames);
+      if (representation == null) {
+        // This is a dynamic function instantiation with a signature that
+        // matches no functions in the program.
+        b.unreachable();
+        return voidMarker;
+      }
 
       // Operand closure
       w.RefType closureType = w.RefType.def(
@@ -2870,7 +2917,11 @@ abstract class AstCodeGenerator
     // Push default values for optional positional parameters.
     for (int i = node.positional.length; i < paramInfo.positional.length; i++) {
       final w.ValueType type = signature.inputs[signatureOffset + i];
-      instantiateConstantBackendUse(paramInfo.positional[i]!, type);
+      instantiateConstantBackendUse(
+        paramInfo.positional[i]!,
+        type,
+        dummyValueIfIncompatible: true,
+      );
     }
 
     // Named arguments. Store evaluated arguments in locals to be able to
@@ -2893,7 +2944,11 @@ abstract class AstCodeGenerator
       if (namedLocal != null) {
         b.local_get(namedLocal);
       } else {
-        instantiateConstantBackendUse(paramInfo.named[name]!, type);
+        instantiateConstantBackendUse(
+          paramInfo.named[name]!,
+          type,
+          dummyValueIfIncompatible: true,
+        );
       }
     }
   }
@@ -2967,9 +3022,8 @@ abstract class AstCodeGenerator
   @override
   w.ValueType visitRethrow(Rethrow node, w.ValueType expectedType) {
     final exceptionLocals = tryBlockLocals.last;
-    b.local_get(exceptionLocals.exceptionLocal);
-    b.local_get(exceptionLocals.stackTraceLocal);
-    b.throw_(translator.getDartExceptionTag(b.moduleBuilder));
+    b.local_get(exceptionLocals.exnRefLocal);
+    b.throw_ref();
     return expectedType;
   }
 
@@ -3451,13 +3505,15 @@ abstract class AstCodeGenerator
   /// It should therefore not use a `deferredModuleGuard`.
   void instantiateConstantBackendUse(
     Constant constant,
-    w.ValueType expectedType,
-  ) {
+    w.ValueType expectedType, {
+    bool dummyValueIfIncompatible = false,
+  }) {
     translator.constants.instantiateConstant(
       b,
       constant,
       expectedType,
       deferredModuleGuard: null,
+      dummyValueIfIncompatible: dummyValueIfIncompatible,
     );
   }
 }
@@ -3477,12 +3533,12 @@ CodeGenerator getMemberCodeGenerator(
   );
   if (codeGen != null) return codeGen;
 
-  final Class? memberClass = member.enclosingClass;
-  if (memberClass != null && !translator.isAllocatable(memberClass)) {
-    return UnreachableCodeGenerator(translator, functionBuilder.type, member);
-  }
-
   final procedure = member as Procedure;
+
+  assert(
+    !procedure.isInstanceMember ||
+        translator.isAllocatable(member.enclosingClass!),
+  );
 
   if (asyncMarker == AsyncMarker.SyncStar) {
     return SyncStarProcedureCodeGenerator(
@@ -3504,7 +3560,9 @@ CodeGenerator getMemberCodeGenerator(
 CodeGenerator getLambdaCodeGenerator(Translator translator, Lambda lambda) {
   final enclosingMember = lambda.enclosingMember;
   final enclosingClass = enclosingMember.enclosingClass;
-  if (enclosingClass != null && !translator.isAllocatable(enclosingClass)) {
+  if (enclosingClass != null &&
+      !translator.isAllocatable(enclosingClass) &&
+      (enclosingMember.isInstanceMember || lambda.isInConstructorBody)) {
     return UnreachableCodeGenerator(
       translator,
       lambda.callTarget.signature,
@@ -3535,7 +3593,9 @@ CodeGenerator? getInlinableMemberCodeGenerator(
   final Member member = reference.asMember;
 
   final Class? memberClass = member.enclosingClass;
-  if (memberClass != null && !translator.isAllocatable(memberClass)) {
+  if (memberClass != null &&
+      !translator.isAllocatable(memberClass) &&
+      (member.isInstanceMember || reference.isConstructorBodyReference)) {
     return UnreachableCodeGenerator(translator, functionType, member);
   }
 
@@ -3578,23 +3638,31 @@ CodeGenerator? getInlinableMemberCodeGenerator(
       );
     }
     final useUncheckedEntry = reference.isUncheckedEntryReference;
-    return ImplicitFieldAccessorCodeGenerator(
+    final codeGenerator = ImplicitFieldAccessorCodeGenerator(
       translator,
       functionType,
       member,
       reference.isImplicitGetter,
       useUncheckedEntry,
     );
+    if (mayUseCfgToCompileMember(translator, member)) {
+      return CfgMemberCodeGenerator(codeGenerator, reference);
+    }
+    return codeGenerator;
   }
 
   if (member is Procedure && asyncMarker == AsyncMarker.Sync) {
-    return SynchronousProcedureCodeGenerator(
+    final codeGenerator = SynchronousProcedureCodeGenerator(
       translator,
       functionType,
       member,
       reference,
       reference.entryKind,
     );
+    if (mayUseCfgToCompileMember(translator, member)) {
+      return CfgMemberCodeGenerator(codeGenerator, reference);
+    }
+    return codeGenerator;
   }
 
   assert(
@@ -3957,7 +4025,11 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
         // selector) and therefore may have more parameters than the actual
         // target needs (the others are ignored in the callee).
         final value = (defaultFunctionValue ?? defaultValue)!;
-        instantiateConstantBackendUse(value, targetParamType);
+        instantiateConstantBackendUse(
+          value,
+          targetParamType,
+          dummyValueIfIncompatible: true,
+        );
       }
     }
 
@@ -3999,7 +4071,11 @@ class DynamicForwarderCodeGenerator extends AstCodeGenerator {
         // selector) and therefore may have more parameters than the actual
         // target needs (the others are ignored in the callee).
         final value = (defaultFunctionValue ?? defaultValue)!;
-        instantiateConstantBackendUse(value, targetParamType);
+        instantiateConstantBackendUse(
+          value,
+          targetParamType,
+          dummyValueIfIncompatible: true,
+        );
       }
     }
 
@@ -4680,6 +4756,11 @@ class ConstructorAllocatorCodeGenerator extends ConstructorCodeGeneratorBase {
         b.local_get(local);
       }
       call(member.initializerReference);
+      if (!translator.isAllocatable(info.cls!)) {
+        b.unreachable();
+        b.end();
+        return;
+      }
       b.struct_new(info.struct);
     } else {
       b.comment('Calling $member initializer function');
@@ -4687,6 +4768,11 @@ class ConstructorAllocatorCodeGenerator extends ConstructorCodeGeneratorBase {
         b.local_get(local);
       }
       call(member.initializerReference);
+      if (!translator.isAllocatable(info.cls!)) {
+        b.unreachable();
+        b.end();
+        return;
+      }
 
       b.comment('Pop all field values to locals');
       final fieldValuesReversed = <w.Local>[];
@@ -5154,14 +5240,23 @@ class BrTableInfo {
   // Below this point we always accept the potential code size hit.
   static const int _maxSparseSize = 50;
 
-  int get rangeSize => _rangeSize(minValue, maxValue);
   final int minValue;
   final int maxValue;
   final void Function(w.Local switchExprLocal) _brTableExpr;
   final Map<int, SwitchCase> caseMap;
 
-  BrTableInfo._(this.minValue, this.maxValue, this.caseMap, this._brTableExpr)
-    : assert(!_isTooSparse(minValue, maxValue, caseMap));
+  /// Whether the switch value can be outside of the i32 range after being
+  /// normalized on 0, so it must be checked against the table range before
+  /// being wrapped to i32.
+  final bool needsRangeCheck;
+
+  BrTableInfo._(
+    this.minValue,
+    this.maxValue,
+    this.caseMap,
+    this._brTableExpr,
+    this.needsRangeCheck,
+  ) : assert(_canUseBrTable(minValue, maxValue, caseMap));
 
   /// Heuristically validate whether the provided table would be too sparse and
   /// if so return null. Otherwise return the expected table.
@@ -5170,29 +5265,60 @@ class BrTableInfo {
     void Function(w.Local switchExprLocal) brTableExpr, {
     required int minValue,
     required int maxValue,
+    required bool needsRangeCheck,
   }) {
     // Validate the table density and size is worth putting into a br_table.
-    if (_isTooSparse(minValue, maxValue, caseMap)) return null;
+    if (!_canUseBrTable(minValue, maxValue, caseMap)) return null;
 
-    return BrTableInfo._(minValue, maxValue, caseMap, brTableExpr);
+    return BrTableInfo._(
+      minValue,
+      maxValue,
+      caseMap,
+      brTableExpr,
+      needsRangeCheck,
+    );
   }
 
-  static bool _isTooSparse(int min, int max, Map<int, SwitchCase> caseMap) {
-    int rangeSize = _rangeSize(min, max);
-    return (caseMap.length / rangeSize) < _minimumTableOccupancy &&
-        rangeSize > _maxSparseSize;
+  static bool _canUseBrTable(int min, int max, Map<int, SwitchCase> caseMap) {
+    assert(min <= max);
+    final rangeSize = _rangeSize(min, max);
+    if (rangeSize <= 0) {
+      // The range size (which is positive) exceeds what signed int64 can
+      // represent.
+      return false;
+    }
+    return (caseMap.length / rangeSize) >= _minimumTableOccupancy ||
+        rangeSize <= _maxSparseSize;
   }
 
+  /// Returns the size of the range given the provided max and min values. This
+  /// may be negative if the difference does not fit in an int64.
   static int _rangeSize(int min, int max) => max - min + 1;
 
-  void emitBrTableExpr(w.InstructionsBuilder b, w.Local switchExprLocal) {
+  void emitBrTableExpr(
+    w.InstructionsBuilder b,
+    w.Local switchExprLocal,
+    w.Label defaultLabel,
+  ) {
     _brTableExpr(switchExprLocal);
     // Normalize on 0.
     if (minValue != 0) {
       b.i64_const(minValue);
       b.i64_sub();
     }
-    // Now that we've normalized on 0 it should be safe to switch to i32.
+    if (needsRangeCheck) {
+      // Branch to the default case if the index is outside of the table. The
+      // unsigned comparison also catches values below `minValue`. This must be
+      // done on the full 64-bit index, as wrapping to i32 could map an
+      // out-of-range value into the table.
+      final indexLocal = b.addLocal(w.NumType.i64);
+      b.local_tee(indexLocal);
+      b.i64_const(_rangeSize(minValue, maxValue));
+      b.i64_ge_u();
+      b.br_if(defaultLabel);
+      b.local_get(indexLocal);
+    }
+    // Now that the index is known to fit in an i32 it is safe to switch to i32.
     b.i32_wrap_i64();
   }
 }
@@ -5415,6 +5541,7 @@ class SwitchInfo {
         brTable = BrTableInfo.build(
           minValue: minValue!,
           maxValue: maxValue,
+          needsRangeCheck: true,
           caseMap,
           (switchExprLocal) {
             codeGen.b.local_get(switchExprLocal);
@@ -5478,6 +5605,10 @@ class SwitchInfo {
         brTable = BrTableInfo.build(
           minValue: minIndex!,
           maxValue: maxIndex,
+          // Enum indices are small, so the normalized index always fits in
+          // an i32. Values below `minIndex` wrap to large unsigned i32 values
+          // that `br_table` sends to the default case.
+          needsRangeCheck: false,
           caseMap,
           (switchExprLocal) {
             codeGen.b.local_get(switchExprLocal);
@@ -6085,6 +6216,32 @@ extension MacroAssembler on w.InstructionsBuilder {
       translator.classInfoCollector.topInfo.struct,
       FieldIndex.classId,
     );
+  }
+
+  /// Load the class ID of the given possibly-nullable object.
+  ///
+  /// If the object is in fact null, then 0 is loaded, not the class ID of the
+  /// Null type. (Any constant will work as long as it's not used for any other
+  /// concrete class).
+  void loadClassIdNullable(Translator translator, w.ValueType receiverType) {
+    assert(receiverType.isSubtypeOf(translator.topType));
+
+    if (!receiverType.nullable) {
+      loadClassId(translator, translator.topTypeNonNullable);
+      return;
+    }
+
+    final done = block([translator.topType], const [w.NumType.i32]);
+    final notNull = block(
+      [translator.topType],
+      [translator.topTypeNonNullable],
+    );
+    br_on_non_null(notNull);
+    i32_const(0);
+    br(done);
+    end(); // notNull
+    loadClassId(translator, translator.topTypeNonNullable);
+    end(); // done
   }
 
   void fillTableRange(

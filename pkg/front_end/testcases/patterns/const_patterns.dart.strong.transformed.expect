@@ -314,109 +314,109 @@ class Class extends core::Object /*hasConstConstructor*/  {
     dynamic variable = 0;
     #L1:
     {
-      final synthesized dynamic #2#0 = o;
-      synthesized core::bool #2#2;
-      synthesized core::bool #2#2#isSet = false;
-      final const synthesized core::bool #2#1 = #C3;
-      synthesized core::bool #2#4;
-      synthesized core::bool #2#4#isSet = false;
-      final const synthesized has-declared-initializer Null #2#3 = #C1;
-      final const synthesized self::Class #2#5 = invalid-expression "Not a constant expression.";
-      final const synthesized dynamic #2#7 = invalid-expression "Not a constant expression.";
-      final const synthesized invalid-type #2#9 = invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:26:12: Error: Method invocation is not a constant expression.
+      final synthesized dynamic #0#0 = o;
+      synthesized core::bool #0#2;
+      synthesized core::bool #0#2#isSet = false;
+      final const synthesized core::bool #0#1 = #C3;
+      synthesized core::bool #0#4;
+      synthesized core::bool #0#4#isSet = false;
+      final const synthesized has-declared-initializer Null #0#3 = #C1;
+      final const synthesized self::Class #0#5 = invalid-expression "Not a constant expression.";
+      final const synthesized dynamic #0#7 = invalid-expression "Not a constant expression.";
+      final const synthesized invalid-type #0#9 = invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:26:12: Error: Method invocation is not a constant expression.
       case super(): // Error
            ^^^^";
-      synthesized core::bool #2#12;
-      synthesized core::bool #2#12#isSet = false;
-      final const synthesized core::int #2#11 = #C4;
-      synthesized core::bool #2#14;
-      synthesized core::bool #2#14#isSet = false;
-      final const synthesized core::int #2#13 = #C5;
-      final const synthesized core::double #2#15 = #C6;
-      final const synthesized core::double #2#17 = #C7;
-      synthesized core::bool #2#20;
-      synthesized core::bool #2#20#isSet = false;
-      final const synthesized core::String #2#19 = #C8;
-      final const synthesized core::String #2#21 = #C9;
-      synthesized core::bool #2#24;
-      synthesized core::bool #2#24#isSet = false;
-      synthesized core::bool #2#27;
-      synthesized core::bool #2#27#isSet = false;
-      synthesized core::bool #2#31;
-      synthesized core::bool #2#31#isSet = false;
-      final const synthesized dynamic #2#30 = #C2;
-      final const synthesized () → void #2#32 = #C10;
-      synthesized core::bool #2#35;
-      synthesized core::bool #2#35#isSet = false;
-      final const synthesized () → self::Class #2#34 = #C11;
-      synthesized core::bool #2#37;
-      synthesized core::bool #2#37#isSet = false;
-      final const synthesized core::int #2#36 = #C12;
-      final const synthesized core::int #2#38 = #C13;
-      final const synthesized invalid-type #2#40 = invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:53:12: Error: `assert` can't be used as an expression.
+      synthesized core::bool #0#12;
+      synthesized core::bool #0#12#isSet = false;
+      final const synthesized core::int #0#11 = #C4;
+      synthesized core::bool #0#14;
+      synthesized core::bool #0#14#isSet = false;
+      final const synthesized core::int #0#13 = #C5;
+      final const synthesized core::double #0#15 = #C6;
+      final const synthesized core::double #0#17 = #C7;
+      synthesized core::bool #0#20;
+      synthesized core::bool #0#20#isSet = false;
+      final const synthesized core::String #0#19 = #C8;
+      final const synthesized core::String #0#21 = #C9;
+      synthesized core::bool #0#24;
+      synthesized core::bool #0#24#isSet = false;
+      synthesized core::bool #0#27;
+      synthesized core::bool #0#27#isSet = false;
+      synthesized core::bool #0#31;
+      synthesized core::bool #0#31#isSet = false;
+      final const synthesized dynamic #0#30 = #C2;
+      final const synthesized () → void #0#32 = #C10;
+      synthesized core::bool #0#35;
+      synthesized core::bool #0#35#isSet = false;
+      final const synthesized () → self::Class #0#34 = #C11;
+      synthesized core::bool #0#37;
+      synthesized core::bool #0#37#isSet = false;
+      final const synthesized core::int #0#36 = #C12;
+      final const synthesized core::int #0#38 = #C13;
+      final const synthesized invalid-type #0#40 = invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:53:12: Error: `assert` can't be used as an expression.
       case assert(false): // Error
            ^^^^^^";
-      final const synthesized core::bool #2#42 = invalid-expression "Not a constant expression.";
-      final const synthesized core::int #2#44 = invalid-expression "Not a constant expression.";
-      synthesized core::bool #2#47;
-      synthesized core::bool #2#47#isSet = false;
-      final const synthesized core::int #2#46 = #C14;
-      final const synthesized invalid-type #2#48 = invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:58:14: Error: Not a constant expression.
+      final const synthesized core::bool #0#42 = invalid-expression "Not a constant expression.";
+      final const synthesized core::int #0#44 = invalid-expression "Not a constant expression.";
+      synthesized core::bool #0#47;
+      synthesized core::bool #0#47#isSet = false;
+      final const synthesized core::int #0#46 = #C14;
+      final const synthesized invalid-type #0#48 = invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:58:14: Error: Not a constant expression.
       case ++variable: // Error
              ^^^^^^^^";
-      final const synthesized core::double #2#50 = #C15;
-      final const synthesized core::Symbol #2#52 = #C16;
-      final const synthesized invalid-type #2#54 = invalid-expression "Not a constant expression.";
-      final const synthesized invalid-type #2#56 = invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:74:18: Error: `assert` can't be used as an expression.
+      final const synthesized core::double #0#50 = #C15;
+      final const synthesized core::Symbol #0#52 = #C16;
+      final const synthesized invalid-type #0#54 = invalid-expression "Not a constant expression.";
+      final const synthesized invalid-type #0#56 = invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:74:18: Error: `assert` can't be used as an expression.
       case const assert(false): // Error
                  ^^^^^^";
-      final const synthesized core::bool #2#58 = invalid-expression "Not a constant expression.";
-      final const synthesized core::int #2#60 = invalid-expression "Not a constant expression.";
-      final const synthesized invalid-type #2#62 = invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:79:20: Error: Not a constant expression.
+      final const synthesized core::bool #0#58 = invalid-expression "Not a constant expression.";
+      final const synthesized core::int #0#60 = invalid-expression "Not a constant expression.";
+      final const synthesized invalid-type #0#62 = invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:79:20: Error: Not a constant expression.
       case const ++variable: // Error
                    ^^^^^^^^";
-      synthesized core::bool #2#65;
-      synthesized core::bool #2#65#isSet = false;
-      final const synthesized self::Class #2#64 = #C17;
-      synthesized core::bool #2#67;
-      synthesized core::bool #2#67#isSet = false;
-      final const synthesized self::GenericClass<dynamic> #2#66 = #C18;
-      synthesized core::bool #2#69;
-      synthesized core::bool #2#69#isSet = false;
-      final const synthesized self::GenericClass<core::int> #2#68 = #C19;
-      synthesized core::bool #2#71;
-      synthesized core::bool #2#71#isSet = false;
-      final const synthesized core::List<dynamic> #2#70 = #C20;
-      synthesized core::bool #2#73;
-      synthesized core::bool #2#73#isSet = false;
-      final const synthesized core::List<core::int> #2#72 = #C21;
-      synthesized core::bool #2#75;
-      synthesized core::bool #2#75#isSet = false;
-      final const synthesized core::Map<dynamic, dynamic> #2#74 = #C22;
-      synthesized core::bool #2#77;
-      synthesized core::bool #2#77#isSet = false;
-      final const synthesized core::Map<core::int, core::String> #2#76 = #C23;
-      final const synthesized invalid-type #2#78 = invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:102:18: Error: New expression is not a constant expression.
+      synthesized core::bool #0#65;
+      synthesized core::bool #0#65#isSet = false;
+      final const synthesized self::Class #0#64 = #C17;
+      synthesized core::bool #0#67;
+      synthesized core::bool #0#67#isSet = false;
+      final const synthesized self::GenericClass<dynamic> #0#66 = #C18;
+      synthesized core::bool #0#69;
+      synthesized core::bool #0#69#isSet = false;
+      final const synthesized self::GenericClass<core::int> #0#68 = #C19;
+      synthesized core::bool #0#71;
+      synthesized core::bool #0#71#isSet = false;
+      final const synthesized core::List<dynamic> #0#70 = #C20;
+      synthesized core::bool #0#73;
+      synthesized core::bool #0#73#isSet = false;
+      final const synthesized core::List<core::int> #0#72 = #C21;
+      synthesized core::bool #0#75;
+      synthesized core::bool #0#75#isSet = false;
+      final const synthesized core::Map<dynamic, dynamic> #0#74 = #C22;
+      synthesized core::bool #0#77;
+      synthesized core::bool #0#77#isSet = false;
+      final const synthesized core::Map<core::int, core::String> #0#76 = #C23;
+      final const synthesized invalid-type #0#78 = invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:102:18: Error: New expression is not a constant expression.
       case const new Class(): // Error
                  ^^^";
-      final const synthesized invalid-type #2#80 = invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:103:12: Error: New expression is not a constant expression.
+      final const synthesized invalid-type #0#80 = invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:103:12: Error: New expression is not a constant expression.
       case new Class(): // Error
            ^^^";
-      synthesized core::bool #2#83;
-      synthesized core::bool #2#83#isSet = false;
-      final const synthesized() #2#82 = #C24;
-      final const synthesized core::int #2#84 = #C25;
-      synthesized core::bool #2#87;
-      synthesized core::bool #2#87#isSet = false;
-      final const synthesized core::Type #2#86 = #C26;
-      synthesized core::bool #2#89;
-      synthesized core::bool #2#89#isSet = false;
-      final const synthesized ({a: dynamic}) → self::GenericClass<core::int> #2#88 = #C28;
+      synthesized core::bool #0#83;
+      synthesized core::bool #0#83#isSet = false;
+      final const synthesized() #0#82 = #C24;
+      final const synthesized core::int #0#84 = #C25;
+      synthesized core::bool #0#87;
+      synthesized core::bool #0#87#isSet = false;
+      final const synthesized core::Type #0#86 = #C26;
+      synthesized core::bool #0#89;
+      synthesized core::bool #0#89#isSet = false;
+      final const synthesized ({a: dynamic}) → self::GenericClass<core::int> #0#88 = #C28;
       {
         hoisted void fun;
-        if((#2#2#isSet ?{core::bool} #2#2 : let final dynamic #t1 = #2#2#isSet = true in #2#2 = #C3 =={core::Object::==}{(core::Object) → core::bool} #2#0) || (#2#4#isSet ?{core::bool} #2#4 : let final dynamic #t2 = #2#4#isSet = true in #2#4 = #2#0 == null) || invalid-expression "Not a constant expression." =={core::Object::==}{(core::Object) → core::bool} #2#0 || invalid-expression "Not a constant expression." =={core::Object::==}{(core::Object) → core::bool} #2#0 || invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:26:12: Error: Method invocation is not a constant expression.
+        if((#0#2#isSet ?{core::bool} #0#2 : let final dynamic #t1 = #0#2#isSet = true in #0#2 = #C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#4#isSet ?{core::bool} #0#4 : let final dynamic #t2 = #0#4#isSet = true in #0#4 = #0#0 == null) || invalid-expression "Not a constant expression." =={core::Object::==}{(core::Object) → core::bool} #0#0 || invalid-expression "Not a constant expression." =={core::Object::==}{(core::Object) → core::bool} #0#0 || invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:26:12: Error: Method invocation is not a constant expression.
       case super(): // Error
-           ^^^^" =={core::Object::==}{(core::Object) → core::bool} #2#0 || (#2#12#isSet ?{core::bool} #2#12 : let final dynamic #t3 = #2#12#isSet = true in #2#12 = #C4 =={core::num::==}{(core::Object) → core::bool} #2#0) || (#2#14#isSet ?{core::bool} #2#14 : let final dynamic #t4 = #2#14#isSet = true in #2#14 = #C5 =={core::num::==}{(core::Object) → core::bool} #2#0) || #C6 =={core::num::==}{(core::Object) → core::bool} #2#0 || #C7 =={core::num::==}{(core::Object) → core::bool} #2#0 || (#2#20#isSet ?{core::bool} #2#20 : let final dynamic #t5 = #2#20#isSet = true in #2#20 = #C8 =={core::String::==}{(core::Object) → core::bool} #2#0) || #C9 =={core::String::==}{(core::Object) → core::bool} #2#0 || (#2#12#isSet ?{core::bool} #2#12 : let final dynamic #t6 = #2#12#isSet = true in #2#12 = #C4 =={core::num::==}{(core::Object) → core::bool} #2#0) || (let final dynamic #t7 = #2#0! in #2#24#isSet ?{core::bool} #2#24 : let final dynamic #t8 = #2#24#isSet = true in #2#24 = #C4 =={core::num::==}{(core::Object) → core::bool} #2#0!) || !(#2#0 == null) && (#2#12#isSet ?{core::bool} #2#12 : let final dynamic #t9 = #2#12#isSet = true in #2#12 = #C4 =={core::num::==}{(core::Object) → core::bool} #2#0) || (let final dynamic #t10 = #2#0! in !(#2#0! == null) && (#2#24#isSet ?{core::bool} #2#24 : let final dynamic #t11 = #2#24#isSet = true in #2#24 = #C4 =={core::num::==}{(core::Object) → core::bool} #2#0!)) || !(#2#0 == null) && (let final dynamic #t12 = #2#0! in #2#24#isSet ?{core::bool} #2#24 : let final dynamic #t13 = #2#24#isSet = true in #2#24 = #C4 =={core::num::==}{(core::Object) → core::bool} #2#0!) || (let final dynamic #t14 = #2#0! in #2#27#isSet ?{core::bool} #2#27 : let final dynamic #t15 = #2#27#isSet = true in #2#27 = #C5 =={core::num::==}{(core::Object) → core::bool} #2#0!) || !(#2#0 == null) && (#2#14#isSet ?{core::bool} #2#14 : let final dynamic #t16 = #2#14#isSet = true in #2#14 = #C5 =={core::num::==}{(core::Object) → core::bool} #2#0) || !(#2#0 == null) && (let final dynamic #t17 = #2#0! in #2#27#isSet ?{core::bool} #2#27 : let final dynamic #t18 = #2#27#isSet = true in #2#27 = #C5 =={core::num::==}{(core::Object) → core::bool} #2#0!) || (let final dynamic #t19 = #2#0! in !(#2#0! == null) && (#2#27#isSet ?{core::bool} #2#27 : let final dynamic #t20 = #2#27#isSet = true in #2#27 = #C5 =={core::num::==}{(core::Object) → core::bool} #2#0!)) || (let final dynamic #t21 = #2#0 as core::int in #C4 =={core::num::==}{(core::Object) → core::bool} #2#0 as core::int) || (#2#14#isSet ?{core::bool} #2#14 : let final dynamic #t22 = #2#14#isSet = true in #2#14 = #C5 =={core::num::==}{(core::Object) → core::bool} #2#0) || (#2#31#isSet ?{core::bool} #2#31 : let final dynamic #t23 = #2#31#isSet = true in #2#31 = #C2 =={core::Object::==}{(core::Object) → core::bool} #2#0) || (#2#31#isSet ?{core::bool} #2#31 : let final dynamic #t24 = #2#31#isSet = true in #2#31 = #C2 =={core::Object::==}{(core::Object) → core::bool} #2#0) || #C10 =={core::Object::==}{(core::Object) → core::bool} #2#0 || (#2#12#isSet ?{core::bool} #2#12 : let final dynamic #t25 = #2#12#isSet = true in #2#12 = #C4 =={core::num::==}{(core::Object) → core::bool} #2#0) || (#2#14#isSet ?{core::bool} #2#14 : let final dynamic #t26 = #2#14#isSet = true in #2#14 = #C5 =={core::num::==}{(core::Object) → core::bool} #2#0) || (#2#35#isSet ?{core::bool} #2#35 : let final dynamic #t27 = #2#35#isSet = true in #2#35 = #C11 =={core::Object::==}{(core::Object) → core::bool} #2#0) || (#2#37#isSet ?{core::bool} #2#37 : let final dynamic #t28 = #2#37#isSet = true in #2#37 = #C12 =={core::num::==}{(core::Object) → core::bool} #2#0) || #C13 =={core::num::==}{(core::Object) → core::bool} #2#0 || #2#0{core::int} is void && (let final dynamic #t29 = fun = #2#0{core::int} in true)) {
+           ^^^^" =={core::Object::==}{(core::Object) → core::bool} #0#0 || (#0#12#isSet ?{core::bool} #0#12 : let final dynamic #t3 = #0#12#isSet = true in #0#12 = #C4 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#14#isSet ?{core::bool} #0#14 : let final dynamic #t4 = #0#14#isSet = true in #0#14 = #C5 =={core::num::==}{(core::Object) → core::bool} #0#0) || #C6 =={core::num::==}{(core::Object) → core::bool} #0#0 || #C7 =={core::num::==}{(core::Object) → core::bool} #0#0 || (#0#20#isSet ?{core::bool} #0#20 : let final dynamic #t5 = #0#20#isSet = true in #0#20 = #C8 =={core::String::==}{(core::Object) → core::bool} #0#0) || #C9 =={core::String::==}{(core::Object) → core::bool} #0#0 || (#0#12#isSet ?{core::bool} #0#12 : let final dynamic #t6 = #0#12#isSet = true in #0#12 = #C4 =={core::num::==}{(core::Object) → core::bool} #0#0) || (let final dynamic #t7 = #0#0! in #0#24#isSet ?{core::bool} #0#24 : let final dynamic #t8 = #0#24#isSet = true in #0#24 = #C4 =={core::num::==}{(core::Object) → core::bool} #0#0!) || !(#0#0 == null) && (#0#12#isSet ?{core::bool} #0#12 : let final dynamic #t9 = #0#12#isSet = true in #0#12 = #C4 =={core::num::==}{(core::Object) → core::bool} #0#0) || (let final dynamic #t10 = #0#0! in !(#0#0! == null) && (#0#24#isSet ?{core::bool} #0#24 : let final dynamic #t11 = #0#24#isSet = true in #0#24 = #C4 =={core::num::==}{(core::Object) → core::bool} #0#0!)) || !(#0#0 == null) && (let final dynamic #t12 = #0#0! in #0#24#isSet ?{core::bool} #0#24 : let final dynamic #t13 = #0#24#isSet = true in #0#24 = #C4 =={core::num::==}{(core::Object) → core::bool} #0#0!) || (let final dynamic #t14 = #0#0! in #0#27#isSet ?{core::bool} #0#27 : let final dynamic #t15 = #0#27#isSet = true in #0#27 = #C5 =={core::num::==}{(core::Object) → core::bool} #0#0!) || !(#0#0 == null) && (#0#14#isSet ?{core::bool} #0#14 : let final dynamic #t16 = #0#14#isSet = true in #0#14 = #C5 =={core::num::==}{(core::Object) → core::bool} #0#0) || !(#0#0 == null) && (let final dynamic #t17 = #0#0! in #0#27#isSet ?{core::bool} #0#27 : let final dynamic #t18 = #0#27#isSet = true in #0#27 = #C5 =={core::num::==}{(core::Object) → core::bool} #0#0!) || (let final dynamic #t19 = #0#0! in !(#0#0! == null) && (#0#27#isSet ?{core::bool} #0#27 : let final dynamic #t20 = #0#27#isSet = true in #0#27 = #C5 =={core::num::==}{(core::Object) → core::bool} #0#0!)) || (let final dynamic #t21 = #0#0 as core::int in #C4 =={core::num::==}{(core::Object) → core::bool} #0#0 as core::int) || (#0#14#isSet ?{core::bool} #0#14 : let final dynamic #t22 = #0#14#isSet = true in #0#14 = #C5 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#31#isSet ?{core::bool} #0#31 : let final dynamic #t23 = #0#31#isSet = true in #0#31 = #C2 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#31#isSet ?{core::bool} #0#31 : let final dynamic #t24 = #0#31#isSet = true in #0#31 = #C2 =={core::Object::==}{(core::Object) → core::bool} #0#0) || #C10 =={core::Object::==}{(core::Object) → core::bool} #0#0 || (#0#12#isSet ?{core::bool} #0#12 : let final dynamic #t25 = #0#12#isSet = true in #0#12 = #C4 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#14#isSet ?{core::bool} #0#14 : let final dynamic #t26 = #0#14#isSet = true in #0#14 = #C5 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#35#isSet ?{core::bool} #0#35 : let final dynamic #t27 = #0#35#isSet = true in #0#35 = #C11 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#37#isSet ?{core::bool} #0#37 : let final dynamic #t28 = #0#37#isSet = true in #0#37 = #C12 =={core::num::==}{(core::Object) → core::bool} #0#0) || #C13 =={core::num::==}{(core::Object) → core::bool} #0#0 || #0#0{core::int} is void && (let final dynamic #t29 = fun = #0#0{core::int} in true)) {
           {
             () → Null {};
             invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:52:25: Error: This couldn't be parsed.
@@ -429,17 +429,17 @@ class Class extends core::Object /*hasConstConstructor*/  {
       {
         if(invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:53:12: Error: `assert` can't be used as an expression.
       case assert(false): // Error
-           ^^^^^^" =={core::Object::==}{(core::Object) → core::bool} #2#0 || invalid-expression "Not a constant expression." =={core::Object::==}{(core::Object) → core::bool} #2#0 || invalid-expression "Not a constant expression." =={core::num::==}{(core::Object) → core::bool} #2#0 || (#2#2#isSet ?{core::bool} #2#2 : let final dynamic #t30 = #2#2#isSet = true in #2#2 = #C3 =={core::Object::==}{(core::Object) → core::bool} #2#0) || (#2#47#isSet ?{core::bool} #2#47 : let final dynamic #t31 = #2#47#isSet = true in #2#47 = #C14 =={core::num::==}{(core::Object) → core::bool} #2#0) || invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:58:14: Error: Not a constant expression.
+           ^^^^^^" =={core::Object::==}{(core::Object) → core::bool} #0#0 || invalid-expression "Not a constant expression." =={core::Object::==}{(core::Object) → core::bool} #0#0 || invalid-expression "Not a constant expression." =={core::num::==}{(core::Object) → core::bool} #0#0 || (#0#2#isSet ?{core::bool} #0#2 : let final dynamic #t30 = #0#2#isSet = true in #0#2 = #C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#47#isSet ?{core::bool} #0#47 : let final dynamic #t31 = #0#47#isSet = true in #0#47 = #C14 =={core::num::==}{(core::Object) → core::bool} #0#0) || invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:58:14: Error: Not a constant expression.
       case ++variable: // Error
-             ^^^^^^^^" =={core::Object::==}{(core::Object) → core::bool} #2#0 || (#2#31#isSet ?{core::bool} #2#31 : let final dynamic #t32 = #2#31#isSet = true in #2#31 = #C2 =={core::Object::==}{(core::Object) → core::bool} #2#0) || (#2#31#isSet ?{core::bool} #2#31 : let final dynamic #t33 = #2#31#isSet = true in #2#31 = #C2 =={core::Object::==}{(core::Object) → core::bool} #2#0) || #C15 =={core::num::==}{(core::Object) → core::bool} #2#0 || (#2#2#isSet ?{core::bool} #2#2 : let final dynamic #t34 = #2#2#isSet = true in #2#2 = #C3 =={core::Object::==}{(core::Object) → core::bool} #2#0) || (#2#4#isSet ?{core::bool} #2#4 : let final dynamic #t35 = #2#4#isSet = true in #2#4 = #2#0 == null) || (#2#31#isSet ?{core::bool} #2#31 : let final dynamic #t36 = #2#31#isSet = true in #2#31 = #C2 =={core::Object::==}{(core::Object) → core::bool} #2#0) || (#2#20#isSet ?{core::bool} #2#20 : let final dynamic #t37 = #2#20#isSet = true in #2#20 = #C8 =={core::String::==}{(core::Object) → core::bool} #2#0) || #C16 =={core::Symbol::==}{(core::Object) → core::bool} #2#0 || (#2#12#isSet ?{core::bool} #2#12 : let final dynamic #t38 = #2#12#isSet = true in #2#12 = #C4 =={core::num::==}{(core::Object) → core::bool} #2#0) || (#2#31#isSet ?{core::bool} #2#31 : let final dynamic #t39 = #2#31#isSet = true in #2#31 = #C2 =={core::Object::==}{(core::Object) → core::bool} #2#0) || (#2#12#isSet ?{core::bool} #2#12 : let final dynamic #t40 = #2#12#isSet = true in #2#12 = #C4 =={core::num::==}{(core::Object) → core::bool} #2#0) || (#2#14#isSet ?{core::bool} #2#14 : let final dynamic #t41 = #2#14#isSet = true in #2#14 = #C5 =={core::num::==}{(core::Object) → core::bool} #2#0) || (#2#35#isSet ?{core::bool} #2#35 : let final dynamic #t42 = #2#35#isSet = true in #2#35 = #C11 =={core::Object::==}{(core::Object) → core::bool} #2#0) || (#2#37#isSet ?{core::bool} #2#37 : let final dynamic #t43 = #2#37#isSet = true in #2#37 = #C12 =={core::num::==}{(core::Object) → core::bool} #2#0) || invalid-expression "Not a constant expression." =={core::Object::==}{(core::Object) → core::bool} #2#0 || invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:74:18: Error: `assert` can't be used as an expression.
+             ^^^^^^^^" =={core::Object::==}{(core::Object) → core::bool} #0#0 || (#0#31#isSet ?{core::bool} #0#31 : let final dynamic #t32 = #0#31#isSet = true in #0#31 = #C2 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#31#isSet ?{core::bool} #0#31 : let final dynamic #t33 = #0#31#isSet = true in #0#31 = #C2 =={core::Object::==}{(core::Object) → core::bool} #0#0) || #C15 =={core::num::==}{(core::Object) → core::bool} #0#0 || (#0#2#isSet ?{core::bool} #0#2 : let final dynamic #t34 = #0#2#isSet = true in #0#2 = #C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#4#isSet ?{core::bool} #0#4 : let final dynamic #t35 = #0#4#isSet = true in #0#4 = #0#0 == null) || (#0#31#isSet ?{core::bool} #0#31 : let final dynamic #t36 = #0#31#isSet = true in #0#31 = #C2 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#20#isSet ?{core::bool} #0#20 : let final dynamic #t37 = #0#20#isSet = true in #0#20 = #C8 =={core::String::==}{(core::Object) → core::bool} #0#0) || #C16 =={core::Symbol::==}{(core::Object) → core::bool} #0#0 || (#0#12#isSet ?{core::bool} #0#12 : let final dynamic #t38 = #0#12#isSet = true in #0#12 = #C4 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#31#isSet ?{core::bool} #0#31 : let final dynamic #t39 = #0#31#isSet = true in #0#31 = #C2 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#12#isSet ?{core::bool} #0#12 : let final dynamic #t40 = #0#12#isSet = true in #0#12 = #C4 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#14#isSet ?{core::bool} #0#14 : let final dynamic #t41 = #0#14#isSet = true in #0#14 = #C5 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#35#isSet ?{core::bool} #0#35 : let final dynamic #t42 = #0#35#isSet = true in #0#35 = #C11 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#37#isSet ?{core::bool} #0#37 : let final dynamic #t43 = #0#37#isSet = true in #0#37 = #C12 =={core::num::==}{(core::Object) → core::bool} #0#0) || invalid-expression "Not a constant expression." =={core::Object::==}{(core::Object) → core::bool} #0#0 || invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:74:18: Error: `assert` can't be used as an expression.
       case const assert(false): // Error
-                 ^^^^^^" =={core::Object::==}{(core::Object) → core::bool} #2#0 || invalid-expression "Not a constant expression." =={core::Object::==}{(core::Object) → core::bool} #2#0 || invalid-expression "Not a constant expression." =={core::num::==}{(core::Object) → core::bool} #2#0 || (#2#2#isSet ?{core::bool} #2#2 : let final dynamic #t44 = #2#2#isSet = true in #2#2 = #C3 =={core::Object::==}{(core::Object) → core::bool} #2#0) || (#2#47#isSet ?{core::bool} #2#47 : let final dynamic #t45 = #2#47#isSet = true in #2#47 = #C14 =={core::num::==}{(core::Object) → core::bool} #2#0) || invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:79:20: Error: Not a constant expression.
+                 ^^^^^^" =={core::Object::==}{(core::Object) → core::bool} #0#0 || invalid-expression "Not a constant expression." =={core::Object::==}{(core::Object) → core::bool} #0#0 || invalid-expression "Not a constant expression." =={core::num::==}{(core::Object) → core::bool} #0#0 || (#0#2#isSet ?{core::bool} #0#2 : let final dynamic #t44 = #0#2#isSet = true in #0#2 = #C3 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#47#isSet ?{core::bool} #0#47 : let final dynamic #t45 = #0#47#isSet = true in #0#47 = #C14 =={core::num::==}{(core::Object) → core::bool} #0#0) || invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:79:20: Error: Not a constant expression.
       case const ++variable: // Error
-                   ^^^^^^^^" =={core::Object::==}{(core::Object) → core::bool} #2#0 || (#2#65#isSet ?{core::bool} #2#65 : let final dynamic #t46 = #2#65#isSet = true in #2#65 = #C17 =={core::Object::==}{(core::Object) → core::bool} #2#0) || (#2#65#isSet ?{core::bool} #2#65 : let final dynamic #t47 = #2#65#isSet = true in #2#65 = #C17 =={core::Object::==}{(core::Object) → core::bool} #2#0) || (#2#67#isSet ?{core::bool} #2#67 : let final dynamic #t48 = #2#67#isSet = true in #2#67 = #C18 =={core::Object::==}{(core::Object) → core::bool} #2#0) || (#2#67#isSet ?{core::bool} #2#67 : let final dynamic #t49 = #2#67#isSet = true in #2#67 = #C18 =={core::Object::==}{(core::Object) → core::bool} #2#0) || (#2#69#isSet ?{core::bool} #2#69 : let final dynamic #t50 = #2#69#isSet = true in #2#69 = #C19 =={core::Object::==}{(core::Object) → core::bool} #2#0) || (#2#69#isSet ?{core::bool} #2#69 : let final dynamic #t51 = #2#69#isSet = true in #2#69 = #C19 =={core::Object::==}{(core::Object) → core::bool} #2#0) || (#2#69#isSet ?{core::bool} #2#69 : let final dynamic #t52 = #2#69#isSet = true in #2#69 = #C19 =={core::Object::==}{(core::Object) → core::bool} #2#0) || (#2#69#isSet ?{core::bool} #2#69 : let final dynamic #t53 = #2#69#isSet = true in #2#69 = #C19 =={core::Object::==}{(core::Object) → core::bool} #2#0) || (#2#71#isSet ?{core::bool} #2#71 : let final dynamic #t54 = #2#71#isSet = true in #2#71 = #C20 =={core::List::==}{(core::Object) → core::bool} #2#0) || (#2#73#isSet ?{core::bool} #2#73 : let final dynamic #t55 = #2#73#isSet = true in #2#73 = #C21 =={core::List::==}{(core::Object) → core::bool} #2#0) || (#2#75#isSet ?{core::bool} #2#75 : let final dynamic #t56 = #2#75#isSet = true in #2#75 = #C22 =={core::Object::==}{(core::Object) → core::bool} #2#0) || (#2#77#isSet ?{core::bool} #2#77 : let final dynamic #t57 = #2#77#isSet = true in #2#77 = #C23 =={core::Object::==}{(core::Object) → core::bool} #2#0) || (#2#65#isSet ?{core::bool} #2#65 : let final dynamic #t58 = #2#65#isSet = true in #2#65 = #C17 =={core::Object::==}{(core::Object) → core::bool} #2#0) || (#2#65#isSet ?{core::bool} #2#65 : let final dynamic #t59 = #2#65#isSet = true in #2#65 = #C17 =={core::Object::==}{(core::Object) → core::bool} #2#0) || (#2#67#isSet ?{core::bool} #2#67 : let final dynamic #t60 = #2#67#isSet = true in #2#67 = #C18 =={core::Object::==}{(core::Object) → core::bool} #2#0) || (#2#67#isSet ?{core::bool} #2#67 : let final dynamic #t61 = #2#67#isSet = true in #2#67 = #C18 =={core::Object::==}{(core::Object) → core::bool} #2#0) || (#2#69#isSet ?{core::bool} #2#69 : let final dynamic #t62 = #2#69#isSet = true in #2#69 = #C19 =={core::Object::==}{(core::Object) → core::bool} #2#0) || (#2#69#isSet ?{core::bool} #2#69 : let final dynamic #t63 = #2#69#isSet = true in #2#69 = #C19 =={core::Object::==}{(core::Object) → core::bool} #2#0) || (#2#71#isSet ?{core::bool} #2#71 : let final dynamic #t64 = #2#71#isSet = true in #2#71 = #C20 =={core::List::==}{(core::Object) → core::bool} #2#0) || (#2#73#isSet ?{core::bool} #2#73 : let final dynamic #t65 = #2#73#isSet = true in #2#73 = #C21 =={core::List::==}{(core::Object) → core::bool} #2#0) || (#2#75#isSet ?{core::bool} #2#75 : let final dynamic #t66 = #2#75#isSet = true in #2#75 = #C22 =={core::Object::==}{(core::Object) → core::bool} #2#0) || (#2#77#isSet ?{core::bool} #2#77 : let final dynamic #t67 = #2#77#isSet = true in #2#77 = #C23 =={core::Object::==}{(core::Object) → core::bool} #2#0) || invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:102:18: Error: New expression is not a constant expression.
+                   ^^^^^^^^" =={core::Object::==}{(core::Object) → core::bool} #0#0 || (#0#65#isSet ?{core::bool} #0#65 : let final dynamic #t46 = #0#65#isSet = true in #0#65 = #C17 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#65#isSet ?{core::bool} #0#65 : let final dynamic #t47 = #0#65#isSet = true in #0#65 = #C17 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#67#isSet ?{core::bool} #0#67 : let final dynamic #t48 = #0#67#isSet = true in #0#67 = #C18 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#67#isSet ?{core::bool} #0#67 : let final dynamic #t49 = #0#67#isSet = true in #0#67 = #C18 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#69#isSet ?{core::bool} #0#69 : let final dynamic #t50 = #0#69#isSet = true in #0#69 = #C19 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#69#isSet ?{core::bool} #0#69 : let final dynamic #t51 = #0#69#isSet = true in #0#69 = #C19 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#69#isSet ?{core::bool} #0#69 : let final dynamic #t52 = #0#69#isSet = true in #0#69 = #C19 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#69#isSet ?{core::bool} #0#69 : let final dynamic #t53 = #0#69#isSet = true in #0#69 = #C19 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#71#isSet ?{core::bool} #0#71 : let final dynamic #t54 = #0#71#isSet = true in #0#71 = #C20 =={core::List::==}{(core::Object) → core::bool} #0#0) || (#0#73#isSet ?{core::bool} #0#73 : let final dynamic #t55 = #0#73#isSet = true in #0#73 = #C21 =={core::List::==}{(core::Object) → core::bool} #0#0) || (#0#75#isSet ?{core::bool} #0#75 : let final dynamic #t56 = #0#75#isSet = true in #0#75 = #C22 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#77#isSet ?{core::bool} #0#77 : let final dynamic #t57 = #0#77#isSet = true in #0#77 = #C23 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#65#isSet ?{core::bool} #0#65 : let final dynamic #t58 = #0#65#isSet = true in #0#65 = #C17 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#65#isSet ?{core::bool} #0#65 : let final dynamic #t59 = #0#65#isSet = true in #0#65 = #C17 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#67#isSet ?{core::bool} #0#67 : let final dynamic #t60 = #0#67#isSet = true in #0#67 = #C18 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#67#isSet ?{core::bool} #0#67 : let final dynamic #t61 = #0#67#isSet = true in #0#67 = #C18 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#69#isSet ?{core::bool} #0#69 : let final dynamic #t62 = #0#69#isSet = true in #0#69 = #C19 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#69#isSet ?{core::bool} #0#69 : let final dynamic #t63 = #0#69#isSet = true in #0#69 = #C19 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#71#isSet ?{core::bool} #0#71 : let final dynamic #t64 = #0#71#isSet = true in #0#71 = #C20 =={core::List::==}{(core::Object) → core::bool} #0#0) || (#0#73#isSet ?{core::bool} #0#73 : let final dynamic #t65 = #0#73#isSet = true in #0#73 = #C21 =={core::List::==}{(core::Object) → core::bool} #0#0) || (#0#75#isSet ?{core::bool} #0#75 : let final dynamic #t66 = #0#75#isSet = true in #0#75 = #C22 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#77#isSet ?{core::bool} #0#77 : let final dynamic #t67 = #0#77#isSet = true in #0#77 = #C23 =={core::Object::==}{(core::Object) → core::bool} #0#0) || invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:102:18: Error: New expression is not a constant expression.
       case const new Class(): // Error
-                 ^^^" =={core::Object::==}{(core::Object) → core::bool} #2#0 || invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:103:12: Error: New expression is not a constant expression.
+                 ^^^" =={core::Object::==}{(core::Object) → core::bool} #0#0 || invalid-expression "pkg/front_end/testcases/patterns/const_patterns.dart:103:12: Error: New expression is not a constant expression.
       case new Class(): // Error
-           ^^^" =={core::Object::==}{(core::Object) → core::bool} #2#0 || (#2#83#isSet ?{core::bool} #2#83 : let final dynamic #t68 = #2#83#isSet = true in #2#83 = #C24 =={core::Object::==}{(core::Object) → core::bool} #2#0) || (#2#83#isSet ?{core::bool} #2#83 : let final dynamic #t69 = #2#83#isSet = true in #2#83 = #C24 =={core::Object::==}{(core::Object) → core::bool} #2#0) || #C25 =={core::num::==}{(core::Object) → core::bool} #2#0 || (#2#47#isSet ?{core::bool} #2#47 : let final dynamic #t70 = #2#47#isSet = true in #2#47 = #C14 =={core::num::==}{(core::Object) → core::bool} #2#0) || (#2#12#isSet ?{core::bool} #2#12 : let final dynamic #t71 = #2#12#isSet = true in #2#12 = #C4 =={core::num::==}{(core::Object) → core::bool} #2#0) || (#2#14#isSet ?{core::bool} #2#14 : let final dynamic #t72 = #2#14#isSet = true in #2#14 = #C5 =={core::num::==}{(core::Object) → core::bool} #2#0) || (#2#37#isSet ?{core::bool} #2#37 : let final dynamic #t73 = #2#37#isSet = true in #2#37 = #C12 =={core::num::==}{(core::Object) → core::bool} #2#0) || (#2#87#isSet ?{core::bool} #2#87 : let final dynamic #t74 = #2#87#isSet = true in #2#87 = #C26 =={core::Type::==}{(core::Object) → core::bool} #2#0) || (#2#87#isSet ?{core::bool} #2#87 : let final dynamic #t75 = #2#87#isSet = true in #2#87 = #C26 =={core::Type::==}{(core::Object) → core::bool} #2#0) || (#2#89#isSet ?{core::bool} #2#89 : let final dynamic #t76 = #2#89#isSet = true in #2#89 = #C28 =={core::Object::==}{(core::Object) → core::bool} #2#0) || (#2#89#isSet ?{core::bool} #2#89 : let final dynamic #t77 = #2#89#isSet = true in #2#89 = #C28 =={core::Object::==}{(core::Object) → core::bool} #2#0) || (#2#87#isSet ?{core::bool} #2#87 : let final dynamic #t78 = #2#87#isSet = true in #2#87 = #C26 =={core::Type::==}{(core::Object) → core::bool} #2#0) || (#2#87#isSet ?{core::bool} #2#87 : let final dynamic #t79 = #2#87#isSet = true in #2#87 = #C26 =={core::Type::==}{(core::Object) → core::bool} #2#0) || (#2#87#isSet ?{core::bool} #2#87 : let final dynamic #t80 = #2#87#isSet = true in #2#87 = #C26 =={core::Type::==}{(core::Object) → core::bool} #2#0) || (#2#87#isSet ?{core::bool} #2#87 : let final dynamic #t81 = #2#87#isSet = true in #2#87 = #C26 =={core::Type::==}{(core::Object) → core::bool} #2#0) || (#2#89#isSet ?{core::bool} #2#89 : let final dynamic #t82 = #2#89#isSet = true in #2#89 = #C28 =={core::Object::==}{(core::Object) → core::bool} #2#0) || (#2#89#isSet ?{core::bool} #2#89 : let final dynamic #t83 = #2#89#isSet = true in #2#89 = #C28 =={core::Object::==}{(core::Object) → core::bool} #2#0)) {
+           ^^^" =={core::Object::==}{(core::Object) → core::bool} #0#0 || (#0#83#isSet ?{core::bool} #0#83 : let final dynamic #t68 = #0#83#isSet = true in #0#83 = #C24 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#83#isSet ?{core::bool} #0#83 : let final dynamic #t69 = #0#83#isSet = true in #0#83 = #C24 =={core::Object::==}{(core::Object) → core::bool} #0#0) || #C25 =={core::num::==}{(core::Object) → core::bool} #0#0 || (#0#47#isSet ?{core::bool} #0#47 : let final dynamic #t70 = #0#47#isSet = true in #0#47 = #C14 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#12#isSet ?{core::bool} #0#12 : let final dynamic #t71 = #0#12#isSet = true in #0#12 = #C4 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#14#isSet ?{core::bool} #0#14 : let final dynamic #t72 = #0#14#isSet = true in #0#14 = #C5 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#37#isSet ?{core::bool} #0#37 : let final dynamic #t73 = #0#37#isSet = true in #0#37 = #C12 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#87#isSet ?{core::bool} #0#87 : let final dynamic #t74 = #0#87#isSet = true in #0#87 = #C26 =={core::Type::==}{(core::Object) → core::bool} #0#0) || (#0#87#isSet ?{core::bool} #0#87 : let final dynamic #t75 = #0#87#isSet = true in #0#87 = #C26 =={core::Type::==}{(core::Object) → core::bool} #0#0) || (#0#89#isSet ?{core::bool} #0#89 : let final dynamic #t76 = #0#89#isSet = true in #0#89 = #C28 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#89#isSet ?{core::bool} #0#89 : let final dynamic #t77 = #0#89#isSet = true in #0#89 = #C28 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#87#isSet ?{core::bool} #0#87 : let final dynamic #t78 = #0#87#isSet = true in #0#87 = #C26 =={core::Type::==}{(core::Object) → core::bool} #0#0) || (#0#87#isSet ?{core::bool} #0#87 : let final dynamic #t79 = #0#87#isSet = true in #0#87 = #C26 =={core::Type::==}{(core::Object) → core::bool} #0#0) || (#0#87#isSet ?{core::bool} #0#87 : let final dynamic #t80 = #0#87#isSet = true in #0#87 = #C26 =={core::Type::==}{(core::Object) → core::bool} #0#0) || (#0#87#isSet ?{core::bool} #0#87 : let final dynamic #t81 = #0#87#isSet = true in #0#87 = #C26 =={core::Type::==}{(core::Object) → core::bool} #0#0) || (#0#89#isSet ?{core::bool} #0#89 : let final dynamic #t82 = #0#89#isSet = true in #0#89 = #C28 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#89#isSet ?{core::bool} #0#89 : let final dynamic #t83 = #0#89#isSet = true in #0#89 = #C28 =={core::Object::==}{(core::Object) → core::bool} #0#0)) {
           {
             core::print(0);
           }

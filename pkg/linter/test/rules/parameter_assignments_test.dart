@@ -94,7 +94,7 @@ void f([int? _]) {
 ''',
       [
         // No lint.
-        error(diag.undefinedIdentifier, 21, 1),
+        error(diag.undefinedUnqualifiedNameWriteNotFound, 21, 1),
       ],
     );
   }

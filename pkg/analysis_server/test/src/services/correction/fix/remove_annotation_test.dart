@@ -15,15 +15,12 @@ void main() {
 }
 
 @reflectiveTest
-class RemoveAnnotationTest extends FixProcessorTest {
+class RemoveAnnotationTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
-  FixKind get kind => DartFixKind.removeAnnotation;
+  bool get addMetaPackageDep => true;
 
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(meta: true);
-  }
+  FixKind get kind => DartFixKind.removeAnnotation;
 
   Future<void> test_factory() async {
     await resolveTestCode('''

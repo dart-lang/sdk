@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -38,14 +37,33 @@ class C {
 AssertInitializer
   assertKeyword: assert
   leftParenthesis: (
-  condition2: MethodInvocation
+  condition2: UnqualifiedFunctionInvocation
+    name: foo
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 0
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@function::foo::@formalParameter::_
+            substitution: {T: bool}
+          staticType: int
+      rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::foo
+      invokeType: bool Function(int)
+      type: bool
+    staticType: bool
+    typeArgumentTypes
+      bool
+  condition(v1): MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>(int)
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments2
+      arguments
         IntegerLiteral
           literal: 0
           correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -58,14 +76,33 @@ AssertInitializer
     typeArgumentTypes
       bool
   comma: ,
-  message2: MethodInvocation
+  message2: UnqualifiedFunctionInvocation
+    name: foo
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 1
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@function::foo::@formalParameter::_
+            substitution: {T: dynamic}
+          staticType: int
+      rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::foo
+      invokeType: dynamic Function(int)
+      type: dynamic
+    staticType: dynamic
+    typeArgumentTypes
+      dynamic
+  message(v1): MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>(int)
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments2
+      arguments
         IntegerLiteral
           literal: 1
           correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -95,14 +132,33 @@ void f() {
 AssertStatement
   assertKeyword: assert
   leftParenthesis: (
-  condition2: MethodInvocation
+  condition2: UnqualifiedFunctionInvocation
+    name: foo
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 0
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@function::foo::@formalParameter::_
+            substitution: {T: bool}
+          staticType: int
+      rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::foo
+      invokeType: bool Function(int)
+      type: bool
+    staticType: bool
+    typeArgumentTypes
+      bool
+  condition(v1): MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>(int)
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments2
+      arguments
         IntegerLiteral
           literal: 0
           correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -115,14 +171,33 @@ AssertStatement
     typeArgumentTypes
       bool
   comma: ,
-  message2: MethodInvocation
+  message2: UnqualifiedFunctionInvocation
+    name: foo
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 1
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@function::foo::@formalParameter::_
+            substitution: {T: dynamic}
+          staticType: int
+      rightParenthesis: )
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::foo
+      invokeType: dynamic Function(int)
+      type: dynamic
+    staticType: dynamic
+    typeArgumentTypes
+      dynamic
+  message(v1): MethodInvocation
     methodName: SimpleIdentifier
       token: foo
       element: <testLibrary>::@function::foo
       staticType: T Function<T>(int)
     argumentList: ArgumentList
       leftParenthesis: (
-      arguments2
+      arguments
         IntegerLiteral
           literal: 1
           correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -182,12 +257,13 @@ B get topLevel => new B();
 void set topLevel(A value) {}
 
 main() {
-  var /*@type=B*/ v = topLevel += 1;
-//                ^
+  var v = topLevel += 1;
+//    ^
 // [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
 }
 ''');
-    _assertTypeAnnotations(result);
+    var node = result.findNode.localVariable('v = ');
+    assertType(node.declaredFragment!.element.type, 'B');
   }
 
   test_forIn_identifier() async {
@@ -213,7 +289,7 @@ class C {
   }
 }''');
     void assertInvocationType(String prefix) {
-      var invocation = result.findNode.methodInvocation(prefix);
+      var invocation = result.findNode.unqualifiedFunctionInvocation(prefix);
       assertType(invocation, 'Iterable<A>');
     }
 
@@ -260,7 +336,7 @@ void test(List<A> listA, List<B> listB) {
       var element = node.declaredFragment?.element as LocalVariableElement;
       assertType(element.type, vType);
 
-      var invocation = result.findNode.methodInvocation(fSearch);
+      var invocation = result.findNode.unqualifiedFunctionInvocation(fSearch);
       assertType(invocation, fType);
     }
 
@@ -317,11 +393,11 @@ class Derived extends Base {
 var x = [];
 var y = {};
 ''');
-    var xNode = result.findNode.variableDeclaration('x = ');
+    var xNode = result.findNode.topLevelVariable('x = ');
     var xfragment = xNode.declaredFragment!;
     assertType(xfragment.element.type, 'List<dynamic>');
 
-    var yNode = result.findNode.variableDeclaration('y = ');
+    var yNode = result.findNode.topLevelVariable('y = ');
     var yfragment = yNode.declaredFragment!;
     assertType(yfragment.element.type, 'Map<dynamic, dynamic>');
   }
@@ -331,11 +407,11 @@ var y = {};
 var x = [null];
 var y = {null: null};
 ''');
-    var xNode = result.findNode.variableDeclaration('x = ');
+    var xNode = result.findNode.topLevelVariable('x = ');
     var xFragment = xNode.declaredFragment!;
     assertType(xFragment.element.type, 'List<Null>');
 
-    var yNode = result.findNode.variableDeclaration('y = ');
+    var yNode = result.findNode.topLevelVariable('y = ');
     var yFragment = yNode.declaredFragment!;
     assertType(yFragment.element.type, 'Map<Null, Null>');
   }
@@ -352,28 +428,28 @@ void f() {
     var node = result.findNode.singleLogicalAnd;
     assertResolvedNodeText(node, r'''
 LogicalAnd
-  leftOperand: MethodInvocation
-    methodName: SimpleIdentifier
-      token: foo
-      element: <testLibrary>::@function::foo
-      staticType: T Function<T>()
+  leftOperand: UnqualifiedFunctionInvocation
+    name: foo
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    staticInvokeType: bool Function()
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::foo
+      invokeType: bool Function()
+      type: bool
     staticType: bool
     typeArgumentTypes
       bool
   operator: &&
-  rightOperand: MethodInvocation
-    methodName: SimpleIdentifier
-      token: foo
-      element: <testLibrary>::@function::foo
-      staticType: T Function<T>()
+  rightOperand: UnqualifiedFunctionInvocation
+    name: foo
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    staticInvokeType: bool Function()
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::foo
+      invokeType: bool Function()
+      type: bool
     staticType: bool
     typeArgumentTypes
       bool
@@ -423,28 +499,28 @@ void f() {
     var node = result.findNode.singleLogicalOr;
     assertResolvedNodeText(node, r'''
 LogicalOr
-  leftOperand: MethodInvocation
-    methodName: SimpleIdentifier
-      token: foo
-      element: <testLibrary>::@function::foo
-      staticType: T Function<T>()
+  leftOperand: UnqualifiedFunctionInvocation
+    name: foo
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    staticInvokeType: bool Function()
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::foo
+      invokeType: bool Function()
+      type: bool
     staticType: bool
     typeArgumentTypes
       bool
   operator: ||
-  rightOperand: MethodInvocation
-    methodName: SimpleIdentifier
-      token: foo
-      element: <testLibrary>::@function::foo
-      staticType: T Function<T>()
+  rightOperand: UnqualifiedFunctionInvocation
+    name: foo
     argumentList: ArgumentList
       leftParenthesis: (
       rightParenthesis: )
-    staticInvokeType: bool Function()
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::foo
+      invokeType: bool Function()
+      type: bool
     staticType: bool
     typeArgumentTypes
       bool
@@ -531,11 +607,11 @@ main() {
 // [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
 }
 ''');
-    var xNode = result.findNode.variableDeclaration('x = ');
+    var xNode = result.findNode.topLevelVariable('x = ');
     var xFragment = xNode.declaredFragment!;
     expect(xFragment.element.type, VoidTypeImpl.instance);
 
-    var yNode = result.findNode.variableDeclaration('y = ');
+    var yNode = result.findNode.localVariable('y = ');
     var yFragment = yNode.declaredFragment!;
     expect(yFragment.element.type, VoidTypeImpl.instance);
   }
@@ -550,52 +626,12 @@ main() {
 // [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
 }
 ''');
-    var xNode = result.findNode.variableDeclaration('x = ');
+    var xNode = result.findNode.topLevelVariable('x = ');
     var xFragment = xNode.declaredFragment!;
     expect(xFragment.element.type, VoidTypeImpl.instance);
 
-    var yNode = result.findNode.variableDeclaration('y = ');
+    var yNode = result.findNode.localVariable('y = ');
     var yFragment = yNode.declaredFragment!;
     expect(yFragment.element.type, VoidTypeImpl.instance);
-  }
-
-  void _assertTypeAnnotations(TestResolvedUnitResult result) {
-    var code = result.content;
-    var unit = result.unit;
-
-    var types = <int, String>{};
-    {
-      int lastIndex = 0;
-      while (true) {
-        const prefix = '/*@type=';
-        int openIndex = code.indexOf(prefix, lastIndex);
-        if (openIndex == -1) {
-          break;
-        }
-        int closeIndex = code.indexOf('*/', openIndex + 1);
-        expect(closeIndex, isPositive);
-        types[openIndex] = code.substring(
-          openIndex + prefix.length,
-          closeIndex,
-        );
-        lastIndex = closeIndex;
-      }
-    }
-
-    unit.accept2(
-      FunctionAstVisitor(
-        simpleIdentifier: (node) {
-          var comment = node.token.precedingComments;
-          if (comment != null) {
-            var expectedType = types[comment.offset];
-            if (expectedType != null) {
-              var element = node.element as VariableElement;
-              String actualType = typeString(element.type);
-              expect(actualType, expectedType, reason: '@${comment.offset}');
-            }
-          }
-        },
-      ),
-    );
   }
 }

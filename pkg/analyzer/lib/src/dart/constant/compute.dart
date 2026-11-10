@@ -33,7 +33,7 @@ class _ConstantNode extends graph.Node<_ConstantNode> {
   final _ConstantWalker walker;
   final ConstantEvaluationTarget constant;
 
-  _ConstantNode(this.walker, this.constant);
+  new(this.walker, this.constant);
 
   @override
   bool get isEvaluated => constant.isConstantEvaluated;
@@ -51,7 +51,7 @@ class _ConstantWalker extends graph.DependencyWalker<_ConstantNode> {
   final ConstantEvaluationConfiguration configuration;
   final Map<ConstantEvaluationTarget, _ConstantNode> nodeMap = {};
 
-  _ConstantWalker({
+  new({
     required this.declaredVariables,
     required this.featureSet,
     required this.configuration,

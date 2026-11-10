@@ -48,12 +48,13 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
-      SimpleIdentifier
-        token: p
+      UnqualifiedNameExpression
+        name: p
+        resolution: InvalidNamedReadResolution
+          recoveryElement: <testLibraryFragment>::@prefix::p
         correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::a
           substitution: {T: dynamic}
-        element: <testLibraryFragment>::@prefix::p
         staticType: InvalidType
     rightParenthesis: )
   staticType: C<dynamic>
@@ -93,9 +94,14 @@ main() {
 }
 ''');
 
-    var node = result.findNode.simple('p; // use');
+    var node = result.findNode.unqualifiedNameExpression('p; // use');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: p
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <testLibraryFragment>::@prefix::p
+  staticType: InvalidType
+V1: SimpleIdentifier
   token: p
   element: <testLibraryFragment>::@prefix::p
   staticType: InvalidType
@@ -128,12 +134,17 @@ ForStatement
         element: hasImplicitType isPublic
           type: InvalidType
     inKeyword: in
-    iterable2: SimpleIdentifier
+    iterable2: UnqualifiedNameExpression
+      name: p
+      resolution: InvalidNamedReadResolution
+        recoveryElement: <testLibraryFragment>::@prefix::p
+      staticType: InvalidType
+    iterable(v1): SimpleIdentifier
       token: p
       element: <testLibraryFragment>::@prefix::p
       staticType: InvalidType
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -148,12 +159,12 @@ main() {
 }
 ''');
 
-    var node = result.findNode.simple('p.max');
+    var node = result.findNode.importPrefixReference('p.max');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
-  token: p
+ImportPrefixReference
+  name: p
+  period: .
   element: <testLibraryFragment>::@prefix::p
-  staticType: null
 ''');
   }
 
@@ -208,7 +219,7 @@ f() {
   ''.stringExt2;
   _.a;
 //^
-// [diag.undefinedIdentifier] Undefined name '_'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name '_'.
 }
 ''');
   }
@@ -242,10 +253,28 @@ f() {
 ''');
 
     // `_` is bound so `a` resolves to the int declared in `a.dart`.
-    var node = result.findNode.simple('a;');
+    var node = result.findNode.importPrefixedNameExpression('_.a;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
-  token: a
+ImportPrefixedNameExpression
+  importPrefix: ImportPrefixReference
+    name: _
+    period: .
+    element: <testLibraryFragment>::@prefix::_
+  name: a
+  resolution: GetterInvocationResolution
+    element: package:test/a.dart::@getter::a
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: _
+    element: <testLibraryFragment>::@prefix::_
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: a
+    element: package:test/a.dart::@getter::a
+    staticType: int
   element: package:test/a.dart::@getter::a
   staticType: int
 ''');

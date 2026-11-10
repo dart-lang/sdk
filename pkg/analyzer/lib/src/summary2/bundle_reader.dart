@@ -37,13 +37,12 @@ class BundleReader {
 
   final Map<Uri, LibraryReader> libraryMap = {};
 
-  BundleReader({
+  new({
     required LinkedElementFactory elementFactory,
     required Uint8List resolutionBytes,
-    Map<Uri, Uint8List> unitsInformativeBytes = const {},
+    this._unitsInformativeBytes = const {},
     required Map<Uri, LibraryManifestHandle> libraryManifests,
-  }) : _reader = BinaryReader(resolutionBytes),
-       _unitsInformativeBytes = unitsInformativeBytes {
+  }) : _reader = BinaryReader(resolutionBytes) {
     const bytesOfU32 = 4;
     const countOfU32 = 4;
     _reader.offset = _reader.bytes.length - bytesOfU32 * countOfU32;
@@ -101,23 +100,17 @@ class LibraryReader {
   /// Map of unique (in the bundle) IDs to fragments.
   final Map<int, FragmentImpl> idFragmentMap = {};
 
-  LibraryReader._({
-    required LinkedElementFactory elementFactory,
-    required BinaryReader reader,
+  new _({
+    required this._elementFactory,
+    required this._reader,
     required this.uri,
-    required Map<Uri, Uint8List> unitsInformativeBytes,
-    required int baseResolutionOffset,
-    required ReferenceTableReader referenceReader,
-    required LibraryReference reference,
-    required int offset,
+    required this._unitsInformativeBytes,
+    required this._baseResolutionOffset,
+    required this._referenceReader,
+    required this._reference,
+    required this._offset,
     required this.manifest,
-  }) : _elementFactory = elementFactory,
-       _reader = reader,
-       _unitsInformativeBytes = unitsInformativeBytes,
-       _baseResolutionOffset = baseResolutionOffset,
-       _referenceReader = referenceReader,
-       _reference = reference,
-       _offset = offset;
+  });
 
   LibraryElementImpl readElement({required Source librarySource}) {
     var analysisContext = _elementFactory.analysisContext;
@@ -762,8 +755,8 @@ class LibraryReader {
       var isFieldFormalParameter = _reader.readBool();
       var isSuperParameter = _reader.readBool();
 
-      var kindIndex = _reader.readByte();
-      var kind = ResolutionReader._formalParameterKind(kindIndex);
+      var kindTag = _reader.readEnum(FormalParameterKindTag.values);
+      var kind = ResolutionReader._formalParameterKind(kindTag);
 
       FormalParameterFragmentImpl fragment;
       if (isFieldFormalParameter) {
@@ -895,6 +888,7 @@ class LibraryReader {
   List<LibraryExportImpl> _readLibraryExports() {
     return _reader.readTypedList(() {
       return LibraryExportImpl(
+        isConditional: _reader.readBool(),
         combinators: _reader.readTypedList(_readNamespaceCombinator),
         exportKeywordOffset: -1,
         uri: _readDirectiveUri(),
@@ -990,6 +984,7 @@ class LibraryReader {
     return _reader.readTypedList(() {
       return LibraryImportImpl(
         isSynthetic: _reader.readBool(),
+        isConditional: _reader.readBool(),
         combinators: _reader.readTypedList(_readNamespaceCombinator),
         importKeywordOffset: -1,
         prefix: _readLibraryImportPrefixFragment(libraryFragment),
@@ -1135,17 +1130,16 @@ class LibraryReader {
   }
 
   NamespaceCombinator _readNamespaceCombinator() {
-    var tag = _reader.readByte();
-    if (tag == Tag.HideCombinator) {
-      var combinator = HideElementCombinatorImpl();
-      combinator.hiddenNames = _reader.readStringReferenceList();
-      return combinator;
-    } else if (tag == Tag.ShowCombinator) {
-      var combinator = ShowElementCombinatorImpl();
-      combinator.shownNames = _reader.readStringReferenceList();
-      return combinator;
-    } else {
-      throw UnimplementedError('tag: $tag');
+    var tag = _reader.readEnum(NamespaceCombinatorTag.values);
+    switch (tag) {
+      case NamespaceCombinatorTag.hide:
+        var combinator = HideElementCombinatorImpl();
+        combinator.hiddenNames = _reader.readStringReferenceList();
+        return combinator;
+      case NamespaceCombinatorTag.show:
+        var combinator = ShowElementCombinatorImpl();
+        combinator.shownNames = _reader.readStringReferenceList();
+        return combinator;
     }
   }
 
@@ -1240,9 +1234,7 @@ class LibraryReader {
           _reader.fork(resolutionOffset),
         );
 
-        // TODO(scheglov): type casts are not good :-(
-        reader.currentLibraryFragment =
-            fragment.libraryFragment as LibraryFragmentImpl;
+        reader.currentLibraryFragment = fragment.libraryFragment!;
 
         readResolution(fragment, reader);
       });
@@ -1491,7 +1483,7 @@ class ResolutionReader {
   /// by the client. However it is also updated during [_readFunctionType].
   final List<ElementImpl> _localElements = [];
 
-  ResolutionReader(this._elementFactory, this._referenceReader, this._reader);
+  new(this._elementFactory, this._referenceReader, this._reader);
 
   LibraryElementImpl libraryOfUri(Uri uri) {
     return _elementFactory.libraryOfUri2(uri);
@@ -1556,6 +1548,22 @@ class ResolutionReader {
         var enclosing = readElement() as ExecutableElementImpl;
         var index = _reader.readUint30();
         return enclosing.formalParametersIncludingRecovery[index];
+      case ElementTag.interfaceMember:
+        var interfaceElement = readElement() as InterfaceElementImpl;
+        var libraryUri = _reader.readOptionalObject(_reader.readUri);
+        var name = Name(libraryUri, _reader.readStringReference());
+        var typeArguments = _readTypeList();
+        var member = _elementFactory.analysisSession.inheritanceManager
+            .getMember(interfaceElement, name);
+        if (member == null || typeArguments.isEmpty) {
+          return member;
+        }
+        return member.substitute(
+          Substitution.fromPairs2(
+            interfaceElement.typeParameters,
+            typeArguments,
+          ),
+        );
     }
   }
 
@@ -1740,7 +1748,9 @@ class ResolutionReader {
       var fragment = FormalParameterFragmentImpl(
         name: _readFragmentName(),
         nameOffset: null,
-        parameterKind: _formalParameterKind(_reader.readByte()),
+        parameterKind: _formalParameterKind(
+          _reader.readEnum(FormalParameterKindTag.values),
+        ),
       );
       fragment.initElement();
       fragment.element.type = readRequiredType();
@@ -1858,17 +1868,16 @@ class ResolutionReader {
     return typeParameters;
   }
 
-  static ParameterKind _formalParameterKind(int encoding) {
-    if (encoding == Tag.ParameterKindRequiredPositional) {
-      return ParameterKind.REQUIRED;
-    } else if (encoding == Tag.ParameterKindOptionalPositional) {
-      return ParameterKind.POSITIONAL;
-    } else if (encoding == Tag.ParameterKindRequiredNamed) {
-      return ParameterKind.NAMED_REQUIRED;
-    } else if (encoding == Tag.ParameterKindOptionalNamed) {
-      return ParameterKind.NAMED;
-    } else {
-      throw StateError('Unexpected parameter kind encoding: $encoding');
+  static ParameterKind _formalParameterKind(FormalParameterKindTag tag) {
+    switch (tag) {
+      case FormalParameterKindTag.requiredPositional:
+        return ParameterKind.REQUIRED;
+      case FormalParameterKindTag.optionalPositional:
+        return ParameterKind.POSITIONAL;
+      case FormalParameterKindTag.requiredNamed:
+        return ParameterKind.NAMED_REQUIRED;
+      case FormalParameterKindTag.optionalNamed:
+        return ParameterKind.NAMED;
     }
   }
 }
@@ -1883,5 +1892,5 @@ class _LibraryHeader {
   final Uri uri;
   final int offset;
 
-  _LibraryHeader({required this.uri, required this.offset});
+  new({required this.uri, required this.offset});
 }

@@ -41,8 +41,10 @@ class _StringParser {
 // Assumes the given [string] is a valid float, so it can rely on the implicit
 // string to number conversion in JS using `+<string-of-number>`.
 @patch
-double _parseValidFloat(String string) =>
-    JS<double>('(s) => +s', jsStringFromDartString(string).wrappedExternRef);
+double _parseValidFloat(String string) => JS<WasmF64>(
+  '(s) => +s',
+  jsStringFromDartString(string).wrappedExternRef,
+).toDouble();
 
 @patch
 String _stringFromCharCodeArray(WasmArray<WasmI16> array, int start, int end) {

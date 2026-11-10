@@ -40,7 +40,7 @@ void f(String s) {
 }
 
 @reflectiveTest
-class ConvertToIfNullPreferTest extends FixProcessorLintTest {
+class ConvertToIfNullPreferTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToIfNull;
 
@@ -157,7 +157,7 @@ void f(bool? value) {
 }
 
 @reflectiveTest
-class ConvertToIfNullUseTest extends FixProcessorLintTest {
+class ConvertToIfNullUseTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToIfNull;
 

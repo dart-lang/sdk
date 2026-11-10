@@ -23,7 +23,7 @@ void main() {
 }
 
 @reflectiveTest
-class NonFinalFieldInEnumTest extends FixProcessorTest {
+class NonFinalFieldInEnumTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.makeFinal;
 
@@ -84,7 +84,7 @@ class C {
 }
 
 @reflectiveTest
-class PreferFinalFieldsTest extends FixProcessorLintTest {
+class PreferFinalFieldsTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.makeFinal;
 
@@ -153,7 +153,7 @@ class C {
 }
 
 @reflectiveTest
-class PreferFinalInForEachTest extends FixProcessorLintTest {
+class PreferFinalInForEachTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.makeFinal;
 
@@ -305,7 +305,7 @@ f() {
 }
 
 @reflectiveTest
-class PreferFinalLocalTest extends FixProcessorLintTest {
+class PreferFinalLocalTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.makeFinal;
 
@@ -473,7 +473,7 @@ void fn(final String test, final int other) {
 }
 
 @reflectiveTest
-class PreferFinalParametersTest extends FixProcessorLintTest {
+class PreferFinalParametersTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.makeFinal;
 

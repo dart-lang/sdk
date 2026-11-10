@@ -2,20 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io' as io;
-
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/migration/migration_extensions.dart';
+import 'package:analysis_server/src/lsp/handlers/custom/migration/migration_registry.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/migration/migration_runner.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/migration/migration_summary_builder.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
+import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/utilities/pubspec.dart';
 import 'package:analysis_server/src/utilities/source_change_merger.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/util/platform_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
@@ -47,7 +50,9 @@ class MigrateHandler
 
     var targets = validationResult.resultOrNull!;
     var apply = params.apply ?? false;
-    var steps = params.steps ?? [MigrationStep.All];
+    // Clean up fixes go beyond what raising the SDK constraint needs, so they
+    // only run when asked for.
+    var steps = params.steps ?? [MigrationStep.Prepare, MigrationStep.Bump];
     if (steps.runPrepare && steps.runCleanup && !steps.runBump) {
       return error(
         ErrorCodes.InvalidParams,
@@ -61,17 +66,24 @@ class MigrateHandler
       return failure(targetSdkResult);
     }
 
+    var workDoneToken = params.workDoneToken;
+    var progressReporter = switch (server) {
+      LspAnalysisServer server when workDoneToken != null =>
+        ProgressReporter.clientProvided(server, workDoneToken),
+      _ => ProgressReporter.noop,
+    };
+
     var summaryBuilder = MigrationSummaryBuilder(
       apply: apply,
       pathContext: server.resourceProvider.pathContext,
       steps: steps,
     );
-    // TODO(kallentu): Pass targetSdk to MigrationRunner when multi-version
-    // migration is implemented.
     var migrationRunner = MigrationRunner(
       server: server,
       pubspecTargets: targets,
       summaryBuilder: summaryBuilder,
+      targetSdk: targetSdkResult.resultOrNull,
+      progressReporter: progressReporter,
     );
 
     var fileEditsResult = await migrationRunner.computeEdits(steps);
@@ -100,11 +112,11 @@ class MigrateHandler
     );
   }
 
-  /// Validates that all provided [uris] are directories and each directory
-  /// contains a `pubspec.yaml` file.
+  /// Validates that [uris] point to directories containing a valid
+  /// `pubspec.yaml` map.
   ///
-  /// Returns an error if any URI points to a file, does not exist, or does
-  /// not contain a `pubspec.yaml` file.
+  /// Returns an error if any URI is invalid, does not exist, is not a
+  /// directory, or lacks a parsable `pubspec.yaml` map.
   ErrorOr<List<PubspecTarget>> _validateMigrationTargets(
     List<DocumentUri> uris,
   ) {
@@ -145,16 +157,35 @@ class MigrateHandler
           pubspecContent,
           sourceUrl: pubspecFile.toUri(),
         );
-        if (pubspec is YamlMap) {
-          if (pubspec['resolution'] == 'workspace') {
-            return error(
-              ErrorCodes.InvalidParams,
-              "The directory '$path' is part of a workspace and can't be"
-              ' migrated independently.',
-            );
-          }
-          targets.add(PubspecTarget(file: pubspecFile, pubspec: pubspec));
+        if (pubspec is! YamlMap) {
+          return error(
+            ErrorCodes.InvalidParams,
+            "The 'pubspec.yaml' file in '$path' doesn't contain a map of"
+            ' values.',
+          );
         }
+
+        if (pubspec['resolution'] == 'workspace') {
+          return error(
+            ErrorCodes.InvalidParams,
+            "The directory '$path' is part of a workspace and can't be"
+            ' migrated independently.',
+          );
+        }
+        var resolvedPackages =
+            server.contextManager
+                .getContextFor(path)
+                ?.contextRoot
+                .workspace
+                .packages ??
+            Packages.empty;
+        targets.add(
+          PubspecTarget(
+            file: pubspecFile,
+            pubspec: pubspec,
+            resolvedPackages: resolvedPackages,
+          ),
+        );
       } catch (e) {
         return error(
           ErrorCodes.InvalidParams,
@@ -188,7 +219,7 @@ class MigrateHandler
         '(e.g., "3.12.0").',
       );
     }
-    var currentServerSdk = Version.parse(io.Platform.version.split(' ').first);
+    var currentServerSdk = Version.parse(platform.version.split(' ').first);
     if (targetSdk > currentServerSdk) {
       return error(
         ErrorCodes.InvalidParams,
@@ -199,10 +230,19 @@ class MigrateHandler
         'the running version.',
       );
     }
-    if (!steps.runAll) {
+    if (!knownSdkVersions.contains(targetSdk)) {
       return error(
         ErrorCodes.InvalidParams,
-        'Multi-version migration requires running all steps (--step=all).',
+        'The target SDK version "$targetSdk" is not supported for migration. '
+        'It must be between ${knownSdkVersions.first} and '
+        '${knownSdkVersions.last}.',
+      );
+    }
+    if (!steps.runPrepare || !steps.runBump) {
+      return error(
+        ErrorCodes.InvalidParams,
+        "Multi-version migration requires running both the 'prepare' and "
+        "'bump' steps.",
       );
     }
     return success(targetSdk);

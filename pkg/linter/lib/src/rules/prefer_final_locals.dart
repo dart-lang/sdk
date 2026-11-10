@@ -197,34 +197,26 @@ class _Visitor(final AnalysisRule rule, {required final String currentFilePath})
 }
 
 extension on DartPattern {
-  bool get containsJustWildcards {
-    var pattern = this;
-    return switch (pattern) {
-      ListPattern() => pattern.elements.every(
-        (e) => e is DartPattern && e.containsJustWildcards,
-      ),
-      MapPattern() => pattern.elements.every(
-        (e) => e is MapPatternEntry && e.value is WildcardPattern,
-      ),
-      ObjectPattern() => pattern.fields.every(
-        (e) => e.pattern.containsJustWildcards,
-      ),
-      ParenthesizedPattern() => pattern.pattern.containsJustWildcards,
-      RecordPattern() => pattern.fields.every(
-        (e) => e.pattern.containsJustWildcards,
-      ),
-      WildcardPattern() => true,
-      _ => false,
-    };
-  }
+  bool get containsJustWildcards => switch (this) {
+    ListPattern() => elements.every(
+      (e) => e is DartPattern && e.containsJustWildcards,
+    ),
+    MapPattern() => elements.every(
+      (e) => e is MapPatternEntry && e.value is WildcardPattern,
+    ),
+    ObjectPattern() => fields.every((e) => e.pattern.containsJustWildcards),
+    ParenthesizedPattern() => pattern.containsJustWildcards,
+    RecordPattern() => fields.every((e) => e.pattern.containsJustWildcards),
+    WildcardPattern() => true,
+    _ => false,
+  };
 }
 
 extension on AstNode {
   bool get isDeclaredFinal {
-    var self = this;
-    if (self is DeclaredVariablePattern) {
-      if (self.keyword.isFinal) return true;
-      var pattern = self.thisOrAncestorOfType<ForEachPartsWithPattern>();
+    if (this is DeclaredVariablePattern) {
+      if (keyword.isFinal) return true;
+      var pattern = thisOrAncestorOfType<ForEachPartsWithPattern>();
       if (pattern != null && pattern.keyword.isFinal) return true;
     }
     return false;

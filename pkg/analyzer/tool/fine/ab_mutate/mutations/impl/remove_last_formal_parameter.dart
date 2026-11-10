@@ -16,10 +16,7 @@ import '../kinds.dart';
 class RemoveLastFormalParameterMutation extends Mutation {
   final int targetDeclarationOffset;
 
-  RemoveLastFormalParameterMutation({
-    required super.path,
-    required this.targetDeclarationOffset,
-  });
+  new({required super.path, required this.targetDeclarationOffset});
 
   @override
   MutationKind get kind => MutationKind.removeLastFormalParameter;
@@ -63,15 +60,16 @@ class RemoveLastFormalParameterMutation extends Mutation {
   (int start, int end) _deletionForLast(
     FormalParameterList formalParameterList,
   ) {
-    var formalParameters = formalParameterList.parameters;
+    var formalParameters = formalParameterList.allFormalParameters;
     var last = formalParameters.last;
 
     // If the last formal parameter is the only one inside an optional group
     // ({...} or [...]), delete the whole group, including a preceding
     // separator comma (if any) and a top-level trailing comma right after
     // the group (if any).
-    var ld = formalParameterList.leftDelimiter;
-    var rd = formalParameterList.rightDelimiter;
+    var delimited = formalParameterList.delimitedFormalParameters;
+    var ld = delimited?.leftDelimiter;
+    var rd = delimited?.rightDelimiter;
     if (ld != null && rd != null) {
       bool insideGroup(FormalParameter p) {
         return p.beginToken.offset >= ld.end && p.end <= rd.offset;
@@ -131,7 +129,8 @@ class RemoveLastFormalParameterMutation extends Mutation {
     var executables = CollectExecutablesVisitor.collectFrom(unit);
     for (var executable in executables) {
       var formalParameters = executable.formalParameters;
-      if (formalParameters == null || formalParameters.parameters.isEmpty) {
+      if (formalParameters == null ||
+          formalParameters.allFormalParameters.isEmpty) {
         continue;
       }
       mutations.add(

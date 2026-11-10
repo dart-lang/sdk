@@ -55,7 +55,7 @@ Future<Null> test(
   List<String> expectedOutput, {
   List<String> groupOutputs = const <String>[],
 }) async {
-  List<String> options = List<String>.from(arguments)
+  List<String> options = List<String>.of(arguments)
     ..add('--platform-binaries=$sdkPlatformBinariesPath')
     ..add('--libraries-spec=$sdkLibrariesSpecificationUri');
   print('--------------------------------------------------------------------');

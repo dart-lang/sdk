@@ -508,6 +508,7 @@ abstract class _NegativeLengthList&Object&ListMixin<E extends core::Object? = dy
       this.{col::ListBase::setRange}(index, index.{core::num::+}(iterable.{core::Iterable::length}{core::int}){(core::num) → core::int}, iterable){(core::int, core::int, core::Iterable<self::_NegativeLengthList&Object&ListMixin::E%>, [core::int]) → void};
     }
     else {
+      core::RangeError::checkValueInInterval(index, 0, this.{core::List::length}{core::int}, "index");
       {
         synthesized core::Iterator<self::_NegativeLengthList&Object&ListMixin::E%> :sync-for-iterator = iterable.{core::Iterable::iterator}{core::Iterator<self::_NegativeLengthList&Object&ListMixin::E%>};
         for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
@@ -582,8 +583,8 @@ constants  {
 
 Extra constant evaluation status:
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///negative_length.dart:12:41 -> IntConstant(-1)
-Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:454:12 -> IntConstant(-1)
-Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:462:12 -> IntConstant(-1)
-Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:471:12 -> IntConstant(-1)
-Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:480:12 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 1121, effectively constant: 5
+Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:456:12 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:464:12 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:473:12 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:482:12 -> IntConstant(-1)
+Extra constant evaluation: evaluated: 1125, effectively constant: 5

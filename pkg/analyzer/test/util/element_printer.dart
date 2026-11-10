@@ -18,11 +18,7 @@ class ElementPrinter {
   final ElementPrinterConfiguration _configuration;
   final IdMap idMap = IdMap();
 
-  ElementPrinter({
-    required TreeStringSink sink,
-    required ElementPrinterConfiguration configuration,
-  }) : _sink = sink,
-       _configuration = configuration;
+  new({required this._sink, required this._configuration});
 
   void writeDirectiveUri(DirectiveUri? uri) {
     if (uri == null) {
@@ -76,6 +72,12 @@ class ElementPrinter {
         _sink.writeln('$idStr ${element.name ?? '<null-name>'}');
       case SubstitutedElementImpl element:
         _writeSubstitutedElement(element);
+      case CombinedExecutableElementImpl element:
+        _writeCombinedExecutableElement(element);
+      case CombinedFieldElementImpl element:
+        _writeCombinedFieldElement(element);
+      case CombinedFormalParameterElementImpl element:
+        _writeCombinedFormalParameterElement(element);
       case TypeAliasElementImpl element:
         writelnReference(element.reference);
       case TopLevelVariableElementImpl element:
@@ -130,6 +132,11 @@ class ElementPrinter {
         _sink.writeln('Never@-1');
       case PrefixElementImpl element:
         _sink.writeln(_libraryImportPrefixElementToReferenceString(element));
+        if (_configuration.withImportPrefixScopeLibraries) {
+          _sink.withIndent(() {
+            writeElementList2('scopeLibraries', element.scopeLibraries);
+          });
+        }
       default:
         throw UnimplementedError('(${element.runtimeType}) $element');
     }
@@ -354,7 +361,10 @@ class ElementPrinter {
       fragmentStr = '$libraryStr::@fragment::${_toPosixUriStr(fragmentUriStr)}';
     }
 
-    return '$fragmentStr::@prefix::${element.localId}';
+    var kind = element is DocImportPrefixElementImpl
+        ? '@docImportPrefix'
+        : '@prefix';
+    return '$fragmentStr::$kind::${element.localId}';
   }
 
   String _referenceToString(Reference reference) {
@@ -393,6 +403,40 @@ class ElementPrinter {
     return type.getDisplayString();
   }
 
+  void _writeCombinedExecutableElement(CombinedExecutableElementImpl element) {
+    _sink.writeln('${element.runtimeType}');
+    _sink.withIndent(() {
+      writeNamedElement2('baseElement', element.baseElement);
+      writeNamedElement2('owner', element.owner);
+      var map = element.substitution.map;
+      if (map.isNotEmpty) {
+        var mapStr = _substitutionMapStr(map);
+        _sink.writelnWithIndent('substitution: $mapStr');
+      }
+    });
+  }
+
+  void _writeCombinedFieldElement(CombinedFieldElementImpl element) {
+    _sink.writeln('${element.runtimeType}');
+    _sink.withIndent(() {
+      writeNamedElement2('baseElement', element.baseElement);
+      writeNamedElement2('accessor', element.accessor);
+    });
+  }
+
+  void _writeCombinedFormalParameterElement(
+    CombinedFormalParameterElementImpl element,
+  ) {
+    _sink.writeln('${element.runtimeType}');
+    _sink.withIndent(() {
+      writeNamedElement2('baseElement', element.baseElement);
+      writeNamedType('type', element.type);
+      if (element.isCovariant) {
+        _sink.writelnWithIndent('isCovariant: true');
+      }
+    });
+  }
+
   void _writeSubstitutedElement(SubstitutedElementImpl element) {
     _sink.writeln('${element.runtimeType}');
     _sink.withIndent(() {
@@ -427,6 +471,7 @@ class ElementPrinterConfiguration {
   bool withInterfaceTypeElements = false;
   bool withRedirectedConstructors = false;
   bool withSuperConstructors = false;
+  bool withImportPrefixScopeLibraries = false;
 }
 
 class IdMap {

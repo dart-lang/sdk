@@ -20,6 +20,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -80,11 +81,18 @@ sealed class Available extends Availability {
     for (var parameter in _formalParameters) {
       if (parameter.isNamed) continue;
 
+      var name = parameter.name;
+      if (name == null) {
+        // Invalid positional parameter without a name. Don't attempt to handle
+        // this.
+        return false;
+      }
+
       hasPositional = true;
 
       // If the parameter has a private name, we must be able to convert it to
       // a private named parameter.
-      if (Identifier.isPrivateName(parameter.name!)) {
+      if (name.isPrivateName) {
         if (!supportsPrivateNamedParameters) {
           return false;
         }
@@ -474,7 +482,7 @@ final class _AvailableWithDeclaration extends Available {
 
       // If the parameter has a private name, make sure it can be a private
       // named parameter.
-      if (Identifier.isPrivateName(name)) {
+      if (name.isPrivateName) {
         if (!supportsPrivateNamedParameters) return false;
         // TODO(rnystrom): Check for primary constructor declaring parameter
         // here once those are implemented.
@@ -1308,49 +1316,39 @@ extension on AstNode {
   /// This is usually a [Declaration] but could be a
   /// [PrimaryConstructorDeclaration].
   AstNode? get declaration {
-    var self = this;
-    var parent = self.parent;
+    var parent = this.parent;
 
-    if (self is PrimaryConstructorName &&
+    if (this is PrimaryConstructorName &&
         parent is PrimaryConstructorDeclaration) {
       return parent;
     }
 
-    if (self is FunctionExpression && parent is FunctionDeclaration) {
+    if (this is FunctionExpression && parent is FunctionDeclaration) {
       return parent;
     }
 
-    if (self is SimpleIdentifier &&
+    if (this is SimpleIdentifier &&
         parent is ConstructorDeclaration &&
-        parent.typeName == self) {
+        parent.typeName == this) {
       return parent;
     }
 
-    switch (self) {
-      case ConstructorDeclaration():
-      case FunctionDeclaration():
-      case MethodDeclaration():
-      case PrimaryConstructorDeclaration():
-        return self;
-    }
-
-    return null;
+    return switch (this) {
+      ConstructorDeclaration() ||
+      FunctionDeclaration() ||
+      MethodDeclaration() ||
+      PrimaryConstructorDeclaration() => this,
+      _ => null,
+    };
   }
 
-  FormalParameterList? get formalParameterList {
-    var self = this;
-    switch (self) {
-      case ConstructorDeclaration():
-        return self.parameters;
-      case FunctionDeclaration():
-        return self.functionExpression.parameters;
-      case MethodDeclaration():
-        return self.parameters;
-      case PrimaryConstructorDeclaration():
-        return self.formalParameters;
-    }
-    return null;
-  }
+  FormalParameterList? get formalParameterList => switch (this) {
+    ConstructorDeclaration() => parameters,
+    FunctionDeclaration() => functionExpression.parameters,
+    MethodDeclaration() => parameters,
+    PrimaryConstructorDeclaration() => formalParameters,
+    _ => null,
+  };
 }
 
 extension _FormalParameterListExtension on FormalParameterList {

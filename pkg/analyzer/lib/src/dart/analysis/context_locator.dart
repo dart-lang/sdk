@@ -23,7 +23,15 @@ import 'package:glob/glob.dart';
 import 'package:path/path.dart';
 
 /// Returns a list of the context roots that should be used to analyze the
-/// files that are included by the list of [includedPaths].
+/// files that are included by the list of [includedPaths] and not excluded by
+/// the list of [excludedPaths].
+///
+/// The [excludedPaths] are supplied by the client, for example from IDE
+/// settings, in addition to the `analyzer: exclude:` globs read from the
+/// analysis options files. Excluded folders are not searched for nested
+/// context roots. Each excluded path is recorded in every root that would
+/// otherwise analyze it, even if nothing exists at the path yet, for example
+/// a build output folder that is created later.
 ///
 /// If an [optionsFile] is specified, then it is assumed to be the path to the
 /// `analysis_options.yaml` file that should be used in place of the ones that
@@ -34,6 +42,7 @@ import 'package:path/path.dart';
 /// would be found by looking in the directories containing the context roots.
 List<ContextRootImpl> locateContextRoots({
   required List<String> includedPaths,
+  List<String> excludedPaths = const [],
   String? optionsFile,
   String? packageConfigFile,
   required ResourceProvider resourceProvider,
@@ -58,11 +67,26 @@ List<ContextRootImpl> locateContextRoots({
     includedPaths,
     resourceProvider,
   );
+  var (excludedFolders, excludedFiles) = _resourcesFromPaths(
+    excludedPaths,
+    resourceProvider,
+  );
+
+  bool isInExcludedFolder(Resource resource) {
+    return excludedFolders.any((folder) => folder.isOrContains(resource.path));
+  }
+
+  includedFolders = includedFolders.whereNot(isInExcludedFolder).toList();
+  includedFiles = includedFiles
+      .whereNot(isInExcludedFolder)
+      .whereNot(excludedFiles.contains)
+      .toList();
 
   return _ContextLocator(
     resourceProvider: resourceProvider,
     defaultOptionsFile: defaultOptionsFile,
     defaultPackageConfigFile: defaultPackageConfigFile,
+    excludedByClient: {...excludedFolders, ...excludedFiles},
   )._locateRoots(
     includedFolders: includedFolders,
     includedFiles: includedFiles,
@@ -111,8 +135,31 @@ class _ContextLocator {
 
   final File? _defaultPackageConfigFile;
 
+  /// The files and folders explicitly excluded by the client.
+  ///
+  /// A path that does not exist is represented as a [File], because there is
+  /// no way to know what will be created there.
+  ///
+  /// The search for nested context roots does not enter excluded folders.
+  /// After all roots are located, [_recordExcludedByClient] records each of
+  /// these in every root that would otherwise analyze it.
+  final Set<Resource> _excludedByClient;
+
   /// A parse session for one context-location operation.
   final AnalysisOptionsParseSession _analysisOptionsParseSession = .new();
+
+  /// Cache of enabled legacy plugin names by source factory and options file.
+  ///
+  /// Plugin names depend on the source factory because package includes can
+  /// resolve differently for the same options file in different workspaces.
+  final Map<(SourceFactory, File), Set<String>> _legacyPlugins = {};
+
+  /// Parsed package configurations reused by this operation.
+  final Map<File, Packages> _packagesByFile = {};
+
+  /// Package-config workspace snapshots reused by this operation.
+  late final PackageConfigWorkspaceFindSession
+  _packageConfigWorkspaceFindSession = .new(_resourceProvider);
 
   /// The list of context roots ultimately returned by [_locateRoots].
   final _roots = <ContextRootImpl>[];
@@ -120,14 +167,52 @@ class _ContextLocator {
   /// Initialize a newly created context locator. If a [resourceProvider] is
   /// supplied, it will be used to access the file system. Otherwise the default
   /// resource provider will be used.
-  _ContextLocator({
+  new({
     required ResourceProvider? resourceProvider,
-    required File? defaultOptionsFile,
-    required File? defaultPackageConfigFile,
+    required this._defaultOptionsFile,
+    required this._defaultPackageConfigFile,
+    required this._excludedByClient,
   }) : _resourceProvider =
-           resourceProvider ?? PhysicalResourceProvider.INSTANCE,
-       _defaultOptionsFile = defaultOptionsFile,
-       _defaultPackageConfigFile = defaultPackageConfigFile;
+           resourceProvider ?? PhysicalResourceProvider.INSTANCE;
+
+  /// Adds individually included files to contexts. Unlike an options file,
+  /// workspace and package configuration affect how every library reachable
+  /// from a file is resolved. Files that share those driver-wide inputs can
+  /// therefore use one context and select their path-local options through the
+  /// context's options map.
+  void _addIncludedFiles(List<File> includedFiles) {
+    var rootsByFolder = <Folder, ContextRootImpl>{};
+
+    for (var file in includedFiles) {
+      var folder = file.parent;
+      var root = rootsByFolder[folder] ??= _rootForFolder(folder);
+      if (!root.isAnalyzed(file.path)) {
+        root.included.add(file);
+      }
+    }
+  }
+
+  /// Adds the path-local configuration represented by [optionsFile] to
+  /// [root]. Options outside the root apply at the root; options inside it
+  /// apply only below their own directory.
+  void _addOptionsMapping(
+    ContextRootImpl root,
+    File? optionsFile, {
+    Folder? mappingFolder,
+  }) {
+    if (optionsFile == null) return;
+
+    var optionsFolder = optionsFile.parent;
+    mappingFolder ??= root.root.isOrContains(optionsFolder.path)
+        ? optionsFolder
+        : root.root;
+    var mappingFolders = root.optionsFileMap.putIfAbsent(optionsFile, () => {});
+    if (mappingFolders.add(mappingFolder)) {
+      root.excludedGlobs.addAll(
+        _getExcludedGlobs(optionsFile, root.workspace.partialSourceFactory),
+      );
+    }
+  }
 
   /// Returns the location of a context root for a file in the [parent].
   ///
@@ -173,37 +258,56 @@ class _ContextLocator {
       buildGnFile: buildGnFile,
     );
 
-    var rootFolder = _lowest([
-      optionsFolderToChooseRoot,
+    var resolutionRootFolder = _lowest([
       buildGnFile?.parent,
       if (workspace is! BasicWorkspace)
         _resourceProvider.getFolder(workspace.root),
+    ]);
+    var contextRootFolder = _lowest([
+      optionsFolderToChooseRoot,
+      resolutionRootFolder,
     ]);
 
     if (workspace is PackageConfigWorkspace) {
       packageConfigFile ??= workspace.packageConfigFile;
       // If the default packages folder is a parent of the workspace root,
-      // choose that as the root.
-      if (rootFolder != null && packagesFolderToChooseRoot != null) {
-        if (packagesFolderToChooseRoot.contains(rootFolder.path)) {
-          rootFolder = packagesFolderToChooseRoot;
+      // choose that as the context root.
+      if (contextRootFolder != null && packagesFolderToChooseRoot != null) {
+        if (packagesFolderToChooseRoot.contains(contextRootFolder.path)) {
+          contextRootFolder = packagesFolderToChooseRoot;
         }
+      }
+      // A default package config applies to every included file, so if its
+      // folder is above the workspace root, use that folder as the resolution
+      // root.
+      if (resolutionRootFolder != null &&
+          packagesFolderToChooseRoot != null &&
+          packagesFolderToChooseRoot.contains(resolutionRootFolder.path)) {
+        resolutionRootFolder = packagesFolderToChooseRoot;
       }
     }
 
-    if (rootFolder == null) {
-      rootFolder = defaultRootFolder();
+    if (contextRootFolder == null) {
+      contextRootFolder = defaultRootFolder();
       if (workspace is BasicWorkspace) {
         workspace = _createWorkspace(
-          folder: rootFolder,
+          folder: contextRootFolder,
           packageConfigFile: packageConfigFile,
           buildGnFile: buildGnFile,
         );
       }
     }
 
+    // If no resolution root was found, this is a basic workspace with no
+    // marker-defined boundary, so retain the path-local root.
+    if (resolutionRootFolder == null) {
+      assert(workspace is BasicWorkspace);
+      resolutionRootFolder = contextRootFolder;
+    }
+
     return _RootLocation(
-      rootFolder: rootFolder,
+      contextRootFolder: contextRootFolder,
+      resolutionRootFolder: resolutionRootFolder,
       workspace: workspace,
       optionsFile: optionsFile,
       packageConfigFile: packageConfigFile,
@@ -214,9 +318,12 @@ class _ContextLocator {
     required Folder rootFolder,
     required File? optionsFile,
     required _RootLocation location,
+    bool useWorkspaceDefaultOptions = true,
   }) {
-    if (location.workspace is WorkspaceWithDefaultAnalysisOptions) {
-      optionsFile ??= _findDefaultOptionsFile(
+    if (optionsFile == null &&
+        useWorkspaceDefaultOptions &&
+        location.workspace is WorkspaceWithDefaultAnalysisOptions) {
+      optionsFile = _findDefaultOptionsFile(
         location.workspace.partialSourceFactory,
       );
     }
@@ -228,13 +335,7 @@ class _ContextLocator {
       optionsFile: optionsFile,
       packagesFile: location.packageConfigFile,
     );
-    if (optionsFile != null) {
-      root.optionsFileMap.putIfAbsent(optionsFile, () => {}).add(rootFolder);
-    }
-
-    root.excludedGlobs.addAll(
-      _getExcludedGlobs(optionsFile, location.workspace.partialSourceFactory),
-    );
+    _addOptionsMapping(root, optionsFile, mappingFolder: rootFolder);
     _roots.add(root);
     return root;
   }
@@ -249,9 +350,9 @@ class _ContextLocator {
   /// non-`null`, then the given file is used even if there is a local version
   /// of the file.
   ///
-  /// For each directory within the given [folder] that isn't excluded by the
-  /// `containingRoot.excludedGlobs`, recursively searches for nested context
-  /// roots.
+  /// For each directory within the given [folder] that is neither in
+  /// [_excludedByClient] nor excluded by the `containingRoot.excludedGlobs`,
+  /// recursively searches for nested context roots.
   ///
   /// Returns true if the folder was contained in the root and did not create a
   /// new root, false if it did create a new root.
@@ -354,9 +455,10 @@ class _ContextLocator {
     return usedThisRoot;
   }
 
-  /// For each directory within the given [folder] that isn't excluded by the
-  /// `containingRoot.excludedGlobs`, recursively searches for nested context
-  /// roots and add them to the list of [_roots].
+  /// For each directory within the given [folder] that is neither in
+  /// [_excludedByClient] nor excluded by the `containingRoot.excludedGlobs`,
+  /// recursively searches for nested context roots and add them to the list
+  /// of [_roots].
   ///
   /// If either the [_defaultOptionsFile] or [_defaultPackageConfigFile] is
   /// non-`null`, then the given file will be used even if there is a local
@@ -398,7 +500,7 @@ class _ContextLocator {
 
     for (Resource child in children) {
       if (child is Folder) {
-        if (!isExcluded(child)) {
+        if (!_excludedByClient.contains(child) && !isExcluded(child)) {
           _createContextRoots(
             visited,
             child,
@@ -423,9 +525,15 @@ class _ContextLocator {
       }
     }
 
-    Packages packages = packageConfigFile != null
-        ? parsePackageConfigJsonFile(_resourceProvider, packageConfigFile)
-        : Packages.empty;
+    Packages? providedPackages = packageConfigFile != null
+        ? _packagesByFile.putIfAbsent(
+            packageConfigFile,
+            () => parsePackageConfigJsonFile(
+              _resourceProvider,
+              packageConfigFile,
+            ),
+          )
+        : null;
 
     var rootPath = folder.path;
 
@@ -435,10 +543,27 @@ class _ContextLocator {
         rootPath,
         lookForBuildFileSubstitutes: false,
       ),
-      PackageConfigWorkspace.find(_resourceProvider, packages, rootPath),
+      _packageConfigWorkspaceFindSession.find(
+        rootPath,
+        providedPackages: providedPackages,
+      ),
     );
     return workspace ??
-        BasicWorkspace.find(_resourceProvider, packages, rootPath);
+        BasicWorkspace.find(
+          _resourceProvider,
+          providedPackages ?? Packages.empty,
+          rootPath,
+        );
+  }
+
+  File? _effectiveOptionsFile(_RootLocation location) {
+    if (location.optionsFile case var optionsFile?) {
+      return optionsFile;
+    }
+    if (location.workspace is WorkspaceWithDefaultAnalysisOptions) {
+      return _findDefaultOptionsFile(location.workspace.partialSourceFactory);
+    }
+    return null;
   }
 
   File? _findBuildGnFile(Folder folder) {
@@ -477,32 +602,39 @@ class _ContextLocator {
     return null;
   }
 
-  /// Gets the set of enabled legacy plugins for [optionsFile], taking into
-  /// account any includes.
+  /// Gets an unmodifiable set of enabled legacy plugins for [optionsFile],
+  /// taking into account any includes.
   Set<String> _getEnabledLegacyPlugins(Workspace workspace, File? optionsFile) {
     if (optionsFile == null) {
       return const {};
     }
     try {
-      var options = _analysisOptionsParseSession
-          .parse(
-            sourceFactory: workspace.partialSourceFactory,
-            contextRoot: optionsFile.parent,
-            file: optionsFile,
-          )
-          .analysisOptions;
-
-      return options.enabledLegacyPluginNames.toSet();
+      var sourceFactory = workspace.partialSourceFactory;
+      var key = (sourceFactory, optionsFile);
+      return _legacyPlugins[key] ??= Set.unmodifiable(
+        _analysisOptionsParseSession
+            .parse(
+              sourceFactory: sourceFactory,
+              contextRoot: optionsFile.parent,
+              file: optionsFile,
+            )
+            .analysisOptions
+            .enabledLegacyPluginNames,
+      );
     } catch (_) {
       // No legacy plugins will be enabled if the file doesn't parse or cannot
       // be read for any reason.
-      return {};
+      return const {};
     }
   }
 
   /// Return a list containing the glob patterns used to exclude files from
   /// analysis by the given [optionsFile]. The list will be empty if there is no
   /// options file or if there are no exclusion patterns in the options file.
+  ///
+  /// All patterns are relative to the folder of [optionsFile], including
+  /// patterns from included files, not to their declaring files: shared
+  /// options describe files of the including package.
   List<LocatedGlob> _getExcludedGlobs(
     File? optionsFile,
     SourceFactory sourceFactory,
@@ -528,19 +660,18 @@ class _ContextLocator {
     var pathContext = _resourceProvider.pathContext;
     List<LocatedGlob> patterns = [];
 
-    void addGlob(Folder parent, List<String> components) {
+    void addGlob(List<String> components) {
       var pattern = posix.joinAll(components);
-      patterns.add(LocatedGlob(parent, Glob(pattern, context: pathContext)));
+      patterns.add(
+        LocatedGlob(optionsFile.parent, Glob(pattern, context: pathContext)),
+      );
     }
 
     for (var excluded in excludePatterns) {
       var excludedComponents = posix.split(excluded.pattern);
-      addGlob(excluded.declaringFile.parent, excludedComponents);
+      addGlob(excludedComponents);
       if (excludedComponents.length > 1 && excludedComponents.last == '**') {
-        addGlob(
-          excluded.declaringFile.parent,
-          excludedComponents..removeLast(),
-        );
+        addGlob(excludedComponents..removeLast());
       }
     }
 
@@ -558,6 +689,11 @@ class _ContextLocator {
     }
 
     return null;
+  }
+
+  bool _hasSameResolution(ContextRootImpl root, _RootLocation location) {
+    return root.packagesFile == location.packageConfigFile &&
+        _sameWorkspace(root.workspace, location.workspace);
   }
 
   /// Load the `workspace` paths from the pubspec file in the given [root].
@@ -688,9 +824,14 @@ class _ContextLocator {
         location: location,
       );
 
-      if (!root.isAnalyzed(folder.path)) {
-        root.included.add(folder);
+      // Included folders are sorted so that outer folders come first. So if
+      // the root already analyzes the folder, then the folder was already
+      // searched for nested context roots, as a part of another included
+      // folder. Searching it again would create duplicate context roots.
+      if (root.isAnalyzed(folder.path)) {
+        continue;
       }
+      root.included.add(folder);
 
       var rootEnabledLegacyPlugins = _getEnabledLegacyPlugins(
         location.workspace,
@@ -700,33 +841,8 @@ class _ContextLocator {
       _createContextRootsIn({}, folder, root, rootEnabledLegacyPlugins);
     }
 
-    for (File file in includedFiles) {
-      Folder parent = file.parent;
-
-      var location = _contextRootLocation(
-        parent,
-        defaultRootFolder: () => _fileSystemRoot(parent),
-      );
-
-      ContextRootImpl? root;
-      for (var existingRoot in _roots) {
-        if (existingRoot.root.isOrContains(file.path) &&
-            _matchRootWithLocation(existingRoot, location)) {
-          root = existingRoot;
-          break;
-        }
-      }
-
-      root ??= _createContextRoot(
-        rootFolder: location.rootFolder,
-        optionsFile: location.optionsFile,
-        location: location,
-      );
-
-      if (!root.isAnalyzed(file.path)) {
-        root.included.add(file);
-      }
-    }
+    _addIncludedFiles(includedFiles);
+    _recordExcludedByClient();
     return _roots;
   }
 
@@ -740,6 +856,97 @@ class _ContextLocator {
     if (second == null) return first;
     var pathContext = _resourceProvider.pathContext;
     return pathContext.isWithin(first.root, second.root) ? second : first;
+  }
+
+  /// Records each of [_excludedByClient] in every root of [_roots] that would
+  /// otherwise analyze it.
+  ///
+  /// This is a separate pass, instead of recording excluded folders when the
+  /// search reaches them, because the search sees only existing folders, but
+  /// the client can also exclude files, and paths that will be created later.
+  void _recordExcludedByClient() {
+    for (var resource in _excludedByClient) {
+      for (var root in _roots) {
+        if (root.isAnalyzed(resource.path)) {
+          root.excluded.add(resource);
+        }
+      }
+    }
+  }
+
+  /// Returns an existing or newly created context root for [folder].
+  ///
+  /// Searches [_roots] for a root that contains [folder], shares the same
+  /// workspace resolution semantics, and has identical enabled legacy plugins.
+  /// If none exists, creates a new root (partitioned at the resolution root, or
+  /// at the folder if legacy plugins are present) and adds it to [_roots].
+  ///
+  /// Also registers the path-local options mapping for [folder] on the root.
+  ContextRootImpl _rootForFolder(Folder folder) {
+    var location = _contextRootLocation(
+      folder,
+      defaultRootFolder: () => _fileSystemRoot(folder),
+    );
+    var optionsFile = _effectiveOptionsFile(location);
+    var enabledLegacyPlugins = _getEnabledLegacyPlugins(
+      location.workspace,
+      optionsFile,
+    );
+
+    ContextRootImpl? existingRoot;
+    for (var root in _roots) {
+      if (root.root.isOrContains(folder.path) &&
+          _hasSameResolution(root, location) &&
+          const SetEquality<String>().equals(
+            _getEnabledLegacyPlugins(root.workspace, root.optionsFile),
+            enabledLegacyPlugins,
+          )) {
+        existingRoot = root;
+        break;
+      }
+    }
+
+    // When reusing a context, use its root to determine whether these options
+    // apply to the whole context or only to a nested folder.
+    Folder rootFolder;
+    if (existingRoot != null) {
+      rootFolder = existingRoot.root;
+    } else if (enabledLegacyPlugins.isEmpty) {
+      rootFolder = location.resolutionRootFolder;
+    } else {
+      rootFolder = location.contextRootFolder;
+    }
+
+    var optionsApplyToWholeContext =
+        _defaultOptionsFile != null ||
+        (location.optionsFile == null &&
+            location.workspace is WorkspaceWithDefaultAnalysisOptions) ||
+        (optionsFile?.parent.isOrContains(rootFolder.path) ?? false);
+    var root = existingRoot;
+    root ??= _createContextRoot(
+      rootFolder: rootFolder,
+      optionsFile: optionsApplyToWholeContext ? optionsFile : null,
+      location: location,
+      useWorkspaceDefaultOptions: false,
+    );
+    _addOptionsMapping(
+      root,
+      optionsFile,
+      mappingFolder: optionsApplyToWholeContext ? root.root : null,
+    );
+    return root;
+  }
+
+  /// Returns whether [first] and [second] define the same workspace-wide
+  /// resolution semantics.
+  bool _sameWorkspace(Workspace first, Workspace second) {
+    if (first.runtimeType != second.runtimeType) return false;
+
+    // BasicWorkspace has no marker-defined configuration. Containment and the
+    // package-config comparison decide whether an existing context can be used.
+    if (first is BasicWorkspace) return true;
+
+    return first.root == second.root;
   }
 
   /// Sorts [includedFolders] into either pub workspace resolution or not.
@@ -840,10 +1047,9 @@ class _ContextLocator {
     // BasicWorkspace has no special meaning, so can be ignored.
     // Other workspaces have semantic meaning, so must match.
     var workspace = location.workspace;
-    if (workspace is! BasicWorkspace) {
-      if (existingRoot.workspace.root != workspace.root) {
-        return false;
-      }
+    if (workspace is! BasicWorkspace &&
+        existingRoot.workspace.root != workspace.root) {
+      return false;
     }
 
     return true;
@@ -851,13 +1057,25 @@ class _ContextLocator {
 }
 
 class _RootLocation {
-  final Folder rootFolder;
+  /// The context root selected from both resolution configuration and the
+  /// effective analysis options file.
+  ///
+  /// Unlike [resolutionRootFolder], this can be lowered to the options file's
+  /// directory. Directory includes use this root; explicitly included files
+  /// can share [resolutionRootFolder] when their options are path-local.
+  final Folder contextRootFolder;
+
+  /// The root selected by configuration that affects URI and package
+  /// resolution, without lowering it to the directory of an options file.
+  final Folder resolutionRootFolder;
+
   final Workspace workspace;
   final File? optionsFile;
   final File? packageConfigFile;
 
-  _RootLocation({
-    required this.rootFolder,
+  new({
+    required this.contextRootFolder,
+    required this.resolutionRootFolder,
     required this.workspace,
     required this.optionsFile,
     required this.packageConfigFile,

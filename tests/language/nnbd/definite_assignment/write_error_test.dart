@@ -615,6 +615,70 @@ void testDefinitelyAssignedWriteForms() {
   }
 }
 
+/// Test that a write that occurs inside the RHS of an assignment is taken into
+/// account when checking the assignment's own write.
+void testWritesInRhs(bool b) {
+  // Error: final, definitely assigned by RHS.
+  {
+    final int x;
+    x = (x = 3);
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+    // [cfe] Final variable 'x' might already be assigned at this point.
+  }
+
+  // Error: final, potentially assigned by RHS.
+  {
+    final int x;
+    x = b ? (x = 3) : 0;
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_LOCAL
+    // [cfe] Final variable 'x' might already be assigned at this point.
+  }
+
+  // Ok: RHS assigns a different final variable.
+  {
+    final int x;
+    final int y;
+    x = (y = 3);
+  }
+
+  // Error: late final, definitely assigned by RHS.
+  {
+    late final int x;
+    x = (x = 3);
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.LATE_FINAL_LOCAL_ALREADY_ASSIGNED
+    // [cfe] Late final variable 'x' definitely assigned.
+  }
+
+  // Ok: late final, only potentially assigned by RHS.
+  {
+    late final int x;
+    x = b ? (x = 3) : 0;
+  }
+
+  // Error: late final, compound assignment, definitely assigned by RHS.
+  {
+    late final int x;
+    if (b) x = 0;
+    x += (x = 3);
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.LATE_FINAL_LOCAL_ALREADY_ASSIGNED
+    // [cfe] Late final variable 'x' definitely assigned.
+  }
+
+  // Error: late final, if-null assignment, definitely assigned by RHS.
+  {
+    late final int? x;
+    if (b) x = 0;
+    x ??= (x = 3);
+    // [error column 5, length 1]
+    // [analyzer] COMPILE_TIME_ERROR.LATE_FINAL_LOCAL_ALREADY_ASSIGNED
+    // [cfe] Late final variable 'x' definitely assigned.
+  }
+}
+
 void main() {
   testDefinitelyUnassignedWrites<int>(0);
   testPotentiallyUnassignedWrites<int>(true, 0);
@@ -622,4 +686,5 @@ void main() {
   testDefinitelyUnassignedWriteForms();
   testPotentiallyUnassignedWriteForms(true);
   testDefinitelyAssignedWriteForms();
+  testWritesInRhs(true);
 }

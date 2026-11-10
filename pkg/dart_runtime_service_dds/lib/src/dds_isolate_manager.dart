@@ -3,27 +3,642 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:dart_runtime_service/dart_runtime_service.dart';
+import 'package:dds_service_extensions/dds_service_extensions.dart';
+import 'package:json_rpc_2/error_code.dart' as json_rpc_error;
+import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
+import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart' as vm;
 
-import 'dds_backend.dart';
+/// Bitmasks for configuring pause event types that require client resume
+/// permissions or user approval before resuming execution.
+abstract final class PauseTypeMasks {
+  /// Mask for isolates paused on startup before executing user code.
+  static const pauseOnStartMask = 1 << 0;
 
-/// An [IsolateManager] implementation for DDS.
+  /// Mask for isolates paused after an isolate reload or post-request.
+  static const pauseOnReloadMask = 1 << 1;
+
+  /// Mask for isolates paused on exit before terminating.
+  static const pauseOnExitMask = 1 << 2;
+}
+
+/// Tracks the active [Client] instances associated with a given client name and
+/// their aggregated resume [permissionsMask].
+final class ClientResumePermissions {
+  /// All active client connections registered under this client name.
+  final clients = <Client>[];
+
+  /// Bitmask composed of [PauseTypeMasks] specifying pause types requiring
+  /// approval from this named client group.
+  int permissionsMask = 0;
+}
+
+/// Represents the lifecycle and pause state of an isolate tracked by DDS.
+///
+/// Coordinates multi-client resume policies and tracks approvals granted by
+/// named clients before the isolate is permitted to resume execution on the VM.
+final class DdsRunningIsolate {
+  DdsRunningIsolate({
+    required this.id,
+    required this.isolateManager,
+    required this.name,
+  }) : _state = IsolateState.unknown;
+
+  /// The unique identifier for this isolate.
+  final String id;
+
+  /// The parent [DdsIsolateManager] tracking this isolate.
+  final DdsIsolateManager isolateManager;
+
+  /// The debug name of this isolate.
+  final String name;
+
+  late final _logger = Logger('Isolate ($name)');
+  final _resumeApprovalsByName = <String>{};
+
+  /// The current lifecycle and execution state of this isolate.
+  IsolateState get state => _state;
+  IsolateState _state;
+
+  /// Shuts down isolate tracking when the isolate exits.
+  void shutdown() {
+    _logger.info('Shutting down.');
+  }
+
+  /// Transitions isolate state to [IsolateState.pauseExit].
+  void pausedOnExit() {
+    if (_state != IsolateState.unknown) {
+      clearResumeApprovals();
+    }
+    _stateChange(IsolateState.pauseExit);
+  }
+
+  /// Transitions isolate state to [IsolateState.pauseStart].
+  void pausedOnStart() => _stateChange(IsolateState.pauseStart);
+
+  /// Transitions isolate state to [IsolateState.pausePostRequest].
+  void pausedPostRequest() {
+    if (_state != IsolateState.unknown) {
+      clearResumeApprovals();
+    }
+    _stateChange(IsolateState.pausePostRequest);
+  }
+
+  /// Transitions isolate state to [IsolateState.running] and clears pending
+  /// resume approvals.
+  void resumed() {
+    clearResumeApprovals();
+    running();
+  }
+
+  /// Transitions isolate state to [IsolateState.running].
+  void running() => _stateChange(IsolateState.running);
+
+  /// Transitions isolate state to [IsolateState.start].
+  void started() => _stateChange(IsolateState.start);
+
+  /// Clears all pending resume approvals granted by clients for this isolate.
+  void clearResumeApprovals() => _resumeApprovalsByName.clear();
+
+  void _stateChange(IsolateState updated) {
+    _logger.info('${_state.name} => ${updated.name}');
+    _state = updated;
+  }
+
+  /// Evaluates whether this isolate meets all requirements to resume execution.
+  ///
+  /// Checks whether:
+  /// 1. The isolate is currently in a paused state that requires approval.
+  /// 2. User permission is not required (e.g. from VM flags
+  ///    `--pause-isolates-on-start` or `requireUserPermissionToResume`).
+  /// 3. All named client groups registered via `requirePermissionToResume` have
+  ///    previously sent `readyToResume` (stored in [_resumeApprovalsByName]) or
+  ///    [resumingClient] is currently issuing approval (recorded unless already
+  ///    in [IsolateState.running]).
+  /// 4. At least one client has approved resuming.
+  bool shouldResume({Client? resumingClient}) {
+    if (resumingClient != null && _state != IsolateState.running) {
+      _resumeApprovalsByName.add(resumingClient.name);
+    }
+
+    final pauseTypeMask = switch (_state) {
+      IsolateState.pauseStart => PauseTypeMasks.pauseOnStartMask,
+      IsolateState.pauseExit => PauseTypeMasks.pauseOnExitMask,
+      IsolateState.pausePostRequest => PauseTypeMasks.pauseOnReloadMask,
+      _ => 0,
+    };
+    // `readyToResume` can be called in any isolate state. A zero mask means
+    // the isolate is not in a DDS-managed pause (`unknown`, `start`,
+    // `running`, or paused at a debugger breakpoint or exception): returning
+    // `false` avoids sending a premature or unintended `resume` to the VM
+    // (which would resume breakpoint-paused isolates or cancel/fail a pending
+    // start pause) while keeping any early startup approval recorded above
+    // until `PauseStart` arrives.
+    if (pauseTypeMask == 0) return false;
+
+    if ((isolateManager.requireUserPermissionToResumeMask & pauseTypeMask) !=
+        0) {
+      return false;
+    }
+
+    final permissions = isolateManager.clientResumePermissions;
+    for (final MapEntry(key: name, value: perm) in permissions.entries) {
+      if ((perm.permissionsMask & pauseTypeMask) != 0) {
+        final clientApproved = _resumeApprovalsByName.contains(name);
+        if (!clientApproved) {
+          return false;
+        }
+      }
+    }
+
+    // We require at least a single client to resume, even if that client
+    // doesn't require resume approval.
+    return _resumeApprovalsByName.isNotEmpty;
+  }
+
+  @override
+  String toString() => 'DdsRunningIsolate(name: $name id: $id)';
+}
+
+final _logger = Logger('DdsIsolateManager');
+
+/// An [IsolateManager] implementation for DDS that coordinates isolate
+/// lifecycle events and enforces multi-client resume permissions across
+/// connected tooling.
 final class DdsIsolateManager extends IsolateManager {
-  /// Creates a new [DdsIsolateManager] for [backend] using [vmServiceClient].
-  DdsIsolateManager({required this.backend, required this.vmServiceClient});
+  DdsIsolateManager({required this.vmServiceClient});
 
-  /// The [DartRuntimeServiceDdsBackend] associated with this isolate manager.
-  final DartRuntimeServiceDdsBackend backend;
+  static const _kDefaultTimeRange = -1;
+  static const _kTimeExtentMicros = 'timeExtentMicros';
+  static const _kTimeOriginMicros = 'timeOriginMicros';
 
-  /// The [vm.VmService] client connection to the target VM Service.
+  /// Client connection to the target VM Service.
   final vm.VmService vmServiceClient;
 
-  /// Initializes isolate tracking for the target VM Service.
-  Future<void> initializeIsolates() async {
-    // No-op for now.
+  /// Map of isolate IDs to active [DdsRunningIsolate] instances.
+  final ddsIsolates = <String, DdsRunningIsolate>{};
+
+  /// Registered resume permissions grouped by client name.
+  final clientResumePermissions = <String, ClientResumePermissions>{};
+
+  /// Serializes isolate state transitions and resume operations.
+  final _mutex = Mutex();
+
+  /// Bitmask composed of [PauseTypeMasks] specifying pause types requiring
+  /// user resume permission.
+  int requireUserPermissionToResumeMask = 0;
+
+  DdsRunningIsolate _isolateFor(String id, String? name) =>
+      ddsIsolates.putIfAbsent(
+        id,
+        () => DdsRunningIsolate(id: id, isolateManager: this, name: name ?? id),
+      );
+
+  Future<void> _maybeResumeIsolate(DdsRunningIsolate isolate) async {
+    if (!isolate.shouldResume()) return;
+    try {
+      await sendResumeRequest(isolate: isolate);
+    } on vm.RPCError catch (e, st) {
+      _logger.fine(
+        'Failed to automatically resume isolate ${isolate.id}',
+        e,
+        st,
+      );
+    } on Object catch (e, st) {
+      if (e is! StateError) {
+        _logger.warning(
+          'Failed to automatically resume isolate ${isolate.id}',
+          e,
+          st,
+        );
+      }
+    }
   }
+
+  /// Initializes isolate tracking for all existing isolates in the target VM.
+  ///
+  /// Fetches the current VM isolate list, queries their initial pause states
+  /// without blocking initialization on unreachable isolates, and inspects VM
+  /// flags to determine startup pause policies.
+  Future<void> initializeIsolates() async {
+    await _determineRequireUserPermissionToResumeFromFlags();
+
+    try {
+      final vmData = await vmServiceClient.getVM();
+      for (final isolateRef in vmData.isolates ?? const <vm.IsolateRef>[]) {
+        if (isolateRef case vm.IsolateRef(
+          id: final id?,
+          :final name,
+        ) when id.isNotEmpty) {
+          final isolate = _isolateFor(id, name);
+          // The calls to `getIsolate` are intentionally unawaited as it's
+          // possible for the isolate to be in a state where it is unable to
+          // process service messages, potentially indefinitely. For example,
+          // an isolate that invoked FFI code will be blocked until control is
+          // returned from native code.
+          //
+          // See b/323386606 for details.
+          unawaited(
+            vmServiceClient
+                .getIsolate(id)
+                .then(
+                  (iso) => _mutex.runGuarded(() async {
+                    if (isolate.state != IsolateState.unknown) {
+                      return;
+                    }
+                    switch (iso.pauseEvent?.kind) {
+                      case vm.EventKind.kPauseExit:
+                        isolate.pausedOnExit();
+                        await _maybeResumeIsolate(isolate);
+                      case vm.EventKind.kPausePostRequest:
+                        isolate.pausedPostRequest();
+                        await _maybeResumeIsolate(isolate);
+                      case vm.EventKind.kPauseStart:
+                        isolate.pausedOnStart();
+                        await _maybeResumeIsolate(isolate);
+                      case vm.EventKind.kResume:
+                        isolate.resumed();
+                      case vm.EventKind.kNone || null:
+                        // `getIsolate` reports `None` when the isolate is not
+                        // yet runnable or a `PauseStart` is still pending
+                        // (`null` never occurs on the Dart VM), so move it to
+                        // `start` to preserve early `readyToResume` approvals.
+                        isolate.started();
+                      default:
+                        // Covers debugger pauses (`PauseBreakpoint`,
+                        // `PauseException`, `PauseInterrupted`) after user
+                        // code has started running, which DDS does not gate.
+                        isolate.running();
+                    }
+                  }),
+                )
+                .catchError((Object e, StackTrace st) {
+                  // Isolates can terminate between getVM and getIsolate,
+                  // resulting in an RPCError or SentinelException.
+                  if (e is! vm.RPCError && e is! vm.SentinelException) {
+                    _logger.warning(
+                      'Failed to fetch initial state for isolate $id',
+                      e,
+                      st,
+                    );
+                  }
+                }),
+          );
+        }
+      }
+    } on vm.RPCError catch (e, st) {
+      _logger.warning('Failed to fetch VM isolate list', e, st);
+    }
+  }
+
+  Future<void> _determineRequireUserPermissionToResumeFromFlags() async {
+    try {
+      final flagList = await vmServiceClient.getFlagList();
+      bool? pauseOnStart;
+      bool? pauseOnExit;
+      for (final flag in flagList.flags ?? const <vm.Flag>[]) {
+        switch (flag) {
+          case vm.Flag(name: 'pause_isolates_on_start', valueAsString: 'true'):
+            pauseOnStart = true;
+          case vm.Flag(name: 'pause_isolates_on_exit', valueAsString: 'true'):
+            pauseOnExit = true;
+        }
+        if (pauseOnStart != null && pauseOnExit != null) break;
+      }
+      var mask = 0;
+      if (pauseOnStart == true) mask |= PauseTypeMasks.pauseOnStartMask;
+      if (pauseOnExit == true) mask |= PauseTypeMasks.pauseOnExitMask;
+      requireUserPermissionToResumeMask = mask;
+    } on vm.RPCError catch (e, st) {
+      _logger.warning('Failed to query VM flags for pause policies', e, st);
+    }
+  }
+
+  /// Handles incoming isolate lifecycle and pause events from the target VM's
+  /// `Isolate` and `Debug` streams.
+  ///
+  /// Tracks isolate startup, exit, pause states, and resume events, updating
+  /// the corresponding [DdsRunningIsolate] state, evaluating pending approvals
+  /// on pause entry (after clearing stale approvals on `PauseExit` and
+  /// `PausePostRequest`), and clearing approvals when an isolate resumes. State
+  /// transitions are queued via [_mutex] in FIFO order with resume operations.
+  void handleIsolateEvent(vm.Event event) {
+    if (event case vm.Event(
+      kind: final kind?,
+      isolate: vm.IsolateRef(id: final id?, :final name),
+    ) when id.isNotEmpty && kind != vm.EventKind.kIsolateReload) {
+      unawaited(
+        _mutex.runGuarded(() async {
+          switch (kind) {
+            case vm.EventKind.kIsolateStart:
+              _isolateFor(id, name).started();
+            case vm.EventKind.kIsolateExit:
+              ddsIsolates.remove(id)?.shutdown();
+            case vm.EventKind.kPauseExit:
+              if (ddsIsolates[id] case final isolate?) {
+                isolate.pausedOnExit();
+                await _maybeResumeIsolate(isolate);
+              }
+            case vm.EventKind.kPausePostRequest:
+              if (ddsIsolates[id] case final isolate?) {
+                isolate.pausedPostRequest();
+                await _maybeResumeIsolate(isolate);
+              }
+            case vm.EventKind.kPauseStart:
+              if (ddsIsolates[id] case final isolate?) {
+                isolate.pausedOnStart();
+                await _maybeResumeIsolate(isolate);
+              }
+            case vm.EventKind.kResume:
+              ddsIsolates[id]?.resumed();
+          }
+        }),
+      );
+    }
+  }
+
+  int _calculatePermissionsMask(json_rpc.Parameters parameters) {
+    var mask = 0;
+    if (parameters['onPauseStart'].asBoolOr(false)) {
+      mask |= PauseTypeMasks.pauseOnStartMask;
+    }
+    if (parameters['onPauseReload'].asBoolOr(false)) {
+      mask |= PauseTypeMasks.pauseOnReloadMask;
+    }
+    if (parameters['onPauseExit'].asBoolOr(false)) {
+      mask |= PauseTypeMasks.pauseOnExitMask;
+    }
+    return mask;
+  }
+
+  /// Handles the `requirePermissionToResume` custom DDS RPC.
+  ///
+  /// Registers resume requirements for a named [client]. When an isolate enters
+  /// a pause state matching the configured permissions (`onPauseStart`,
+  /// `onPauseReload`, `onPauseExit`), it will not resume until all clients with
+  /// registered permissions have signaled readiness via [readyToResume] or
+  /// [resume].
+  ///
+  /// Throws a [json_rpc.RpcException] with [json_rpc_error.INVALID_REQUEST] if
+  /// the client has not set a client name.
+  Future<RpcResponse> requirePermissionToResume(
+    json_rpc.Parameters parameters,
+    Client client,
+  ) async {
+    final name = client.name;
+    if (name.isEmpty) {
+      throw json_rpc.RpcException(
+        json_rpc_error.INVALID_REQUEST,
+        'Cannot set resume permissions for unnamed client',
+      );
+    }
+    final mask = _calculatePermissionsMask(parameters);
+    final entry = clientResumePermissions.putIfAbsent(
+      name,
+      ClientResumePermissions.new,
+    );
+    if (!entry.clients.contains(client)) {
+      entry.clients.add(client);
+    }
+    entry.permissionsMask = mask;
+
+    // Check to see if any isolates should resume as a result of the
+    // resume permissions being updated.
+    await maybeResumeIsolates();
+
+    return vm.Success().toJson();
+  }
+
+  /// Handles the `requireUserPermissionToResume` custom DDS RPC.
+  ///
+  /// Configures whether DDS requires an explicit user resume command before
+  /// resuming isolates paused on start (`onPauseStart`) or exit
+  /// (`onPauseExit`).
+  Future<RpcResponse> requireUserPermissionToResume(
+    json_rpc.Parameters parameters,
+    Client client,
+  ) async {
+    requireUserPermissionToResumeMask = _calculatePermissionsMask(parameters);
+
+    // Check if isolates have been waiting for a user resume and resume any
+    // isolates that no longer need to wait for a user resume.
+    await maybeResumeIsolates();
+
+    return vm.Success().toJson();
+  }
+
+  /// Handles the `getRequireUserPermissionToResume` custom DDS RPC.
+  ///
+  /// Returns a [ResumePermissionsRequired] response describing whether user
+  /// approval is currently required to resume isolates paused on start or exit.
+  RpcResponse getRequireUserPermissionToResume(
+    json_rpc.Parameters parameters,
+    Client client,
+  ) => ResumePermissionsRequired(
+    onPauseExit:
+        (requireUserPermissionToResumeMask & PauseTypeMasks.pauseOnExitMask) !=
+        0,
+    onPauseStart:
+        (requireUserPermissionToResumeMask & PauseTypeMasks.pauseOnStartMask) !=
+        0,
+  ).toJson();
+
+  /// Handles the `getPerfettoVMTimelineWithCpuSamples` custom DDS RPC.
+  ///
+  /// Retrieves the VM's Perfetto timeline trace via
+  /// [vm.VmService.getPerfettoVMTimeline] and appends Perfetto CPU sample
+  /// trace packets collected via [vm.VmService.getPerfettoCpuSamples] from all
+  /// tracked isolates.
+  Future<RpcResponse> getPerfettoVMTimelineWithCpuSamples(
+    json_rpc.Parameters parameters,
+  ) async {
+    var timeOriginMicros = _kDefaultTimeRange;
+    var timeExtentMicros = _kDefaultTimeRange;
+    if (parameters.value != null) {
+      final timeOriginParam = parameters[_kTimeOriginMicros];
+      if (timeOriginParam.valueOr(null) != null) {
+        timeOriginMicros = timeOriginParam.asInt;
+      }
+      final timeExtentParam = parameters[_kTimeExtentMicros];
+      if (timeExtentParam.valueOr(null) != null) {
+        timeExtentMicros = timeExtentParam.asInt;
+      }
+    }
+
+    final timeline = await vmServiceClient.getPerfettoVMTimeline(
+      timeOriginMicros: timeOriginMicros,
+      timeExtentMicros: timeExtentMicros,
+    );
+
+    final combinedBytes = BytesBuilder(copy: false)
+      ..add(base64Decode(timeline.trace ?? ''));
+
+    for (final isolateId in ddsIsolates.keys.toList()) {
+      try {
+        final samplesResult = await vmServiceClient.getPerfettoCpuSamples(
+          isolateId,
+          timeOriginMicros: timeOriginMicros,
+          timeExtentMicros: timeExtentMicros,
+        );
+        if (samplesResult.samples case final String samples
+            when samples.isNotEmpty) {
+          combinedBytes.add(base64Decode(samples));
+        }
+      } on vm.RPCError catch (e, st) {
+        // Since this RPC aggregates CPU samples across all tracked isolates
+        // into the VM-wide timeline trace, skip isolates that are not yet
+        // runnable or cannot be sampled so the timeline and remaining
+        // isolates' samples are still returned.
+        _logger.fine('Skipping CPU samples for $isolateId', e, st);
+      } on vm.SentinelException catch (e, st) {
+        // Skip isolates that exited before or during `getPerfettoCpuSamples`
+        // so the timeline and remaining isolates' samples are still returned.
+        _logger.fine('Skipping CPU samples for exited $isolateId', e, st);
+      }
+    }
+    timeline.trace = base64Encode(combinedBytes.takeBytes());
+    return timeline.toJson();
+  }
+
+  static final RpcResponse _collectedSentinel = Map.unmodifiable(
+    vm.Sentinel(
+      kind: vm.SentinelKind.kCollected,
+      valueAsString: '<collected>',
+    ).toJson(),
+  );
+
+  /// Handles the `readyToResume` custom DDS RPC.
+  ///
+  /// Signals that the calling [client] approves resuming the isolate specified
+  /// by `isolateId`. If the isolate has not yet reached `PauseStart` (i.e. is
+  /// in [IsolateState.unknown] or [IsolateState.start]), the client's approval
+  /// is recorded and preserved until `PauseStart` arrives. If the isolate is in
+  /// a DDS-managed pause state and all required clients and user permissions
+  /// have granted approval, forwards the resume request to the target VM.
+  ///
+  /// Returns a collected [vm.Sentinel] if `isolateId` no longer exists.
+  Future<RpcResponse> readyToResume(
+    json_rpc.Parameters parameters,
+    Client client,
+  ) => _mutex.runGuarded(() async {
+    final isolate = ddsIsolates[parameters['isolateId'].asString];
+    if (isolate == null) {
+      return _collectedSentinel;
+    }
+    if (isolate.shouldResume(resumingClient: client)) {
+      return await sendResumeRequest(isolate: isolate, parameters: parameters);
+    }
+    return vm.Success().toJson();
+  });
+
+  /// Handles the VM Service `resume` RPC.
+  ///
+  /// Invocations of `resume` are considered to be resume requests made by the
+  /// user and are treated as a force resume, bypassing any resume permissions
+  /// set by tooling.
+  ///
+  /// Returns a collected [vm.Sentinel] if `isolateId` no longer exists.
+  Future<RpcResponse> resume(json_rpc.Parameters parameters, Client client) =>
+      _mutex.runGuarded(() async {
+        final isolate = ddsIsolates[parameters['isolateId'].asString];
+        if (isolate == null) {
+          return _collectedSentinel;
+        }
+        return await sendResumeRequest(
+          isolate: isolate,
+          parameters: parameters,
+        );
+      });
+
+  /// Clears resume approvals on [isolate] and sends the `resume` request to
+  /// the target VM Service client with optional `step` and `frameIndex`
+  /// parameters.
+  ///
+  /// Returns a [vm.Sentinel] JSON map if the isolate exited before the request
+  /// completed.
+  Future<RpcResponse> sendResumeRequest({
+    required DdsRunningIsolate isolate,
+    json_rpc.Parameters? parameters,
+  }) async {
+    isolate.clearResumeApprovals();
+    const invalidFrameIndex = -1;
+    final step = switch (parameters?['step']) {
+      final s? when s.exists => s.asString,
+      _ => null,
+    };
+    final frameIndex = switch (parameters?['frameIndex']) {
+      final fi? when fi.exists => fi.asInt,
+      _ => null,
+    };
+    try {
+      final response = await vmServiceClient.resume(
+        isolate.id,
+        frameIndex: frameIndex == invalidFrameIndex ? null : frameIndex,
+        step: step,
+      );
+      return response.json ?? response.toJson();
+    } on vm.SentinelException catch (e) {
+      return e.sentinel.toJson();
+    }
+  }
+
+  /// Called when a new [client] connects to track its resume permissions.
+  void handleClientAdded(Client client) {
+    clientResumePermissions
+        .putIfAbsent(client.name, ClientResumePermissions.new)
+        .clients
+        .add(client);
+  }
+
+  /// Called when a [client]'s name changes to update resume permissions and
+  /// approvals.
+  void handleClientNameChanged(
+    Client client, {
+    required String oldName,
+    required String newName,
+  }) {
+    _removeClientFromPermissions(client, oldName);
+    clientResumePermissions
+        .putIfAbsent(newName, ClientResumePermissions.new)
+        .clients
+        .add(client);
+  }
+
+  /// Called when a [client] disconnects to remove its permissions and resume
+  /// any isolates that were blocked solely waiting on this client.
+  void handleClientDisconnected(Client client) {
+    _removeClientFromPermissions(client, client.name);
+  }
+
+  void _removeClientFromPermissions(Client client, String name) {
+    if (clientResumePermissions[name] case final perm?) {
+      perm.clients.remove(client);
+      if (perm.clients.isEmpty) {
+        clientResumePermissions.remove(name);
+        for (final isolate in ddsIsolates.values) {
+          isolate._resumeApprovalsByName.remove(name);
+        }
+        unawaited(maybeResumeIsolates());
+      }
+    } else {
+      for (final isolate in ddsIsolates.values) {
+        isolate._resumeApprovalsByName.remove(name);
+      }
+      unawaited(maybeResumeIsolates());
+    }
+  }
+
+  /// Checks all tracked isolates and forwards a `resume` request to the VM
+  /// for any paused isolate that is now eligible to resume.
+  Future<void> maybeResumeIsolates() => _mutex.runGuarded(() async {
+    for (final isolate in ddsIsolates.values.toList()) {
+      await _maybeResumeIsolate(isolate);
+    }
+  });
 
   @override
   Future<RpcResponse> sendToIsolate({

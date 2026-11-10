@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualDataMap, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -42,7 +42,7 @@ main(List<String> args) {
 }
 
 class ConstantsDataComputer extends DataComputer<String> {
-  const ConstantsDataComputer();
+  const new();
 
   @override
   DataInterpreter<String> get dataValidator => const StringDataInterpreter();
@@ -71,7 +71,7 @@ class ConstantsDataComputer extends DataComputer<String> {
   void computeUnitData(
     TestingData testingData,
     CompilationUnit unit,
-    Map<Id, ActualData<String>> actualMap,
+    ActualDataMap<String> actualMap,
   ) {
     var unitUri = unit.declaredFragment!.source.uri;
     ConstantsDataExtractor(unitUri, actualMap).run(unit);
@@ -79,18 +79,22 @@ class ConstantsDataComputer extends DataComputer<String> {
 }
 
 class ConstantsDataExtractor extends AstDataExtractor<String> {
-  ConstantsDataExtractor(super.uri, super.actualMap);
+  new(super.uri, super.actualMap);
 
   @override
   String? computeNodeValue(Id id, AstNode node) {
-    if (node is Identifier) {
-      var element = node.element;
-      if (element is PropertyAccessorElement && element.isOriginVariable) {
-        var variable = element.variable;
-        if (variable.isOriginDeclaration && variable.isConst) {
-          var value = variable.computeConstantValue();
-          if (value != null) return _stringify(value);
-        }
+    var element = switch (node) {
+      UnqualifiedNameExpression(
+        resolution: NamedReadResolutionWithElement(:var element),
+      ) =>
+        element,
+      _ => null,
+    };
+    if (element is PropertyAccessorElement && element.isOriginVariable) {
+      var variable = element.variable;
+      if (variable.isOriginDeclaration && variable.isConst) {
+        var value = variable.computeConstantValue();
+        if (value != null) return _stringify(value);
       }
     }
     return null;

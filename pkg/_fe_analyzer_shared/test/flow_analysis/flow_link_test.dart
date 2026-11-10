@@ -59,7 +59,7 @@ main() {
       var reader = _FlowLinkReader();
       var diff = reader.diff(null, null);
       check(diff.ancestor).identicalTo(null);
-      check(diff.entries).isEmpty();
+      check(diff.entries).isEmpty;
     });
 
     test('trivial non-null', () {
@@ -67,7 +67,7 @@ main() {
       var reader = _FlowLinkReader();
       var diff = reader.diff(a, a);
       check(diff.ancestor).identicalTo(a);
-      check(diff.entries).isEmpty();
+      check(diff.entries).isEmpty;
     });
 
     test('finds common ancestor', () {
@@ -200,7 +200,7 @@ class _FlowLinkReader extends FlowLinkReader<_Link> {}
 base class _Link extends FlowLink<_Link> {
   final String debugName;
 
-  _Link(
+  new(
     this.debugName, {
     required super.key,
     required super.previous,
@@ -215,7 +215,7 @@ extension on List<FlowLinkDiffEntry<_Link>> {
   Map<int, FlowLinkDiffEntry<_Link>> toMap() {
     Map<int, FlowLinkDiffEntry<_Link>> result = {};
     for (var entry in this) {
-      check(result[entry.key]).isNull();
+      check(result[entry.key]).isNull;
       result[entry.key] = entry;
     }
     return result;

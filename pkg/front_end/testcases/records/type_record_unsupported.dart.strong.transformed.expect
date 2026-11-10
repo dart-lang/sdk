@@ -4,11 +4,11 @@ library;
 //
 // pkg/front_end/testcases/records/type_record_unsupported.dart:59:16: Error: 'Record' is restricted and can't be extended or implemented.
 // abstract class A1 extends Record {} // Error.
-//                ^
+//                ^^
 //
 // pkg/front_end/testcases/records/type_record_unsupported.dart:61:16: Error: 'Record' is restricted and can't be extended or implemented.
 // abstract class A2 implements Record {} // Error.
-//                ^
+//                ^^
 //
 // pkg/front_end/testcases/records/type_record_unsupported.dart:63:16: Error: 'Record' is restricted and can't be extended or implemented.
 // abstract class A3 with Record {} // Error.
@@ -16,14 +16,14 @@ library;
 //
 // pkg/front_end/testcases/records/type_record_unsupported.dart:71:16: Error: 'Record' is restricted and can't be extended or implemented.
 // abstract class A7 extends FromSupportedR {} // Error.
-//                ^
+//                ^^
 // pkg/front_end/testcases/records/type_record_unsupported_lib.dart:7:9: Context: The issue arises via this type alias.
 // typedef FromSupportedR = Record;
 //         ^
 //
 // pkg/front_end/testcases/records/type_record_unsupported.dart:75:16: Error: 'Record' is restricted and can't be extended or implemented.
 // abstract class A9 extends FromSupportedRR {} // Error.
-//                ^
+//                ^^
 // pkg/front_end/testcases/records/type_record_unsupported_lib.dart:11:9: Context: The issue arises via this type alias.
 // typedef FromSupportedRR = FromSupportedR;
 //         ^

@@ -154,7 +154,7 @@ DelayedDefaultValueCloner buildConstructorTearOffProcedure({
 /// The [declarationConstructor] is the origin constructor and
 /// [implementationConstructor] is the augmentation constructor, if augmented,
 /// otherwise it is the [declarationConstructor].
-DelayedDefaultValueCloner buildTypedefTearOffProcedure({
+void buildTypedefTearOffProcedure({
   required Procedure tearOff,
   required Member declarationConstructor,
   required Member implementationConstructor,
@@ -212,7 +212,7 @@ DelayedDefaultValueCloner buildTypedefTearOffProcedure({
       );
     }
   }
-  DelayedDefaultValueCloner delayedDefaultValueCloner = _createParameters(
+  _createParameters(
     tearOff,
     implementationConstructor,
     function,
@@ -223,7 +223,6 @@ DelayedDefaultValueCloner buildTypedefTearOffProcedure({
   _createTearOffBody(tearOff, declarationConstructor, arguments);
   tearOff.function.fileOffset = tearOff.fileOffset;
   tearOff.function.fileEndOffset = tearOff.fileOffset;
-  return delayedDefaultValueCloner;
 }
 
 /// Creates the parameters for the redirecting factory [tearOff] based on the
@@ -259,14 +258,14 @@ FreshTypeParameters buildRedirectingFactoryTearOffProcedureParameters({
   return freshTypeParameters;
 }
 
-/// Creates the body for the redirecting factory [tearOff] with the [target]
-/// constructor and [typeArguments].
+/// Creates the body for the redirecting factory [tearOff] with the target
+/// [constructor] and [typeArguments].
 ///
 /// Returns the [DelayedDefaultValueCloner] object need to perform default value
 /// computation.
 DelayedDefaultValueCloner buildRedirectingFactoryTearOffBody(
   Procedure tearOff,
-  Member target,
+  Member constructor,
   List<DartType> typeArguments,
   FreshTypeParameters freshTypeParameters,
   LibraryBuilder libraryBuilder,
@@ -274,10 +273,10 @@ DelayedDefaultValueCloner buildRedirectingFactoryTearOffBody(
   int fileOffset = tearOff.fileOffset;
 
   List<TypeParameter> typeParameters;
-  if (target is Constructor) {
-    typeParameters = target.enclosingClass.typeParameters;
+  if (constructor is Constructor) {
+    typeParameters = constructor.enclosingClass.typeParameters;
   } else {
-    typeParameters = target.function!.typeParameters;
+    typeParameters = constructor.function!.typeParameters;
   }
 
   if (!freshTypeParameters.substitution.isEmpty) {
@@ -300,11 +299,11 @@ DelayedDefaultValueCloner buildRedirectingFactoryTearOffBody(
     }
   }
   Arguments arguments = _createArguments(tearOff, typeArguments, fileOffset);
-  _createTearOffBody(tearOff, target, arguments);
+  _createTearOffBody(tearOff, constructor, arguments);
   return new DelayedDefaultValueCloner(
-    target,
-    tearOff,
-    identicalSignatures: false,
+    source: constructor,
+    target: tearOff,
+    parameterMapping: const DirectParameterMapping(),
     libraryBuilder: libraryBuilder,
   );
 }
@@ -343,12 +342,15 @@ FreshTypeParameters _createFreshTypeParameters(
   FreshTypeParameters freshTypeParameters;
   if (originalTypeParameters.isNotEmpty) {
     freshTypeParameters = getFreshTypeParameters(originalTypeParameters);
-    List<TypeParameter> typeParameters =
-        freshTypeParameters.freshTypeParameters;
-    newFunctionNode.typeParameters.addAll(typeParameters);
+    TypeParameterList typeParameters = freshTypeParameters.freshTypeParameters;
+    newFunctionNode.typeParameters = typeParameters;
     setParents(typeParameters, newFunctionNode);
   } else {
-    freshTypeParameters = new FreshTypeParameters([], [], Substitution.empty);
+    freshTypeParameters = new FreshTypeParameters(
+      TypeParameterList.empty,
+      DartTypeList.empty,
+      Substitution.empty,
+    );
   }
   return freshTypeParameters;
 }
@@ -390,21 +392,18 @@ DelayedDefaultValueCloner _createParameters(
     );
   }
 
-  for (PositionalParameter constructorParameter
-      in function.positionalParameters) {
-    PositionalParameter tearOffParameter = createTearOffPositionalParameter(
-      constructorParameter,
-    );
-    tearOff.function.positionalParameters.add(tearOffParameter);
-    tearOffParameter.parent = tearOff.function;
-  }
-  for (NamedParameter constructorParameter in function.namedParameters) {
-    NamedParameter tearOffParameter = createTearOffNamedParameter(
-      constructorParameter,
-    );
-    tearOff.function.namedParameters.add(tearOffParameter);
-    tearOffParameter.parent = tearOff.function;
-  }
+  tearOff.function.positionalParameters = PositionalParameterList.mapped(
+    function.positionalParameters,
+    (PositionalParameter constructorParameter) =>
+        createTearOffPositionalParameter(constructorParameter)
+          ..parent = tearOff.function,
+  );
+  tearOff.function.namedParameters = NamedParameterList.mapped(
+    function.namedParameters,
+    (NamedParameter constructorParameter) =>
+        createTearOffNamedParameter(constructorParameter)
+          ..parent = tearOff.function,
+  );
   tearOff.function.returnType = substitution.substituteType(
     function.returnType,
   );
@@ -419,9 +418,9 @@ DelayedDefaultValueCloner _createParameters(
     ),
   );
   return new DelayedDefaultValueCloner(
-    constructor,
-    tearOff,
-    identicalSignatures: true,
+    source: constructor,
+    target: tearOff,
+    parameterMapping: const DirectParameterMapping(),
     libraryBuilder: libraryBuilder,
   );
 }

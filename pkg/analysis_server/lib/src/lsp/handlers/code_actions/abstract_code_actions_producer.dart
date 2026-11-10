@@ -23,6 +23,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/results.dart' as engine;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:meta/meta.dart';
 
 typedef CodeActionWithPriority = ({CodeAction action, int priority});
@@ -78,6 +79,14 @@ abstract class AbstractCodeActionsProducer
   /// directly.
   final bool allowCodeActionLiterals;
 
+  /// A cancellation token provided by the client allowing it to signal if it's
+  /// no longer interested in these code actions (for example because the user
+  /// modified or closed the document).
+  ///
+  /// Producers should check this after async work and before expensive work and
+  /// return early (the results will be discarded).
+  final CancellationToken token;
+
   new(
     this.server,
     this.file,
@@ -91,6 +100,7 @@ abstract class AbstractCodeActionsProducer
     required this.allowCodeActionLiterals,
     required this.allowSnippets,
     required this.analysisOptions,
+    required this.token,
   });
 
   Set<DiagnosticTag> get callerSupportedDiagnosticTags =>

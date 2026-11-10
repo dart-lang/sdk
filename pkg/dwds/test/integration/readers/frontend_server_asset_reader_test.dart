@@ -12,7 +12,7 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 final fixturesDir = absolutePath(
-  pathFromDwds: p.join('test', 'integration', 'fixtures'),
+  pathFromProjectRoot: p.join('dwds_test_common', 'lib', 'fixtures'),
 );
 
 void main() {

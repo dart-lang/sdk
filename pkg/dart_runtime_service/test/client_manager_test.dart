@@ -4,6 +4,7 @@
 
 import 'package:dart_runtime_service/dart_runtime_service.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
+import 'package:meta/meta.dart';
 import 'package:stream_channel/stream_channel.dart';
 import 'package:test/test.dart';
 
@@ -81,7 +82,48 @@ void main() {
       expect(oldNameParam, equals(testClientInitialName));
       expect(newNameParam, equals(newName));
     });
+
+    test('shutdown awaits client cleanup before completing', () async {
+      var cleanupCompleted = false;
+      final testManager = TestClientManager(
+        backend: manager.backend,
+        eventStreamMethods: manager.eventStreamMethods,
+        onCleanup: () async {
+          await Future<void>.value();
+          cleanupCompleted = true;
+        },
+        onNameChanged: (_, _, _) {},
+      );
+
+      final controller = StreamChannelController<String>();
+      testManager.addClient(connection: controller.foreign);
+
+      await testManager.shutdown();
+      expect(cleanupCompleted, isTrue);
+    });
   });
+}
+
+final class TestClient extends Client {
+  TestClient({
+    required super.artificial,
+    required super.backend,
+    required super.clientManager,
+    required super.clients,
+    required super.connection,
+    required super.eventStreamMethods,
+    super.name,
+    this.onCleanup,
+  });
+
+  final Future<void> Function()? onCleanup;
+
+  @override
+  @protected
+  Future<void> cleanup() async {
+    await super.cleanup();
+    await onCleanup?.call();
+  }
 }
 
 final class TestClientManager extends ClientManager {
@@ -89,10 +131,33 @@ final class TestClientManager extends ClientManager {
     required super.backend,
     required super.eventStreamMethods,
     required this.onNameChanged,
+    this.onCleanup,
   });
 
+  final Future<void> Function()? onCleanup;
   final void Function(Client client, String oldName, String newName)
   onNameChanged;
+
+  @override
+  Client clientBuilder({
+    required bool artificial,
+    required DartRuntimeServiceBackend backend,
+    required UnmodifiableClientNamedLookup clients,
+    required StreamChannel<Object?> connection,
+    required EventStreamMethods eventStreamMethods,
+    String? name,
+  }) {
+    return TestClient(
+      artificial: artificial,
+      backend: backend,
+      clientManager: this,
+      clients: clients,
+      connection: connection,
+      eventStreamMethods: eventStreamMethods,
+      name: name,
+      onCleanup: onCleanup,
+    );
+  }
 
   @override
   void onClientNameChanged(

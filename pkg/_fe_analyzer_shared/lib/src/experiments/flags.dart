@@ -6,7 +6,7 @@
 //
 // Instead modify 'tools/experimental_features.yaml' and run
 // 'dart pkg/front_end/tool/cfe.dart generate-experimental-flags' to update.
-const Version defaultLanguageVersion = const Version(3, 14);
+const Version defaultLanguageVersion = const Version(3, 15);
 
 /// Enum for experimental flags shared between the CFE and the analyzer.
 enum ExperimentalFlag {
@@ -250,6 +250,14 @@ enum ExperimentalFlag {
     experimentReleasedVersion: const Version(3, 12),
   ),
 
+  promotionChainIntersectionJoin(
+    name: 'promotion-chain-intersection-join',
+    isEnabledByDefault: true,
+    isExpired: false,
+    experimentEnabledVersion: const Version(3, 15),
+    experimentReleasedVersion: const Version(3, 15),
+  ),
+
   receiverTypeInference(
     name: 'receiver-type-inference',
     isEnabledByDefault: false,
@@ -288,6 +296,14 @@ enum ExperimentalFlag {
     isExpired: true,
     experimentEnabledVersion: const Version(2, 0),
     experimentReleasedVersion: const Version(2, 0),
+  ),
+
+  singleCombinators(
+    name: 'single-combinators',
+    isEnabledByDefault: true,
+    isExpired: false,
+    experimentEnabledVersion: const Version(3, 15),
+    experimentReleasedVersion: const Version(3, 15),
   ),
 
   soundFlowAnalysis(
@@ -332,10 +348,10 @@ enum ExperimentalFlag {
 
   thisPromotion(
     name: 'this-promotion',
-    isEnabledByDefault: false,
+    isEnabledByDefault: true,
     isExpired: false,
-    experimentEnabledVersion: defaultLanguageVersion,
-    experimentReleasedVersion: defaultLanguageVersion,
+    experimentEnabledVersion: const Version(3, 15),
+    experimentReleasedVersion: const Version(3, 15),
   ),
 
   tripleShift(
@@ -384,7 +400,7 @@ enum ExperimentalFlag {
   final Version experimentEnabledVersion;
   final Version experimentReleasedVersion;
 
-  const ExperimentalFlag({
+  new({
     required this.name,
     required this.isEnabledByDefault,
     required this.isExpired,
@@ -397,7 +413,7 @@ class Version {
   final int major;
   final int minor;
 
-  const Version(this.major, this.minor);
+  const new(this.major, this.minor);
 
   String toText() => '$major.$minor';
 

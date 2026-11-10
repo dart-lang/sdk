@@ -1,0 +1,29 @@
+NOTICE: Stream was rewritten by parser!
+
+void f(a) {
+a.*synthetic*();
+a.*synthetic*(0);
+a.*synthetic*(0, b: 1);
+a?.*synthetic*(0);
+a.b.*synthetic*(0).c;
+a..b.*synthetic*(0);
+a.[0];
+a.<int>[];
+a.{};
+a."s";
+}
+
+
+void[KeywordToken] f[StringToken]([BeginToken]a[StringToken])[SimpleToken] {[BeginToken]
+a[StringToken].[SimpleToken][SyntheticStringToken]([BeginToken])[SimpleToken];[SimpleToken]
+a[StringToken].[SimpleToken][SyntheticStringToken]([BeginToken]0[StringToken])[SimpleToken];[SimpleToken]
+a[StringToken].[SimpleToken][SyntheticStringToken]([BeginToken]0[StringToken],[SimpleToken] b[StringToken]:[SimpleToken] 1[StringToken])[SimpleToken];[SimpleToken]
+a[StringToken]?.[SimpleToken][SyntheticStringToken]([BeginToken]0[StringToken])[SimpleToken];[SimpleToken]
+a[StringToken].[SimpleToken]b[StringToken].[SimpleToken][SyntheticStringToken]([BeginToken]0[StringToken])[SimpleToken].[SimpleToken]c[StringToken];[SimpleToken]
+a[StringToken]..[SimpleToken]b[StringToken].[SimpleToken][SyntheticStringToken]([BeginToken]0[StringToken])[SimpleToken];[SimpleToken]
+a[StringToken].[SimpleToken][[BeginToken]0[StringToken]][SimpleToken];[SimpleToken]
+a[StringToken].[SimpleToken]<[BeginToken]int[StringToken]>[SimpleToken][[BeginToken]][SimpleToken];[SimpleToken]
+a[StringToken].[SimpleToken]{[BeginToken]}[SimpleToken];[SimpleToken]
+a[StringToken].[SimpleToken]"s"[StringToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

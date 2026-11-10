@@ -1387,6 +1387,10 @@ void Assembler::vandq(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B8 | B4, kByte, qd, qn, qm);
 }
 
+void Assembler::vbicq(QRegister qd, QRegister qn, QRegister qm) {
+  EmitSIMDqqq(B20 | B8 | B4, kByte, qd, qn, qm);
+}
+
 void Assembler::vmvnq(QRegister qd, QRegister qm) {
   EmitSIMDqqq(B25 | B24 | B23 | B10 | B8 | B7, kWordPair, qd, Q0, qm);
 }
@@ -1411,6 +1415,20 @@ void Assembler::vpaddlu(OperandSize sz, DRegister dd, DRegister dm) {
       UNREACHABLE();
   }
   EmitSIMDddd(B24 | B23 | B21 | B20 | size_bits | B9 | B7, kByte, dd, D0, dm);
+}
+
+void Assembler::vpmaxu(OperandSize sz,
+                       DRegister dd,
+                       DRegister dn,
+                       DRegister dm) {
+  EmitSIMDddd(B24 | B11 | B9, sz, dd, dn, dm);
+}
+
+void Assembler::vpminu(OperandSize sz,
+                       DRegister dd,
+                       DRegister dn,
+                       DRegister dm) {
+  EmitSIMDddd(B24 | B11 | B9 | B4, sz, dd, dn, dm);
 }
 
 void Assembler::vminqs(QRegister qd, QRegister qn, QRegister qm) {
@@ -3644,7 +3662,6 @@ void Assembler::TryAllocateObject(intptr_t cid,
     cmp(IP, Operand(instance_reg));
     // fail if heap end unsigned less than or equal to new heap top.
     b(failure, LS);
-    CheckAllocationCanary(instance_reg, temp_reg);
 
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
@@ -3687,7 +3704,6 @@ void Assembler::TryAllocateArray(intptr_t cid,
     ldr(temp2, Address(THR, target::Thread::end_offset()));
     cmp(end_address, Operand(temp2));
     b(failure, CS);
-    CheckAllocationCanary(instance, temp2);
 
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the

@@ -34,7 +34,7 @@ Future<void> bar() async {
 }
 
 @reflectiveTest
-class ChangeTypeAnnotationTest extends FixProcessorTest {
+class ChangeTypeAnnotationTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.changeTypeAnnotation;
 

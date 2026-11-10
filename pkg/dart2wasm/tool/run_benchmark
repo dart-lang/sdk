@@ -28,19 +28,6 @@ source "$PROG_DIR/utils.sh"
 
 RUN_WASM="$SDK_DIR/pkg/dart2wasm/bin/run_wasm.js"
 
-
-function host_os() {
-  if [[ `uname` == 'Darwin' ]]; then
-    echo 'macos'
-  else
-    echo 'linux'
-  fi
-}
-
-D8_BIN="$SDK_DIR/third_party/d8/$(host_os)/$(get_host_arch)/d8"
-JSSHELL_BIN="$SDK_DIR/third_party/firefox_jsshell/js"
-JSC_BIN="$SDK_DIR/third_party/jsc/jsc"
-
 SHELL_BIN="$D8_BIN"
 SHELL_OPTIONS=()
 SHELL_ARG_SEPERATOR="--"

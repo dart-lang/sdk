@@ -135,8 +135,49 @@ class B extends A {
     await check_multipleFixes_multipleFiles();
   }
 
+  Future<void> test_excludesPubspec_noLint() async {
+    failTestOnErrorDiagnostic = false;
+
+    newFile(analysisOptionsPath, '''
+linter:
+  rules:
+    - prefer_final_locals
+''');
+
+    newPubspecYamlFile(projectFolderPath, '''
+name: x
+''');
+
+    newFile(mainFilePath, '''
+import 'package:path/path.dart' as path;
+
+void f() {
+  var a = 'test';
+  path.join();
+}
+''');
+
+    await initialize();
+    await verifyCommandEdits(Command(command: commandId, title: 'UNUSED'), '''
+>>>>>>>>>> lib/main.dart
+>>>>>>>>>>   Make final: line 4
+import 'package:path/path.dart' as path;
+
+void f() {
+  final a = 'test';
+  path.join();
+}
+''');
+  }
+
   Future<void> test_includesPubspec() async {
     failTestOnErrorDiagnostic = false;
+
+    newFile(analysisOptionsPath, '''
+linter:
+  rules:
+    - depend_on_referenced_packages
+''');
 
     newPubspecYamlFile(projectFolderPath, '''
 name: x

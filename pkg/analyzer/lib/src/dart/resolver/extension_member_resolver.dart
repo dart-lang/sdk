@@ -17,10 +17,10 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/inference_log.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 
 /// The result of a failed attempt to resolve an identifier to the single
@@ -29,29 +29,33 @@ import 'package:analyzer/src/utilities/extensions/string.dart';
 /// multiple matching extensions were found, resulting in an ambiguity.
 class AmbiguousStaticExtensionResolutionError
     extends StaticExtensionResolutionResult {
-  const AmbiguousStaticExtensionResolutionError();
+  const new();
 
   @override
-  InternalExecutableElement? get member => null;
+  InternalExecutableElement? get getter2 => null;
+
+  @override
+  InternalExecutableElement? get setter2 => null;
 }
 
 class ExtensionMemberResolver {
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _typeAnalyzer;
 
-  ExtensionMemberResolver(this._resolver);
+  new(this._typeAnalyzer);
 
-  DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
+  DiagnosticReporter get _diagnosticReporter =>
+      _typeAnalyzer.diagnosticReporter;
 
-  bool get _genericMetadataIsEnabled =>
-      _resolver.definingLibrary.featureSet.isEnabled(Feature.generic_metadata);
+  bool get _genericMetadataIsEnabled => _typeAnalyzer.definingLibrary.featureSet
+      .isEnabled(Feature.generic_metadata);
 
-  TypeSystemImpl get _typeSystem => _resolver.typeSystem;
+  TypeSystemImpl get _typeSystem => _typeAnalyzer.typeSystem;
 
   /// Set the type context for the receiver of the override.
   ///
   /// The context of the invocation that is made through the override does
   /// not affect the type inference of the override and the receiver.
-  TypeImpl? computeOverrideReceiverContextType(ExtensionOverride node) {
+  TypeImpl? computeOverrideReceiverContextType(ExtensionOverride2 node) {
     var element = node.element;
     var typeParameters = element.typeParameters;
 
@@ -95,11 +99,11 @@ class ExtensionMemberResolver {
     SyntacticEntity nameEntity,
     Name name,
   ) {
-    var extensions = _resolver.libraryFragment.accessibleExtensions
+    var extensions = _typeAnalyzer.libraryFragment.accessibleExtensions
         .havingMemberWithBaseName(name)
         .toList()
         .applicableTo(
-          targetLibrary: _resolver.definingLibrary,
+          targetLibrary: _typeAnalyzer.definingLibrary,
           targetType: type,
         );
 
@@ -109,7 +113,7 @@ class ExtensionMemberResolver {
 
     if (extensions.length == 1) {
       var instantiated = extensions[0];
-      _resolver.libraryFragment.scope.notifyExtensionUsed(
+      _typeAnalyzer.libraryFragment.scope.notifyExtensionUsed(
         instantiated.extension,
       );
       return instantiated.asResolutionResult;
@@ -118,7 +122,7 @@ class ExtensionMemberResolver {
     var mostSpecific = _chooseMostSpecific(extensions);
     if (mostSpecific.length == 1) {
       var instantiated = mostSpecific.first;
-      _resolver.libraryFragment.scope.notifyExtensionUsed(
+      _typeAnalyzer.libraryFragment.scope.notifyExtensionUsed(
         instantiated.extension,
       );
       return instantiated.asResolutionResult;
@@ -165,7 +169,7 @@ class ExtensionMemberResolver {
   ) {
     var extensions = [
       for (var extension
-          in _resolver.libraryFragment.accessibleExtensions
+          in _typeAnalyzer.libraryFragment.accessibleExtensions
               .havingStaticMemberWithName(name))
         if (extension.extension.onDeclaration == declaration) extension,
     ];
@@ -180,8 +184,13 @@ class ExtensionMemberResolver {
     // error.
     if (extensions.length == 1) {
       var extension = extensions[0];
-      _resolver.libraryFragment.scope.notifyExtensionUsed(extension.extension);
-      return SingleStaticExtensionResolutionResult(member: extension.member);
+      _typeAnalyzer.libraryFragment.scope.notifyExtensionUsed(
+        extension.extension,
+      );
+      return SingleStaticExtensionResolutionResult(
+        getter2: extension.getter2,
+        setter2: extension.setter2,
+      );
     }
 
     return const AmbiguousStaticExtensionResolutionError();
@@ -192,10 +201,11 @@ class ExtensionMemberResolver {
   ///
   /// The [node] is fully resolved, and its type arguments are set.
   ExtensionResolutionResult getOverrideMember(
-    ExtensionOverrideImpl node,
+    ExtensionOverride2Impl node,
     String name,
   ) {
     var element = node.element;
+    var library = _typeAnalyzer.definingLibrary;
 
     ExecutableElementImpl? getter;
     ExecutableElementImpl? setter;
@@ -205,6 +215,12 @@ class ExtensionMemberResolver {
     } else {
       getter = element.getGetter(name) ?? element.getMethod(name);
       setter = element.getSetter(name);
+      if (getter != null && !getter.isAccessibleIn(library)) {
+        getter = null;
+      }
+      if (setter != null && !setter.isAccessibleIn(library)) {
+        setter = null;
+      }
     }
 
     if (getter == null && setter == null) {
@@ -222,15 +238,38 @@ class ExtensionMemberResolver {
     );
   }
 
+  /// Returns an instance member of an accessible extension that applies to
+  /// [type], declared in another library than [name] and spelled like the
+  /// private [name], or `null` if there is none.
+  ///
+  /// This is for reporting a failed lookup of [name], which [findExtension]
+  /// doesn't find, because `_foo` of another library is a different name.
+  /// Any applicable extension is enough, without choosing the most specific.
+  InternalExecutableElement? getPrivateMemberOfOtherLibrary(
+    TypeImpl type,
+    Name name,
+  ) {
+    var extensions = _typeAnalyzer.libraryFragment.accessibleExtensions
+        .havingPrivateMemberOfOtherLibraryWithBaseName(name)
+        .applicableTo(
+          targetLibrary: _typeAnalyzer.definingLibrary,
+          targetType: type,
+        );
+    if (extensions.firstOrNull case var extension?) {
+      return extension.getter ?? extension.setter;
+    }
+    return null;
+  }
+
   /// Perform upward inference for the override.
   void resolveOverride(
-    ExtensionOverride node,
+    ExtensionOverride2 node,
     List<WhyNotPromotedGetter> whyNotPromotedArguments,
   ) {
-    var nodeImpl = node as ExtensionOverrideImpl;
+    var nodeImpl = node as ExtensionOverride2Impl;
     var element = node.element;
     // TODO(paulberry): make this cast unnecessary by changing the type of
-    // `ExtensionOverrideImpl.element2`.
+    // `ExtensionOverride2Impl.element2`.
     var typeParameters = element.typeParameters
         .cast<TypeParameterElementImpl>();
 
@@ -240,7 +279,7 @@ class ExtensionMemberResolver {
           diag.extensionOverrideWithoutAccess.at(node),
         );
       }
-      nodeImpl.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
+      nodeImpl.legacyStaticType = DynamicTypeImpl.instance;
     }
 
     var arguments = node.argumentList.arguments2;
@@ -263,7 +302,7 @@ class ExtensionMemberResolver {
     var typeArgumentTypes = _inferTypeArguments(
       node,
       receiverType,
-      dataForTesting: _resolver.inferenceHelper.dataForTesting,
+      dataForTesting: _typeAnalyzer.inferenceHelper.dataForTesting,
       nodeForTesting: node,
     )!;
     nodeImpl.typeArgumentTypes = typeArgumentTypes;
@@ -289,7 +328,7 @@ class ExtensionMemberResolver {
     } else if (!_typeSystem.isAssignableTo(
       receiverType,
       extendedType,
-      strictCasts: _resolver.analysisOptions.strictCasts,
+      strictCasts: _typeAnalyzer.analysisOptions.strictCasts,
     )) {
       var whyNotPromoted = whyNotPromotedArguments.isEmpty
           ? null
@@ -301,7 +340,7 @@ class ExtensionMemberResolver {
               extendedType: extendedType,
             )
             .withContextMessages(
-              _resolver.computeWhyNotPromotedMessages(
+              _typeAnalyzer.computeWhyNotPromotedMessages(
                 receiverExpression,
                 whyNotPromoted?.call(),
               ),
@@ -393,7 +432,7 @@ class ExtensionMemberResolver {
   /// of extension's type parameters, or inference fails, returns `dynamic`
   /// for all type parameters.
   List<TypeImpl>? _inferTypeArguments(
-    ExtensionOverrideImpl node,
+    ExtensionOverride2Impl node,
     TypeImpl receiverType, {
     required TypeConstraintGenerationDataForTesting? dataForTesting,
     required AstNodeImpl? nodeForTesting,
@@ -435,9 +474,9 @@ class ExtensionMemberResolver {
         diagnosticReporter: _diagnosticReporter,
         errorEntity: node.name,
         genericMetadataIsEnabled: _genericMetadataIsEnabled,
-        inferenceUsingBoundsIsEnabled: _resolver.inferenceUsingBoundsIsEnabled,
-        strictInference: _resolver.analysisOptions.strictInference,
-        typeSystemOperations: _resolver.flowAnalysis.typeOperations,
+        inferenceUsingBoundsIsEnabled:
+            _typeAnalyzer.inferenceUsingBoundsIsEnabled,
+        typeSystemOperations: _typeAnalyzer.flowAnalysis.typeOperations,
         dataForTesting: dataForTesting,
       );
       inferrer.constrainArgument(
@@ -510,30 +549,39 @@ class ExtensionMemberResolver {
     return List<TypeImpl>.filled(parameters.length, DynamicTypeImpl.instance);
   }
 
-  static bool _isCascadeTarget(ExtensionOverride node) {
+  static bool _isCascadeTarget(ExtensionOverride2 node) {
     var parent = node.parent2;
-    return parent is CascadeExpression && parent.target2 == node;
+    if (parent is InvalidExtensionOverrideExpression) {
+      var grandparent = parent.parent2;
+      if (grandparent is CascadeExpression) {
+        // Cascade sections are CascadeSection nodes, so an
+        // InvalidExtensionOverrideExpression must be the target.
+        assert(identical(grandparent.target2, parent));
+        return true;
+      }
+    }
+    return false;
   }
 
   /// Return `true` if the extension override [node] is being used as a target
   /// of an operation that might be accessing an instance member.
-  static bool _isValidContext(ExtensionOverride node) {
+  static bool _isValidContext(ExtensionOverride2 node) {
     var parent = node.parent2;
     // Increment and decrement wrap a syntactically invalid write-back target,
     // but still constitute an attempted implicit member access.
-    if (parent case InvalidExpressionAssignmentTarget target) {
+    if (parent case InvalidExtensionOverrideAssignmentTarget target) {
       parent = target.parent2;
     }
     return parent is BinaryOperatorInvocation && parent.leftOperand == node ||
-        parent is FunctionExpressionInvocation && parent.function2 == node ||
-        parent is IndexAssignmentTarget && parent.receiver == node ||
-        parent is IndexExpression2 && parent.receiver == node ||
-        parent is IndexExpression && parent.target2 == node ||
+        parent is CallInvocation && parent.receiver == node ||
+        parent is ReceiverIndexAssignmentTarget && parent.receiver == node ||
+        parent is ReceiverIndexExpression && parent.receiver == node ||
         parent is IncrementOrDecrementExpression ||
-        parent is MethodInvocation && parent.target2 == node ||
+        parent is ParsedNameAccess && parent.operand == node ||
+        parent is ReceiverMethodInvocation && parent.receiver == node ||
+        parent is ReceiverPropertyExtraction && parent.receiver == node ||
         parent is ReceiverPropertyAssignmentTarget && parent.receiver == node ||
-        parent is UnaryOperatorInvocation && parent.operand == node ||
-        parent is PropertyAccess && parent.target2 == node;
+        parent is UnaryOperatorInvocation && parent.operand == node;
   }
 }
 
@@ -563,20 +611,21 @@ sealed class ExtensionResolutionResult implements SimpleResolutionResult {}
 /// matching extensions were found.
 class NoneStaticExtensionResolutionError
     extends StaticExtensionResolutionResult {
-  const NoneStaticExtensionResolutionError();
+  const new();
 
   @override
-  InternalExecutableElement? get member => null;
+  InternalExecutableElement? get getter2 => null;
+
+  @override
+  InternalExecutableElement? get setter2 => null;
 }
 
 /// The result of a successful attempt to resolve an identifier to elements,
 /// where the result (if any) is known to come from an extension.
 class SingleExtensionResolutionResult extends SimpleResolutionResult
     implements ExtensionResolutionResult {
-  SingleExtensionResolutionResult({
-    required super.getter2,
-    required super.setter2,
-  }) : assert(getter2 != null || setter2 != null);
+  new({required super.getter2, required super.setter2})
+    : assert(getter2 != null || setter2 != null);
 }
 
 /// The result of a successful attempt to resolve an identifier to the single
@@ -585,12 +634,8 @@ class SingleExtensionResolutionResult extends SimpleResolutionResult
 class SingleStaticExtensionResolutionResult
     extends SimpleStaticExtensionResolutionResult
     implements StaticExtensionResolutionResult {
-  SingleStaticExtensionResolutionResult({
-    required InternalExecutableElement member,
-  }) : super(member: member);
-
-  @override
-  InternalExecutableElement get member => super.member!;
+  new({required super.getter2, required super.setter2})
+    : assert(getter2 != null || setter2 != null);
 }
 
 /// The result of attempting to resolve an identifier to the single element with
@@ -598,5 +643,5 @@ class SingleStaticExtensionResolutionResult
 /// extension.
 sealed class StaticExtensionResolutionResult
     extends SimpleStaticExtensionResolutionResult {
-  const StaticExtensionResolutionResult({super.member});
+  const new({super.getter2, super.setter2});
 }

@@ -1,0 +1,19 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  constructor _([final core::int? i = #C1]) → self::A
+    : super core::Object::•()
+    ;
+  static factory •([final core::int? i = #C1]) → self::A /* redirection-target: self::A::_ */
+    return new self::A::_(i);
+}
+static method main() → dynamic {
+  #C2;
+}
+
+constants  {
+  #C1 = 0
+  #C2 = redirecting-factory-tearoff self::A::•
+}

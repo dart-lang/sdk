@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 
 /// Returns the [Element] exported from the given [LibraryElement].
 Element? getExportedElement(LibraryElement? library, String name) {
@@ -54,7 +55,7 @@ LibraryImport? _getImportElement(
       continue;
     }
     // no combinators => only possible candidate
-    if (libraryImport.combinators.isEmpty) {
+    if (!libraryImport.hasCombinator) {
       return libraryImport;
     }
     // OK, we have candidate

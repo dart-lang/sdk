@@ -58,6 +58,19 @@ class FunctionCollector {
     // Register the names of any members that are exported from the program.
     final isStrongExport = interopNamer.registerExternalExportName(member);
     if (isStrongExport) {
+      if (member.isGetter) {
+        assert(
+          member.isStatic &&
+              member.isExternal &&
+              member.function.returnType ==
+                  InterfaceType(
+                    translator.wasmMemoryClass,
+                    Nullability.nonNullable,
+                  ),
+        );
+        translator.findMemory(member, translator.mainModule);
+        return;
+      }
       // Ensure any strong exports are enqueued for compilation.
       getFunction(member.reference);
     }
@@ -118,31 +131,29 @@ class FunctionCollector {
 
       // If this function is a `@pragma('wasm:import', '<module>.<name>')` we
       // import the function and return it.
-      if (member.reference == target && member.annotations.isNotEmpty) {
-        final importName = interopNamer.getImportName(member);
-
-        if (importName != null) {
-          final ftype = _makeFunctionType(
-            translator,
-            member.reference,
-            null,
-            isImportOrExport: true,
-            synthesizeNullReturnValue: false,
-            synthesizeNoReturn: false,
-          );
-          return _functions[member.reference] =
-              translator
-                  .moduleForReference(member.reference)
-                  .functions
-                  .import(
-                    importName.moduleName,
-                    importName.itemName,
-                    ftype,
-                    "$importName (import)",
-                  )
-                ..isPure = hasPureAnnotation
-                ..inlineHint = inlineHint;
-        }
+      final importName = interopNamer.getImportName(member);
+      if (importName != null) {
+        assert(
+          member.reference == target,
+          "Cannot use non-member reference $target for imported function $member",
+        );
+        assert(member is Procedure && member.isStatic && member.isExternal);
+        final ftype = _makeWasmImportExportFunctionType(
+          translator,
+          member as Procedure,
+        );
+        return _functions[member.reference] =
+            translator
+                .moduleForReference(member.reference)
+                .functions
+                .import(
+                  importName.moduleName,
+                  importName.itemName,
+                  ftype,
+                  "$importName (import)",
+                )
+              ..isPure = hasPureAnnotation
+              ..inlineHint = inlineHint;
       }
 
       final module = translator.moduleForReference(target);
@@ -151,41 +162,38 @@ class FunctionCollector {
       //   * `@pragma('wasm:export', '<name>')` or
       //   * `@pragma('wasm:weak-export', '<name>')`
       // we export it under the given `<name>`
-      String? exportName;
-      if (member.reference == target) {
-        exportName = interopNamer.getExportName(member);
-        assert(exportName == null || member is Procedure && member.isStatic);
+      final String? exportName = interopNamer.getExportName(member);
+      if (exportName != null) {
+        assert(
+          member.reference == target,
+          "Cannot use non-member reference $target for exported function $member",
+        );
+        assert(member is Procedure && member.isStatic && !member.isExternal);
       }
 
       final w.FunctionType ftype = exportName != null
-          ? _makeFunctionType(
-              translator,
-              target,
-              null,
-              isImportOrExport: true,
-              synthesizeNullReturnValue: false,
-              synthesizeNoReturn: false,
-            )
+          ? _makeWasmImportExportFunctionType(translator, member as Procedure)
           : translator.signatureForDirectCall(target);
 
-      final function = module.functions.define(ftype, getFunctionName(target))
-        ..isPure = hasPureAnnotation && !target.isCheckedEntryReference
-        ..inlineHint = inlineHint;
+      final functionBuilder =
+          module.functions.define(ftype, getFunctionName(target))
+            ..isPure = hasPureAnnotation && !target.isCheckedEntryReference
+            ..inlineHint = inlineHint;
       if (exportName != null) {
         // Add weak exports to the module as we now know they're used. Strong
         // exports have already been added.
-        function.isJSCalled = true;
-        module.exports.export(exportName, function);
+        functionBuilder.isJSCalled = true;
+        module.exports.export(exportName, functionBuilder.function);
       }
 
       translator.compilationQueue.add(
         AstCompilationTask(
-          function,
-          getMemberCodeGenerator(translator, function, target),
+          functionBuilder,
+          getMemberCodeGenerator(translator, functionBuilder, target),
           target,
         ),
       );
-      return function;
+      return functionBuilder.function;
     });
   }
 
@@ -204,7 +212,7 @@ class FunctionCollector {
       final module = translator.moduleForReference(target);
       final ftype = makeDynamicForwarderSignature(translator, shape);
       final name = getDynamicForwarderName(target, shape);
-      final function = module.functions.define(ftype, name);
+      final functionBuilder = module.functions.define(ftype, name);
       final codegen = DynamicForwarderCodeGenerator(
         translator,
         ftype,
@@ -212,9 +220,9 @@ class FunctionCollector {
         shape,
       );
       translator.compilationQueue.add(
-        AstCompilationTask(function, codegen, target),
+        AstCompilationTask(functionBuilder, codegen, target),
       );
-      return function;
+      return functionBuilder.function;
     });
   }
 
@@ -223,10 +231,12 @@ class FunctionCollector {
       final module = translator.mainModule;
       final ftype = makeInvocationCreatorSignature(translator, shape);
       final name = getInvocationCreatorStubName(shape);
-      final function = module.functions.define(ftype, name);
+      final functionBuilder = module.functions.define(ftype, name);
       final codegen = InvocationCreationStubGenerator(translator, shape);
-      translator.compilationQueue.add(CompilationTask(function, codegen));
-      return function;
+      translator.compilationQueue.add(
+        CompilationTask(functionBuilder, codegen),
+      );
+      return functionBuilder.function;
     });
   }
 
@@ -235,24 +245,21 @@ class FunctionCollector {
       final module = translator.moduleForReference(
         lambda.enclosingMember.reference,
       );
-      final function = module.functions.define(
+      final functionBuilder = module.functions.define(
         getLambdaFunctionType(lambda),
         getLambdaFunctionName(lambda),
       );
       translator.compilationQueue.add(
-        CompilationTask(function, getLambdaCodeGenerator(translator, lambda)),
+        CompilationTask(
+          functionBuilder,
+          getLambdaCodeGenerator(translator, lambda),
+        ),
       );
-      return function;
+      return functionBuilder.function;
     });
   }
 
   w.FunctionType getFunctionType(Reference target) {
-    // We first try to get the function type by seeing if we already
-    // compiled the [target] function.
-    //
-    // We do that because [target] may refer to a imported/exported function
-    // which get their function type translated differently (it would be
-    // incorrect to use [_getFunctionType]).
     final existingFunction = getExistingFunction(target);
     if (existingFunction != null) return existingFunction.type;
 
@@ -278,6 +285,10 @@ class FunctionCollector {
 
   w.FunctionType _getFunctionType(Reference target) {
     final Member member = target.asMember;
+    if (_isWasmImportOrExport(target)) {
+      return _makeWasmImportExportFunctionType(translator, member as Procedure);
+    }
+
     final synthesizeNullReturnValue = this.synthesizeNullReturnValue(target);
     final synthesizeNoReturn = this.synthesizeNoReturn(target);
 
@@ -304,6 +315,8 @@ class FunctionCollector {
   }
 
   bool synthesizeNullReturnValue(Reference target) {
+    if (_isWasmImportOrExport(target)) return false;
+
     final member = target.asMember;
     if (target.isSetter) return true;
     if (member.name == indexSetName) return true;
@@ -317,6 +330,8 @@ class FunctionCollector {
   }
 
   bool synthesizeNoReturn(Reference target) {
+    if (_isWasmImportOrExport(target)) return false;
+
     final member = target.asMember;
     if (member is! Procedure) return false;
 
@@ -326,6 +341,18 @@ class FunctionCollector {
       return true;
     }
     return false;
+  }
+
+  bool _isWasmImportOrExport(Reference target) {
+    final member = target.asMember;
+    if (member is! Procedure ||
+        !member.isStatic ||
+        member.reference != target) {
+      return false;
+    }
+    if (member.annotations.isEmpty) return false;
+    return interopNamer.getImportName(member) != null ||
+        interopNamer.getExportName(member) != null;
   }
 
   String getFunctionName(Reference target) {
@@ -379,7 +406,7 @@ class FunctionCollector {
     final member = lambda.enclosingMember;
     final lambdaNode = lambda.functionNode.parent;
     if (lambdaNode is FunctionDeclaration) {
-      final functionNodeName = lambdaNode.variable.cosmeticName;
+      final functionNodeName = lambdaNode.variable.name;
       return "$member closure $functionNodeName at $location";
     }
     assert(lambdaNode is FunctionExpression);
@@ -732,8 +759,6 @@ List<w.ValueType> _getInputTypes(
   Translator translator,
   Reference target,
   w.ValueType? receiverType,
-  bool isImportOrExport,
-  w.ValueType Function(DartType) translateType,
 ) {
   Member member = target.asMember;
   int typeParamCount = 0;
@@ -771,18 +796,19 @@ List<w.ValueType> _getInputTypes(
 
   final List<w.ValueType> typeParameters = List.filled(
     typeParamCount,
-    translateType(InterfaceType(translator.typeClass, Nullability.nonNullable)),
+    translator.translateType(
+      InterfaceType(translator.typeClass, Nullability.nonNullable),
+    ),
   );
 
   final List<w.ValueType> inputs = [];
 
   if (receiverType != null) {
-    assert(!isImportOrExport);
     inputs.add(receiverType);
   }
 
   inputs.addAll(typeParameters);
-  inputs.addAll(params.map(translateType));
+  inputs.addAll(params.map(translator.translateType));
 
   return inputs;
 }
@@ -902,7 +928,6 @@ w.FunctionType _makeFunctionType(
   w.ValueType? receiverType, {
   required bool synthesizeNullReturnValue,
   required bool synthesizeNoReturn,
-  bool isImportOrExport = false,
 }) {
   Member member = target.asMember;
 
@@ -921,25 +946,14 @@ w.FunctionType _makeFunctionType(
     return translator.typesBuilder.defineFunction([fieldType], const []);
   }
 
-  // Translate types differently for imports and exports.
-  w.ValueType translateType(DartType type) => isImportOrExport
-      ? translator.translateExternalType(type)
-      : translator.translateType(type);
-  w.ValueType translateReturnType(DartType type) => isImportOrExport
-      ? translator.translateExternalType(type)
-      : translator.translateReturnType(type);
-
   final List<w.ValueType> inputs = _getInputTypes(
     translator,
     target,
     receiverType,
-    isImportOrExport,
-    translateType,
   );
 
   bool isVoidType(DartType t) =>
-      (isImportOrExport && t is VoidType) ||
-      (t is InterfaceType && t.classNode == translator.wasmVoidClass);
+      t is InterfaceType && t.classNode == translator.wasmVoidClass;
 
   final List<w.ValueType> outputs;
   final hasNoReturnValue = synthesizeNullReturnValue || synthesizeNoReturn;
@@ -948,9 +962,36 @@ w.FunctionType _makeFunctionType(
   } else {
     final DartType returnType = translator.typeOfReturnValue(member);
     outputs = !isVoidType(returnType)
-        ? [translateReturnType(returnType)]
+        ? [translator.translateReturnType(returnType)]
         : const [];
   }
+
+  return translator.typesBuilder.defineFunction(inputs, outputs);
+}
+
+w.FunctionType _makeWasmImportExportFunctionType(
+  Translator translator,
+  Procedure member,
+) {
+  assert(member.isStatic);
+  final function = member.function;
+  assert(function.typeParameters.isEmpty);
+  assert(function.namedParameters.isEmpty);
+  assert(
+    function.requiredParameterCount == function.positionalParameters.length,
+  );
+
+  final inputs = [
+    for (final param in function.positionalParameters)
+      translator.translateExternalType(param.type),
+  ];
+
+  final returnType = function.returnType;
+  assert(returnType is! VoidType);
+  final isVoid =
+      returnType is InterfaceType &&
+      returnType.classNode == translator.wasmVoidClass;
+  final outputs = [if (!isVoid) translator.translateExternalType(returnType)];
 
   return translator.typesBuilder.defineFunction(inputs, outputs);
 }

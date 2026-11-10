@@ -17,6 +17,7 @@ void main() {
     defineReflectiveTests(
       AddKeyToConstructorsWithoutNamedArgumentsAnywhereTest,
     );
+    defineReflectiveTests(AddKeyToConstructorsWithoutPrimaryConstructorsTest);
     defineReflectiveTests(AddKeyToConstructorsWithoutSuperParametersTest);
   });
 }
@@ -24,13 +25,10 @@ void main() {
 @reflectiveTest
 class AddKeyToConstructorsBulkTest extends BulkFixProcessorTest {
   @override
-  String get lintCode => LintNames.use_key_in_widget_constructors;
+  bool get addFlutterPackageDep => true;
 
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  String get lintCode => LintNames.use_key_in_widget_constructors;
 
   Future<void> test_singleFile() async {
     await resolveTestCode(r'''
@@ -46,11 +44,11 @@ class MyWidget2 extends StatelessWidget {
 import 'package:flutter/material.dart';
 
 class MyWidget1 extends StatelessWidget {
-  const MyWidget1({super.key});
+  const new({super.key});
 }
 
 class MyWidget2 extends StatelessWidget {
-  const MyWidget2({super.key});
+  const new({super.key});
 }
 ''');
   }
@@ -59,15 +57,12 @@ class MyWidget2 extends StatelessWidget {
 @reflectiveTest
 class AddKeyToConstructorsInFileTest extends FixInFileProcessorTest {
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  bool get addFlutterPackageDep => true;
+
+  @override
+  List<String> get lintCodes => [LintNames.use_key_in_widget_constructors];
 
   Future<void> test_file() async {
-    createAnalysisOptionsFile(
-      lints: [LintNames.use_key_in_widget_constructors],
-    );
     await resolveTestCode(r'''
 import 'package:flutter/material.dart';
 
@@ -90,18 +85,15 @@ class MyWidget extends StatelessWidget {
 }
 
 @reflectiveTest
-class AddKeyToConstructorsTest extends FixProcessorLintTest {
+class AddKeyToConstructorsTest extends FixProcessorForBuiltInLintRuleTest {
+  @override
+  bool get addFlutterPackageDep => true;
+
   @override
   FixKind get kind => DartFixKind.addKeyToConstructors;
 
   @override
   String get lintCode => LintNames.use_key_in_widget_constructors;
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
 
   Future<void> test_class_newline() async {
     await resolveTestCode('''
@@ -114,7 +106,7 @@ class MyWidget extends StatelessWidget {
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
-  const MyWidget({super.key});
+  const new({super.key});
 }
 ''');
   }
@@ -129,7 +121,26 @@ class MyWidget extends StatelessWidget {}
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
-  const MyWidget({super.key});
+  const new({super.key});
+}
+''');
+  }
+
+  Future<void> test_class_unnecessaryTypeNameInConstructor() async {
+    createAnalysisOptionsFile(
+      experimentalFeatures: experimentalFeatures,
+      lints: [lintCode, LintNames.unnecessary_type_name_in_constructor],
+    );
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  const new({super.key});
 }
 ''');
   }
@@ -396,7 +407,7 @@ import 'package:flutter/material.dart';
 class MyWidget extends StatelessWidget {
   final t = const Text('');
 
-  const MyWidget({super.key});
+  const new({super.key});
 }
 ''');
   }
@@ -419,7 +430,7 @@ const int value = 3;
 class MyWidget extends StatelessWidget {
   final int x = value;
 
-  const MyWidget({super.key});
+  const new({super.key});
 }
 ''');
   }
@@ -438,7 +449,7 @@ import 'package:flutter/material.dart';
 class MyWidget extends StatelessWidget {
   final c = Container();
 
-  MyWidget({super.key});
+  new({super.key});
 }
 ''');
   }
@@ -461,7 +472,7 @@ int value = 3;
 class MyWidget extends StatelessWidget {
   final int x = value;
 
-  MyWidget({super.key});
+  new({super.key});
 }
 ''');
   }
@@ -480,7 +491,7 @@ import 'package:flutter/material.dart';
 class MyWidget extends StatelessWidget {
   final List<int> l = [1, 2];
 
-  MyWidget({super.key});
+  new({super.key});
 }
 ''');
   }
@@ -501,7 +512,7 @@ import 'package:flutter/material.dart';
 class MyWidget extends StatelessWidget {
   final String txt = getNonConstString();
 
-  MyWidget({super.key});
+  new({super.key});
 
   static String getNonConstString() => 'Hello World';
 }
@@ -524,7 +535,7 @@ import 'package:flutter/material.dart';
 class MyWidget extends StatelessWidget {
   var t = const Text('');
 
-  MyWidget({super.key});
+  new({super.key});
 }
 ''');
   }
@@ -545,7 +556,7 @@ import 'package:flutter/material.dart';
 class MyWidget extends StatelessWidget {
   var c = Container();
 
-  MyWidget({super.key});
+  new({super.key});
 }
 ''');
   }
@@ -564,7 +575,7 @@ import 'package:flutter/material.dart';
 class MyWidget extends StatelessWidget {
   static Text t = const Text('');
 
-  const MyWidget({super.key});
+  const new({super.key});
 }
 ''');
   }
@@ -583,7 +594,7 @@ import 'package:flutter/material.dart';
 class MyWidget extends StatelessWidget {
   late final int x = 5;
 
-  MyWidget({super.key});
+  new({super.key});
 }
 ''');
   }
@@ -649,7 +660,7 @@ class MyWidget extends StatelessWidget;
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
-  const MyWidget({super.key});
+  const new({super.key});
 }
 ''');
   }
@@ -741,7 +752,7 @@ class ParentWidget extends StatelessWidget {
 }
 
 class MyWidget extends ParentWidget {
-  MyWidget({super.key});
+  new({super.key});
 }
 ''');
   }
@@ -749,7 +760,10 @@ class MyWidget extends ParentWidget {
 
 @reflectiveTest
 class AddKeyToConstructorsWithoutNamedArgumentsAnywhereTest
-    extends FixProcessorLintTest {
+    extends FixProcessorForBuiltInLintRuleTest {
+  @override
+  bool get addFlutterPackageDep => true;
+
   @override
   FixKind get kind => DartFixKind.addKeyToConstructors;
 
@@ -758,12 +772,6 @@ class AddKeyToConstructorsWithoutNamedArgumentsAnywhereTest
 
   @override
   String get testPackageLanguageVersion => '2.16';
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
 
   Future<void> test_constructor_noParameters_withSuper_nonEmpty() async {
     await resolveTestCode('''
@@ -796,8 +804,43 @@ class B extends A {
 }
 
 @reflectiveTest
+class AddKeyToConstructorsWithoutPrimaryConstructorsTest
+    extends FixProcessorForBuiltInLintRuleTest {
+  @override
+  bool get addFlutterPackageDep => true;
+
+  @override
+  FixKind get kind => DartFixKind.addKeyToConstructors;
+
+  @override
+  String get lintCode => LintNames.use_key_in_widget_constructors;
+
+  @override
+  String get testPackageLanguageVersion => '3.12';
+
+  Future<void> test_class_newline() async {
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+}
+''');
+    await assertHasFix('''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  const MyWidget({super.key});
+}
+''');
+  }
+}
+
+@reflectiveTest
 class AddKeyToConstructorsWithoutSuperParametersTest
-    extends FixProcessorLintTest {
+    extends FixProcessorForBuiltInLintRuleTest {
+  @override
+  bool get addFlutterPackageDep => true;
+
   @override
   FixKind get kind => DartFixKind.addKeyToConstructors;
 
@@ -806,12 +849,6 @@ class AddKeyToConstructorsWithoutSuperParametersTest
 
   @override
   String get testPackageLanguageVersion => '2.16';
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
 
   Future<void> test_class_newline() async {
     await resolveTestCode('''

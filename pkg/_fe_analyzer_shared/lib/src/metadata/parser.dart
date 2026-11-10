@@ -36,7 +36,7 @@ class AnnotationsListener extends StackListener {
 
   final bool delayLookup;
 
-  AnnotationsListener(
+  new(
     this.uri,
     this._initialScope,
     this._references, {
@@ -716,6 +716,30 @@ class AnnotationsListener extends StackListener {
   }
 
   @override
+  void handleSendWithoutArguments(
+    Token beginToken,
+    Token endToken,
+    Token nextToken,
+  ) {
+    assert(checkState(beginToken, [/* receiver */ _ValueKinds._Proto]));
+    Proto proto = pop() as Proto;
+    push(proto.instantiate(null).invoke(null));
+  }
+
+  @override
+  void handleInvocationWithoutTypeArguments(Token beginToken, Token endToken) {
+    assert(
+      checkState(beginToken, [
+        /* arguments */ _ValueKinds._ArgumentsOrNull,
+        /* receiver */ _ValueKinds._Proto,
+      ]),
+    );
+    List<Argument>? arguments = pop(_NullValues.Arguments) as List<Argument>?;
+    Proto proto = pop() as Proto;
+    push(proto.instantiate(null).invoke(arguments));
+  }
+
+  @override
   void handleNoArguments(Token token) {
     push(_NullValues.Arguments);
   }
@@ -797,9 +821,9 @@ class AnnotationsListener extends StackListener {
     List<TypeAnnotation>? typeArguments =
         pop(_NullValues.TypeAnnotations) as List<TypeAnnotation>?;
     push(
-      new VoidProto(
-        _references.voidReference,
-      ).instantiate(typeArguments).toTypeAnnotation(),
+      new VoidProto(_references.voidReference)
+          .instantiate(typeArguments)
+          .toTypeAnnotation(),
     );
   }
 
@@ -907,7 +931,12 @@ class AnnotationsListener extends StackListener {
           if (object.text.length != 0) {
             // TODO(johnniwinther): Use the token corresponding to [object].
             Token token = endToken;
-            String value = unescape(object.text, quote, token, this);
+            String value = unescapeMiddleStringPart(
+              object.text,
+              quote,
+              token,
+              this,
+            );
             parts.add(new StringPart(value));
           }
         } else {
@@ -1448,7 +1477,7 @@ class FunctionTypeParameterScope implements Scope {
   final Scope parentScope;
   final Map<String, FunctionTypeParameter> functionTypeParameterMap = {};
 
-  FunctionTypeParameterScope(this.parentScope);
+  new(this.parentScope);
 
   FunctionTypeParameter declareTypeParameter(String name) {
     return functionTypeParameterMap[name] = new FunctionTypeParameter(name);

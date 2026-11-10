@@ -12,6 +12,7 @@ struct tm;
 namespace dart {
 
 // Forward declarations.
+class BaseTextBuffer;
 class Zone;
 
 // Interface to the underlying OS platform.
@@ -155,13 +156,30 @@ class OS {
   }
 
   struct BuildId {
+    // The kinds of build IDs, which differ in how they are printed.
+    enum class Format {
+      // The GNU build ID of an ELF file, printed as its bytes in order.
+      kGnuBuildId,
+      // The UUID of a Mach-O file, printed as its bytes in order.
+      kMachoUUID,
+      // The signature of the PDB of a PE image, which is a GUID followed by
+      // an age. Printed like in the paths of symbol servers, where the first
+      // three fields of the GUID and the age are integers.
+      kPEGUID,
+    };
+
     intptr_t len;
     const uint8_t* data;
+    Format format = Format::kGnuBuildId;
+
+    // Prints the build ID in hexadecimal. The build ID must have data.
+    void PrintTo(BaseTextBuffer* buffer) const;
   };
 
   // Retrieves the build ID information for the given instructions image.
-  // If found, returns a BuildId with the length of the build ID and a pointer
-  // to its contents, otherwise returns a BuildId with contents {0, nullptr}.
+  // If found, returns a BuildId with the length of the build ID, a pointer
+  // to its contents and its format, otherwise returns a BuildId with contents
+  // {0, nullptr}.
   static BuildId GetAppBuildId(const uint8_t* snapshot_instructions);
   static BuildId GetAppBuildId(uword snapshot_instructions) {
     return GetAppBuildId(

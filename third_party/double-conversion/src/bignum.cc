@@ -44,12 +44,13 @@ const Bignum::Chunk& Bignum::RawBigit(const int index) const {
   return bigits_buffer_[index];
 }
 
-
+#ifndef NDEBUG  // only used in ASSERT below
 template<typename S>
 static int BitSize(const S value) {
   (void) value;  // Mark variable as used.
   return 8 * sizeof(value);
 }
+#endif
 
 // Guaranteed to lie in one Bigit.
 void Bignum::AssignUInt16(const uint16_t value) {

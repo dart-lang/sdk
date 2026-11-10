@@ -5,18 +5,15 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
-import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
-import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../util/diff.dart';
-import '../../../util/element_printer.dart';
 import '../resolution/context_collection_resolution.dart';
 import '../resolution/node_text_expectations.dart';
 
@@ -98,9 +95,9 @@ class IndexTest extends PubPackageResolutionTest {
 
   test_analyzer_diagnosticCode() async {
     var analyzerPackageRootPath = '$workspaceRootPath/pkg/analyzer';
-    writePackageConfig(
+    writePackageConfig2(
       analyzerPackageRootPath,
-      PackageConfigFileBuilder()
+      config: PackageConfigFileBuilder()
         ..add(name: 'analyzer', rootFolder: getFolder(analyzerPackageRootPath)),
     );
 
@@ -162,7 +159,6 @@ class B extends A {}
 class B_q extends p.A {}
                     ^ IS_EXTENDED_BY qualified
                     ^ IS_REFERENCED_BY qualified
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -202,7 +198,6 @@ class B implements A {}
 class B_q implements p.A {}
                        ^ IS_IMPLEMENTED_BY qualified
                        ^ IS_REFERENCED_BY qualified
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -231,7 +226,6 @@ class D extends Object with A {}
 class D_q extends Object with p.A {}
                                 ^ IS_MIXED_IN_BY qualified
                                 ^ IS_REFERENCED_BY qualified
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -260,7 +254,6 @@ class D2 = Object with A;
 class D2_q = Object with p.A;
                            ^ IS_MIXED_IN_BY qualified
                            ^ IS_REFERENCED_BY qualified
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -285,7 +278,6 @@ enum E implements A { v }
 enum E_q implements p.A { v }
                       ^ IS_IMPLEMENTED_BY qualified
                       ^ IS_REFERENCED_BY qualified
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -312,7 +304,6 @@ extension type E_q(A it) implements p.A {}
                    ^ IS_REFERENCED_BY
                                       ^ IS_IMPLEMENTED_BY qualified
                                       ^ IS_REFERENCED_BY qualified
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -337,7 +328,6 @@ mixin M implements A {}
 mixin M_q implements p.A {}
                        ^ IS_IMPLEMENTED_BY qualified
                        ^ IS_REFERENCED_BY qualified
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -362,7 +352,6 @@ mixin M2 on A {}
 mixin M2_q on p.A {}
                 ^ CONSTRAINS qualified
                 ^ IS_REFERENCED_BY qualified
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -411,7 +400,6 @@ class A {
 @p.A.myConstant
    ^ IS_REFERENCED_BY qualified
 void f() {}
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -502,9 +490,21 @@ void f(B p) {
     var result = await _indexTestCode(r'''
 import 'test.dart' as p;
 
-class A {}
+class A {
+  A();
+  A.named();
+}
 
-/// [A] and [p.A].
+/// [A]
+/// [p.A]
+/// [new A]
+/// [A.new]
+/// [p.A.new]
+/// [new p.A.new]
+/// [new A.named]
+/// [A.named]
+/// [p.A.named]
+/// [new p.A.named]
 void f() {}
 ''');
 
@@ -513,13 +513,30 @@ void f() {}
     assertElementIndexText(result, element, r'''
 import 'test.dart' as p;
 
-class A {}
+class A {
+  A();
+  ^ IS_REFERENCED_BY
+  A.named();
+  ^ IS_REFERENCED_BY
+}
 
-/// [A] and [p.A].
+/// [A]
      ^ IS_REFERENCED_BY
-               ^ IS_REFERENCED_BY qualified
+/// [p.A]
+       ^ IS_REFERENCED_BY qualified
+/// [new A]
+/// [A.new]
+     ^ IS_REFERENCED_BY
+/// [p.A.new]
+       ^ IS_REFERENCED_BY qualified
+/// [new p.A.new]
+/// [new A.named]
+/// [A.named]
+     ^ IS_REFERENCED_BY
+/// [p.A.named]
+       ^ IS_REFERENCED_BY qualified
+/// [new p.A.named]
 void f() {}
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -617,7 +634,6 @@ void f() {
   p.A();
     ^ IS_REFERENCED_BY qualified
 }
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -650,7 +666,6 @@ void f() {
   p.A.foo();
     ^ IS_REFERENCED_BY qualified
 }
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -693,7 +708,6 @@ void f() {
   List<p.A> v4;
          ^ IS_REFERENCED_BY qualified
 }
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -752,7 +766,6 @@ var v = A;
         ^ IS_REFERENCED_BY
 var v_p = p.A;
             ^ IS_REFERENCED_BY qualified
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -826,9 +839,7 @@ class A {
 
   test_ConstructorElement_class_named_newHead() async {
     var result = await _indexTestCode('''
-/// [new A.foo] and [A.foo]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [A.foo]
 class A {
   new foo() {}
   new bar() : this.foo();
@@ -849,9 +860,8 @@ void useConstructor() {
     var element = result.findElement.constructor('foo');
 
     assertElementIndexText(result, element, r'''
-/// [new A.foo] and [A.foo]
-          ^^^^ IS_REFERENCED_BY qualified
-                      ^^^^ IS_REFERENCED_BY qualified
+/// [A.foo]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A {
   new foo() {}
   new bar() : this.foo();
@@ -876,9 +886,7 @@ void useConstructor() {
 
   test_ConstructorElement_class_named_primary() async {
     var result = await _indexTestCode('''
-/// [new A.foo] and [A.foo]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [A.foo]
 class A.foo() {
   new bar() : this.foo();
   factory baz() = A.foo;
@@ -898,9 +906,8 @@ void useConstructor() {
     var element = result.findElement.constructor('foo');
 
     assertElementIndexText(result, element, r'''
-/// [new A.foo] and [A.foo]
-          ^^^^ IS_REFERENCED_BY qualified
-                      ^^^^ IS_REFERENCED_BY qualified
+/// [A.foo]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A.foo() {
   new bar() : this.foo();
                   ^^^^ IS_INVOKED_BY qualified
@@ -924,9 +931,10 @@ void useConstructor() {
 
   test_ConstructorElement_class_named_typeName() async {
     var result = await _indexTestCode('''
-/// [new A.foo] and [A.foo]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+import 'test.dart' as p;
+
+/// [A.foo]
+/// [p.A.foo]
 class A {
   A.foo() {}
   A.bar() : this.foo();
@@ -947,9 +955,12 @@ void useConstructor() {
     var element = result.findElement.constructor('foo');
 
     assertElementIndexText(result, element, r'''
-/// [new A.foo] and [A.foo]
-          ^^^^ IS_REFERENCED_BY qualified
-                      ^^^^ IS_REFERENCED_BY qualified
+import 'test.dart' as p;
+
+/// [A.foo]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
+/// [p.A.foo]
+         ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A {
   A.foo() {}
   A.bar() : this.foo();
@@ -974,9 +985,7 @@ void useConstructor() {
 
   test_ConstructorElement_class_named_typeName_viaTypeAlias() async {
     var result = await _indexTestCode('''
-/// [new B.foo] and [B.foo]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [B.foo]
 class A<T> {
   A.foo() {}
   A.bar() : this.foo();
@@ -998,9 +1007,8 @@ void useConstructor() {
     var element = result.findElement.constructor('foo');
 
     assertElementIndexText(result, element, r'''
-/// [new B.foo] and [B.foo]
-          ^^^^ IS_REFERENCED_BY qualified
-                      ^^^^ IS_REFERENCED_BY qualified
+/// [B.foo]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A<T> {
   A.foo() {}
   A.bar() : this.foo();
@@ -1026,9 +1034,7 @@ void useConstructor() {
 
   test_ConstructorElement_class_unnamed_implicit() async {
     var result = await _indexTestCode('''
-/// [new A] and [A.new]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [A.new]
 class B {
   B();
   factory B.baz() = A;
@@ -1049,9 +1055,8 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('A');
 
     assertElementIndexText(result, element, r'''
-/// [new A] and [A.new]
-          ^0 IS_REFERENCED_BY qualified
-                  ^^^^ IS_REFERENCED_BY qualified
+/// [A.new]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class B {
   B();
   factory B.baz() = A;
@@ -1149,9 +1154,7 @@ class C extends A {}
 
   test_ConstructorElement_class_unnamed_newHead() async {
     var result = await _indexTestCode('''
-/// [new A] and [A.new]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [A.new]
 class A {
   new () {}
   new bar() : this();
@@ -1172,9 +1175,8 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('A');
 
     assertElementIndexText(result, element, r'''
-/// [new A] and [A.new]
-          ^0 IS_REFERENCED_BY qualified
-                  ^^^^ IS_REFERENCED_BY qualified
+/// [A.new]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A {
   new () {}
   new bar() : this();
@@ -1228,9 +1230,7 @@ void f() {
 
   test_ConstructorElement_class_unnamed_primary() async {
     var result = await _indexTestCode('''
-/// [new A] and [A.new]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [A.new]
 class A() {
   new bar() : this();
   factory baz() = A;
@@ -1250,9 +1250,8 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('A');
 
     assertElementIndexText(result, element, r'''
-/// [new A] and [A.new]
-          ^0 IS_REFERENCED_BY qualified
-                  ^^^^ IS_REFERENCED_BY qualified
+/// [A.new]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A() {
   new bar() : this();
                   ^0 IS_INVOKED_BY qualified
@@ -1276,9 +1275,10 @@ void useConstructor() {
 
   test_ConstructorElement_class_unnamed_typeName() async {
     var result = await _indexTestCode('''
-/// [new A] and [A.new]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+import 'test.dart' as p;
+
+/// [A.new]
+/// [p.A.new]
 class A {
   A() {}
   A.bar() : this();
@@ -1299,9 +1299,12 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('A');
 
     assertElementIndexText(result, element, r'''
-/// [new A] and [A.new]
-          ^0 IS_REFERENCED_BY qualified
-                  ^^^^ IS_REFERENCED_BY qualified
+import 'test.dart' as p;
+
+/// [A.new]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
+/// [p.A.new]
+         ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A {
   A() {}
   A.bar() : this();
@@ -1326,9 +1329,7 @@ void useConstructor() {
 
   test_ConstructorElement_class_unnamed_typeName_explicitNew() async {
     var result = await _indexTestCode('''
-/// [new A] and [A.new]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [A.new]
 class A {
   A.new() {}
   A.bar() : this.new();
@@ -1349,9 +1350,8 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('A');
 
     assertElementIndexText(result, element, r'''
-/// [new A] and [A.new]
-          ^0 IS_REFERENCED_BY qualified
-                  ^^^^ IS_REFERENCED_BY qualified
+/// [A.new]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A {
   A.new() {}
   A.bar() : this.new();
@@ -1455,9 +1455,13 @@ enum E {
 }
 
 @E()
+// [diag.invalidReferenceToGenerativeEnumConstructor][column 2][length 1] Generative enum constructors can only be used to create an enum constant.
 @p.E()
+// [diag.invalidReferenceToGenerativeEnumConstructor][column 2][length 3] Generative enum constructors can only be used to create an enum constant.
 @E.named()
+// [diag.invalidReferenceToGenerativeEnumConstructor][column 2][length 7] Generative enum constructors can only be used to create an enum constant.
 @p.E.named()
+// [diag.invalidReferenceToGenerativeEnumConstructor][column 2][length 9] Generative enum constructors can only be used to create an enum constant.
 void f() {}
 ''');
 
@@ -1492,9 +1496,7 @@ void f() {}
 
   test_ConstructorElement_enum_named_newHead() async {
     var result = await _indexTestCode('''
-/// [new E.foo] and [E.foo]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [E.foo]
 enum E {
   v.foo();
   const new foo();
@@ -1523,9 +1525,8 @@ void useConstructor() {
     var element = result.findElement.constructor('foo');
 
     assertElementIndexText(result, element, r'''
-/// [new E.foo] and [E.foo]
-          ^^^^ IS_REFERENCED_BY qualified
-                      ^^^^ IS_REFERENCED_BY qualified
+/// [E.foo]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E {
   v.foo();
    ^^^^ IS_INVOKED_BY qualified
@@ -1548,9 +1549,7 @@ void useConstructor() {
 
   test_ConstructorElement_enum_named_primary() async {
     var result = await _indexTestCode('''
-/// [new E.foo] and [E.foo]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [E.foo]
 enum E.foo() {
   v.foo();
   const new bar() : this.foo();
@@ -1578,9 +1577,8 @@ void useConstructor() {
     var element = result.findElement.constructor('foo');
 
     assertElementIndexText(result, element, r'''
-/// [new E.foo] and [E.foo]
-          ^^^^ IS_REFERENCED_BY qualified
-                      ^^^^ IS_REFERENCED_BY qualified
+/// [E.foo]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E.foo() {
   v.foo();
    ^^^^ IS_INVOKED_BY qualified
@@ -1602,9 +1600,7 @@ void useConstructor() {
 
   test_ConstructorElement_enum_named_typeName() async {
     var result = await _indexTestCode('''
-/// [new E.foo] and [E.foo]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [E.foo]
 enum E {
   v.foo();
   const E.foo();
@@ -1633,9 +1629,8 @@ void useConstructor() {
     var element = result.findElement.constructor('foo');
 
     assertElementIndexText(result, element, r'''
-/// [new E.foo] and [E.foo]
-          ^^^^ IS_REFERENCED_BY qualified
-                      ^^^^ IS_REFERENCED_BY qualified
+/// [E.foo]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E {
   v.foo();
    ^^^^ IS_INVOKED_BY qualified
@@ -1658,9 +1653,7 @@ void useConstructor() {
 
   test_ConstructorElement_enum_unnamed_implicit() async {
     var result = await _indexTestCode('''
-/// [new E] and [E.new]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [E.new]
 enum E {
   v1,
   v2(),
@@ -1687,9 +1680,8 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('E');
 
     assertElementIndexText(result, element, r'''
-/// [new E] and [E.new]
-          ^0 IS_REFERENCED_BY qualified
-                  ^^^^ IS_REFERENCED_BY qualified
+/// [E.new]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E {
   v1,
     ^0 IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
@@ -1713,9 +1705,7 @@ void useConstructor() {
 
   test_ConstructorElement_enum_unnamed_newHead() async {
     var result = await _indexTestCode('''
-/// [new E] and [E.new]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [E.new]
 enum E {
   v1,
   v2(),
@@ -1743,9 +1733,8 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('E');
 
     assertElementIndexText(result, element, r'''
-/// [new E] and [E.new]
-          ^0 IS_REFERENCED_BY qualified
-                  ^^^^ IS_REFERENCED_BY qualified
+/// [E.new]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E {
   v1,
     ^0 IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
@@ -1770,9 +1759,7 @@ void useConstructor() {
 
   test_ConstructorElement_enum_unnamed_primary() async {
     var result = await _indexTestCode('''
-/// [new E] and [E.new]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [E.new]
 enum E() {
   v1,
   v2(),
@@ -1799,9 +1786,8 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('E');
 
     assertElementIndexText(result, element, r'''
-/// [new E] and [E.new]
-          ^0 IS_REFERENCED_BY qualified
-                  ^^^^ IS_REFERENCED_BY qualified
+/// [E.new]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E() {
   v1,
     ^0 IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
@@ -1825,9 +1811,7 @@ void useConstructor() {
 
   test_ConstructorElement_enum_unnamed_typeName() async {
     var result = await _indexTestCode('''
-/// [new E] and [E.new]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [E.new]
 enum E {
   v1,
   v2(),
@@ -1855,9 +1839,8 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('E');
 
     assertElementIndexText(result, element, r'''
-/// [new E] and [E.new]
-          ^0 IS_REFERENCED_BY qualified
-                  ^^^^ IS_REFERENCED_BY qualified
+/// [E.new]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E {
   v1,
     ^0 IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
@@ -1882,9 +1865,7 @@ void useConstructor() {
 
   test_ConstructorElement_enum_unnamed_typeName_explicitNew() async {
     var result = await _indexTestCode('''
-/// [new E] and [E.new]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [E.new]
 enum E {
   v1,
   v2(),
@@ -1912,9 +1893,8 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('E');
 
     assertElementIndexText(result, element, r'''
-/// [new E] and [E.new]
-          ^0 IS_REFERENCED_BY qualified
-                  ^^^^ IS_REFERENCED_BY qualified
+/// [E.new]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E {
   v1,
     ^0 IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
@@ -1981,9 +1961,7 @@ void f() {}
 
   test_ConstructorElement_extensionType_named_newHead() async {
     var result = await _indexTestCode('''
-/// [new A.foo] and [A.foo]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [A.foo]
 extension type A(int it) {
   new foo(this.it);
   new bar() : this.foo(0);
@@ -2001,9 +1979,8 @@ void useConstructor() {
     var element = result.findElement.constructor('foo');
 
     assertElementIndexText(result, element, r'''
-/// [new A.foo] and [A.foo]
-          ^^^^ IS_REFERENCED_BY qualified
-                      ^^^^ IS_REFERENCED_BY qualified
+/// [A.foo]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 extension type A(int it) {
   new foo(this.it);
   new bar() : this.foo(0);
@@ -2024,9 +2001,7 @@ void useConstructor() {
 
   test_ConstructorElement_extensionType_named_primary() async {
     var result = await _indexTestCode('''
-/// [new A.foo] and [A.foo]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [A.foo]
 extension type A.foo(int it) {
   new bar() : this.foo(0);
   factory baz(int it) = A.foo;
@@ -2043,9 +2018,8 @@ void useConstructor() {
     var element = result.findElement.constructor('foo');
 
     assertElementIndexText(result, element, r'''
-/// [new A.foo] and [A.foo]
-          ^^^^ IS_REFERENCED_BY qualified
-                      ^^^^ IS_REFERENCED_BY qualified
+/// [A.foo]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 extension type A.foo(int it) {
   new bar() : this.foo(0);
                   ^^^^ IS_INVOKED_BY qualified
@@ -2065,9 +2039,7 @@ void useConstructor() {
 
   test_ConstructorElement_extensionType_named_typeName() async {
     var result = await _indexTestCode('''
-/// [new A.foo] and [A.foo]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [A.foo]
 extension type A(int it) {
   A.foo(this.it);
   A.bar() : this.foo(0);
@@ -2085,9 +2057,8 @@ void useConstructor() {
     var element = result.findElement.constructor('foo');
 
     assertElementIndexText(result, element, r'''
-/// [new A.foo] and [A.foo]
-          ^^^^ IS_REFERENCED_BY qualified
-                      ^^^^ IS_REFERENCED_BY qualified
+/// [A.foo]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 extension type A(int it) {
   A.foo(this.it);
   A.bar() : this.foo(0);
@@ -2108,9 +2079,7 @@ void useConstructor() {
 
   test_ConstructorElement_extensionType_unnamed_newHead() async {
     var result = await _indexTestCode('''
-/// [new A] and [A.new]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [A.new]
 extension type A.named(int it) {
   new (this.it);
   new bar() : this(0);
@@ -2128,9 +2097,8 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('A');
 
     assertElementIndexText(result, element, r'''
-/// [new A] and [A.new]
-          ^0 IS_REFERENCED_BY qualified
-                  ^^^^ IS_REFERENCED_BY qualified
+/// [A.new]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 extension type A.named(int it) {
   new (this.it);
   new bar() : this(0);
@@ -2151,9 +2119,7 @@ void useConstructor() {
 
   test_ConstructorElement_extensionType_unnamed_primary() async {
     var result = await _indexTestCode('''
-/// [new A] and [A.new]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [A.new]
 extension type A(int it) {
   new bar() : this(0);
   factory baz(int it) = A.new;
@@ -2170,9 +2136,8 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('A');
 
     assertElementIndexText(result, element, r'''
-/// [new A] and [A.new]
-          ^0 IS_REFERENCED_BY qualified
-                  ^^^^ IS_REFERENCED_BY qualified
+/// [A.new]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 extension type A(int it) {
   new bar() : this(0);
                   ^0 IS_INVOKED_BY qualified
@@ -2192,9 +2157,7 @@ void useConstructor() {
 
   test_ConstructorElement_extensionType_unnamed_typeName() async {
     var result = await _indexTestCode('''
-/// [new A] and [A.new]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [A.new]
 extension type A.named(int it) {
   A(this.it);
   A.bar() : this(0);
@@ -2212,9 +2175,8 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('A');
 
     assertElementIndexText(result, element, r'''
-/// [new A] and [A.new]
-          ^0 IS_REFERENCED_BY qualified
-                  ^^^^ IS_REFERENCED_BY qualified
+/// [A.new]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 extension type A.named(int it) {
   A(this.it);
   A.bar() : this(0);
@@ -2235,9 +2197,7 @@ void useConstructor() {
 
   test_ConstructorElement_extensionType_unnamed_typeName_explicitNew() async {
     var result = await _indexTestCode('''
-/// [new A] and [A.new]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [A.new]
 extension type A.named(int it) {
   A.new(this.it);
   A.bar() : this.new(0);
@@ -2255,9 +2215,8 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('A');
 
     assertElementIndexText(result, element, r'''
-/// [new A] and [A.new]
-          ^0 IS_REFERENCED_BY qualified
-                  ^^^^ IS_REFERENCED_BY qualified
+/// [A.new]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 extension type A.named(int it) {
   A.new(this.it);
   A.bar() : this.new(0);
@@ -2303,9 +2262,13 @@ enum E {
 }
 
 @E()
+// [diag.invalidReferenceToGenerativeEnumConstructor][column 2][length 1] Generative enum constructors can only be used to create an enum constant.
 @p.E()
+// [diag.invalidReferenceToGenerativeEnumConstructor][column 2][length 3] Generative enum constructors can only be used to create an enum constant.
 @E.named()
+// [diag.invalidReferenceToGenerativeEnumConstructor][column 2][length 7] Generative enum constructors can only be used to create an enum constant.
 @p.E.named()
+// [diag.invalidReferenceToGenerativeEnumConstructor][column 2][length 9] Generative enum constructors can only be used to create an enum constant.
 @E.myConstant
 @p.E.myConstant
 void f() {}
@@ -2338,7 +2301,6 @@ enum E {
 @p.E.myConstant
    ^ IS_REFERENCED_BY qualified
 void f() {}
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -2363,7 +2325,6 @@ enum E { v }
      ^ IS_REFERENCED_BY
                ^ IS_REFERENCED_BY qualified
 void f() {}
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -2403,7 +2364,6 @@ void f() {
   const p.E();
           ^ IS_REFERENCED_BY qualified
 }
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -2438,7 +2398,6 @@ void f() {
   p.E.foo();
     ^ IS_REFERENCED_BY qualified
 }
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -2471,7 +2430,6 @@ void f() {
   p.E v2;
     ^ IS_REFERENCED_BY qualified
 }
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -2508,7 +2466,6 @@ void f() {
   p.E.foo();
     ^ IS_REFERENCED_BY qualified
 }
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -2540,7 +2497,6 @@ void f() {
   p.E(0).foo();
     ^ IS_REFERENCED_BY qualified
 }
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -2565,7 +2521,6 @@ extension type B(int it) implements A {}
 extension type B_q(int it) implements p.A {}
                                         ^ IS_IMPLEMENTED_BY qualified
                                         ^ IS_REFERENCED_BY qualified
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -2592,7 +2547,6 @@ extension type const A(int it) {}
 @p.A(0)
    ^ IS_REFERENCED_BY qualified
 void f() {}
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -2617,7 +2571,6 @@ extension type A(int it) {}
      ^ IS_REFERENCED_BY
                ^ IS_REFERENCED_BY qualified
 void f() {}
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -2646,7 +2599,6 @@ void f() {
   p.A(0);
     ^ IS_REFERENCED_BY qualified
 }
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -2679,7 +2631,6 @@ void f() {
   p.A.foo();
     ^ IS_REFERENCED_BY qualified
 }
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -2712,7 +2663,6 @@ void f() {
   p.A v2;
     ^ IS_REFERENCED_BY qualified
 }
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -3432,6 +3382,64 @@ void useField(E e) {
   e.foo = 0;
     ^^^ setter IS_INVOKED_BY qualified
   E(foo: 0);
+}
+''',
+    );
+  }
+
+  test_FieldElement_ofEnum_instance_fieldDeclaration_final_invalidWrite() async {
+    var result = await _indexTestCode('''
+enum E {
+  v;
+  final int foo = 0;
+}
+void f(E e, dynamic d) {
+  e.foo = 1;
+//  ^^^
+// [diag.undefinedInstanceMemberWriteFinal] The field 'foo' of the type 'E' is final, so it can't be assigned to.
+  e..foo = 2;
+//   ^^^
+// [diag.undefinedInstanceMemberWriteFinal] The field 'foo' of the type 'E' is final, so it can't be assigned to.
+  d.foo = 3;
+  d..foo = 4;
+}
+''');
+
+    var field = result.findElement.field('foo');
+    assertElementsIndexText(
+      result,
+      {'field': field, 'getter': field.getter!},
+      r'''
+enum E {
+  v;
+  final int foo = 0;
+}
+void f(E e, dynamic d) {
+  e.foo = 1;
+    ^^^ getter IS_REFERENCED_BY qualified
+  e..foo = 2;
+     ^^^ getter IS_REFERENCED_BY qualified
+  d.foo = 3;
+  d..foo = 4;
+}
+''',
+    );
+
+    assertNamesIndexText(
+      result,
+      {'foo'},
+      r'''
+enum E {
+  v;
+  final int foo = 0;
+}
+void f(E e, dynamic d) {
+  e.foo = 1;
+  e..foo = 2;
+  d.foo = 3;
+    ^^^ IS_WRITTEN_BY qualified
+  d..foo = 4;
+     ^^^ IS_WRITTEN_BY qualified
 }
 ''',
     );
@@ -5472,10 +5480,7 @@ class A {
 void f(A a) {
   (a).foo ??= () {};
 //    ^^^
-// [diag.assignmentToMethod] Methods can't be assigned a value.
-//            ^^^^^
-// [diag.deadCode] Dead code.
-// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
+// [diag.undefinedInstanceMemberWriteWrongKind] The method 'foo' of the type 'A' can't be assigned to.
 }
 ''');
     var element = result.findElement.method('foo');
@@ -5938,7 +5943,7 @@ void useFoo() {
   M m = .foo();
 //  ^
 // [diag.unusedLocalVariable] The value of the local variable 'm' isn't used.
-//      ^^^^^^
+//       ^^^
 // [diag.useOfVoidResult] This expression has a type of 'void' so its value can't be used.
 }
 ''');
@@ -6003,68 +6008,6 @@ void useOperator(A a) {
    ^^ IS_INVOKED_BY qualified
 }
 ''');
-  }
-
-  test_MethodElement_operator_ofClass_indexAssignmentTarget() async {
-    var result = await _indexTestCode('''
-class A {
-  num operator [](int i) => 0;
-  void operator []=(int i, num v) {}
-}
-class B {
-  num? operator [](int i) => 0;
-  void operator []=(int i, num v) {}
-}
-void useOperator(A a, A? nullableA, B b, B? nullableB) {
-  a[0] = 1;
-  nullableA?[1] = 2;
-  a[2] += 3;
-  nullableA?[3] += 4;
-  b[4] ??= 5;
-  nullableB?[5] ??= 6;
-}
-''');
-
-    assertElementsIndexText(
-      result,
-      {
-        'aRead': result.findElement.method('[]', of: 'A'),
-        'aWrite': result.findElement.method('[]=', of: 'A'),
-        'bRead': result.findElement.method('[]', of: 'B'),
-        'bWrite': result.findElement.method('[]=', of: 'B'),
-        'num.+': result.resolvedUnit.typeProvider.numElement.getMethod('+')!,
-      },
-      r'''
-class A {
-  num operator [](int i) => 0;
-  void operator []=(int i, num v) {}
-}
-class B {
-  num? operator [](int i) => 0;
-  void operator []=(int i, num v) {}
-}
-void useOperator(A a, A? nullableA, B b, B? nullableB) {
-  a[0] = 1;
-   ^ aWrite IS_INVOKED_BY qualified
-  nullableA?[1] = 2;
-            ^ aWrite IS_INVOKED_BY qualified
-  a[2] += 3;
-   ^ aRead IS_INVOKED_BY qualified
-   ^ aWrite IS_INVOKED_BY qualified
-       ^^ num.+ IS_INVOKED_BY qualified
-  nullableA?[3] += 4;
-            ^ aRead IS_INVOKED_BY qualified
-            ^ aWrite IS_INVOKED_BY qualified
-                ^^ num.+ IS_INVOKED_BY qualified
-  b[4] ??= 5;
-   ^ bRead IS_INVOKED_BY qualified
-   ^ bWrite IS_INVOKED_BY qualified
-  nullableB?[5] ??= 6;
-            ^ bRead IS_INVOKED_BY qualified
-            ^ bWrite IS_INVOKED_BY qualified
-}
-''',
-    );
   }
 
   test_MethodElement_operator_ofClass_indexCascadeSections() async {
@@ -6169,6 +6112,104 @@ void useOperator(A a) {
   ^ IS_INVOKED_BY qualified
 }
 ''');
+  }
+
+  test_MethodElement_operator_ofClass_receiverIndexAssignmentTarget() async {
+    var result = await _indexTestCode('''
+class A {
+  num operator [](int i) => 0;
+  void operator []=(int i, num v) {}
+}
+class B {
+  num? operator [](int i) => 0;
+  void operator []=(int i, num v) {}
+}
+void useOperator(A a, A? nullableA, B b, B? nullableB) {
+  a[0] = 1;
+  nullableA?[1] = 2;
+  a[2] += 3;
+  nullableA?[3] += 4;
+  b[4] ??= 5;
+  nullableB?[5] ??= 6;
+}
+''');
+
+    assertElementsIndexText(
+      result,
+      {
+        'aRead': result.findElement.method('[]', of: 'A'),
+        'aWrite': result.findElement.method('[]=', of: 'A'),
+        'bRead': result.findElement.method('[]', of: 'B'),
+        'bWrite': result.findElement.method('[]=', of: 'B'),
+        'num.+': result.resolvedUnit.typeProvider.numElement.getMethod('+')!,
+      },
+      r'''
+class A {
+  num operator [](int i) => 0;
+  void operator []=(int i, num v) {}
+}
+class B {
+  num? operator [](int i) => 0;
+  void operator []=(int i, num v) {}
+}
+void useOperator(A a, A? nullableA, B b, B? nullableB) {
+  a[0] = 1;
+   ^ aWrite IS_INVOKED_BY qualified
+  nullableA?[1] = 2;
+            ^ aWrite IS_INVOKED_BY qualified
+  a[2] += 3;
+   ^ aRead IS_INVOKED_BY qualified
+   ^ aWrite IS_INVOKED_BY qualified
+       ^^ num.+ IS_INVOKED_BY qualified
+  nullableA?[3] += 4;
+            ^ aRead IS_INVOKED_BY qualified
+            ^ aWrite IS_INVOKED_BY qualified
+                ^^ num.+ IS_INVOKED_BY qualified
+  b[4] ??= 5;
+   ^ bRead IS_INVOKED_BY qualified
+   ^ bWrite IS_INVOKED_BY qualified
+  nullableB?[5] ??= 6;
+            ^ bRead IS_INVOKED_BY qualified
+            ^ bWrite IS_INVOKED_BY qualified
+}
+''',
+    );
+  }
+
+  test_MethodElement_operator_ofClass_relationalPattern() async {
+    var result = await _indexTestCode('''
+class A {
+  bool operator <(int other) => true;
+  bool operator ==(Object other) => true;
+}
+void useOperator(A a) {
+  if (a case < 0) {}
+  if (a case == 0) {}
+  if (a case != 0) {}
+}
+''');
+
+    assertElementsIndexText(
+      result,
+      {
+        'less': result.findElement.method('<'),
+        'equal': result.findElement.method('=='),
+      },
+      r'''
+class A {
+  bool operator <(int other) => true;
+  bool operator ==(Object other) => true;
+}
+void useOperator(A a) {
+  if (a case < 0) {}
+             ^ less IS_INVOKED_BY qualified
+  if (a case == 0) {}
+             ^^ equal IS_INVOKED_BY qualified
+  if (a case != 0) {}
+             ^^ equal IS_INVOKED_BY qualified
+}
+''',
+    );
   }
 
   test_MethodElement_operator_ofEnum_binary() async {
@@ -6794,7 +6835,6 @@ mixin A {
 @p.A.myConstant
    ^ IS_REFERENCED_BY qualified
 void f() {}
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -6819,7 +6859,6 @@ mixin A {}
      ^ IS_REFERENCED_BY
                ^ IS_REFERENCED_BY qualified
 void f() {}
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -6852,7 +6891,6 @@ void f() {
   p.A.foo();
     ^ IS_REFERENCED_BY qualified
 }
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -6875,7 +6913,6 @@ mixin A {}
 void f(A v1, p.A v2) {}
        ^ IS_REFERENCED_BY
                ^ IS_REFERENCED_BY qualified
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -6897,6 +6934,56 @@ Never f() {}
 // [diag.bodyMightCompleteNormally] The body might complete normally, causing 'null' to be returned, but the return type, 'Never', is a potentially non-nullable type.
 ''');
     expect(result.index.usedElementOffsets, isEmpty);
+  }
+
+  test_SetterElement_ofClass_invalidRead() async {
+    var result = await _indexTestCode(r'''
+class A {
+  set item(int _) {}
+
+  void f() {
+    item;
+//  ^^^^
+// [diag.undefinedUnqualifiedNameReadSetterOnly] There's a setter 'item', but no getter.
+    this.item;
+//       ^^^^
+// [diag.undefinedInstanceMemberReadSetterOnly] There's a setter 'item' for the type 'A', but no getter.
+    (this).item;
+//         ^^^^
+// [diag.undefinedInstanceMemberReadSetterOnly] There's a setter 'item' for the type 'A', but no getter.
+  }
+}
+''');
+
+    assertElementIndexText(result, result.findElement.setter('item'), r'''
+class A {
+  set item(int _) {}
+
+  void f() {
+    item;
+    ^^^^ IS_REFERENCED_BY
+    this.item;
+         ^^^^ IS_REFERENCED_BY qualified
+    (this).item;
+           ^^^^ IS_REFERENCED_BY qualified
+  }
+}
+''');
+    assertNamesIndexText(
+      result,
+      {'item'},
+      r'''
+class A {
+  set item(int _) {}
+
+  void f() {
+    item;
+    this.item;
+    (this).item;
+  }
+}
+''',
+    );
   }
 
   test_SetterElement_ofClass_static() async {
@@ -7373,7 +7460,6 @@ void f() {
   p.foo;
     ^^^ IS_REFERENCED_BY qualified
 }
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -7384,7 +7470,10 @@ void foo() {}
 void f() {
   foo = 0;
 //^^^
-// [diag.assignmentToFunction] Functions can't be assigned a value.
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The function 'foo' can't be assigned to.
+  for (foo in [0]) {}
+//     ^^^
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The function 'foo' can't be assigned to.
 }
 ''');
 
@@ -7396,6 +7485,8 @@ void foo() {}
 void f() {
   foo = 0;
   ^^^ IS_REFERENCED_BY
+  for (foo in [0]) {}
+       ^^^ IS_REFERENCED_BY
 }
 ''');
   }
@@ -7431,10 +7522,7 @@ void foo() {}
 void f() {
   foo ??= () {};
 //^^^
-// [diag.assignmentToFunction] Functions can't be assigned a value.
-//        ^^^^^
-// [diag.deadCode] Dead code.
-// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The function 'foo' can't be assigned to.
 }
 ''');
     var element = result.findElement.topFunction('foo');
@@ -7480,8 +7568,6 @@ void f() {
   p.foo;
     ^^^ getter IS_INVOKED_BY qualified
 }
-Prefixes:
-  getter: (unprefixed),p
 ''',
     );
   }
@@ -7493,7 +7579,10 @@ int get foo => 0;
 void f() {
   foo = 1;
 //^^^
-// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
+// [diag.undefinedUnqualifiedNameWriteGetterOnly] There's a getter 'foo', but no setter.
+  for (foo in [1]) {}
+//     ^^^
+// [diag.undefinedUnqualifiedNameWriteGetterOnly] There's a getter 'foo', but no setter.
 }
 ''');
 
@@ -7505,6 +7594,8 @@ int get foo => 0;
 void f() {
   foo = 1;
   ^^^ IS_REFERENCED_BY
+  for (foo in [1]) {}
+       ^^^ IS_REFERENCED_BY
 }
 ''');
   }
@@ -7598,8 +7689,6 @@ void f() {
       ^^^ getter IS_INVOKED_BY qualified
       ^^^ setter IS_INVOKED_BY qualified
 }
-Prefixes:
-  getter: (unprefixed),p
 ''',
     );
   }
@@ -7643,6 +7732,7 @@ set foo(int _) {}
 void f() {
   foo = 0;
   p.foo = 0;
+  for (foo in [0]) {}
 }
 ''');
 
@@ -7661,6 +7751,8 @@ void f() {
   ^^^ setter IS_INVOKED_BY
   p.foo = 0;
     ^^^ setter IS_INVOKED_BY qualified
+  for (foo in [0]) {}
+       ^^^ setter IS_INVOKED_BY
 }
 ''',
     );
@@ -7784,8 +7876,6 @@ void f() {
       ^^^ getter IS_INVOKED_BY qualified
       ^^^ setter IS_INVOKED_BY qualified
 }
-Prefixes:
-  getter: (unprefixed),p
 ''',
     );
   }
@@ -7954,7 +8044,6 @@ typedef B = A<int>;
      ^ IS_REFERENCED_BY
                ^ IS_REFERENCED_BY qualified
 void f() {}
-Prefixes: (unprefixed),p
 ''');
   }
 
@@ -8057,6 +8146,7 @@ class C {
     x = 1;
     x += 2;
     x();
+    for (x in [3]) {}
   }
 }
 ''');
@@ -8079,6 +8169,8 @@ class C {
     ^ setter IS_INVOKED_BY
     x();
     ^ getter IS_INVOKED_BY
+    for (x in [3]) {}
+         ^ setter IS_INVOKED_BY
   }
 }
 ''',
@@ -8090,16 +8182,19 @@ class C {
 void f() {
   x;
 //^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
   x = 1;
 //^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameWriteNotFound] Undefined name 'x'.
   x += 2;
 //^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
   x();
 //^
-// [diag.undefinedFunction] The function 'x' isn't defined.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
+  for (x in [3]) {}
+//     ^
+// [diag.undefinedUnqualifiedNameWriteNotFound] Undefined name 'x'.
 }
 ''');
     assertNamesIndexText(
@@ -8115,6 +8210,8 @@ void f() {
   ^ x IS_READ_WRITTEN_BY
   x();
   ^ x IS_INVOKED_BY
+  for (x in [3]) {}
+       ^ x IS_WRITTEN_BY
 }
 ''',
     );
@@ -8126,9 +8223,8 @@ void f() {
     Set<String> names = const {},
     required String expected,
   }) {
-    var actual = _IndexTextBuilder(
-      result,
-    ).indexText(elements: elements, names: names);
+    var actual = _IndexTextBuilder(result)
+        .indexText(elements: elements, names: names);
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
       if (NodeTextExpectationsCollector.shouldPrintFailureDetails) {
@@ -8165,7 +8261,7 @@ final class _IndexAnnotation {
   final int? labelOrder;
   final String text;
 
-  _IndexAnnotation({
+  new({
     required this.offset,
     required this.length,
     this.labelOrder,
@@ -8173,19 +8269,11 @@ final class _IndexAnnotation {
   });
 }
 
-final class _IndexElementToPrint {
-  final Element element;
-  final String? label;
-  final int? order;
-
-  _IndexElementToPrint({required this.element, this.label, this.order});
-}
-
 final class _IndexResult {
   final TestResolvedUnitResult resolvedUnit;
   final AnalysisDriverUnitIndex index;
 
-  _IndexResult(this.resolvedUnit, this.index);
+  new(this.resolvedUnit, this.index);
 
   FindElement get findElement => resolvedUnit.findElement;
 }
@@ -8193,9 +8281,7 @@ final class _IndexResult {
 final class _IndexTextBuilder {
   final _IndexResult result;
 
-  final Map<int, Element> _elementById = {};
-
-  _IndexTextBuilder(this.result);
+  new(this.result);
 
   String indexText({
     required Map<String, Element> elements,
@@ -8203,7 +8289,6 @@ final class _IndexTextBuilder {
   }) {
     var index = result.index;
     var annotations = <_IndexAnnotation>[];
-    var elementsWithPrefixes = <int, _IndexElementToPrint>{};
 
     var elementLabels = <int, ({String text, int order})>{};
     var nextLabelOrder = 0;
@@ -8220,15 +8305,12 @@ final class _IndexTextBuilder {
     expect(index.usedElements.length, index.usedElementOffsets.length);
     expect(index.usedElements.length, index.usedElementLengths.length);
     expect(index.usedElements.length, index.usedElementIsQualifiedFlags.length);
-    expect(index.elementUnits.length, index.elementImportPrefixes.length);
-
     for (var i = 0; i < index.usedElements.length; i++) {
       var elementId = index.usedElements[i];
       var labelInfo = elementLabels[elementId];
       if (labelInfo == null) {
         continue;
       }
-      var element = _elementForId(elementId);
       var labelText = labelInfo.text;
       var labelOrder = labelInfo.order;
       var kind = index.usedElementKinds[i];
@@ -8245,13 +8327,6 @@ final class _IndexTextBuilder {
           ].join(' '),
         ),
       );
-      if (index.elementImportPrefixes[elementId].isNotEmpty) {
-        elementsWithPrefixes[elementId] = _IndexElementToPrint(
-          element: element,
-          label: labelText,
-          order: labelOrder,
-        );
-      }
     }
 
     expect(index.usedNames.length, index.usedNameKinds.length);
@@ -8330,39 +8405,6 @@ final class _IndexTextBuilder {
       }
     }
 
-    if (elementsWithPrefixes.isNotEmpty) {
-      var entries = elementsWithPrefixes.entries.sorted((first, second) {
-        var firstOrder = first.value.order;
-        var secondOrder = second.value.order;
-        if (firstOrder != null && secondOrder != null) {
-          return firstOrder.compareTo(secondOrder);
-        }
-        return _elementText(
-          first.value.element,
-        ).compareTo(_elementText(second.value.element));
-      });
-
-      String prefixesFor(int elementId) {
-        return index.elementImportPrefixes[elementId]
-            .split(',')
-            .map((prefix) => prefix.isEmpty ? '(unprefixed)' : prefix)
-            .join(',');
-      }
-
-      if (entries case [var entry] when entry.value.label == '') {
-        buffer.writeln('Prefixes: ${prefixesFor(entry.key)}');
-        return buffer.toString();
-      }
-
-      buffer.writeln('Prefixes:');
-      for (var entry in entries) {
-        var prefixes = prefixesFor(entry.key);
-        var element = entry.value;
-        var target = element.label ?? _elementText(element.element);
-        buffer.writeln('  $target: $prefixes');
-      }
-    }
-
     return buffer.toString();
   }
 
@@ -8409,71 +8451,6 @@ final class _IndexTextBuilder {
       }
     }
     return buffer.toString();
-  }
-
-  Element _computeElementForId(int elementId) {
-    var index = result.index;
-    var unitId = index.elementUnits[elementId];
-    var libraryPath = index.strings[index.unitLibraryPaths[unitId]];
-    var unitPath = index.strings[index.unitUnitPaths[unitId]];
-
-    var session = result.resolvedUnit.session as AnalysisSessionImpl;
-    var libraryUri = session.uriConverter.pathToUri(libraryPath);
-    if (libraryUri == null) {
-      fail('No URI for library path $libraryPath');
-    }
-
-    var elementFactory = session.elementFactory;
-    var libraryReference = elementFactory.rootReference.libraryIfExists(
-      libraryUri,
-    );
-    if (libraryReference == null) {
-      fail('No library reference for $libraryUri');
-    }
-
-    var library = elementFactory.elementOfReference3(libraryReference);
-    library as LibraryElementImpl;
-
-    var loadLibraryFunction = library.loadLibraryFunction;
-    if (_findElementId(loadLibraryFunction) == elementId) {
-      return loadLibraryFunction;
-    }
-
-    var unit = library.fragments.singleWhere(
-      (fragment) => fragment.source.fullName == unitPath,
-    );
-
-    Element? found;
-    void visit(Fragment fragment) {
-      var element = fragment.element;
-      if (_findElementId(element) == elementId) {
-        if (found != null && !identical(found, element)) {
-          fail('Multiple elements for index id $elementId: $found, $element');
-        }
-        found = element;
-      }
-      for (var child in fragment.children) {
-        visit(child);
-      }
-    }
-
-    visit(unit);
-    return found ?? (throw StateError('No element for index id $elementId'));
-  }
-
-  Element _elementForId(int elementId) {
-    return _elementById[elementId] ??= _computeElementForId(elementId);
-  }
-
-  String _elementText(Element element) {
-    var buffer = StringBuffer();
-    var sink = TreeStringSink(sink: buffer, indent: '');
-    var elementPrinter = ElementPrinter(
-      sink: sink,
-      configuration: ElementPrinterConfiguration(),
-    );
-    elementPrinter.writeElement2(element);
-    return buffer.toString().trimRight();
   }
 
   /// Return the [element] identifier in the result index, or `null`.

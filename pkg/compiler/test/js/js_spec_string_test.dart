@@ -10,6 +10,7 @@ import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/universe/side_effects.dart' show SideEffects;
 import 'package:expect/expect.dart';
+
 import '../helpers/type_test_helper.dart';
 
 const OBJECT = 'Object';

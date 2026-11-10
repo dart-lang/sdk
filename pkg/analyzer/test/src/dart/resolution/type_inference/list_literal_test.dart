@@ -79,16 +79,35 @@ main() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('f(null)');
+    var node = result.findNode.unqualifiedFunctionInvocation('f(null)');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      NullLiteral
+        literal: null
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@function::f::@formalParameter::t
+          substitution: {T: Iterable<int>?}
+        staticType: Null
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::f
+    invokeType: Iterable<int>? Function(Iterable<int>?)
+    type: Iterable<int>?
+  staticType: Iterable<int>?
+  typeArgumentTypes
+    Iterable<int>?
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::f
     staticType: T Function<T>(T)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       NullLiteral
         literal: null
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -200,7 +219,7 @@ var a = [1, '2', 3];
     var result = await resolveTestCodeWithDiagnostics('''
 var a = [x];
 //       ^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
 ''');
     assertType(result.findNode.listLiteral('[x]'), 'List<InvalidType>');
   }
@@ -209,7 +228,7 @@ var a = [x];
     var result = await resolveTestCodeWithDiagnostics('''
 var a = [0, x, 2];
 //          ^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
 ''');
     assertType(result.findNode.listLiteral('[0, x'), 'List<InvalidType>');
   }

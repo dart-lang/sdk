@@ -43,11 +43,7 @@ final class AnalysisOptionsFileContent {
   /// This is `null` if [text] cannot be parsed as YAML.
   final YamlNode? yaml;
 
-  AnalysisOptionsFileContent({
-    required this.text,
-    required this.lineInfo,
-    required this.yaml,
-  });
+  new({required this.text, required this.lineInfo, required this.yaml});
 
   /// The YAML parsed from [text], if it is a map.
   YamlMap? get yamlMap => yaml.tryCast<YamlMap>();
@@ -74,6 +70,39 @@ abstract final class _DiagnosticOptions {
     // `test_analyzer_errors_removed_pluginsInInnerOptions` after Flutter
     // removes its `plugins_in_inner_options` suppression.
     'PLUGINS_IN_INNER_OPTIONS',
+    // Annotations report undefined names like other expressions, as
+    // `UNDEFINED_UNQUALIFIED_NAME_READ` or `UNDEFINED_PREFIXED_NAME_READ`.
+    'UNDEFINED_ANNOTATION',
+    // Split into `UNDEFINED_SUPER_MEMBER_READ`, `UNDEFINED_SUPER_MEMBER_WRITE`,
+    // and `UNDEFINED_SUPER_OPERATOR`.
+    'UNDEFINED_SUPER_MEMBER',
+    // Static members report `UNDEFINED_STATIC_MEMBER_READ` and
+    // `UNDEFINED_STATIC_MEMBER_WRITE`.
+    'PRIVATE_SETTER',
+    'UNDEFINED_ENUM_CONSTANT',
+    'UNDEFINED_EXTENSION_GETTER',
+    'UNDEFINED_EXTENSION_METHOD',
+    'UNDEFINED_EXTENSION_SETTER',
+    // Dot shorthands report `UNDEFINED_STATIC_MEMBER_READ`.
+    'DOT_SHORTHAND_UNDEFINED_MEMBER',
+    // Instance members report `UNDEFINED_INSTANCE_MEMBER_READ`.
+    'UNDEFINED_GETTER',
+    // Instance members report `UNDEFINED_INSTANCE_MEMBER_WRITE`.
+    'UNDEFINED_SETTER',
+    // Split into `UNDEFINED_PREFIXED_NAME_READ` and
+    // `UNDEFINED_PREFIXED_NAME_WRITE`.
+    'UNDEFINED_PREFIXED_NAME',
+    // Unqualified names report `UNDEFINED_UNQUALIFIED_NAME_READ` and
+    // `UNDEFINED_UNQUALIFIED_NAME_WRITE`.
+    'ASSIGNMENT_TO_CONST',
+    'ASSIGNMENT_TO_FINAL',
+    'ASSIGNMENT_TO_FINAL_NO_SETTER',
+    'ASSIGNMENT_TO_FUNCTION',
+    'ASSIGNMENT_TO_METHOD',
+    'ASSIGNMENT_TO_TYPE',
+    'UNDEFINED_FUNCTION',
+    'UNDEFINED_IDENTIFIER',
+    'UNDEFINED_METHOD',
   };
 
   static Set<String> currentLintCodeNames() {
@@ -103,7 +132,7 @@ class _ErrorBuilder {
   reportError;
 
   /// Create a builder for the given [supportedOptions].
-  factory _ErrorBuilder(Set<String> supportedOptions) {
+  factory(Set<String> supportedOptions) {
     if (supportedOptions.isEmpty) {
       return _ErrorBuilder._(
         reportError: (reporter, scopeName, node) => reporter.report(
@@ -142,14 +171,14 @@ class _ErrorBuilder {
     }
   }
 
-  _ErrorBuilder._({required this.reportError});
+  new _({required this.reportError});
 }
 
 /// Content read and parsed from one file.
 sealed class _FileContent {
   final File file;
 
-  _FileContent({required this.file});
+  new({required this.file});
 
   AnalysisOptionsFileContent? get content;
 }
@@ -161,7 +190,7 @@ sealed class _FileContent {
 sealed class _FileNode {
   final File file;
 
-  _FileNode({required this.file});
+  new({required this.file});
 
   AnalysisOptionsFileContent? get content;
 }
@@ -171,7 +200,7 @@ final class _FileParseFailure {
   final String message;
   final SourceSpan? span;
 
-  _FileParseFailure({required this.message, required this.span});
+  new({required this.message, required this.span});
 }
 
 /// One valid `include` directive in a parsed file.
@@ -179,14 +208,14 @@ final class _IncludeDirective {
   final YamlScalar node;
   final String uri;
 
-  _IncludeDirective({required this.node, required this.uri});
+  new({required this.node, required this.uri});
 }
 
 /// The resolved meaning of one `include` directive.
 sealed class _IncludeResolution {
   final _IncludeDirective include;
 
-  _IncludeResolution({required this.include});
+  new({required this.include});
 }
 
 /// A parsed string legacy plugin occurrence.
@@ -198,14 +227,14 @@ final class _LegacyPluginData {
   final YamlNode node;
   final String name;
 
-  _LegacyPluginData({required this.node, required this.name});
+  new({required this.node, required this.name});
 }
 
 /// An `include` directive whose target was read but had malformed YAML.
 final class _MalformedInclude extends _IncludeResolution {
   final _MalformedYamlFileNode file;
 
-  _MalformedInclude({required super.include, required this.file});
+  new({required super.include, required this.file});
 }
 
 final class _MalformedYamlFileContent extends _FileContent {
@@ -214,11 +243,7 @@ final class _MalformedYamlFileContent extends _FileContent {
 
   final _FileParseFailure failure;
 
-  _MalformedYamlFileContent({
-    required super.file,
-    required this.content,
-    required this.failure,
-  });
+  new({required super.file, required this.content, required this.failure});
 }
 
 /// A readable file whose YAML root could not be parsed.
@@ -228,16 +253,12 @@ final class _MalformedYamlFileNode extends _FileNode {
 
   final _FileParseFailure failure;
 
-  _MalformedYamlFileNode({
-    required super.file,
-    required this.content,
-    required this.failure,
-  });
+  new({required super.file, required this.content, required this.failure});
 }
 
 /// An `include` directive whose target could not be resolved to a parsed file.
 final class _MissingInclude extends _IncludeResolution {
-  _MissingInclude({required super.include});
+  new({required super.include});
 }
 
 /// Local `analyzer` section semantics computed from one parsed options file.
@@ -250,10 +271,7 @@ final class _ParsedAnalyzerData {
   final _ParsedLegacyPluginsData legacyPlugins;
   final _ParsedOptionalChecksData optionalChecks;
 
-  factory _ParsedAnalyzerData.parse(
-    YamlNode? analyzer,
-    DiagnosticReporter reporter,
-  ) {
+  factory parse(YamlNode? analyzer, DiagnosticReporter reporter) {
     if (analyzer == null || analyzer.isNullScalar) {
       return _ParsedAnalyzerData._empty();
     }
@@ -316,7 +334,7 @@ final class _ParsedAnalyzerData {
     );
   }
 
-  _ParsedAnalyzerData._({
+  new _({
     required this.cannotIgnore,
     required this.enableExperiments,
     required this.errorProcessors,
@@ -326,7 +344,7 @@ final class _ParsedAnalyzerData {
     required this.optionalChecks,
   });
 
-  factory _ParsedAnalyzerData._empty() {
+  factory _empty() {
     return _ParsedAnalyzerData._(
       cannotIgnore: _ParsedCannotIgnoreData._(),
       enableExperiments: _ParsedEnableExperimentsData._(),
@@ -343,10 +361,7 @@ final class _ParsedAnalyzerData {
 final class _ParsedCannotIgnoreData {
   final List<String>? names;
 
-  factory _ParsedCannotIgnoreData.parse(
-    YamlNode? cannotIgnore,
-    DiagnosticReporter reporter,
-  ) {
+  factory parse(YamlNode? cannotIgnore, DiagnosticReporter reporter) {
     if (cannotIgnore == null) {
       return _ParsedCannotIgnoreData._();
     }
@@ -398,17 +413,14 @@ final class _ParsedCannotIgnoreData {
     return _ParsedCannotIgnoreData._(names: names);
   }
 
-  _ParsedCannotIgnoreData._({this.names});
+  new _({this.names});
 }
 
 /// Local code-style semantics computed from one parsed options file.
 final class _ParsedCodeStyleData {
   final bool? useFormatter;
 
-  factory _ParsedCodeStyleData.parse(
-    YamlNode? codeStyle,
-    DiagnosticReporter reporter,
-  ) {
+  factory parse(YamlNode? codeStyle, DiagnosticReporter reporter) {
     if (codeStyle == null || codeStyle.isNullScalar) {
       return _ParsedCodeStyleData._();
     }
@@ -461,17 +473,14 @@ final class _ParsedCodeStyleData {
     return _ParsedCodeStyleData._(useFormatter: useFormatter);
   }
 
-  _ParsedCodeStyleData._({this.useFormatter});
+  new _({this.useFormatter});
 }
 
 /// Local analyzer enable-experiment semantics computed from one parsed options file.
 final class _ParsedEnableExperimentsData {
   final List<String>? flags;
 
-  factory _ParsedEnableExperimentsData.parse(
-    YamlNode? enableExperiments,
-    DiagnosticReporter reporter,
-  ) {
+  factory parse(YamlNode? enableExperiments, DiagnosticReporter reporter) {
     if (enableExperiments == null) {
       return _ParsedEnableExperimentsData._();
     }
@@ -531,17 +540,14 @@ final class _ParsedEnableExperimentsData {
     return _ParsedEnableExperimentsData._(flags: flags);
   }
 
-  _ParsedEnableExperimentsData._({this.flags});
+  new _({this.flags});
 }
 
 /// Local analyzer error-processor semantics computed from one parsed options file.
 final class _ParsedErrorProcessorsData {
   final List<ErrorProcessor>? processors;
 
-  factory _ParsedErrorProcessorsData.parse(
-    YamlNode? errors,
-    DiagnosticReporter reporter,
-  ) {
+  factory parse(YamlNode? errors, DiagnosticReporter reporter) {
     if (errors == null) {
       return _ParsedErrorProcessorsData._();
     }
@@ -624,17 +630,14 @@ final class _ParsedErrorProcessorsData {
     return _ParsedErrorProcessorsData._(processors: processors);
   }
 
-  _ParsedErrorProcessorsData._({this.processors});
+  new _({this.processors});
 }
 
 /// Local analyzer exclude semantics computed from one parsed options file.
 final class _ParsedExcludesData {
   final List<String>? patterns;
 
-  factory _ParsedExcludesData.parse(
-    YamlNode? excludes,
-    DiagnosticReporter reporter,
-  ) {
+  factory parse(YamlNode? excludes, DiagnosticReporter reporter) {
     if (excludes == null) {
       return _ParsedExcludesData._();
     }
@@ -671,7 +674,7 @@ final class _ParsedExcludesData {
     return _ParsedExcludesData._(patterns: patterns);
   }
 
-  _ParsedExcludesData._({this.patterns});
+  new _({this.patterns});
 }
 
 /// Local facts computed from one parsed options file.
@@ -685,7 +688,7 @@ final class _ParsedFileData {
   final _ParsedLinterData linter;
   final _ParsedPluginsData plugins;
 
-  _ParsedFileData({
+  new({
     required this.file,
     required this.diagnostics,
     required this.analyzer,
@@ -695,7 +698,7 @@ final class _ParsedFileData {
     required this.plugins,
   });
 
-  factory _ParsedFileData.parse(
+  factory parse(
     _ParsedFileNode file, {
     required VersionConstraint? sdkVersionConstraint,
     required bool isInitialFile,
@@ -759,7 +762,7 @@ final class _ParsedFileNode extends _FileNode {
   /// the parse cache, so recursive includes can point back at the same node.
   late final List<_IncludeResolution> includeResolutions;
 
-  _ParsedFileNode({required super.file, required this.content});
+  new({required super.file, required this.content});
 }
 
 /// Effective semantics for a parsed file and its includes.
@@ -776,7 +779,7 @@ final class _ParsedFileSemantics {
   /// The legacy plugin node after merging included files.
   final YamlNode? includedLegacyPluginsNode;
 
-  _ParsedFileSemantics({
+  new({
     required this.localData,
     required this.includedLinterRules,
     required this.includedEffectiveLinterRules,
@@ -812,10 +815,7 @@ final class _ParsedFormatterData {
   final int? pageWidth;
   final TrailingCommas? trailingCommas;
 
-  factory _ParsedFormatterData.parse(
-    YamlNode? formatter,
-    DiagnosticReporter reporter,
-  ) {
+  factory parse(YamlNode? formatter, DiagnosticReporter reporter) {
     if (formatter == null || formatter.isNullScalar) {
       return _ParsedFormatterData._();
     }
@@ -887,14 +887,14 @@ final class _ParsedFormatterData {
     );
   }
 
-  _ParsedFormatterData._({this.pageWidth, this.trailingCommas});
+  new _({this.pageWidth, this.trailingCommas});
 }
 
 /// An `include` directive whose target was parsed successfully.
 final class _ParsedInclude extends _IncludeResolution {
   final _ParsedFileNode file;
 
-  _ParsedInclude({required super.include, required this.file});
+  new({required super.include, required this.file});
 }
 
 /// Local analyzer language semantics computed from one parsed options file.
@@ -903,10 +903,7 @@ final class _ParsedLanguageData {
   final bool? strictInference;
   final bool? strictRawTypes;
 
-  factory _ParsedLanguageData.parse(
-    YamlNode? language,
-    DiagnosticReporter reporter,
-  ) {
+  factory parse(YamlNode? language, DiagnosticReporter reporter) {
     if (language == null || language.isNullScalar) {
       return _ParsedLanguageData._();
     }
@@ -987,11 +984,7 @@ final class _ParsedLanguageData {
     );
   }
 
-  _ParsedLanguageData._({
-    this.strictCasts,
-    this.strictInference,
-    this.strictRawTypes,
-  });
+  new _({this.strictCasts, this.strictInference, this.strictRawTypes});
 }
 
 /// Local legacy `analyzer/plugins` semantics computed from one parsed options file.
@@ -1001,7 +994,7 @@ final class _ParsedLegacyPluginsData {
   final List<_LegacyPluginData> entries;
   final List<_LegacyPluginData> localConflicts;
 
-  factory _ParsedLegacyPluginsData.parse(YamlNode? plugins) {
+  factory parse(YamlNode? plugins) {
     return switch (plugins) {
       null => _ParsedLegacyPluginsData._(),
       YamlScalar(value: null) => _ParsedLegacyPluginsData._(node: plugins),
@@ -1015,17 +1008,14 @@ final class _ParsedLegacyPluginsData {
     };
   }
 
-  _ParsedLegacyPluginsData._({
+  new _({
     this.node,
     this.firstPluginName,
     this.entries = const [],
     this.localConflicts = const [],
   });
 
-  factory _ParsedLegacyPluginsData._fromNodes(
-    YamlNode node,
-    Iterable<YamlNode?> nodes,
-  ) {
+  factory _fromNodes(YamlNode node, Iterable<YamlNode?> nodes) {
     var entries = <_LegacyPluginData>[];
     var localConflicts = <_LegacyPluginData>[];
     String? firstPluginName;
@@ -1107,7 +1097,7 @@ final class _ParsedLinterData {
   final Map<String, RuleConfig> ruleConfigs;
   final _LocalLinterRules localRules;
 
-  factory _ParsedLinterData.absent() {
+  factory absent() {
     return _ParsedLinterData._(
       _ParsedLinterDataKind.absent,
       const {},
@@ -1115,7 +1105,7 @@ final class _ParsedLinterData {
     );
   }
 
-  factory _ParsedLinterData.invalid() {
+  factory invalid() {
     return _ParsedLinterData._(
       _ParsedLinterDataKind.invalid,
       const {},
@@ -1123,7 +1113,7 @@ final class _ParsedLinterData {
     );
   }
 
-  factory _ParsedLinterData.parse(
+  factory parse(
     YamlMap? yamlMap, {
     required File file,
     required VersionConstraint? sdkVersionConstraint,
@@ -1173,7 +1163,7 @@ final class _ParsedLinterData {
     );
   }
 
-  factory _ParsedLinterData.valid(
+  factory valid(
     Map<String, RuleConfig> ruleConfigs, {
     required _LocalLinterRules localRules,
   }) {
@@ -1184,7 +1174,7 @@ final class _ParsedLinterData {
     );
   }
 
-  _ParsedLinterData._(this.kind, this.ruleConfigs, this.localRules);
+  new _(this.kind, this.ruleConfigs, this.localRules);
 
   static bool _beforeCurrentConstraint(
     Version? since,
@@ -1413,10 +1403,7 @@ final class _ParsedOptionalChecksData {
   final bool? chromeOsManifestChecks;
   final bool? propagateLinterExceptions;
 
-  factory _ParsedOptionalChecksData.parse(
-    YamlNode? optionalChecks,
-    DiagnosticReporter reporter,
-  ) {
+  factory parse(YamlNode? optionalChecks, DiagnosticReporter reporter) {
     void reportUnsupportedKey(YamlNode node) {
       var unsupportedKey = _ErrorBuilder(
         AnalysisOptionsFileKeys.optionalChecksOptions,
@@ -1508,10 +1495,7 @@ final class _ParsedOptionalChecksData {
     );
   }
 
-  _ParsedOptionalChecksData._({
-    this.chromeOsManifestChecks,
-    this.propagateLinterExceptions,
-  });
+  new _({this.chromeOsManifestChecks, this.propagateLinterExceptions});
 }
 
 /// Local top-level `plugins` semantics computed from one parsed options file.
@@ -1523,7 +1507,7 @@ final class _ParsedPluginsData {
   final List<PluginConfiguration> configurations;
   final Map<String, PluginSource>? dependencyOverrides;
 
-  factory _ParsedPluginsData.parse(
+  factory parse(
     YamlNode? plugins, {
     required File file,
     required DiagnosticReporter reporter,
@@ -1627,7 +1611,7 @@ final class _ParsedPluginsData {
     );
   }
 
-  _ParsedPluginsData._({
+  new _({
     this.clearsExisting = false,
     this.configurations = const [],
     this.dependencyOverrides,
@@ -1836,10 +1820,7 @@ final class _ParsedPluginsData {
 
 /// Diagnostics for the deprecated `analyzer/strong-mode` section.
 final class _ParsedStrongModeData {
-  factory _ParsedStrongModeData.parse(
-    YamlNode? strongMode,
-    DiagnosticReporter reporter,
-  ) {
+  factory parse(YamlNode? strongMode, DiagnosticReporter reporter) {
     if (strongMode == null) {
       return _ParsedStrongModeData._();
     }
@@ -1909,20 +1890,20 @@ final class _ParsedStrongModeData {
     return _ParsedStrongModeData._();
   }
 
-  _ParsedStrongModeData._();
+  new _();
 }
 
 final class _ParsedYamlFileContent extends _FileContent {
   @override
   final AnalysisOptionsFileContent content;
 
-  _ParsedYamlFileContent({required super.file, required this.content});
+  new({required super.file, required this.content});
 }
 
 final class _UnreadableFileContent extends _FileContent {
   final FileSystemException exception;
 
-  _UnreadableFileContent({required super.file, required this.exception});
+  new({required super.file, required this.exception});
 
   @override
   AnalysisOptionsFileContent? get content => null;
@@ -1932,7 +1913,7 @@ final class _UnreadableFileContent extends _FileContent {
 final class _UnreadableFileNode extends _FileNode {
   final FileSystemException exception;
 
-  _UnreadableFileNode({required super.file, required this.exception});
+  new({required super.file, required this.exception});
 
   @override
   AnalysisOptionsFileContent? get content => null;

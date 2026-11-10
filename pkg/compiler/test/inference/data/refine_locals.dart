@@ -127,16 +127,18 @@ refineToClass() {
 
 /*member: _refineToClosureLocal:[subclass=Closure|powerset={N}{O}{N}]*/
 _refineToClosureLocal() {
-  var f = /*[null|powerset={null}]*/
-      ({/*[exact=JSUInt31|powerset={I}{O}{N}]*/ a}) {};
+  var f = /*[null|powerset={null}]*/ ({
+    /*[exact=JSUInt31|powerset={I}{O}{N}]*/ a,
+  }) {};
   f(a: 0);
   return f;
 }
 
 /*member: _refineToClosureLocalCall:[subclass=Closure|powerset={N}{O}{N}]*/
 _refineToClosureLocalCall() {
-  var f = /*[null|powerset={null}]*/
-      ({/*[exact=JSUInt31|powerset={I}{O}{N}]*/ b}) {};
+  var f = /*[null|powerset={null}]*/ ({
+    /*[exact=JSUInt31|powerset={I}{O}{N}]*/ b,
+  }) {};
   f.call(b: 0);
   return f;
 }

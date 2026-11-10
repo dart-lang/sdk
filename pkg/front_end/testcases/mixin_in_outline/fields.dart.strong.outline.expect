@@ -1,0 +1,53 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field core::String instanceField;
+  static field core::String staticField;
+  synthetic constructor •() → self::Class
+    ;
+}
+mixin class MixinClass extends core::Object {
+  field core::String instanceField = "instanceField";
+  static field core::String staticField;
+  synthetic constructor •() → self::MixinClass
+    ;
+}
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
+  field core::String instanceField = "instanceField";
+  static field core::String staticField;
+}
+class Enum extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::Enum a = const self::Enum::•(0, "a");
+  final field core::String instanceField;
+  static field core::String staticField;
+  static const field core::List<self::Enum> values = const <self::Enum>[self::Enum::a];
+  const synthetic constructor •(core::int #index, core::String #name) → self::Enum
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "Enum.${this.{core::_Enum::_name}{core::String}}";
+}
+extension Extension on core::int {
+  static field staticField = self::Extension|staticField;
+}
+extension type ExtensionType(core::int it) {
+  abstract extension-type-member representation-field get it() → core::int;
+  static field staticField = self::ExtensionType|staticField;
+  constructor • = self::ExtensionType|constructor#;
+  constructor tearoff • = self::ExtensionType|constructor#_#new#tearOff;
+}
+static field core::String topLevelField;
+static field core::String Extension|staticField;
+static field core::String ExtensionType|staticField;
+static extension-type-member method ExtensionType|constructor#(initializing-formal core::int it) → self::ExtensionType% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ExtensionType|constructor#_#new#tearOff(core::int it) → self::ExtensionType% /* erasure=core::int, declared=! */
+  return self::ExtensionType|constructor#(it);
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///fields.dart:26:3 -> InstanceConstant(const Enum{Enum.instanceField: null, _Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///fields.dart:25:6 -> ListConstant(const <Enum>[const Enum{Enum.instanceField: null, _Enum.index: 0, _Enum._name: "a"}])
+Extra constant evaluation: evaluated: 9, effectively constant: 2

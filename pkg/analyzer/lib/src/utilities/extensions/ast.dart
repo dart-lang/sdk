@@ -4,8 +4,10 @@
 
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 
@@ -30,16 +32,17 @@ extension AstNodeExtension on AstNode {
 
   /// The [FunctionExpression] that encloses this node directly or `null` if
   /// there is another enclosing executable element.
+  @V1Ast('The V2 counterpart is enclosingClosure2.')
   FunctionExpression? get enclosingClosure {
     for (var node in withAncestors) {
       switch (node) {
-        case FunctionExpression(parent: var parent)
+        case FunctionExpression(:var parent)
             when parent is! FunctionDeclaration:
           return node;
         case FunctionDeclaration() ||
             ConstructorDeclaration() ||
             MethodDeclaration():
-          break;
+          return null;
       }
     }
     return null;
@@ -50,20 +53,25 @@ extension AstNodeExtension on AstNode {
   FunctionExpression? get enclosingClosure2 {
     for (var node in withAncestors2) {
       switch (node) {
-        case FunctionExpression(parent2: var parent)
-            when parent is! FunctionDeclaration:
+        case FunctionExpression():
           return node;
-        case FunctionDeclaration() ||
-            ConstructorDeclaration() ||
-            MethodDeclaration() ||
-            TopLevelGetterDeclaration():
-          break;
+        case LocalFunctionDeclaration() ||
+            ConstructorDeclaration2() ||
+            GetterDeclaration() ||
+            MethodDeclaration2() ||
+            OperatorDeclaration() ||
+            SetterDeclaration() ||
+            TopLevelFunctionDeclaration() ||
+            TopLevelGetterDeclaration() ||
+            TopLevelSetterDeclaration():
+          return null;
       }
     }
     return null;
   }
 
   /// The [ExecutableElement] of the enclosing executable [AstNode].
+  @V1Ast('The V2 counterpart is enclosingExecutableElement2.')
   ExecutableElement? get enclosingExecutableElement {
     for (var node in withAncestors) {
       if (node is FunctionDeclaration) {
@@ -82,16 +90,22 @@ extension AstNodeExtension on AstNode {
   /// The [ExecutableElement] of the enclosing executable [AstNode].
   ExecutableElement? get enclosingExecutableElement2 {
     for (var node in withAncestors2) {
-      if (node is FunctionDeclaration) {
+      if (node is LocalFunctionDeclaration) {
         return node.declaredFragment?.element;
       }
-      if (node is ConstructorDeclaration) {
+      if (node is ConstructorDeclaration2) {
         return node.declaredFragment?.element;
       }
-      if (node is MethodDeclaration) {
+      if (node is MethodDeclarationV1OriginImpl) {
+        return node.declaredFragment?.element;
+      }
+      if (node is TopLevelFunctionDeclaration) {
         return node.declaredFragment?.element;
       }
       if (node is TopLevelGetterDeclaration) {
+        return node.declaredFragment?.element;
+      }
+      if (node is TopLevelSetterDeclaration) {
         return node.declaredFragment?.element;
       }
     }
@@ -99,6 +113,7 @@ extension AstNodeExtension on AstNode {
   }
 
   /// The [InstanceElement] of the enclosing executable [AstNode].
+  @V1Ast('The V2 counterpart is enclosingInstanceElement2.')
   InstanceElement? get enclosingInstanceElement {
     for (var node in withAncestors) {
       var element = node
@@ -126,12 +141,81 @@ extension AstNodeExtension on AstNode {
     return null;
   }
 
+  @V1Ast('The V2 counterpart is enclosingInterfaceElement2.')
   InterfaceElement? get enclosingInterfaceElement =>
       enclosingInstanceElement.tryCast();
 
   InterfaceElement? get enclosingInterfaceElement2 =>
       enclosingInstanceElement2.tryCast();
 
+  /// The name scope of this node, or of the closest ancestor that has one.
+  ///
+  /// Name scopes are recorded during resolution, so this is `null` for
+  /// unresolved nodes.
+  ///
+  /// A few recorded scopes don't match the subtree of their node: the case
+  /// scope of an if-case also encloses the `then` branch, its sibling; and the
+  /// scope of a for-each loop does not enclose its parts, because the iterable
+  /// is resolved before the loop variables are declared.
+  @V1Ast('The V2 counterpart is enclosingNameScope2.')
+  Scope? get enclosingNameScope {
+    AstNode? child;
+    for (var node in withAncestors) {
+      switch (node) {
+        case IfElementImpl(:var caseClause?)
+            when identical(child, node.thenElement):
+          return caseClause.guardedPattern.nameScope;
+        case IfStatementImpl(:var caseClause?)
+            when identical(child, node.thenStatement):
+          return caseClause.guardedPattern.nameScope;
+        case ForElementImpl() when child is ForEachParts:
+        case ForStatementImpl() when child is ForEachParts:
+          // The iterable is resolved before the loop variables are declared,
+          // so the parts of a for-each loop are outside of the loop scope
+          // recorded on it.
+          break;
+        case AstNodeWithNameScopeMixin(:var nameScope?):
+          return nameScope;
+      }
+      child = node;
+    }
+    return null;
+  }
+
+  /// The name scope of this node, or of the closest ancestor that has one.
+  ///
+  /// Name scopes are recorded during resolution, so this is `null` for
+  /// unresolved nodes.
+  ///
+  /// A few recorded scopes don't match the subtree of their node: the case
+  /// scope of an if-case also encloses the `then` branch, its sibling; and the
+  /// scope of a for-each loop does not enclose its parts, because the iterable
+  /// is resolved before the loop variables are declared.
+  Scope? get enclosingNameScope2 {
+    AstNode? child;
+    for (var node in withAncestors2) {
+      switch (node) {
+        case IfElementImpl(:var caseClause?)
+            when identical(child, node.thenElement2):
+          return caseClause.guardedPattern.nameScope;
+        case IfStatementImpl(:var caseClause?)
+            when identical(child, node.thenStatement2):
+          return caseClause.guardedPattern.nameScope;
+        case ForElementImpl() when child is ForEachParts:
+        case ForStatementImpl() when child is ForEachParts:
+          // The iterable is resolved before the loop variables are declared,
+          // so the parts of a for-each loop are outside of the loop scope
+          // recorded on it.
+          break;
+        case AstNodeWithNameScopeMixin(:var nameScope?):
+          return nameScope;
+      }
+      child = node;
+    }
+    return null;
+  }
+
+  @V1Ast('The V2 counterpart is enclosingUnitChild2.')
   AstNode? get enclosingUnitChild {
     for (var node in withAncestors) {
       if (node.parent is CompilationUnit) {
@@ -151,6 +235,7 @@ extension AstNodeExtension on AstNode {
   }
 
   /// This node and all of its ancestors.
+  @V1Ast('The V2 counterpart is withAncestors2.')
   Iterable<AstNode> get withAncestors sync* {
     AstNode? current = this;
     while (current != null) {
@@ -186,12 +271,13 @@ extension AstNodeExtension on AstNode {
 }
 
 extension AstNodeNullableExtension on AstNode? {
+  @V1Ast('The V2 counterpart is classMembers2.')
   List<ClassMember> get classMembers {
     var self = this;
     return switch (self) {
       BlockClassBody() => self.members,
       BlockEnumBody() => self.members,
-      ClassDeclarationImpl() => self.body.members,
+      ClassDeclaration() => self.body.members,
       EnumDeclaration() => self.body.members,
       ExtensionDeclaration() => self.body.members,
       ExtensionTypeDeclarationImpl() => self.body.members,
@@ -199,10 +285,25 @@ extension AstNodeNullableExtension on AstNode? {
       _ => throw UnimplementedError('(${self.runtimeType}) $self'),
     };
   }
+
+  List<AnnotatedNode> get classMembers2 {
+    var self = this;
+    return switch (self) {
+      BlockEnumDeclarationBody() => self.members,
+      BlockInstanceDeclarationBody() => self.members,
+      ClassDeclaration2Impl() => self.body.members,
+      EnumDeclaration2() => self.body.members,
+      ExtensionDeclaration2() => self.body.members,
+      ExtensionTypeDeclaration2Impl() => self.body.members,
+      MixinDeclaration2() => self.body.members,
+      _ => throw UnimplementedError('(${self.runtimeType}) $self'),
+    };
+  }
 }
 
 extension ExpressionExtension on Expression {
   /// Whether this expression is found in a [CommentReference].
+  @V1Ast('The V2 counterpart is inCommentReference2.')
   bool get inCommentReference =>
       parent is CommentReference ||
       parent?.parent is CommentReference ||
@@ -220,22 +321,72 @@ extension ExtensionElementExtension on ExtensionElement {
       extendedType.tryCast<InterfaceType>()?.element;
 }
 
+extension Field2Extension on Field2 {
+  FieldElementImpl get declaredElement {
+    return declaredFragment!.element as FieldElementImpl;
+  }
+}
+
+@V1Ast('The V2 counterpart is FieldsDeclarationExtension.')
 extension FieldDeclarationExtension on FieldDeclaration {
   Element get firstVariableElement =>
       fields.variables.first.declaredFragment!.element;
 }
 
+extension FieldsDeclarationExtension on FieldsDeclaration {
+  Element get firstVariableElement => fields.first.declaredFragment!.element;
+}
+
+extension InterpolationExpressionExtension on InterpolationExpression {
+  static final _identifierPart = RegExp('[a-zA-Z0-9_]');
+
+  /// Whether the braces of this interpolation (`${...}`) could be removed if
+  /// its expression were written as [name], an identifier.
+  ///
+  /// Not if there are no braces to remove, if [name] contains a `$` (which
+  /// can't be interpolated without braces), or if the string continues with a
+  /// character that would then be taken as part of the identifier, as in
+  /// `'${x}y'`.
+  ///
+  /// [name] is passed in, rather than read from [expression], so that this
+  /// also works for a quick fix that is changing the expression at the same
+  /// time: what matters is the name the expression will have once the fix
+  /// has been applied, not the one it has now. (For example, removing
+  /// `self.` from `${self.x}` leaves `${x}`.)
+  bool canRemoveBracesAround(String name) {
+    var rightBracket = this.rightBracket;
+    if (rightBracket == null || name.contains(r'$')) return false;
+    var next = rightBracket.next;
+    return !(next is StringToken && next.lexeme.startsWith(_identifierPart));
+  }
+}
+
+extension TokenExtension on Token {
+  /// The first preceding comment before this token, or this token if there are
+  /// no preceding comments.
+  Token get precedingCommentOrThis => precedingComments ?? this;
+}
+
+extension TopLevelVariable2Extension on TopLevelVariable2 {
+  TopLevelVariableElementImpl get declaredElement {
+    return declaredFragment!.element as TopLevelVariableElementImpl;
+  }
+}
+
+@V1Ast('The V2 counterpart is TopLevelVariablesDeclarationExtension.')
 extension TopLevelVariableDeclarationExtension on TopLevelVariableDeclaration {
   Element get firstVariableElement =>
       variables.variables.first.declaredFragment!.element;
 }
 
+extension TopLevelVariablesDeclarationExtension
+    on TopLevelVariablesDeclaration {
+  Element get firstVariableElement => variables.first.declaredFragment!.element;
+}
+
+@V1Ast('The V2 counterpart is Field2Extension.')
 extension VariableDeclarationExtension on VariableDeclaration {
   FieldElementImpl get declaredFieldElement {
     return declaredFragment!.element as FieldElementImpl;
-  }
-
-  TopLevelVariableElementImpl get declaredTopLevelVariableElement {
-    return declaredFragment!.element as TopLevelVariableElementImpl;
   }
 }

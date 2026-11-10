@@ -46,10 +46,8 @@ static StackTracePtr CurrentStackTrace(Thread* thread,
   // Collect the frames.
   StackTraceUtils::CollectFrames(thread, skip_frames,
                                  [&](const StackTraceUtils::Frame& frame) {
-                                   if (!frame.bytecode.IsNull()) {
-                                     code_array.Add(frame.bytecode);
-                                   } else {
-                                     code_array.Add(frame.code);
+                                   if (!frame.code_or_bytecode.IsNull()) {
+                                     code_array.Add(frame.code_or_bytecode);
                                    }
                                    pc_offset_array.Add(frame.pc_offset);
                                  });
@@ -88,7 +86,7 @@ static void AppendFrames(const GrowableObjectArray& code_list,
 
     if (frame->is_interpreted()) {
       bytecode = frame->LookupDartBytecode();
-      if (bytecode.function() == Function::null()) {
+      if (bytecode.IsSharedBytecodeStub()) {
         continue;
       }
       const intptr_t pc_offset = frame->pc() - bytecode.PayloadStart();

@@ -711,6 +711,16 @@ def DartDomNameOfAttribute(attr):
     return name
 
 
+def AlwaysType(dart_type, comment=None, nullable=False):
+    """Returns string for declaring something with |dart_type| in a context
+    where a type annotation is required.
+    The string is empty or has a trailing space.
+    """
+
+    nullability_operator = '?' if nullable else ''
+    return dart_type + nullability_operator + ' '
+
+
 def TypeOrNothing(dart_type, comment=None, nullable=False):
     """Returns string for declaring something with |dart_type| in a context
   where a type may be omitted.
@@ -757,7 +767,10 @@ class OperationInfo(object):
         self.factory_parameters = None
         self.type_nullable = False
 
-    def ParametersAsDecVarLists(self, rename_type, force_optional=False):
+    def ParametersAsDecVarLists(self,
+                                rename_type,
+                                force_optional=False,
+                                require_types=False):
         """ Returns a tuple (required, optional, named), where:
       required is a list of parameter declarations corresponding to the
         required parameters
@@ -787,8 +800,14 @@ class OperationInfo(object):
             # Special handling for setlike IDL forEach operation.
             if dart_type is None and param.type_id.endswith('ForEachCallback'):
                 dart_type = param.type_id
-            return (TypeOrNothing(dart_type, param.type_id, param.is_nullable or
-                                  param.is_optional), param.name)
+            if require_types:
+                return (AlwaysType(dart_type, param.type_id,
+                                   param.is_nullable or
+                                   param.is_optional), param.name)
+            else:
+                return (TypeOrNothing(dart_type, param.type_id,
+                                      param.is_nullable or
+                                      param.is_optional), param.name)
 
         required = []
         optional = []
@@ -804,13 +823,17 @@ class OperationInfo(object):
         needs_named = optional and self.requires_named_arguments and not force_optional
         return (required, optional, needs_named)
 
-    def ParametersAsDecStringList(self, rename_type, force_optional=False):
+    def ParametersAsDecStringList(self,
+                                  rename_type,
+                                  force_optional=False,
+                                  require_types=False):
         """Returns a list of strings where each string corresponds to a parameter
     declaration.  All of the optional/named parameters if any will appear as
     a single entry at the end of the list.
     """
         (required, optional, needs_named) = \
-            self.ParametersAsDecVarLists(rename_type, force_optional)
+            self.ParametersAsDecVarLists(
+                  rename_type, force_optional, require_types)
 
         def FormatParam(dec):
             return dec[0] + dec[1]
@@ -823,8 +846,12 @@ class OperationInfo(object):
                             right_bracket)
         return argtexts
 
-    def ParametersAsDeclaration(self, rename_type, force_optional=False):
-        p_list = self.ParametersAsDecStringList(rename_type, force_optional)
+    def ParametersAsDeclaration(self,
+                                rename_type,
+                                force_optional=False,
+                                require_types=False):
+        p_list = self.ParametersAsDecStringList(rename_type, force_optional,
+                                                require_types)
         return ', '.join(p_list)
 
     def NumberOfRequiredInDart(self):

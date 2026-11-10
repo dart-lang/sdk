@@ -22,9 +22,9 @@ import 'package:_fe_analyzer_shared/src/parser/quote.dart'
     show
         Quote,
         analyzeQuote,
-        unescape,
         unescapeFirstStringPart,
         unescapeLastStringPart,
+        unescapeMiddleStringPart,
         unescapeString;
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show FixedNullableList, GrowableList, NullValues, ParserRecovery;
@@ -158,7 +158,7 @@ abstract class BodyBuilder {
   });
 
   BuildPrimaryConstructorBodyResult buildPrimaryConstructorBody({
-    required Token startToken,
+    required Token thisToken,
     required Token? metadata,
   });
 
@@ -1235,15 +1235,19 @@ class BodyBuilderImpl extends StackListenerImpl
     Object? name = pop();
     List<InternalExpression>? annotations = pop() as List<InternalExpression>?;
     String? typeParameterName;
-    int typeParameterNameOffset;
+    UriOffsetLength uriOffset;
     if (name is Identifier) {
       typeParameterName = name.name;
-      typeParameterNameOffset = name.nameOffset;
+      uriOffset = new UriOffsetLength(
+        uri,
+        name.nameOffset,
+        typeParameterName.length,
+      );
     } else if (name is ParserRecovery) {
       typeParameterName = inFunctionType
           ? StructuralParameterBuilder.noNameSentinel
           : NominalParameterBuilder.noNameSentinel;
-      typeParameterNameOffset = name.charOffset;
+      uriOffset = new UriOffset(uri, name.charOffset);
     } else {
       unhandled(
         "${name.runtimeType}",
@@ -1265,8 +1269,7 @@ class BodyBuilderImpl extends StackListenerImpl
             new RegularStructuralParameterDeclaration(
               metadata: null,
               name: typeParameterName,
-              fileOffset: typeParameterNameOffset,
-              fileUri: uri,
+              uriOffset: uriOffset,
               isWildcard: isWildcard,
             ),
           )
@@ -1275,8 +1278,7 @@ class BodyBuilderImpl extends StackListenerImpl
               name: typeParameterName,
               kind: TypeParameterKind.function,
               isWildcard: isWildcard,
-              fileOffset: typeParameterNameOffset,
-              fileUri: uri,
+              uriOffset: uriOffset,
             ),
           );
     if (annotations != null) {
@@ -1667,11 +1669,11 @@ class BodyBuilderImpl extends StackListenerImpl
 
   @override
   BuildPrimaryConstructorBodyResult buildPrimaryConstructorBody({
-    required Token startToken,
+    required Token thisToken,
     required Token? metadata,
   }) {
-    assert(startToken.isA(Keyword.THIS));
-    Token token = startToken;
+    assert(thisToken.isA(Keyword.THIS));
+    Token token = thisToken;
     Parser parser = new Parser(
       this,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
@@ -1927,10 +1929,9 @@ class BodyBuilderImpl extends StackListenerImpl
         if (_context.formals != null) {
           for (FormalParameterBuilder formal in _context.formals!) {
             if (formal.isSuperInitializingFormal) {
-              addProblem(
+              problemReporting.addProblem2(
                 diag.unexpectedSuperParametersInGenerativeConstructors,
-                formal.fileOffset,
-                noLength,
+                formal.uriOffset,
               );
               _context.markAsErroneous();
             }
@@ -2682,8 +2683,11 @@ class BodyBuilderImpl extends StackListenerImpl
     if (send is Selector) {
       Object? receiver = pop();
       push(send.withReceiver(receiver, token.charOffset));
-    } else if (send is IncompleteErrorGenerator) {
-      // Pop the "receiver" and push the error.
+    } else if (send is IncompleteErrorGenerator ||
+        send is ParserErrorGenerator) {
+      // Pop the "receiver" and push the error. A [ParserErrorGenerator] is
+      // for an error that the parser has already reported, e.g. the missing
+      // name in `a.(b)`.
       pop();
       push(send);
     } else {
@@ -2729,6 +2733,11 @@ class BodyBuilderImpl extends StackListenerImpl
     Object? send = pop();
     if (send is Selector) {
       push(send.withReceiver(pop(), token.charOffset, isNullAware: true));
+    } else if (send is ParserErrorGenerator) {
+      // The parser has already reported the error, e.g. the missing name in
+      // `a?.(b)`. Pop the "receiver" and push the error.
+      pop();
+      push(send);
     } else {
       pop();
       token = token.next!;
@@ -2856,7 +2865,7 @@ class BodyBuilderImpl extends StackListenerImpl
       variable = formal.build(libraryBuilder);
 
       isImplicitlyTyped = variable.isImplicitlyTyped;
-      typeOffset = formal.type.charOffset ?? variable.fileOffset;
+      typeOffset = formal.type.charOffset;
     } else {
       InternalExpression result = buildProblem(
         message: diag.anonymousMethodWrongParameterList,
@@ -3820,6 +3829,9 @@ class BodyBuilderImpl extends StackListenerImpl
         return;
       }
     } else {
+      UriOffsetLength uriOffset = name != null
+          ? new UriOffsetLength(uri, nameOffset, name.name.length)
+          : new UriOffset(uri, nameOffset);
       String parameterName = name?.name ?? '';
       bool isWildcard =
           libraryFeatures.wildcardVariables.isEnabled && parameterName == '_';
@@ -3831,9 +3843,9 @@ class BodyBuilderImpl extends StackListenerImpl
         push(
           new FunctionTypeParameterBuilder(
             kind: kind,
-            type: type ?? const ImplicitTypeBuilder(),
+            type: type ?? new ImplicitTypeBuilder(uriOffset),
             name: parameterName,
-            fileOffset: nameOffset,
+            uriOffset: uriOffset,
             isWildcard: isWildcard,
           ),
         );
@@ -3843,11 +3855,9 @@ class BodyBuilderImpl extends StackListenerImpl
         case MemberKind.Catch:
           CatchParameterBuilder builder = new CatchParameterBuilder(
             modifiers: modifiers,
-            type: type ?? const ImplicitTypeBuilder(),
+            type: type ?? new ImplicitTypeBuilder(uriOffset),
             name: parameterName,
-            fileOffset: nameOffset,
-            nameOffset: nameOffset,
-            fileUri: uri,
+            uriOffset: uriOffset,
             wildcardIndex: wildcardIndex,
           );
           InternalCatchVariable catchVariable = builder.build(libraryBuilder);
@@ -3858,11 +3868,9 @@ class BodyBuilderImpl extends StackListenerImpl
           AnonymousMethodParameterBuilder builder =
               new AnonymousMethodParameterBuilder(
                 modifiers: modifiers,
-                type: type ?? const ImplicitTypeBuilder(),
+                type: type ?? new ImplicitTypeBuilder(uriOffset),
                 name: parameterName,
-                fileOffset: nameOffset,
-                nameOffset: nameOffset,
-                fileUri: uri,
+                uriOffset: uriOffset,
                 wildcardIndex: wildcardIndex,
                 kind: kind,
               );
@@ -3885,11 +3893,10 @@ class BodyBuilderImpl extends StackListenerImpl
           parameterBuilder = new FormalParameterBuilder(
             kind: kind,
             modifiers: modifiers,
-            type: type ?? const ImplicitTypeBuilder(),
+            type: type ?? new ImplicitTypeBuilder(uriOffset),
             name: parameterName,
-            fileOffset: nameOffset,
             nameOffset: nameOffset,
-            fileUri: uri,
+            uriOffset: uriOffset,
             hasImmediatelyDeclaredDefaultValue: initializerStart != null,
             wildcardIndex: wildcardIndex,
             publicName: publicName,
@@ -3994,6 +4001,7 @@ class BodyBuilderImpl extends StackListenerImpl
       assert(parameters?.isNotEmpty ?? true);
       FunctionTypeParameters formals = new FunctionTypeParameters(
         parameters,
+        new UriOffset(uri, offsetForToken(beginToken)),
         offsetForToken(beginToken),
         lengthOfSpan(beginToken, endToken),
         uri,
@@ -4338,7 +4346,7 @@ class BodyBuilderImpl extends StackListenerImpl
     List<StructuralParameterBuilder>? typeParameters =
         pop() as List<StructuralParameterBuilder>?;
     TypeBuilder type = parameters.toFunctionType(
-      returnType ?? const ImplicitTypeBuilder(),
+      returnType ?? new ImplicitTypeBuilder(parameters.uriOffset),
       questionMark != null
           ? const NullabilityBuilder.nullable()
           : const NullabilityBuilder.omitted(),
@@ -4360,7 +4368,7 @@ class BodyBuilderImpl extends StackListenerImpl
     List<StructuralParameterBuilder>? typeParameters =
         pop() as List<StructuralParameterBuilder>?;
     TypeBuilder type = parameters.toFunctionType(
-      returnType ?? const ImplicitTypeBuilder(),
+      returnType ?? new ImplicitTypeBuilder(parameters.uriOffset),
       question != null
           ? const NullabilityBuilder.nullable()
           : const NullabilityBuilder.omitted(),
@@ -4742,7 +4750,12 @@ class BodyBuilderImpl extends StackListenerImpl
         Object part = parts[i];
         if (part is Token) {
           if (part.lexeme.length != 0) {
-            String value = unescape(part.lexeme, quote, part, this);
+            String value = unescapeMiddleStringPart(
+              part.lexeme,
+              quote,
+              part,
+              this,
+            );
             expressions.add(
               intern.createStringLiteral(offsetForToken(part), value),
             );
@@ -5128,7 +5141,7 @@ class BodyBuilderImpl extends StackListenerImpl
       for (Object? element in elements) {
         if (element is InternalNamedExpression) {
           if (forbiddenObjectMemberNames.contains(element.name)) {
-            libraryBuilder.addProblem(
+            problemReporting.addProblem(
               diag.objectMemberNameUsedForRecordField,
               element.fileOffset,
               element.name.length,
@@ -5136,7 +5149,7 @@ class BodyBuilderImpl extends StackListenerImpl
             );
           }
           if (element.name.startsWith("_")) {
-            libraryBuilder.addProblem(
+            problemReporting.addProblem(
               diag.recordFieldsCantBePrivate,
               element.fileOffset,
               element.name.length,
@@ -5190,7 +5203,7 @@ class BodyBuilderImpl extends StackListenerImpl
                 positionalCount,
               ) !=
               null) {
-            libraryBuilder.addProblem(
+            problemReporting.addProblem(
               diag.namedFieldClashesWithPositionalFieldInRecord,
               element.fileOffset,
               element.name.length,
@@ -5259,8 +5272,7 @@ class BodyBuilderImpl extends StackListenerImpl
         questionMark != null
             ? const NullabilityBuilder.nullable()
             : const NullabilityBuilder.omitted(),
-        uri,
-        leftBracket.charOffset,
+        new UriOffset(uri, leftBracket.charOffset),
       ),
     );
   }
@@ -5288,7 +5300,7 @@ class BodyBuilderImpl extends StackListenerImpl
         type is ParserRecovery
             ?
               // Coverage-ignore(suite): Not run.
-              new InvalidTypeBuilderImpl(uri, type.charOffset)
+              new InvalidTypeBuilderImpl(new UriOffset(uri, type.charOffset))
             : type as TypeBuilder,
         fieldName,
         name is Identifier ? name.nameOffset : TreeNode.noOffset,
@@ -6216,10 +6228,9 @@ class BodyBuilderImpl extends StackListenerImpl
 
   @override
   InternalExpression evaluateArgumentsBefore(
-    ActualArguments? arguments,
+    ActualArguments arguments,
     InternalExpression expression,
   ) {
-    if (arguments == null) return expression;
     for (Argument argument in arguments.argumentList.reversed) {
       expression = intern.createLetForEffect(
         effect: argument.expression,
@@ -8402,6 +8413,52 @@ class BodyBuilderImpl extends StackListenerImpl
     debugEvent("Send");
     Object? arguments = pop();
     List<TypeBuilder>? typeArgumentBuilders = pop() as List<TypeBuilder>?;
+    _handleSend(beginToken, arguments, typeArgumentBuilders);
+  }
+
+  @override
+  void handleSendWithoutArguments(
+    Token beginToken,
+    Token endToken,
+    Token nextToken,
+  ) {
+    assert(
+      checkState(beginToken, [
+        unionOfKinds([
+          ValueKinds.Expression,
+          ValueKinds.Generator,
+          ValueKinds.Identifier,
+          ValueKinds.ParserRecovery,
+        ]),
+      ]),
+    );
+    debugEvent("SendWithoutArguments");
+    _handleSend(beginToken, null, null);
+  }
+
+  @override
+  void handleInvocationWithoutTypeArguments(Token beginToken, Token endToken) {
+    assert(
+      checkState(beginToken, [
+        unionOfKinds([ValueKinds.ArgumentsOrNull, ValueKinds.ParserRecovery]),
+        unionOfKinds([
+          ValueKinds.Expression,
+          ValueKinds.Generator,
+          ValueKinds.Identifier,
+          ValueKinds.ParserRecovery,
+        ]),
+      ]),
+    );
+    debugEvent("InvocationWithoutTypeArguments");
+    Object? arguments = pop();
+    _handleSend(beginToken, arguments, null);
+  }
+
+  void _handleSend(
+    Token beginToken,
+    Object? arguments,
+    List<TypeBuilder>? typeArgumentBuilders,
+  ) {
     Object receiver = pop()!;
     // Delay adding [typeArgumentBuilders] to [forest] for type aliases: They
     // must be unaliased to the type arguments of the denoted type.
@@ -8683,20 +8740,21 @@ class BodyBuilderImpl extends StackListenerImpl
     void errorCase(String name, Token suffix) {
       String displayName = debugName(name, suffix.lexeme);
       int offset = offsetForToken(beginToken);
-      Message message = diag.notAType.withArguments(name: displayName);
-      libraryBuilder.addProblem(
-        message,
+      UriOffsetLength uriOffset = new UriOffsetLength(
+        uri,
         offset,
         lengthOfSpan(beginToken, suffix),
-        uri,
       );
+      Message message = diag.notAType.withArguments(name: displayName);
+      problemReporting.addProblem2(message, uriOffset);
       push(
         new NamedTypeBuilderImpl.forInvalidType(
           name,
           isMarkedAsNullable
               ? const NullabilityBuilder.nullable()
               : const NullabilityBuilder.omitted(),
-          message.withLocation(uri, offset, lengthOfSpan(beginToken, suffix)),
+          message.withLocation2(uriOffset),
+          uriOffset: uriOffset,
         ),
       );
     }
@@ -8963,7 +9021,7 @@ class BodyBuilderImpl extends StackListenerImpl
   void handleVoidKeyword(Token token) {
     debugEvent("VoidKeyword");
     int offset = offsetForToken(token);
-    push(new VoidTypeBuilder(uri, offset));
+    push(new VoidTypeBuilder(new UriOffsetLength(uri, offset, token.length)));
   }
 
   @override
@@ -10192,12 +10250,9 @@ class BodyBuilderImpl extends StackListenerImpl
         aliasBuilder.typedef,
         Nullability.nonNullable,
         typeArgumentBuilders != null
-            ? new List.generate(
-                typeArgumentBuilders.length,
-                (int index) => typeArgumentBuilders[index].build(
-                  libraryBuilder,
-                  TypeUse.constructorTypeArgument,
-                ),
+            ? DartTypeList.mapped(
+                typeArgumentBuilders,
+                (a) => a.build(libraryBuilder, TypeUse.constructorTypeArgument),
               )
             : null,
       );
@@ -10955,7 +11010,7 @@ class BodyBuilderImpl extends StackListenerImpl
       if (variableDeclaration.variable case InternalLateVariable variable) {
         // Late for loop variables are not supported. An error has already been
         // reported by the parser.
-        variable.isLate = false;
+        variable.markAsErroneousLate();
       }
       return [variableDeclaration];
     } else if (variableOrExpression is InternalVariableDeclaration) {
@@ -10963,7 +11018,7 @@ class BodyBuilderImpl extends StackListenerImpl
       if (variableOrExpression.variable case InternalLateVariable variable) {
         // Late for loop variables are not supported. An error has already been
         // reported by the parser.
-        variable.isLate = false;
+        variable.markAsErroneousLate();
       }
       return [variableOrExpression];
     } else if (variableOrExpression is InternalExpression) {
@@ -11036,7 +11091,7 @@ class BodyBuilderImpl extends StackListenerImpl
       if (declaration.variable case InternalLateVariable variable) {
         // Late for-in variables are not supported. An error has already been
         // reported by the parser.
-        variable.isLate = false;
+        variable.markAsErroneousLate();
       }
       InternalInvalidExpression? error;
       if (declaration.variable case InternalConstVariable variable) {
@@ -11063,7 +11118,7 @@ class BodyBuilderImpl extends StackListenerImpl
       if (lvalue.variable case InternalLateVariable variable) {
         // Late for-in variables are not supported. An error has already been
         // reported by the parser.
-        variable.isLate = false;
+        variable.markAsErroneousLate();
       }
       InternalInvalidExpression? error;
       if (lvalue.variable case InternalConstVariable variable) {
@@ -11388,14 +11443,14 @@ class BodyBuilderImpl extends StackListenerImpl
             if (constantContext != ConstantContext.none &&
                 (!inConstructorInitializer || !allowPotentiallyConstantType)) {
               LocatedMessage message = diag.typeVariableInConstantContext
-                  .withLocation(
-                    builder.fileUri!,
-                    builder.charOffset!,
-                    typeParameter.name!.length,
-                  );
+                  .withLocation2(builder.uriOffset);
               builder.bind(
                 libraryBuilder,
-                new InvalidBuilder(typeParameter.name!, message),
+                new InvalidBuilder(
+                  typeParameter.name!,
+                  message,
+                  builder.uriOffset,
+                ),
               );
               addProblem(
                 message.messageObject,

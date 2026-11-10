@@ -263,6 +263,14 @@ Message _withArgumentsArgumentTypeNotAssignable({
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode augmentationExtendsClassAlreadyPresentCause =
+    const MessageCode(
+      "AugmentationExtendsClassAlreadyPresentCause",
+      severity: CfeSeverity.context,
+      problemMessage: """The previous 'extends' clause.""",
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode awaitInLateLocalInitializer = const MessageCode(
   "AwaitInLateLocalInitializer",
   problemMessage:
@@ -2166,6 +2174,14 @@ const MessageCode declaredMemberConflictsWithOverriddenMembersCause =
     );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode defaultValueAlreadySpecifiedInAugmentationChainCause =
+    const MessageCode(
+      "DefaultValueAlreadySpecifiedInAugmentationChainCause",
+      severity: CfeSeverity.context,
+      problemMessage: """The previous parameter with a default value.""",
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function({required String redirectionTarget})>
 defaultValueInRedirectingFactoryConstructor = const Template(
   "DefaultValueInRedirectingFactoryConstructor",
@@ -2271,6 +2287,26 @@ Message _withArgumentsDeferredTypeAnnotation({
     correctionMessage:
         """Try removing 'deferred' from the import of '${prefix_0}' or use a supertype of '${type_0}' that isn't deferred.""",
     arguments: {'type': type, 'prefix': prefix},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function({required Uri uri})>
+deprecatedJsInteropLibraryImport = const Template(
+  "DeprecatedJsInteropLibraryImport",
+  withArguments: _withArgumentsDeprecatedJsInteropLibraryImport,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDeprecatedJsInteropLibraryImport({required Uri uri}) {
+  var uri_0 = conversions.relativizeUri(uri);
+  return new Message(
+    deprecatedJsInteropLibraryImport,
+    problemMessage:
+        """Import of deprecated JS interop library '${uri_0}' is not allowed.
+Deprecated JS interop libraries are planned for removal in Dart 4.0.
+Migrate to 'package:web' and 'dart:js_interop' (see https://dart.dev/interop/js-interop/past-js-interop), or temporarily enable the 'deprecated-js-interop' option.""",
+    arguments: {'uri': uri},
   );
 }
 
@@ -3622,7 +3658,7 @@ const MessageCode fastaUsageLong = const MessageCode(
     Read the SDK platform from <file>, which should be in Dill/Kernel IR format
     and contain the Dart SDK.
 
-  --target=dart2js|dart2js_server|dart2wasm|dart2wasm_js_compatibility|dart2wasm_standalone|dart_runner|dartdevc|flutter|flutter_runner|none|vm
+  --target=dart2js|dart2js_server|dart2wasm|dart2wasm_dev|dart2wasm_js_compatibility|dart2wasm_standalone|dart_runner|dartdevc|flutter|flutter_runner|none|vm
     Specify the target configuration.
 
   --enable-asserts
@@ -10746,11 +10782,23 @@ const MessageCode partOfSelf = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode partOfTwoLibraries = const MessageCode(
-  "PartOfTwoLibraries",
-  problemMessage: """A file can't be part of more than one library.""",
-  correctionMessage: """Try moving the shared declarations into the libraries, or into a new library.""",
-);
+const Template<Message Function({required Uri uri})> partOfTwoLibraries =
+    const Template(
+      "PartOfTwoLibraries",
+      withArguments: _withArgumentsPartOfTwoLibraries,
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsPartOfTwoLibraries({required Uri uri}) {
+  var uri_0 = conversions.relativizeUri(uri);
+  return new Message(
+    partOfTwoLibraries,
+    problemMessage:
+        """Can't use '${uri_0}' as a part of more than one library.""",
+    correctionMessage: """Try moving the shared declarations into the libraries, or into a new library.""",
+    arguments: {'uri': uri},
+  );
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode partOfTwoLibrariesContext = const MessageCode(
@@ -12939,6 +12987,12 @@ Message _withArgumentsWasmConstantLaneOutOfRange({
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode wasmExportInvalidPragma = const MessageCode(
+  "WasmExportInvalidPragma",
+  problemMessage: """The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions, and 'wasm:export' is also allowed on external memory getters.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode wasmExternInvalidLoad = const MessageCode(
   "WasmExternInvalidLoad",
   problemMessage: """WebAssembly elements may only be referenced to directly call a method on them.""",
@@ -12959,15 +13013,91 @@ const MessageCode wasmExternMemoryMissingAnnotation = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode wasmFunctionFromFunctionInvalidArgument = const MessageCode(
+  "WasmFunctionFromFunctionInvalidArgument",
+  problemMessage: """The argument to 'WasmFunction.fromFunction' must be a tear-off of a static function with a valid Wasm signature.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode wasmImportInvalidPragma = const MessageCode(
+  "WasmImportInvalidPragma",
+  problemMessage: """The 'wasm:import' pragma is only allowed on external static functions or memory getters, and must specify a '<module>.<name>' argument.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode wasmImportOrExportInUserCode = const MessageCode(
   "WasmImportOrExportInUserCode",
   problemMessage: """Pragmas `wasm:import` and `wasm:export` are for internal use only and cannot be used by user code.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function({required DartType type})>
+wasmImportOrExportInvalidParameterType = const Template(
+  "WasmImportOrExportInvalidParameterType",
+  withArguments: _withArgumentsWasmImportOrExportInvalidParameterType,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsWasmImportOrExportInvalidParameterType({
+  required DartType type,
+}) {
+  TypeLabeler labeler = new TypeLabeler();
+  var type_0 = labeler.labelType(type);
+  return new Message(
+    wasmImportOrExportInvalidParameterType,
+    problemMessage:
+        """Type '${type_0}' is not a valid Wasm parameter type for imported or exported functions.""" +
+        labeler.originMessages,
+    arguments: {'type': type},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function({required DartType type})>
+wasmImportOrExportInvalidReturnType = const Template(
+  "WasmImportOrExportInvalidReturnType",
+  withArguments: _withArgumentsWasmImportOrExportInvalidReturnType,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsWasmImportOrExportInvalidReturnType({
+  required DartType type,
+}) {
+  TypeLabeler labeler = new TypeLabeler();
+  var type_0 = labeler.labelType(type);
+  return new Message(
+    wasmImportOrExportInvalidReturnType,
+    problemMessage:
+        """Type '${type_0}' is not a valid Wasm return type for imported or exported functions (use 'WasmVoid' instead of 'void').""" +
+        labeler.originMessages,
+    arguments: {'type': type},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode wasmImportOrExportInvalidSignature = const MessageCode(
+  "WasmImportOrExportInvalidSignature",
+  problemMessage: """Functions annotated with 'wasm:import', 'wasm:export', or 'wasm:weak-export' cannot have type parameters, optional parameters, or named parameters.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode wasmImportOrExportTearOff = const MessageCode(
+  "WasmImportOrExportTearOff",
+  problemMessage: """Functions annotated with 'wasm:import', 'wasm:export', or 'wasm:weak-export' may not be torn off.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode wasmIntrinsicTearOff = const MessageCode(
   "WasmIntrinsicTearOff",
   problemMessage: """This intrinsic extension member may not be torn off.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode wasmSharedMemoryMissingMaximum = const MessageCode(
+  "WasmSharedMemoryMissingMaximum",
+  problemMessage:
+      """A shared WebAssembly memory must specify a maximum size.""",
+  correctionMessage: """Try specifying a maximum size.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

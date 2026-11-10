@@ -143,6 +143,12 @@ final class _ZoneValues {
 /// Similarly, zones provide [bindCallbackGuarded] (and the corresponding
 /// [bindUnaryCallbackGuarded] and [bindBinaryCallbackGuarded]), when the
 /// callback should be invoked through [Zone.runGuarded].
+///
+/// Zones cannot be sent to other isolates unless they are constants
+/// (see `SendPort.send` in `dart:isolate`). The only constant zone is
+/// [Zone.root], so it can be sent, while every other zone cannot.
+/// This means that an object which stores [Zone.current] can only be sent
+/// to another isolate if it was created while running in the root zone.
 @vmIsolateUnsendable
 final class Zone {
   /// Parent zone. Is only `null` for the root zone.
@@ -301,6 +307,9 @@ final class Zone {
   /// function, and are only provided as a hook for custom zones. Others, like
   /// [scheduleMicrotask], interact with the underlying system to implement the
   /// desired behavior.
+  ///
+  /// Unlike other zones, the root zone can be sent to other isolates,
+  /// because it is a constant, and constants can always be sent.
   static const Zone root = _rootZone;
 
   /// The currently running zone.
@@ -431,7 +440,7 @@ final class Zone {
   @pragma('dart2js:prefer-inline')
   @pragma('dart2wasm:prefer-inline')
   @pragma('vm:prefer-inline')
-  R run<R>(R action()) => _runZoned<R>(this, action);
+  R run<R>(R Function() action) => _runZoned<R>(this, action);
 
   /// Executes the given [action] with [argument] in this zone.
   ///
@@ -440,7 +449,7 @@ final class Zone {
   @pragma('dart2js:prefer-inline')
   @pragma('dart2wasm:prefer-inline')
   @pragma('vm:prefer-inline')
-  R runUnary<R, T>(R action(T argument), T argument) =>
+  R runUnary<R, T>(R Function(T argument) action, T argument) =>
       _runUnaryZoned<R, T>(this, action, argument);
 
   /// Executes the given [action] with [argument1] and [argument2] in this
@@ -451,7 +460,7 @@ final class Zone {
   @pragma('dart2wasm:prefer-inline')
   @pragma('vm:prefer-inline')
   R runBinary<R, T1, T2>(
-    R action(T1 argument1, T2 argument2),
+    R Function(T1 argument1, T2 argument2) action,
     T1 argument1,
     T2 argument2,
   ) => _runBinaryZoned<R, T1, T2>(this, action, argument1, argument2);
@@ -892,7 +901,7 @@ final class Zone {
   }
 
   @pragma("vm:invisible")
-  ZoneCallback<R> _registerCallbackZoned<R>(Zone zone, R callback()) {
+  ZoneCallback<R> _registerCallbackZoned<R>(Zone zone, R Function() callback) {
     var implementation = this._registerCallbackFunction;
     if (implementation == null) {
       return callback;
@@ -909,7 +918,7 @@ final class Zone {
   @pragma("vm:invisible")
   ZoneUnaryCallback<R, T> _registerUnaryCallbackZoned<R, T>(
     Zone zone,
-    R callback(T arg),
+    R Function(T arg) callback,
   ) {
     var implementation = this._registerUnaryCallbackFunction;
     if (implementation == null) {
@@ -927,7 +936,7 @@ final class Zone {
   @pragma("vm:invisible")
   ZoneBinaryCallback<R, T1, T2> _registerBinaryCallbackZoned<R, T1, T2>(
     Zone zone,
-    R callback(T1 arg1, T2 arg2),
+    R Function(T1 arg1, T2 arg2) callback,
   ) {
     var implementation = this._registerBinaryCallbackFunction;
     if (implementation == null) return callback;

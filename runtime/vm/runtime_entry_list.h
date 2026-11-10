@@ -23,9 +23,11 @@ namespace dart {
   V(AllocateRecord)                                                            \
   V(AllocateSmallRecord)                                                       \
   V(AllocateSuspendState)                                                      \
+  V(BoxInt)                                                                    \
   V(BoxDouble)                                                                 \
   V(BoxFloat32x4)                                                              \
   V(BoxFloat64x2)                                                              \
+  V(BoxInt32x4)                                                                \
   V(BreakpointRuntimeHandler)                                                  \
   V(SingleStepHandler)                                                         \
   V(ResumptionBreakpointHandler)                                               \
@@ -39,6 +41,8 @@ namespace dart {
   V(InlineCacheMissHandlerTwoArgs)                                             \
   V(StaticCallMissHandlerOneArg)                                               \
   V(StaticCallMissHandlerTwoArgs)                                              \
+  V(InlineCacheMissHandlerModAOT)                                              \
+  V(DynamicInvocationForwarderModAOT)                                          \
   V(Instanceof)                                                                \
   V(SubtypeCheck)                                                              \
   V(TypeCheck)                                                                 \
@@ -60,6 +64,7 @@ namespace dart {
   V(DispatchTableNullError)                                                    \
   V(ArgumentError)                                                             \
   V(ArgumentErrorUnboxedInt64)                                                 \
+  V(UnsupportedError)                                                          \
   V(IntegerDivisionByZeroException)                                            \
   V(ReThrow)                                                                   \
   V(InterruptOrStackOverflow)                                                  \
@@ -87,6 +92,7 @@ namespace dart {
   V(ResolveCallFunction)                                                       \
   V(ResolveExternalCall)                                                       \
   V(FfiCall)                                                                   \
+  V(ResolveReloadedImplicitClosureFunction)                                    \
   V(CheckFunctionArgumentTypes)                                                \
   V(InterpretedInstanceCallMissHandler)                                        \
   V(InvokeNoSuchMethod)                                                        \

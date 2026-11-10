@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -20,7 +18,8 @@ void main() {
 }
 
 @reflectiveTest
-class AddReturnType_AlwaysDeclareReturnTypesTest extends FixProcessorLintTest {
+class AddReturnType_AlwaysDeclareReturnTypesTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.addReturnType;
 
@@ -304,10 +303,7 @@ Iterable<num> f() sync* {
 
 @reflectiveTest
 class AddReturnType_DeprecatedFactoryMethodTest
-    extends FixProcessorErrorCodeTest {
-  @override
-  DiagnosticCode get diagnosticCode => diag.deprecatedFactoryMethod;
-
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addReturnType;
 
@@ -328,7 +324,8 @@ class C {
 }
 
 @reflectiveTest
-class AddReturnType_StrictTopLevelInferenceTest extends FixProcessorLintTest {
+class AddReturnType_StrictTopLevelInferenceTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.addReturnType;
 

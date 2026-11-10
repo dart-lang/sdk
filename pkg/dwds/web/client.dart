@@ -24,6 +24,7 @@ import 'package:dwds/data/service_extension_request.dart';
 import 'package:dwds/data/service_extension_response.dart';
 import 'package:dwds/shared/batched_stream.dart';
 import 'package:dwds/src/sockets.dart';
+import 'package:dwds/src/utilities/fix_protocol.dart';
 import 'package:dwds/src/utilities/uuid.dart';
 import 'package:http/browser_client.dart';
 import 'package:sse/client/sse_client.dart';
@@ -48,9 +49,12 @@ Future<void>? main() {
       const dartAppInstanceIdKey = 'dartAppInstanceId';
       if (dartAppInstanceId == null) {
         // Check the session storage for the instance id.
-        final storedInstanceId = window.sessionStorage.getItem(
-          dartAppInstanceIdKey,
-        );
+        // Only reuse [storedInstanceId] on page reload.
+        // Duplicating a tab clones its session storage, so we want to avoid
+        // the duplicate taking over the original tab's DWDS connection.
+        final storedInstanceId = _isPageReload
+            ? window.sessionStorage.getItem(dartAppInstanceIdKey)
+            : null;
         if (storedInstanceId != null) {
           dartAppInstanceId = storedInstanceId;
         } else {
@@ -62,7 +66,10 @@ Future<void>? main() {
         }
       }
 
-      final fixedPath = _fixProtocol(dwdsDevHandlerPath);
+      final fixedPath = fixProtocol(
+        dwdsDevHandlerPath,
+        windowLocationProtocol: window.location.protocol,
+      );
       final fixedUri = Uri.parse(fixedPath);
       final client = fixedUri.isScheme('ws') || fixedUri.isScheme('wss')
           ? WebSocketClient(
@@ -357,24 +364,6 @@ void _sendConnectRequest(StreamSink clientSink) {
     entrypointPath: dartEntrypointPath,
   );
   _trySendEvent(clientSink, jsonEncode(['ConnectRequest', request.toJson()]));
-}
-
-/// Returns [url] modified if necessary so that, if the current page is served
-/// over `https`, then the URL is converted to `https`.
-String _fixProtocol(String url) {
-  var uri = Uri.parse(url);
-  if (window.location.protocol == 'https:' &&
-      uri.scheme == 'http' &&
-      // Chrome allows mixed content on localhost. It is not safe to assume the
-      // server is also listening on https.
-      uri.host != 'localhost') {
-    uri = uri.replace(scheme: 'https');
-  } else if (window.location.protocol == 'wss:' &&
-      uri.scheme == 'ws' &&
-      uri.host != 'localhost') {
-    uri = uri.replace(scheme: 'wss');
-  }
-  return uri.toString();
 }
 
 void _launchCommunicationWithDebugExtension() {
@@ -679,6 +668,17 @@ external set emitRegisterEvent(JSFunction func);
 external String? get dartWorkspaceName;
 
 bool get _isChromium => window.navigator.vendor.contains('Google');
+
+/// Returns `true` if the current page was loaded by a browser reload.
+bool get _isPageReload {
+  try {
+    final entries = window.performance.getEntriesByType('navigation').toDart;
+    if (entries.isEmpty) return false;
+    return (entries.first as PerformanceNavigationTiming).type == 'reload';
+  } catch (_) {
+    return false;
+  }
+}
 
 String? get _authUrl {
   final extensionUrl = windowContext.$dartExtensionUri;

@@ -71,8 +71,6 @@ class GenericInferrer {
   /// computing the solutions after each of the inference phases.
   final bool inferenceUsingBoundsIsEnabled;
 
-  final bool _strictInference;
-
   /// List whose elements are the corresponding to the fixed inferred types.
   ///
   /// Background: sometimes the upwards inference phase of generic type
@@ -100,15 +98,16 @@ class GenericInferrer {
 
   final TypeConstraintGenerationDataForTesting? dataForTesting;
 
-  GenericInferrer(
+  bool _hasUnknownTypeArguments = false;
+
+  new(
     this._typeSystem,
     List<TypeParameterElementImpl> typeFormals, {
     DiagnosticReporter? diagnosticReporter,
     this.errorEntity,
-    required bool genericMetadataIsEnabled,
+    required this._genericMetadataIsEnabled,
     required this.inferenceUsingBoundsIsEnabled,
-    required bool strictInference,
-    required TypeSystemOperations typeSystemOperations,
+    required this._typeSystemOperations,
     required this.dataForTesting,
   }) : assert(diagnosticReporter == null || errorEntity != null),
        _typeParameters = typeFormals,
@@ -118,10 +117,14 @@ class GenericInferrer {
        ),
        _constraints = {for (var formal in typeFormals) formal: []},
        _diagnosticReporter = diagnosticReporter,
-       _typeFormals = typeFormals,
-       _genericMetadataIsEnabled = genericMetadataIsEnabled,
-       _strictInference = strictInference,
-       _typeSystemOperations = typeSystemOperations;
+       _typeFormals = typeFormals;
+
+  /// Whether [chooseFinalTypes] could not infer some type arguments from the
+  /// constraints, and instantiated them to bounds instead.
+  ///
+  /// Under `strict-inference` this is reported as an inference failure by the
+  /// code that knows the shape of the inferred node.
+  bool get hasUnknownTypeArguments => _hasUnknownTypeArguments;
 
   /// Performs upwards inference, producing a final set of inferred types that
   /// does not  contain references to the "unknown type".
@@ -407,16 +410,8 @@ class GenericInferrer {
 
       if (_typeSystemOperations.isKnownType(SharedTypeSchemaView(inferred))) {
         knownTypes[parameter] = inferred;
-      } else if (_strictInference) {
-        // [typeParam] could not be inferred. A result will still be returned
-        // by [infer], with [typeParam] filled in as its bounds. This is
-        // considered a failure of inference, under the "strict-inference"
-        // mode.
-        _reportInferenceFailure(
-          diagnosticReporter: _diagnosticReporter,
-          errorEntity: errorEntity,
-          genericMetadataIsEnabled: _genericMetadataIsEnabled,
-        );
+      } else {
+        _hasUnknownTypeArguments = true;
       }
     }
 
@@ -574,95 +569,6 @@ class GenericInferrer {
 
     return '\n\n$intro\n$unsatisfied$satisfied\n\n'
         'Consider passing explicit type argument(s) to the generic.\n\n';
-  }
-
-  /// Reports an inference failure on [errorEntity] according to its type.
-  void _reportInferenceFailure({
-    DiagnosticReporter? diagnosticReporter,
-    SyntacticEntity? errorEntity,
-    required bool genericMetadataIsEnabled,
-  }) {
-    if (diagnosticReporter == null || errorEntity == null) {
-      return;
-    }
-    if (errorEntity is AstNode &&
-        errorEntity.parent2 is InvocationExpression &&
-        errorEntity.parent2?.parent2 is AsExpression) {
-      // Casts via `as` do not play a part in downward inference. We allow an
-      // exception when inference has "failed" but the return value is
-      // immediately cast with `as`.
-      return;
-    }
-    if (errorEntity is ConstructorReference2Impl) {
-      var type = errorEntity.typeReference.type;
-      if (type is InterfaceTypeImpl &&
-          !type.element.metadata.hasOptionalTypeArgs) {
-        var typeReference = errorEntity.typeReference;
-        var constructorName = [
-          if (typeReference.importPrefix case var importPrefix?)
-            '${importPrefix.name.lexeme}.',
-          typeReference.name.lexeme,
-          if (errorEntity.selector case var selector?)
-            '.${selector.name2.lexeme}',
-        ].join();
-        diagnosticReporter.report(
-          diag.inferenceFailureOnInstanceCreation
-              .withArguments(function: constructorName)
-              .at(errorEntity),
-        );
-      }
-    } else if (errorEntity is Annotation) {
-      if (genericMetadataIsEnabled) {
-        // Only report an error if generic metadata is valid syntax.
-        var element = errorEntity.name.element;
-        if (element != null && !element.metadata.hasOptionalTypeArgs) {
-          String constructorName = errorEntity.constructorName == null
-              ? errorEntity.name.name
-              : '${errorEntity.name.name}.${errorEntity.constructorName}';
-          diagnosticReporter.report(
-            diag.inferenceFailureOnInstanceCreation
-                .withArguments(function: constructorName)
-                .at(errorEntity),
-          );
-        }
-      }
-    } else if (errorEntity is SimpleIdentifier) {
-      var element = errorEntity.element;
-      if (element != null) {
-        if (element is VariableElement) {
-          // For variable elements, we check their type and possible alias type.
-          var type = element.type;
-          var typeElement = type is InterfaceType ? type.element : null;
-          if (typeElement != null && typeElement.metadata.hasOptionalTypeArgs) {
-            return;
-          }
-          var typeAliasElement = type.alias?.element;
-          if (typeAliasElement != null &&
-              typeAliasElement.metadata.hasOptionalTypeArgs) {
-            return;
-          }
-        }
-        if (!element.metadata.hasOptionalTypeArgs) {
-          diagnosticReporter.report(
-            diag.inferenceFailureOnFunctionInvocation
-                .withArguments(function: errorEntity.name)
-                .at(errorEntity),
-          );
-          return;
-        }
-      }
-    } else if (errorEntity is Expression) {
-      var type = errorEntity.staticType;
-      if (type != null) {
-        var typeDisplayString = _typeStr(type);
-        diagnosticReporter.report(
-          diag.inferenceFailureOnGenericInvocation
-              .withArguments(function: typeDisplayString)
-              .at(errorEntity),
-        );
-        return;
-      }
-    }
   }
 
   MergedTypeConstraint _squashConstraints(

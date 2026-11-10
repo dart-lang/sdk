@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../helpers/compiler_helper.dart';
+
 import "package:expect/async_helper.dart";
 
 const String CODE = """

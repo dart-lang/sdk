@@ -16,6 +16,150 @@ main() {
 
 @reflectiveTest
 class ConstructorDeclarationResolutionTest extends PubPackageResolutionTest {
+  test_augmentation_formalParameter_missingInAugmentation() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  A(int x);
+//^
+// [context 1] The declaration being augmented.
+}
+
+augment class A {
+  augment A() {
+//          ^
+// [diag.augmentationRequiredPositionalFormalParameterCount][context 1] The augmentation has 0 required positional formal parameters, but the declaration has 1.
+    x;
+//  ^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
+  }
+}
+''');
+
+    var node = result.findNode.singleUnqualifiedNameExpression;
+    assertResolvedNodeText(node, r'''
+UnqualifiedNameExpression
+  name: x
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: SimpleIdentifier
+  token: x
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_augmentation_formalParameter_missingInAugmentation_initializer() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  final int f;
+  A(int x);
+//^
+// [context 1] The declaration being augmented.
+}
+
+augment class A {
+  augment A() : f = x;
+//          ^
+// [diag.augmentationRequiredPositionalFormalParameterCount][context 1] The augmentation has 0 required positional formal parameters, but the declaration has 1.
+//                  ^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
+}
+''');
+
+    var node = result.findNode.singleConstructorFieldInitializer;
+    assertResolvedNodeText(node, r'''
+ConstructorFieldInitializer
+  fieldName2: f
+  fieldName(v1): SimpleIdentifier
+    token: f
+    element: <testLibrary>::@class::A::@field::f
+    staticType: null
+  equals: =
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
+    staticType: InvalidType
+  expression(v1): SimpleIdentifier
+    token: x
+    element: <null>
+    staticType: InvalidType
+  fieldElement: <testLibrary>::@class::A::@field::f
+''');
+  }
+
+  test_augmentation_formalParameter_onlyInAugmentation() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  A();
+//^
+// [context 1] The declaration being augmented.
+}
+
+augment class A {
+  augment A([int x = 0]) {
+//          ^
+// [diag.augmentationOptionalPositionalFormalParameterCount][context 1] The augmentation has 1 optional positional formal parameters, but the declaration has 0.
+    x;
+  }
+}
+''');
+
+    var node = result.findNode.singleUnqualifiedNameExpression;
+    assertResolvedNodeText(node, r'''
+UnqualifiedNameExpression
+  name: x
+  resolution: VariableReadResolution
+    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+    type: int
+  staticType: int
+V1: SimpleIdentifier
+  token: x
+  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+  staticType: int
+''');
+  }
+
+  test_augmentation_formalParameter_onlyInAugmentation_constInitializer() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  final int f;
+  const A();
+//      ^
+// [context 1] The declaration being augmented.
+}
+
+augment class A {
+  augment const A([int x = 0]) : f = x;
+//                ^
+// [diag.augmentationOptionalPositionalFormalParameterCount][context 1] The augmentation has 1 optional positional formal parameters, but the declaration has 0.
+}
+''');
+
+    var node = result.findNode.singleConstructorFieldInitializer;
+    assertResolvedNodeText(node, r'''
+ConstructorFieldInitializer
+  fieldName2: f
+  fieldName(v1): SimpleIdentifier
+    token: f
+    element: <testLibrary>::@class::A::@field::f
+    staticType: null
+  equals: =
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
+    token: x
+    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+    staticType: int
+  fieldElement: <testLibrary>::@class::A::@field::f
+''');
+  }
+
   test_factory_redirect_generic_instantiated() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A<T> implements B<T> {
@@ -69,7 +213,13 @@ ConstructorFieldInitializer
     element: <testLibrary>::@class::A::@field::v
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: _
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::_
+      type: dynamic
+    staticType: dynamic
+  expression(v1): SimpleIdentifier
     token: _
     element: <testLibrary>::@class::A::@getter::_
     staticType: dynamic
@@ -90,13 +240,9 @@ class B {
 
     var node = result.findNode.constructorDeclaration('B(');
     assertResolvedNodeText(node, r'''
-ConstructorDeclaration
-  typeName2: B
-  typeName(v1): SimpleIdentifier
-    token: B
-    element: <testLibrary>::@class::B
-    staticType: null
-  parameters: FormalParameterList
+ConstructorDeclaration2
+  typeName: B
+  formalParameters: FormalParameterList
     leftParenthesis: (
     requiredPositionalFormalParameters
       RegularFormalParameter
@@ -109,7 +255,28 @@ ConstructorDeclaration
           element: isPublic
             type: a
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements2
+        ExpressionStatement
+          expression2: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: <testLibrary>::@class::B::@constructor::new::@formalParameter::a
+              type: a
+            staticType: a
+          semicolon: ;
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@class::B::@constructor::new
+      type: B Function(a)
+V1: ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: B
+    element: <testLibrary>::@class::B
+    staticType: null
+  parameters: FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
       type: NamedType
@@ -126,7 +293,7 @@ ConstructorDeclaration
       leftBracket: {
       statements
         ExpressionStatement
-          expression2: SimpleIdentifier
+          expression: SimpleIdentifier
             token: a
             element: <testLibrary>::@class::B::@constructor::new::@formalParameter::a
             staticType: a
@@ -160,7 +327,13 @@ ConstructorFieldInitializer
     element: <testLibrary>::@class::C::@field::_y
     staticType: null
   equals: =
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: _x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+      type: int?
+    staticType: int?
+  expression(v1): SimpleIdentifier
     token: _x
     element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
     staticType: int?
@@ -180,13 +353,9 @@ class C {
 
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
-ConstructorDeclaration
-  typeName2: C
-  typeName(v1): SimpleIdentifier
-    token: C
-    element: <testLibrary>::@class::C
-    staticType: null
-  parameters: FormalParameterList
+ConstructorDeclaration2
+  typeName: C
+  formalParameters: FormalParameterList
     leftParenthesis: (
     delimitedFormalParameters: DelimitedFormalParameters
       leftDelimiter: {
@@ -201,7 +370,17 @@ ConstructorDeclaration
               field: <testLibrary>::@class::C::@field::_x
       rightDelimiter: }
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@class::C::@constructor::new
+      type: C Function({int? x})
+V1: ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: C
+    element: <testLibrary>::@class::C
+    staticType: null
+  parameters: FormalParameterList
     leftParenthesis: (
     leftDelimiter: {
     parameter: FieldFormalParameter
@@ -235,13 +414,9 @@ class C {
 
     var node = result.findNode.singleConstructorDeclaration;
     assertResolvedNodeText(node, r'''
-ConstructorDeclaration
-  typeName2: C
-  typeName(v1): SimpleIdentifier
-    token: C
-    element: <testLibrary>::@class::C
-    staticType: null
-  parameters: FormalParameterList
+ConstructorDeclaration2
+  typeName: C
+  formalParameters: FormalParameterList
     leftParenthesis: (
     delimitedFormalParameters: DelimitedFormalParameters
       leftDelimiter: {
@@ -258,7 +433,17 @@ ConstructorDeclaration
               type: int?
       rightDelimiter: }
     rightParenthesis: )
-  parameters(v1): FormalParameterList
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@class::C::@constructor::new
+      type: C Function({int? _x})
+V1: ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: C
+    element: <testLibrary>::@class::C
+    staticType: null
+  parameters: FormalParameterList
     leftParenthesis: (
     leftDelimiter: {
     parameter: RegularFormalParameter
@@ -294,14 +479,10 @@ class B {
 
     var node = result.findNode.constructorDeclaration('factory B');
     assertResolvedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   factoryKeyword: factory
-  typeName2: B
-  typeName(v1): SimpleIdentifier
-    token: B
-    element: <testLibrary>::@class::B
-    staticType: null
-  parameters: FormalParameterList
+  typeName: B
+  formalParameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
   separator: =
@@ -316,6 +497,19 @@ ConstructorDeclaration
     element: <testLibrary>::@class::A::@constructor::named
   body: EmptyFunctionBody
     semicolon: ;
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@class::B::@constructor::new
+      type: B Function()
+V1: ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: B
+    element: <testLibrary>::@class::B
+    staticType: null
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: =
   redirectedConstructor: ConstructorName
     type: NamedType
       name: A
@@ -327,6 +521,8 @@ ConstructorDeclaration
       element: <testLibrary>::@class::A::@constructor::named
       staticType: null
     element: <testLibrary>::@class::A::@constructor::named
+  body: EmptyFunctionBody
+    semicolon: ;
   declaredFragment: <testLibraryFragment> new@null
     element: <testLibrary>::@class::B::@constructor::new
       type: B Function()
@@ -346,14 +542,10 @@ class B<U> {
 
     var node = result.findNode.constructorDeclaration('factory B');
     assertResolvedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   factoryKeyword: factory
-  typeName2: B
-  typeName(v1): SimpleIdentifier
-    token: B
-    element: <testLibrary>::@class::B
-    staticType: null
-  parameters: FormalParameterList
+  typeName: B
+  formalParameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
   separator: =
@@ -378,6 +570,19 @@ ConstructorDeclaration
       substitution: {T: U}
   body: EmptyFunctionBody
     semicolon: ;
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@class::B::@constructor::new
+      type: B<U> Function()
+V1: ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: B
+    element: <testLibrary>::@class::B
+    staticType: null
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: =
   redirectedConstructor: ConstructorName
     type: NamedType
       name: A
@@ -401,6 +606,8 @@ ConstructorDeclaration
     element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::named
       substitution: {T: U}
+  body: EmptyFunctionBody
+    semicolon: ;
   declaredFragment: <testLibraryFragment> new@null
     element: <testLibrary>::@class::B::@constructor::new
       type: B<U> Function()
@@ -422,14 +629,10 @@ class B {
 
     var node = result.findNode.constructorDeclaration('factory B');
     assertResolvedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   factoryKeyword: factory
-  typeName2: B
-  typeName(v1): SimpleIdentifier
-    token: B
-    element: <testLibrary>::@class::B
-    staticType: null
-  parameters: FormalParameterList
+  typeName: B
+  formalParameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
   separator: =
@@ -444,6 +647,19 @@ ConstructorDeclaration
     element: <null>
   body: EmptyFunctionBody
     semicolon: ;
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@class::B::@constructor::new
+      type: B Function()
+V1: ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: B
+    element: <testLibrary>::@class::B
+    staticType: null
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: =
   redirectedConstructor: ConstructorName
     type: NamedType
       name: A
@@ -455,6 +671,8 @@ ConstructorDeclaration
       element: <null>
       staticType: null
     element: <null>
+  body: EmptyFunctionBody
+    semicolon: ;
   declaredFragment: <testLibraryFragment> new@null
     element: <testLibrary>::@class::B::@constructor::new
       type: B Function()
@@ -474,16 +692,12 @@ class B {
 
     var node = result.findNode.constructorDeclaration('factory B');
     assertResolvedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   factoryKeyword: factory
-  typeName2: B
-  typeName(v1): SimpleIdentifier
-    token: B
-    element: <testLibrary>::@class::B
-    staticType: null
+  typeName: B
   period: .
   name: named
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
   separator: =
@@ -495,12 +709,29 @@ ConstructorDeclaration
     element: <testLibrary>::@class::A::@constructor::new
   body: EmptyFunctionBody
     semicolon: ;
+  declaredFragment: <testLibraryFragment> named@55
+    element: <testLibrary>::@class::B::@constructor::named
+      type: B Function()
+V1: ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: B
+    element: <testLibrary>::@class::B
+    staticType: null
+  period: .
+  name: named
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: =
   redirectedConstructor: ConstructorName
     type: NamedType
       name: A
       element: <testLibrary>::@class::A
       type: A
     element: <testLibrary>::@class::A::@constructor::new
+  body: EmptyFunctionBody
+    semicolon: ;
   declaredFragment: <testLibraryFragment> named@55
     element: <testLibrary>::@class::B::@constructor::named
       type: B Function()
@@ -520,16 +751,12 @@ class B<U> {
 
     var node = result.findNode.constructorDeclaration('factory B');
     assertResolvedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   factoryKeyword: factory
-  typeName2: B
-  typeName(v1): SimpleIdentifier
-    token: B
-    element: <testLibrary>::@class::B
-    staticType: null
+  typeName: B
   period: .
   name: named
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
   separator: =
@@ -551,6 +778,21 @@ ConstructorDeclaration
       substitution: {T: U}
   body: EmptyFunctionBody
     semicolon: ;
+  declaredFragment: <testLibraryFragment> named@64
+    element: <testLibrary>::@class::B::@constructor::named
+      type: B<U> Function()
+V1: ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: B
+    element: <testLibrary>::@class::B
+    staticType: null
+  period: .
+  name: named
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: =
   redirectedConstructor: ConstructorName
     type: NamedType
       name: A
@@ -567,6 +809,8 @@ ConstructorDeclaration
     element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::A::@constructor::new
       substitution: {T: U}
+  body: EmptyFunctionBody
+    semicolon: ;
   declaredFragment: <testLibraryFragment> named@64
     element: <testLibrary>::@class::B::@constructor::named
       type: B<U> Function()
@@ -588,16 +832,12 @@ class B {
 
     var node = result.findNode.constructorDeclaration('factory B');
     assertResolvedNodeText(node, r'''
-ConstructorDeclaration
+ConstructorDeclaration2
   factoryKeyword: factory
-  typeName2: B
-  typeName(v1): SimpleIdentifier
-    token: B
-    element: <testLibrary>::@class::B
-    staticType: null
+  typeName: B
   period: .
   name: named
-  parameters: FormalParameterList
+  formalParameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
   separator: =
@@ -609,12 +849,29 @@ ConstructorDeclaration
     element: <null>
   body: EmptyFunctionBody
     semicolon: ;
+  declaredFragment: <testLibraryFragment> named@61
+    element: <testLibrary>::@class::B::@constructor::named
+      type: B Function()
+V1: ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: B
+    element: <testLibrary>::@class::B
+    staticType: null
+  period: .
+  name: named
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: =
   redirectedConstructor: ConstructorName
     type: NamedType
       name: A
       element: <testLibrary>::@class::A
       type: A
     element: <null>
+  body: EmptyFunctionBody
+    semicolon: ;
   declaredFragment: <testLibraryFragment> named@61
     element: <testLibrary>::@class::B::@constructor::named
       type: B Function()

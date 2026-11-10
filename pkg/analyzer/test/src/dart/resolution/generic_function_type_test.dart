@@ -75,6 +75,12 @@ TypeParameter
   metadata
     Annotation
       atSign: @
+      expression: UnqualifiedNameExpression
+        name: a
+        resolution: GetterInvocationResolution
+          element: <testLibrary>::@getter::a
+          type: int
+        staticType: int
       name: SimpleIdentifier
         token: a
         element: <testLibrary>::@getter::a

@@ -496,16 +496,14 @@ class C {
 ''');
   }
 
-  void
-  test_functionInstantiation_topLevelVariable_genericContext_assignable() async {
+  void test_functionInstantiation_topLevelVariable_genericContext_assignable() async {
     await resolveTestCodeWithDiagnostics(r'''
 T f<T>(T a) => a;
 U Function<U>(U) foo = f;
 ''');
   }
 
-  void
-  test_functionInstantiation_topLevelVariable_genericContext_nonAssignable() async {
+  void test_functionInstantiation_topLevelVariable_genericContext_nonAssignable() async {
     await resolveTestCodeWithDiagnostics(r'''
 T f<T>(T a) => a;
 U Function<U>(U, int) foo = f;
@@ -514,8 +512,7 @@ U Function<U>(U, int) foo = f;
 ''');
   }
 
-  void
-  test_functionInstantiation_topLevelVariable_nonGenericContext_assignable() async {
+  void test_functionInstantiation_topLevelVariable_nonGenericContext_assignable() async {
     await resolveTestCodeWithDiagnostics(r'''
 T f<T>(T a) => a;
 int Function(int) foo = f;
@@ -539,10 +536,20 @@ int Function() foo(int Function<T extends int>() f) {
 }
 ''');
 
-    var node = result.findNode.functionReference('f;');
+    var node = result.findNode.implicitFunctionInstantiation('f;');
     assertResolvedNodeText(node, r'''
-FunctionReference
-  function2: SimpleIdentifier
+ImplicitFunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: f
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::foo::@formalParameter::f
+      type: int Function<T extends int>()
+    staticType: int Function<T extends int>()
+  staticType: int Function()
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::foo::@formalParameter::f
     staticType: int Function<T extends int>()
@@ -759,24 +766,6 @@ void f(int a) {
 ''');
   }
 
-  test_postfixExpression_int_index() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class A {
-  int operator [](int index) => 0;
-  void operator []=(int index, String value) {}
-}
-
-void f(A a) {
-  a[0]++;
-//^^^^^^
-// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'String'.
-  a[0]--;
-//^^^^^^
-// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'String'.
-}
-''');
-  }
-
   test_postfixExpression_int_instanceGetterSetter() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -871,24 +860,6 @@ class C {
 
 f(C c) {
   c.a++;
-}
-''');
-  }
-
-  test_prefixExpression_int_index() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class A {
-  int operator [](int index) => 0;
-  void operator []=(int index, String value) {}
-}
-
-void f(A a) {
-  ++a[0];
-//^^^^^^
-// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'String'.
-  --a[0];
-//^^^^^^
-// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'String'.
 }
 ''');
   }

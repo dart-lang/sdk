@@ -49,8 +49,11 @@ class FactorTypeTest extends Object with FactorTypeTestMixin<DartType> {
   }
 
   @override
-  DartType futureNone(DartType type) =>
-      new InterfaceType(coreTypes.futureClass, Nullability.nonNullable, [type]);
+  DartType futureNone(DartType type) => new InterfaceType(
+    coreTypes.futureClass,
+    Nullability.nonNullable,
+    new DartTypeList(type),
+  );
 
   @override
   DartType futureOrNone(DartType type) =>

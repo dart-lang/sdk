@@ -18,6 +18,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
+import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
 import 'package:analysis_server/src/flutter/flutter_notifications.dart';
@@ -64,6 +65,7 @@ import 'package:analysis_server/src/handler/legacy/flutter_get_widget_descriptio
 import 'package:analysis_server/src/handler/legacy/flutter_set_subscriptions.dart';
 import 'package:analysis_server/src/handler/legacy/flutter_set_widget_property_value.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
+import 'package:analysis_server/src/handler/legacy/lsp_notification_over_legacy_handler.dart';
 import 'package:analysis_server/src/handler/legacy/lsp_over_legacy_handler.dart';
 import 'package:analysis_server/src/handler/legacy/search_find_element_references.dart';
 import 'package:analysis_server/src/handler/legacy/search_find_member_declarations.dart';
@@ -81,6 +83,7 @@ import 'package:analysis_server/src/lsp/client_capabilities.dart' as lsp;
 import 'package:analysis_server/src/lsp/client_configuration.dart' as lsp;
 import 'package:analysis_server/src/lsp/constants.dart' as lsp;
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
+import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server;
@@ -142,14 +145,21 @@ class AnalysisServerOptions {
   String? clientId;
   String? clientVersion;
 
+  /// An string describing why the server was started/restarted.
+  String startReason = ContextRebuildReasons.unknown;
+
   /// Base path where to cache data.
   String? cacheFolder;
 
-  /// If [true] don't create a (Evicting)FileByteStore.
+  /// If `true`, don't create a persistent byte store.
   ///
   /// Intended for benchmarking as it makes "instructions:u" in `perf stat` more
   /// stable, although it then doesn't benchmark that code.
   bool? disableFileByteStore;
+
+  /// Whether to use the experimental single-file persistent byte store.
+  /// Ignored when [disableFileByteStore] is `true` or a byte store is supplied.
+  bool useSingleFileByteStore = false;
 
   /// The path to the package config file override.
   /// If `null`, then the default discovery mechanism is used.
@@ -181,7 +191,13 @@ class AnalysisServerOptions {
   /// Whether to enable fine-grained dependencies.
   bool withFineDependencies = false;
 
-  bool usePlugins = true;
+  bool? usePlugins = true;
+
+  bool trustPlugins = false;
+
+  bool alwaysTrustPlugins = false;
+
+  bool neverTrustPlugins = false;
 }
 
 /// Instances of the class [LegacyAnalysisServer] implement a server that
@@ -274,9 +290,17 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// be sent.
   final ServerCommunicationChannel channel;
 
-  @override
-  late final FutureOr<InitializedStateMessageHandler> lspInitialized =
+  /// The handler that is used for LSP messages once LSP initialization is
+  /// complete (see [completeLspInitialization]).
+  late final InitializedStateMessageHandler lspMessageHandler =
       InitializedStateMessageHandler(this);
+
+  /// Whether the client has sent `server.setClientCapabilities`.
+  ///
+  /// A client that never sends it uses the default capabilities and
+  /// configuration, so LSP initialization does not need to wait for anything
+  /// (see [ensureLspInitializedForClientWithoutCapabilities]).
+  bool _hasReceivedClientCapabilities = false;
 
   /// Whether either the last status message sent to the client or the last
   /// status message sent from any [PluginServer] indicated `isWorking: true`.
@@ -381,6 +405,10 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// that depends on LSP functionality.
   bool sendLspNotifications = false;
 
+  /// Whether the next call to [setAnalysisRoots] is the first one since the
+  /// server started.
+  bool _isFirstAnalysisRoots = true;
+
   /// Initialize a newly created server to receive requests from and send
   /// responses to the given [channel].
   new(
@@ -434,7 +462,7 @@ class LegacyAnalysisServer extends AnalysisServer {
 
     onAnalysisStarted.first.then((_) {
       onAnalysisComplete.then((_) {
-        performance = performanceAfterStartup = ServerPerformance();
+        performanceAfterStartup = ServerPerformance();
       });
     });
     channel.sendNotification(
@@ -446,7 +474,7 @@ class LegacyAnalysisServer extends AnalysisServer {
     debounceRequests(
       channel,
       discardedRequests,
-    ).listen(handleRequestOrResponse, onDone: done, onError: error);
+    ).listen(handleClientMessage, onDone: done, onError: error);
     _newRefactoringManager();
 
     pluginManager.initializedCompleter.future.then((_) {
@@ -482,6 +510,7 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// Updates the current set of client capabilities.
   set clientCapabilities(ServerSetClientCapabilitiesParams capabilities) {
     _clientCapabilities = capabilities;
+    _hasReceivedClientCapabilities = true;
 
     if (capabilities.supportsUris ?? false) {
       // URI support implies LSP, as that's the only way to access (and get
@@ -518,6 +547,10 @@ class LegacyAnalysisServer extends AnalysisServer {
   @override
   lsp.LspClientCapabilities get editorClientCapabilities =>
       _editorClientCapabilities;
+
+  @override
+  // Currently, we don't support this for LSP-over-Legacy.
+  LspInitializationOptions? get initializationOptions => null;
 
   @override
   NotificationManager get notificationManager =>
@@ -592,8 +625,40 @@ class LegacyAnalysisServer extends AnalysisServer {
     cancellationTokens[id]?.cancel();
   }
 
+  /// Completes LSP initialization unless that has already happened.
+  ///
+  /// Unlike the LSP server, which completes initialization exactly once from
+  /// the `initialized` notification, the legacy server has several triggers and
+  /// some of them can run more than once: `server.setClientCapabilities` (which
+  /// a client could send multiple times, but is not recommended) completes it
+  /// either immediately or once the configuration fetch it started has
+  /// finished, and every LSP-over-Legacy message from a client that has not
+  /// sent capabilities completes it as well. Whichever runs first completes
+  /// the initialization, the others must be no-ops.
+  void completeLspInitializationIfNeeded() {
+    if (!isLspInitialized) {
+      completeLspInitialization(lspMessageHandler);
+    }
+  }
+
   /// The socket from which requests are being read has been closed.
   void done() {}
+
+  /// Completes LSP initialization for a client that will never send
+  /// `server.setClientCapabilities`.
+  ///
+  /// Such a client gets the default capabilities and configuration, so there is
+  /// nothing to wait for. A client that does send capabilities completes the
+  /// initialization itself once it has provided its configuration (see
+  /// [ServerSetClientCapabilitiesHandler]).
+  ///
+  /// This is invoked for every LSP-over-Legacy message, so it is a no-op after
+  /// the first one.
+  void ensureLspInitializedForClientWithoutCapabilities() {
+    if (!_hasReceivedClientCapabilities) {
+      completeLspInitializationIfNeeded();
+    }
+  }
 
   /// There was an error related to the socket from which requests are being
   /// read.
@@ -614,6 +679,61 @@ class LegacyAnalysisServer extends AnalysisServer {
   FutureOr<void> handleAnalysisStatusChange(analysis.AnalysisStatus status) {
     super.handleAnalysisStatusChange(status);
     sendStatusNotificationNew(status);
+  }
+
+  /// Handle a [message] that was read from the communication channel.
+  void handleClientMessage(ClientMessage message) {
+    switch (message) {
+      case Request():
+        var cancellationToken = CancelableToken();
+        cancellationTokens[message.id] = cancellationToken;
+        messageScheduler.add(
+          LegacyMessage(request: message, cancellationToken: cancellationToken),
+        );
+      case Response():
+        handleResponse(message);
+      case Notification():
+        messageScheduler.add(LegacyNotificationMessage(notification: message));
+    }
+  }
+
+  /// Handle a [notification] that was read from the communication channel. The
+  /// completer is used to indicate when the notification handling is done.
+  void handleNotification(
+    Notification notification,
+    Completer<void> completer,
+  ) {
+    // Because we don't `await` the execution of the handler, we wrap the
+    // execution in order to have one central place to handle exceptions.
+    runZonedGuarded(
+      () async {
+        if (notification.event == lspNotificationNotification) {
+          await LspNotificationOverLegacyHandler(this, notification).handle();
+        } else {
+          // There is no response to carry an error back to the client, so an
+          // unknown notification can only be logged.
+          instrumentationService.logError(
+            'Unknown notification ${notification.event}',
+          );
+          sessionListener.logException(
+            exception: 'Unknown notification ${notification.event}',
+          );
+        }
+        completer.complete();
+      },
+      (exception, stackTrace) {
+        instrumentationService.logException(
+          FatalException(
+            'Failed to handle notification: ${notification.event}',
+            exception,
+            stackTrace,
+          ),
+          null,
+          crashReportingAttachmentsBuilder.forException(exception),
+        );
+        completer.complete();
+      },
+    );
   }
 
   /// Handle a [request] that was read from the communication channel. The completer
@@ -676,14 +796,22 @@ class LegacyAnalysisServer extends AnalysisServer {
           sendResponse(exception.response);
         } else {
           // Log the exception.
+          var fatalException = FatalException(
+            'Failed to handle request: ${request.method}',
+            exception,
+            stackTrace,
+          );
+          var attachments = crashReportingAttachmentsBuilder.forException(
+            exception,
+          );
           instrumentationService.logException(
-            FatalException(
-              'Failed to handle request: ${request.method}',
-              exception,
-              stackTrace,
-            ),
+            fatalException,
             null,
-            crashReportingAttachmentsBuilder.forException(exception),
+            attachments,
+          );
+          sessionListener.logException(
+            exception: fatalException,
+            attachments: attachments,
           );
           // Then return an error response to the client.
           var error = RequestError(
@@ -696,23 +824,14 @@ class LegacyAnalysisServer extends AnalysisServer {
         }
         completer.complete();
       },
+      zoneValues: {
+        // A container for capturing additional timings (such as analysis) stored
+        // in zoneValues so it can be accessed anywhere in the processing of this
+        // request.
+        RequestPerformanceAdditionalTimings.zoneValueKey:
+            RequestPerformanceAdditionalTimings(),
+      },
     );
-  }
-
-  /// Handle a [requestOrResponse] that was read from the communication channel.
-  void handleRequestOrResponse(RequestOrResponse requestOrResponse) {
-    if (requestOrResponse is Request) {
-      var cancellationToken = CancelableToken();
-      cancellationTokens[requestOrResponse.id] = cancellationToken;
-      messageScheduler.add(
-        LegacyMessage(
-          request: requestOrResponse,
-          cancellationToken: cancellationToken,
-        ),
-      );
-    } else if (requestOrResponse is Response) {
-      handleResponse(requestOrResponse);
-    }
   }
 
   /// Handle a [response] that was read from the communication channel.
@@ -907,8 +1026,17 @@ class LegacyAnalysisServer extends AnalysisServer {
     var completer = analysisContextRebuildCompleter = Completer();
     try {
       notificationManager.setAnalysisRoots(includedPaths, excludedPaths);
+      // For legacy server, there's no difference between the first
+      // setAnalysisRoots call after starting the server and a subsequent call
+      // because of a change in the IDE workspace. Therefore we use a flag
+      // to count the first one as the servers start reason, otherwise an
+      // analysis root change.
+      var reason = _isFirstAnalysisRoots
+          ? options.startReason
+          : ContextRebuildReasons.analysisRootsChanged;
+      _isFirstAnalysisRoots = false;
       try {
-        await contextManager.setRoots(includedPaths, excludedPaths);
+        await contextManager.setRoots(includedPaths, excludedPaths, reason);
       } on UnimplementedError catch (e) {
         throw RequestFailure(
           Response.unsupportedFeature(
@@ -1312,6 +1440,10 @@ class ServerContextManagerCallbacks
       AnalysisService.CLOSING_LABELS,
       path,
     )) {
+      // Closing labels are controlled by the subscription for the legacy server
+      // even if we are configured to send the notifications over LSP. For
+      // the real LSP server, closing labels are are automatically sent for all
+      // open (priority files).
       _runDelayed(() {
         sendAnalysisNotificationClosingLabels(
           analysisServer,

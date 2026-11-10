@@ -20,16 +20,22 @@ external jsi.JSVoid pkgJsTopLevel();
 @jsi.JS()
 extension type JsiExtensionType._(jsi.JSObject _) {
   @jsi.JS()
+  // [error column 4, length 6]
+  // [analyzer] COMPILE_TIME_ERROR.JS_INTEROP_EXTENSION_CONSTRUCTOR_JS_ANNOTATION_HAS_NO_EFFECT
   external JsiExtensionType();
   //       ^
   // [web] The '@JS' annotation on an extension type constructor has no effect.
 
   @jsi.JS()
+  // [error column 4, length 6]
+  // [analyzer] COMPILE_TIME_ERROR.JS_INTEROP_EXTENSION_CONSTRUCTOR_JS_ANNOTATION_HAS_NO_EFFECT
   external JsiExtensionType.literal({int foo});
   //       ^
   // [web] The '@JS' annotation on an extension type constructor has no effect.
 
   @jsi.JS()
+  // [error column 4, length 6]
+  // [analyzer] COMPILE_TIME_ERROR.JS_INTEROP_EXTENSION_CONSTRUCTOR_JS_ANNOTATION_HAS_NO_EFFECT
   external factory JsiExtensionType.factory();
   //               ^
   // [web] The '@JS' annotation on an extension type constructor has no effect.

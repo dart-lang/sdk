@@ -10,12 +10,11 @@ import 'dart:_wasm';
 
 @patch
 class StringBuffer {
-  WasmExternRef? _hostBuffer = WasmExternRef.nullRef;
+  final WasmExternRef _hostBuffer = stringBufferCreate();
 
   @patch
   @pragma("wasm:prefer-inline")
   StringBuffer([Object content = '']) {
-    _hostBuffer = stringBufferCreate();
     if (content is! String || content.isNotEmpty) {
       write(content);
     }

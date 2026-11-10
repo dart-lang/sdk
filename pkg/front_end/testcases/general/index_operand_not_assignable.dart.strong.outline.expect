@@ -1,0 +1,42 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    ;
+  operator [](core::int i) → core::int
+    ;
+  operator []=(core::int i, core::int v) → void
+    ;
+}
+class X extends core::Object {
+  synthetic constructor •() → self::X
+    ;
+}
+class D extends self::C {
+  synthetic constructor •() → self::D
+    ;
+  method reads(core::num n, self::C c, self::C? nc, self::X s) → void
+    ;
+  method plainAssignmentIndex(core::num n, self::C c, self::C? nc, self::X s) → void
+    ;
+  method plainAssignmentValue(core::num n, self::C c, self::C? nc, self::X s) → void
+    ;
+  method valueContext(core::num n, self::C c, self::X s) → void
+    ;
+  method compound(core::num n, core::double d, self::C c, self::X s) → void
+    ;
+  method ifNull(core::num n, self::C c, self::X s) → void
+    ;
+}
+extension E on self::X {
+  operator [] = self::E|[];
+  operator []= = self::E|[]=;
+}
+static extension-member method E|[](lowered final self::X #this, core::int i) → core::int
+  ;
+static extension-member method E|[]=(lowered final self::X #this, core::int i, core::int v) → void
+  ;
+static method main() → dynamic
+  ;

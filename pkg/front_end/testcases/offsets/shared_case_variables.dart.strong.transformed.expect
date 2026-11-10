@@ -26,9 +26,9 @@ import "dart:core" as core;
 [248]        {
 [311]          [311] [311] core::print [316]([317] "1");
 [-1]          break #L1;
-        }
+[-1]        }
       }
-    }
+[248]    }
 [327]    {
 [337]      [337, -1] lowered hoisted dynamic b#case#0;
 [369]      [369, -1] lowered hoisted dynamic b#case#1;
@@ -36,10 +36,10 @@ import "dart:core" as core;
 [337]        [337, -1] dynamic b = [-1] [-1] #t1;
 [327]        {
 [390]          [390] [390] core::print [395]([396] b);
-        }
+[-1]        }
       }
-    }
-  }
+[327]    }
+[231]  }
 }
 
 constants  {

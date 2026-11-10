@@ -29,7 +29,11 @@ final testsDir = p.join(packageRoot, 'test');
 // process.pid gives us access to the process id of the dart.exe. To accomodate
 // for this in tests we send underlying PID from child process to the parent
 // over stdout.
-typedef TestScriptProcess = ({Process process, int pid});
+typedef TestScriptProcess = ({
+  Process process,
+  int pid,
+  Future<void> Function(String) updateContent,
+});
 
 Future<TestScriptProcess> startTestScript(
   String processName,
@@ -44,6 +48,7 @@ Future<TestScriptProcess> startTestScript(
   ]);
 
   final ready = Completer<int>();
+  Completer<void>? updateCompleter;
 
   process.stdout.transform(utf8.decoder).transform(const LineSplitter()).listen(
     (line) {
@@ -52,6 +57,8 @@ Future<TestScriptProcess> startTestScript(
       }
       if (line.startsWith('OK:')) {
         ready.complete(int.parse(line.split(':')[1]));
+      } else if (line.startsWith('UPDATED:')) {
+        updateCompleter?.complete();
       }
     },
   );
@@ -62,8 +69,28 @@ Future<TestScriptProcess> startTestScript(
       }
     },
   );
+  unawaited(
+    process.exitCode.then((exitCode) {
+      if (updateCompleter case final completer? when !completer.isCompleted) {
+        completer.completeError(
+          StateError('Process $processName exited with code $exitCode'),
+        );
+      }
+    }),
+  );
 
-  return (process: process, pid: await ready.future);
+  Future<void> updateContent(String content) async {
+    final completer = Completer<void>();
+    updateCompleter = completer;
+    process.stdin.writeln('UPDATE:$content');
+    await completer.future;
+  }
+
+  return (
+    process: process,
+    pid: await ready.future,
+    updateContent: updateContent,
+  );
 }
 
 Future<void> killProcess(TestScriptProcess p) async {
@@ -94,8 +121,8 @@ void main() {
   });
 
   test('pid files', () async {
-    ({Process process, int pid})? p1;
-    ({Process process, int pid})? p2;
+    TestScriptProcess? p1;
+    TestScriptProcess? p2;
 
     try {
       p1 = await startTestScript(
@@ -118,6 +145,24 @@ void main() {
         }),
       );
 
+      // Update p1's pid file content (including to a shorter string) and verify
+      // listPidFiles sees the updated content and does not purge the locked
+      // pid file.
+      await p1.updateContent('updated_longer_content_from_script_p1');
+      expect(
+        listPidFiles(tempDir.path),
+        equals({
+          p1.pid: 'updated_longer_content_from_script_p1',
+          p2.pid: 'test_content_from_script_p2',
+        }),
+      );
+
+      await p1.updateContent('short_p1');
+      expect(
+        listPidFiles(tempDir.path),
+        equals({p1.pid: 'short_p1', p2.pid: 'test_content_from_script_p2'}),
+      );
+
       // Kill one process and check that only one process is now found.
       await killProcess(p1);
       expect(
@@ -132,5 +177,9 @@ void main() {
       p1?.process.kill();
       p2?.process.kill();
     }
+  });
+
+  test('updatePidFile returns false when no pid file exists', () {
+    expect(updatePidFile('unused'), isFalse);
   });
 }

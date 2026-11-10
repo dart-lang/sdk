@@ -31,9 +31,14 @@ void f() async {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
-      expression2: PrefixedIdentifier
+      expression2: ParsedNameAccess
+        operand: ParsedUnqualifiedName
+          name: x
+        operator: .
+        name: foo
+      expression(v1): PrefixedIdentifier
         prefix: SimpleIdentifier
           token: x
         period: .
@@ -41,8 +46,17 @@ Block
           token: foo
       semicolon: ; <synthetic>
     ExpressionStatement
-      expression2: MethodInvocation
-        target2: SimpleIdentifier
+      expression2: ParsedValueArguments
+        operand: ParsedNameAccess
+          operand: ParsedUnqualifiedName
+            name: y
+          operator: .
+          name: bar
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+      expression(v1): MethodInvocation
+        target: SimpleIdentifier
           token: y
         operator: .
         methodName: SimpleIdentifier
@@ -68,31 +82,45 @@ void f() async {
     var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''
 Block
-  leftBracket: {
-  statements
+  leftBracket: { @15
+  statements2
     ExpressionStatement
-      expression2: PrefixedIdentifier
+      expression2: ParsedNameAccess
+        operand: ParsedUnqualifiedName
+          name: x @19
+        operator: . @20
+        name: <empty> @24 <synthetic>
+      expression(v1): PrefixedIdentifier
         prefix: SimpleIdentifier
-          token: x
-        period: .
+          token: x @19
+        period: . @20
         identifier: SimpleIdentifier
-          token: <empty> <synthetic>
-      semicolon: ; <synthetic>
+          token: <empty> @24 <synthetic>
+      semicolon: ; @24 <synthetic>
     ExpressionStatement
       expression2: AwaitExpression
-        awaitKeyword: await
-        expression2: MethodInvocation
-          target2: SimpleIdentifier
-            token: y
-          operator: .
-          methodName: SimpleIdentifier
-            token: foo
+        awaitKeyword: await @24
+        expression2: ParsedValueArguments
+          operand: ParsedNameAccess
+            operand: ParsedUnqualifiedName
+              name: y @30
+            operator: . @31
+            name: foo @32
           argumentList: ArgumentList
-            leftParenthesis: (
-            rightParenthesis: )
-      semicolon: ;
-  rightBracket: }
-''');
+            leftParenthesis: ( @35
+            rightParenthesis: ) @36
+        expression(v1): MethodInvocation
+          target: SimpleIdentifier
+            token: y @30
+          operator: . @31
+          methodName: SimpleIdentifier
+            token: foo @32
+          argumentList: ArgumentList
+            leftParenthesis: ( @35
+            rightParenthesis: ) @36
+      semicolon: ; @37
+  rightBracket: } @39
+''', withOffsets: true);
   }
 
   test_recovery_propertyAccess_beforeIdentifier_hasIdentifier() {
@@ -109,9 +137,14 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
-      expression2: PrefixedIdentifier
+      expression2: ParsedNameAccess
+        operand: ParsedUnqualifiedName
+          name: x
+        operator: .
+        name: foo
+      expression(v1): PrefixedIdentifier
         prefix: SimpleIdentifier
           token: x
         period: .

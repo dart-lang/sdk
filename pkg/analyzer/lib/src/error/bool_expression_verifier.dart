@@ -7,28 +7,26 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for verifying expression that should be of type bool.
 class BoolExpressionVerifier {
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _typeAnalyzer;
   final DiagnosticReporter _diagnosticReporter;
   final NullableDereferenceVerifier _nullableDereferenceVerifier;
 
   final InterfaceTypeImpl _boolType;
 
-  BoolExpressionVerifier({
-    required ResolverVisitor resolver,
-    required DiagnosticReporter diagnosticReporter,
-    required NullableDereferenceVerifier nullableDereferenceVerifier,
-  }) : _resolver = resolver,
-       _diagnosticReporter = diagnosticReporter,
-       _nullableDereferenceVerifier = nullableDereferenceVerifier,
-       _boolType = resolver.typeSystem.typeProvider.boolType;
+  new({
+    required TypeAnalyzer typeAnalyzer,
+    required this._diagnosticReporter,
+    required this._nullableDereferenceVerifier,
+  }) : _typeAnalyzer = typeAnalyzer,
+       _boolType = typeAnalyzer.typeSystem.typeProvider.boolType;
 
   /// Check to ensure that the [condition] is of type bool, are. Otherwise an
   /// error is reported on the expression.
@@ -55,17 +53,17 @@ class BoolExpressionVerifier {
   }) {
     var type = expression.typeOrThrow;
     if (!_checkForUseOfVoidResult(expression) &&
-        !_resolver.typeSystem.isAssignableTo(
+        !_typeAnalyzer.typeSystem.isAssignableTo(
           type,
           _boolType,
-          strictCasts: _resolver.analysisOptions.strictCasts,
+          strictCasts: _typeAnalyzer.analysisOptions.strictCasts,
         )) {
       if (type.isDartCoreBool) {
         _nullableDereferenceVerifier.report(
           diag.uncheckedUseOfNullableValueAsCondition,
           expression,
           type,
-          messages: _resolver.computeWhyNotPromotedMessages(
+          messages: _typeAnalyzer.computeWhyNotPromotedMessages(
             expression,
             whyNotPromoted?.call(),
           ),
@@ -97,9 +95,8 @@ class BoolExpressionVerifier {
       return false;
     }
 
-    if (expression is MethodInvocation) {
-      SimpleIdentifier methodName = expression.methodName;
-      _diagnosticReporter.report(diag.useOfVoidResult.at(methodName));
+    if (expression is NamedFunctionInvocation) {
+      _diagnosticReporter.report(diag.useOfVoidResult.at(expression.name));
     } else {
       _diagnosticReporter.report(diag.useOfVoidResult.at(expression));
     }

@@ -13,31 +13,36 @@ import 'utils.dart';
 // Regression test for https://github.com/dart-lang/sdk/issues/56080
 
 void main() {
-  late final Process? process;
+  test(
+    'sdk_test.dart passes when run with dart from PATH',
+    timeout: longTimeout,
+    () async {
+      final sdkTestUri = resolveDartDevUri('test/sdk_test.dart');
 
-  tearDown(() {
-    process?.kill();
-  });
+      final process = await Process.start(
+        'dart',
+        [sdkTestUri.toFilePath()],
+        environment: {'PATH': path.dirname(Platform.resolvedExecutable)},
+        runInShell: true,
+      );
+      addTearDown(process.kill);
 
-  test('sdk_test.dart passes when run with dart from PATH', () async {
-    final sdkTestUri = resolveDartDevUri('test/sdk_test.dart');
+      // All tests in sdk_test.dart should pass when `dart` is invoked from PATH.
+      final (out, err, exitCode) = await (
+        process.stdout.transform(utf8.decoder).join(),
+        process.stderr.transform(utf8.decoder).join(),
+        process.exitCode,
+      ).wait;
+      if (exitCode != 0) {
+        print('''
+EXIT CODE: $exitCode
+STDOUT:
+$out
 
-    process = await Process.start(
-      'dart',
-      [sdkTestUri.toFilePath()],
-      environment: {'PATH': path.dirname(Platform.resolvedExecutable)},
-    );
-
-    // All tests in sdk_test.dart should pass when `dart` is invoked from PATH.
-    final exitCode = await process!.exitCode;
-    if (exitCode != 0) {
-      print('EXIT CODE: $exitCode');
-      print('STDOUT:');
-      print(await process!.stdout.transform(utf8.decoder).join());
-      print('');
-      print('STDERR:');
-      print(await process!.stderr.transform(utf8.decoder).join());
-      print('sdk_test.dart failed when run with dart from PATH!');
-    }
-  });
+STDERR:
+$err''');
+        fail('sdk_test.dart failed when run with dart from PATH!');
+      }
+    },
+  );
 }

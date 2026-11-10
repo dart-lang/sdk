@@ -15,7 +15,7 @@ static method main() → void {
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 [@vm.unboxing-info.metadata=[!regcc]]
 @#C8
-static method recorded([@vm.inferred-arg-type.metadata=dart._compact_hash::_ConstSet] core::Object arg) → void {}
+static method recorded([@vm.inferred-arg-type.metadata=dart._compact_hash::_ConstSet<dynamic> (inexact type args)] core::Object arg) → void {}
 constants  {
   #C1 = 1
   #C2 = 2

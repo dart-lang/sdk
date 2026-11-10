@@ -16,10 +16,13 @@ void main() {
 @reflectiveTest
 class DeduplicatingStillOffersSeveralAllInFileOptionsTest
     extends FixInFileProcessorTest {
+  @override
+  List<String> get lintCodes => [
+    LintNames.prefer_single_quotes,
+    LintNames.unnecessary_new,
+  ];
+
   Future<void> test_File() async {
-    createAnalysisOptionsFile(
-      lints: [LintNames.prefer_single_quotes, LintNames.unnecessary_new],
-    );
     await resolveTestCode(r'''
 void f() {
   print("abc");

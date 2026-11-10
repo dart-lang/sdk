@@ -10,11 +10,7 @@ import 'package:analyzer/exception/exception.dart';
 class CaughtExceptionWithFiles extends CaughtException {
   final Map<String, String> fileContentMap;
 
-  CaughtExceptionWithFiles(
-    super.exception,
-    super.stackTrace,
-    this.fileContentMap,
-  );
+  new(super.exception, super.stackTrace, this.fileContentMap);
 }
 
 /// Exception thrown when a required SDK class is missing from an SDK library.
@@ -24,7 +20,7 @@ final class MissingRequiredSdkClassException implements Exception {
   final String className;
   final List<String> declaredClassNames;
 
-  MissingRequiredSdkClassException({
+  new({
     required this.libraryUri,
     required this.libraryPath,
     required this.className,

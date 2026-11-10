@@ -1831,14 +1831,10 @@ abstract class DartTypes {
     return normalizableVariables.isEmpty
         ? type
         : subst(
-                List<DartType>.filled(
-                  normalizableVariables.length,
-                  neverType(),
-                ),
-                normalizableVariables,
-                type,
-              )
-              as FunctionType;
+            List<DartType>.filled(normalizableVariables.length, neverType()),
+            normalizableVariables,
+            type,
+          ) as FunctionType;
   }
 
   DartType futureOrType(DartType typeArgument) {

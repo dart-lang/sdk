@@ -12,7 +12,7 @@ part of 'experiments.dart';
 
 /// The current version of the Dart language (or, for non-stable releases, the
 /// version of the language currently in the process of being developed).
-const _currentVersion = '3.14.0';
+const _currentVersion = '3.15.0';
 
 /// A map containing information about all known experimental flags.
 final _knownFeatures = <String, ExperimentalFeature>{
@@ -51,12 +51,15 @@ final _knownFeatures = <String, ExperimentalFeature>{
   EnableString.primary_constructors: ExperimentalFeatures.primary_constructors,
   EnableString.private_named_parameters:
       ExperimentalFeatures.private_named_parameters,
+  EnableString.promotion_chain_intersection_join:
+      ExperimentalFeatures.promotion_chain_intersection_join,
   EnableString.receiver_type_inference:
       ExperimentalFeatures.receiver_type_inference,
   EnableString.record_use: ExperimentalFeatures.record_use,
   EnableString.records: ExperimentalFeatures.records,
   EnableString.sealed_class: ExperimentalFeatures.sealed_class,
   EnableString.set_literals: ExperimentalFeatures.set_literals,
+  EnableString.single_combinators: ExperimentalFeatures.single_combinators,
   EnableString.sound_flow_analysis: ExperimentalFeatures.sound_flow_analysis,
   EnableString.spread_collections: ExperimentalFeatures.spread_collections,
   EnableString.static_extensions: ExperimentalFeatures.static_extensions,
@@ -124,12 +127,16 @@ Feature fromSharedExperimentalFlags(
     ExperimentalFeatures.primary_constructors,
   shared.ExperimentalFlag.privateNamedParameters =>
     ExperimentalFeatures.private_named_parameters,
+  shared.ExperimentalFlag.promotionChainIntersectionJoin =>
+    ExperimentalFeatures.promotion_chain_intersection_join,
   shared.ExperimentalFlag.receiverTypeInference =>
     ExperimentalFeatures.receiver_type_inference,
   shared.ExperimentalFlag.recordUse => ExperimentalFeatures.record_use,
   shared.ExperimentalFlag.records => ExperimentalFeatures.records,
   shared.ExperimentalFlag.sealedClass => ExperimentalFeatures.sealed_class,
   shared.ExperimentalFlag.setLiterals => ExperimentalFeatures.set_literals,
+  shared.ExperimentalFlag.singleCombinators =>
+    ExperimentalFeatures.single_combinators,
   shared.ExperimentalFlag.soundFlowAnalysis =>
     ExperimentalFeatures.sound_flow_analysis,
   shared.ExperimentalFlag.spreadCollections =>
@@ -244,6 +251,10 @@ class EnableString {
   /// String to enable the experiment "private-named-parameters"
   static const String private_named_parameters = 'private-named-parameters';
 
+  /// String to enable the experiment "promotion-chain-intersection-join"
+  static const String promotion_chain_intersection_join =
+      'promotion-chain-intersection-join';
+
   /// String to enable the experiment "receiver-type-inference"
   static const String receiver_type_inference = 'receiver-type-inference';
 
@@ -258,6 +269,9 @@ class EnableString {
 
   /// String to enable the experiment "set-literals"
   static const String set_literals = 'set-literals';
+
+  /// String to enable the experiment "single-combinators"
+  static const String single_combinators = 'single-combinators';
 
   /// String to enable the experiment "sound-flow-analysis"
   static const String sound_flow_analysis = 'sound-flow-analysis';
@@ -444,8 +458,7 @@ class ExperimentalFeatures {
     enableString: EnableString.generic_metadata,
     isEnabledByDefault: IsEnabledByDefault.generic_metadata,
     isExpired: IsExpired.generic_metadata,
-    documentation:
-        'Allow annotations to accept type arguments; also allow generic function types as type arguments.',
+    documentation: 'Allow annotations to accept type arguments; also allow generic function types as type arguments.',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('2.14.0'),
     channels: ["stable", "beta", "dev", "main"],
@@ -456,8 +469,7 @@ class ExperimentalFeatures {
     enableString: EnableString.getter_setter_error,
     isEnabledByDefault: IsEnabledByDefault.getter_setter_error,
     isExpired: IsExpired.getter_setter_error,
-    documentation:
-        'Stop reporting errors about mismatching types in a getter/setter pair.',
+    documentation: 'Stop reporting errors about mismatching types in a getter/setter pair.',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('3.9.0'),
     channels: ["stable", "beta", "dev", "main"],
@@ -468,8 +480,7 @@ class ExperimentalFeatures {
     enableString: EnableString.inference_update_1,
     isEnabledByDefault: IsEnabledByDefault.inference_update_1,
     isExpired: IsExpired.inference_update_1,
-    documentation:
-        'Horizontal type inference for function expressions passed to generic invocations.',
+    documentation: 'Horizontal type inference for function expressions passed to generic invocations.',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('2.18.0'),
     channels: ["stable", "beta", "dev", "main"],
@@ -632,8 +643,19 @@ class ExperimentalFeatures {
     channels: ["stable", "beta", "dev", "main"],
   );
 
-  static final receiver_type_inference = ExperimentalFeature(
+  static final promotion_chain_intersection_join = ExperimentalFeature(
     index: 30,
+    enableString: EnableString.promotion_chain_intersection_join,
+    isEnabledByDefault: IsEnabledByDefault.promotion_chain_intersection_join,
+    isExpired: IsExpired.promotion_chain_intersection_join,
+    documentation: 'Enhanced promotion chain join algorithm (https://github.com/dart-lang/language/issues/4757)',
+    experimentalReleaseVersion: null,
+    releaseVersion: Version.parse('3.15.0'),
+    channels: ["stable", "beta", "dev", "main"],
+  );
+
+  static final receiver_type_inference = ExperimentalFeature(
+    index: 31,
     enableString: EnableString.receiver_type_inference,
     isEnabledByDefault: IsEnabledByDefault.receiver_type_inference,
     isExpired: IsExpired.receiver_type_inference,
@@ -644,7 +666,7 @@ class ExperimentalFeatures {
   );
 
   static final record_use = ExperimentalFeature(
-    index: 31,
+    index: 32,
     enableString: EnableString.record_use,
     isEnabledByDefault: IsEnabledByDefault.record_use,
     isExpired: IsExpired.record_use,
@@ -655,7 +677,7 @@ class ExperimentalFeatures {
   );
 
   static final records = ExperimentalFeature(
-    index: 32,
+    index: 33,
     enableString: EnableString.records,
     isEnabledByDefault: IsEnabledByDefault.records,
     isExpired: IsExpired.records,
@@ -666,7 +688,7 @@ class ExperimentalFeatures {
   );
 
   static final sealed_class = ExperimentalFeature(
-    index: 33,
+    index: 34,
     enableString: EnableString.sealed_class,
     isEnabledByDefault: IsEnabledByDefault.sealed_class,
     isExpired: IsExpired.sealed_class,
@@ -677,7 +699,7 @@ class ExperimentalFeatures {
   );
 
   static final set_literals = ExperimentalFeature(
-    index: 34,
+    index: 35,
     enableString: EnableString.set_literals,
     isEnabledByDefault: IsEnabledByDefault.set_literals,
     isExpired: IsExpired.set_literals,
@@ -687,20 +709,30 @@ class ExperimentalFeatures {
     channels: ["stable", "beta", "dev", "main"],
   );
 
+  static final single_combinators = ExperimentalFeature(
+    index: 36,
+    enableString: EnableString.single_combinators,
+    isEnabledByDefault: IsEnabledByDefault.single_combinators,
+    isExpired: IsExpired.single_combinators,
+    documentation: 'Allow at most one `show` or `hide` combinator per import or export directive.',
+    experimentalReleaseVersion: null,
+    releaseVersion: Version.parse('3.15.0'),
+    channels: ["stable", "beta", "dev", "main"],
+  );
+
   static final sound_flow_analysis = ExperimentalFeature(
-    index: 35,
+    index: 37,
     enableString: EnableString.sound_flow_analysis,
     isEnabledByDefault: IsEnabledByDefault.sound_flow_analysis,
     isExpired: IsExpired.sound_flow_analysis,
-    documentation:
-        'Assume sound null safety when computing type promotion, reachability, and definite assignment.',
+    documentation: 'Assume sound null safety when computing type promotion, reachability, and definite assignment.',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('3.9.0'),
     channels: ["stable", "beta", "dev", "main"],
   );
 
   static final spread_collections = ExperimentalFeature(
-    index: 36,
+    index: 38,
     enableString: EnableString.spread_collections,
     isEnabledByDefault: IsEnabledByDefault.spread_collections,
     isExpired: IsExpired.spread_collections,
@@ -711,7 +743,7 @@ class ExperimentalFeatures {
   );
 
   static final static_extensions = ExperimentalFeature(
-    index: 37,
+    index: 39,
     enableString: EnableString.static_extensions,
     isEnabledByDefault: IsEnabledByDefault.static_extensions,
     isExpired: IsExpired.static_extensions,
@@ -722,7 +754,7 @@ class ExperimentalFeatures {
   );
 
   static final super_parameters = ExperimentalFeature(
-    index: 38,
+    index: 40,
     enableString: EnableString.super_parameters,
     isEnabledByDefault: IsEnabledByDefault.super_parameters,
     isExpired: IsExpired.super_parameters,
@@ -733,30 +765,29 @@ class ExperimentalFeatures {
   );
 
   static final test_experiment = ExperimentalFeature(
-    index: 39,
+    index: 41,
     enableString: EnableString.test_experiment,
     isEnabledByDefault: IsEnabledByDefault.test_experiment,
     isExpired: IsExpired.test_experiment,
-    documentation:
-        'Has no effect. Can be used for testing the --enable-experiment command line functionality.',
+    documentation: 'Has no effect. Can be used for testing the --enable-experiment command line functionality.',
     experimentalReleaseVersion: null,
     releaseVersion: null,
     channels: ["stable", "beta", "dev", "main"],
   );
 
   static final this_promotion = ExperimentalFeature(
-    index: 40,
+    index: 42,
     enableString: EnableString.this_promotion,
     isEnabledByDefault: IsEnabledByDefault.this_promotion,
     isExpired: IsExpired.this_promotion,
     documentation: 'Type promotion for `this`.',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
+    releaseVersion: Version.parse('3.15.0'),
     channels: ["stable", "beta", "dev", "main"],
   );
 
   static final triple_shift = ExperimentalFeature(
-    index: 41,
+    index: 43,
     enableString: EnableString.triple_shift,
     isEnabledByDefault: IsEnabledByDefault.triple_shift,
     isExpired: IsExpired.triple_shift,
@@ -767,7 +798,7 @@ class ExperimentalFeatures {
   );
 
   static final unnamed_libraries = ExperimentalFeature(
-    index: 42,
+    index: 44,
     enableString: EnableString.unnamed_libraries,
     isEnabledByDefault: IsEnabledByDefault.unnamed_libraries,
     isExpired: IsExpired.unnamed_libraries,
@@ -778,7 +809,7 @@ class ExperimentalFeatures {
   );
 
   static final unquoted_imports = ExperimentalFeature(
-    index: 43,
+    index: 45,
     enableString: EnableString.unquoted_imports,
     isEnabledByDefault: IsEnabledByDefault.unquoted_imports,
     isExpired: IsExpired.unquoted_imports,
@@ -789,7 +820,7 @@ class ExperimentalFeatures {
   );
 
   static final variance = ExperimentalFeature(
-    index: 44,
+    index: 46,
     enableString: EnableString.variance,
     isEnabledByDefault: IsEnabledByDefault.variance,
     isExpired: IsExpired.variance,
@@ -800,7 +831,7 @@ class ExperimentalFeatures {
   );
 
   static final wildcard_variables = ExperimentalFeature(
-    index: 45,
+    index: 47,
     enableString: EnableString.wildcard_variables,
     isEnabledByDefault: IsEnabledByDefault.wildcard_variables,
     isExpired: IsExpired.wildcard_variables,
@@ -905,6 +936,9 @@ class IsEnabledByDefault {
   /// Default state of the experiment "private-named-parameters"
   static const bool private_named_parameters = true;
 
+  /// Default state of the experiment "promotion-chain-intersection-join"
+  static const bool promotion_chain_intersection_join = true;
+
   /// Default state of the experiment "receiver-type-inference"
   static const bool receiver_type_inference = false;
 
@@ -919,6 +953,9 @@ class IsEnabledByDefault {
 
   /// Default state of the experiment "set-literals"
   static const bool set_literals = true;
+
+  /// Default state of the experiment "single-combinators"
+  static const bool single_combinators = true;
 
   /// Default state of the experiment "sound-flow-analysis"
   static const bool sound_flow_analysis = true;
@@ -936,7 +973,7 @@ class IsEnabledByDefault {
   static const bool test_experiment = false;
 
   /// Default state of the experiment "this-promotion"
-  static const bool this_promotion = false;
+  static const bool this_promotion = true;
 
   /// Default state of the experiment "triple-shift"
   static const bool triple_shift = true;
@@ -1048,6 +1085,9 @@ class IsExpired {
   /// Expiration status of the experiment "private-named-parameters"
   static const bool private_named_parameters = true;
 
+  /// Expiration status of the experiment "promotion-chain-intersection-join"
+  static const bool promotion_chain_intersection_join = false;
+
   /// Expiration status of the experiment "receiver-type-inference"
   static const bool receiver_type_inference = false;
 
@@ -1062,6 +1102,9 @@ class IsExpired {
 
   /// Expiration status of the experiment "set-literals"
   static const bool set_literals = true;
+
+  /// Expiration status of the experiment "single-combinators"
+  static const bool single_combinators = false;
 
   /// Expiration status of the experiment "sound-flow-analysis"
   static const bool sound_flow_analysis = true;
@@ -1204,6 +1247,10 @@ mixin _CurrentState {
   bool get private_named_parameters =>
       isEnabled(ExperimentalFeatures.private_named_parameters);
 
+  /// Current state for the flag "promotion-chain-intersection-join"
+  bool get promotion_chain_intersection_join =>
+      isEnabled(ExperimentalFeatures.promotion_chain_intersection_join);
+
   /// Current state for the flag "receiver-type-inference"
   bool get receiver_type_inference =>
       isEnabled(ExperimentalFeatures.receiver_type_inference);
@@ -1219,6 +1266,10 @@ mixin _CurrentState {
 
   /// Current state for the flag "set-literals"
   bool get set_literals => isEnabled(ExperimentalFeatures.set_literals);
+
+  /// Current state for the flag "single-combinators"
+  bool get single_combinators =>
+      isEnabled(ExperimentalFeatures.single_combinators);
 
   /// Current state for the flag "sound-flow-analysis"
   bool get sound_flow_analysis =>

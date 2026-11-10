@@ -33,7 +33,7 @@ double d2 = 700;
 }
 
 @reflectiveTest
-class ConvertToIntLiteralTest extends FixProcessorLintTest {
+class ConvertToIntLiteralTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToIntLiteral;
 

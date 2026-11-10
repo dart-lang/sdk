@@ -1,0 +1,77 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/cyclic_method_type_parameters.dart:5:34: Error: Type 'S' is a bound of itself via 'T'.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+// void topLevelMethod<T extends S, S extends T>() {} // Error
+//                                  ^
+//
+// pkg/front_end/testcases/general/cyclic_method_type_parameters.dart:8:36: Error: Type 'S' is a bound of itself via 'T'.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+//   void instanceMethod<T extends S, S extends T>() {} // Error
+//                                    ^
+//
+// pkg/front_end/testcases/general/cyclic_method_type_parameters.dart:9:41: Error: Type 'S' is a bound of itself via 'T'.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+//   static void staticMethod<T extends S, S extends T>() {} // Error
+//                                         ^
+//
+// pkg/front_end/testcases/general/cyclic_method_type_parameters.dart:13:36: Error: Type 'S' is a bound of itself via 'T'.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+//   void instanceMethod<T extends S, S extends T>() {} // Error
+//                                    ^
+//
+// pkg/front_end/testcases/general/cyclic_method_type_parameters.dart:14:41: Error: Type 'S' is a bound of itself via 'T'.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+//   static void staticMethod<T extends S, S extends T>() {} // Error
+//                                         ^
+//
+// pkg/front_end/testcases/general/cyclic_method_type_parameters.dart:18:36: Error: Type 'S' is a bound of itself via 'T'.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+//   void instanceMethod<T extends S, S extends T>() {} // Error
+//                                    ^
+//
+// pkg/front_end/testcases/general/cyclic_method_type_parameters.dart:19:41: Error: Type 'S' is a bound of itself via 'T'.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+//   static void staticMethod<T extends S, S extends T>() {} // Error
+//                                         ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  method instanceMethod<T extends self::Class::instanceMethod::S% = dynamic, S extends invalid-type = dynamic>() → void {}
+  static method staticMethod<T extends self::Class::staticMethod::S% = dynamic, S extends invalid-type = dynamic>() → void {}
+}
+extension Extension on core::int {
+  method instanceMethod = self::Extension|instanceMethod;
+  method tearoff instanceMethod = self::Extension|get#instanceMethod;
+  static method staticMethod = self::Extension|staticMethod;
+}
+extension type ExtensionType(core::int i) {
+  abstract extension-type-member representation-field get i() → core::int;
+  method instanceMethod = self::ExtensionType|instanceMethod;
+  method tearoff instanceMethod = self::ExtensionType|get#instanceMethod;
+  static method staticMethod = self::ExtensionType|staticMethod;
+  constructor • = self::ExtensionType|constructor#;
+  constructor tearoff • = self::ExtensionType|constructor#_#new#tearOff;
+}
+static method topLevelMethod<T extends self::topLevelMethod::S% = dynamic, S extends invalid-type = dynamic>() → void {}
+static extension-member method Extension|instanceMethod<T extends self::Extension|instanceMethod::S% = dynamic, S extends invalid-type = dynamic>(lowered final core::int #this) → void {}
+static extension-member method Extension|get#instanceMethod(lowered final core::int #this) → <T extends S% = dynamic, S extends invalid-type = dynamic>() → void
+  return <T extends S% = dynamic, S extends invalid-type = dynamic>() → void => self::Extension|instanceMethod<T%, S%>(#this);
+static extension-member method Extension|staticMethod<T extends self::Extension|staticMethod::S% = dynamic, S extends invalid-type = dynamic>() → void {}
+static extension-type-member method ExtensionType|constructor#(initializing-formal core::int i) → self::ExtensionType% /* erasure=core::int, declared=! */ {
+  lowered final self::ExtensionType% /* erasure=core::int, declared=! */ #this = i;
+  return #this;
+}
+static extension-type-member synthetic method ExtensionType|constructor#_#new#tearOff(core::int i) → self::ExtensionType% /* erasure=core::int, declared=! */
+  return self::ExtensionType|constructor#(i);
+static extension-type-member method ExtensionType|instanceMethod<T extends self::ExtensionType|instanceMethod::S% = dynamic, S extends invalid-type = dynamic>(lowered final self::ExtensionType% /* erasure=core::int, declared=! */ #this) → void {}
+static extension-type-member method ExtensionType|get#instanceMethod(lowered final self::ExtensionType% /* erasure=core::int, declared=! */ #this) → <T extends S% = dynamic, S extends invalid-type = dynamic>() → void
+  return <T extends S% = dynamic, S extends invalid-type = dynamic>() → void => self::ExtensionType|instanceMethod<T%, S%>(#this);
+static extension-type-member method ExtensionType|staticMethod<T extends self::ExtensionType|staticMethod::S% = dynamic, S extends invalid-type = dynamic>() → void {}

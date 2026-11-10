@@ -13,6 +13,7 @@ import 'package:vm/metadata/closure_id.dart' show ClosureIdMetadataRepository;
 import 'package:vm/metadata/direct_call.dart' show DirectCallMetadataRepository;
 import 'package:vm/metadata/inferred_type.dart'
     show
+        InferredType,
         InferredTypeMetadataRepository,
         InferredArgTypeMetadataRepository,
         InferredReturnTypeMetadataRepository;
@@ -54,10 +55,17 @@ void main(List<String> arguments) async {
   final component = Component();
 
   // Register VM-specific metadata.
+  final canonicalInferredTypes = <InferredType, InferredType>{};
   component.addMetadataRepository(DirectCallMetadataRepository());
-  component.addMetadataRepository(InferredTypeMetadataRepository());
-  component.addMetadataRepository(InferredArgTypeMetadataRepository());
-  component.addMetadataRepository(InferredReturnTypeMetadataRepository());
+  component.addMetadataRepository(
+    InferredTypeMetadataRepository(canonicalInferredTypes),
+  );
+  component.addMetadataRepository(
+    InferredArgTypeMetadataRepository(canonicalInferredTypes),
+  );
+  component.addMetadataRepository(
+    InferredReturnTypeMetadataRepository(canonicalInferredTypes),
+  );
   component.addMetadataRepository(ProcedureAttributesMetadataRepository());
   component.addMetadataRepository(TableSelectorMetadataRepository());
   component.addMetadataRepository(UnboxingInfoMetadataRepository());

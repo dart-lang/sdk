@@ -16,12 +16,9 @@ void main() {
 @reflectiveTest
 class UseStringInPartOfDirectivesTest extends LintRuleTest {
   @override
-  bool get addMetaPackageDep => true;
-
-  @override
   String get lintRule => LintNames.use_string_in_part_of_directives;
 
-  test_part_of_with_library_name() async {
+  test_partOfWithLibraryName() async {
     newFile('$testPackageRootPath/lib/lib.dart', '''
 library lib;
 part '$testFileName';
@@ -34,7 +31,7 @@ part of lib;
     );
   }
 
-  test_part_of_with_library_name_preEnhancedParts() async {
+  test_partOfWithLibraryName_preEnhancedParts() async {
     newFile('$testPackageRootPath/lib/lib.dart', '''
 // @dart = 3.4
 // (pre enhanced-parts)
@@ -50,12 +47,25 @@ part '$testFileName';
 ''');
   }
 
-  test_part_of_with_string() async {
+  test_partOfWithString() async {
     newFile('$testPackageRootPath/lib/lib.dart', '''
 part '$testFileName';
 ''');
     await assertNoDiagnostics(r'''
 part of 'lib.dart';
+''');
+  }
+
+  test_partOfWithString_inSubpart() async {
+    newFile('$testPackageRootPath/lib/lib.dart', '''
+part 'part.dart';
+''');
+    newFile('$testPackageRootPath/lib/part.dart', '''
+part of 'lib.dart';
+part '$testFileName';
+''');
+    await assertNoDiagnostics(r'''
+part of 'part.dart';
 ''');
   }
 }

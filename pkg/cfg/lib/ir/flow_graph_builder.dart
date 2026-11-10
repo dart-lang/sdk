@@ -360,6 +360,7 @@ class FlowGraphBuilder {
   LoadInstanceField addLoadInstanceField(
     CField field, {
     bool checkInitialized = false,
+    CType? type,
   }) {
     final object = pop();
     final instr = LoadInstanceField(
@@ -368,6 +369,7 @@ class FlowGraphBuilder {
       field,
       object,
       checkInitialized: checkInitialized,
+      type: type,
     );
     push(instr);
     appendInstruction(instr);
@@ -443,6 +445,24 @@ class FlowGraphBuilder {
     return instr;
   }
 
+  /// Append [StoreExternalField] to the graph.
+  StoreExternalField addStoreExternalField(
+    CField field, {
+    required bool hasObject,
+  }) {
+    final value = pop();
+    final object = hasObject ? pop() : null;
+    final instr = StoreExternalField(
+      graph,
+      currentSourcePosition,
+      field,
+      object,
+      value,
+    );
+    appendInstruction(instr);
+    return instr;
+  }
+
   /// Append [LoadArrayElement] to the graph.
   LoadArrayElement addLoadArrayElement(ArrayKind kind, CType type) {
     final index = pop();
@@ -489,6 +509,31 @@ class FlowGraphBuilder {
       index,
     );
     push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [CopyArrayElements] to the graph.
+  CopyArrayElements addCopyArrayElements(
+    ArrayKind kind, {
+    required bool canOverlap,
+  }) {
+    final length = pop();
+    final dstStart = pop();
+    final dstArray = pop();
+    final srcStart = pop();
+    final srcArray = pop();
+    final instr = CopyArrayElements(
+      graph,
+      currentSourcePosition,
+      kind,
+      srcArray,
+      srcStart,
+      dstArray,
+      dstStart,
+      length,
+      canOverlap: canOverlap,
+    );
     appendInstruction(instr);
     return instr;
   }
@@ -873,5 +918,21 @@ class FlowGraphBuilder {
     push(instr);
     appendInstruction(instr);
     return instr;
+  }
+
+  /// Append [SimdOp] to the graph.
+  SimdOp addSimdOp(SimdOpcode op) {
+    final instr = SimdOp(graph, currentSourcePosition, op);
+    popInputs(instr, 0, instr.inputCount);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [ReachabilityFence] to the graph.
+  void addReachabilityFence() {
+    final value = pop();
+    final instr = ReachabilityFence(graph, currentSourcePosition, value);
+    appendInstruction(instr);
   }
 }

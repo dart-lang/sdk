@@ -4,7 +4,9 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
+import 'package:analyzer/src/dart/ast/ast.dart' show V1Ast;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -74,6 +76,7 @@ import 'a.dart';
     expect(element, isNull);
   }
 
+  @V1Ast('Tests the V1 projection.')
   test_getElementDeclaration_class() async {
     var unitResult = await resolveTestCode(r'''
 class A {}
@@ -82,6 +85,64 @@ class A {}
     var result = (await helper.getFragmentDeclaration(element.firstFragment))!;
     var node = result.node as ClassDeclaration;
     expect(node.namePart.typeName.lexeme, 'A');
+  }
+
+  test_getElementDeclaration_class_v2() async {
+    var unitResult = await resolveTestCode(r'''
+class A {}
+''');
+    var element = unitResult.findElement.class_('A');
+    var result = (await helper.getFragmentDeclaration2(element.firstFragment))!;
+    var node = result.node as ClassDeclaration2;
+    expect(node.namePart.typeName.lexeme, 'A');
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  test_getElementDeclaration_dynamic() async {
+    var unitResult = await resolveTestCode('');
+    var element = unitResult.typeProvider.dynamicType.element!;
+    var result = await helper.getFragmentDeclaration(element.firstFragment);
+    expect(result, isNull);
+  }
+
+  test_getElementDeclaration_dynamic_v2() async {
+    var unitResult = await resolveTestCode('');
+    var element = unitResult.typeProvider.dynamicType.element!;
+    var result = await helper.getFragmentDeclaration2(element.firstFragment);
+    expect(result, isNull);
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  test_getElementDeclaration_functionTypeFormalParameter_imported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo(void Function(int a) f) {}
+''');
+    var unitResult = await resolveTestCode(r'''
+import 'a.dart';
+''');
+    var foo = unitResult.findElement
+        .importFind('package:test/a.dart')
+        .topFunction('foo');
+    var type = foo.formalParameters.single.type as FunctionType;
+    var fragment = type.formalParameters.single.firstFragment;
+    var result = await helper.getFragmentDeclaration(fragment);
+    expect(result, isNull);
+  }
+
+  test_getElementDeclaration_functionTypeFormalParameter_imported_v2() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo(void Function(int a) f) {}
+''');
+    var unitResult = await resolveTestCode(r'''
+import 'a.dart';
+''');
+    var foo = unitResult.findElement
+        .importFind('package:test/a.dart')
+        .topFunction('foo');
+    var type = foo.formalParameters.single.type as FunctionType;
+    var fragment = type.formalParameters.single.firstFragment;
+    var result = await helper.getFragmentDeclaration2(fragment);
+    expect(result, isNull);
   }
 
   test_getResolvedUnitByElement() async {
@@ -94,7 +155,7 @@ class B {}
         .declaredFragment!
         .element;
     var resolvedUnit = (await helper.getResolvedUnitByElement(element))!;
-    expect(resolvedUnit.unit.declarations, hasLength(2));
+    expect(resolvedUnit.unit.declarations2, hasLength(2));
   }
 
   test_getTopLevelPropertyAccessor_defined_getter() async {

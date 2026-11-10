@@ -121,6 +121,58 @@ class Expect {
     fail('Expect.equals(expected: <$expected>, actual: <$actual>$msg) fails.');
   }
 
+  /// Verifies that [computation] throws a [T].
+  ///
+  /// Calls the [computation] function and fails if that call doesn't throw,
+  /// throws something which is not a [T], or throws a [T] which does not
+  /// satisfy the optional [check] function.
+  ///
+  /// Returns the accepted thrown [T] object, if one is caught.
+  /// This value can be checked further, instead of checking it in the [check]
+  /// function. For example, to check the content of the thrown object,
+  /// you could write this:
+  /// ```
+  /// var e = Expect.throws<MyException>(myThrowingFunction);
+  /// Expect.isTrue(e.myMessage.contains("WARNING"));
+  /// ```
+  /// The type variable can be omitted, in which case it defaults to [Object],
+  /// and the (sub-)type of the object can be checked in [check] instead.
+  /// This was traditionally done before Dart had generic methods.
+  ///
+  /// If `computation` fails another test expectation
+  /// (i.e., throws an [ExpectException]),
+  /// that exception cannot be caught and accepted by [Expect.throws].
+  /// The test is still considered failing.
+  static T throws<T extends Object>(
+    void Function() computation, [
+    bool Function(T error)? check,
+    String reason = '',
+  ]) {
+    if ((computation as dynamic) == null) {
+      // Only throws from executing the function body should count as throwing.
+      // The failure to even call `f` should throw outside the try/catch.
+      testError('Function must not be null');
+    }
+    try {
+      computation();
+    } catch (e, s) {
+      // A test failure doesn't count as throwing, and can't be expected.
+      if (e is ExpectException) rethrow;
+      if (e is T && (check == null || check(e))) return e;
+      // Throws something unexpected.
+      final msg = _getMessage(reason);
+      String type = '';
+      if (T != dynamic && T != Object) {
+        type = '<$T>';
+      }
+      fail(
+        'Expect.throws$type$msg: '
+        "Unexpected '${Error.safeToString(e)}'\n$s",
+      );
+    }
+    fail('Expect.throws${_getMessage(reason)} fails: Did not throw');
+  }
+
   /// Checks whether the actual value is a bool and its value is true.
   static void isTrue(dynamic actual, [String reason = '']) {
     if (_identical(actual, true)) return;
@@ -154,6 +206,15 @@ class Expect {
 
   static Never fail(String message) {
     throw ExpectException(message);
+  }
+
+  /// Reports that there is an error in the test itself and not the code under
+  /// test.
+  ///
+  /// It may be using the expect API incorrectly or failing some other
+  /// invariant that the test expects to be true.
+  static Never testError(String message) {
+    fail('Test error: $message');
   }
 }
 

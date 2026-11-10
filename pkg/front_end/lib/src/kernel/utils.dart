@@ -24,6 +24,7 @@ import '../base/configuration.dart';
 import '../base/extension_scope.dart';
 import '../base/identifiers.dart';
 import '../base/modifiers.dart';
+import '../base/uri_offset.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -64,12 +65,8 @@ void printNodeOn(Node? node, StringSink sink) {
 }
 
 // Coverage-ignore(suite): Not run.
-void printInternalNodeOn(InternalNode? node, StringSink sink) {
-  if (node == null) {
-    sink.write("null");
-  } else {
-    sink.write(node.toText(defaultAstTextStrategy));
-  }
+void printInternalNodeOn(InternalNode node, StringSink sink) {
+  sink.write(node.toText(defaultAstTextStrategy));
 }
 
 // Coverage-ignore(suite): Not run.
@@ -216,17 +213,20 @@ Component createExpressionEvaluationComponent(Procedure procedure) {
       typeParams: typeParams,
     );
 
-    for (TypeParameter typeParam in realClass.typeParameters) {
-      fakeClass.typeParameters.add(
-        typeParam.accept<TreeNode>(cloner) as TypeParameter,
-      );
-    }
+    fakeClass.typeParameters = TypeParameterList.mapped(
+      realClass.typeParameters,
+      (TypeParameter typeParam) =>
+          typeParam.accept<TreeNode>(cloner) as TypeParameter,
+    );
 
     if (realClass.supertype != null) {
       // supertype is null for Object.
       fakeClass.supertype = new Supertype.byReference(
         realClass.supertype!.className,
-        realClass.supertype!.typeArguments.map(cloner.visitType).toList(),
+        new DartTypeList.generate(
+          realClass.supertype!.typeArguments.length,
+          (int i) => cloner.visitType(realClass.supertype!.typeArguments[i]),
+        ),
       );
     }
 
@@ -296,45 +296,39 @@ final MetadataBuilder dummyMetadataBuilder = new MetadataBuilder(
 );
 final TypeBuilder dummyTypeBuilder = new FixedTypeBuilderImpl(
   dummyDartType,
-  dummyUri,
-  -1,
+  dummyUriOffset,
 );
 final CatchParameterBuilder dummyCatchParameterBuilder =
     new CatchParameterBuilder(
       modifiers: Modifiers.empty,
-      type: const ImplicitTypeBuilder(),
+      type: new ImplicitTypeBuilder(dummyUriOffset),
       name: '',
-      fileOffset: -1,
-      nameOffset: null,
-      fileUri: dummyUri,
+      uriOffset: dummyUriOffset,
     );
 final AnonymousMethodParameterBuilder dummyAnonymousMethodParameterBuilder =
     new AnonymousMethodParameterBuilder(
       modifiers: Modifiers.empty,
-      type: const ImplicitTypeBuilder(),
+      type: new ImplicitTypeBuilder(dummyUriOffset),
       name: '',
-      fileOffset: -1,
-      nameOffset: null,
-      fileUri: dummyUri,
+      uriOffset: dummyUriOffset,
       kind: FormalParameterKind.requiredPositional,
     );
 final FormalParameterBuilder dummyFormalParameterBuilder =
     new FormalParameterBuilder(
       kind: FormalParameterKind.requiredPositional,
       modifiers: Modifiers.empty,
-      type: const ImplicitTypeBuilder(),
+      type: new ImplicitTypeBuilder(dummyUriOffset),
       name: '',
-      fileOffset: -1,
+      uriOffset: dummyUriOffset,
       nameOffset: null,
-      fileUri: dummyUri,
       hasImmediatelyDeclaredDefaultValue: false,
     );
 final FunctionTypeParameterBuilder dummyFunctionTypeParameterBuilder =
     new FunctionTypeParameterBuilder(
       kind: FormalParameterKind.requiredPositional,
-      type: const ImplicitTypeBuilder(),
+      type: new ImplicitTypeBuilder(dummyUriOffset),
       name: '',
-      fileOffset: -1,
+      uriOffset: dummyUriOffset,
       isWildcard: false,
     );
 final NominalParameterBuilder dummyNominalVariableBuilder =
@@ -343,16 +337,13 @@ final NominalParameterBuilder dummyNominalVariableBuilder =
         name: NominalParameterBuilder.noNameSentinel,
         kind: TypeParameterKind.function,
         isWildcard: false,
-        fileOffset: -1,
-        fileUri: dummyUri,
+        uriOffset: dummyUriOffset,
       ),
     );
 final TypeParameterFragment dummyTypeParameterFragment =
     new TypeParameterFragment(
       metadata: null,
-      name: '',
-      nameOffset: -1,
-      fileUri: dummyUri,
+      uriOffsetName: dummyUriOffsetName,
       kind: TypeParameterKind.function,
       isWildcard: false,
       variableName: '',
@@ -364,8 +355,7 @@ final SourceStructuralParameterBuilder dummyStructuralVariableBuilder =
       new RegularStructuralParameterDeclaration(
         metadata: null,
         name: StructuralParameterBuilder.noNameSentinel,
-        fileOffset: -1,
-        fileUri: dummyUri,
+        uriOffset: dummyUriOffset,
         isWildcard: false,
       ),
     );
@@ -381,6 +371,8 @@ final FieldInfo dummyFieldInfo = new FieldInfo(
 final Configuration dummyConfiguration = new Configuration(-1, '', '', '');
 final LookupScope dummyLookupScope = new _DummyLookupScope();
 final ExtensionScope dummyExtensionScope = new _DummyExtensionScope();
+final UriOffsetLength dummyUriOffset = new UriOffset(dummyUri, -1);
+final UriOffsetName dummyUriOffsetName = new UriOffsetName(dummyUri, '', -1);
 
 // Coverage-ignore(suite): Not run.
 class _DummyLookupScope implements LookupScope {

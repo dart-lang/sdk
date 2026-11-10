@@ -44,22 +44,22 @@ void testSublistType(input, positive, all) {
 }
 
 void testTypes() {
-  var isFloat32list = new Is<Float32List>('Float32List');
-  var isFloat64list = new Is<Float64List>('Float64List');
+  var isFloat32list = Is<Float32List>('Float32List');
+  var isFloat64list = Is<Float64List>('Float64List');
 
-  var isInt8List = new Is<Int8List>('Int8List');
-  var isInt16List = new Is<Int16List>('Int16List');
-  var isInt32List = new Is<Int32List>('Int32List');
+  var isInt8List = Is<Int8List>('Int8List');
+  var isInt16List = Is<Int16List>('Int16List');
+  var isInt32List = Is<Int32List>('Int32List');
 
-  var isUint8List = new Is<Uint8List>('Uint8List');
-  var isUint16List = new Is<Uint16List>('Uint16List');
-  var isUint32List = new Is<Uint32List>('Uint32List');
+  var isUint8List = Is<Uint8List>('Uint8List');
+  var isUint16List = Is<Uint16List>('Uint16List');
+  var isUint32List = Is<Uint32List>('Uint32List');
 
-  var isUint8ClampedList = new Is<Uint8ClampedList>('Uint8ClampedList');
+  var isUint8ClampedList = Is<Uint8ClampedList>('Uint8ClampedList');
 
-  var isIntList = new Is<List<int>>('List<int>');
-  var isDoubleList = new Is<List<double>>('List<double>');
-  var isNumList = new Is<List<num>>('List<num>');
+  var isIntList = Is<List<int>>('List<int>');
+  var isDoubleList = Is<List<double>>('List<double>');
+  var isNumList = Is<List<num>>('List<num>');
 
   var allChecks = <Is<List>>[
     isFloat32list,
@@ -85,18 +85,18 @@ void testTypes() {
     ], allChecks);
   }
 
-  testDouble(new Float32List(10), isFloat32list);
-  testDouble(new Float64List(10), isFloat64list);
+  testDouble(Float32List(10), isFloat32list);
+  testDouble(Float64List(10), isFloat64list);
 
-  testInt(new Int8List(10), isInt8List);
-  testInt(new Int16List(10), isInt16List);
-  testInt(new Int32List(10), isInt32List);
+  testInt(Int8List(10), isInt8List);
+  testInt(Int16List(10), isInt16List);
+  testInt(Int32List(10), isInt32List);
 
-  testInt(new Uint8List(10), isUint8List);
-  testInt(new Uint16List(10), isUint16List);
-  testInt(new Uint32List(10), isUint32List);
+  testInt(Uint8List(10), isUint8List);
+  testInt(Uint16List(10), isUint16List);
+  testInt(Uint32List(10), isUint32List);
 
-  testInt(new Uint8ClampedList(10), isUint8ClampedList);
+  testInt(Uint8ClampedList(10), isUint8ClampedList);
 }
 
 main() {

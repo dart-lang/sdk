@@ -12,7 +12,6 @@ import 'package:test/test.dart';
 import '../utils.dart';
 
 void main() {
-  initGlobalState();
   group('command', command, timeout: longTimeout);
   group('flag', help, timeout: longTimeout);
   group('invalid flags', invalidFlags, timeout: longTimeout);
@@ -63,7 +62,8 @@ void command() {
       expect(
         command.description.trim(),
         equals(command.description),
-        reason: 'Command "$commandKey" description must not have leading/trailing whitespace.',
+        reason:
+            'Command "$commandKey" description must not have leading/trailing whitespace.',
       );
 
       command.subcommands.forEach(validateCommand);

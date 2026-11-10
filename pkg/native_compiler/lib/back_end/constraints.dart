@@ -57,7 +57,7 @@ const anyCpuLocation = AnyLocation(RegisterClass.cpu);
 const anyFpuLocation = AnyLocation(RegisterClass.fpu);
 
 RegisterClass registerClass(Definition def) => switch (def.type) {
-  DoubleType() => RegisterClass.fpu,
+  DoubleType() || SimdType() => RegisterClass.fpu,
   _ => RegisterClass.cpu,
 };
 
@@ -135,6 +135,10 @@ abstract base class const Constraints()
       (int i) => anyLocationOrImmediate(instr.inputDefAt(i)),
     ),
   );
+
+  @override
+  InstructionConstraints? visitReachabilityFence(ReachabilityFence instr) =>
+      InstructionConstraints(null, [anyLocation(instr.value)]);
 
   @override
   InstructionConstraints? visitParallelMove(ParallelMove instr) => null;

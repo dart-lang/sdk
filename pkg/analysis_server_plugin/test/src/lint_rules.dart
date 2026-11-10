@@ -18,7 +18,7 @@ class NeedsPackageRule extends AnalysisRule {
     uniqueName: 'LintCode.needs_package',
   );
 
-  NeedsPackageRule()
+  new()
     : super(name: 'needs_package', description: 'This rule needs package info');
 
   @override
@@ -43,7 +43,7 @@ class NoBoolsRule extends AnalysisRule {
     uniqueName: 'LintCode.no_bools',
   );
 
-  NoBoolsRule() : super(name: 'no_bools', description: 'No bools desc');
+  new() : super(name: 'no_bools', description: 'No bools desc');
 
   @override
   DiagnosticCode get diagnosticCode => code;
@@ -59,7 +59,7 @@ class NoBoolsRule extends AnalysisRule {
 }
 
 class TestDiagnosticCode extends DiagnosticCode {
-  const TestDiagnosticCode(
+  const new(
     String name,
     String message, {
     this.type = DiagnosticType.STATIC_WARNING,
@@ -82,8 +82,7 @@ class NoInteger10Rule extends AnalysisRule {
     'No integer 10 message',
   );
 
-  NoInteger10Rule()
-    : super(name: 'no_integer_10', description: 'No integer 10 desc');
+  new() : super(name: 'no_integer_10', description: 'No integer 10 desc');
 
   @override
   DiagnosticCode get diagnosticCode => code;
@@ -101,7 +100,7 @@ class NoInteger10Rule extends AnalysisRule {
 class _NoIntegersVisitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _NoIntegersVisitor(this.rule);
+  new(this.rule);
 
   @override
   void visitIntegerLiteral(IntegerLiteral node) {
@@ -119,7 +118,7 @@ class NoDoublesCustomSeverityRule extends AnalysisRule {
     uniqueName: 'LintCode.no_doubles_custom_severity',
   );
 
-  NoDoublesCustomSeverityRule()
+  new()
     : super(
         name: 'no_doubles_custom_severity',
         description: 'No doubles message',
@@ -145,8 +144,7 @@ class NoDoublesRule extends AnalysisRule {
     uniqueName: 'LintCode.no_doubles',
   );
 
-  NoDoublesRule()
-    : super(name: 'no_doubles', description: 'No doubles message');
+  new() : super(name: 'no_doubles', description: 'No doubles message');
 
   @override
   DiagnosticCode get diagnosticCode => code;
@@ -168,7 +166,7 @@ class NoReferencesToStringsRule extends AnalysisRule {
     uniqueName: 'LintCode.no_references_to_strings',
   );
 
-  NoReferencesToStringsRule()
+  new()
     : super(
         name: 'no_references_to_strings',
         description: 'No references to Strings',
@@ -194,7 +192,7 @@ class NoTypeAnnotationsRule extends AnalysisRule {
     uniqueName: 'LintCode.no_type_annotations',
   );
 
-  NoTypeAnnotationsRule()
+  new()
     : super(name: 'no_type_annotations', description: 'No type annotations');
 
   @override
@@ -224,13 +222,13 @@ class _DiagnosticMessageImpl extends DiagnosticMessage {
   @override
   final String? url;
 
-  _DiagnosticMessageImpl({
+  new({
     required this.filePath,
     required this.length,
-    required String message,
+    required this._message,
     required this.offset,
     required this.url,
-  }) : _message = message;
+  });
 
   @override
   String messageText({required bool includeUrl}) {
@@ -251,7 +249,7 @@ class _NeedsPackageVisitor extends SimpleAstVisitor<void> {
 
   final RuleContext context;
 
-  _NeedsPackageVisitor(this.rule, this.context);
+  new(this.rule, this.context);
 
   @override
   void visitIntegerLiteral(IntegerLiteral node) {
@@ -262,7 +260,7 @@ class _NeedsPackageVisitor extends SimpleAstVisitor<void> {
 class _NoBoolsVisitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _NoBoolsVisitor(this.rule);
+  new(this.rule);
 
   @override
   void visitBooleanLiteral(BooleanLiteral node) {
@@ -273,7 +271,7 @@ class _NoBoolsVisitor extends SimpleAstVisitor<void> {
 class _NoDoublesVisitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _NoDoublesVisitor(this.rule);
+  new(this.rule);
 
   @override
   void visitDoubleLiteral(DoubleLiteral node) {
@@ -286,7 +284,7 @@ class _NoReferencesToStringsVisitor extends SimpleAstVisitor<void> {
 
   final RuleContext context;
 
-  _NoReferencesToStringsVisitor(this.rule, this.context);
+  new(this.rule, this.context);
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
@@ -299,7 +297,7 @@ class _NoReferencesToStringsVisitor extends SimpleAstVisitor<void> {
 class _NoTypeAnnotationsVisitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _NoTypeAnnotationsVisitor(this.rule);
+  new(this.rule);
 
   @override
   void visitNamedType(NamedType node) {
@@ -318,5 +316,30 @@ class _NoTypeAnnotationsVisitor extends SimpleAstVisitor<void> {
         ),
       ],
     );
+  }
+}
+
+class ParsedOnlyRule extends AnalysisRule {
+  static const LintCode code = LintCode(
+    'parsed_only',
+    'Parsed only rule message',
+    uniqueName: 'LintCode.parsed_only',
+  );
+
+  new() : super(name: 'parsed_only', description: 'Parsed only rule');
+
+  @override
+  DiagnosticCode get diagnosticCode => code;
+
+  @override
+  bool get canUseParsedResult => true;
+
+  @override
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
+    var visitor = _NoBoolsVisitor(this);
+    registry.addBooleanLiteral(this, visitor);
   }
 }

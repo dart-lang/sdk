@@ -50,6 +50,10 @@
       "out/ReleaseX64/dart2js_platform.dill",
       "out/ReleaseX64/dart2wasm.snapshot",
       "out/ReleaseX64/dart2wasm_asserts.snapshot",
+      "out/ReleaseX64/dart2wasm_dev.snapshot",
+      "out/ReleaseX64/dart2wasm_dev_asserts.snapshot",
+      "out/ReleaseX64/dart2wasm_dev_outline.dill",
+      "out/ReleaseX64/dart2wasm_dev_platform.dill",
       "out/ReleaseX64/dart2wasm_outline.dill",
       "out/ReleaseX64/dart2wasm_platform.dill",
       "out/ReleaseX64/dart2wasm_js_compatibility_outline.dill",
@@ -59,6 +63,8 @@
       "out/ReleaseX64/dart-sdk/",
       "out/ReleaseX64/wasm/",
       "out/ReleaseX64/wasm-opt",
+      "out/ReleaseX64/wasm_dev_rt.mjs",
+      "out/ReleaseX64/wasm_dev_rt.wasm",
       "pkg/",
       "runtime/tests/",
       "samples/",
@@ -139,9 +145,9 @@
       "buildtools/linux-arm64/clang/bin/",
       "buildtools/linux-x64/clang/bin/",
       "buildtools/mac-arm64/clang/bin/",
-      "buildtools/mac-arm64/clang/lib/clang/23/lib/darwin/",
+      "buildtools/mac-arm64/clang/lib/clang/24/lib/darwin/",
       "buildtools/mac-x64/clang/bin/",
-      "buildtools/mac-x64/clang/lib/clang/23/lib/darwin/",
+      "buildtools/mac-x64/clang/lib/clang/24/lib/darwin/",
       "buildtools/win-x64/clang/bin/clang.exe",
       "buildtools/win-x64/clang/bin/lld-link.exe",
       "buildtools/win-x64/clang/bin/llvm-strip.exe",
@@ -530,6 +536,13 @@
         "timeout": 60
       }
     },
+    "wasm-dev-(linux|mac|win)-(d8|jsshell|jsc|chrome|firefox|safari)": {
+      "options": {
+        "host-asserts": true,
+        "enable-asserts": true,
+        "timeout": 60
+      }
+    },
     "dart2wasm-(linux|mac|win)-(d8|jsshell|jsc|chrome|firefox|safari)": {
       "options": {
         "host-asserts": true,
@@ -638,6 +651,14 @@
         "hot-reload-rollback": true
       }
     },
+    "vm-resident-(linux|mac|win)-(debug|release)-(ia32|x64|arm64|arm64e)": {
+      "options": {
+        "builder-tag": "resident_compiler",
+        "vm-options": [
+          "-DUSE_RESIDENT_COMPILER=true"
+        ]
+      }
+    },
     "vm-linux-(debug|product|release)-(arm|arm64|arm64c|riscv32|riscv64)-qemu": {
       "options": {
         "use-qemu": true
@@ -653,19 +674,10 @@
         "compiler": "app_jitk"
       }
     },
-    "vm-dyn-(linux|mac|win)-(debug|product|release)-(x64|x64c|arm64|arm64c|simarm|simarm64|simarm64c)": {
-      "options": {
-        "compiler": "dart2bytecode"
-      }
-    },
-    "vm-aot-dyn-(linux|mac|win)-(debug|release|product)-(x64|x64c|arm64|arm64c|simarm|simarm64|simarm64c)": {
-      "options": {
-        "compiler": "dart2bytecode"
-      }
-    },
+    "vm-dyn-(linux|mac|win)-(debug|product|release)-(x64|x64c|arm64|arm64c|simarm|simarm64|simarm64c)": {},
+    "vm-aot-dyn-(linux|mac|win)-(debug|release|product)-(x64|x64c|arm64|arm64c|simarm|simarm64|simarm64c)": {},
     "vm-dyn-mac-(debug|product|release)-simarm64_arm64": {
       "options": {
-        "compiler": "dart2bytecode",
         "vm-options": [
           "--use_simulator=true"
         ]
@@ -673,7 +685,6 @@
     },
     "vm-dyn-mac-(debug|product|release)-simarm64_arm64-nosim": {
       "options": {
-        "compiler": "dart2bytecode",
         "vm-options": [
           "--use_simulator=false"
         ]
@@ -842,6 +853,25 @@
           ],
           "fileset": "front-end",
           "shards": 2
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-aot-android-debug-riscv64",
+        "vm-aot-android-release-riscv64"
+      ],
+      "meta": {
+        "description": "Build-only configuration."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--os=android",
+            "android_bot"
+          ]
         }
       ]
     },
@@ -1080,18 +1110,20 @@
           ]
         },
         {
-          "name": "vm aot ffi tests",
+          "name": "vm aot tests",
           "arguments": [
             "-nvm-aot-linux-${mode}-arm-qemu",
-            "ffi"
+            "ffi",
+            "lib/typed_data"
           ]
         },
         {
-          "name": "vm jit ffi tests",
+          "name": "vm jit tests",
           "arguments": [
             "-nvm-linux-${mode}-arm-qemu",
-            "vm/cc",
-            "ffi"
+            "ffi",
+            "lib/typed_data",
+            "vm/cc"
           ],
           "fileset": "vm",
           "shards": 2
@@ -1116,18 +1148,20 @@
           ]
         },
         {
-          "name": "vm aot ffi tests",
+          "name": "vm aot tests",
           "arguments": [
             "-nvm-aot-linux-${mode}-riscv64-qemu",
-            "ffi"
+            "ffi",
+            "lib/typed_data"
           ]
         },
         {
-          "name": "vm jit ffi tests",
+          "name": "vm jit tests",
           "arguments": [
             "-nvm-linux-${mode}-riscv64-qemu",
-            "vm/cc",
-            "ffi"
+            "ffi",
+            "lib/typed_data",
+            "vm/cc"
           ],
           "fileset": "vm",
           "shards": 2
@@ -1163,6 +1197,15 @@
           ],
           "fileset": "vm",
           "shards": 16
+        },
+        {
+          "name": "vm service resident tests",
+          "arguments": [
+            "-nvm-resident-${system}-${mode}-${arch}",
+            "pkg/pkg/vm_service/"
+          ],
+          "fileset": "vm",
+          "shards": 2
         }
       ]
     },
@@ -1203,6 +1246,15 @@
           ],
           "fileset": "vm",
           "shards": 16
+        },
+        {
+          "name": "vm service resident tests",
+          "arguments": [
+            "-nvm-resident-${system}-${mode}-${arch}",
+            "pkg/pkg/vm_service/"
+          ],
+          "fileset": "vm",
+          "shards": 2
         }
       ]
     },
@@ -2220,58 +2272,15 @@
           "name": "ddc sdk tests",
           "arguments": [
             "-nddc-${system}-firefox",
+            "-j4",
+            "co19",
             "corelib",
             "dartdevc",
             "language",
             "lib",
             "web"
           ],
-          "shards": 6,
-          "fileset": "js_platform"
-        },
-        {
-          "name": "ddc co19 Language tests",
-          "arguments": [
-            "-nddc-${system}-firefox",
-            "co19/Language"
-          ],
-          "shards": 3,
-          "fileset": "js_platform"
-        },
-        {
-          "name": "ddc co19 LanguageFeatures tests",
-          "arguments": [
-            "-nddc-${system}-firefox",
-            "co19/LanguageFeatures"
-          ],
-          "shards": 3,
-          "fileset": "js_platform"
-        },
-        {
-          "name": "ddc co19 LibTest tests",
-          "arguments": [
-            "-nddc-${system}-firefox",
-            "co19/LibTest"
-          ],
-          "shards": 3,
-          "fileset": "js_platform"
-        },
-        {
-          "name": "ddc co19 TypeSystem tests",
-          "arguments": [
-            "-nddc-${system}-firefox",
-            "co19/TypeSystem"
-          ],
-          "shards": 3,
-          "fileset": "js_platform"
-        },
-        {
-          "name": "ddc co19 Utils tests",
-          "arguments": [
-            "-nddc-${system}-firefox",
-            "co19/Utils"
-          ],
-          "shards": 3,
+          "shards": 12,
           "fileset": "js_platform"
         }
       ]
@@ -2866,6 +2875,32 @@
             "web"
           ],
           "shards": 8,
+          "fileset": "dart2wasm_hostasserts"
+        }
+      ]
+    },
+    {
+      "builders": [
+        "dart2wasm-dev-linux-d8"
+      ],
+      "meta": {
+        "description": "dart2wasm dev tests"
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "dart2wasm_dev"
+          ]
+        },
+        {
+          "name": "wasm dev tests",
+          "arguments": [
+            "-nwasm-dev-${system}-${runtime}",
+            "web/wasm/(cfg_shared|cfg_dev)/"
+          ],
+          "shards": 1,
           "fileset": "dart2wasm_hostasserts"
         }
       ]
@@ -3591,6 +3626,14 @@
         "description": "This configuration is used for DevTools testing."
       },
       "steps": [
+        {
+          "name": "build devtools",
+          "script": "tools/build_devtools.py"
+        },
+        {
+          "name": "test devtools",
+          "script": "tools/test_devtools.py"
+        }
       ]
     }
   ],

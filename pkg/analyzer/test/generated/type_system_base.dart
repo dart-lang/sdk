@@ -123,9 +123,8 @@ abstract class AbstractTypeSystemTest with ResourceProviderMixin {
     String input, {
     List<LibraryElementImpl>? libraries,
   }) {
-    return _typeParsingScope(
-      libraries: libraries,
-    ).parseTypeParameterType(input);
+    return _typeParsingScope(libraries: libraries)
+        .parseTypeParameterType(input);
   }
 
   void setUp() {
@@ -177,7 +176,7 @@ class TypeParsingScope {
   final List<LibraryElementImpl> _libraries;
   final List<TypeParameterElementImpl> _typeParameters;
 
-  TypeParsingScope({
+  new({
     required List<LibraryElementImpl> libraries,
     required List<TypeParameterElementImpl> typeParameters,
   }) : _libraries = List.unmodifiable(libraries),

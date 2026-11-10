@@ -701,21 +701,54 @@ class DevToolsServer {
     if (useNativeBrowser) {
       await Process.start('x-www-browser', [uriToLaunch.toString()]);
     } else {
-      final args = headlessMode
-          ? [
-              '--headless',
-              // When running headless, Chrome will quit immediately after
-              // loading the page unless we have the debug port open.
-              '--remote-debugging-port=9223',
-              '--disable-gpu',
-              '--no-sandbox',
-              // When running on MacOS, Chrome may open system dialogs
-              // requesting credentials. This uses a mock keychain to avoid that
-              // dialog from blocking.
-              '--use-mock-keychain',
-            ]
-          : <String>[];
+      final userDataDir = headlessMode
+          ? Directory.systemTemp.createTempSync('devtools_chrome_profile_')
+          : null;
+      final args = <String>[
+        // Bypass system proxy settings for local DevTools/VM service connections.
+        '--no-proxy-server',
+        // Suppress first-run welcome dialogs and default-browser prompts.
+        '--no-first-run',
+        '--no-default-browser-check',
+        if (headlessMode) ...[
+          '--headless',
+          // Use an isolated profile directory so concurrent headless launches do
+          // not collide on SingletonLock or attach to an existing Chrome process.
+          if (userDataDir != null) '--user-data-dir=${userDataDir.path}',
+          // When running headless, Chrome will quit immediately after loading
+          // the page unless the debug port is open. Use port 0 so the OS picks
+          // an ephemeral port instead of colliding across concurrent runs.
+          '--remote-debugging-port=0',
+          '--disable-gpu',
+          '--no-sandbox',
+          // Prevent Chromium from throttling timers or pausing
+          // requestAnimationFrame when tabs/windows are backgrounded or
+          // occluded, which would prevent Flutter from rendering frames and
+          // reporting page changes to the DevTools server.
+          '--disable-background-timer-throttling',
+          '--disable-backgrounding-occluded-windows',
+          '--disable-renderer-backgrounding',
+          // Avoid blocking on OS credential dialogs (macOS Keychain) or D-Bus
+          // keyring initialization (Linux) when using a fresh profile directory.
+          '--password-store=basic',
+          '--use-mock-keychain',
+        ],
+      ];
       final proc = await Chrome.start([uriToLaunch.toString()], args: args);
+      // Drain stdio so Chrome cannot block if OS pipe buffers fill up.
+      unawaited(proc.stdout.drain<void>());
+      unawaited(proc.stderr.drain<void>());
+      if (userDataDir != null) {
+        unawaited(
+          proc.exitCode.whenComplete(() {
+            try {
+              userDataDir.deleteSync(recursive: true);
+            } on FileSystemException {
+              // Ignore cleanup failures if files are still locked on exit.
+            }
+          }),
+        );
+      }
       browserPid = proc.pid;
     }
     _emitLaunchEvent(

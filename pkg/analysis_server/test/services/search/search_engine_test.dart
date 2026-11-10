@@ -7,16 +7,16 @@ import 'package:analysis_server/src/services/search/search_engine_internal.dart'
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
+import 'package:analyzer_testing/src/abstract_context.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-import '../../abstract_context.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -58,7 +58,11 @@ class PubPackageResolutionTest extends AbstractContextTest {
 @reflectiveTest
 class SearchEngineImplTest extends PubPackageResolutionTest {
   SearchEngineImpl get searchEngine {
-    return SearchEngineImpl(allDrivers);
+    return SearchEngineImpl(
+      contextCollection.contexts.map(
+        (c) => (c as DriverBasedAnalysisContext).driver,
+      ),
+    );
   }
 
   Future<TestCode> resolveParsedCode(String content) async {
@@ -421,9 +425,9 @@ import 'package:aaa/a.dart';
 int t;
 ''').path;
 
-    var coreLibResult = await driverFor(
-      testFile,
-    ).getLibraryByUri('dart:core') as LibraryElementResult;
+    var driver = contextFor2(testFile).driver;
+    var coreLibResult =
+        await driver.getLibraryByUri('dart:core') as LibraryElementResult;
     var intElement = coreLibResult.element.classes.firstWhereOrNull(
       (e) => e.name == 'int',
     )!;
@@ -736,9 +740,9 @@ class B extends A {}
   String _configureForPackage_aaa() {
     var aaaRootPath = '$workspaceRootPath/aaa';
 
-    writePackageConfig(aaaRootPath, config: PackageConfigFileBuilder());
+    writePackageConfig2(aaaRootPath, config: PackageConfigFileBuilder());
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'aaa', rootFolder: getFolder(aaaRootPath)),
     );
@@ -747,8 +751,9 @@ class B extends A {}
   }
 
   Future<void> _ensureContainedFilesKnown() async {
-    for (var driver in allDrivers) {
-      var contextRoot = driver.analysisContext!.contextRoot;
+    for (var context in contextCollection.contexts) {
+      var driver = (context as DriverBasedAnalysisContext).driver;
+      var contextRoot = context.contextRoot;
       for (var file in contextRoot.analyzedFiles()) {
         if (file.endsWith('.dart')) {
           await driver.getUnitElement(file);

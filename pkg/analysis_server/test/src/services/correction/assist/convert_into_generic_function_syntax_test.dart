@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertIntoGenericFunctionSyntaxTest extends AssistProcessorTest {
+class ConvertIntoGenericFunctionSyntaxTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertIntoGenericFunctionSyntax;
 
@@ -66,6 +66,37 @@ type^def R F<P, R>(P x);
 ''');
     await assertHasAssist('''
 typedef F<P, R> = R Function(P x);
+''');
+  }
+
+  Future<void> test_functionTypedParameter_declaring_defaultValue() async {
+    await resolveTestCode('''
+int _zero(String _) => 0;
+
+class C({final int ^f(String s) = _zero}) {}
+''');
+    await assertHasAssist('''
+int _zero(String _) => 0;
+
+class C({final int Function(String s) f = _zero}) {}
+''');
+  }
+
+  Future<void> test_functionTypedParameter_declaring_final() async {
+    await resolveTestCode('''
+class E(final int ^f(String s)) {}
+''');
+    await assertHasAssist('''
+class E(final int Function(String s) f) {}
+''');
+  }
+
+  Future<void> test_functionTypedParameter_declaring_var() async {
+    await resolveTestCode('''
+class E(var ^f(String s)) {}
+''');
+    await assertHasAssist('''
+class E(var Function(String s) f) {}
 ''');
   }
 

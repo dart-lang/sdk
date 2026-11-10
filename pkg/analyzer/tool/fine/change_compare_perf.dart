@@ -263,7 +263,7 @@ class Plan {
   final Durations withFineFalse = Durations();
   final Durations withFineTrue = Durations();
 
-  Plan({
+  new({
     required this.filePath,
     required this.searchText,
     required this.replacementTemplate,
@@ -277,7 +277,7 @@ class PlanCollection {
   final Durations initialAnalysisWithFineFalse = Durations();
   final Durations initialAnalysisWithFineTrue = Durations();
 
-  PlanCollection({required this.includedPaths, required this.plans});
+  new({required this.includedPaths, required this.plans});
 }
 
 extension AnalysisDriverSchedulerPerformance on AnalysisDriverScheduler {

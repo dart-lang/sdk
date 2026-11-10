@@ -8,31 +8,26 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 
-/// Helper for resolving [VariableDeclaration]s.
+/// Helper for resolving [VariableBindingImpl]s.
 class VariableDeclarationResolver {
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _typeAnalyzer;
   final bool _strictInference;
 
-  VariableDeclarationResolver({
-    required ResolverVisitor resolver,
-    required bool strictInference,
-  }) : _resolver = resolver,
-       _strictInference = strictInference;
+  new({required this._typeAnalyzer, required this._strictInference});
 
-  void resolve(VariableDeclarationImpl node) {
-    var parent = node.parent2 as VariableDeclarationList;
-
+  void resolve(VariableBindingImpl node) {
+    var fragment = node.declaredFragment!;
     var initializer = node.initializer2;
 
     if (initializer == null) {
-      if (_strictInference && parent.type == null) {
-        _resolver.diagnosticReporter.report(
+      if (_strictInference && fragment.hasImplicitType) {
+        _typeAnalyzer.diagnosticReporter.report(
           diag.inferenceFailureOnUninitializedVariable
               .withArguments(variable: node.name.lexeme)
               .at(node),
@@ -41,9 +36,19 @@ class VariableDeclarationResolver {
       return;
     }
 
-    var element = node.declaredFragment!.element;
-    var isTopLevel =
-        element is FieldElement || element is TopLevelVariableElement;
+    var element = fragment.element;
+    bool isTopLevel;
+    bool bindsThis;
+    if (element is FieldElementImpl) {
+      isTopLevel = true;
+      bindsThis = !element.isStatic && element.isLate;
+    } else if (element is TopLevelVariableElement) {
+      isTopLevel = true;
+      bindsThis = false;
+    } else {
+      isTopLevel = false;
+      bindsThis = false;
+    }
 
     List<FormalParameterElementImpl>? inScopePrimaryConstructorParameters;
     if (element is FieldElementImpl &&
@@ -55,18 +60,31 @@ class VariableDeclarationResolver {
           ?.formalParameters;
     }
 
+    var beforeInitializerOffset = node.equals!.offset;
     if (isTopLevel) {
-      _resolver.flowAnalysis.bodyOrInitializer_enter(
+      _typeAnalyzer.flowAnalysis.flowAnalysisRoot_enter(
         node,
         inScopePrimaryConstructorParameters,
+        offset: beforeInitializerOffset,
       );
       if (inScopePrimaryConstructorParameters != null) {
-        _resolver.flowAnalysis.declarePrimaryConstructorParameters(
+        _typeAnalyzer.flowAnalysis.declarePrimaryConstructorParameters(
           inScopePrimaryConstructorParameters,
+          offset: beforeInitializerOffset,
         );
       }
     } else if (element.isLate) {
-      _resolver.flowAnalysis.flow?.lateInitializer_begin(node);
+      _typeAnalyzer.flowAnalysis.flow?.lateInitializer_begin(
+        node,
+        offset: beforeInitializerOffset,
+      );
+    }
+    if (bindsThis) {
+      _typeAnalyzer.flowAnalysis.flow?.thisBinding_begin(
+        null,
+        thisType: SharedTypeView(_typeAnalyzer.thisType!),
+        offset: initializer.offset,
+      );
     }
 
     var contextType =
@@ -74,24 +92,33 @@ class VariableDeclarationResolver {
             element.isTypeInferredFromInitializer
         ? UnknownInferredType.instance
         : element.type;
-    _resolver.analyzeExpression(initializer, SharedTypeSchemaView(contextType));
-    initializer = _resolver.popRewrite()!;
-    var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
-      _resolver.flowAnalysis.getExpressionInfo(initializer),
+    _typeAnalyzer.withThisAccessibility(
+      bindsThis || _typeAnalyzer.isThisAccessible,
+      () => _typeAnalyzer.analyzeExpression(
+        initializer!,
+        SharedTypeSchemaView(contextType),
+      ),
+    );
+    initializer = _typeAnalyzer.popRewrite()!;
+    var whyNotPromoted = _typeAnalyzer.flowAnalysis.flow?.whyNotPromoted(
+      _typeAnalyzer.flowAnalysis.getExpressionInfo(initializer),
     );
 
     var initializerType = initializer.typeOrThrow;
-    if (parent.type == null && element is LocalVariableElementImpl) {
-      element.type = _resolver
+    if (fragment.hasImplicitType && element is LocalVariableElementImpl) {
+      element.type = _typeAnalyzer
           .variableTypeFromInitializerType(SharedTypeView(initializerType))
           .unwrapTypeView();
     }
 
+    if (bindsThis) {
+      _typeAnalyzer.flowAnalysis.flow?.thisBinding_end(offset: initializer.end);
+    }
     if (isTopLevel) {
-      _resolver.flowAnalysis.bodyOrInitializer_exit();
-      _resolver.nullSafetyDeadCodeVerifier.flowEnd(node);
+      _typeAnalyzer.flowAnalysis.flowAnalysisRoot_exit();
+      _typeAnalyzer.nullSafetyDeadCodeVerifier.flowEnd(node);
     } else if (element.isLate) {
-      _resolver.flowAnalysis.flow?.lateInitializer_end();
+      _typeAnalyzer.flowAnalysis.flow?.lateInitializer_end(offset: node.end);
     }
 
     // Initializers of top-level variables and fields are already included
@@ -101,7 +128,7 @@ class VariableDeclarationResolver {
       fragment.constantInitializer2 = initializer;
     }
 
-    _resolver.checkForAssignableExpressionAtType(
+    _typeAnalyzer.checkForAssignableExpressionAtType(
       initializer,
       initializerType,
       element.type,

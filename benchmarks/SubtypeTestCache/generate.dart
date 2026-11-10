@@ -25,6 +25,8 @@ const List<int> assertionCounts = [
   1000,
 ];
 
+const List<int> recordFieldCounts = [1, 2, 3, 4];
+
 void generateBenchmarkClassesAndUtilities(IOSink output) {
   final maxCount = assertionCounts.reduce(max);
   output.writeln('''
@@ -35,6 +37,10 @@ void generateBenchmarkClassesAndUtilities(IOSink output) {
 // This benchmark suite measures the overhead of looking up elements of
 // SubtypeTestCaches, which are used when a type testing stub cannot determine
 // whether a given type is assignable.
+//
+// The Record lanes cover the case where there is no cache to look up: a record
+// has no class or type arguments to key an entry on, so those checks enter the
+// runtime every time. See dart-lang/sdk#61970.
 
 import 'package:benchmark_harness/benchmark_harness.dart';
 
@@ -56,6 +62,12 @@ void main() {''');
   output.write('''
   const STCSame$maxCount().report();
 ''');
+  // Last, so the priming above is untouched.
+  for (final fields in recordFieldCounts) {
+    output.write('''
+  const Record$fields().report();
+''');
+  }
   output.writeln('''
 }
 
@@ -67,6 +79,9 @@ class STCBenchmarkBase extends BenchmarkBase {
   @override
   void report() => emitter.emit(name, measure() / count);
 }
+
+// The record lanes loop rather than unroll: every check costs the same.
+const int checksPerRun = 1000;
 ''');
 
   for (final count in assertionCounts) {
@@ -109,7 +124,24 @@ class STCSame$maxCount extends STCBenchmarkBase {
   output.writeln('''
   }
 }
+''');
 
+  for (final fields in recordFieldCounts) {
+    output.write('''
+class Record$fields extends STCBenchmarkBase {
+  const Record$fields() : super('$benchmarkName.Record$fields', checksPerRun);
+
+  @override
+  void run() {
+    for (int i = 0; i < checksPerRun; i++) {
+      checkRecord$fields<int>(record$fields);
+    }
+  }
+}
+''');
+  }
+
+  output.writeln('''
 @pragma('vm:never-inline')
 @pragma('wasm:never-inline')
 @pragma('dart2js:never-inline')
@@ -147,6 +179,24 @@ const instances = <dynamic>[
   output.write('''
 ];
 ''');
+
+  for (final fields in recordFieldCounts) {
+    final type = fields == 1
+        ? '(S,)'
+        : '(${List.filled(fields, 'S').join(', ')})';
+    final value = fields == 1
+        ? '(1,)'
+        : '(${List.generate(fields, (i) => '${i + 1}').join(', ')})';
+    output.write('''
+
+@pragma('vm:never-inline')
+@pragma('wasm:never-inline')
+@pragma('dart2js:never-inline')
+void checkRecord$fields<S>(dynamic s) => s as $type;
+
+final dynamic record$fields = $value;
+''');
+  }
 }
 
 void main() {

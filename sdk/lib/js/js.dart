@@ -88,6 +88,7 @@
 library dart.js;
 
 import 'dart:collection' show ListMixin;
+import 'dart:js_interop' show JSObject;
 
 export 'dart:js_util' show allowInterop, allowInteropCaptureThis;
 
@@ -163,6 +164,9 @@ class JsObject {
   ///
   /// The type of [method] must be either [String] or [num].
   external dynamic callMethod(Object method, [List? args]);
+
+  // Returns a JS interop JSObject using the raw Object that JsObject wraps.
+  external JSObject get rawJSObject;
 }
 
 /// A proxy on a JavaScript Function object.
@@ -216,5 +220,5 @@ class JsArray<E> extends JsObject with ListMixin<E> {
     int skipCount = 0,
   ]);
 
-  external void sort([int compare(E a, E b)?]);
+  external void sort([int Function(E a, E b)? compare]);
 }

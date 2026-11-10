@@ -460,7 +460,7 @@ class H extends self::G implements self::C, self::A {}
     return addClass(
       new Class(
         name: name,
-        typeParameters: typeParameters,
+        typeParameters: new TypeParameterList.from(typeParameters),
         supertype: supertype,
         implementedTypes: implementedTypes,
         fileUri: library.fileUri,
@@ -507,9 +507,9 @@ class H extends self::G implements self::C, self::A {}
       new FunctionNode(
         body,
         returnType: const VoidType(),
-        positionalParameters: [
+        positionalParameters: new PositionalParameterList(
           new PositionalParameter(parameterName: '_', type: type),
-        ],
+        ),
       ),
       fileUri: library.fileUri,
     );
@@ -777,8 +777,8 @@ class C extends self::B {
     var b = addClass(
       new Class(
         name: 'B',
-        typeParameters: [bT],
-        supertype: new Supertype(a, [bTT, bool]),
+        typeParameters: new TypeParameterList(bT),
+        supertype: new Supertype(a, new DartTypeList(bTT, bool)),
         fileUri: library.fileUri,
       ),
     );
@@ -786,7 +786,7 @@ class C extends self::B {
     var c = addClass(
       new Class(
         name: 'C',
-        supertype: new Supertype(b, [int]),
+        supertype: new Supertype(b, new DartTypeList(int)),
         fileUri: library.fileUri,
       ),
     );
@@ -799,9 +799,18 @@ class C extends self::B<core::int> {}
 
     expect(hierarchy.getClassAsInstanceOf(a, objectClass), objectSuper);
     expect(hierarchy.getClassAsInstanceOf(a, a), a.asThisSupertype);
-    expect(hierarchy.getClassAsInstanceOf(b, a), new Supertype(a, [bTT, bool]));
-    expect(hierarchy.getClassAsInstanceOf(c, b), new Supertype(b, [int]));
-    expect(hierarchy.getClassAsInstanceOf(c, a), new Supertype(a, [int, bool]));
+    expect(
+      hierarchy.getClassAsInstanceOf(b, a),
+      new Supertype(a, new DartTypeList(bTT, bool)),
+    );
+    expect(
+      hierarchy.getClassAsInstanceOf(c, b),
+      new Supertype(b, new DartTypeList(int)),
+    );
+    expect(
+      hierarchy.getClassAsInstanceOf(c, a),
+      new Supertype(a, new DartTypeList(int, bool)),
+    );
   }
 
   void test_getClassAsInstanceOf_generic_implements() {
@@ -819,11 +828,9 @@ class C extends self::B<core::int> {}
     var b = addClass(
       new Class(
         name: 'B',
-        typeParameters: [bT],
+        typeParameters: new TypeParameterList(bT),
         supertype: objectSuper,
-        implementedTypes: [
-          new Supertype(a, [bTT, bool]),
-        ],
+        implementedTypes: [new Supertype(a, new DartTypeList(bTT, bool))],
         fileUri: library.fileUri,
       ),
     );
@@ -832,9 +839,7 @@ class C extends self::B<core::int> {}
       new Class(
         name: 'C',
         supertype: objectSuper,
-        implementedTypes: [
-          new Supertype(b, [int]),
-        ],
+        implementedTypes: [new Supertype(b, new DartTypeList(int))],
         fileUri: library.fileUri,
       ),
     );
@@ -847,9 +852,18 @@ class C implements self::B<core::int> {}
 
     expect(hierarchy.getClassAsInstanceOf(a, objectClass), objectSuper);
     expect(hierarchy.getClassAsInstanceOf(a, a), a.asThisSupertype);
-    expect(hierarchy.getClassAsInstanceOf(b, a), new Supertype(a, [bTT, bool]));
-    expect(hierarchy.getClassAsInstanceOf(c, b), new Supertype(b, [int]));
-    expect(hierarchy.getClassAsInstanceOf(c, a), new Supertype(a, [int, bool]));
+    expect(
+      hierarchy.getClassAsInstanceOf(b, a),
+      new Supertype(a, new DartTypeList(bTT, bool)),
+    );
+    expect(
+      hierarchy.getClassAsInstanceOf(c, b),
+      new Supertype(b, new DartTypeList(int)),
+    );
+    expect(
+      hierarchy.getClassAsInstanceOf(c, a),
+      new Supertype(a, new DartTypeList(int, bool)),
+    );
   }
 
   void test_getClassAsInstanceOf_generic_with() {
@@ -867,9 +881,9 @@ class C implements self::B<core::int> {}
     var b = addClass(
       new Class(
         name: 'B',
-        typeParameters: [bT],
+        typeParameters: new TypeParameterList(bT),
         supertype: objectSuper,
-        mixedInType: new Supertype(a, [bTT, bool]),
+        mixedInType: new Supertype(a, new DartTypeList(bTT, bool)),
         fileUri: library.fileUri,
       ),
     );
@@ -878,7 +892,7 @@ class C implements self::B<core::int> {}
       new Class(
         name: 'C',
         supertype: objectSuper,
-        mixedInType: new Supertype(b, [int]),
+        mixedInType: new Supertype(b, new DartTypeList(int)),
         fileUri: library.fileUri,
       ),
     );
@@ -891,9 +905,18 @@ class C = core::Object with self::B<core::int> {}
 
     expect(hierarchy.getClassAsInstanceOf(a, objectClass), objectSuper);
     expect(hierarchy.getClassAsInstanceOf(a, a), a.asThisSupertype);
-    expect(hierarchy.getClassAsInstanceOf(b, a), new Supertype(a, [bTT, bool]));
-    expect(hierarchy.getClassAsInstanceOf(c, b), new Supertype(b, [int]));
-    expect(hierarchy.getClassAsInstanceOf(c, a), new Supertype(a, [int, bool]));
+    expect(
+      hierarchy.getClassAsInstanceOf(b, a),
+      new Supertype(a, new DartTypeList(bTT, bool)),
+    );
+    expect(
+      hierarchy.getClassAsInstanceOf(c, b),
+      new Supertype(b, new DartTypeList(int)),
+    );
+    expect(
+      hierarchy.getClassAsInstanceOf(c, a),
+      new Supertype(a, new DartTypeList(int, bool)),
+    );
   }
 
   void test_getClassAsInstanceOf_notGeneric_extends() {
@@ -1724,8 +1747,8 @@ class B extends self::A {
     var b = addClass(
       new Class(
         name: 'B',
-        typeParameters: [bT],
-        supertype: new Supertype(a, [bTT, bool]),
+        typeParameters: new TypeParameterList(bT),
+        supertype: new Supertype(a, new DartTypeList(bTT, bool)),
         fileUri: library.fileUri,
       ),
     );
@@ -1735,10 +1758,18 @@ class A<T? = dynamic, U? = dynamic> {}
 class B<T? = dynamic> extends self::A<self::B::T%, core::bool> {}
 ''');
 
-    var b_int = new InterfaceType(b, Nullability.nonNullable, [int]);
+    var b_int = new InterfaceType(
+      b,
+      Nullability.nonNullable,
+      new DartTypeList(int),
+    );
     expect(
       hierarchy.getInterfaceTypeAsInstanceOfClass(b_int, a),
-      new InterfaceType(a, Nullability.nonNullable, [int, bool]),
+      new InterfaceType(
+        a,
+        Nullability.nonNullable,
+        new DartTypeList(int, bool),
+      ),
     );
     expect(
       hierarchy.getInterfaceTypeAsInstanceOfClass(b_int, objectClass),

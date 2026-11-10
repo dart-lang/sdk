@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
@@ -61,7 +62,33 @@ abstract base class StreamEvent extends StreamEventBase {
 
 /// A class for sending non-JSON-RPC compliant binary events on [streamId].
 final class BinaryStreamEvent extends StreamEventBase {
-  const BinaryStreamEvent({required super.streamId, required this.data});
+  const BinaryStreamEvent({required this.data, required super.streamId});
+
+  /// Creates a [BinaryStreamEvent] by parsing the stream ID from the binary
+  /// event's leading JSON metadata.
+  factory BinaryStreamEvent.fromData(Uint8List data) {
+    final bytesView = ByteData.view(
+      data.buffer,
+      data.offsetInBytes,
+      data.lengthInBytes,
+    );
+    const metadataOffset = 4;
+    final dataOffset = bytesView.getUint32(0, Endian.little);
+    final metadataLength = dataOffset - metadataOffset;
+    final metadata = utf8.decode(
+      Uint8List.view(
+        bytesView.buffer,
+        bytesView.offsetInBytes + metadataOffset,
+        metadataLength,
+      ),
+    );
+    if (json.decode(metadata) case {
+      'params': {'streamId': final String streamId},
+    }) {
+      return BinaryStreamEvent(data: data, streamId: streamId);
+    }
+    throw const FormatException('Invalid BinaryStreamEvent metadata format');
+  }
 
   final Uint8List data;
 
@@ -181,7 +208,13 @@ class EventStreamManager implements EventStreamMethods {
   @visibleForTesting
   final streamListeners = <String, List<Client>>{};
 
+  /// Tracks in-flight [DartRuntimeServiceBackend.onStreamListen] invocations by
+  /// stream ID so concurrent first subscribers to the same stream share a
+  /// single backend subscription request.
+  final _pendingStreamListens = <String, Future<bool>>{};
+
   final _logger = Logger('$EventStreamManager');
+  final _streamSubscriptionMutex = Mutex();
 
   /// Send `streamNotify` notifications to clients subscribed to `streamId`.
   ///
@@ -208,14 +241,11 @@ class EventStreamManager implements EventStreamMethods {
         EventStreams.kHeapSnapshot,
         EventStreams.kLogging,
       }.contains(streamId)) {
-        String eventString;
-        if (data is Uint8List) {
-          eventString = '<binary data>';
-        } else if (data is StreamEvent) {
-          eventString = data.toJson().toString();
-        } else {
-          eventString = '<unknown>';
-        }
+        final eventString = switch (data) {
+          Uint8List _ => '<binary data>',
+          final StreamEvent event => event.toJson().toString(),
+          _ => '<unknown>',
+        };
         streamLogger.info(
           'Sending event to ${listeners.length} clients: $eventString.',
         );
@@ -278,50 +308,65 @@ class EventStreamManager implements EventStreamMethods {
     required Map<String, Object?> params,
   }) async {
     assert(streamId.isNotEmpty);
-    final listeners = streamListeners.putIfAbsent(streamId, () => []);
-    if (listeners.contains(client)) {
-      RpcException.streamAlreadySubscribed.throwException();
-    }
-    listeners.add(client);
+    // Weakly guard stream subscriptions so concurrent `streamListen` requests
+    // can execute in parallel without blocking on backend round-trips, while
+    // preventing `streamCancel` (which uses a strong guard) from racing with
+    // in-flight subscriptions.
+    await _streamSubscriptionMutex.runGuardedWeak(() async {
+      var listeners = streamListeners[streamId];
+      if (listeners != null && listeners.contains(client)) {
+        RpcException.streamAlreadySubscribed.throwException();
+      }
 
-    // Tell the backend to start sending events for this stream if this is the
-    // first listener.
-    if (listeners.length == 1) {
-      final success = await _backend.onStreamListen(
-        streamId: streamId,
-        params: params,
-      );
-      if (!success) {
-        client.logger.warning(
-          'Attempted to subscribe to an invalid stream ID: $streamId.',
-        );
-        streamListeners.remove(streamId);
-        RpcException.invalidParams.throwExceptionWithDetails(
-          details: "streamListen: invalid 'streamId' parameter: $streamId",
-        );
+      // Tell the backend to start sending events for this stream if this is the
+      // first listener.
+      if (listeners == null || listeners.isEmpty) {
+        final success = await (_pendingStreamListens[streamId] ??=
+            Future<bool>.sync(
+              () => _backend.onStreamListen(streamId: streamId, params: params),
+            ).whenComplete(() {
+              // Use a block body so `remove` does not return the completing
+              // Future itself to `whenComplete`, which would deadlock.
+              _pendingStreamListens.remove(streamId);
+            }));
+        if (!success) {
+          client.logger.warning(
+            'Attempted to subscribe to an invalid stream ID: $streamId.',
+          );
+          RpcException.invalidParams.throwExceptionWithDetails(
+            details: "streamListen: invalid 'streamId' parameter: $streamId",
+          );
+        }
+        listeners = streamListeners.putIfAbsent(streamId, () => <Client>[]);
       }
-    }
-    _backend.onClientSubscribe(client, streamId);
-    if (streamId == EventStreams.kService) {
-      // Send all previously registered service extensions when a client
-      // subscribes to the Service stream.
-      for (final c in clients) {
-        if (c == client) {
-          continue;
-        }
-        final namespace = clients.keyOf(c);
-        if (namespace == null) {
-          continue;
-        }
-        for (final (:service, :alias) in c.services.toList()) {
-          ServiceRegisteredEvent(
-            service: service,
-            namespace: namespace,
-            alias: alias,
-          ).sendToClient(client);
+      if (listeners.contains(client)) {
+        RpcException.streamAlreadySubscribed.throwException();
+      }
+      listeners.add(client);
+      if (streamId == EventStreams.kService) {
+        // Send all previously registered service extensions when a client
+        // subscribes to the Service stream.
+        for (final c in clients) {
+          if (c == client) {
+            continue;
+          }
+          final namespace = clients.keyOf(c);
+          if (namespace == null) {
+            continue;
+          }
+          for (final (:service, :alias) in c.services.toList()) {
+            ServiceRegisteredEvent(
+              service: service,
+              namespace: namespace,
+              alias: alias,
+            ).sendToClient(client);
+          }
         }
       }
-    }
+      // Invoked last so events sent while the backend awaits are not
+      // duplicated by the Service registration replay above.
+      await _backend.onClientSubscribe(client, streamId, params: params);
+    });
   }
 
   /// Unsubscribes `client` from a stream.
@@ -331,18 +376,20 @@ class EventStreamManager implements EventStreamMethods {
     required String streamId,
   }) async {
     assert(streamId.isNotEmpty);
-    final listeners = streamListeners[streamId];
-    if (listeners == null || !listeners.contains(client)) {
-      RpcException.streamNotSubscribed.throwException();
-    }
+    await _streamSubscriptionMutex.runGuarded(() async {
+      final listeners = streamListeners[streamId];
+      if (listeners == null || !listeners.contains(client)) {
+        RpcException.streamNotSubscribed.throwException();
+      }
 
-    listeners.remove(client);
-    _backend.onClientUnsubscribe(client, streamId);
-    // Tell the backend to stop sending events for this stream if there's no
-    // more listeners.
-    if (listeners.isEmpty) {
-      await _backend.onStreamCancel(streamId: streamId);
-    }
+      listeners.remove(client);
+      _backend.onClientUnsubscribe(client, streamId);
+      // Tell the backend to stop sending events for this stream if there's no
+      // more listeners.
+      if (listeners.isEmpty) {
+        await _backend.onStreamCancel(streamId: streamId);
+      }
+    });
   }
 
   /// Cleanup stream subscriptions for `client` when it has disconnected.

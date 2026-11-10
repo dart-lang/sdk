@@ -4,6 +4,8 @@
 
 // Regression test for issue 21795.
 
+import "package:expect/variations.dart";
+
 @pragma("vm:entry-point") // Prevent obfuscation
 foo(t) {
   try {
@@ -35,9 +37,11 @@ main() {
   try {
     a.test(123);
   } catch (e, s) {
-    if (s.toString().indexOf("foo") == -1) {
-      print(s);
-      throw "Expected foo in stacktrace!";
+    if (symbolicUnminifiedStackTraces) {
+      if (s.toString().indexOf("foo") == -1) {
+        print(s);
+        throw "Expected foo in stacktrace!";
+      }
     }
   }
 }

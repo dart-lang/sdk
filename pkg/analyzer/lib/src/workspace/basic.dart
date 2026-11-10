@@ -17,7 +17,7 @@ class BasicWorkspace extends SimpleWorkspace {
   /// Each basic workspace is itself one package.
   late final BasicWorkspacePackage theOnlyPackage;
 
-  BasicWorkspace._(ResourceProvider provider, Packages packages, Folder root)
+  new _(ResourceProvider provider, Packages packages, Folder root)
     : super(provider, packages, root.path) {
     theOnlyPackage = BasicWorkspacePackage(root, this);
   }
@@ -62,7 +62,7 @@ class BasicWorkspacePackage extends WorkspacePackageImpl {
   @override
   final SimpleWorkspace workspace;
 
-  BasicWorkspacePackage(this.root, this.workspace);
+  new(this.root, this.workspace);
 
   @override
   bool get canHavePublicApi => false;

@@ -14,6 +14,9 @@ import 'package:_js_interop_checks/js_interop_checks.dart';
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart';
 // ignore: implementation_imports
 import 'package:_js_interop_checks/src/transformations/shared_interop_transformer.dart';
+// ignore: implementation_imports
+import 'package:front_end/src/api_prototype/deprecated_js_interop_libraries.dart'
+    show deprecatedJsInteropLibraryNames;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -71,6 +74,13 @@ class Dart2jsTarget extends Target {
 
   final CompilerOptions? options;
   final bool supportsUnevaluatedConstants;
+
+  /// Whether the deprecated JS interop libraries are supported.
+  ///
+  /// Defaults to [CompilerOptions.deprecatedJsInterop] if [options] are
+  /// provided, or `true` otherwise.
+  final bool deprecatedJsInterop;
+
   Map<String, ir.Class>? _nativeClasses;
 
   Dart2jsTarget(
@@ -78,7 +88,9 @@ class Dart2jsTarget extends Target {
     this.flags, {
     this.options,
     this.supportsUnevaluatedConstants = true,
-  });
+    bool? deprecatedJsInterop,
+  }) : deprecatedJsInterop =
+           deprecatedJsInterop ?? options?.deprecatedJsInterop ?? true;
 
   @override
   bool get enableNoSuchMethodForwarders => true;
@@ -223,27 +235,29 @@ class Dart2jsTarget extends Target {
         'dart:core',
         '_createInvocationMirror',
       ),
-      ir.Arguments(<ir.Expression>[
-        ir.StringLiteral(name)..fileOffset = offset,
-        ir.ListLiteral(
-          arguments.types.map<ir.Expression>((t) => ir.TypeLiteral(t)).toList(),
+      ir.Arguments(
+        ir.ExpressionList(
+          ir.StringLiteral(name)..fileOffset = offset,
+          ir.ListLiteral(
+            ir.ExpressionList.mapped(arguments.types, ir.TypeLiteral.new),
+          ),
+          ir.ListLiteral(arguments.positional)..fileOffset = offset,
+          ir.MapLiteral(
+              List<ir.MapLiteralEntry>.of(
+                arguments.named.map((ir.NamedExpression arg) {
+                  return ir.MapLiteralEntry(
+                    ir.StringLiteral(arg.name)..fileOffset = arg.fileOffset,
+                    arg.value,
+                  )..fileOffset = arg.fileOffset;
+                }),
+              ),
+              keyType: coreTypes.stringNonNullableRawType,
+            )
+            ..isConst = (arguments.named.isEmpty)
+            ..fileOffset = arguments.fileOffset,
+          ir.IntLiteral(kind.value)..fileOffset = offset,
         ),
-        ir.ListLiteral(arguments.positional)..fileOffset = offset,
-        ir.MapLiteral(
-            List<ir.MapLiteralEntry>.from(
-              arguments.named.map((ir.NamedExpression arg) {
-                return ir.MapLiteralEntry(
-                  ir.StringLiteral(arg.name)..fileOffset = arg.fileOffset,
-                  arg.value,
-                )..fileOffset = arg.fileOffset;
-              }),
-            ),
-            keyType: coreTypes.stringNonNullableRawType,
-          )
-          ..isConst = (arguments.named.isEmpty)
-          ..fileOffset = arguments.fileOffset,
-        ir.IntLiteral(kind.value)..fileOffset = offset,
-      ]),
+      ),
     )..fileOffset = offset;
   }
 
@@ -254,7 +268,7 @@ class Dart2jsTarget extends Target {
 
   @override
   DartLibrarySupport get dartLibrarySupport =>
-      const Dart2jsDartLibrarySupport();
+      Dart2jsDartLibrarySupport(deprecatedJsInterop: deprecatedJsInterop);
 }
 
 const implicitlyUsedLibraries = <String>[
@@ -362,13 +376,15 @@ class Dart2jsSummaryTarget extends Dart2jsTarget with SummaryMixin {
     String name,
     this.sources,
     this.excludeNonSources,
-    TargetFlags targetFlags,
-  ) : super(name, targetFlags);
+    TargetFlags targetFlags, {
+    bool deprecatedJsInterop = true,
+  }) : super(name, targetFlags, deprecatedJsInterop: deprecatedJsInterop);
 
   @override
   bool isModularlyCompatibleWith(Target other) {
     if (other is! Dart2jsSummaryTarget) return false;
     if (excludeNonSources != other.excludeNonSources) return false;
+    if (deprecatedJsInterop != other.deprecatedJsInterop) return false;
     return true;
   }
 
@@ -395,5 +411,14 @@ class Dart2jsDartLibrarySupport extends CustomizedDartLibrarySupport {
   // This is required so that `dart.library._dart2js_only` can be used as an
   // import condition. Libraries with leading underscores are otherwise
   // considered unsupported regardless of the library specification.
-  const Dart2jsDartLibrarySupport() : super(supported: const {'_dart2js_only'});
+  //
+  // When [deprecatedJsInterop] is `false`, the deprecated JS interop libraries
+  // are considered unsupported so that conditions on them evaluate to `false`.
+  const Dart2jsDartLibrarySupport({bool deprecatedJsInterop = true})
+    : super(
+        supported: const {'_dart2js_only'},
+        unsupported: deprecatedJsInterop
+            ? const {}
+            : deprecatedJsInteropLibraryNames,
+      );
 }

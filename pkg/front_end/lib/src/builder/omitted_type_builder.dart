@@ -6,6 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/bounds_checks.dart' show VarianceCalculationValue;
 
+import '../base/uri_offset.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/implicit_field_type.dart';
 import '../kernel/type_algorithms.dart';
@@ -20,7 +21,10 @@ import 'nullability_builder.dart';
 import 'type_builder.dart';
 
 abstract class OmittedTypeBuilderImpl extends OmittedTypeBuilder {
-  const new();
+  @override
+  final UriOffsetLength uriOffset;
+
+  new(this.uriOffset);
 
   @override
   Supertype? buildMixedInType(LibraryBuilder library) {
@@ -33,11 +37,11 @@ abstract class OmittedTypeBuilderImpl extends OmittedTypeBuilder {
   }
 
   @override
-  int? get charOffset => null;
+  int get charOffset => uriOffset.fileOffset;
 
   @override
   // Coverage-ignore(suite): Not run.
-  Uri? get fileUri => null;
+  Uri get fileUri => uriOffset.fileUri;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -111,7 +115,7 @@ abstract class OmittedTypeBuilderImpl extends OmittedTypeBuilder {
 /// instead. This should be created through
 /// [SourceLibraryBuilder.addInferableType] to ensure the type is inferred.
 class ImplicitTypeBuilder extends OmittedTypeBuilderImpl {
-  const new();
+  new(super.uriOffset);
 
   @override
   DartType build(
@@ -135,6 +139,7 @@ class ImplicitTypeBuilder extends OmittedTypeBuilderImpl {
   StringBuffer printOn(StringBuffer buffer) => buffer;
 
   @override
+  // Coverage-ignore(suite): Not run.
   bool get isExplicit => true;
 
   @override
@@ -159,11 +164,48 @@ class ImplicitTypeBuilder extends OmittedTypeBuilderImpl {
 /// [InferableTypeBuilder] should be created through
 /// [SourceLibraryBuilder.addInferableType] to ensure the type is inferred.
 class InferableTypeBuilder extends OmittedTypeBuilderImpl
-    with InferableTypeBuilderMixin
     implements InferableType {
   final InferenceDefaultType inferenceDefaultType;
 
-  new(this.inferenceDefaultType);
+  DartType? _type;
+
+  List<InferredTypeListener>? _listeners;
+
+  new({required this.inferenceDefaultType, required UriOffsetLength uriOffset})
+    : super(uriOffset);
+
+  @override
+  bool get hasType => _type != null;
+
+  @override
+  DartType get type => _type!;
+
+  @override
+  void registerInferredTypeListener(InferredTypeListener onType) {
+    if (isExplicit) return;
+    if (hasType) {
+      // Coverage-ignore-block(suite): Not run.
+      onType.onInferredType(type);
+    } else {
+      (_listeners ??= []).add(onType);
+    }
+  }
+
+  DartType registerType(DartType type) {
+    // TODO(johnniwinther): Avoid multiple registration from enums and
+    //  duplicated fields.
+    if (_type == null) {
+      _type = type;
+      List<InferredTypeListener>? listeners = _listeners;
+      if (listeners != null) {
+        _listeners = null;
+        for (InferredTypeListener listener in listeners) {
+          listener.onInferredType(type);
+        }
+      }
+    }
+    return _type!;
+  }
 
   @override
   DartType build(
@@ -283,11 +325,13 @@ abstract class Inferable {
 class InferableTypes {
   final List<InferableType> _inferableTypes = [];
 
-  InferableTypeBuilder addInferableType(
-    InferenceDefaultType inferenceDefaultType,
-  ) {
+  InferableTypeBuilder addInferableType({
+    required InferenceDefaultType inferenceDefaultType,
+    required UriOffsetLength uriOffset,
+  }) {
     InferableTypeBuilder typeBuilder = new InferableTypeBuilder(
-      inferenceDefaultType,
+      inferenceDefaultType: inferenceDefaultType,
+      uriOffset: uriOffset,
     );
     registerInferableType(typeBuilder);
     return typeBuilder;

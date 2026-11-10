@@ -177,7 +177,11 @@ class DeclarationNameSpaceBuilder {
     }
   }
 
-  void includeBuilders(DeclarationNameSpaceBuilder other) {
+  /// Moves all [Fragment]s from [other] to this name space builder.
+  ///
+  /// This is done to create a single name space for all members declared in
+  /// both the introductory fragment and in all the augmentation fragments.
+  void includeFragments(DeclarationNameSpaceBuilder other) {
     _fragments.addAll(other._fragments);
     other._fragments.clear();
   }
@@ -270,11 +274,9 @@ class _DeclarationBuilderRegistry implements BuilderRegistry {
       // TODO(johnniwinther): Check these closer to the member declaration to
       // better specialize the message.
       if (declarationBuilder.isEnum && name == 'values') {
-        problemReporting.addProblem(
+        problemReporting.addProblem2(
           diag.enumWithNameValues,
-          declarationBuilder.fileOffset,
-          name.length,
-          declarationBuilder.fileUri,
+          declarationBuilder.uriOffset,
         );
       } else {
         problemReporting.addProblem2(diag.memberWithSameNameAsClass, uriOffset);

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// @docImport 'package:analyzer/src/error/codes.dart';
 /// @docImport 'package:analyzer/analysis_rule/analysis_rule.dart';
+/// @docImport 'package:analyzer/src/error/codes.dart';
 library;
 
 import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
@@ -52,7 +52,7 @@ class LintCode extends DiagnosticCode {
   /// argument (at position 1) replaces each instance of `{1}`, etc.
   // TODO(srawlins): Add a 'url' parameter for plugin authors.
   // TODO(srawlins): Document `uniqueName` and `severity`.
-  const LintCode(
+  const new(
     String name,
     String problemMessage, {
     super.correctionMessage,
@@ -83,7 +83,7 @@ class LintCode extends DiagnosticCode {
 /// types.
 abstract class LintCodeWithExpectedTypes extends DiagnosticCodeWithExpectedTypes
     implements LintCode {
-  const LintCodeWithExpectedTypes({
+  const new({
     required super.name,
     required super.problemMessage,
     super.correctionMessage,
@@ -108,7 +108,7 @@ abstract class LintCodeWithExpectedTypes extends DiagnosticCodeWithExpectedTypes
 /// The primary difference from [LintCode]s is that these codes cannot be
 /// suppressed with `// ignore:` or `// ignore_for_file:` comments.
 class SecurityLintCode extends DiagnosticCodeImpl implements LintCode {
-  const SecurityLintCode(
+  const new(
     String name,
     String problemMessage, {
     String? uniqueName,

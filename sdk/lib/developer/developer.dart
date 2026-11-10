@@ -82,6 +82,7 @@ import 'dart:isolate' show Isolate, RawReceivePort, SendPort;
 part 'creation_tracking.dart';
 part 'extension.dart';
 part 'http_profiling.dart';
+part 'websocket_profiling.dart';
 part 'profiler.dart';
 part 'service.dart';
 part 'timeline.dart';

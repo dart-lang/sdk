@@ -4,7 +4,7 @@
 
 import 'dart:io' show Directory, Platform;
 
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/id.dart' show Id, ActualDataMap;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
     show DataInterpreter, runTests;
 import 'package:front_end/src/kernel/internal_ast.dart';
@@ -45,7 +45,7 @@ class ReachabilityDataComputer
   void computeMemberData(
     CfeTestResultData testResultData,
     Member member,
-    Map<Id, ActualData<Set<_ReachabilityAssertion>>> actualMap, {
+    ActualDataMap<Set<_ReachabilityAssertion>> actualMap, {
     bool? verbose,
   }) {
     SourceMemberBuilder memberBuilder = lookupMemberBuilder(
@@ -72,13 +72,9 @@ class ReachabilityDataExtractor
   final SourceLoaderDataForTesting _sourceLoaderDataForTesting;
   final FlowAnalysisResult _flowResult;
 
-  new(
-    InternalCompilerResult compilerResult,
-    Map<Id, ActualData<Set<_ReachabilityAssertion>>> actualMap,
-    this._flowResult,
-  ) : _sourceLoaderDataForTesting =
-          compilerResult.kernelTargetForTesting!.loader.dataForTesting!,
-      super(compilerResult, actualMap);
+  new(super.compilerResult, super.actualMap, this._flowResult)
+    : _sourceLoaderDataForTesting =
+          compilerResult.kernelTargetForTesting!.loader.dataForTesting!;
 
   @override
   Set<_ReachabilityAssertion>? computeMemberValue(Id id, Member member) {

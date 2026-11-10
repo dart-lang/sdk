@@ -36,15 +36,13 @@ class MemoryResourceProvider implements ResourceProvider {
   @visibleForTesting
   final Set<String> emitPathNotFoundExceptionsForPaths = {};
 
-  MemoryResourceProvider({
-    pathos.Context? context,
-    this.delayWatcherInitialization,
-  }) : _pathContext = context ??= pathos.style == pathos.Style.windows
-           // On Windows, ensure that the current drive matches
-           // the drive inserted by ResourceProvider.convertPath
-           // so that packages are mapped to the correct drive
-           ? pathos.Context(current: 'C:\\')
-           : pathos.context;
+  new({pathos.Context? context, this.delayWatcherInitialization})
+    : _pathContext = context ??= pathos.style == pathos.Style.windows
+          // On Windows, ensure that the current drive matches
+          // the drive inserted by ResourceProvider.convertPath
+          // so that packages are mapped to the correct drive
+          ? pathos.Context(current: 'C:\\')
+          : pathos.context;
 
   @override
   pathos.Context get pathContext => _pathContext;
@@ -324,7 +322,7 @@ class _FileData extends _ResourceData {
   final Uint8List bytes;
   final int timeStamp;
 
-  _FileData({required this.bytes, required this.timeStamp});
+  new({required this.bytes, required this.timeStamp});
 }
 
 class _FolderData extends _ResourceData {
@@ -334,7 +332,7 @@ class _FolderData extends _ResourceData {
 
 /// An in-memory implementation of [File].
 class _MemoryFile extends _MemoryResource implements File {
-  _MemoryFile(super.provider, super.path);
+  new(super.provider, super.path);
 
   @override
   bool get exists {
@@ -424,7 +422,7 @@ class _MemoryFile extends _MemoryResource implements File {
 
 /// An in-memory implementation of [Folder].
 class _MemoryFolder extends _MemoryResource implements Folder {
-  _MemoryFolder(super.provider, super.path);
+  new(super.provider, super.path);
 
   @override
   bool get exists {
@@ -572,7 +570,7 @@ class _MemoryLink implements Link {
   final MemoryResourceProvider provider;
   final String path;
 
-  _MemoryLink(this.provider, this.path);
+  new(this.provider, this.path);
 
   @override
   bool get exists {
@@ -593,7 +591,7 @@ abstract class _MemoryResource implements Resource {
   @override
   final String path;
 
-  _MemoryResource(this.provider, this.path);
+  new(this.provider, this.path);
 
   Stream<WatchEvent> get changes => watch().changes;
 

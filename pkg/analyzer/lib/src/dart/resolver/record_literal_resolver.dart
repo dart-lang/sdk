@@ -9,19 +9,19 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/listener.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for resolving [RecordLiteral]s.
 class RecordLiteralResolver {
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _typeAnalyzer;
 
-  RecordLiteralResolver({required ResolverVisitor resolver})
-    : _resolver = resolver;
+  new({required this._typeAnalyzer});
 
-  DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
+  DiagnosticReporter get _diagnosticReporter =>
+      _typeAnalyzer.diagnosticReporter;
 
   void resolve(RecordLiteralImpl node, {required DartType contextType}) {
     _resolveFields(node, contextType);
@@ -137,18 +137,18 @@ class RecordLiteralResolver {
 
   DartType _resolveField(RecordLiteralFieldImpl field, TypeImpl contextType) {
     var expression = field.fieldExpression2;
-    var staticType = _resolver
+    var staticType = _typeAnalyzer
         .analyzeExpression(expression, SharedTypeSchemaView(contextType))
         .type
         .unwrapTypeView<TypeImpl>();
-    expression = _resolver.popRewrite()!;
+    expression = _typeAnalyzer.popRewrite()!;
 
     // Implicit cast from `dynamic`.
     if (contextType is! UnknownInferredType && staticType is DynamicType) {
-      var greatestClosureOfSchema = _resolver.operations
+      var greatestClosureOfSchema = _typeAnalyzer.operations
           .greatestClosureOfSchema(SharedTypeSchemaView(contextType))
           .unwrapTypeView<TypeImpl>();
-      if (!_resolver.typeSystem.isSubtypeOf(
+      if (!_typeAnalyzer.typeSystem.isSubtypeOf(
         staticType,
         greatestClosureOfSchema,
       )) {
@@ -198,7 +198,7 @@ class RecordLiteralResolver {
         namedFields: namedFields,
         nullabilitySuffix: NullabilitySuffix.none,
       ),
-      resolver: _resolver,
+      typeAnalyzer: _typeAnalyzer,
     );
   }
 

@@ -18,23 +18,22 @@ extension YamlNodeExtensions on YamlNode {
   /// a cursor at a lower indentation level (e.g. column 0 after an indented
   /// list) from being treated as inside the deeper block.
   YamlNode? childContainingOffset(int offset, {required int cursorColumn}) {
-    var node = this;
-    if (node is YamlList) {
-      for (var element in node.nodes) {
+    if (this is YamlList) {
+      for (var element in nodes) {
         if (element.containsOffset(offset) &&
             _columnAllowed(cursorColumn, element)) {
           return element;
         }
       }
-      for (var element in node.nodes) {
+      for (var element in nodes) {
         if (element is YamlScalar && element.value == null) {
           // TODO(brianwilkerson): Testing for a null value probably gets
           //  confused when there are multiple null values.
           return element;
         }
       }
-    } else if (node is YamlMap) {
-      var entries = node.nodes.entries.toList();
+    } else if (this is YamlMap) {
+      var entries = nodes.entries.toList();
       for (var i = 0; i < entries.length; i++) {
         var entry = entries[i];
         var nextEntryOffset = i + 1 < entries.length

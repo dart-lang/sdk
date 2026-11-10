@@ -159,7 +159,7 @@ library
       topLevelVariables
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic x (nameOffset:28) (firstTokenOffset:28) (offset:28)
           element: <testLibrary>::@topLevelVariable::x
-          initializer: expression_0
+          constantInitializer2: expression_0
             TypeLiteral
               type: NamedType
                 name: FutureOr @32
@@ -176,9 +176,7 @@ library
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: Type
-      constantInitializer
-        fragment: #F1
-        expression: expression_0
+      constantInitializer2: expression_0
       getter: <testLibrary>::@getter::x
   getters
     isOriginVariable isStatic x
@@ -191,7 +189,7 @@ library
     expect(variables, hasLength(1));
     var x = variables[0];
     _assertTypeStr(x.type, 'Type');
-    expect(x.constantInitializer.toString(), 'FutureOr');
+    expect(x.constantInitializer2.toString(), 'FutureOr');
   }
 
   test_futureOr_inferred() async {
@@ -452,8 +450,18 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @67
                 arguments2
+                  ImplicitCallTearOff
+                    operand: UnqualifiedNameExpression
+                      name: c @68
+                      resolution: VariableReadResolution
+                        element: <testLibrary>::@class::D::@constructor::new::@formalParameter::c
+                        type: C
+                      staticType: C
+                    element: <testLibrary>::@class::C::@method::call
+                    staticType: void Function()
+                arguments(v1)
                   ImplicitCallReference
-                    expression2: SimpleIdentifier
+                    expression: SimpleIdentifier
                       token: c @68
                       element: <testLibrary>::@class::D::@constructor::new::@formalParameter::c
                       staticType: C
@@ -1870,7 +1878,15 @@ library
           formalParameters
             #F2 optionalPositional hasImplicitType isOriginDeclaration p (nameOffset:40) (firstTokenOffset:40) (offset:40)
               element: <testLibrary>::@function::foo::@formalParameter::p
-              initializer: expression_0
+              constantInitializer2: expression_0
+                UnqualifiedNameExpression
+                  name: V @44
+                  resolution: InvalidNamedReadResolution
+                    recoveryElement: multiplyDefinedElement
+                      package:test/a.dart::@function::V
+                      package:test/b.dart::@function::V
+                  staticType: InvalidType
+              constantInitializer: expression_1
                 SimpleIdentifier
                   token: V @44
                   element: multiplyDefinedElement
@@ -1885,9 +1901,8 @@ library
         #E0 optionalPositional hasDefaultValue hasImplicitType p
           firstFragment: #F2
           type: dynamic
-          constantInitializer
-            fragment: #F2
-            expression: expression_0
+          constantInitializer2: expression_0
+          constantInitializer: expression_1
       returnType: dynamic
 ''');
   }
@@ -1922,7 +1937,14 @@ library
           formalParameters
             #F2 optionalPositional hasImplicitType isOriginDeclaration p (nameOffset:23) (firstTokenOffset:23) (offset:23)
               element: <testLibrary>::@function::foo::@formalParameter::p
-              initializer: expression_0
+              constantInitializer2: expression_0
+                UnqualifiedNameExpression
+                  name: V @27
+                  resolution: ExecutableTearOffResolution
+                    element: package:test/a.dart::@function::V
+                    type: dynamic Function()
+                  staticType: dynamic Function()
+              constantInitializer: expression_1
                 SimpleIdentifier
                   token: V @27
                   element: package:test/a.dart::@function::V
@@ -1935,9 +1957,8 @@ library
         #E0 optionalPositional hasDefaultValue hasImplicitType p
           firstFragment: #F2
           type: dynamic
-          constantInitializer
-            fragment: #F2
-            expression: expression_0
+          constantInitializer2: expression_0
+          constantInitializer: expression_1
       returnType: dynamic
 ''');
   }
@@ -1976,7 +1997,14 @@ library
           formalParameters
             #F6 optionalPositional hasImplicitType isOriginDeclaration p (nameOffset:5) (firstTokenOffset:5) (offset:5)
               element: <testLibrary>::@function::foo::@formalParameter::p
-              initializer: expression_0
+              constantInitializer2: expression_0
+                UnqualifiedNameExpression
+                  name: V @9
+                  resolution: GetterInvocationResolution
+                    element: <testLibrary>::@getter::V
+                    type: dynamic
+                  staticType: dynamic
+              constantInitializer: expression_1
                 SimpleIdentifier
                   token: V @9
                   element: <testLibrary>::@getter::V
@@ -2014,9 +2042,8 @@ library
         #E1 optionalPositional hasDefaultValue hasImplicitType p
           firstFragment: #F6
           type: dynamic
-          constantInitializer
-            fragment: #F6
-            expression: expression_0
+          constantInitializer2: expression_0
+          constantInitializer: expression_1
       returnType: dynamic
     hasImplicitReturnType isOriginDeclaration isStatic V
       reference: <testLibrary>::@function::V

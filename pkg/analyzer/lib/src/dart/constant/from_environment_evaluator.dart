@@ -10,7 +10,7 @@ class FromEnvironmentEvaluator {
   final TypeSystemImpl _typeSystem;
   final DeclaredVariables _declaredVariables;
 
-  FromEnvironmentEvaluator(this._typeSystem, this._declaredVariables);
+  new(this._typeSystem, this._declaredVariables);
 
   /// Return the value of the variable with the given [name] interpreted as a
   /// 'boolean' value.

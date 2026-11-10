@@ -83,7 +83,9 @@ void main() {
 
   FunctionNode setterFunction = new FunctionNode(
     new Block([]),
-    positionalParameters: [new PositionalParameter(parameterName: "foo")],
+    positionalParameters: new PositionalParameterList(
+      new PositionalParameter(parameterName: "foo"),
+    ),
   );
   Procedure setter = new Procedure(
     new Name("f"),

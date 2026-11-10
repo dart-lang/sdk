@@ -2,80 +2,87 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 
-/// An indication of the kind of context in which a super expression was found.
+/// An indication of the kind of context in which a super reference was found.
 class SuperContext {
-  /// An indication that the super expression is in a context in which it is
+  /// An indication that the super reference is in a context in which it is
   /// invalid because it is in an annotation.
   static const SuperContext annotation = SuperContext._('annotation');
 
-  /// An indication that the super expression is in a context in which it is
+  /// An indication that the super reference is in a context in which it is
   /// invalid because it is in an instance member of an extension.
   static const SuperContext extension = SuperContext._('extension');
 
-  /// An indication that the super expression is in a context in which it is
+  /// An indication that the super reference is in a context in which it is
   /// invalid because it is in an instance member of an extension type.
   static const SuperContext extensionType = SuperContext._('extensionType');
 
-  /// An indication that the super expression is in a context in which it is
-  /// invalid because it is not in an instance member.
+  /// An indication that the super reference is in a context in which it is
+  /// invalid because `this` is not available there, such as outside an
+  /// instance member, in a constructor initializer, or in a default value of
+  /// a member.
   static const SuperContext static = SuperContext._('static');
 
-  /// An indication that the super expression is in a context in which it is
+  /// An indication that the super reference is in a context in which it is
   /// invalid because it is in the body of a parameterless anonymous method.
   static const SuperContext anonymousMethod = SuperContext._('anonymousMethod');
 
-  /// An indication that the super expression is in a context in which it is
+  /// An indication that the super reference is in a context in which it is
   /// valid.
   static const SuperContext valid = SuperContext._('valid');
 
   /// The name of the context.
   final String name;
 
-  /// Return an indication of the context in which the super [expression] is
+  /// Return an indication of the context in which the super [reference] is
   /// being used.
-  factory SuperContext.of(SuperExpression expression) {
-    for (AstNode? node = expression; node != null; node = node.parent2) {
+  factory of(SuperReference reference) {
+    var inDefaultValue = false;
+    for (AstNode? node = reference; node != null; node = node.parent2) {
       if (node is Annotation) {
         return SuperContext.annotation;
-      } else if (node is AnonymousMethodBody &&
-          node.parent2 is AnonymousMethodInvocation &&
-          (node.parent2 as AnonymousMethodInvocation).parameters == null) {
+      } else if (node case AnonymousMethodBody(
+        parent2: AnonymousMethodInvocation(parameters: null),
+      )) {
         return SuperContext.anonymousMethod;
-      } else if (node is ClassDeclaration) {
-        return SuperContext.valid;
+      } else if (node is AnonymousMethodInvocation ||
+          node is FunctionExpression ||
+          node is LocalFunctionDeclaration) {
+        inDefaultValue = false;
+      } else if (node is ClassDeclaration2 ||
+          node is EnumDeclaration2 ||
+          node is MixinDeclaration2) {
+        return inDefaultValue ? SuperContext.static : SuperContext.valid;
       } else if (node is CompilationUnit) {
         return SuperContext.static;
-      } else if (node is ConstructorDeclaration) {
+      } else if (node is ConstructorDeclaration2) {
         if (node.factoryKeyword != null) {
           return SuperContext.static;
         }
       } else if (node is ConstructorInitializer) {
         return SuperContext.static;
-      } else if (node is EnumDeclaration) {
-        return SuperContext.valid;
-      } else if (node is ExtensionDeclaration) {
+      } else if (node is ExtensionDeclaration2) {
         return SuperContext.extension;
-      } else if (node is ExtensionTypeDeclaration) {
+      } else if (node is ExtensionTypeDeclaration2) {
         return SuperContext.extensionType;
-      } else if (node is FieldDeclaration) {
+      } else if (node is FieldsDeclaration) {
         if (node.staticKeyword != null) {
           return SuperContext.static;
         }
-        if (node.fields.lateKeyword == null) {
+        if (node.lateKeyword == null) {
           return SuperContext.static;
         }
-      } else if (node is MethodDeclaration) {
-        if (node.isStatic) {
+      } else if (node is FormalParameterDefaultClause) {
+        inDefaultValue = true;
+      } else if (node is MethodDeclarationV1OriginImpl) {
+        if (node.staticKeyword != null) {
           return SuperContext.static;
         }
-      } else if (node is MixinDeclaration) {
-        return SuperContext.valid;
       }
     }
     return SuperContext.static;
   }
 
-  const SuperContext._(this.name);
+  const new _(this.name);
 }

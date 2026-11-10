@@ -7,6 +7,7 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/bounds_checks.dart' show VarianceCalculationValue;
 
 import '../base/problems.dart';
+import '../base/uri_offset.dart';
 import '../kernel/type_algorithms.dart';
 import '../source/source_loader.dart';
 import '../source/type_parameter_factory.dart';
@@ -17,12 +18,19 @@ import 'type_builder.dart';
 
 class FixedTypeBuilderImpl extends FixedTypeBuilder {
   final DartType type;
-  @override
-  final Uri? fileUri;
-  @override
-  final int? charOffset;
 
-  const new(this.type, this.fileUri, this.charOffset);
+  @override
+  final UriOffsetLength uriOffset;
+
+  const new(this.type, this.uriOffset);
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Uri get fileUri => uriOffset.fileUri;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  int get charOffset => uriOffset.fileOffset;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -65,12 +73,7 @@ class FixedTypeBuilderImpl extends FixedTypeBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   Supertype buildSupertype(LibraryBuilder library, TypeUse typeUse) {
-    return unhandled(
-      'buildSupertype',
-      'FixedTypeBuilder',
-      charOffset ?? -1,
-      fileUri,
-    );
+    return unhandled('buildSupertype', 'FixedTypeBuilder', charOffset, fileUri);
   }
 
   @override
@@ -79,7 +82,7 @@ class FixedTypeBuilderImpl extends FixedTypeBuilder {
     return unhandled(
       'buildMixedInType',
       'FixedTypeBuilder',
-      charOffset ?? -1,
+      charOffset,
       fileUri,
     );
   }

@@ -1,0 +1,12 @@
+class C {
+  int new = 42;
+  method() {}
+}
+
+extension E1 on int {
+  call<T>() {}
+}
+
+extension E2 on int {
+  call<T>() {}
+}

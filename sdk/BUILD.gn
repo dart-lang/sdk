@@ -41,8 +41,10 @@ declare_args() {
   # Path to stripped dart binaries relative to build output directory.
   dartvm_stripped_binary = "${stripped_binary_prefix}dartvm"
   dart_stripped_binary = "${stripped_binary_prefix}dart"
-  dart_aotruntime_stripped_binary = "${stripped_binary_prefix}dartaotruntime_product"
-  dart_cliruntime_stripped_binary = "${stripped_binary_prefix}dartcliruntime_product"
+  dart_aotruntime_stripped_binary =
+      "${stripped_binary_prefix}dartaotruntime_product"
+  dart_cliruntime_stripped_binary =
+      "${stripped_binary_prefix}dartcliruntime_product"
   gen_snapshot_stripped_binary = "${stripped_binary_prefix}gen_snapshot_product"
   wasm_opt_stripped_binary = "${stripped_binary_prefix}wasm-opt"
 
@@ -106,7 +108,11 @@ declare_args() {
 # ......core/
 # ......dev_compiler/
 #.........amd/require.js
+#.........canary/sdk/dart_sdk.js
+#.........canary/sdk/dart_sdk.js.map
 #.........ddc/ddc_module_loader.js
+#.........stable/sdk/dart_sdk.js
+#.........stable/sdk/dart_sdk.js.map
 #.........web/dart_stack_trace_mapper.js
 # ......developer/
 # ......html/
@@ -277,7 +283,7 @@ copy_tree("copy_dartdoc_resources") {
   exclude = "{}"
 }
 
-if (defined(build_devtools_from_sources) && build_devtools_from_sources) {
+if (defined(build_devtools_from_source) && build_devtools_from_source) {
   # This action compiles the devtools app from sources.
   action("build_devtools") {
     visibility = [ ":*" ]
@@ -464,6 +470,7 @@ if (!using_sanitizer && current_os == "linux" &&
           [ "$src_dir/${dart_aotruntime_stripped_binary}${executable_suffix}" ]
       outputs = [ "$root_out_dir/$dart_sdk_output/bin/dartaotruntime_${sanitizer}${executable_suffix}" ]
     }
+
     copy("copy_dart_cliruntime_$sanitizer") {
       visibility = [ ":*" ]
       deps = [ "../runtime/bin:dartcliruntime_product(${current_toolchain}_${sanitizer})" ]
@@ -507,7 +514,10 @@ if (_has_dot_sym) {
 
 copy("copy_vm_platform_product") {
   visibility = [ ":*" ]
-  deps = [ "../runtime/vm:vm_platform_product" ]
+  deps = [
+    ":copy_libraries",
+    "../runtime/vm:vm_platform_product",
+  ]
   src_dir = get_label_info("../runtime/vm:vm_platform_product", "root_out_dir")
   sources = [ "$src_dir/vm_platform_product.dill" ]
   outputs =
@@ -560,6 +570,7 @@ foreach(snapshot, _sdk_snapshots) {
       snapshot[0] == "dart_runtime_service_vm_aot") {
     root = root_out_dir
   }
+
   copy("copy_${snapshot[0]}_snapshot") {
     visibility = [ ":*" ]
     deps = [ snapshot[1] ]
@@ -715,13 +726,45 @@ copy("copy_dev_compiler_stack_trace_mapper") {
   ]
 }
 
+# Copies the canary SDK JavaScript module (dart_sdk.js and its source map) to
+# lib/dev_compiler/canary/sdk.
+# Used to run DDC compiled applications in the library bundle format, which
+# supports hot reload, without compiling the SDK first.
+copy("copy_dev_compiler_canary_sdk_js") {
+  visibility = [ ":*" ]
+  deps = [ "../utils/ddc:ddc_canary_sdk_ddc_module" ]
+  gen_dir =
+      get_label_info("../utils/ddc:ddc_canary_sdk_ddc_module", "target_gen_dir")
+  sources = [
+    "$gen_dir/canary/sdk/ddc/dart_sdk.js",
+    "$gen_dir/canary/sdk/ddc/dart_sdk.js.map",
+  ]
+  outputs = [ "$root_out_dir/$dart_sdk_output/lib/dev_compiler/canary/sdk/{{source_file_part}}" ]
+}
+
+# Copies the stable SDK JavaScript module (dart_sdk.js and its source map) to
+# lib/dev_compiler/stable/sdk.
+# Used to run DDC compiled applications without compiling the SDK first.
+copy("copy_dev_compiler_stable_sdk_js") {
+  visibility = [ ":*" ]
+  deps = [ "../utils/ddc:ddc_stable_sdk" ]
+  gen_dir = get_label_info("../utils/ddc:ddc_stable_sdk", "target_gen_dir")
+  sources = [
+    "$gen_dir/stable/sdk/ddc/dart_sdk.js",
+    "$gen_dir/stable/sdk/ddc/dart_sdk.js.map",
+  ]
+  outputs = [ "$root_out_dir/$dart_sdk_output/lib/dev_compiler/stable/sdk/{{source_file_part}}" ]
+}
+
 # Main rule for copying all of DDC's dependencies to lib.
 group("copy_dev_compiler_sdk") {
   visibility = [ ":*" ]
   public_deps = [
     ":copy_dev_compiler_amd_require_js",
+    ":copy_dev_compiler_canary_sdk_js",
     ":copy_dev_compiler_ddc_module_loader_js",
     ":copy_dev_compiler_dills",
+    ":copy_dev_compiler_stable_sdk_js",
     ":copy_dev_compiler_stack_trace_mapper",
   ]
 }
@@ -852,7 +895,7 @@ group("create_most_sdk") {
     ":write_version_file",
   ]
 
-  if (defined(build_devtools_from_sources) && build_devtools_from_sources) {
+  if (defined(build_devtools_from_source) && build_devtools_from_source) {
     public_deps += [ ":build_devtools" ]
   } else {
     public_deps += [ ":copy_prebuilt_devtools" ]

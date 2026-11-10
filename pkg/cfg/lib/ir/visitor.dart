@@ -61,13 +61,19 @@ abstract interface class InstructionVisitor<R> {
   R visitCompareAndBranch(CompareAndBranch instr);
   R visitExternalCall(ExternalCall instr);
   R visitLoadExternalField(LoadExternalField instr);
+  R visitStoreExternalField(StoreExternalField instr);
   R visitLoadExternalArrayElement(LoadExternalArrayElement instr);
+  R visitCopyArrayElements(CopyArrayElements instr);
   R visitAllocateArray(AllocateArray instr);
   R visitAllocateRecord(AllocateRecord instr);
   R visitBoxInt(BoxInt instr);
   R visitBoxDouble(BoxDouble instr);
+  R visitBoxSimd(BoxSimd instr);
   R visitUnboxInt(UnboxInt instr);
   R visitUnboxDouble(UnboxDouble instr);
+  R visitUnboxSimd(UnboxSimd instr);
+  R visitSimdOp(SimdOp instr);
+  R visitReachabilityFence(ReachabilityFence instr);
   R visitParallelMove(ParallelMove instr);
 }
 
@@ -151,15 +157,24 @@ abstract mixin class DefaultInstructionVisitor<R>
   R visitExternalCall(ExternalCall instr) => defaultBackendInstruction(instr);
   R visitLoadExternalField(LoadExternalField instr) =>
       defaultBackendInstruction(instr);
+  R visitStoreExternalField(StoreExternalField instr) =>
+      defaultBackendInstruction(instr);
   R visitLoadExternalArrayElement(LoadExternalArrayElement instr) =>
+      defaultBackendInstruction(instr);
+  R visitCopyArrayElements(CopyArrayElements instr) =>
       defaultBackendInstruction(instr);
   R visitAllocateArray(AllocateArray instr) => defaultBackendInstruction(instr);
   R visitAllocateRecord(AllocateRecord instr) =>
       defaultBackendInstruction(instr);
   R visitBoxInt(BoxInt instr) => defaultBackendInstruction(instr);
   R visitBoxDouble(BoxDouble instr) => defaultBackendInstruction(instr);
+  R visitBoxSimd(BoxSimd instr) => defaultBackendInstruction(instr);
   R visitUnboxInt(UnboxInt instr) => defaultBackendInstruction(instr);
   R visitUnboxDouble(UnboxDouble instr) => defaultBackendInstruction(instr);
+  R visitUnboxSimd(UnboxSimd instr) => defaultBackendInstruction(instr);
+  R visitSimdOp(SimdOp instr) => defaultBackendInstruction(instr);
+  R visitReachabilityFence(ReachabilityFence instr) =>
+      defaultBackendInstruction(instr);
   R visitParallelMove(ParallelMove instr) => defaultBackendInstruction(instr);
 }
 

@@ -148,7 +148,7 @@ class MutationRunner {
   final List<Map<String, Object?>> runSummary = [];
   late final Map<MutationKind, int> perKindUsedRun;
 
-  MutationRunner(this.options) {
+  new(this.options) {
     perKindUsedRun = {for (var k in options.kinds) k: 0};
   }
 
@@ -744,7 +744,7 @@ class Options {
   final int seed;
   final int? explicitMaxDiagnostics;
 
-  Options({
+  new({
     required this.repo,
     required this.outDir,
     required this.mutateDirs,

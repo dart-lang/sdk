@@ -12,13 +12,20 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io'
-    show exit, File, InternetAddress, ProcessSignal, ServerSocket, Socket;
+    show
+        exit,
+        File,
+        InternetAddress,
+        ProcessSignal,
+        ServerSocket,
+        Socket,
+        FileStat,
+        FileSystemEntityType;
 import 'dart:typed_data' show Uint8List;
 
 import 'package:args/args.dart';
 import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:kernel/binary/tag.dart' show expectedSdkHash;
-import 'package:kernel/kernel.dart' show Component, loadComponentFromBytes;
 import 'package:path/path.dart' as path;
 
 import '../frontend_server.dart';
@@ -30,6 +37,8 @@ import '../resident_frontend_server_utils.dart'
 /// Ensures the info file is removed if Ctrl-C is sent to the server.
 /// Mostly used when debugging.
 StreamSubscription<ProcessSignal>? _cleanupHandler;
+
+Completer<dynamic>? _currentlyHandling;
 
 extension on DateTime {
   /// Truncates by 1 second.
@@ -46,22 +55,6 @@ extension on DateTime {
           millisecondsSinceEpoch % stateGranularity.inMilliseconds,
     );
   }
-}
-
-/// Safely converts [maybeUri] to a local file path.
-///
-/// Returns [maybeUri] as-is if it is already a raw path (e.g. `C:\foo.dart`
-/// or `/foo.dart`) or a non-file URI. This avoids crashes on Windows where
-/// drive letters (like `C:`) are incorrectly interpreted as URI schemes by
-/// [Uri.parse].
-String _maybeUriToFilename(String maybeUri) {
-  final Uri? uri = Uri.tryParse(maybeUri);
-  if (uri != null && (uri.scheme == 'file' || uri.scheme == '')) {
-    try {
-      return uri.toFilePath();
-    } catch (_) {}
-  }
-  return maybeUri;
 }
 
 enum _ResidentState { waitingForFirstCompile, compiling, waitingForRecompile }
@@ -83,40 +76,48 @@ enum _ResidentState { waitingForFirstCompile, compiling, waitingForRecompile }
 ///   compiled concurrently.
 class ResidentCompiler {
   final File _entryPoint;
-  File? _currentPackage;
-  ArgResults _compileOptions;
-  late FrontendCompiler _compiler;
-  DateTime _lastCompileStartTime = new DateTime.now().floorTime();
-  _ResidentState _state = _ResidentState.waitingForFirstCompile;
-  final StringBuffer _compilerOutput = new StringBuffer();
+  final File? _currentPackage;
+  final ArgResults _compileOptions;
+  final FrontendCompiler _compiler;
+  final StringBuffer _compilerOutput;
   final Set<Uri> trackedSources = <Uri>{};
   final List<String> _formattedOutput = <String>[];
-  bool incrementalMode = false;
+  final bool incrementalMode;
+  DateTime _lastCompileStartTime = new DateTime.now().floorTime();
+  _ResidentState _state = _ResidentState.waitingForFirstCompile;
+
+  factory(File entryPoint, ArgResults compileOptions) {
+    StringBuffer compilerOutput = new StringBuffer();
+    FrontendCompiler compiler = new FrontendCompiler(compilerOutput);
+    String? packages = compileOptions['packages'];
+    bool incrementalMode = compileOptions['incremental'] == true;
+    File? currentPackage = packages == null ? null : new File(packages);
+
+    return new ResidentCompiler._(
+      entryPoint,
+      currentPackage,
+      compileOptions,
+      compiler,
+      compilerOutput,
+      incrementalMode,
+    );
+  }
+
+  new _(
+    this._entryPoint,
+    this._currentPackage,
+    this._compileOptions,
+    this._compiler,
+    this._compilerOutput,
+    this.incrementalMode,
+  );
 
   /// The file where kernel data will be output by this [ResidentCompiler].
   File get _outputDill =>
       new File(_compileOptions.option(ResidentFrontendServer._outputString)!);
 
-  new(this._entryPoint, this._compileOptions) {
-    _compiler = new FrontendCompiler(_compilerOutput);
-    updateState(_compileOptions);
-  }
-
   void resetStateToWaitingForFirstCompile() {
     _state = _ResidentState.waitingForFirstCompile;
-  }
-
-  /// The [ResidentCompiler] will use the [newOptions] for future compilation
-  /// requests.
-  void updateState(ArgResults newOptions) {
-    final String? packages = newOptions['packages'];
-    incrementalMode = newOptions['incremental'] == true;
-    _compileOptions = newOptions;
-    _currentPackage = packages == null ? null : new File(packages);
-    // Refresh the compiler's output for the next compile
-    _compilerOutput.clear();
-    _formattedOutput.clear();
-    resetStateToWaitingForFirstCompile();
   }
 
   /// The current compiler options are outdated when any option has changed
@@ -125,15 +126,10 @@ class ResidentCompiler {
     if (newOptions.arguments.length != _compileOptions.arguments.length) {
       return true;
     }
-    if (!newOptions.arguments.toSet().containsAll(
-      _compileOptions.arguments.toSet(),
-    )) {
+    if (!newOptions.arguments.toSet().containsAll(_compileOptions.arguments)) {
       return true;
     }
-    return _currentPackage != null &&
-        !_lastCompileStartTime.isAfter(
-          _currentPackage!.statSync().modified.floorTime(),
-        );
+    return false;
   }
 
   /// Compiles the entry point that this ResidentCompiler is hooked to, abiding
@@ -149,9 +145,8 @@ class ResidentCompiler {
     // compilation request. If no files have been modified, we can return
     // the cached kernel. Otherwise, perform an incremental compilation.
     if (_state == _ResidentState.waitingForRecompile) {
-      List<Uri> invalidatedUris = await _getSourceFilesToRecompile(
-        _lastCompileStartTime,
-      );
+      List<Uri> invalidatedUris = await _getSourceFilesToRecompile();
+
       // No changes to source files detected and cached kernel file exists
       // If a kernel file is removed in between compilation requests,
       // fall through to produce the kernel in recompileDelta.
@@ -205,59 +200,6 @@ class ResidentCompiler {
     );
   }
 
-  /// WARNING: [compile] must be called on this compiler to populate the
-  /// required context in it before [compileExpression] can be called on it.
-  Future<String> compileExpression(
-    String expression,
-    List<String> definitions,
-    List<String> definitionTypes,
-    List<String> typeDefinitions,
-    List<String> typeBounds,
-    List<String> typeDefaults,
-    String libraryUri,
-    String? klass,
-    String? method,
-    int offset,
-    String? scriptUri,
-    bool isStatic,
-  ) async {
-    await _compiler.compileExpression(
-      expression,
-      definitions,
-      definitionTypes,
-      typeDefinitions,
-      typeBounds,
-      typeDefaults,
-      libraryUri,
-      klass,
-      method,
-      offset,
-      scriptUri,
-      isStatic,
-    );
-
-    _compilerOutput.clear();
-    // [incrementalMode] can only ever be [false] if `--aot` was passed in the
-    // 'compileExpression' request received by the [ResidentFrontendServer],
-    //  which should be impossible.
-    assert(incrementalMode);
-    // Force the compiler to produce complete kernel files on each request, even
-    // when incrementally compiled.
-    _compiler
-      ..acceptLastDelta()
-      ..resetIncrementalCompiler();
-    resetStateToWaitingForFirstCompile();
-
-    final List<String> errors = _compiler.errors;
-    final int errorCount = errors.length;
-    return jsonEncode({
-      'success': errorCount == 0,
-      'errorCount': errorCount,
-      if (errorCount > 0) 'compilerOutputLines': errors,
-      'kernelBytes': base64Encode(_outputDill.readAsBytesSync()),
-    });
-  }
-
   /// Reads the compiler's [outputLines] to keep track of which files
   /// need to be tracked. Adds correctly ANSI formatted output to
   /// the [_formattedOutput] list.
@@ -289,24 +231,32 @@ class ResidentCompiler {
     }
   }
 
+  /// Returns true if [file] was modified at or after the last compile start
+  /// time, or if the file doesn't exist.
+  bool _fileIsTooNew(File file) {
+    FileStat statSync = file.statSync();
+    if (statSync.type == FileSystemEntityType.notFound) return true;
+    final DateTime fileChangeTime = statSync.modified.floorTime();
+    return !_lastCompileStartTime.isAfter(fileChangeTime);
+  }
+
   /// Returns a list of uris that need to be recompiled, based on the
   /// [lastKernelCompileTime] timestamp.
   /// Due to Windows timestamp granularity, all timestamps are truncated by
   /// the second. This has no effect on correctness but may result in more
   /// files being marked as invalid than are strictly required.
-  Future<List<Uri>> _getSourceFilesToRecompile(
-    DateTime lastKernelCompileTime,
-  ) async {
+  Future<List<Uri>> _getSourceFilesToRecompile() async {
     final List<Uri> sourcesToRecompile = <Uri>[];
     for (Uri uri in trackedSources) {
-      final DateTime sourceModifiedTime = new File(uri.toFilePath())
-          .statSync()
-          .modified
-          .floorTime();
-      if (!lastKernelCompileTime.isAfter(sourceModifiedTime)) {
+      if (_fileIsTooNew(new File(uri.toFilePath()))) {
         sourcesToRecompile.add(uri);
       }
     }
+
+    if (_currentPackage != null && _fileIsTooNew(_currentPackage)) {
+      sourcesToRecompile.add(_currentPackage.uri);
+    }
+
     return sourcesToRecompile;
   }
 
@@ -339,30 +289,11 @@ class ResidentCompiler {
 /// residentListenAndCompile method.
 class ResidentFrontendServer {
   static const String _commandString = 'command';
-  static const String _replaceCachedDillString = 'replaceCachedDill';
-  static const String _replacementDillPathString = 'replacementDillPath';
   static const String _compileString = 'compile';
   static const String _executableString = 'executable';
   static const String _packageString = 'packages';
   static const String _successString = 'success';
   static const String _outputString = 'output-dill';
-  static const String _useCachedCompilerOptionsAsBaseString =
-      'useCachedCompilerOptionsAsBase';
-  static const String _compileExpressionString = 'compileExpression';
-  static const String _libraryUriString = 'libraryUri';
-  static const String _rootLibraryUriString = 'rootLibraryUri';
-  static const String _dillExtensionString = '.dill';
-  static const String _expressionString = 'expression';
-  static const String _definitionsString = 'definitions';
-  static const String _definitionTypesString = 'definitionTypes';
-  static const String _typeDefinitionsString = 'typeDefinitions';
-  static const String _typeBoundsString = 'typeBounds';
-  static const String _typeDefaultsString = 'typeDefaults';
-  static const String _classString = 'class';
-  static const String _methodString = 'method';
-  static const String _offsetString = 'offset';
-  static const String _scriptUriString = 'scriptUri';
-  static const String _isStaticString = 'isStatic';
   static const String _shutdownString = 'shutdown';
   static const String _recordUsesString = 'record-uses';
   static const int _compilerLimit = 3;
@@ -388,13 +319,9 @@ class ResidentFrontendServer {
     required String canonicalizedLibraryPath,
     required ArgResults compileOptions,
     required File cachedCompilerOptions,
+    required File cachedDill,
   }) {
-    cachedCompilerOptions.createSync();
-    cachedCompilerOptions.writeAsStringSync(
-      compileOptions.arguments.map(jsonEncode).toList().toString(),
-    );
-
-    late final ResidentCompiler residentCompiler;
+    final ResidentCompiler residentCompiler;
     if (compilers[canonicalizedLibraryPath] == null) {
       // Avoids using too much memory.
       if (compilers.length >= ResidentFrontendServer._compilerLimit) {
@@ -405,57 +332,72 @@ class ResidentFrontendServer {
         compileOptions,
       );
       compilers[canonicalizedLibraryPath] = residentCompiler;
+      if (cachedCompilerOptions.existsSync()) {
+        final String cachedCompilerOptionsContents = cachedCompilerOptions
+            .readAsStringSync();
+        bool optionsOutdated = false;
+        try {
+          final List<String> cachedCompilerOptionsAsList = (jsonDecode(
+            cachedCompilerOptionsContents,
+          ) as List<dynamic>).cast<String>();
+          final ArgResults cachedOptions = argParser.parse(
+            cachedCompilerOptionsAsList,
+          );
+          optionsOutdated = residentCompiler.areOptionsOutdated(cachedOptions);
+        } catch (e) {
+          optionsOutdated = true;
+        }
+        if (optionsOutdated) {
+          // If the options are outdated or an exception was thrown when trying
+          // to read and/or understand the file we can't reuse the old dill.
+          _deleteCacheFor(
+            cachedCompilerOptions: cachedCompilerOptions,
+            cachedDill: cachedDill,
+          );
+        }
+      } else if (cachedDill.existsSync()) {
+        _deleteCacheFor(
+          cachedCompilerOptions: cachedCompilerOptions,
+          cachedDill: cachedDill,
+        );
+      }
     } else {
-      residentCompiler = compilers[canonicalizedLibraryPath]!;
-      if (residentCompiler.areOptionsOutdated(compileOptions)) {
-        residentCompiler.updateState(compileOptions);
+      ResidentCompiler cachedCompiler = compilers[canonicalizedLibraryPath]!;
+      if (cachedCompiler.areOptionsOutdated(compileOptions)) {
+        // If the options are outdated we can't reuse the compiler.
+        _deleteCacheFor(
+          cachedCompilerOptions: cachedCompilerOptions,
+          cachedDill: cachedDill,
+        );
+        residentCompiler = new ResidentCompiler(
+          new File(canonicalizedLibraryPath),
+          compileOptions,
+        );
+        compilers[canonicalizedLibraryPath] = residentCompiler;
+      } else {
+        residentCompiler = cachedCompiler;
       }
     }
+
+    cachedCompilerOptions.createSync();
+    cachedCompilerOptions.writeAsStringSync(
+      compileOptions.arguments.map(jsonEncode).toList().toString(),
+    );
 
     return residentCompiler;
   }
 
-  static Future<String> _handleReplaceCachedDillRequest(
-    Map<String, dynamic> request,
-  ) async {
-    if (request[_replacementDillPathString] == null) {
-      return _encodeErrorMessage(
-        "'$_replaceCachedDillString' requests must include a "
-        "'$_replacementDillPathString' property.",
-      );
+  static void _deleteCacheFor({
+    required File cachedCompilerOptions,
+    required File cachedDill,
+  }) {
+    // TODO(jensj): If we can't delete these what do we do?
+    if (cachedCompilerOptions.existsSync()) {
+      cachedCompilerOptions.deleteSync();
     }
-
-    final File replacementDillFile = new File(
-      request[_replacementDillPathString],
-    );
-
-    final String canonicalizedLibraryPath;
-    try {
-      final Component component = loadComponentFromBytes(
-        replacementDillFile.readAsBytesSync(),
-      );
-      canonicalizedLibraryPath = path.canonicalize(
-        component.mainMethod!.enclosingLibrary.fileUri.toFilePath(),
-      );
-
-      final String cachedDillPath;
-      try {
-        cachedDillPath = computeCachedDillAndCompilerOptionsPaths(
-          canonicalizedLibraryPath,
-        ).cachedDillPath;
-      } on Exception catch (e) {
-        return _encodeErrorMessage(e.toString());
-      }
-      replacementDillFile.copySync(cachedDillPath);
-    } catch (e) {
-      return _encodeErrorMessage('Failed to replace cached dill');
+    if (cachedDill.existsSync()) {
+      cachedDill.deleteSync();
     }
-
-    if (compilers[canonicalizedLibraryPath] != null) {
-      compilers[canonicalizedLibraryPath]!.resetStateToWaitingForFirstCompile();
-    }
-
-    return jsonEncode({_successString: true});
   }
 
   static Future<String> _handleCompileRequest(
@@ -465,6 +407,7 @@ class ResidentFrontendServer {
       return _encodeErrorMessage(
         "'$_compileString' requests must include an '$_executableString' "
         "property and an '$_outputString' property.",
+        restartMightHelp: false,
       );
     }
 
@@ -472,6 +415,7 @@ class ResidentFrontendServer {
       return _encodeErrorMessage(
         "The '$_recordUsesString' property is only supported for "
         "AOT compilation.",
+        restartMightHelp: false,
       );
     }
 
@@ -489,7 +433,7 @@ class ResidentFrontendServer {
         computationResult.cachedCompilerOptionsPath,
       );
     } on Exception catch (e) {
-      return _encodeErrorMessage(e.toString());
+      return _encodeErrorMessage(e.toString(), restartMightHelp: true);
     }
 
     final ArgResults options = _generateCompilerOptions(
@@ -503,6 +447,7 @@ class ResidentFrontendServer {
       canonicalizedLibraryPath: canonicalizedExecutablePath,
       compileOptions: options,
       cachedCompilerOptions: cachedCompilerOptions,
+      cachedDill: new File(cachedDillPath),
     );
     final Map<String, dynamic> response = await residentCompiler.compile();
 
@@ -517,110 +462,11 @@ class ResidentFrontendServer {
       } catch (e) {
         return _encodeErrorMessage(
           'Could not write output dill to ${request[_outputString]}.',
+          restartMightHelp: true,
         );
       }
     }
     return jsonEncode({...response, _outputString: outputDillPath});
-  }
-
-  static Future<String> _handleCompileExpressionRequest(
-    Map<String, dynamic> request,
-  ) async {
-    final String canonicalizedLibraryPath;
-    try {
-      if ((request[_libraryUriString] as String).startsWith('dart:')) {
-        // An argument to the [entrypoint] parameter of
-        // [FrontendCompiler.compile] is mandatory, and
-        // [canonicalizedLibraryPath] is what we will use as that argument, so
-        // if the library URI provided in the request begins with 'dart:', then
-        // we use the URI of the root library of the isolate group in which the
-        // evaluation is taking place to compute [canonicalizedLibraryPath]
-        // instead.
-        canonicalizedLibraryPath = path.canonicalize(
-          _maybeUriToFilename(request[_rootLibraryUriString]),
-        );
-      } else {
-        canonicalizedLibraryPath = path.canonicalize(
-          _maybeUriToFilename(request[_libraryUriString]),
-        );
-      }
-    } catch (e, st) {
-      return _encodeErrorMessage(
-        "Request contains invalid '$_libraryUriString' property: $e\n$st",
-      );
-    }
-
-    final String cachedDillPath;
-    final File cachedCompilerOptions;
-    try {
-      final CachedDillAndCompilerOptionsPaths computationResult =
-          computeCachedDillAndCompilerOptionsPaths(canonicalizedLibraryPath);
-      cachedDillPath = computationResult.cachedDillPath;
-      cachedCompilerOptions = new File(
-        computationResult.cachedCompilerOptionsPath,
-      );
-    } on Exception catch (e) {
-      return _encodeErrorMessage(e.toString());
-    }
-    // Make the [ResidentCompiler] output the compiled expression to
-    // [compiledExpressionDillPath] to prevent it from overwriting the
-    // cached program dill.
-    assert(cachedDillPath.endsWith(_dillExtensionString));
-    final String compiledExpressionDillPath = cachedDillPath.replaceRange(
-      cachedDillPath.length - _dillExtensionString.length,
-      null,
-      '.expr.dill',
-    );
-
-    final ArgResults options = _generateCompilerOptions(
-      request: request,
-      cachedCompilerOptions: cachedCompilerOptions,
-      outputDillOverride: compiledExpressionDillPath,
-      initializeFromDillPath: cachedDillPath,
-    );
-
-    final ResidentCompiler residentCompiler = _getResidentCompilerForEntrypoint(
-      canonicalizedLibraryPath: canonicalizedLibraryPath,
-      compileOptions: options,
-      cachedCompilerOptions: cachedCompilerOptions,
-    );
-
-    final String expression = request[_expressionString];
-    final List<String> definitions =
-        (request[_definitionsString] as List<dynamic>).cast<String>();
-    final List<String> definitionTypes =
-        (request[_definitionTypesString] as List<dynamic>).cast<String>();
-    final List<String> typeDefinitions =
-        (request[_typeDefinitionsString] as List<dynamic>).cast<String>();
-    final List<String> typeBounds =
-        (request[_typeBoundsString] as List<dynamic>).cast<String>();
-    final List<String> typeDefaults =
-        (request[_typeDefaultsString] as List<dynamic>).cast<String>();
-    final String libraryUri = request[_libraryUriString];
-    final String? klass = request[_classString];
-    final String? method = request[_methodString];
-    final int offset = request[_offsetString];
-    final String? scriptUri = request[_scriptUriString];
-    final bool isStatic = request[_isStaticString];
-
-    // [residentCompiler.compile] must be called before
-    // [residentCompiler.compileExpression] can be called. See the
-    // documentation of [ResidentCompiler.compile] for more information.
-    await residentCompiler.compile();
-    return await residentCompiler.compileExpression(
-      expression,
-      definitions,
-      definitionTypes,
-      typeDefinitions,
-      typeBounds,
-      typeDefaults,
-      libraryUri,
-      klass,
-      method,
-      offset,
-      scriptUri,
-      isStatic,
-    );
   }
 
   /// Takes in JSON [input] from the socket and compiles the request,
@@ -636,22 +482,30 @@ class ResidentFrontendServer {
     try {
       request = jsonDecode(input);
     } on FormatException {
-      return _encodeErrorMessage('$input is not valid JSON.');
+      return _encodeErrorMessage(
+        '$input is not valid JSON.',
+        restartMightHelp: false,
+      );
     }
 
-    switch (request[_commandString]) {
-      case _replaceCachedDillString:
-        return _handleReplaceCachedDillRequest(request);
-      case _compileString:
-        return _handleCompileRequest(request);
-      case _compileExpressionString:
-        return _handleCompileExpressionRequest(request);
-      case _shutdownString:
-        return _shutdownJsonResponse;
-      default:
-        return _encodeErrorMessage(
-          'Unsupported command: ${request[_commandString]}.',
-        );
+    try {
+      switch (request[_commandString]) {
+        case _compileString:
+          return await _handleCompileRequest(request);
+        case _shutdownString:
+          return _shutdownJsonResponse;
+        default:
+          return _encodeErrorMessage(
+            'Unsupported command: ${request[_commandString]}.',
+            restartMightHelp: false,
+          );
+      }
+    } catch (e, st) {
+      return _encodeErrorMessage(
+        "Crash: $e",
+        stackTrace: st,
+        restartMightHelp: false,
+      );
     }
   }
 
@@ -666,39 +520,12 @@ class ResidentFrontendServer {
     required String initializeFromDillPath,
   }) {
     final Map<String, dynamic> options = {};
-    if (request[_useCachedCompilerOptionsAsBaseString] == true &&
-        cachedCompilerOptions.existsSync()) {
-      // If [request[_useCachedCompilerOptionsAsBaseString]] is true, then we
-      // start with the cached options and apply any options specified in
-      // [request] as overrides.
-      final String cachedCompilerOptionsContents = cachedCompilerOptions
-          .readAsStringSync();
-      final List<String> cachedCompilerOptionsAsList = (jsonDecode(
-        cachedCompilerOptionsContents,
-      ) as List<dynamic>).cast<String>();
-      final ArgResults cachedOptions = argParser.parse(
-        cachedCompilerOptionsAsList,
-      );
-      for (final String option in cachedOptions.options) {
-        options[option] = cachedOptions[option];
-      }
-    }
-
     final ArgResults overrides = argParser.parse(<String>[
       '--sdk-root=${_sdkUri.toFilePath()}',
       if (!(request['aot'] ?? false)) '--incremental',
       '--platform=${_platformKernelUri.path}',
       '--output-dill=$outputDillOverride',
       '--initialize-from-dill=$initializeFromDillPath',
-      // We can assume that the cached dill is up-to-date when handling
-      // 'compileExpression' requests because if dartdev was given a source file
-      // to run, then it must have compiled it with the resident frontend
-      // compiler, guaranteeing that the cached dill is up-to-date, and if
-      // dartdev was given a dill file to run, then it must have used the
-      // resident frontend compiler's 'replaceCachedDill' endpoint to update the
-      // dill cache.
-      if (request[_commandString] == _compileExpressionString)
-        '--assume-initialize-from-dill-up-to-date',
       '--target=vm',
       '--filesystem-scheme',
       'org-dartlang-root',
@@ -750,52 +577,16 @@ class ResidentFrontendServer {
   }
 
   /// Encodes the [message] in JSON to be sent over the socket.
-  static String _encodeErrorMessage(String message) => jsonEncode(
-    <String, Object>{_successString: false, 'errorMessage': message},
-  );
-
-  /// Used to create compile requests for the ResidentFrontendServer.
-  /// Returns a JSON string that the resident compiler will be able to
-  /// interpret.
-  static String createCompileJSON({
-    required String executable,
-    String? packages,
-    required String outputDill,
-    bool? supportMirrors,
-    bool? enableAsserts,
-    bool? soundNullSafety,
-    String? verbosity,
-    bool? aot,
-    bool? tfa,
-    bool? rta,
-    bool? treeShakeWriteOnlyFields,
-    bool? protobufTreeShakerV2,
-    List<String>? define,
-    List<String>? enableExperiment,
-    bool verbose = false,
-    String? nativeAssetsYaml,
-    String? recordUses,
+  static String _encodeErrorMessage(
+    String message, {
+    required bool restartMightHelp,
+    StackTrace? stackTrace,
   }) {
     return jsonEncode(<String, Object>{
-      "command": "compile",
-      "executable": executable,
-      "output-dill": outputDill,
-      if (aot != null) "aot": true,
-      if (define != null) "define": define,
-      if (enableAsserts != null) "enable-asserts": true,
-      if (enableExperiment != null) "enable-experiment": enableExperiment,
-      if (packages != null) "packages": packages,
-      if (protobufTreeShakerV2 != null) "protobuf-tree-shaker-v2": true,
-      if (rta != null) "rta": true,
-      if (soundNullSafety != null) "sound-null-safety": soundNullSafety,
-      if (supportMirrors != null) "support-mirrors": true,
-      if (tfa != null) "tfa": true,
-      if (treeShakeWriteOnlyFields != null)
-        "tree-shaker-write-only-fields": true,
-      if (verbosity != null) "verbosity": verbosity,
-      "verbose": verbose,
-      if (nativeAssetsYaml != null) "native-assets": nativeAssetsYaml,
-      if (recordUses != null) _recordUsesString: recordUses,
+      _successString: false,
+      'errorMessage': message,
+      'restartMightHelp': restartMightHelp,
+      'stackTrace': ?stackTrace?.toString(),
     });
   }
 }
@@ -899,19 +690,36 @@ Future<StreamSubscription<Socket>?> residentListenAndCompile(
     (client) {
       client.listen(
         (Uint8List data) async {
-          String result = await ResidentFrontendServer.handleRequest(
-            utf8.decode(data),
-          );
-          client.write(result);
-          shutdownTimer.cancel();
-          if (result == ResidentFrontendServer._shutdownJsonResponse) {
-            await residentServerCleanup(server, serverInfoFile);
-          } else {
-            shutdownTimer = startShutdownTimer(
-              inactivityTimeout,
-              server,
-              serverInfoFile,
+          // Don't try to compile more than once thing at a time.
+          // Dart is single-threaded anyway so it won't compile faster, and if
+          // asking to compile the same thing twice will get into trouble with
+          // the cached compiler if we try.
+          while (_currentlyHandling != null) {
+            await _currentlyHandling!.future;
+          }
+          _currentlyHandling = new Completer();
+          bool restartShutdownTimer = true;
+          try {
+            shutdownTimer.cancel();
+            String result = await ResidentFrontendServer.handleRequest(
+              utf8.decode(data),
             );
+            client.write(result);
+            if (result == ResidentFrontendServer._shutdownJsonResponse) {
+              restartShutdownTimer = false;
+              await residentServerCleanup(server, serverInfoFile);
+            }
+          } finally {
+            if (restartShutdownTimer) {
+              shutdownTimer = startShutdownTimer(
+                inactivityTimeout,
+                server,
+                serverInfoFile,
+              );
+            }
+            Completer<dynamic> currentlyHandlingLocal = _currentlyHandling!;
+            _currentlyHandling = null;
+            currentlyHandlingLocal.complete();
           }
         },
         onError: (error) {

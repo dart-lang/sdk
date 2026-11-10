@@ -77,7 +77,7 @@ class GCMarker {
   // [deferred_marking_stack_], the objects are always marked and never
   // repeated. Tney can be folded back into the regular mark list after a
   // scavenge, preventing accumulation of STW work.
-  MarkingStack tlab_deferred_marking_stack_;
+  MarkingStack wbe_deferred_marking_stack_;
   // Objects that need to be marked (non-writable instructions) or scanned
   // (object used in a barrier-skipping context) during the final STW phase.
   // Unlike the other mark lists, objects might be repeated in this list, and

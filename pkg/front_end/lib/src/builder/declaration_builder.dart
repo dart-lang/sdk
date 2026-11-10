@@ -17,6 +17,10 @@ abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
   @override
   Uri get fileUri;
 
+  /// [UriOffsetLength] for the introductory declaration.
+  @override
+  UriOffsetLength get uriOffset;
+
   bool get isMixinClass;
 
   /// Lookup a member accessed statically through this declaration.
@@ -45,7 +49,7 @@ abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
   /// reported.
   MemberLookupResult? lookupLocalMember(String name, {bool required = false});
 
-  List<DartType> buildAliasedTypeArguments(
+  DartTypeList buildAliasedTypeArguments(
     LibraryBuilder library,
     List<TypeBuilder>? arguments,
     ClassHierarchyBase? hierarchy,

@@ -1,0 +1,11 @@
+class A {
+  static late final b = B()..c = c;
+}
+
+class B {
+  late C c;
+}
+
+class C {}
+
+late final c = C();

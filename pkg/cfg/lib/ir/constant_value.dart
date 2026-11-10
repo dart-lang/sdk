@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math' as math;
+
 import 'package:cfg/ir/instructions.dart';
 import 'package:cfg/ir/global_context.dart';
 import 'package:cfg/ir/types.dart';
@@ -59,11 +61,12 @@ extension type ConstantValue(ast.Constant constant) {
     ),
   };
 
+  /// Returns true if constant is an int 0 or double 0.0 (but not -0.0).
   bool get isZero => switch (constant) {
     ast.IntConstant(:var value) => value == 0,
     UnboxedIntConstant(:var value) => value == 0,
-    ast.DoubleConstant(:var value) => value == 0.0,
-    UnboxedDoubleConstant(:var value) => value == 0.0,
+    ast.DoubleConstant(:var value) => identical(value, 0.0),
+    UnboxedDoubleConstant(:var value) => identical(value, 0.0),
     _ => false,
   };
 
@@ -181,55 +184,45 @@ class const ConstantFolding() {
   ) {
     final a = left.doubleValue;
     final b = right.doubleValue;
-    switch (op) {
-      case BinaryDoubleOpcode.add:
-        return ConstantValue.fromDouble(a + b);
-      case BinaryDoubleOpcode.sub:
-        return ConstantValue.fromDouble(a - b);
-      case BinaryDoubleOpcode.mul:
-        return ConstantValue.fromDouble(a * b);
-      case BinaryDoubleOpcode.mod:
-        return ConstantValue.fromDouble(a % b);
-      case BinaryDoubleOpcode.rem:
-        return ConstantValue.fromDouble(a.remainder(b));
-      case BinaryDoubleOpcode.div:
-        return ConstantValue.fromDouble(a / b);
-      case BinaryDoubleOpcode.truncatingDiv:
-        final doubleResult = a / b;
-        return doubleResult.isFinite
-            ? ConstantValue.fromInt(doubleResult.truncate())
-            : null;
-    }
+    return switch (op) {
+      .add => ConstantValue.fromDouble(a + b),
+      .sub => ConstantValue.fromDouble(a - b),
+      .mul => ConstantValue.fromDouble(a * b),
+      .mod => ConstantValue.fromDouble(a % b),
+      .rem => ConstantValue.fromDouble(a.remainder(b)),
+      .div => ConstantValue.fromDouble(a / b),
+      .pow => ConstantValue.fromDouble(math.pow(a, b) as double),
+      .atan2 => ConstantValue.fromDouble(math.atan2(a, b)),
+    };
   }
 
   ConstantValue? unaryDoubleOp(UnaryDoubleOpcode op, ConstantValue operand) {
     final x = operand.doubleValue;
-    switch (op) {
-      case UnaryDoubleOpcode.neg:
-        return ConstantValue.fromDouble(-x);
-      case UnaryDoubleOpcode.abs:
-        return ConstantValue.fromDouble(x.abs());
-      case UnaryDoubleOpcode.sign:
-        return ConstantValue.fromDouble(x.sign);
-      case UnaryDoubleOpcode.square:
-        return ConstantValue.fromDouble(x * x);
-      case UnaryDoubleOpcode.round:
-        return x.isFinite ? ConstantValue.fromInt(x.round()) : null;
-      case UnaryDoubleOpcode.floor:
-        return x.isFinite ? ConstantValue.fromInt(x.floor()) : null;
-      case UnaryDoubleOpcode.ceil:
-        return x.isFinite ? ConstantValue.fromInt(x.ceil()) : null;
-      case UnaryDoubleOpcode.truncate:
-        return x.isFinite ? ConstantValue.fromInt(x.truncate()) : null;
-      case UnaryDoubleOpcode.roundToDouble:
-        return ConstantValue.fromDouble(x.roundToDouble());
-      case UnaryDoubleOpcode.floorToDouble:
-        return ConstantValue.fromDouble(x.floorToDouble());
-      case UnaryDoubleOpcode.ceilToDouble:
-        return ConstantValue.fromDouble(x.ceilToDouble());
-      case UnaryDoubleOpcode.truncateToDouble:
-        return ConstantValue.fromDouble(x.truncateToDouble());
-    }
+    return switch (op) {
+      .neg => ConstantValue.fromDouble(-x),
+      .abs => ConstantValue.fromDouble(x.abs()),
+      .square => ConstantValue.fromDouble(x * x),
+      .round => x.isFinite ? ConstantValue.fromInt(x.round()) : null,
+      .floor => x.isFinite ? ConstantValue.fromInt(x.floor()) : null,
+      .ceil => x.isFinite ? ConstantValue.fromInt(x.ceil()) : null,
+      .truncate => x.isFinite ? ConstantValue.fromInt(x.truncate()) : null,
+      .roundToDouble => ConstantValue.fromDouble(x.roundToDouble()),
+      .floorToDouble => ConstantValue.fromDouble(x.floorToDouble()),
+      .ceilToDouble => ConstantValue.fromDouble(x.ceilToDouble()),
+      .truncateToDouble => ConstantValue.fromDouble(x.truncateToDouble()),
+      .isNegative => ConstantValue.fromBool(x.isNegative),
+      .isInfinite => ConstantValue.fromBool(x.isInfinite),
+      .hash => null, // hashCode is not guaranteed to be stable.
+      .sin => ConstantValue.fromDouble(math.sin(x)),
+      .cos => ConstantValue.fromDouble(math.cos(x)),
+      .tan => ConstantValue.fromDouble(math.tan(x)),
+      .asin => ConstantValue.fromDouble(math.asin(x)),
+      .acos => ConstantValue.fromDouble(math.acos(x)),
+      .atan => ConstantValue.fromDouble(math.atan(x)),
+      .sqrt => ConstantValue.fromDouble(math.sqrt(x)),
+      .exp => ConstantValue.fromDouble(math.exp(x)),
+      .log => ConstantValue.fromDouble(math.log(x)),
+    };
   }
 
   ConstantValue? unaryBoolOp(UnaryBoolOpcode op, ConstantValue operand) {
@@ -274,7 +267,10 @@ class const ConstantFolding() {
   ) {
     final types = (typeArguments as TypeArgumentsConstant).types;
     return ConstantValue(
-      ast.InstantiationConstant(closure as ast.TearOffConstant, types),
+      ast.InstantiationConstant(
+        closure as ast.TearOffConstant,
+        ast.DartTypeList.from(types),
+      ),
     );
   }
 }

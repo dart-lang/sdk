@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -51,7 +52,7 @@ class SinceSdkVersionComputer {
     Version? result;
     for (var annotation in annotations) {
       if (annotation.isDartInternalSince) {
-        var arguments = annotation.annotationAst.arguments?.arguments2;
+        var arguments = annotation.annotationAst.argumentList?.arguments2;
         var versionNode = arguments?.singleOrNull;
         if (versionNode is SimpleStringLiteralImpl) {
           var versionStr = versionNode.value;

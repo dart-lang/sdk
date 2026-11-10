@@ -5175,7 +5175,6 @@ class DiagnosticGetServerPortResult implements ResponseResult {
 ///
 ///     {
 ///       "included": List<FilePath>
-///       "inTestMode": optional bool
 ///       "updatePubspec": optional bool
 ///       "codes": optional List<String>
 ///     }
@@ -5192,14 +5191,6 @@ class EditBulkFixesParams implements RequestParams {
   /// of type `FILE_NOT_ANALYZED` will be generated.
   List<String> included;
 
-  /// A flag indicating whether the bulk fixes are being run in test mode. The
-  /// only difference is that in test mode the fix processor will look for a
-  /// configuration file that can modify the content of the data file used to
-  /// compute the fixes when data-driven fixes are being considered.
-  ///
-  /// If this field is omitted the flag defaults to `false`.
-  bool? inTestMode;
-
   /// A flag indicating whether to validate that the dependencies used by the
   /// included files are listed in the pubspec file. If specified, the fix
   /// processor will compute the set of packages imported in the source and
@@ -5212,12 +5203,7 @@ class EditBulkFixesParams implements RequestParams {
   /// A list of diagnostic codes to be fixed.
   List<String>? codes;
 
-  EditBulkFixesParams(
-    this.included, {
-    this.inTestMode,
-    this.updatePubspec,
-    this.codes,
-  });
+  EditBulkFixesParams(this.included, {this.updatePubspec, this.codes});
 
   factory EditBulkFixesParams.fromJson(
     JsonDecoder jsonDecoder,
@@ -5236,13 +5222,6 @@ class EditBulkFixesParams implements RequestParams {
       } else {
         throw jsonDecoder.mismatch(jsonPath, 'included', json);
       }
-      bool? inTestMode;
-      if (json.containsKey('inTestMode')) {
-        inTestMode = jsonDecoder.decodeBool(
-          '$jsonPath.inTestMode',
-          json['inTestMode'],
-        );
-      }
       bool? updatePubspec;
       if (json.containsKey('updatePubspec')) {
         updatePubspec = jsonDecoder.decodeBool(
@@ -5260,7 +5239,6 @@ class EditBulkFixesParams implements RequestParams {
       }
       return EditBulkFixesParams(
         included,
-        inTestMode: inTestMode,
         updatePubspec: updatePubspec,
         codes: codes,
       );
@@ -5281,10 +5259,6 @@ class EditBulkFixesParams implements RequestParams {
   Map<String, Object> toJson() {
     var result = <String, Object>{};
     result['included'] = included;
-    var inTestMode = this.inTestMode;
-    if (inTestMode != null) {
-      result['inTestMode'] = inTestMode;
-    }
     var updatePubspec = this.updatePubspec;
     if (updatePubspec != null) {
       result['updatePubspec'] = updatePubspec;
@@ -5308,14 +5282,12 @@ class EditBulkFixesParams implements RequestParams {
   bool operator ==(Object other) =>
       other is EditBulkFixesParams &&
       listEqual(included, other.included, (String a, String b) => a == b) &&
-      inTestMode == other.inTestMode &&
       updatePubspec == other.updatePubspec &&
       listEqual(codes, other.codes, (String a, String b) => a == b);
 
   @override
   int get hashCode => Object.hash(
     Object.hashAll(included),
-    inTestMode,
     updatePubspec,
     Object.hashAll(codes ?? []),
   );
@@ -12668,7 +12640,7 @@ class LspHandleResult implements ResponseResult {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class LspNotificationParams implements HasToJson {
-  /// The LSP NotificationMessage sent by the server.
+  /// The LSP NotificationMessage.
   Object lspNotification;
 
   LspNotificationParams(this.lspNotification);
@@ -16183,6 +16155,13 @@ class ServerSetClientCapabilitiesParams implements RequestParams {
   ///
   /// If LSP capabilities are not provided or no setClientCapabilities request
   /// is made, a very basic set of capabilities will be assumed.
+  ///
+  /// If the capabilities include `workspace.configuration`, the server
+  /// requests the user's configuration with a `workspace/configuration`
+  /// request after responding to this request. LSP messages received in the
+  /// meantime are not handled until the client has responded to it, so that
+  /// they see the user's configuration and not the defaults. Other requests
+  /// are not affected.
   Object? lspCapabilities;
 
   ServerSetClientCapabilitiesParams(
@@ -16278,21 +16257,75 @@ class ServerSetClientCapabilitiesParams implements RequestParams {
 
 /// server.setClientCapabilities result
 ///
+///     {
+///       "lspCapabilities": optional object
+///     }
+///
 /// Clients may not extend, implement or mix-in this class.
 class ServerSetClientCapabilitiesResult implements ResponseResult {
-  @override
-  Map<String, Object> toJson() => {};
+  /// The LSP `ServerCapabilities` for the server. These capabilities are only
+  /// a subset that contain required information for an LSP-over-Legacy client,
+  /// and always use static registrations.
+  Object? lspCapabilities;
 
-  @override
-  Response toResponse(String id) {
-    return Response(id);
+  ServerSetClientCapabilitiesResult({this.lspCapabilities});
+
+  factory ServerSetClientCapabilitiesResult.fromJson(
+    JsonDecoder jsonDecoder,
+    String jsonPath,
+    Object? json,
+  ) {
+    json ??= {};
+    if (json is Map) {
+      Object? lspCapabilities;
+      if (json.containsKey('lspCapabilities')) {
+        lspCapabilities = json['lspCapabilities'] as Object;
+      }
+      return ServerSetClientCapabilitiesResult(
+        lspCapabilities: lspCapabilities,
+      );
+    } else {
+      throw jsonDecoder.mismatch(
+        jsonPath,
+        'server.setClientCapabilities result',
+        json,
+      );
+    }
+  }
+
+  factory ServerSetClientCapabilitiesResult.fromResponse(Response response) {
+    return ServerSetClientCapabilitiesResult.fromJson(
+      ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+      'result',
+      response.result,
+    );
   }
 
   @override
-  bool operator ==(Object other) => other is ServerSetClientCapabilitiesResult;
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    var lspCapabilities = this.lspCapabilities;
+    if (lspCapabilities != null) {
+      result['lspCapabilities'] = lspCapabilities;
+    }
+    return result;
+  }
 
   @override
-  int get hashCode => 806805916;
+  Response toResponse(String id) {
+    return Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(Object other) =>
+      other is ServerSetClientCapabilitiesResult &&
+      lspCapabilities == other.lspCapabilities;
+
+  @override
+  int get hashCode => lspCapabilities.hashCode;
 }
 
 /// server.setSubscriptions params

@@ -7,10 +7,6 @@ import 'dart:_wasm';
 part "class_id.dart";
 part "symbol_patch.dart";
 
-// Compilation to Wasm is always fully null safe.
-@patch
-bool typeAcceptsNull<T>() => null is T;
-
 const bool has63BitSmis = false;
 
 class Lists {
@@ -63,6 +59,7 @@ void reachabilityFence(Object? object) {}
 // Used for exporting wasm functions that are annotated via
 // `@pragma('wasm:weak-export', '<name>')
 @pragma("wasm:intrinsic")
+@pragma("wasm:entry-point")
 external void exportWasmFunction(Function object);
 
 // This function can be used to encode native side effects.
@@ -101,6 +98,8 @@ int doubleToIntBits(double value) {
 double intBitsToDouble(int value) {
   return value.toWasmI64().asWasmF64.toDouble();
 }
+
+external WasmExternRef get dummyExternRef;
 
 /// Whether to check bounds in [IndexErrorUtils.checkIndex],
 /// which are  used in list and typed data implementations.
@@ -168,14 +167,6 @@ external void pushWasmArray<T>(
 /// slot in the array, which may cause memory leaks. Callers should manually
 /// clear non-nullable reference element slots in the array when popping.
 external T popWasmArray<T>(WasmArray<T> array, int length);
-
-@patch
-@pragma("vm:entry-point")
-abstract interface class IsolateGroup {
-  @patch
-  static Object? _runSync(Object computation) =>
-      throw UnsupportedError("_runSync");
-}
 
 final List<Object> _toStringVisiting = [];
 @patch

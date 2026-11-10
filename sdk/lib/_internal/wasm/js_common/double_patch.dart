@@ -5,6 +5,7 @@
 import "dart:_internal" show patch;
 import 'dart:_js_helper' show JS;
 import 'dart:_js_helper';
+import 'dart:_wasm';
 
 @patch
 class double {
@@ -25,12 +26,12 @@ class double {
     // - [+/-]Infinity
     // - a Dart double literal
     // We do allow leading or trailing whitespace.
-    double result = JS<double>(r"""s => {
+    double result = JS<WasmF64>(r"""s => {
       if (!/^\s*[+-]?(?:Infinity|NaN|(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(s)) {
         return NaN;
       }
       return parseFloat(s);
-    }""", jsStringFromDartString(source).wrappedExternRef);
+    }""", jsStringFromDartString(source).wrappedExternRef).toDouble();
     if (result.isNaN) {
       String trimmed = source.trim();
       if (!(trimmed == 'NaN' || trimmed == '+NaN' || trimmed == '-NaN')) {

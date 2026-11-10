@@ -1,0 +1,71 @@
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+enum Enum {
+  a;
+
+  void instanceMethod1();
+  augment void instanceMethod1() {}
+
+  int get instanceGetter1;
+  augment int get instanceGetter1 => 0;
+
+  void set instanceSetter1(int value);
+  augment void set instanceSetter1(int value) {}
+
+  void instanceMethod2();
+
+  int get instanceGetter2;
+
+  void set instanceSetter2(int value);
+
+  static void staticMethod1();
+  augment static void staticMethod1() {}
+
+  static int get staticGetter1;
+  augment static int get staticGetter1 => 0;
+
+  static void set staticSetter1(int value);
+  augment static void set staticSetter1(int value) {}
+
+  static void staticMethod2();
+
+  static int get staticGetter2;
+
+  static void set staticSetter2(int value);
+}
+
+augment enum Enum {
+  ;
+
+  augment void instanceMethod2() {}
+
+  augment int get instanceGetter2 => 0;
+
+  augment void set instanceSetter2(int value) {}
+
+  void instanceMethod3();
+  augment void instanceMethod3() {}
+
+  int get instanceGetter3;
+  augment int get instanceGetter3 => 0;
+
+  void set instanceSetter3(int value);
+  augment void set instanceSetter3(int value) {}
+
+  augment static void staticMethod2() {}
+
+  augment static int get staticGetter2 => 0;
+
+  augment static void set staticSetter2(int value) {}
+
+  static void staticMethod3();
+  augment static void staticMethod3() {}
+
+  static int get staticGetter3;
+  augment static int get staticGetter3 => 0;
+
+  static void set staticSetter3(int value);
+  augment static void set staticSetter3(int value) {}
+}

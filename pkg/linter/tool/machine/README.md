@@ -1,4 +1,4 @@
-# Generated inter rule information
+# Generated linter rule information
 
 > [!WARNING]
 > The `rules.json` file is unsupported and deprecated,
@@ -11,7 +11,7 @@ It is primarily used by the `dart.dev` website.
 To update the `rules.json` file, run:
 
 ```
-dart run pkg/linter/tool/machine/machine.dart -w
+dart run pkg/linter/tool/machine.dart -w
 ```
 
 ## Deprecation and replacement

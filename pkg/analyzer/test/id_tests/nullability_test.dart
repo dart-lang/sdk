@@ -4,14 +4,13 @@
 
 import 'dart:io';
 
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualDataMap, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 
 import '../util/id_testing_helper.dart';
@@ -34,7 +33,7 @@ main(List<String> args) {
 }
 
 class _NullabilityDataComputer extends DataComputer<String> {
-  const _NullabilityDataComputer();
+  const new();
 
   @override
   DataInterpreter<String> get dataValidator =>
@@ -44,7 +43,7 @@ class _NullabilityDataComputer extends DataComputer<String> {
   void computeUnitData(
     TestingData testingData,
     CompilationUnit unit,
-    Map<Id, ActualData<String>> actualMap,
+    ActualDataMap<String> actualMap,
   ) {
     var unitElement = unit.declaredFragment!;
     _NullabilityDataExtractor(
@@ -58,20 +57,17 @@ class _NullabilityDataComputer extends DataComputer<String> {
 class _NullabilityDataExtractor extends AstDataExtractor<String> {
   final TypeSystem _typeSystem;
 
-  _NullabilityDataExtractor(super.uri, super.actualMap, this._typeSystem);
+  new(super.uri, super.actualMap, this._typeSystem);
 
   @override
   String? computeNodeValue(Id id, AstNode node) {
     Element? element;
     DartType? promotedType;
-    if (node is SimpleIdentifier &&
-        node.inGetterContext() &&
-        !node.inDeclarationContext()) {
-      element = node.element;
-      if (element is LocalVariableElement ||
-          element is FormalParameterElement) {
-        promotedType = _readType(node);
-      }
+    if (node case UnqualifiedNameExpression(
+      resolution: VariableReadResolution(element: var readElement, :var type),
+    )) {
+      element = readElement;
+      promotedType = type;
     } else if (node is IfNullAssignment || node is CompoundAssignment) {
       var target = (node as AssignmentExpression2).target;
       if (target is UnqualifiedNameAssignmentTarget) {
@@ -95,23 +91,10 @@ class _NullabilityDataExtractor extends AstDataExtractor<String> {
     }
     return null;
   }
-
-  static DartType _readType(SimpleIdentifier node) {
-    var parent = node.parent2;
-    if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
-      return parent.readType!;
-    } else if (parent is PostfixExpression) {
-      return parent.readType ?? node.typeOrThrow;
-    } else if (parent is PrefixExpression) {
-      return parent.readType ?? node.typeOrThrow;
-    } else {
-      return node.typeOrThrow;
-    }
-  }
 }
 
 class _NullabilityDataInterpreter implements DataInterpreter<String> {
-  const _NullabilityDataInterpreter();
+  const new();
 
   @override
   String getText(String actualData, [String? indentation]) => actualData;

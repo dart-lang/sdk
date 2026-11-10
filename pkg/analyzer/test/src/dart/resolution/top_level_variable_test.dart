@@ -27,25 +27,24 @@ final x = f(g, (z) => z.length);
 //                      ^^^^^^
 // [diag.uncheckedPropertyAccessOfNullableValue] The property 'length' can't be unconditionally accessed because the receiver can be 'null'.
 ''');
-    var node = result.findNode.variableDeclaration('x =');
+    var node = result.findNode.topLevelVariable('x =');
     assertResolvedNodeText(node, r'''
-VariableDeclaration
+TopLevelVariable
   name: x
   equals: =
-  initializer2: MethodInvocation
-    methodName: SimpleIdentifier
-      token: f
-      element: <testLibrary>::@function::f
-      staticType: T? Function<T>(T Function(), int Function(T))
+  initializer: UnqualifiedFunctionInvocation
+    name: f
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
-        SimpleIdentifier
-          token: g
+        UnqualifiedNameExpression
+          name: g
+          resolution: ExecutableTearOffResolution
+            element: <testLibrary>::@function::g
+            type: String Function()
           correspondingParameter: SubstitutedFormalParameterElementImpl
             baseElement: <testLibrary>::@function::f::@formalParameter::a
             substitution: {T: String}
-          element: <testLibrary>::@function::g
           staticType: String Function()
         FunctionExpression
           parameters: FormalParameterList
@@ -67,7 +66,57 @@ VariableDeclaration
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression2: PrefixedIdentifier
+            expression2: ReceiverPropertyExtraction
+              receiver: UnqualifiedNameExpression
+                name: z
+                resolution: VariableReadResolution
+                  element: z@102
+                  type: Object?
+                staticType: Object?
+              operator: .
+              name: length
+              resolution: InvalidNamedReadResolution
+                recoveryElement: <null>
+              staticType: InvalidType
+            expression(v1): PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: z
+                element: z@102
+                staticType: Object?
+              period: .
+              identifier: SimpleIdentifier
+                token: length
+                element: <null>
+                staticType: InvalidType
+              element: <null>
+              staticType: InvalidType
+          declaredFragment: <testLibraryFragment> null@null
+            element: null@null
+              type: InvalidType Function(Object?)
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@function::f::@formalParameter::b
+            substitution: {T: String}
+          staticType: InvalidType Function(Object?)
+      arguments(v1)
+        SimpleIdentifier
+          token: g
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@function::f::@formalParameter::a
+            substitution: {T: String}
+          element: <testLibrary>::@function::g
+          staticType: String Function()
+        FunctionExpression
+          parameters: FormalParameterList
+            leftParenthesis: (
+            parameter: RegularFormalParameter
+              name: z
+              declaredFragment: <testLibraryFragment> z@102
+                element: hasImplicitType isPublic
+                  type: Object?
+            rightParenthesis: )
+          body: ExpressionFunctionBody
+            functionDefinition: =>
+            expression: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: z
                 element: z@102
@@ -87,7 +136,10 @@ VariableDeclaration
             substitution: {T: String}
           staticType: InvalidType Function(Object?)
       rightParenthesis: )
-    staticInvokeType: String? Function(String Function(), int Function(String))
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::f
+      invokeType: String? Function(String Function(), int Function(String))
+      type: String?
     staticType: String?
     typeArgumentTypes
       String
@@ -103,25 +155,24 @@ T? f<T>(T Function() a, int Function(T) b) => null;
 String g() => '';
 final String? x = f(g, (z) => z.length);
 ''');
-    var node = result.findNode.variableDeclaration('x =');
+    var node = result.findNode.topLevelVariable('x =');
     assertResolvedNodeText(node, r'''
-VariableDeclaration
+TopLevelVariable
   name: x
   equals: =
-  initializer2: MethodInvocation
-    methodName: SimpleIdentifier
-      token: f
-      element: <testLibrary>::@function::f
-      staticType: T? Function<T>(T Function(), int Function(T))
+  initializer: UnqualifiedFunctionInvocation
+    name: f
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
-        SimpleIdentifier
-          token: g
+        UnqualifiedNameExpression
+          name: g
+          resolution: ExecutableTearOffResolution
+            element: <testLibrary>::@function::g
+            type: String Function()
           correspondingParameter: SubstitutedFormalParameterElementImpl
             baseElement: <testLibrary>::@function::f::@formalParameter::a
             substitution: {T: String}
-          element: <testLibrary>::@function::g
           staticType: String Function()
         FunctionExpression
           parameters: FormalParameterList
@@ -143,7 +194,58 @@ VariableDeclaration
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression2: PrefixedIdentifier
+            expression2: ReceiverPropertyExtraction
+              receiver: UnqualifiedNameExpression
+                name: z
+                resolution: VariableReadResolution
+                  element: z@110
+                  type: String
+                staticType: String
+              operator: .
+              name: length
+              resolution: GetterInvocationResolution
+                element: dart:core::@class::String::@getter::length
+                type: int
+              staticType: int
+            expression(v1): PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: z
+                element: z@110
+                staticType: String
+              period: .
+              identifier: SimpleIdentifier
+                token: length
+                element: dart:core::@class::String::@getter::length
+                staticType: int
+              element: dart:core::@class::String::@getter::length
+              staticType: int
+          declaredFragment: <testLibraryFragment> null@null
+            element: null@null
+              type: int Function(String)
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@function::f::@formalParameter::b
+            substitution: {T: String}
+          staticType: int Function(String)
+      arguments(v1)
+        SimpleIdentifier
+          token: g
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@function::f::@formalParameter::a
+            substitution: {T: String}
+          element: <testLibrary>::@function::g
+          staticType: String Function()
+        FunctionExpression
+          parameters: FormalParameterList
+            leftParenthesis: (
+            parameter: RegularFormalParameter
+              name: z
+              declaredFragment: <testLibraryFragment> z@110
+                element: hasImplicitType isPublic
+                  type: String
+            rightParenthesis: )
+          body: ExpressionFunctionBody
+            functionDefinition: =>
+            expression: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: z
                 element: z@110
@@ -163,7 +265,10 @@ VariableDeclaration
             substitution: {T: String}
           staticType: int Function(String)
       rightParenthesis: )
-    staticInvokeType: String? Function(String Function(), int Function(String))
+    resolution: ExecutableInvocationResolution
+      element: <testLibrary>::@function::f
+      invokeType: String? Function(String Function(), int Function(String))
+      type: String?
     staticType: String?
     typeArgumentTypes
       String

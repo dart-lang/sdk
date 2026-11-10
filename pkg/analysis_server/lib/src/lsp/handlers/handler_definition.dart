@@ -5,18 +5,21 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide Element;
 import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisGetNavigationParams;
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/plugin/result_merger.dart';
 import 'package:analysis_server/src/protocol_server.dart' show NavigationTarget;
+import 'package:analysis_server/src/utilities/navigation/analysis_options_navigation_computer.dart';
 import 'package:analysis_server/src/utilities/navigation/keyword_navigation_computer.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:analyzer_plugin/src/utilities/navigation/navigation_dart.dart';
@@ -40,6 +43,32 @@ class DefinitionHandler
 
   @override
   bool get requiresTrustedCaller => false;
+
+  Future<AnalysisNavigationParams> getAnalysisOptionsServerResult(
+    String path,
+    int offset,
+  ) async {
+    var collector = NavigationCollectorImpl();
+    var driver = server.getAnalysisDriver(path);
+
+    computeAnalysisOptionsNavigation(
+      server.resourceProvider,
+      collector,
+      driver?.sourceFactory,
+      path,
+      offset,
+      0,
+    );
+
+    collector.createRegions();
+
+    return AnalysisNavigationParams(
+      path,
+      collector.regions,
+      collector.targets,
+      collector.files,
+    );
+  }
 
   Future<List<AnalysisNavigationParams>> getPluginResults(
     String path,
@@ -121,11 +150,16 @@ class DefinitionHandler
     var supportsLocationLink = clientCapabilities.definitionLocationLink;
 
     var pos = params.position;
-    var path = pathOfDoc(params.textDocument);
 
-    return path.mapResult((path) async {
+    return withPath(textDocument: params.textDocument, token, (
+      path,
+      _,
+      checkAbort,
+    ) async {
       // Always prefer a LineInfo from a resolved unit than server.getLineInfo.
       var resolvedUnit = (await requireResolvedUnit(path)).resultOrNull;
+      if (checkAbort() case var reason?) return reason;
+
       var lineInfo = resolvedUnit?.lineInfo ?? server.getLineInfo(path);
 
       // If there is no lineInfo, the request cannot be translated from LSP line/col
@@ -144,9 +178,12 @@ class DefinitionHandler
               path,
               supportsLocationLink,
               offset,
-            ),
+            )
+          else if (file_paths.isAnalysisOptionsYaml(pathContext, path))
+            await getAnalysisOptionsServerResult(path, offset),
           ...await getPluginResults(path, offset),
         ];
+        if (checkAbort() case var reason?) return reason;
 
         var merger = ResultMerger();
         var mergedResults = merger.mergeNavigation(allResults);
@@ -356,8 +393,9 @@ class DefinitionRegistrations extends FeatureRegistration
   new(super.info);
 
   @override
-  ToJsonable? get options =>
-      TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes);
+  ToJsonable? get options => TextDocumentRegistrationOptions(
+    documentSelector: [...fullySupportedTypes, analysisOptionsFile],
+  );
 
   @override
   Method get registrationMethod => Method.textDocument_definition;

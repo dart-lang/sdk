@@ -37,6 +37,10 @@ main() {
   verifyDoubleArray(Float32List(size)..setRange(start, end, jsF32, offset));
   verifyDoubleArray(Float64List(size)..setRange(start, end, jsF64, offset));
 
+  final jsSignedInt8 = Int8List.fromList([-10, -1, 0, 10, 127]).toJS.toDart;
+  final clamped = Uint8ClampedList(5)..setRange(0, 5, jsSignedInt8);
+  Expect.listEquals([0, 0, 0, 10, 127], clamped);
+
   verifyIntViewToView(
     Int8List.new,
     (buffer, byteOffset, length) => Int8List.view(buffer, byteOffset, length),

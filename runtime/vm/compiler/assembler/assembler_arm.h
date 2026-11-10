@@ -723,10 +723,13 @@ class Assembler : public AssemblerBase {
   void vorrq(QRegister qd, QRegister qn, QRegister qm);
   void vornq(QRegister qd, QRegister qn, QRegister qm);
   void vandq(QRegister qd, QRegister qn, QRegister qm);
+  void vbicq(QRegister qd, QRegister qn, QRegister qm);
   void vmvnq(QRegister qd, QRegister qm);
 
   void vcnt(DRegister dd, DRegister dm);
   void vpaddlu(OperandSize sz, DRegister dd, DRegister dm);
+  void vpmaxu(OperandSize sz, DRegister dd, DRegister dn, DRegister dm);
+  void vpminu(OperandSize sz, DRegister dd, DRegister dn, DRegister dm);
 
   void vceqqi(OperandSize sz, QRegister qd, QRegister qn, QRegister qm);
   void vceqqs(QRegister qd, QRegister qn, QRegister qm);
@@ -1636,24 +1639,6 @@ class Assembler : public AssemblerBase {
                         Register end_address,
                         Register temp1,
                         Register temp2);
-
-  void CheckAllocationCanary(Register top, Register tmp = TMP) {
-#if defined(DEBUG)
-    Label okay;
-    ldr(tmp, Address(top, 0));
-    cmp(tmp, Operand(kAllocationCanary));
-    b(&okay, EQUAL);
-    Stop("Allocation canary");
-    Bind(&okay);
-#endif
-  }
-  void WriteAllocationCanary(Register top) {
-#if defined(DEBUG)
-    ASSERT(top != TMP);
-    LoadImmediate(TMP, kAllocationCanary);
-    str(TMP, Address(top, 0));
-#endif
-  }
 
   // Copy [size] bytes from [src] address to [dst] address.
   // [size] should be a multiple of word size.

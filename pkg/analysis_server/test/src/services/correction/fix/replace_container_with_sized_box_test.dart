@@ -18,13 +18,10 @@ void main() {
 @reflectiveTest
 class ReplaceContainedWithSizedBoxMultiTest extends BulkFixProcessorTest {
   @override
-  String get lintCode => LintNames.sized_box_for_whitespace;
+  bool get addFlutterPackageDep => true;
 
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  String get lintCode => LintNames.sized_box_for_whitespace;
 
   Future<void> test_singleFile() async {
     await resolveTestCode('''
@@ -59,18 +56,16 @@ Widget buildRow() {
 }
 
 @reflectiveTest
-class ReplaceContainedWithSizedBoxTest extends FixProcessorLintTest {
+class ReplaceContainedWithSizedBoxTest
+    extends FixProcessorForBuiltInLintRuleTest {
+  @override
+  bool get addFlutterPackageDep => true;
+
   @override
   FixKind get kind => DartFixKind.replaceContainerWithSizedBox;
 
   @override
   String get lintCode => LintNames.sized_box_for_whitespace;
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
 
   Future<void> test_simple() async {
     await resolveTestCode('''

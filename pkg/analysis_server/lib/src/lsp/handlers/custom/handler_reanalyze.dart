@@ -5,11 +5,12 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 
-class ReanalyzeHandler extends LspMessageHandler<void, void> {
+class ReanalyzeHandler extends SharedMessageHandler<void, void> {
   new(super.server);
 
   @override
@@ -19,6 +20,11 @@ class ReanalyzeHandler extends LspMessageHandler<void, void> {
   LspJsonHandler<void> get jsonHandler => nullJsonHandler;
 
   @override
+  // We don't expect anyone other than the editor to trigger full reanalysis,
+  // since it controls the overlays etc.
+  bool get requiresTrustedCaller => true;
+
+  @override
   Future<ErrorOr<void>> handle(
     void params,
     MessageInfo message,
@@ -26,7 +32,7 @@ class ReanalyzeHandler extends LspMessageHandler<void, void> {
   ) async {
     // This command just starts a refresh, it does not wait for it to
     // complete before responding to the client.
-    unawaited(server.reanalyze());
+    unawaited(server.reanalyze(ContextRebuildReasons.reanalyzeRequest));
     return success(null);
   }
 }

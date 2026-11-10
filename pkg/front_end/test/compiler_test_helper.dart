@@ -189,6 +189,7 @@ class TestIncrementalCompiler extends IncrementalCompiler {
 
   @override
   IncrementalKernelTarget createIncrementalKernelTarget(
+    CompilerContext context,
     api.FileSystem fileSystem,
     bool includeComments,
     DillTarget dillTarget,

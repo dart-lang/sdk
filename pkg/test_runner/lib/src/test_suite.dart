@@ -35,17 +35,6 @@ import 'utils.dart';
 
 typedef TestCaseEvent = void Function(TestCase testCase);
 
-typedef CreateTest =
-    void Function(
-      Path filePath,
-      Path originTestPath, {
-      bool? hasSyntaxError,
-      bool? hasCompileError,
-      bool? hasRuntimeError,
-      bool? hasStaticWarning,
-      String? multitestKey,
-    });
-
 typedef VoidFunction = void Function();
 
 /// A TestSuite represents a collection of tests.  It creates a [TestCase]
@@ -213,6 +202,7 @@ abstract class TestSuite {
           Compiler.dart2js,
           Compiler.ddc,
           Compiler.dart2wasm,
+          Compiler.dart2wasmDev,
         }.contains(configuration.compiler)) {
       return true;
     }
@@ -1215,6 +1205,7 @@ class StandardTestSuite extends TestSuite {
   List<List<String>> getVmOptions(TestFile testFile) {
     const compilers = [
       Compiler.dartk,
+      Compiler.dartResident,
       Compiler.dartkp,
       Compiler.appJitk,
       Compiler.dart2bytecode,

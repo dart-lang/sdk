@@ -227,9 +227,9 @@ library lib_a;
 class A {}
 class B extends A {}
 ''');
-    writePackageConfig(convertPath('$packagesRootPath/pkgA'));
+    writePackageConfig2(convertPath('$packagesRootPath/pkgA'));
     // reference the package from a project
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: (PackageConfigFileBuilder()
         ..add(name: 'pkgA', rootFolder: getFolder('$packagesRootPath/pkgA'))),
     );

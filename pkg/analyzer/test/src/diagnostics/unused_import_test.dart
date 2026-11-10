@@ -436,6 +436,76 @@ void f() {}
 ''');
   }
 
+  test_library_prefixed_incomplete_annotation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:math' as math;
+
+@math.
+void f() {}
+// [diag.missingIdentifier][column 1][length 4] Expected an identifier.
+''');
+  }
+
+  test_library_prefixed_incomplete_expression() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:math' as math;
+
+var x = math.;
+//           ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+  }
+
+  test_library_prefixed_incomplete_invocation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:math' as math;
+
+var x = math.(0);
+//           ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+  }
+
+  test_library_prefixed_incomplete_listLiteral() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:math' as math;
+
+var x = math.[0];
+//           ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+  }
+
+  test_library_prefixed_incomplete_otherImportNotUsed() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:async';
+//     ^^^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'dart:async'.
+import 'dart:math' as math;
+
+var x = math.;
+//           ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+  }
+
+  test_library_prefixed_incomplete_samePrefix() async {
+    newFile('$testPackageLibPath/lib1.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/lib2.dart', r'''
+class B {}
+''');
+    await resolveTestCodeWithDiagnostics(r'''
+import 'lib1.dart' as one;
+import 'lib2.dart' as one;
+
+var x = one.;
+//          ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+  }
+
   test_library_prefixed_samePrefix_notUsed() async {
     newFile('$testPackageLibPath/lib1.dart', r'''
 class A {}
@@ -607,6 +677,30 @@ void f() {
     });
   }
 
+  test_part_extension_usedLibraryImport_prefixed() async {
+    newFile('$testPackageLibPath/x.dart', r'''
+extension E on int {
+  void foo() {}
+}
+''');
+
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+import 'x.dart' as x;
+part 'b.dart';
+''',
+      b: r'''
+part of 'a.dart';
+void f() {
+  0.foo();
+}
+''',
+    });
+  }
+
   test_part_extension_usedPartImport() async {
     newFile('$testPackageLibPath/x.dart', r'''
 extension E on int {
@@ -656,6 +750,33 @@ part of 'b.dart';
 void f() {
   0.foo();
 }
+''',
+    });
+  }
+
+  test_part_notUsedLibraryImport_nameOfPartPrefix() async {
+    newFile('$testPackageLibPath/x.dart', r'''
+int get prefix => 0;
+''');
+
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    // To decide whether `prefix` in `b.dart` also gives access to the names
+    // imported with the prefix `prefix` in `a.dart`, we look up `prefix` in
+    // the imports of `a.dart`. We find the getter from `x.dart`, so there is
+    // nothing to inherit. This lookup is not a use of `x.dart`.
+    await resolveFilesWithDiagnostics({
+      a: r'''
+import 'x.dart';
+//     ^^^^^^^^
+// [diag.unusedImport] Unused import: 'x.dart'.
+part 'b.dart';
+''',
+      b: r'''
+part of 'a.dart';
+import 'dart:math' as prefix;
+void f(prefix.Random _) {}
 ''',
     });
   }
@@ -754,6 +875,7 @@ void f(Random _) {}
     await resolveFilesWithDiagnostics({
       a: r'''
 import 'dart:math';
+// [context 1][column 1][length 6] The previous import that is being duplicated.
 //     ^^^^^^^^^^^
 // [diag.unusedImport] Unused import: 'dart:math'.
 part 'b.dart';
@@ -761,6 +883,8 @@ part 'b.dart';
       b: r'''
 part of 'a.dart';
 import 'dart:math';
+//     ^^^^^^^^^^^
+// [diag.duplicateImportInPart][context 1] Duplicate of import in 'a.dart'.
 void f(Random _) {}
 ''',
     });

@@ -17,6 +17,9 @@ void main() {
 
 @reflectiveTest
 class FlutterWidgetPreviewsTest extends LspOverLegacyTest {
+  @override
+  bool get addFlutterPackageDep => true;
+
   Future<FlutterWidgetPreviews?> getFlutterWidgetPreviews(Uri uri) {
     var request = makeRequest(
       CustomMethods.getFlutterWidgetPreviews,
@@ -31,14 +34,6 @@ class FlutterWidgetPreviewsTest extends LspOverLegacyTest {
       null,
     );
     return expectSuccessfulResponseTo(request, FlutterWidgetPreviews.fromJson);
-  }
-
-  @override
-  Future<void> setUp() async {
-    await super.setUp();
-    writeTestPackageConfig(flutter: true);
-    addFlutter();
-    addSkyEngine(sdkPath: sdkRoot.path);
   }
 
   Future<void> test_getFlutterWidgetPreviews() async {

@@ -4,15 +4,12 @@
 
 // VMOptions=--max_deoptimization_counter_threshold=1000 --optimization-counter-threshold=10 --no-background-compilation
 
-// Library tag to be able to run in html test framework.
-library float32x4_unbox_regress_test;
-
 import 'dart:typed_data';
 
 import 'package:expect/expect.dart';
 
 double testUnboxPhi(Float32x4List data) {
-  var res = new Float32x4.zero();
+  var res = Float32x4.zero();
   for (int i = 0; i < data.length; i++) {
     res += data[i];
   }
@@ -20,8 +17,8 @@ double testUnboxPhi(Float32x4List data) {
 }
 
 main() {
-  Float32x4List list = new Float32x4List(10);
-  Float32List floatList = new Float32List.view(list.buffer);
+  Float32x4List list = Float32x4List(10);
+  Float32List floatList = Float32List.view(list.buffer);
   for (int i = 0; i < floatList.length; i++) {
     floatList[i] = i.toDouble();
   }

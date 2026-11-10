@@ -98,5 +98,5 @@ enum ScanType {
 
   final String what;
 
-  const ScanType(this.what);
+  new(this.what);
 }

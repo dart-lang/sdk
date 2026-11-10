@@ -122,6 +122,20 @@ var x = C([D()]);
 ''');
   }
 
+  test_listLiteral_notConstable_undefinedName() async {
+    await assertDiagnostics(
+      r'''
+import 'package:meta/meta.dart';
+@immutable
+class C {
+  const C(List<Object> p);
+}
+var x = C([undefined]);
+''',
+      [error(diag.undefinedUnqualifiedNameReadNotFound, 94, 9)],
+    );
+  }
+
   test_mapLiteral_const() async {
     await assertNoDiagnostics(r'''
 import 'package:meta/meta.dart';

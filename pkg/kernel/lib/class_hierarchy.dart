@@ -36,7 +36,7 @@ abstract class ClassHierarchyBase {
   /// Returns the type arguments of the instantiation of [typeDeclaration] that
   /// is implemented by [type], or `null` if [type] does not implement
   /// [typeDeclaration] at all.
-  List<DartType>? getTypeArgumentsAsInstanceOf(
+  DartTypeList? getTypeArgumentsAsInstanceOf(
     TypeDeclarationType type,
     TypeDeclaration typeDeclaration,
   );
@@ -51,7 +51,7 @@ abstract class ClassHierarchyBase {
   /// Returns the type arguments of the instantiation of [superclass] that is
   /// implemented by [type], or `null` if [type] does not implement [superclass]
   /// at all.
-  List<DartType>? getInterfaceTypeArgumentsAsInstanceOfClass(
+  DartTypeList? getInterfaceTypeArgumentsAsInstanceOfClass(
     InterfaceType type,
     Class superclass,
   );
@@ -73,7 +73,7 @@ abstract class ClassHierarchyBase {
   /// Returns the type arguments of the instantiation of [superDeclaration] that
   /// is implemented by [type], or `null` if [type] does not implement
   /// [superDeclaration] at all.
-  List<DartType>? getExtensionTypeArgumentsAsInstanceOfExtensionTypeDeclaration(
+  DartTypeList? getExtensionTypeArgumentsAsInstanceOfExtensionTypeDeclaration(
     ExtensionType type,
     ExtensionTypeDeclaration superDeclaration,
   );
@@ -81,7 +81,7 @@ abstract class ClassHierarchyBase {
   /// Returns the type arguments of the instantiation of [superDeclaration] that
   /// is implemented by [type], or `null` if [type] does not implement
   /// [superDeclaration] at all.
-  List<DartType>? getExtensionTypeArgumentsAsInstanceOfClass(
+  DartTypeList? getExtensionTypeArgumentsAsInstanceOfClass(
     ExtensionType type,
     Class superclass,
   );
@@ -157,7 +157,7 @@ mixin ClassHierarchyExtensionTypeMixin implements ClassHierarchyBase {
   }
 
   @override
-  List<DartType>? getTypeArgumentsAsInstanceOf(
+  DartTypeList? getTypeArgumentsAsInstanceOf(
     TypeDeclarationType type,
     TypeDeclaration typeDeclaration,
   ) {
@@ -317,7 +317,7 @@ mixin ClassHierarchyExtensionTypeMixin implements ClassHierarchyBase {
   }
 
   @override
-  List<DartType>? getExtensionTypeArgumentsAsInstanceOfExtensionTypeDeclaration(
+  DartTypeList? getExtensionTypeArgumentsAsInstanceOfExtensionTypeDeclaration(
     ExtensionType type,
     ExtensionTypeDeclaration superDeclaration,
   ) {
@@ -328,7 +328,7 @@ mixin ClassHierarchyExtensionTypeMixin implements ClassHierarchyBase {
   }
 
   @override
-  List<DartType>? getExtensionTypeArgumentsAsInstanceOfClass(
+  DartTypeList? getExtensionTypeArgumentsAsInstanceOfClass(
     ExtensionType type,
     Class superclass,
   ) {
@@ -1126,7 +1126,8 @@ class ClosedWorldClassHierarchy
     InterfaceType type,
     Class superclass,
   ) {
-    List<DartType>? typeArguments = getInterfaceTypeArgumentsAsInstanceOfClass(
+    if (type.classReference == superclass.reference) return type;
+    DartTypeList? typeArguments = getInterfaceTypeArgumentsAsInstanceOfClass(
       type,
       superclass,
     );
@@ -1135,7 +1136,7 @@ class ClosedWorldClassHierarchy
   }
 
   @override
-  List<DartType>? getInterfaceTypeArgumentsAsInstanceOfClass(
+  DartTypeList? getInterfaceTypeArgumentsAsInstanceOfClass(
     InterfaceType type,
     Class superclass,
   ) {
@@ -1154,7 +1155,7 @@ class ClosedWorldClassHierarchy
     }
     Supertype? castedType = getClassAsInstanceOf(type.classNode, superclass);
     if (castedType == null) return null;
-    if (superclass.typeParameters.isEmpty) return const <DartType>[];
+    if (superclass.typeParameters.isEmpty) return DartTypeList.empty;
     return Substitution.fromInterfaceType(type)
         .substituteSupertype(castedType)
         .typeArguments;

@@ -130,7 +130,7 @@ const LinterLintWithoutArguments alwaysSpecifyTypesSplitToTypes =
       name: 'always_specify_types',
       problemMessage: "Missing type annotation.",
       correctionMessage:
-          "Try splitting the declaration and specify the different type "
+          "Try splitting the declaration and specifying the different type "
           "annotations.",
       uniqueName: 'always_specify_types_split_to_types',
       expectedTypes: [],
@@ -310,6 +310,33 @@ const LinterLintWithoutArguments analyzerPublicApiImplInPublicApi =
       uniqueName: 'analyzer_public_api_impl_in_public_api',
       expectedTypes: [],
     );
+
+/// Lint issued if an element annotated with `@V1Ast` is used from
+/// a declaration that is not itself annotated with `@V1Ast`.
+///
+/// `@V1Ast` marks the V1 AST API, which remains supported for clients, but
+/// should be used by the analyzer only to implement other V1 AST API, like
+/// `@Deprecated` with `deprecated_member_use_from_same_package`.
+///
+/// Parameters:
+/// String name: the name of the used element
+/// String details: the message of the `@V1Ast` annotation, preceded by a
+///                 space; or empty if there is no message
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required String details})
+>
+analyzerV1AstUse = LinterLintTemplate(
+  name: 'analyzer_v1_ast_use',
+  problemMessage:
+      "'{0}' is part of the V1 AST API, and should be used only from other V1 "
+      "AST API.{1}",
+  correctionMessage:
+      "Try using the V2 counterpart, or annotating the enclosing declaration "
+      "with '@V1Ast'.",
+  uniqueName: 'analyzer_v1_ast_use',
+  withArguments: _withArgumentsAnalyzerV1AstUse,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
 
 /// Parameters:
 /// Object p0: undocumented
@@ -502,16 +529,16 @@ avoidEscapingInnerQuotes = LinterLintTemplate(
 );
 
 /// No parameters.
-const LinterLintWithoutArguments avoidFieldInitializersInConstClasses =
-    LinterLintWithoutArguments(
-      name: 'avoid_field_initializers_in_const_classes',
-      problemMessage: "Fields in 'const' classes should not have initializers.",
-      correctionMessage:
-          "Try converting the field to a getter or initialize the field in the "
-          "constructors.",
-      uniqueName: 'avoid_field_initializers_in_const_classes',
-      expectedTypes: [],
-    );
+const LinterLintWithoutArguments
+avoidFieldInitializersInConstClasses = LinterLintWithoutArguments(
+  name: 'avoid_field_initializers_in_const_classes',
+  problemMessage: "Fields in 'const' classes should not have initializers.",
+  correctionMessage:
+      "Try converting the field to a getter or initializing the field in the "
+      "constructors.",
+  uniqueName: 'avoid_field_initializers_in_const_classes',
+  expectedTypes: [],
+);
 
 /// No parameters.
 const LinterLintWithoutArguments avoidFinalParameters =
@@ -1254,12 +1281,23 @@ directivesOrderingPackageBeforeRelative = LinterLintTemplate(
 );
 
 /// No parameters.
+const LinterLintWithoutArguments discardedFutureOr = LinterLintWithoutArguments(
+  name: 'discarded_futures',
+  problemMessage: "'FutureOr'-returning calls in a non-'async' function.",
+  correctionMessage:
+      "Try making the enclosing function 'async' and awaiting the "
+      "expression.",
+  uniqueName: 'discarded_future_or',
+  expectedTypes: [],
+);
+
+/// No parameters.
 const LinterLintWithoutArguments discardedFutures = LinterLintWithoutArguments(
   name: 'discarded_futures',
   problemMessage: "'Future'-returning calls in a non-'async' function.",
   correctionMessage:
-      "Try converting the enclosing function to be 'async' and then 'await' "
-      "the future, or wrap the expression in 'unawaited'.",
+      "Try either making the enclosing function 'async' and awaiting the "
+      "expression or wrapping the expression in 'unawaited'.",
   uniqueName: 'discarded_futures',
   expectedTypes: [],
 );
@@ -1350,6 +1388,7 @@ const LinterLintWithoutArguments eolAtEndOfFileMissing =
       name: 'eol_at_end_of_file',
       problemMessage: "Missing a newline at the end of the file.",
       correctionMessage: "Try adding a newline at the end of the file.",
+      hasPublishedDocs: true,
       uniqueName: 'eol_at_end_of_file_missing',
       expectedTypes: [],
     );
@@ -1361,6 +1400,7 @@ const LinterLintWithoutArguments eolAtEndOfFileTooMany =
       problemMessage: "Too many newlines at the end of the file.",
       correctionMessage:
           "Try removing the extra newlines at the end of the file.",
+      hasPublishedDocs: true,
       uniqueName: 'eol_at_end_of_file_too_many',
       expectedTypes: [],
     );
@@ -1575,6 +1615,28 @@ invalidRuntimeCheckWithJsInteropTypesDartIsJs = LinterLintTemplate(
       "a JS interop type.",
   uniqueName: 'invalid_runtime_check_with_js_interop_types_dart_is_js',
   withArguments: _withArgumentsInvalidRuntimeCheckWithJsInteropTypesDartIsJs,
+  expectedTypes: [ExpectedType.object, ExpectedType.object],
+);
+
+/// Parameters:
+/// Object p0: undocumented
+/// Object p1: undocumented
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required Object p0, required Object p1})
+>
+invalidRuntimeCheckWithJsInteropTypesJsAndDartJs = LinterLintTemplate(
+  name: 'invalid_runtime_check_with_js_interop_types',
+  problemMessage:
+      "Runtime check or cast between '{0}' and '{1}' involves both a "
+      "'dart:js_interop' type and a 'dart:js' type, which are unrelated. "
+      "'dart:js' types are Dart wrappers around JS values and aren't JS "
+      "values themselves.",
+  correctionMessage:
+      "Try using 'JsObject.fromBrowserObject' to convert a 'dart:js_interop' "
+      "value to a 'dart:js' value, or the 'rawJSObject' member on 'JsObject' "
+      "to convert a 'dart:js' value to a 'dart:js_interop' value.",
+  uniqueName: 'invalid_runtime_check_with_js_interop_types_js_and_dart_js',
+  withArguments: _withArgumentsInvalidRuntimeCheckWithJsInteropTypesJsAndDartJs,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
 
@@ -1814,7 +1876,7 @@ const DiagnosticWithArguments<
 matchingSuperParameters = LinterLintTemplate(
   name: 'matching_super_parameters',
   problemMessage:
-      "The super parameter named '{0}'' does not share the same name as the "
+      "The super parameter named '{0}' does not share the same name as the "
       "corresponding parameter in the super constructor, '{1}'.",
   correctionMessage:
       "Try using the name of the corresponding parameter in the super "
@@ -1971,15 +2033,15 @@ noLeadingUnderscoresForLocalIdentifiersShadowed = LinterLintTemplate(
 );
 
 /// No parameters.
-const LinterLintWithoutArguments noLiteralBoolComparisons =
-    LinterLintWithoutArguments(
-      name: 'no_literal_bool_comparisons',
-      problemMessage: "Unnecessary comparison to a boolean literal.",
-      correctionMessage:
-          "Remove the comparison and use the negate `!` operator if necessary.",
-      uniqueName: 'no_literal_bool_comparisons',
-      expectedTypes: [],
-    );
+const LinterLintWithoutArguments
+noLiteralBoolComparisons = LinterLintWithoutArguments(
+  name: 'no_literal_bool_comparisons',
+  problemMessage: "Unnecessary comparison to a boolean literal.",
+  correctionMessage:
+      "Remove the comparison and use the negation operator `!` if necessary.",
+  uniqueName: 'no_literal_bool_comparisons',
+  expectedTypes: [],
+);
 
 /// No parameters.
 const LinterLintWithoutArguments noLogicInCreateState =
@@ -2103,7 +2165,8 @@ nullCheckOnNullableTypeParameter = LinterLintWithoutArguments(
 /// No parameters.
 const LinterLintWithoutArguments nullClosures = LinterLintWithoutArguments(
   name: 'null_closures',
-  problemMessage: "Closure can't be 'null' because it might be invoked.",
+  problemMessage:
+      "Don't pass 'null' as an argument where a closure is expected.",
   correctionMessage: "Try providing a non-null closure.",
   uniqueName: 'null_closures',
   expectedTypes: [],
@@ -2586,7 +2649,8 @@ preferInitializingFormals = LinterLintTemplate(
   problemMessage:
       "Use an initializing formal to assign a parameter to a field.",
   correctionMessage:
-      "Try using an initialing formal ('this.{0}') to initialize the field.",
+      "Try using an initializing formal ('this.{0}') to initialize the "
+      "field.",
   hasPublishedDocs: true,
   uniqueName: 'prefer_initializing_formals',
   withArguments: _withArgumentsPreferInitializingFormals,
@@ -3080,7 +3144,7 @@ const LinterLintWithoutArguments strictTopLevelInferenceSplitToTypes =
       name: 'strict_top_level_inference',
       problemMessage: "Missing type annotation.",
       correctionMessage:
-          "Try splitting the declaration and specify the different type "
+          "Try splitting the declaration and specifying the different type "
           "annotations.",
       uniqueName: 'strict_top_level_inference_split_to_types',
       expectedTypes: [],
@@ -3126,7 +3190,7 @@ const DiagnosticWithArguments<
 >
 throwInFinally = LinterLintTemplate(
   name: 'throw_in_finally',
-  problemMessage: "Use of '{0}' in 'finally' block.",
+  problemMessage: "Use of '{0}' in a 'finally' block.",
   correctionMessage: "Try moving the '{0}' outside the 'finally' block.",
   hasPublishedDocs: true,
   uniqueName: 'throw_in_finally',
@@ -3179,12 +3243,24 @@ const LinterLintWithoutArguments typeLiteralInConstantPattern =
     );
 
 /// No parameters.
+const LinterLintWithoutArguments unawaitedFutureOr = LinterLintWithoutArguments(
+  name: 'unawaited_futures',
+  problemMessage:
+      "Missing an 'await' for the 'FutureOr' computed by this expression.",
+  correctionMessage: "Try adding an 'await'.",
+  hasPublishedDocs: true,
+  uniqueName: 'unawaited_future_or',
+  expectedTypes: [],
+);
+
+/// No parameters.
 const LinterLintWithoutArguments unawaitedFutures = LinterLintWithoutArguments(
   name: 'unawaited_futures',
   problemMessage:
       "Missing an 'await' for the 'Future' computed by this expression.",
   correctionMessage:
-      "Try adding an 'await' or wrapping the expression with 'unawaited'.",
+      "Try adding an 'await' or wrapping the expression with 'unawaited' (if "
+      "it is a 'Future').",
   hasPublishedDocs: true,
   uniqueName: 'unawaited_futures',
   expectedTypes: [],
@@ -3583,6 +3659,7 @@ const LinterLintWithoutArguments unnecessaryThisAlias =
       name: 'unnecessary_this_alias',
       problemMessage: "Unnecessary 'this' alias.",
       correctionMessage: "Try removing the variable and using 'this' directly.",
+      hasPublishedDocs: true,
       uniqueName: 'unnecessary_this_alias',
       expectedTypes: [],
     );
@@ -3881,7 +3958,7 @@ const LinterLintWithoutArguments useLateForPrivateFieldsAndVariables =
       name: 'use_late_for_private_fields_and_variables',
       problemMessage:
           "Use 'late' for private members with a non-nullable type.",
-      correctionMessage: "Try making adding the modifier 'late'.",
+      correctionMessage: "Try adding the 'late' modifier.",
       hasPublishedDocs: true,
       uniqueName: 'use_late_for_private_fields_and_variables',
       expectedTypes: [],
@@ -3988,8 +4065,8 @@ const DiagnosticWithArguments<
 >
 useSuperParametersMultiple = LinterLintTemplate(
   name: 'use_super_parameters',
-  problemMessage: "Parameters '{0}' could be super parameters.",
-  correctionMessage: "Trying converting '{0}' to super parameters.",
+  problemMessage: "Parameters {0} could be super parameters.",
+  correctionMessage: "Try converting {0} to super parameters.",
   hasPublishedDocs: true,
   uniqueName: 'use_super_parameters_multiple',
   withArguments: _withArgumentsUseSuperParametersMultiple,
@@ -4004,7 +4081,7 @@ const DiagnosticWithArguments<
 useSuperParametersSingle = LinterLintTemplate(
   name: 'use_super_parameters',
   problemMessage: "Parameter '{0}' could be a super parameter.",
-  correctionMessage: "Trying converting '{0}' to a super parameter.",
+  correctionMessage: "Try converting '{0}' to a super parameter.",
   hasPublishedDocs: true,
   uniqueName: 'use_super_parameters_single',
   withArguments: _withArgumentsUseSuperParametersSingle,
@@ -4146,6 +4223,13 @@ LocatableDiagnostic _withArgumentsAnalyzerPublicApiExportsNonPublicName({
   return LocatableDiagnosticImpl(diag.analyzerPublicApiExportsNonPublicName, [
     elements,
   ]);
+}
+
+LocatableDiagnostic _withArgumentsAnalyzerV1AstUse({
+  required String name,
+  required String details,
+}) {
+  return LocatableDiagnosticImpl(diag.analyzerV1AstUse, [name, details]);
 }
 
 LocatableDiagnostic _withArgumentsAnnotateOverrides({required Object p0}) {
@@ -4361,6 +4445,17 @@ _withArgumentsInvalidRuntimeCheckWithJsInteropTypesDartIsJs({
 }) {
   return LocatableDiagnosticImpl(
     diag.invalidRuntimeCheckWithJsInteropTypesDartIsJs,
+    [p0, p1],
+  );
+}
+
+LocatableDiagnostic
+_withArgumentsInvalidRuntimeCheckWithJsInteropTypesJsAndDartJs({
+  required Object p0,
+  required Object p1,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.invalidRuntimeCheckWithJsInteropTypesJsAndDartJs,
     [p0, p1],
   );
 }

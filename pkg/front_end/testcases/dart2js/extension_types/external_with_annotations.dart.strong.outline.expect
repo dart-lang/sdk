@@ -145,7 +145,7 @@ static extension-type-member method B|get#genericMethod(lowered final self::B /*
 static extension-type-member method B|get#methodWithOptionalArgument(lowered final self::B /* erasure=_interceptors::JSObject */ #this) → ([self::B? /* erasure=_interceptors::JSObject? */]) → self::B /* erasure=_interceptors::JSObject */
   return ([self::B? /* erasure=_interceptors::JSObject? */ b]) → self::B /* erasure=_interceptors::JSObject */ => self::B|methodWithOptionalArgument(#this, b);
 @self::annotation
-external static extension-type-member method B|methodWithOptionalArgument(lowered final self::B /* erasure=_interceptors::JSObject */ #this, [self::B? /* erasure=_interceptors::JSObject? */ b]) → self::B /* erasure=_interceptors::JSObject */;
+external static extension-type-member method B|methodWithOptionalArgument(lowered final self::B /* erasure=_interceptors::JSObject */ #this, [self::B? /* erasure=_interceptors::JSObject? */ b = null]) → self::B /* erasure=_interceptors::JSObject */;
 @self::annotation
 external static extension-type-member method B|get#getter(lowered final self::B /* erasure=_interceptors::JSObject */ #this) → self::B /* erasure=_interceptors::JSObject */;
 @self::annotation

@@ -34,6 +34,28 @@ int f(A a) => a();
 ''');
   }
 
+  test_cascadePropertyAssignment_compound() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class C {}
+
+extension E1 on C {
+  int get foo => 0;
+  set foo(int value) {}
+}
+
+extension E2 on C {
+  int get foo => 0;
+  set foo(int value) {}
+}
+
+void f(C x) {
+  x..foo += 1;
+//   ^^^
+// [diag.ambiguousExtensionMemberAccessTwo] A member named 'foo' is defined in 'extension E1 on C' and 'extension E2 on C', and neither is more specific.
+}
+''');
+  }
+
   test_getter_getter() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 extension E1 on int {
@@ -58,11 +80,9 @@ ReceiverPropertyExtraction
     literal: 0
     staticType: int
   operator: .
-  propertyName: a
+  name: a
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-    recovery: <null>
+    recoveryElement: <null>
   staticType: InvalidType
 V1: PropertyAccess
   target: IntegerLiteral
@@ -99,10 +119,9 @@ ReceiverPropertyExtraction
     literal: 0
     staticType: int
   operator: .
-  propertyName: a
+  name: a
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extension::E1::@getter::a
-    invokeType: void Function()
     type: void
   staticType: void
 V1: PropertyAccess
@@ -142,11 +161,9 @@ ReceiverPropertyExtraction
     literal: 0
     staticType: int
   operator: .
-  propertyName: a
+  name: a
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-    recovery: <null>
+    recoveryElement: <null>
   staticType: InvalidType
 V1: PropertyAccess
   target: IntegerLiteral
@@ -185,11 +202,9 @@ ReceiverPropertyExtraction
     literal: 0
     staticType: int
   operator: .
-  propertyName: a
+  name: a
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-    recovery: <null>
+    recoveryElement: <null>
   staticType: InvalidType
 V1: PropertyAccess
   target: IntegerLiteral
@@ -316,10 +331,23 @@ f() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('0.a()');
+    var node = result.findNode.receiverMethodInvocation('0.a()');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: IntegerLiteral
+ReceiverMethodInvocation
+  receiver: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: .
+  name: a
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: IntegerLiteral
     literal: 0
     staticType: int
   operator: .
@@ -540,9 +568,25 @@ f() {
 }
 ''');
 
-    var node = result.findNode.assignment('= 3');
+    var node = result.findNode.directAssignment('= 3');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: IntegerLiteral
+      literal: 0
+      staticType: int
+    operator: .
+    name: a
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: =
+  value: IntegerLiteral
+    literal: 3
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: IntegerLiteral
       literal: 0

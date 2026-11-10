@@ -250,7 +250,10 @@ final class Isolate {
   ///
   /// The [debugName] is only used to name the new isolate for debugging.
   @Since("2.19")
-  static Future<R> run<R>(FutureOr<R> computation(), {String? debugName}) {
+  static Future<R> run<R>(
+    FutureOr<R> Function() computation, {
+    String? debugName,
+  }) {
     var result = Completer<R>();
     var resultPort = RawReceivePort();
     resultPort.handler = (response) {
@@ -456,7 +459,7 @@ final class Isolate {
   /// One can expect the base memory overhead of an isolate to be in the order
   /// of 30 kb.
   external static Future<Isolate> spawn<T>(
-    void entryPoint(T message),
+    void Function(T message) entryPoint,
     T message, {
     bool paused = false,
     bool errorsAreFatal = true,
@@ -832,124 +835,6 @@ final class Isolate {
   /// receiving isolate will in most cases be able to receive the message
   /// in constant time.
   external static Never exit([SendPort? finalMessagePort, Object? message]);
-
-  /// Execute the given function in the context of the given isolate.
-  ///
-  /// This function will throw if target isolate is running.
-  ///
-  /// Throws an error if target isolate is pinned to another thread and
-  /// thus can't be entered from this thread. See [pinToCurrentThread] and
-  /// [isPinnedToCurrentThread].
-  ///
-  /// Throws an error if the target isolate belongs to another isolate group.
-  ///
-  /// Throws an error if [f] is not deeply immutable.
-  ///
-  /// Throws an error if result returned by [f] is not deeply immutable.
-  @Since("3.13")
-  external R runSync<R>(R Function() f);
-
-  /// Create a new isolate in the current isolate group.
-  ///
-  /// Similar to `Dart_CreateIsolateInGroup` Dart VM C API.
-  ///
-  /// The isolate has been created, but its event loop is not running.
-  ///
-  /// To start processing isolate's messages:
-  ///
-  /// * start isolate's event loop synchronously on the current thread
-  ///   by calling [Isolate.runEventLoopSync]
-  /// * integrate isolate's event loop with an external event loop by
-  ///   registering event callback ([Isolate.onEvent]) to forward
-  ///   event notifications to an external event loop and then draining
-  ///   pending events ([Isolate.handleEvent]) from that event loop.
-  @Since("3.13")
-  external static Isolate create({String? debugName});
-
-  /// Shut down target isolate.
-  ///
-  /// Shutting down the isolate stops its event loop without processing
-  /// any pending messages and closes all open receive ports owned by the
-  /// isolate.
-  ///
-  /// This function will block until it acquires exclusive access to the
-  /// target isolate. Isolate can only be entered for synchronous execution
-  /// between turns of its event loop, when no other thread is
-  /// executing code in the target isolate.
-  @Since("3.13")
-  external void shutdownSync();
-
-  /// Pin current isolate to the current OS thread.
-  ///
-  /// Once an isolate is pinned to an OS thread it cannot be
-  /// entered by any other OS thread. An attempt to acquire
-  /// exclusive access to it from another thread will fail with
-  /// an error.
-  ///
-  /// Equivalent to `Dart_SetCurrentThreadOwnsIsolate` Dart VM C API.
-  ///
-  /// Returns `true` on success and `false` otherwise (e.g. if target isolate
-  /// is already pinned to another thread).
-  @Since("3.13")
-  external static bool pinToCurrentThread();
-
-  /// Whether the isolate is pinned to the current OS thread.
-  ///
-  /// Equivalent to `Dart_GetCurrentThreadOwnsIsolate` Dart VM C API.
-  @Since("3.13")
-  external bool get isPinnedToCurrentThread;
-
-  /// Run event loop for the target isolate synchronously on the current thread.
-  ///
-  /// This function will block until it acquires exclusive access to the
-  /// target isolate. Isolate can only be entered for synchronous execution
-  /// between turns of its event loop, when no other thread is
-  /// executing code in the target isolate.
-  ///
-  /// This function will return once the isolate has no open keep-alive
-  /// receive ports.
-  ///
-  /// The isolate will be marked as pinned to the current thread.
-  ///
-  /// Similar to `Dart_RunLoop` Dart VM C API, but unlike `Dart_RunLoop` this
-  /// function executes isolate's event loop on the current thread instead
-  /// of delegating it into the thread-pool.
-  ///
-  /// Throws an error if target isolate is pinned to another thread or already
-  /// has an event loop running.
-  @Since("3.13")
-  external void runEventLoopSync();
-
-  /// Event notify callback for the isolate.
-  ///
-  /// Provided callback will be called once for every new event which isolate
-  /// needs to react to. Pending events can be then later be drained
-  /// by calling [Isolate.handleEvent].
-  ///
-  /// Provided [callback] must be deeply immutable and will be called
-  /// on an arbitrary thread and not necessarily within any isolate. See
-  /// [NativeCallable.isolateGroupBound].
-  ///
-  /// IMPORTANT: [Isolate.handleEvent] *MUST NOT* be called from the
-  /// `callback` as this will cause a dead-locks of the Dart execution
-  /// environment.
-  ///
-  /// Similar to `Dart_SetMessageNotifyCallback` Dart VM C API.
-  @Since("3.13")
-  external void set onEvent(void Function(Isolate) callback);
-
-  /// Handle at most one pending event for the isolate.
-  ///
-  /// This function does nothing if there are no pending events.
-  ///
-  /// This function will block until it acquires exclusive access to the
-  /// target isolate. Isolate can only be entered for synchronous execution
-  /// between turns of its event loop, when no other thread is
-  /// executing code in the target isolate.
-  ///
-  /// Similar to `Dart_HandleMessage` Dart VM C API.
-  @Since("3.13")
-  external void handleEvent();
 }
 
 /// Sends messages to its [ReceivePort]s.
@@ -1003,8 +888,27 @@ abstract interface class SendPort implements Capability {
   ///   - `MirrorReference`
   ///
   /// Instances of classes that either themselves are marked with
-  /// `@pragma('vm:isolate-unsendable')`, extend or implement such classes
-  /// cannot be sent through the ports.
+  /// `@pragma('vm:isolate-unsendable')`, or are subtypes of such classes
+  /// (through `extends`, `with`, `implements` or mixin `on` clauses), cannot
+  /// be sent through the ports, unless they are constants (see below).
+  /// This includes the following `dart:async` classes and their subtypes:
+  ///
+  ///   - [Completer]
+  ///   - [Future]
+  ///   - [Stream]
+  ///   - [Timer]
+  ///   - [Zone]
+  ///
+  /// Constant objects can always be sent between isolates that share code,
+  /// regardless of their type. Constants are shared rather than copied, so
+  /// the restrictions above do not apply to them. This includes constant
+  /// instances of classes that are marked as unsendable, and of their
+  /// subtypes. For example, [Zone.root] is a constant and can be sent,
+  /// while any other zone, such as one created by [runZoned],
+  /// [runZonedGuarded] or [Zone.fork], cannot. As a result, an object that
+  /// stores [Zone.current] can be sent if it was created in the root zone,
+  /// but not if it was created inside a custom zone (for example, inside a
+  /// `package:test` test body).
   ///
   /// Apart from those exceptions any object can be sent. Objects that are
   /// identified as immutable (e.g. strings) will be shared whereas all other
@@ -1073,9 +977,9 @@ abstract interface class ReceivePort implements Stream<dynamic> {
   /// The [onDone] handler will be called when the stream closes.
   /// The stream closes when [close] is called.
   StreamSubscription<dynamic> listen(
-    void onData(message)?, {
+    void Function(dynamic message)? onData, {
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool? cancelOnError,
   });
 

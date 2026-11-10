@@ -4,7 +4,8 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart' hide MessageType;
+import 'package:analysis_server/src/analysis_server.dart' show MessageType;
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
@@ -26,6 +27,7 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
+import 'package:analyzer_testing/configuration_files_mixin.dart';
 import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
@@ -43,7 +45,6 @@ import '../mocks.dart';
 import '../mocks_lsp.dart';
 import '../shared/mixins/analytics_test_mixin.dart';
 import '../shared/shared_test_interface.dart';
-import '../support/configuration_files.dart';
 import '../utils/message_scheduler_test_view.dart';
 import 'request_helpers_mixin.dart';
 
@@ -125,7 +126,7 @@ abstract class AbstractLspAnalysisServerTest
       'c',
       server.notificationManager,
       server.instrumentationService,
-      server.sessionLogger,
+      server.sessionListener,
       isLegacy: true,
     );
     pluginManager.pluginIsolates.add(pluginIsolate);
@@ -197,6 +198,39 @@ abstract class AbstractLspAnalysisServerTest
     } catch (_) {
       return null;
     }
+  }
+
+  /// Invokes [f] and response to an LSP user prompt
+  /// (`window/showMessageRequest`) from the server.
+  ///
+  /// [respond] is invoked with the prompt details and should return the label
+  /// of the action choose, or `null` to dismiss/cancel the prompt without
+  /// providing an answer.
+  Future<T> handleUserPrompt<T>(
+    Future<T> Function() f,
+    String? Function({
+      required MessageType type,
+      required String message,
+      required List<String> actions,
+    })
+    respond,
+  ) {
+    return handleExpectedRequest(
+      Method.window_showMessageRequest,
+      ShowMessageRequestParams.fromJson,
+      f,
+      handler: (ShowMessageRequestParams params) async {
+        var action = respond(
+          type: MessageType.fromLsp(params.type),
+          message: params.message,
+          actions: [
+            for (var action in params.actions ?? const <MessageActionItem>[])
+              action.title,
+          ],
+        );
+        return action == null ? null : MessageActionItem(title: action);
+      },
+    );
   }
 
   @override
@@ -312,7 +346,7 @@ abstract class AbstractLspAnalysisServerTest
       ),
     );
 
-    writeTestPackageConfig();
+    writeTestPackageConfig2();
   }
 
   Future<void> tearDown() async {
@@ -497,6 +531,12 @@ mixin ClientCapabilitiesHelperMixin {
 
   void setClientSupportedCommands(List<String>? supportedCommands) {
     experimentalCapabilities['commands'] = supportedCommands;
+  }
+
+  void setClosingLabelsSupport([bool supported = true]) {
+    // This is defined as an object for potential future configurability. It
+    // just has to be non-null to enable the feature.
+    experimentalCapabilities['closingLabels'] = {};
   }
 
   void setCompletionItemDeprecatedFlagSupport() {
@@ -1204,26 +1244,6 @@ mixin LspAnalysisServerTestMixin
     );
   }
 
-  RequestMessage makeRenameRequest(
-    int? version,
-    Uri uri,
-    Position pos,
-    String newName,
-  ) {
-    var docIdentifier = version != null
-        ? VersionedTextDocumentIdentifier(version: version, uri: uri)
-        : TextDocumentIdentifier(uri: uri);
-    var request = makeRequest(
-      Method.textDocument_rename,
-      RenameParams(
-        newName: newName,
-        textDocument: docIdentifier,
-        position: pos,
-      ),
-    );
-    return request;
-  }
-
   /// Watches for `client/registerCapability` requests and updates
   /// `registrations`.
   Future<T> monitorDynamicRegistrations<T>(
@@ -1304,9 +1324,8 @@ mixin LspAnalysisServerTestMixin
     FutureOr<Map<String, Object?>> globalConfig, {
     FutureOr<Map<String, Map<String, Object?>>>? folderConfig,
   }) {
-    var self = this;
-    if (self is AbstractLspAnalysisServerTest) {
-      self.setConfigurationSupport();
+    if (this is AbstractLspAnalysisServerTest) {
+      setConfigurationSupport();
     }
     return handleExpectedRequest<
       T,
@@ -1375,26 +1394,6 @@ mixin LspAnalysisServerTestMixin
       start: positionFromOffset(offset, content),
       end: positionFromOffset(end, content),
     );
-  }
-
-  Future<WorkspaceEdit?> rename(
-    Uri uri,
-    int? version,
-    Position pos,
-    String newName,
-  ) {
-    var request = makeRenameRequest(version, uri, pos, newName);
-    return expectSuccessfulResponseTo(request, WorkspaceEdit.fromJson);
-  }
-
-  Future<ResponseMessage> renameRaw(
-    Uri uri,
-    int version,
-    Position pos,
-    String newName,
-  ) {
-    var request = makeRenameRequest(version, uri, pos, newName);
-    return sendRequestToServer(request);
   }
 
   Future<void> replaceFile(int newVersion, Uri uri, String content) {

@@ -583,7 +583,7 @@ class _TestServerPlugin extends MockServerPlugin {
   })?
   analyzeFileHandler;
 
-  _TestServerPlugin(super.resourceProvider);
+  new(super.resourceProvider);
 
   @override
   Future<void> afterNewContextCollection({

@@ -1,0 +1,43 @@
+# Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Test that cycle in libraries doesn't crash.
+
+type: newworld
+worlds:
+  - entry: a.dart
+    sources:
+      a.dart: |
+        import "b.dart";
+        void main() {
+          fromB();
+        }
+        void fromA() {}
+      b.dart: |
+        import "c.dart";
+        void fromB() {
+          return fromC();
+        }
+      c.dart: |
+        import "a.dart";
+        void fromC() {
+          return fromA();
+        }
+    expectedLibraryCount: 3
+
+  - entry: a.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - a.dart
+    sources:
+      a.dart: |
+        import "b.dart";
+        void main() {
+          fromB();
+          print("done");
+        }
+        void fromA() {}
+    expectedLibraryCount: 3
+    advancedInvalidation: bodiesOnly

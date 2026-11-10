@@ -426,4 +426,22 @@ Future<int?> f(int? x) async => x == null ? null : Future.value(x);
 Future<int?>? f() async => null;
 ''');
   }
+
+  test_topLevelGetter_async_returnFuture() async {
+    await assertDiagnosticsFromMarkup(r'''
+Future<int> get value [!async!] => Future.value(0);
+''');
+  }
+
+  test_topLevelGetter_async_returnValue() async {
+    await assertNoDiagnostics(r'''
+Future<int> get value async => 0;
+''');
+  }
+
+  test_topLevelGetter_sync() async {
+    await assertNoDiagnostics(r'''
+int get value => 0;
+''');
+  }
 }

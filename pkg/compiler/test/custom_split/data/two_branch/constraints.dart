@@ -5,6 +5,7 @@
 import 'dart:isolate';
 
 import 'package:compiler/src/deferred_load/program_split_constraints/nodes.dart';
+
 import '../../constraint_harness.dart';
 
 void main(List<String> args, SendPort sendPort) {

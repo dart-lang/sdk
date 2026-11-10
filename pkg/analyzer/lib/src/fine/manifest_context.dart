@@ -6,6 +6,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/binary/binary_reader.dart';
 import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/fine/library_manifest_ids.dart';
 import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
 import 'package:analyzer/src/fine/manifest_item.dart';
@@ -18,7 +20,26 @@ class EncodeContext {
   final Map<TypeParameterElement, int> _typeParameters = Map.identity();
   final Map<FormalParameterElement, int> _formalParameters = Map.identity();
 
-  EncodeContext({required this.elementFactory});
+  /// The encodings of unqualified name annotations, keyed by the element.
+  final Map<Element, ManifestAnnotation> _unqualifiedNameAnnotations =
+      Map.identity();
+
+  new({required this.elementFactory});
+
+  /// Returns the encoding of an annotation that is just the unqualified name
+  /// of [element], like `@override`, computed by [encode] once per context.
+  ///
+  /// The encoding depends only on [element], except for type and formal
+  /// parameters, which are encoded relative to their declarations.
+  ManifestAnnotation encodeUnqualifiedNameAnnotation(
+    Element element,
+    ManifestAnnotation Function() encode,
+  ) {
+    if (element is TypeParameterElement || element is FormalParameterElement) {
+      return encode();
+    }
+    return _unqualifiedNameAnnotations[element] ??= encode();
+  }
 
   /// Returns the id of [element], or `null` if from this bundle.
   ManifestItemId? getElementId(Element element) {
@@ -119,7 +140,7 @@ final class ManifestElement {
   /// The id of the element, if not from the same bundle.
   final ManifestItemId? id;
 
-  ManifestElement({
+  new({
     required this.libraryUri,
     required this.kind,
     required this.topLevelName,
@@ -127,7 +148,7 @@ final class ManifestElement {
     required this.id,
   });
 
-  factory ManifestElement.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return ManifestElement(
       libraryUri: reader.readUri(),
       kind: reader.readEnum(ManifestElementKind.values),
@@ -153,16 +174,16 @@ final class ManifestElement {
   /// If [element] matches this description, records the reference and id.
   /// If not, returns `false`, it is a mismatch anyway.
   bool match(MatchContext context, Element element) {
-    var enclosingElement = element.enclosingElement!;
     Element givenTopLevelElement;
     Element? givenMemberElement;
-    if (enclosingElement is LibraryElement) {
+    var manifestEnclosingElement = element.manifestEnclosingElement;
+    if (manifestEnclosingElement is LibraryElement) {
       givenTopLevelElement = element;
     } else {
-      givenTopLevelElement = enclosingElement;
+      givenTopLevelElement = manifestEnclosingElement;
       givenMemberElement = element;
     }
-    var givenLibraryUri = enclosingElement.library!.uri;
+    var givenLibraryUri = manifestEnclosingElement.library!.uri;
 
     if (givenLibraryUri != libraryUri) {
       return false;
@@ -195,11 +216,11 @@ final class ManifestElement {
   static ManifestElement encode(EncodeContext context, Element element) {
     Element topLevelElement;
     Element? memberElement;
-    var enclosingElement = element.enclosingElement!;
-    if (enclosingElement is LibraryElement) {
+    var manifestEnclosingElement = element.manifestEnclosingElement;
+    if (manifestEnclosingElement is LibraryElement) {
       topLevelElement = element;
     } else {
-      topLevelElement = enclosingElement;
+      topLevelElement = manifestEnclosingElement;
       assert(topLevelElement.enclosingElement is LibraryElement);
       memberElement = element;
     }
@@ -300,7 +321,7 @@ class MatchContext {
   final Map<TypeParameterElement, int> _typeParameters = Map.identity();
   final Map<FormalParameterElement, int> _formalParameters = Map.identity();
 
-  MatchContext({required this.parent});
+  new({required this.parent});
 
   /// Any referenced elements, from this bundle or not.
   List<Element> get elementList => elements.toList(growable: false);
@@ -376,15 +397,30 @@ class MatchContext {
   }
 }
 
+extension on Element {
+  /// The enclosing element of this element, as used by manifests.
+  ///
+  /// This is [enclosingElement], except for a member for a combined member
+  /// signature. Such a member is not declared anywhere, so manifests identify
+  /// it by the interface element whose interface has it, and its name.
+  Element get manifestEnclosingElement {
+    if (this case CombinedExecutableElementImpl self) {
+      return self.owner;
+    }
+    return enclosingElement!;
+  }
+}
+
 extension LinkedElementFactoryExtension on LinkedElementFactory {
   /// Returns the id of [element], or `null` if from this bundle.
   ManifestItemId? getElementId(Element element) {
     Element topLevelElement;
     Element? memberElement;
-    if (element.enclosingElement is LibraryElement) {
+    var manifestEnclosingElement = element.manifestEnclosingElement;
+    if (manifestEnclosingElement is LibraryElement) {
       topLevelElement = element;
     } else {
-      topLevelElement = element.enclosingElement!;
+      topLevelElement = manifestEnclosingElement;
       memberElement = element;
     }
 
@@ -392,7 +428,7 @@ extension LinkedElementFactoryExtension on LinkedElementFactory {
     var libraryUri = topLevelElement.library!.uri;
 
     // Prepare the external library manifest.
-    var manifest = libraryManifests[libraryUri]?.instance;
+    var manifest = libraryManifests[libraryUri]?.ids;
     if (manifest == null) {
       return null;
     }
@@ -404,7 +440,7 @@ extension LinkedElementFactoryExtension on LinkedElementFactory {
       return id;
     }
 
-    ManifestItem? topLevelItem;
+    InstanceItemIds? topLevelItem;
     switch (topLevelElement) {
       case ClassElement():
         topLevelItem = manifest.declaredClasses[topLevelName];
@@ -417,15 +453,15 @@ extension LinkedElementFactoryExtension on LinkedElementFactory {
       case MixinElement():
         topLevelItem = manifest.declaredMixins[topLevelName];
       case GetterElement():
-        return manifest.declaredGetters[topLevelName]!.id;
+        return manifest.declaredGetters[topLevelName]!;
       case SetterElement():
-        return manifest.declaredSetters[topLevelName]!.id;
+        return manifest.declaredSetters[topLevelName]!;
       case TopLevelFunctionElement():
-        return manifest.declaredFunctions[topLevelName]!.id;
+        return manifest.declaredFunctions[topLevelName]!;
       case TopLevelVariableElement():
-        return manifest.declaredVariables[topLevelName]!.id;
+        return manifest.declaredVariables[topLevelName]!;
       case TypeAliasElement():
-        return manifest.declaredTypeAliases[topLevelName]!.id;
+        return manifest.declaredTypeAliases[topLevelName]!;
     }
 
     if (topLevelItem == null) {
@@ -441,7 +477,6 @@ extension LinkedElementFactoryExtension on LinkedElementFactory {
 
     // If not top-level element, then a member in [InstanceElement].
     var memberName = memberElement.lookupName!.asLookupName;
-    topLevelItem as InstanceItem;
 
     switch (element) {
       case FieldElement():
@@ -464,7 +499,7 @@ extension LinkedElementFactoryExtension on LinkedElementFactory {
 
     // If we get here, the top-level container is not [ExtensionElement].
     // So, it must be [InterfaceElement].
-    topLevelItem as InterfaceItem;
+    topLevelItem as InterfaceItemIds;
 
     if (element is ConstructorElement) {
       return topLevelItem.getConstructorId(memberName)!;

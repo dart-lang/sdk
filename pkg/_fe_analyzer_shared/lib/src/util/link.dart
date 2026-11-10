@@ -11,7 +11,7 @@ class Link<T> implements Iterable<T> {
   T get head => throw new StateError("no elements");
   Link<T>? get tail => null;
 
-  const Link();
+  const new();
 
   Link<T> prepend(T element) {
     return new LinkEntry<T>(element, this);
@@ -180,7 +180,7 @@ class Link<T> implements Iterable<T> {
 /// Builder object for creating linked lists using [Link] or fixed-length [List]
 /// objects.
 abstract class LinkBuilder<T> {
-  factory LinkBuilder() = LinkBuilderImplementation<T>;
+  factory() = LinkBuilderImplementation<T>;
 
   /// Prepends all elements added to the builder to [tail]. The resulting list
   /// is returned and the builder is cleared.

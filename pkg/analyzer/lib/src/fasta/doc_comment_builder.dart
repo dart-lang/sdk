@@ -5,7 +5,7 @@
 import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
     show ExperimentalFeaturesExtension;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
-    show optional, Parser;
+    show Parser, optional;
 import 'package:_fe_analyzer_shared/src/parser/util.dart'
     show isLetter, isLetterOrDigit, isWhitespace, optional;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
@@ -21,6 +21,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/fasta/ast_builder.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 
 /// Given a comment reference without a closing `]`, search for a possible
 /// place where `]` should be.
@@ -131,7 +132,7 @@ final class DocCommentBuilder {
 
   final _blockDocDirectiveBuilderStack = <_BlockDocDirectiveBuilder>[];
 
-  DocCommentBuilder(
+  new(
     this._parser,
     this._diagnosticReporter,
     this._uri,
@@ -294,6 +295,11 @@ final class DocCommentBuilder {
         isPreviousLineEmpty = false;
       } else if (_parseNodoc(index: whitespaceEndIndex, content: content)) {
         isPreviousLineEmpty = false;
+      } else if (_startToken.type == TokenType.MULTI_LINE_COMMENT &&
+          content == '/**') {
+        // Consider the start line of a multiline doc comment as empty
+        // so we can detect indented codeblocks that start on the next line.
+        isPreviousLineEmpty = true;
       } else {
         _parseReferences(offset, content);
         isPreviousLineEmpty = content.isEmpty;
@@ -610,11 +616,6 @@ final class DocCommentBuilder {
     }
     var token = result.tokens;
     var begin = token;
-    Token? newKeyword;
-    if (optional('new', token)) {
-      newKeyword = token;
-      token = token.next!;
-    }
     Token? firstToken, firstPeriod, secondToken, secondPeriod;
     if (token.isIdentifier && optional('.', token.next!)) {
       secondToken = token;
@@ -645,7 +646,7 @@ final class DocCommentBuilder {
     if (token.isEof) {
       // Recovery: Insert a synthetic identifier for code completion.
       token = _parser.rewriter.insertSyntheticIdentifier(
-        secondPeriod ?? newKeyword ?? _parser.syntheticPreviousToken(token),
+        secondPeriod ?? _parser.syntheticPreviousToken(token),
       );
       isSynthetic = true;
       if (begin == token.next!) {
@@ -662,12 +663,12 @@ final class DocCommentBuilder {
         return _parseOneCommentReferenceRest(
           begin,
           offset,
-          newKeyword,
           firstToken,
           firstPeriod,
           secondToken,
           secondPeriod,
           token,
+          operatorKeyword: operatorKeyword,
           isSynthetic: isSynthetic,
         );
       }
@@ -678,7 +679,6 @@ final class DocCommentBuilder {
           return _parseOneCommentReferenceRest(
             begin,
             offset,
-            newKeyword,
             firstToken,
             firstPeriod,
             secondToken,
@@ -688,8 +688,7 @@ final class DocCommentBuilder {
           );
         }
         var keyword = token.keyword;
-        if (newKeyword == null &&
-            secondToken == null &&
+        if (secondToken == null &&
             (keyword == Keyword.THIS ||
                 keyword == Keyword.NULL ||
                 keyword == Keyword.TRUE ||
@@ -707,12 +706,8 @@ final class DocCommentBuilder {
 
   /// Parses the parameters into a [CommentReferenceImpl].
   ///
-  /// If the reference begins with `new `, then pass the Token associated with
-  /// that text as [newKeyword].
-  ///
-  /// If the reference contains a single identifier or operator (aside from the
-  /// optional [newKeyword]), then pass the associated Token as
-  /// [identifierOrOperator].
+  /// If the reference contains a single identifier or operator, then pass the
+  /// associated Token as [identifierOrOperator].
   ///
   /// If the reference contains two identifiers separated by a period, then pass
   /// the associated Tokens as [secondToken], [secondPeriod], and
@@ -727,12 +722,12 @@ final class DocCommentBuilder {
   CommentReferenceImpl _parseOneCommentReferenceRest(
     Token begin,
     int referenceOffset,
-    Token? newKeyword,
     Token? firstToken,
     Token? firstPeriod,
     Token? secondToken,
     Token? secondPeriod,
     Token identifierOrOperator, {
+    Token? operatorKeyword,
     required bool isSynthetic,
   }) {
     // Adjust the token offsets to match the enclosing comment token.
@@ -742,41 +737,28 @@ final class DocCommentBuilder {
       token = token.next!;
     } while (!token.isEof);
 
-    var identifier = SimpleIdentifierImpl(token: identifierOrOperator);
-    if (firstToken != null) {
-      var target = PrefixedIdentifierImpl(
-        prefix: SimpleIdentifierImpl(token: firstToken),
-        period: firstPeriod!,
-        identifier: SimpleIdentifierImpl(token: secondToken!),
-      );
-      var expression = PropertyAccessImpl(
-        target2: target,
-        operator: secondPeriod!,
-        propertyName: identifier,
-      );
-      return CommentReferenceImpl(
-        newKeyword: newKeyword,
-        expression2: expression,
-        isSynthetic: isSynthetic,
-      );
-    } else if (secondToken != null) {
-      var expression = PrefixedIdentifierImpl(
-        prefix: SimpleIdentifierImpl(token: secondToken),
-        period: secondPeriod!,
-        identifier: identifier,
-      );
-      return CommentReferenceImpl(
-        newKeyword: newKeyword,
-        expression2: expression,
-        isSynthetic: isSynthetic,
-      );
-    } else {
-      return CommentReferenceImpl(
-        newKeyword: newKeyword,
-        expression2: identifier,
-        isSynthetic: isSynthetic,
-      );
-    }
+    return CommentReferenceImpl(
+      components: [
+        if (firstToken != null)
+          CommentReferenceComponentImpl(
+            period: null,
+            operatorKeyword: null,
+            name: firstToken,
+          ),
+        if (secondToken != null)
+          CommentReferenceComponentImpl(
+            period: firstPeriod,
+            operatorKeyword: null,
+            name: secondToken,
+          ),
+        CommentReferenceComponentImpl(
+          period: secondPeriod,
+          operatorKeyword: operatorKeyword,
+          name: identifierOrOperator,
+        ),
+      ],
+      isSynthetic: isSynthetic,
+    );
   }
 
   /// Parses the comment references in [content] which starts at [offset].
@@ -879,11 +861,7 @@ class DocImportStringScanner extends StringScanner {
   /// * (31, 96) (The offsets of the first character in the line with `show`.)
   final List<({int offsetInDocImport, int offsetInUnit})> _sourceMap;
 
-  DocImportStringScanner(
-    super.source, {
-    super.configuration,
-    required List<({int offsetInDocImport, int offsetInUnit})> sourceMap,
-  }) : _sourceMap = sourceMap;
+  new(super.source, {super.configuration, required this._sourceMap});
 
   @override
   /// The position of the start of the next token _in the unit_, not in
@@ -930,10 +908,9 @@ final class _BlockDocDirectiveBuilder {
   /// comment.
   final innerDocDirectives = <DocDirective>[];
 
-  _BlockDocDirectiveBuilder(this.openingTag);
+  new(this.openingTag);
 
-  factory _BlockDocDirectiveBuilder.placeholder() =>
-      _BlockDocDirectiveBuilder(null);
+  factory placeholder() => _BlockDocDirectiveBuilder(null);
 
   BlockDocDirective build() {
     var openingTag = this.openingTag;
@@ -958,7 +935,7 @@ final class _BlockDocDirectiveBuilder {
 /// comment (which consists of a series of [Token]s) or a multi-line doc comment
 /// (which consists of a single [Token]).
 abstract class _CharacterSequence {
-  factory _CharacterSequence(Token token) {
+  factory(Token token) {
     var isFromSingleLineComment = token.lexeme.startsWith('///');
     return isFromSingleLineComment
         ? _CharacterSequenceFromSingleLineComment(token)
@@ -986,7 +963,7 @@ class _CharacterSequenceFromMultiLineComment implements _CharacterSequence {
 
   int _end = -1;
 
-  _CharacterSequenceFromMultiLineComment(this._token);
+  new(this._token);
 
   @override
   ({int offset, String content})? next() {
@@ -995,9 +972,10 @@ class _CharacterSequenceFromMultiLineComment implements _CharacterSequence {
 
     if (_offset == -1) {
       _offset = tokenOffset;
-      var endIndex = lexeme.indexOf('\n');
-      if (endIndex == -1) {
-        endIndex = lexeme.length;
+      var endIndex = _indexOfEndOfLine(lexeme);
+      // Handle excluding the end-of-comment marker if it's on this first line.
+      if (endIndex == lexeme.length && lexeme.endsWith('*/')) {
+        endIndex -= '*/'.length;
       }
       _end = tokenOffset + endIndex;
       var indexInLexeme = _offset - tokenOffset;
@@ -1005,6 +983,12 @@ class _CharacterSequenceFromMultiLineComment implements _CharacterSequence {
         offset: _offset,
         content: lexeme.substring(indexInLexeme, endIndex),
       );
+    }
+
+    // If this line is entirely the end-of-line marker, skip it.
+    if (_end == tokenOffset + lexeme.length - '*/'.length &&
+        lexeme.endsWith('*/')) {
+      return null;
     }
 
     _offset = _end + 1;
@@ -1018,9 +1002,14 @@ class _CharacterSequenceFromMultiLineComment implements _CharacterSequence {
       }
     }
 
-    var endIndex = lexeme.indexOf('\n', _offset - tokenOffset);
-    if (endIndex == -1) {
-      endIndex = lexeme.length;
+    var endIndex = _indexOfEndOfLine(lexeme, _offset - tokenOffset);
+
+    // Check if the end-of-comment marker is at the end of this line before
+    // consuming any star.
+    var lineIncludesEndOfComment =
+        endIndex == lexeme.length && lexeme.endsWith('*/');
+    if (lineIncludesEndOfComment) {
+      endIndex -= '*/'.length;
     }
     _end = tokenOffset + endIndex;
 
@@ -1033,10 +1022,29 @@ class _CharacterSequenceFromMultiLineComment implements _CharacterSequence {
       _offset += starLength;
     }
 
+    // If after removing the end-of-comment marker we had nothing left, return
+    // nothing.
+    if (lineIncludesEndOfComment && _offset == _end) {
+      return null;
+    }
+
     return (
       offset: _offset,
       content: lexeme.substring(_offset - tokenOffset, endIndex),
     );
+  }
+
+  /// Return the index of the end of line characters (`\r\n` or `\n`) in
+  /// [content] searching from [start].
+  int _indexOfEndOfLine(String content, [int start = 0]) {
+    var endIndex = content.indexOf('\n', start);
+    if (endIndex == -1) {
+      endIndex = content.length;
+    } else if (endIndex > start &&
+        content.codeUnitAt(endIndex - 1).isCarriageReturn) {
+      endIndex--;
+    }
+    return endIndex;
   }
 }
 
@@ -1046,7 +1054,7 @@ class _CharacterSequenceFromSingleLineComment implements _CharacterSequence {
   @override
   int _offset = -1;
 
-  _CharacterSequenceFromSingleLineComment(this._token);
+  new(this._token);
 
   @override
   ({int offset, String content})? next() {
@@ -1066,12 +1074,12 @@ class _CharacterSequenceFromSingleLineComment implements _CharacterSequence {
       while (!_token.lexeme.startsWith('///'));
     }
 
-    _offset += threeSlashesLength;
+    var prefixLength = _token.lexeme.startsWith('/// ')
+        ? threeSlashesLength + 1
+        : threeSlashesLength;
+    _offset += prefixLength;
 
-    return (
-      offset: _offset,
-      content: _token.lexeme.substring(threeSlashesLength),
-    );
+    return (offset: _offset, content: _token.lexeme.substring(prefixLength));
   }
 }
 
@@ -1107,18 +1115,15 @@ final class _DirectiveParser {
   /// the index after the end of the last character in [content], if not.
   int? _end;
 
-  _DirectiveParser._({
-    required int offset,
-    required int contentOffset,
+  new _({
+    required this._offset,
+    required this._contentOffset,
     required this.nameOffset,
     required this.nameEnd,
     required this.content,
     required this.index,
-    required DiagnosticReporter? diagnosticReporter,
-  }) : _contentOffset = contentOffset,
-       _offset = offset,
-       _length = content.length,
-       _diagnosticReporter = diagnosticReporter;
+    required this._diagnosticReporter,
+  }) : _length = content.length;
 
   /// Parses a non-block (single line) doc directive.
   DocDirectiveTag directive(DocDirectiveType type) {

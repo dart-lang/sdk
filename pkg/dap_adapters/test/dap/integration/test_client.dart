@@ -718,7 +718,12 @@ class DapTestClient {
 
 /// Useful events produced by the debug adapter during a debug session.
 class TestEvents {
-  TestEvents({required this.output, required this.testNotifications});
+  TestEvents({
+    required this.output,
+    required this.consoleOutputText,
+    required this.testNotifications,
+  });
+  final String consoleOutputText;
   final List<OutputEventBody> output;
   final List<Map<String, Object?>> testNotifications;
 }
@@ -1056,8 +1061,13 @@ extension DapTestClientExtension on DapTestClient {
       await this.start(file: file, launch: launch);
     }
 
+    final output = await outputEventsFuture;
     return TestEvents(
-      output: await outputEventsFuture,
+      output: output,
+      consoleOutputText: output
+          .where((event) => (event.category ?? 'console') == 'console')
+          .map((event) => event.output)
+          .join(),
       testNotifications: await testNotificationEventsFuture,
     );
   }

@@ -18,7 +18,7 @@ class PatternPrecedence {
 
   final int _index;
 
-  const PatternPrecedence._(this._index);
+  const new _(this._index);
 
   @override
   int get hashCode => _index.hashCode;
@@ -108,9 +108,9 @@ class Precedence {
 
   /// Constructs the precedence for a unary or binary expression constructed
   /// from an operator of the given [type].
-  Precedence.forTokenType(TokenType type) : this._(type.precedence);
+  new forTokenType(TokenType type) : this._(type.precedence);
 
-  const Precedence._(this._index);
+  const new _(this._index);
 
   @override
   int get hashCode => _index.hashCode;

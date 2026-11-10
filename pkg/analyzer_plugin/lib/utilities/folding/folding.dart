@@ -52,7 +52,7 @@ class FoldingGenerator {
 
   /// Initialize a newly created folding generator to use the given
   /// [contributors].
-  FoldingGenerator(this.contributors);
+  new(this.contributors);
 
   /// Create an 'analysis.folding' notification. If any of the contributors
   /// throws an exception, also create a non-fatal 'plugin.error' notification.

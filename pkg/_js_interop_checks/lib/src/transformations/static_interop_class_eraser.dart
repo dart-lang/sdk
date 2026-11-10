@@ -258,10 +258,18 @@ class StaticInteropClassEraser extends Transformer {
 
   @override
   Supertype visitSupertype(Supertype node) {
+    DartTypeList? newTypeArguments;
     for (int i = 0; i < node.typeArguments.length; i++) {
-      node.typeArguments[i] = visitDartType(node.typeArguments[i]);
+      DartType oldType = node.typeArguments[i];
+      DartType newType = visitDartType(oldType);
+      if (!identical(newType, oldType)) {
+        (newTypeArguments ??= DartTypeList.from(node.typeArguments))[i] =
+            newType;
+      }
     }
-    return node;
+    return newTypeArguments != null
+        ? Supertype.byReference(node.className, newTypeArguments)
+        : node;
   }
 }
 

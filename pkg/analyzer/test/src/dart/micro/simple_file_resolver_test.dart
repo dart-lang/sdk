@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -457,7 +458,7 @@ import 'a.dart';
 void f(A a) {
   a.foo = 1;
 //  ^^^
-// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
+// [diag.undefinedInstanceMemberWriteFinal] The field 'foo' of the type 'A' is final, so it can't be assigned to.
 }
 ''');
 
@@ -487,7 +488,7 @@ part 'b.dart';
 
 var b = B(0);
 //      ^
-// [diag.undefinedFunction] The function 'B' isn't defined.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'B'.
 ''',
       b: r'''
 part of 'a.dart';
@@ -1137,6 +1138,24 @@ void f() {
     expect(result, unorderedEquals(expected));
   }
 
+  test_findReferences_constructor_primary_unnamed() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+class A(int x) {}
+void f() {
+  A(0);
+}
+''');
+    var resolved = await resolveFile(a);
+    var element = resolved.libraryElement.getClass('A')!.unnamedConstructor!;
+    var result = await fileResolver.findReferences(element);
+    expect(result, [
+      CiderSearchMatch(a.path, [
+        CiderSearchInfo(CharacterLocation(1, 8), 0, MatchKind.DECLARATION),
+        CiderSearchInfo(CharacterLocation(3, 4), 0, MatchKind.INVOCATION),
+      ]),
+    ]);
+  }
+
   test_findReferences_field() async {
     var a = newFile('/workspace/dart/test/lib/a.dart', r'''
 class A {
@@ -1362,6 +1381,38 @@ main() {
     expect(result, unorderedEquals(expected));
   }
 
+  test_findReferences_top_level_setter_importPrefixed() async {
+    var a = newFile('/workspace/dart/test/lib/a.dart', '''
+int get foo => 0;
+set foo(int value) {}
+''');
+    var b = newFile('/workspace/dart/test/lib/b.dart', '''
+import 'a.dart' as p;
+void f() {
+  p.foo = 0;
+  p.foo += 1;
+  p.foo ??= 2;
+  ++p.foo;
+  p.foo--;
+}
+''');
+    await resolveFile(b);
+    var element = await _findElement(
+      a.readAsStringSync().indexOf('foo(int'),
+      a,
+    );
+    var result = await fileResolver.findReferences(element);
+    expect(result, [
+      CiderSearchMatch(b.path, [
+        CiderSearchInfo(CharacterLocation(3, 5), 3, MatchKind.WRITE),
+        CiderSearchInfo(CharacterLocation(4, 5), 3, MatchKind.WRITE),
+        CiderSearchInfo(CharacterLocation(5, 5), 3, MatchKind.WRITE),
+        CiderSearchInfo(CharacterLocation(6, 7), 3, MatchKind.WRITE),
+        CiderSearchInfo(CharacterLocation(7, 5), 3, MatchKind.WRITE),
+      ]),
+    ]);
+  }
+
   test_findReferences_top_level_variable() async {
     var a = newFile('/workspace/dart/test/lib/a.dart', r'''
 const int C = 42;
@@ -1440,7 +1491,7 @@ void f(int? a) {
     var result = await getErrorsWithDiagnostics(testFile, r'''
 var a = b;
 //      ^
-// [diag.undefinedIdentifier] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'b'.
 var foo = 0;
 ''');
 
@@ -1486,13 +1537,13 @@ var a = 42
     var unresolvedB = r'''
 var a = b;
 //      ^
-// [diag.undefinedIdentifier] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'b'.
 ''';
 
     var unresolvedC = r'''
 var a = c;
 //      ^
-// [diag.undefinedIdentifier] Undefined name 'c'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'c'.
 ''';
 
     addTestFileWithDiagnosticExpectations(unresolvedB);
@@ -1524,14 +1575,14 @@ var a = 0;
 import 'a.dart';
 var b = a.foo;
 //        ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'int'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'int'.
 ''';
 
     var testCodeWhenAIsDouble = r'''
 import 'a.dart';
 var b = a.foo;
 //        ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'double'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'double'.
 ''';
 
     addTestFileWithDiagnosticExpectations(testCodeWhenAIsInt);
@@ -1885,7 +1936,7 @@ byteStore
     assertDiagnosticsInCode(r'''
 var a = b;
 //      ^
-// [diag.undefinedIdentifier] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'b'.
 var foo = 0;
 ''', result.diagnostics);
     expect(result.lineInfo.lineStarts, [0, 11, 24]);
@@ -1943,7 +1994,9 @@ void f(A a) {
 
     var result = await resolveTestFile();
     {
-      var element = result.findNode.simple('foo();').element!;
+      var invocation = result.findNode.receiverMethodInvocation('foo();');
+      var element =
+          (invocation.resolution as ExecutableInvocationResolution).element;
       expect(element.firstFragment.nameOffset, 17);
     }
 
@@ -1952,7 +2005,9 @@ void f(A a) {
     createFileResolver();
     result = await resolveTestFile();
     {
-      var element = result.findNode.simple('foo();').element!;
+      var invocation = result.findNode.receiverMethodInvocation('foo();');
+      var element =
+          (invocation.resolution as ExecutableInvocationResolution).element;
       expect(element.firstFragment.nameOffset, 17);
     }
   }
@@ -1969,7 +2024,10 @@ var b = a;
 
     var result = await resolveTestFile();
     {
-      var element = result.findNode.simple('a;').element!;
+      var resolution =
+          result.findNode.unqualifiedNameExpression('a;').resolution
+              as NamedReadResolutionWithElement;
+      var element = resolution.element;
       expect(element.nonSynthetic.firstFragment.nameOffset, 4);
     }
 
@@ -1978,7 +2036,10 @@ var b = a;
     createFileResolver();
     result = await resolveTestFile();
     {
-      var element = result.findNode.simple('a;').element!;
+      var resolution =
+          result.findNode.unqualifiedNameExpression('a;').resolution
+              as NamedReadResolutionWithElement;
+      var element = resolution.element;
       expect(element.nonSynthetic.firstFragment.nameOffset, 4);
     }
   }

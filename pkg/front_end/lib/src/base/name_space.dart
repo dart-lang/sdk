@@ -113,7 +113,6 @@ base class ComputedMutableNameSpaceImpl implements ComputedMutableNameSpace {
           "replacing the existing value ${existing.setable}",
         );
         if (existing.getable != null) {
-          // Coverage-ignore-block(suite): Not run.
           content[name] = new GetableSetableResult(existing.getable!, member);
           return;
         }

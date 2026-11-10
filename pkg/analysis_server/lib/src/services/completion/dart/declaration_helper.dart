@@ -23,6 +23,7 @@ import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 
 /// A helper class that produces candidate suggestions for all of the
@@ -480,18 +481,20 @@ class DeclarationHelper {
       parent = parent.parent;
     }
     if (parent is CompilationUnit) {
-      var library = parent.declaredFragment?.element;
-      if (library != null) {
-        _addTopLevelDeclarations(library);
+      var libraryFragment = parent.declaredFragment;
+      if (libraryFragment != null) {
+        _addTopLevelDeclarations(libraryFragment.element);
         addImportPrefixes();
         if (!skipImports) {
-          _addImportedDeclarations(library);
+          _addImportedDeclarations(libraryFragment);
         }
         _recordOperation(StaticMembersOperation(declarationHelper: this));
       }
     }
     if (topLevelMember != null && !mustBeStatic && !mustBeType) {
-      _addInheritedMembers(topLevelMember);
+      // ignore: experimental_member_use
+      var thisType = request.unit.lookupThisType(offset: offset);
+      _addInheritedMembers(topLevelMember, thisType);
     }
   }
 
@@ -1031,11 +1034,15 @@ class DeclarationHelper {
 
   /// Adds suggestions for any top-level declarations that are imported into the
   /// [library].
-  void _addImportedDeclarations(LibraryElement library) {
+  void _addImportedDeclarations(LibraryFragment libraryFragment) {
     // TODO(brianwilkerson): This will create suggestions for elements that
     //  conflict with different elements imported from a different library. Not
     //  sure whether that's the desired behavior.
-    for (var importElement in library.firstFragment.libraryImports) {
+    var libraryImports = libraryFragment.withEnclosing2.expand(
+      (fragment) => fragment.libraryImports,
+    );
+    for (var importElement in libraryImports) {
+      // libraryFragment.libraryImports
       var importedLibrary = importElement.importedLibrary;
       if (importedLibrary != null) {
         _addDeclarationsImportedFrom(
@@ -1116,7 +1123,13 @@ class DeclarationHelper {
 
   /// Adds suggestions for any instance members inherited by the
   /// [containingMember].
-  void _addInheritedMembers(CompilationUnitMember containingMember) {
+  ///
+  /// If `this` has been promoted, then type promoted type should be passed in
+  /// as [thisType].
+  void _addInheritedMembers(
+    CompilationUnitMember containingMember,
+    DartType? thisType,
+  ) {
     var fragment = switch (containingMember) {
       ClassDeclaration() => containingMember.declaredFragment,
       EnumDeclaration() => containingMember.declaredFragment,
@@ -1127,16 +1140,16 @@ class DeclarationHelper {
       GenericTypeAlias() => containingMember.declaredFragment,
       _ => null,
     };
-    var element = fragment?.element;
-    if (!mustBeStatic && element is ExtensionElement) {
-      var thisType = element.thisType;
+    var enclosingElement = fragment?.element;
+    if (!mustBeStatic && enclosingElement is ExtensionElement) {
+      thisType ??= enclosingElement.thisType;
       if (thisType is InterfaceType) {
         // These members own the `this.` form of their names inside the
         // extension body, so the extension's own declarations of those names
         // must not shadow them here. `_addMembersOfEnclosingInstance` has
         // already kept the extension's own members from claiming that form.
         _namesOwnedByEnclosingInstance.removeAll(
-          _namesOfExtendedTypeMembers(element),
+          _namesOfExtendedTypeMembers(enclosingElement),
         );
         // Unqualified position, so a shadowed member of the extended type can
         // be reached via `this.`, or via `this?.` when the extended type is
@@ -1152,11 +1165,20 @@ class DeclarationHelper {
       }
       return;
     }
-    if (element is! InterfaceElement) {
+    if (enclosingElement is! InterfaceElement) {
       return;
     }
-    var referencingInterface = _referencingInterfaceFor(element);
-    var members = element.inheritedMembers;
+    var thisTypeElement = thisType?.element;
+    if (thisTypeElement is! InterfaceElement) {
+      thisTypeElement = enclosingElement;
+    }
+    var referencingInterface = _referencingInterfaceFor(thisTypeElement);
+    // We include the members of the `enclosingElement`, even though we've
+    // already examined them as part of following the local scope. This should
+    // be safe because we'll treat them as being shadowed. The reason is so that
+    // we can include the members of the `thisTypeElement` when those two
+    // elements are different.
+    var members = thisTypeElement.interfaceMembers;
     // Unqualified position, so a shadowed member can be reached via `this.`.
     _thisPrefixAllowed = .regular;
     for (var member in members.values) {
@@ -2102,12 +2124,15 @@ class DeclarationHelper {
       importData: importData,
     );
 
-    // Use the constructor element's name without the interface type to
-    // calculate the matcher score for dot shorthands.
+    // Match the source spelling: dot shorthands use the constructor name,
+    // while ordinary unnamed constructor invocations use the class name.
     var elementName = element.name;
-    var matcherName = suggestingDotShorthand && elementName != null
-        ? elementName
-        : element.displayName;
+    var matcherName = element.displayName;
+    if (suggestingDotShorthand && elementName != null) {
+      matcherName = elementName;
+    } else if (elementName == 'new') {
+      matcherName = element.enclosingElement.displayName;
+    }
 
     // TODO(keertip): Compute the completion string.
     var matcherScore = state.matcher.score(matcherName);
@@ -3252,7 +3277,7 @@ extension on Element {
       return true;
     }
     var name = this.name;
-    return name != null && !Identifier.isPrivateName(name);
+    return name != null && !name.isPrivateName;
   }
 }
 

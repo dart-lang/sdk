@@ -102,7 +102,7 @@ static void BuildStackTrace(StackTraceBuilder* builder) {
     if (frame->is_interpreted()) {
       bytecode = frame->LookupDartBytecode();
       ASSERT(bytecode.ContainsInstructionAt(frame->pc()));
-      if (bytecode.function() == Function::null()) {
+      if (bytecode.IsSharedBytecodeStub()) {
         continue;
       }
       const uword pc_offset = frame->pc() - bytecode.PayloadStart();

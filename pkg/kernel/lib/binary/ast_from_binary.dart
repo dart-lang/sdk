@@ -256,6 +256,7 @@ class BinaryBuilder {
   }
 
   Uint8List readBytes(int length) {
+    if (length == 0) return emptyUint8List;
     Uint8List bytes = new Uint8List(length);
     bytes.setRange(0, bytes.length, _bytes, _byteOffset);
     _byteOffset += bytes.length;
@@ -268,6 +269,7 @@ class BinaryBuilder {
 
   Uint8List readOrViewByteList() {
     int length = readUInt30();
+    if (length == 0) return emptyUint8List;
     List<int> source = _bytes;
     if (source is Uint8List) {
       Uint8List view = source.buffer.asUint8List(
@@ -466,33 +468,24 @@ class BinaryBuilder {
   Constant _readMapConstant() {
     final DartType keyType = readDartType();
     final DartType valueType = readDartType();
-    final int length = readUInt30();
-    final List<ConstantMapEntry> entries = new List<ConstantMapEntry>.generate(
-      length,
-      (_) {
-        final Constant key = readConstantReference();
-        final Constant value = readConstantReference();
-        return new ConstantMapEntry(key, value);
-      },
-      growable: useGrowableLists,
-    );
+    final ConstantMapEntryList entries = _readConstantMapEntryList();
     return new MapConstant(keyType, valueType, entries);
   }
 
   Constant _readListConstant() {
     final DartType typeArgument = readDartType();
-    List<Constant> entries = _readConstantReferenceList();
+    ConstantList entries = _readConstantReferenceList();
     return new ListConstant(typeArgument, entries);
   }
 
   Constant _readSetConstant() {
     final DartType typeArgument = readDartType();
-    List<Constant> entries = _readConstantReferenceList();
+    ConstantList entries = _readConstantReferenceList();
     return new SetConstant(typeArgument, entries);
   }
 
   Constant _readRecordConstant() {
-    List<Constant> positional = _readConstantReferenceList();
+    ConstantList positional = _readConstantReferenceList();
     final int namedLength = readUInt30();
     final List<MapEntry<String, Constant>> named =
         new List<MapEntry<String, Constant>>.generate(namedLength, (_) {
@@ -510,7 +503,7 @@ class BinaryBuilder {
 
   Constant _readInstanceConstant() {
     final Reference classReference = readNonNullClassReference();
-    final List<DartType> typeArguments = readDartTypeList();
+    final DartTypeList typeArguments = readDartTypeList();
     final int fieldValueCount = readUInt30();
     final Map<Reference, Constant> fieldValues = <Reference, Constant>{};
     for (int i = 0; i < fieldValueCount; i++) {
@@ -523,16 +516,16 @@ class BinaryBuilder {
 
   Constant _readInstantiationConstant() {
     final Constant tearOffConstant = readConstantReference();
-    final List<DartType> types = readDartTypeList();
+    final DartTypeList types = readDartTypeList();
     return new InstantiationConstant(tearOffConstant, types);
   }
 
   Constant _readTypedefTearOffConstant() {
-    final List<StructuralParameter> parameters =
+    final StructuralParameterList parameters =
         readAndPushStructuralParameterList();
     final TearOffConstant tearOffConstant =
         readConstantReference() as TearOffConstant;
-    final List<DartType> types = readDartTypeList();
+    final DartTypeList types = readDartTypeList();
     typeParameterStack.length -= parameters.length;
     return new TypedefTearOffConstant(parameters, tearOffConstant, types);
   }
@@ -562,6 +555,22 @@ class BinaryBuilder {
     return new UnevaluatedConstant(expression);
   }
 
+  ConstantMapEntryList _readConstantMapEntryList() {
+    final int length = readUInt30();
+    if (length == 0) return ConstantMapEntryList.empty;
+    if (length == 1) return new ConstantMapEntryList(_readConstantMapEntry());
+    return new ConstantMapEntryList.generate(
+      length,
+      (_) => _readConstantMapEntry(),
+    );
+  }
+
+  ConstantMapEntry _readConstantMapEntry() {
+    final Constant key = readConstantReference();
+    final Constant value = readConstantReference();
+    return new ConstantMapEntry(key, value);
+  }
+
   Constant readConstantReference() {
     final int index = readUInt30();
     Constant constant = _constantTable[index];
@@ -572,18 +581,11 @@ class BinaryBuilder {
     return constant;
   }
 
-  List<Constant> _readConstantReferenceList() {
+  ConstantList _readConstantReferenceList() {
     final int length = readUInt30();
-    if (!useGrowableLists && length == 0) {
-      // When lists don't have to be growable anyway, we might as well use an
-      // almost constant one for the empty list.
-      return emptyListOfConstant;
-    }
-    return new List<Constant>.generate(
-      length,
-      (_) => readConstantReference(),
-      growable: useGrowableLists,
-    );
+    if (length == 0) return ConstantList.empty;
+    if (length == 1) return new ConstantList(readConstantReference());
+    return new ConstantList.generate(length, (_) => readConstantReference());
   }
 
   Uri readUriReference() {
@@ -1068,14 +1070,13 @@ class BinaryBuilder {
       String uriString = readString();
       Uri uri = Uri.parse(uriString);
       _sourceUriTable[i] = uri;
-      Uint8List sourceCode = readOrViewByteList();
+      Uint8List sourceCode = _disableLazyReading
+          ? readByteList()
+          : readOrViewByteList();
       int lineCount = readUInt30();
-      List<int> lineStarts = new List<int>.filled(
-        lineCount,
-        // Use `-1` as a dummy default value.
-        -1,
-        growable: false,
-      );
+      Uint32List lineStarts = lineCount == 0
+          ? emptyUint32List
+          : new Uint32List(lineCount);
       int previousLineStart = 0;
       for (int j = 0; j < lineCount; ++j) {
         int lineStart = readUInt30() + previousLineStart;
@@ -1496,7 +1497,7 @@ class BinaryBuilder {
   LibraryDependency readLibraryDependency() {
     int fileOffset = readOffset();
     int flags = readByte();
-    List<Expression> annotations = readExpressionList();
+    List<Expression> annotations = readAnnotationList();
     Reference targetLibrary = readNonNullLibraryReference();
     String? prefixName = readStringOrNullIfEmpty();
     List<Combinator> names = readCombinatorList();
@@ -1557,9 +1558,10 @@ class BinaryBuilder {
   }
 
   LibraryPart readLibraryPart() {
-    List<Expression> annotations = readExpressionList();
+    List<Expression> annotations = readAnnotationList();
     String partUri = readStringReference();
-    return new LibraryPart(annotations, partUri);
+    Uri fileUri = readUriReference();
+    return new LibraryPart(annotations, partUri, fileUri);
   }
 
   Typedef readTypedef() {
@@ -1576,7 +1578,10 @@ class BinaryBuilder {
       node = new Typedef(name, null, reference: reference, fileUri: fileUri);
     }
     node.annotations = readAnnotationList(node);
-    readAndPushTypeParameterList(node.typeParameters, node);
+    node.typeParameters = readAndPushTypeParameterList(
+      node.typeParameters,
+      node,
+    );
     DartType type = readDartType();
     typeParameterStack.length = 0;
     variableStack.length = 0;
@@ -1635,7 +1640,10 @@ class BinaryBuilder {
 
     assert(typeParameterStack.length == 0);
 
-    readAndPushTypeParameterList(node.typeParameters, node);
+    node.typeParameters = readAndPushTypeParameterList(
+      node.typeParameters,
+      node,
+    );
     Supertype? supertype = readSupertypeOption();
     Supertype? mixedInType = readSupertypeOption();
     node.implementedTypes = readSupertypeList();
@@ -1692,7 +1700,10 @@ class BinaryBuilder {
 
     node.flags = readByte();
 
-    readAndPushTypeParameterList(node.typeParameters, node);
+    node.typeParameters = readAndPushTypeParameterList(
+      node.typeParameters,
+      node,
+    );
     DartType onType = readDartType();
 
     typeParameterStack.length = 0;
@@ -1770,7 +1781,10 @@ class BinaryBuilder {
 
     node.flags = readByte();
 
-    readAndPushTypeParameterList(node.typeParameters, node);
+    node.typeParameters = readAndPushTypeParameterList(
+      node.typeParameters,
+      node,
+    );
     DartType representationType = readDartType();
     String representationName = readStringReference();
     List<TypeDeclarationType> implements =
@@ -2182,21 +2196,21 @@ class BinaryBuilder {
           )
           .toList();
     }
-    List<TypeParameter> typeParameters = readAndPushTypeParameterList();
+    TypeParameterList typeParameters = readAndPushFunctionTypeParameterList();
     int variableStackHeight = variableStack.length;
     // TODO(63493): Remove the next line when the scopes are serialized before
     // function bodies.
     ThisVariable? thisVariable = readAndPushVariableOption() as ThisVariable?;
     readUInt30(); // total parameter count.
     int requiredParameterCount = readUInt30();
-    List<PositionalParameter> positional = readAndPushPositionalParameterList();
-    List<NamedParameter> named = readAndPushNamedParameterList();
+    PositionalParameterList positional = readAndPushPositionalParameterList();
+    NamedParameterList named = readAndPushNamedParameterList();
     DartType returnType = readDartType();
     DartType? futureValueType = readDartTypeOption();
     RedirectingFactoryTarget? redirectingFactoryTarget;
     if (readAndCheckOptionTag()) {
       Reference? targetReference = readNullableMemberReference();
-      List<DartType>? typeArguments;
+      DartTypeList? typeArguments;
       if (readAndCheckOptionTag()) {
         typeArguments = readDartTypeList();
       }
@@ -2359,18 +2373,9 @@ class BinaryBuilder {
     }
   }
 
-  List<Expression> readExpressionList() {
+  ExpressionList readExpressionList() {
     int length = readUInt30();
-    if (!useGrowableLists && length == 0) {
-      // When lists don't have to be growable anyway, we might as well use a
-      // constant one for the empty list.
-      return emptyListOfExpression;
-    }
-    return new List<Expression>.generate(
-      length,
-      (_) => readExpression(),
-      growable: useGrowableLists,
-    );
+    return new ExpressionList.generate(length, (_) => readExpression());
   }
 
   Expression? readExpressionOption() {
@@ -2737,10 +2742,10 @@ class BinaryBuilder {
 
   Expression _readTypedefTearOff() {
     int offset = readOffset();
-    List<StructuralParameter> structuralParameters =
+    StructuralParameterList structuralParameters =
         readAndPushStructuralParameterList();
     Expression expression = readExpression();
-    List<DartType> typeArguments = readDartTypeList();
+    DartTypeList typeArguments = readDartTypeList();
     typeParameterStack.length -= structuralParameters.length;
     return new TypedefTearOff(structuralParameters, expression, typeArguments)
       ..fileOffset = offset;
@@ -3010,7 +3015,7 @@ class BinaryBuilder {
   Expression _readInstanceCreation() {
     int offset = readOffset();
     Reference classReference = readNonNullClassReference();
-    List<DartType> typeArguments = readDartTypeList();
+    DartTypeList typeArguments = readDartTypeList();
     int fieldValueCount = readUInt30();
     Map<Reference, Expression> fieldValues = <Reference, Expression>{};
     for (int i = 0; i < fieldValueCount; i++) {
@@ -3032,7 +3037,7 @@ class BinaryBuilder {
         growable: false,
       );
     }
-    List<Expression> unusedArguments = readExpressionList();
+    ExpressionList unusedArguments = readExpressionList();
     return new InstanceCreation(
       classReference,
       typeArguments,
@@ -3204,8 +3209,8 @@ class BinaryBuilder {
 
   Expression _readRecordLiteral() {
     int offset = readOffset();
-    List<Expression> positional = readExpressionList();
-    List<NamedExpression> named = readNamedExpressionList();
+    ExpressionList positional = readExpressionList();
+    NamedExpressionList named = readNamedExpressionList();
     RecordType recordType = readDartType() as RecordType;
     return new RecordLiteral(positional, named, recordType, isConst: false)
       ..fileOffset = offset;
@@ -3213,8 +3218,8 @@ class BinaryBuilder {
 
   Expression _readConstRecordLiteral() {
     int offset = readOffset();
-    List<Expression> positional = readExpressionList();
-    List<NamedExpression> named = readNamedExpressionList();
+    ExpressionList positional = readExpressionList();
+    NamedExpressionList named = readNamedExpressionList();
     RecordType recordType = readDartType() as RecordType;
     return new RecordLiteral(positional, named, recordType, isConst: true)
       ..fileOffset = offset;
@@ -3263,7 +3268,7 @@ class BinaryBuilder {
   Expression _readInstantiation() {
     int offset = readOffset();
     Expression expression = readExpression();
-    List<DartType> typeArguments = readDartTypeList();
+    DartTypeList typeArguments = readDartTypeList();
     return new Instantiation(expression, typeArguments)..fileOffset = offset;
   }
 
@@ -3411,15 +3416,20 @@ class BinaryBuilder {
 
   AssignedVariablePattern _readAssignedVariablePattern() {
     int fileOffset = readOffset();
-    Variable variable = readVariableReference();
-    Variable? setter = readVariableReferenceOption();
-    DartType? matchedType = readDartTypeOption();
-    bool needsCheck = readByte() == 1;
-    return AssignedVariablePattern(variable)
-      ..fileOffset = fileOffset
-      ..matchedValueType = matchedType
-      ..needsCast = needsCheck
-      ..setter = setter;
+    String variableName = readStringReference();
+    DartType variableType = readDartType();
+    Variable writeVariable = readVariableReference();
+    DartType matchedValueType = readDartType();
+    int flags = readByte();
+    return AssignedVariablePattern(
+      variableName: variableName,
+      variableType: variableType,
+      writeVariable: writeVariable,
+      matchedValueType: matchedValueType,
+      needsCast: flags & AssignedVariablePattern.FlagNeedsCast != 0,
+      hasObservableEffect:
+          flags & AssignedVariablePattern.FlagHasObservableEffect != 0,
+    )..fileOffset = fileOffset;
   }
 
   CastPattern _readCastPattern() {
@@ -3431,14 +3441,15 @@ class BinaryBuilder {
   ConstantPattern _readConstantPattern() {
     int fileOffset = readOffset();
     Expression expression = readExpression();
-    DartType? expressionType = readDartTypeOption();
-    Reference? equalsTargetReference = readNullableMemberReference();
-    FunctionType? equalsType = readDartTypeOption() as FunctionType?;
-    return new ConstantPattern(expression)
-      ..expressionType = expressionType
-      ..equalsTargetReference = equalsTargetReference
-      ..equalsType = equalsType
-      ..fileOffset = fileOffset;
+    DartType expressionType = readDartType();
+    Reference equalsTargetReference = readNonNullMemberReference();
+    FunctionType equalsType = readDartType() as FunctionType;
+    return new ConstantPattern.byReference(
+      expression: expression,
+      expressionType: expressionType,
+      equalsTargetReference: equalsTargetReference,
+      equalsType: equalsType,
+    )..fileOffset = fileOffset;
   }
 
   InvalidPattern _readInvalidPattern() {
@@ -3456,36 +3467,38 @@ class BinaryBuilder {
     int fileOffset = readOffset();
     DartType? typeArgument = readDartTypeOption();
     List<Pattern> patterns = _readPatternList();
-    DartType? requiredType = readDartTypeOption();
-    DartType? matchedValueType = readDartTypeOption();
+    DartType requiredType = readDartType();
+    DartType matchedValueType = readDartType();
     int flags = readByte();
-    DartType? lookupType = readDartTypeOption();
-    Reference? lengthTargetReference = readNullableMemberReference();
-    DartType? lengthType = readDartTypeOption();
-    Reference? lengthCheckTargetReference = readNullableMemberReference();
-    FunctionType? lengthCheckType = readDartTypeOption() as FunctionType?;
-    Reference? sublistTargetReference = readNullableMemberReference();
-    FunctionType? sublistType = readDartTypeOption() as FunctionType?;
-    Reference? minusTargetReference = readNullableMemberReference();
-    FunctionType? minusType = readDartTypeOption() as FunctionType?;
-    Reference? indexGetTargetReference = readNullableMemberReference();
-    FunctionType? indexGetType = readDartTypeOption() as FunctionType?;
-    return new ListPattern(typeArgument, patterns)
-      ..requiredType = requiredType
-      ..matchedValueType = matchedValueType
-      ..flags = flags
-      ..lookupType = lookupType
-      ..lengthTargetReference = lengthTargetReference
-      ..lengthType = lengthType
-      ..lengthCheckTargetReference = lengthCheckTargetReference
-      ..lengthCheckType = lengthCheckType
-      ..sublistTargetReference = sublistTargetReference
-      ..sublistType = sublistType
-      ..minusTargetReference = minusTargetReference
-      ..minusType = minusType
-      ..indexGetTargetReference = indexGetTargetReference
-      ..indexGetType = indexGetType
-      ..fileOffset = fileOffset;
+    DartType lookupType = readDartType();
+    Reference lengthTargetReference = readNonNullMemberReference();
+    DartType lengthType = readDartType();
+    Reference lengthCheckTargetReference = readNonNullMemberReference();
+    FunctionType lengthCheckType = readDartType() as FunctionType;
+    Reference sublistTargetReference = readNonNullMemberReference();
+    FunctionType sublistType = readDartType() as FunctionType;
+    Reference minusTargetReference = readNonNullMemberReference();
+    FunctionType minusType = readDartType() as FunctionType;
+    Reference indexGetTargetReference = readNonNullMemberReference();
+    FunctionType indexGetType = readDartType() as FunctionType;
+    return new ListPattern.byReference(
+      typeArgument: typeArgument,
+      patterns: patterns,
+      requiredType: requiredType,
+      matchedValueType: matchedValueType,
+      lookupType: lookupType,
+      lengthTargetReference: lengthTargetReference,
+      lengthType: lengthType,
+      lengthCheckTargetReference: lengthCheckTargetReference,
+      lengthCheckType: lengthCheckType,
+      sublistTargetReference: sublistTargetReference,
+      sublistType: sublistType,
+      minusTargetReference: minusTargetReference,
+      minusType: minusType,
+      indexGetTargetReference: indexGetTargetReference,
+      indexGetType: indexGetType,
+      flags: flags,
+    )..fileOffset = fileOffset;
   }
 
   MapPattern _readMapPattern() {
@@ -3493,24 +3506,27 @@ class BinaryBuilder {
     DartType? keyType = readDartTypeOption();
     DartType? valueType = readDartTypeOption();
     List<MapPatternEntry> entries = _readMapPatternEntryList();
-    DartType? requiredType = readDartTypeOption();
-    DartType? matchedValueType = readDartTypeOption();
+    DartType requiredType = readDartType();
+    DartType matchedValueType = readDartType();
     int flags = readByte();
-    DartType? lookupType = readDartTypeOption();
-    Reference? containsKeyTargetReference = readNullableMemberReference();
-    FunctionType? containsKeyType = readDartTypeOption() as FunctionType?;
-    Reference? indexGetTargetReference = readNullableMemberReference();
-    FunctionType? indexGetType = readDartTypeOption() as FunctionType?;
-    return new MapPattern(keyType, valueType, entries)
-      ..requiredType = requiredType
-      ..matchedValueType = matchedValueType
-      ..flags = flags
-      ..lookupType = lookupType
-      ..containsKeyTargetReference = containsKeyTargetReference
-      ..containsKeyType = containsKeyType
-      ..indexGetTargetReference = indexGetTargetReference
-      ..indexGetType = indexGetType
-      ..fileOffset = fileOffset;
+    DartType lookupType = readDartType();
+    Reference containsKeyTargetReference = readNonNullMemberReference();
+    FunctionType containsKeyType = readDartType() as FunctionType;
+    Reference indexGetTargetReference = readNonNullMemberReference();
+    FunctionType indexGetType = readDartType() as FunctionType;
+    return new MapPattern.byReference(
+      keyType: keyType,
+      valueType: valueType,
+      entries: entries,
+      requiredType: requiredType,
+      matchedValueType: matchedValueType,
+      lookupType: lookupType,
+      containsKeyTargetReference: containsKeyTargetReference,
+      containsKeyType: containsKeyType,
+      indexGetTargetReference: indexGetTargetReference,
+      indexGetType: indexGetType,
+      flags: flags,
+    )..fileOffset = fileOffset;
   }
 
   NamedPattern _readNamedPattern() {
@@ -3523,8 +3539,7 @@ class BinaryBuilder {
     DartType? resultType = readDartTypeOption();
     RecordType? recordType = readDartTypeOption() as RecordType?;
     int recordFieldIndex = readUInt30();
-    FunctionType? functionType = readDartTypeOption() as FunctionType?;
-    List<DartType>? typeArguments;
+    DartTypeList? typeArguments;
     if (readAndCheckOptionTag()) {
       typeArguments = readDartTypeList();
     }
@@ -3535,7 +3550,6 @@ class BinaryBuilder {
       ..resultType = resultType
       ..recordType = recordType
       ..recordFieldIndex = recordFieldIndex
-      ..functionType = functionType
       ..typeArguments = typeArguments
       ..fileOffset = fileOffset;
   }
@@ -3554,16 +3568,16 @@ class BinaryBuilder {
 
   ObjectPattern _readObjectPattern() {
     int fileOffset = readOffset();
-    DartType type = readDartType();
+    DartType requiredType = readDartType();
     List<NamedPattern> fields = _readNamedPatternList();
-    DartType? matchedType = readDartTypeOption();
+    DartType matchedValueType = readDartType();
     bool needsCheck = readByte() == 1;
-    DartType? objectType = readDartTypeOption();
-    return new ObjectPattern(type, fields)
-      ..matchedValueType = matchedType
-      ..needsCheck = needsCheck
-      ..lookupType = objectType
-      ..fileOffset = fileOffset;
+    return new ObjectPattern(
+      requiredType: requiredType,
+      fields: fields,
+      matchedValueType: matchedValueType,
+      needsCheck: needsCheck,
+    )..fileOffset = fileOffset;
   }
 
   OrPattern _readOrPattern() {
@@ -3582,41 +3596,44 @@ class BinaryBuilder {
   RecordPattern _readRecordPattern() {
     int fileOffset = readOffset();
     List<Pattern> patterns = _readPatternList();
-    RecordType? type = readDartTypeOption() as RecordType?;
-    DartType? matchedType = readDartTypeOption();
+    RecordType requiredType = readDartType() as RecordType;
+    DartType matchedValueType = readDartType();
     bool needsCheck = readByte() == 1;
-    RecordType? recordType = readDartTypeOption() as RecordType?;
-    return new RecordPattern(patterns)
-      ..requiredType = type
-      ..matchedValueType = matchedType
-      ..needsCheck = needsCheck
-      ..lookupType = recordType
-      ..fileOffset = fileOffset;
+    RecordType lookupType = readDartType() as RecordType;
+    return new RecordPattern(
+      patterns: patterns,
+      requiredType: requiredType,
+      matchedValueType: matchedValueType,
+      needsCheck: needsCheck,
+      lookupType: lookupType,
+    )..fileOffset = fileOffset;
   }
 
   RelationalPattern _readRelationalPattern() {
     int fileOffset = readOffset();
     RelationalPatternKind kind = RelationalPatternKind.values[readByte()];
     Expression expression = readExpression();
-    DartType? expressionType = readDartTypeOption();
-    DartType? matchedType = readDartTypeOption();
+    DartType expressionType = readDartType();
+    DartType matchedValueType = readDartType();
     RelationalAccessKind accessKind = RelationalAccessKind.values[readByte()];
     Name name = readName();
     Reference? targetReference = readNullableMemberReference();
-    List<DartType>? typeArguments;
+    DartTypeList? typeArguments;
     if (readAndCheckOptionTag()) {
       typeArguments = readDartTypeList();
     }
     FunctionType? functionType = readDartTypeOption() as FunctionType?;
-    return new RelationalPattern(kind, expression)
-      ..expressionType = expressionType
-      ..matchedValueType = matchedType
-      ..accessKind = accessKind
-      ..name = name
-      ..targetReference = targetReference
-      ..typeArguments = typeArguments
-      ..functionType = functionType
-      ..fileOffset = fileOffset;
+    return new RelationalPattern.byReference(
+      kind: kind,
+      expression: expression,
+      expressionType: expressionType,
+      matchedValueType: matchedValueType,
+      accessKind: accessKind,
+      name: name,
+      targetReference: targetReference,
+      typeArguments: typeArguments,
+      functionType: functionType,
+    )..fileOffset = fileOffset;
   }
 
   RestPattern _readRestPattern() {
@@ -3629,10 +3646,12 @@ class BinaryBuilder {
     int fileOffset = readOffset();
     DartType? type = readDartTypeOption();
     DeclaredVariable variable = readDeclaredVariable();
-    DartType? matchedType = readDartTypeOption();
-    return new VariablePattern(type, variable)
-      ..matchedValueType = matchedType
-      ..fileOffset = fileOffset;
+    DartType matchedValueType = readDartType();
+    return new VariablePattern(
+      type: type,
+      variable: variable,
+      matchedValueType: matchedValueType,
+    )..fileOffset = fileOffset;
   }
 
   WildcardPattern _readWildcardPattern() {
@@ -3707,20 +3726,26 @@ class BinaryBuilder {
     PatternGuard patternGuard = _readPatternGuard();
     Statement then = readStatement();
     Statement? otherwise = readStatementOption();
-    DartType? matchedValueType = readDartTypeOption();
-    return new IfCaseStatement(expression, patternGuard, then, otherwise)
-      ..matchedValueType = matchedValueType
-      ..fileOffset = fileOffset;
+    DartType matchedValueType = readDartType();
+    return new IfCaseStatement(
+      expression: expression,
+      patternGuard: patternGuard,
+      then: then,
+      otherwise: otherwise,
+      matchedValueType: matchedValueType,
+    )..fileOffset = fileOffset;
   }
 
   PatternAssignment _readPatternAssignment() {
     int fileOffset = readOffset();
     Pattern pattern = _readPattern();
     Expression expression = readExpression();
-    DartType? matchedValueType = readDartTypeOption();
-    return new PatternAssignment(pattern, expression)
-      ..matchedValueType = matchedValueType
-      ..fileOffset = fileOffset;
+    DartType matchedValueType = readDartType();
+    return new PatternAssignment(
+      pattern: pattern,
+      expression: expression,
+      matchedValueType: matchedValueType,
+    )..fileOffset = fileOffset;
   }
 
   PatternVariableDeclaration _readPatternVariableDeclaration() {
@@ -3728,10 +3753,13 @@ class BinaryBuilder {
     Pattern pattern = _readPattern();
     Expression expression = readExpression();
     bool isFinal = readByte() == 1;
-    DartType? matchedValueType = readDartTypeOption();
-    return new PatternVariableDeclaration(pattern, expression, isFinal: isFinal)
-      ..matchedValueType = matchedValueType
-      ..fileOffset = fileOffset;
+    DartType matchedValueType = readDartType();
+    return new PatternVariableDeclaration(
+      pattern,
+      expression,
+      isFinal: isFinal,
+      matchedValueType: matchedValueType,
+    )..fileOffset = fileOffset;
   }
 
   PatternSwitchStatement _readPatternSwitchStatement() {
@@ -3755,6 +3783,7 @@ class BinaryBuilder {
           hasLabel: false,
           jointVariableDeclarations: [],
           jointVariableFirstUseOffsets: null,
+          jointVariableScope: null,
         ),
         growable: useGrowableLists,
       );
@@ -3934,7 +3963,7 @@ class BinaryBuilder {
     int scopeSize = readScopeSizeAndAllocateContexts();
     List<VariableDeclaration> variables = readAndPushVariableDeclarationList();
     Expression? condition = readExpressionOption();
-    List<Expression> updates = readExpressionList();
+    ExpressionList updates = readExpressionList();
     Statement body = readStatement();
     Scope? scope = readOptionalScope(scopeSize);
     variableStack.length = variableStackHeight;
@@ -3975,7 +4004,7 @@ class BinaryBuilder {
       cases = new List<SwitchCase>.generate(
         count,
         (_) => new SwitchCase(
-          <Expression>[],
+          ExpressionList.empty,
           <int>[],
           dummyStatement,
           isDefault: false,
@@ -4074,10 +4103,10 @@ class BinaryBuilder {
     int offset = readOffset();
     caseNode.fileOffset = offset;
     int length = readUInt30();
-    for (int i = 0; i < length; ++i) {
+    caseNode.expressions = new ExpressionList.generate(length, (_) {
       caseNode.expressionOffsets.add(readOffset());
-      caseNode.expressions.add(readExpression()..parent = caseNode);
-    }
+      return readExpression()..parent = caseNode;
+    });
     caseNode.isDefault = readByte() == 1;
     caseNode.body = readStatement()..parent = caseNode;
   }
@@ -4168,32 +4197,14 @@ class BinaryBuilder {
     }
   }
 
-  List<DartType> readDartTypeList() {
+  DartTypeList readDartTypeList() {
     int length = readUInt30();
-    if (!useGrowableLists && length == 0) {
-      // When lists don't have to be growable anyway, we might as well use an
-      // almost constant one for the empty list.
-      return emptyListOfDartType;
-    }
-    return new List<DartType>.generate(
-      length,
-      (_) => readDartType(),
-      growable: useGrowableLists,
-    );
+    return DartTypeList.generate(length, (_) => readDartType());
   }
 
-  List<NamedType> readNamedTypeList() {
+  NamedDartTypeList readNamedTypeList() {
     int length = readUInt30();
-    if (!useGrowableLists && length == 0) {
-      // When lists don't have to be growable anyway, we might as well use a
-      // constant one for the empty list.
-      return emptyListOfNamedType;
-    }
-    return new List<NamedType>.generate(
-      length,
-      (_) => readNamedType(),
-      growable: useGrowableLists,
-    );
+    return NamedDartTypeList.generate(length, (_) => readNamedType());
   }
 
   NamedType readNamedType() {
@@ -4295,7 +4306,7 @@ class BinaryBuilder {
   DartType _readInterfaceType() {
     int nullabilityIndex = readByte();
     Reference reference = readNonNullClassReference();
-    List<DartType> typeArguments = readDartTypeList();
+    DartTypeList typeArguments = readDartTypeList();
     return new InterfaceType.byReference(
       reference,
       Nullability.values[nullabilityIndex],
@@ -4326,7 +4337,7 @@ class BinaryBuilder {
     final DartType result = new InterfaceType.byReference(
       classReference,
       Nullability.values[nullabilityIndex],
-      const <DartType>[],
+      DartTypeList.empty,
     );
     _cachedSimpleInterfaceTypes[cacheIndex] = result;
     return result;
@@ -4341,7 +4352,7 @@ class BinaryBuilder {
   DartType _readExtensionType() {
     int nullabilityIndex = readByte();
     Reference reference = readNonNullExtensionTypeDeclarationReference();
-    List<DartType> typeArguments = readDartTypeList();
+    DartTypeList typeArguments = readDartTypeList();
     readDartType(); // Read type erasure.
     return new ExtensionType.byReference(
       reference,
@@ -4353,12 +4364,12 @@ class BinaryBuilder {
   DartType _readFunctionType() {
     int typeParameterStackHeight = typeParameterStack.length;
     int nullabilityIndex = readByte();
-    List<StructuralParameter> typeParameters =
+    StructuralParameterList typeParameters =
         readAndPushStructuralParameterList();
     int requiredParameterCount = readUInt30();
     int totalParameterCount = readUInt30();
-    List<DartType> positional = readDartTypeList();
-    List<NamedType> named = readNamedTypeList();
+    DartTypeList positional = readDartTypeList();
+    NamedDartTypeList named = readNamedTypeList();
     assert(positional.length + named.length == totalParameterCount);
     DartType returnType = readDartType();
     typeParameterStack.length = typeParameterStackHeight;
@@ -4374,7 +4385,7 @@ class BinaryBuilder {
 
   DartType _readSimpleFunctionType() {
     int nullabilityIndex = readByte();
-    List<DartType> positional = readDartTypeList();
+    DartTypeList positional = readDartTypeList();
     DartType returnType = readDartType();
     if (positional.isEmpty && returnType is VoidType) {
       // "FunctionType(void Function())" with different nullabilities.
@@ -4386,7 +4397,7 @@ class BinaryBuilder {
         return cached;
       }
       FunctionType result = new FunctionType(
-        const [],
+        DartTypeList.empty,
         const VoidType(),
         Nullability.values[nullabilityIndex],
       );
@@ -4426,8 +4437,8 @@ class BinaryBuilder {
 
   DartType _readRecordType() {
     int nullabilityIndex = readByte();
-    List<DartType> positional = readDartTypeList();
-    List<NamedType> named = readNamedTypeList();
+    DartTypeList positional = readDartTypeList();
+    NamedDartTypeList named = readNamedTypeList();
     return new RecordType(
       positional,
       named,
@@ -4435,29 +4446,17 @@ class BinaryBuilder {
     );
   }
 
-  List<TypeParameter> readAndPushTypeParameterList([
-    List<TypeParameter>? list,
-    GenericDeclaration? declaration,
-  ]) {
+  TypeParameterList readAndPushTypeParameterList(
+    TypeParameterList list,
+    GenericDeclaration declaration,
+  ) {
     int length = readUInt30();
-    if (length == 0) {
-      if (list != null) return list;
-      if (useGrowableLists) {
-        return <TypeParameter>[];
-      } else {
-        return emptyListOfTypeParameter;
-      }
-    }
-    if (list == null) {
-      list = new List<TypeParameter>.generate(
+    if (length == 0) return TypeParameterList.empty;
+    if (list.length != length) {
+      list = new TypeParameterList.generate(
         length,
         (_) => new TypeParameter(null, null)..declaration = declaration,
-        growable: useGrowableLists,
       );
-    } else if (list.length != length) {
-      for (int i = 0; i < length; ++i) {
-        list.add(new TypeParameter(null, null)..declaration = declaration);
-      }
     }
     typeParameterStack.addAll(list);
     for (int i = 0; i < list.length; ++i) {
@@ -4466,29 +4465,31 @@ class BinaryBuilder {
     return list;
   }
 
-  List<StructuralParameter> readAndPushStructuralParameterList([
-    List<StructuralParameter>? list,
-  ]) {
+  TypeParameterList readAndPushFunctionTypeParameterList() {
     int length = readUInt30();
     if (length == 0) {
-      if (list != null) return list;
-      if (useGrowableLists) {
-        return <StructuralParameter>[];
-      } else {
-        return emptyListOfStructuralParameter;
-      }
+      return TypeParameterList.empty;
     }
-    if (list == null) {
-      list = new List<StructuralParameter>.generate(
-        length,
-        (_) => new StructuralParameter(null, null),
-        growable: useGrowableLists,
-      );
-    } else if (list.length != length) {
-      for (int i = 0; i < length; ++i) {
-        list.add(new StructuralParameter(null, null));
-      }
+    TypeParameterList list = new TypeParameterList.generate(
+      length,
+      (_) => new TypeParameter(null, null),
+    );
+    typeParameterStack.addAll(list);
+    for (int i = 0; i < list.length; ++i) {
+      readTypeParameter(list[i]);
     }
+    return list;
+  }
+
+  StructuralParameterList readAndPushStructuralParameterList() {
+    int length = readUInt30();
+    if (length == 0) {
+      return StructuralParameterList.empty;
+    }
+    StructuralParameterList list = StructuralParameterList.generate(
+      length,
+      (_) => StructuralParameter(null, null),
+    );
     typeParameterStack.addAll(list);
     for (int i = 0; i < list.length; ++i) {
       readStructuralParameter(list[i]);
@@ -4531,24 +4532,18 @@ class BinaryBuilder {
 
   Arguments readArguments() {
     int numArguments = readUInt30();
-    List<DartType> typeArguments = readDartTypeList();
-    List<Expression> positional = readExpressionList();
-    List<NamedExpression> named = readNamedExpressionList();
+    DartTypeList typeArguments = readDartTypeList();
+    ExpressionList positional = readExpressionList();
+    NamedExpressionList named = readNamedExpressionList();
     assert(numArguments == positional.length + named.length);
     return new Arguments(positional, types: typeArguments, named: named);
   }
 
-  List<NamedExpression> readNamedExpressionList() {
+  NamedExpressionList readNamedExpressionList() {
     int length = readUInt30();
-    if (!useGrowableLists && length == 0) {
-      // When lists don't have to be growable anyway, we might as well use an
-      // almost-constant one for the empty list.
-      return emptyListOfNamedExpression;
-    }
-    return new List<NamedExpression>.generate(
+    return new NamedExpressionList.generate(
       length,
       (_) => readNamedExpression(),
-      growable: useGrowableLists,
     );
   }
 
@@ -4584,31 +4579,19 @@ class BinaryBuilder {
     );
   }
 
-  List<PositionalParameter> readAndPushPositionalParameterList() {
+  PositionalParameterList readAndPushPositionalParameterList() {
     int length = readUInt30();
-    if (!useGrowableLists && length == 0) {
-      // When lists don't have to be growable anyway, we might as well use an
-      // almost constant one for the empty list.
-      return emptyListOfPositionalParameter;
-    }
-    return new List<PositionalParameter>.generate(
+    return new PositionalParameterList.generate(
       length,
       (_) => readAndPushPositionalParameter(),
-      growable: useGrowableLists,
     );
   }
 
-  List<NamedParameter> readAndPushNamedParameterList() {
+  NamedParameterList readAndPushNamedParameterList() {
     int length = readUInt30();
-    if (!useGrowableLists && length == 0) {
-      // When lists don't have to be growable anyway, we might as well use an
-      // almost constant one for the empty list.
-      return emptyListOfNamedParameter;
-    }
-    return new List<NamedParameter>.generate(
+    return new NamedParameterList.generate(
       length,
       (_) => readAndPushNamedParameter(),
-      growable: useGrowableLists,
     );
   }
 

@@ -28,6 +28,12 @@ final List<Option> options = [
     (o, value) => o.translatorOptions.importSharedMemory = value,
     defaultsTo: _d.translatorOptions.importSharedMemory,
   ),
+  Flag(
+    "cfg",
+    (o, value) => o.translatorOptions.useCfg = value,
+    defaultsTo: _d.translatorOptions.useCfg,
+  ),
+  StringOption("dump-cfg", (o, value) => o.translatorOptions.dumpCfg = value),
   Flag("inlining", (o, value) => o.translatorOptions.inliningOverride = value),
   Flag(
     "unique-types",

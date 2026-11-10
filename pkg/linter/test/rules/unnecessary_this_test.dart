@@ -336,4 +336,38 @@ class D extends C {
 }
 ''');
   }
+
+  test_thisPromotion_noShadowing() async {
+    await assertDiagnosticsFromMarkup(r'''
+class A {
+  void a() {
+    if (this is B) {
+      [!this!].b();
+    }
+  }
+}
+
+class B extends A {
+  void b() {}
+}
+''');
+  }
+
+  test_thisPromotion_shadowed() async {
+    await assertNoDiagnostics(r'''
+class A {
+  void a() {
+    if (this is B) {
+      var b = 0;
+      this.b();
+      print(b);
+    }
+  }
+}
+
+class B extends A {
+  void b() {}
+}
+''');
+  }
 }

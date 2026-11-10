@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'dart:isolate';
 
 import 'package:analysis_server/src/session_logger/process_id.dart';
-import 'package:analysis_server/src/session_logger/session_logger.dart';
+import 'package:analysis_server/src/session_logger/session_listener.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
@@ -30,8 +30,8 @@ final class ServerIsolateChannel implements ServerCommunicationChannel {
   /// are resolved.
   final Uri _packageConfigUri;
 
-  /// The session logger that is to be used by this channel.
-  final SessionLogger _sessionLogger;
+  /// The session listener that is to be used by this channel.
+  final SessionListener _sessionListener;
 
   /// The isolate in which the plugin is running, or `null` if the plugin has
   /// not yet been started by invoking [listen].
@@ -54,7 +54,7 @@ final class ServerIsolateChannel implements ServerCommunicationChannel {
     this._pluginUri,
     this._packageConfigUri,
     this.instrumentationService,
-    this._sessionLogger,
+    this._sessionListener,
   );
 
   /// The ID of the plugin running in the isolate, used to identify the plugin
@@ -127,12 +127,12 @@ final class ServerIsolateChannel implements ServerCommunicationChannel {
     receivePort.listen((dynamic input) {
       if (input is SendPort) {
         _sendPort = input;
-        channelReady.complete(null);
+        channelReady.complete();
       } else if (input is Map<String, Object?>) {
         if (input.containsKey('id')) {
           var encodedInput = json.encode(input);
           instrumentationService.logPluginResponse(_pluginId, encodedInput);
-          _sessionLogger.logMessage(
+          _sessionListener.logMessage(
             from: ProcessId.plugin,
             to: ProcessId.server,
             message: input,
@@ -141,7 +141,7 @@ final class ServerIsolateChannel implements ServerCommunicationChannel {
         } else if (input.containsKey('event')) {
           var encodedInput = json.encode(input);
           instrumentationService.logPluginNotification(_pluginId, encodedInput);
-          _sessionLogger.logMessage(
+          _sessionListener.logMessage(
             from: ProcessId.plugin,
             to: ProcessId.server,
             message: input,
@@ -161,7 +161,7 @@ final class ServerIsolateChannel implements ServerCommunicationChannel {
       var jsonData = request.toJson();
       var encodedRequest = json.encode(jsonData);
       instrumentationService.logPluginRequest(_pluginId, encodedRequest);
-      _sessionLogger.logMessage(
+      _sessionListener.logMessage(
         from: ProcessId.server,
         to: ProcessId.plugin,
         message: jsonData,

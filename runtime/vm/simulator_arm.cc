@@ -5,6 +5,8 @@
 #include <setjmp.h>  // NOLINT
 #include <stdlib.h>
 
+#include <cmath>
+
 #include "vm/globals.h"
 #if defined(TARGET_ARCH_ARM)
 
@@ -779,10 +781,6 @@ Simulator::Simulator() : memory_(FLAG_sim_buffer_memory) {
 
 Simulator::~Simulator() {
   delete[] stack_;
-  Isolate* isolate = Isolate::Current();
-  if (isolate != nullptr) {
-    isolate->set_simulator(nullptr);
-  }
 }
 
 // When the generated code calls an external reference we need to catch that in
@@ -882,14 +880,14 @@ uword Simulator::FunctionForRedirect(uword redirect) {
   return Redirection::FunctionForRedirect(redirect);
 }
 
-// Get the active Simulator for the current isolate.
+// Get the active Simulator for the current thread.
 Simulator* Simulator::Current() {
-  Isolate* isolate = Isolate::Current();
-  Simulator* simulator = isolate->simulator();
+  Thread* thread = Thread::Current();
+  Simulator* simulator = thread->simulator();
   if (simulator == nullptr) {
     NoSafepointScope no_safepoint;
     simulator = new Simulator();
-    isolate->set_simulator(simulator);
+    thread->set_simulator(simulator);
   }
   return simulator;
 }
@@ -2929,7 +2927,14 @@ static void simd_value_swap(simd_value_t* s1,
   s2->u32[i2] = tmp;
 }
 
+static float NeonFlushToZero(float f) {
+  return std::fpclassify(f) == FP_SUBNORMAL ? std::copysign(0.0f, f) : f;
+}
+
 static float vminf(float f1, float f2) {
+  // VMIN.F32 propagates a NaN when either operand is a NaN.
+  if (isnan(f1)) return f1;
+  if (isnan(f2)) return f2;
   if (f1 == f2) {
     // take care of (-0.0) < 0.0, (they are equal according to minss)
     return signbit(f1) ? f1 : f2;
@@ -2938,6 +2943,9 @@ static float vminf(float f1, float f2) {
 }
 
 static float vmaxf(float f1, float f2) {
+  // VMAX.F32 propagates a NaN when either operand is a NaN.
+  if (isnan(f1)) return f1;
+  if (isnan(f2)) return f2;
   if (f1 == f2) {
     // take care of (-0.0) < 0.0, (they are equal according to minss)
     return signbit(f1) ? f2 : f1;
@@ -3055,39 +3063,39 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
       if (size == 0) {
         for (int i = 0; i < 16; i++) {
           int8_t shift = s8n.i8[i];
-          if (shift > 0) {
-            s8d.u8[i] = s8m.u8[i] << shift;
-          } else if (shift < 0) {
+          if (shift >= 0) {
+            s8d.u8[i] = shift >= 8 ? 0 : s8m.u8[i] << shift;
+          } else {
             if (is_signed) {
-              s8d.i8[i] = s8m.i8[i] >> (-shift);
+              s8d.i8[i] = s8m.i8[i] >> (-shift >= 8 ? 7 : -shift);
             } else {
-              s8d.u8[i] = s8m.u8[i] >> (-shift);
+              s8d.u8[i] = -shift >= 8 ? 0 : s8m.u8[i] >> (-shift);
             }
           }
         }
       } else if (size == 1) {
         for (int i = 0; i < 8; i++) {
           int8_t shift = s8n.i8[i * 2];
-          if (shift > 0) {
-            s8d.u16[i] = s8m.u16[i] << shift;
-          } else if (shift < 0) {
+          if (shift >= 0) {
+            s8d.u16[i] = shift >= 16 ? 0 : s8m.u16[i] << shift;
+          } else {
             if (is_signed) {
-              s8d.i16[i] = s8m.i16[i] >> (-shift);
+              s8d.i16[i] = s8m.i16[i] >> (-shift >= 16 ? 15 : -shift);
             } else {
-              s8d.u16[i] = s8m.u16[i] >> (-shift);
+              s8d.u16[i] = -shift >= 16 ? 0 : s8m.u16[i] >> (-shift);
             }
           }
         }
       } else if (size == 2) {
         for (int i = 0; i < 4; i++) {
           int8_t shift = s8n.i8[i * 4];
-          if (shift > 0) {
-            s8d.u32[i] = s8m.u32[i] << shift;
-          } else if (shift < 0) {
+          if (shift >= 0) {
+            s8d.u32[i] = shift >= 32 ? 0 : s8m.u32[i] << shift;
+          } else {
             if (is_signed) {
-              s8d.i32[i] = s8m.i32[i] >> (-shift);
+              s8d.i32[i] = s8m.i32[i] >> (-shift >= 32 ? 31 : -shift);
             } else {
-              s8d.u32[i] = s8m.u32[i] >> (-shift);
+              s8d.u32[i] = -shift >= 32 ? 0 : s8m.u32[i] >> (-shift);
             }
           }
         }
@@ -3095,13 +3103,13 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
         ASSERT(size == 3);
         for (int i = 0; i < 2; i++) {
           int8_t shift = s8n.i8[i * 8];
-          if (shift > 0) {
-            s8d.u64[i] = s8m.u64[i] << shift;
-          } else if (shift < 0) {
+          if (shift >= 0) {
+            s8d.u64[i] = shift >= 64 ? 0 : s8m.u64[i] << shift;
+          } else {
             if (is_signed) {
-              s8d.i64[i] = s8m.i64[i] >> (-shift);
+              s8d.i64[i] = s8m.i64[i] >> (-shift >= 64 ? 63 : -shift);
             } else {
-              s8d.u64[i] = s8m.u64[i] >> (-shift);
+              s8d.u64[i] = -shift >= 64 ? 0 : s8m.u64[i] >> (-shift);
             }
           }
         }
@@ -3137,6 +3145,12 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
       for (int i = 0; i < 4; i++) {
         s8d.u32[i] = s8n.u32[i] & s8m.u32[i];
       }
+    } else if ((instr->Bits(8, 4) == 1) && (instr->Bit(4) == 1) &&
+               (instr->Bits(20, 2) == 1) && (instr->Bits(23, 2) == 0)) {
+      // Format(instr, "vbicq 'qd, 'qn, 'qm");
+      for (int i = 0; i < 4; i++) {
+        s8d.u32[i] = s8n.u32[i] & ~s8m.u32[i];
+      }
     } else if ((instr->Bits(7, 5) == 11) && (instr->Bit(4) == 0) &&
                (instr->Bits(20, 2) == 3) && (instr->Bits(23, 5) == 7) &&
                (instr->Bits(16, 4) == 0)) {
@@ -3148,13 +3162,15 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
                (instr->Bits(20, 2) == 2) && (instr->Bits(23, 2) == 0)) {
       // Format(instr, "vminqs 'qd, 'qn, 'qm");
       for (int i = 0; i < 4; i++) {
-        s8d.f32[i] = vminf(s8n.f32[i], s8m.f32[i]);
+        s8d.f32[i] =
+            vminf(NeonFlushToZero(s8n.f32[i]), NeonFlushToZero(s8m.f32[i]));
       }
     } else if ((instr->Bits(8, 4) == 15) && (instr->Bit(4) == 0) &&
                (instr->Bits(20, 2) == 0) && (instr->Bits(23, 2) == 0)) {
       // Format(instr, "vmaxqs 'qd, 'qn, 'qm");
       for (int i = 0; i < 4; i++) {
-        s8d.f32[i] = vmaxf(s8n.f32[i], s8m.f32[i]);
+        s8d.f32[i] =
+            vmaxf(NeonFlushToZero(s8n.f32[i]), NeonFlushToZero(s8m.f32[i]));
       }
     } else if ((instr->Bits(8, 4) == 7) && (instr->Bit(4) == 0) &&
                (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&
@@ -3451,6 +3467,80 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
       } else if (size == 2) {
         uint32_t* in = reinterpret_cast<uint32_t*>(&dm_value);
         result = static_cast<uint64_t>(in[0]) + static_cast<uint64_t>(in[1]);
+      } else {
+        UnimplementedInstruction(instr);
+        return;
+      }
+      set_dregister_bits(dd, static_cast<int64_t>(result));
+    } else if ((instr->Bits(8, 4) == 10) && (instr->Bit(4) == 0) &&
+               (instr->Bits(23, 2) == 2)) {
+      // Format(instr, "vpmax.u<sz> 'dd, 'dn, 'dm");
+      DRegister dd = instr->DdField();
+      DRegister dn = instr->DnField();
+      DRegister dm = instr->DmField();
+      const int size = instr->Bits(20, 2);
+      uint64_t dn_value = static_cast<uint64_t>(get_dregister_bits(dn));
+      uint64_t dm_value = static_cast<uint64_t>(get_dregister_bits(dm));
+      uint64_t result = 0;
+      if (size == 0) {
+        uint8_t* n = reinterpret_cast<uint8_t*>(&dn_value);
+        uint8_t* m = reinterpret_cast<uint8_t*>(&dm_value);
+        uint8_t* out = reinterpret_cast<uint8_t*>(&result);
+        for (int i = 0; i < 4; i++) {
+          out[i] = Utils::Maximum<uint8_t>(n[2 * i], n[2 * i + 1]);
+          out[4 + i] = Utils::Maximum<uint8_t>(m[2 * i], m[2 * i + 1]);
+        }
+      } else if (size == 1) {
+        uint16_t* n = reinterpret_cast<uint16_t*>(&dn_value);
+        uint16_t* m = reinterpret_cast<uint16_t*>(&dm_value);
+        uint16_t* out = reinterpret_cast<uint16_t*>(&result);
+        for (int i = 0; i < 2; i++) {
+          out[i] = Utils::Maximum<uint16_t>(n[2 * i], n[2 * i + 1]);
+          out[2 + i] = Utils::Maximum<uint16_t>(m[2 * i], m[2 * i + 1]);
+        }
+      } else if (size == 2) {
+        uint32_t* n = reinterpret_cast<uint32_t*>(&dn_value);
+        uint32_t* m = reinterpret_cast<uint32_t*>(&dm_value);
+        uint32_t* out = reinterpret_cast<uint32_t*>(&result);
+        out[0] = Utils::Maximum<uint32_t>(n[0], n[1]);
+        out[1] = Utils::Maximum<uint32_t>(m[0], m[1]);
+      } else {
+        UnimplementedInstruction(instr);
+        return;
+      }
+      set_dregister_bits(dd, static_cast<int64_t>(result));
+    } else if ((instr->Bits(8, 4) == 10) && (instr->Bit(4) == 1) &&
+               (instr->Bits(23, 2) == 2)) {
+      // Format(instr, "vpmin.u<sz> 'dd, 'dn, 'dm");
+      DRegister dd = instr->DdField();
+      DRegister dn = instr->DnField();
+      DRegister dm = instr->DmField();
+      const int size = instr->Bits(20, 2);
+      uint64_t dn_value = static_cast<uint64_t>(get_dregister_bits(dn));
+      uint64_t dm_value = static_cast<uint64_t>(get_dregister_bits(dm));
+      uint64_t result = 0;
+      if (size == 0) {
+        uint8_t* n = reinterpret_cast<uint8_t*>(&dn_value);
+        uint8_t* m = reinterpret_cast<uint8_t*>(&dm_value);
+        uint8_t* out = reinterpret_cast<uint8_t*>(&result);
+        for (int i = 0; i < 4; i++) {
+          out[i] = Utils::Minimum<uint8_t>(n[2 * i], n[2 * i + 1]);
+          out[4 + i] = Utils::Minimum<uint8_t>(m[2 * i], m[2 * i + 1]);
+        }
+      } else if (size == 1) {
+        uint16_t* n = reinterpret_cast<uint16_t*>(&dn_value);
+        uint16_t* m = reinterpret_cast<uint16_t*>(&dm_value);
+        uint16_t* out = reinterpret_cast<uint16_t*>(&result);
+        for (int i = 0; i < 2; i++) {
+          out[i] = Utils::Minimum<uint16_t>(n[2 * i], n[2 * i + 1]);
+          out[2 + i] = Utils::Minimum<uint16_t>(m[2 * i], m[2 * i + 1]);
+        }
+      } else if (size == 2) {
+        uint32_t* n = reinterpret_cast<uint32_t*>(&dn_value);
+        uint32_t* m = reinterpret_cast<uint32_t*>(&dm_value);
+        uint32_t* out = reinterpret_cast<uint32_t*>(&result);
+        out[0] = Utils::Minimum<uint32_t>(n[0], n[1]);
+        out[1] = Utils::Minimum<uint32_t>(m[0], m[1]);
       } else {
         UnimplementedInstruction(instr);
         return;

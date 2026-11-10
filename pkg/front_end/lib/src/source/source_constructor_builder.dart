@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/codes/diagnostic.dart' as diag;
-import 'package:front_end/src/source/source_loader.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/reference_from_index.dart';
@@ -22,6 +20,7 @@ import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/property_builder.dart';
+import '../codes/diagnostic.dart' as diag;
 import '../fragment/constructor/declaration.dart';
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
 import '../kernel/kernel_helper.dart' show DelayedDefaultValueCloner;
@@ -30,8 +29,10 @@ import '../type_inference/type_inference_engine.dart';
 import '../util/helpers.dart';
 import '../util/reference_map.dart';
 import 'name_scheme.dart';
+import 'parameters.dart';
 import 'source_class_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
+import 'source_loader.dart';
 import 'source_member_builder.dart';
 import 'source_property_builder.dart';
 
@@ -71,21 +72,15 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   @override
   final Uri fileUri;
 
-  /// The introductory declaration for this constructor.
-  final ConstructorDeclaration _introductory;
+  /// The declarations of this constructor. The first is the introductory
+  /// declaration and subsequent declarations are augmentations.
+  final List<ConstructorDeclaration> _declarations;
 
-  /// The augmenting declarations for this constructor.
-  final List<ConstructorDeclaration> _augmentations;
-
-  /// All constructor declarations for this constructor that are augmented by
-  /// at least one constructor declaration.
-  late final List<ConstructorDeclaration> _augmentedDeclarations;
-
-  /// The last constructor declaration between [_introductory] and
-  /// [_augmentations].
+  /// The declaration used as the implementation of this constructor.
   ///
-  /// This is the declaration that creates the emitted kernel member(s).
-  late final ConstructorDeclaration _lastDeclaration;
+  /// This is the last complete declaration, if any. Otherwise it is
+  /// the first declaration.
+  final ConstructorDeclaration _implementation;
 
   final MemberName _memberName;
 
@@ -110,31 +105,29 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
 
   final bool isPrimaryConstructor;
 
+  final Parameters _parameters;
+
   new({
     required this.name,
     required this.libraryBuilder,
     required this.declarationBuilder,
     required this.fileOffset,
     required this.fileUri,
-    required ConstructorReferences constructorReferences,
-    required NameScheme nameScheme,
-    required ConstructorDeclaration introductory,
-    List<ConstructorDeclaration> augmentations = const [],
+    required this._constructorReferences,
+    required this._nameScheme,
+    required this._declarations,
+    required this._implementation,
+    required this._parameters,
     required this.isConst,
-  }) : _constructorReferences = constructorReferences,
-       _nameScheme = nameScheme,
-       _introductory = introductory,
-       _augmentations = augmentations,
-       _memberName = nameScheme.getDeclaredName(name),
-       isPrimaryConstructor = introductory.isPrimaryConstructor {
-    if (augmentations.isEmpty) {
-      _augmentedDeclarations = augmentations;
-      _lastDeclaration = introductory;
-    } else {
-      _augmentedDeclarations = [_introductory, ..._augmentations];
-      _lastDeclaration = _augmentedDeclarations.removeLast();
-    }
-  }
+  }) : _memberName = _nameScheme.getDeclaredName(name),
+       isPrimaryConstructor = _declarations.first.isPrimaryConstructor,
+       assert(
+         _declarations.contains(_implementation),
+         "Constructor implementation $_implementation not found in "
+         "declarations $_declarations",
+       );
+
+  ConstructorDeclaration get _introductory => _declarations.first;
 
   /// Returns `true` if field initializers should be moved to the initializer
   /// list of this constructor.
@@ -166,7 +159,7 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   List<FormalParameterBuilder>?
   get primaryConstructorInitializerScopeParameters {
     if (isPrimaryConstructor) {
-      return _lastDeclaration.primaryConstructorInitializerScopeParameters;
+      return _implementation.primaryConstructorInitializerScopeParameters;
     }
     return null;
   }
@@ -212,7 +205,7 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   }
 
   @override
-  FunctionSignature get signature => _lastDeclaration.signature;
+  FunctionSignature get signature => _implementation.signature;
 
   @override
   MemberBuilder get getable => this;
@@ -239,15 +232,7 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   ///
   /// An augmented constructor is considered external if all of the origin
   /// and augmentation constructors are external.
-  bool get isEffectivelyExternal {
-    bool isExternal = _introductory.isExternal;
-    if (isExternal) {
-      for (ConstructorDeclaration augmentation in _augmentations) {
-        isExternal &= augmentation.isExternal;
-      }
-    }
-    return isExternal;
-  }
+  bool get isEffectivelyExternal => _implementation.isExternal;
 
   /// Returns `true` if this constructor or any of its augmentations are
   /// redirecting.
@@ -256,15 +241,7 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   /// or augmentation constructors is redirecting. Since it is an error if more
   /// than one is redirecting, only one can be redirecting in the without
   /// errors.
-  bool get isEffectivelyRedirecting {
-    bool isRedirecting = _introductory.isRedirecting;
-    if (!isRedirecting) {
-      for (ConstructorDeclaration augmentation in _augmentations) {
-        isRedirecting |= augmentation.isRedirecting;
-      }
-    }
-    return isRedirecting;
-  }
+  bool get isEffectivelyRedirecting => _implementation.isRedirecting;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -319,26 +296,11 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   // Coverage-ignore(suite): Not run.
   Reference? get writeTargetReference => null;
 
-  void registerInitializers(
-    List<Initializer> initializers, {
-    required bool isErroneous,
-  }) {
-    if (isErroneous) {
-      markAsErroneous();
-    }
-    _lastDeclaration.registerInitializers(initializers);
-  }
-
   void addSuperParameterDefaultValueCloners(
     List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   ) {
-    _introductory.addSuperParameterDefaultValueCloners(
-      libraryBuilder,
-      declarationBuilder,
-      delayedDefaultValueCloners,
-    );
-    for (ConstructorDeclaration augmentation in _augmentations) {
-      augmentation.addSuperParameterDefaultValueCloners(
+    for (int i = 0; i < _declarations.length; i++) {
+      _declarations[i].addSuperParameterDefaultValueCloners(
         libraryBuilder,
         declarationBuilder,
         delayedDefaultValueCloners,
@@ -348,12 +310,10 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
 
   @override
   int buildBodyNodes(BuildNodesCallback f) {
-    _introductory.buildBody();
-    for (int i = 0; i < _augmentations.length; i++) {
-      ConstructorDeclaration augmentation = _augmentations[i];
-      augmentation.buildBody();
+    for (int i = 0; i < _declarations.length; i++) {
+      _declarations[i].buildBody();
     }
-    return _augmentations.length;
+    return _declarations.length - 1;
   }
 
   @override
@@ -364,18 +324,8 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
     if (_hasBuiltOutlines) return;
 
     if (!hasBuiltOutlineExpressions) {
-      _introductory.buildOutlineExpressions(
-        annotatables: annotatables,
-        annotatablesFileUri: invokeTarget.fileUri,
-        libraryBuilder: libraryBuilder,
-        declarationBuilder: declarationBuilder,
-        constructorBuilder: this,
-        classHierarchy: classHierarchy,
-        delayedDefaultValueCloners: delayedDefaultValueCloners,
-      );
-      for (int i = 0; i < _augmentations.length; i++) {
-        ConstructorDeclaration augmentation = _augmentations[i];
-        augmentation.buildOutlineExpressions(
+      for (int i = 0; i < _declarations.length; i++) {
+        _declarations[i].buildOutlineExpressions(
           annotatables: annotatables,
           annotatablesFileUri: invokeTarget.fileUri,
           libraryBuilder: libraryBuilder,
@@ -394,23 +344,16 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   }
 
   @override
-  void buildOutlineNodes(BuildNodesCallback f) {
-    _lastDeclaration.buildOutlineNodes(
-      f,
-      constructorBuilder: this,
-      libraryBuilder: libraryBuilder,
-      nameScheme: _nameScheme,
-      constructorReferences: _constructorReferences,
-      delayedDefaultValueCloners: _delayedDefaultValueCloners,
-    );
-    for (int i = 0; i < _augmentedDeclarations.length; i++) {
-      ConstructorDeclaration declaration = _augmentedDeclarations[i];
+  void buildOutlineNodes(BuildNodesCallback callback) {
+    for (int i = 0; i < _declarations.length; i++) {
+      ConstructorDeclaration declaration = _declarations[i];
+      bool isImplementation = declaration == _implementation;
       declaration.buildOutlineNodes(
-        noAddBuildNodesCallback,
+        callback: isImplementation ? callback : noAddBuildNodesCallback,
         constructorBuilder: this,
         libraryBuilder: libraryBuilder,
         nameScheme: _nameScheme,
-        constructorReferences: null,
+        constructorReferences: isImplementation ? _constructorReferences : null,
         delayedDefaultValueCloners: _delayedDefaultValueCloners,
       );
     }
@@ -423,11 +366,13 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
     NameSpace nameSpace,
     TypeEnvironment typeEnvironment,
   ) {
-    _introductory.checkTypes(libraryBuilder, nameSpace, typeEnvironment);
-    for (int i = 0; i < _augmentations.length; i++) {
-      ConstructorDeclaration augmentation = _augmentations[i];
-      augmentation.checkTypes(problemReporting, nameSpace, typeEnvironment);
-    }
+    _parameters.processOutlineExpressions(
+      problemReporting,
+      typeEnvironment,
+      isAbstract: false,
+      isExternal: _implementation.isExternal,
+      libraryFeatures: libraryFeatures,
+    );
   }
 
   @override
@@ -442,13 +387,9 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
     ComputeDefaultTypeContext context, {
     required bool inErrorRecovery,
   }) {
-    int count = _introductory.computeDefaultTypes(
-      context,
-      inErrorRecovery: inErrorRecovery,
-    );
-    for (int i = 0; i < _augmentations.length; i++) {
-      ConstructorDeclaration augmentation = _augmentations[i];
-      count += augmentation.computeDefaultTypes(
+    int count = 0;
+    for (int i = 0; i < _declarations.length; i++) {
+      count += _declarations[i].computeDefaultTypes(
         context,
         inErrorRecovery: inErrorRecovery,
       );
@@ -459,16 +400,8 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   /// Infers the types of any untyped initializing formals.
   void inferFormalTypes(ClassHierarchyBase hierarchy) {
     if (_hasFormalsInferred) return;
-    _introductory.inferFormalTypes(
-      libraryBuilder,
-      declarationBuilder,
-      this,
-      hierarchy,
-      _delayedDefaultValueCloners,
-    );
-    for (int i = 0; i < _augmentations.length; i++) {
-      ConstructorDeclaration augmentation = _augmentations[i];
-      augmentation.inferFormalTypes(
+    for (int i = 0; i < _declarations.length; i++) {
+      _declarations[i].inferFormalTypes(
         libraryBuilder,
         declarationBuilder,
         this,
@@ -484,16 +417,8 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
     inferFormalTypes(hierarchy);
   }
 
-  void prepareInitializers() {
-    _introductory.prepareInitializers();
-    for (int i = 0; i < _augmentations.length; i++) {
-      ConstructorDeclaration augmentation = _augmentations[i];
-      augmentation.prepareInitializers();
-    }
-  }
-
   void prependInitializer(Initializer initializer) {
-    _lastDeclaration.prependInitializer(initializer);
+    _implementation.prependInitializer(initializer);
   }
 
   /// Registers field as being initialized by this constructor.
@@ -536,10 +461,8 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   /// the input AST node. The flag helps the verifier to skip apriori erroneous
   /// members and to avoid reporting cascading errors.
   void markAsErroneous() {
-    _introductory.markAsErroneous();
-    for (ConstructorDeclaration augmentation in _augmentations) {
-      // Coverage-ignore-block(suite): Not run.
-      augmentation.markAsErroneous();
+    for (int i = 0; i < _declarations.length; i++) {
+      _declarations[i].markAsErroneous();
     }
   }
 

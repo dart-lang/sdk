@@ -65,7 +65,6 @@ DEFINE_FLAG(bool,
 
 DECLARE_FLAG(charp, deoptimize_filter);
 DECLARE_FLAG(bool, intrinsify);
-DECLARE_FLAG(int, regexp_optimization_counter_threshold);
 DECLARE_FLAG(int, reoptimization_counter_threshold);
 DECLARE_FLAG(int, stacktrace_every);
 DECLARE_FLAG(charp, stacktrace_filter);
@@ -523,6 +522,9 @@ void FlowGraphCompiler::EmitInstructionEpilogue(Instruction* instr) {
           break;
         case kUnboxedFloat64x2:
           stub = &StubCode::BoxFloat64x2();
+          break;
+        case kUnboxedInt32x4:
+          stub = &StubCode::BoxInt32x4();
           break;
         default:
           UNREACHABLE();
@@ -1322,22 +1324,6 @@ void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
     return;
   }
   LocalVarDescriptors& var_descs = LocalVarDescriptors::Handle();
-  if (flow_graph().IsIrregexpFunction()) {
-    // Eager local var descriptors computation for Irregexp function as it is
-    // complicated to factor out.
-    // TODO(srdjan): Consider canonicalizing and reusing the local var
-    // descriptor for IrregexpFunction.
-    ASSERT(parsed_function().scope() == nullptr);
-    var_descs = LocalVarDescriptors::New(1);
-    UntaggedLocalVarDescriptors::VarInfo info;
-    info.set_kind(UntaggedLocalVarDescriptors::kSavedCurrentContext);
-    info.scope_id = 0;
-    info.begin_pos = TokenPosition::kMinSource;
-    info.end_pos = TokenPosition::kMinSource;
-    info.set_index(compiler::target::frame_layout.FrameSlotForVariable(
-        parsed_function().current_context_var()));
-    var_descs.SetVar(0, Symbols::CurrentContextVar(), &info);
-  }
   code.set_var_descriptors(var_descs);
 #endif
 }
@@ -1774,6 +1760,7 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
           break;
         case kUnboxedFloat32x4:
         case kUnboxedFloat64x2:
+        case kUnboxedInt32x4:
           ASSERT(fpu_reg != kNoFpuRegister);
           assembler()->LoadUnboxedSimd128(
               fpu_reg, reg,
@@ -1912,8 +1899,6 @@ intptr_t FlowGraphCompiler::GetOptimizationThreshold() const {
   intptr_t threshold;
   if (is_optimizing()) {
     threshold = FLAG_reoptimization_counter_threshold;
-  } else if (parsed_function_.function().IsIrregexpFunction()) {
-    threshold = FLAG_regexp_optimization_counter_threshold;
   } else {
     const auto configured_optimization_counter_threshold =
         IsolateGroup::Current()->optimization_counter_threshold();
@@ -3030,7 +3015,7 @@ void FlowGraphCompiler::FrameStatePush(Definition* defn) {
   Representation rep = defn->representation();
   ASSERT(!is_optimizing());
   if ((rep == kUnboxedDouble || rep == kUnboxedFloat32x4 ||
-       rep == kUnboxedFloat64x2) &&
+       rep == kUnboxedFloat64x2 || rep == kUnboxedInt32x4) &&
       defn->locs()->out(0).IsFpuRegister()) {
     // Output value is boxed in the instruction epilogue.
     rep = kTagged;

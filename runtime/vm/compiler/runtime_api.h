@@ -430,14 +430,43 @@ class UntaggedObject : public AllStatic {
   static bool IsTypedDataClassId(intptr_t cid);
 };
 
+class UntaggedClass : public AllStatic {
+ public:
+  static const word kFinalized;
+  static const word kTypeFinalized;
+};
+
 class UntaggedClosure : public AllStatic {
+  static const word kInstantiatorTypeArgumentsIndexBitsPos;
+  static const word kInstantiatorTypeArgumentsIndexBitsSize;
   static const word kHasDelayedTypeArgumentsBit;
+  static const word kDelayedTypeArgumentsIndex;
   static const word kHasInstantiatorTypeArgumentsBit;
   static const word kHasFunctionTypeArgumentsBit;
   static const word kFunctionTypeArgumentsIndexBitsPos;
   static const word kFunctionTypeArgumentsIndexBitsSize;
   static const word kLengthBitsPos;
   static const word kLengthBitsSize;
+};
+
+class UntaggedFunction : public AllStatic {
+  static const word kAsync;
+  static const word kSyncGen;
+  static const word kAsyncGen;
+};
+
+class UntaggedFunctionType : public AllStatic {
+  static const word kPackedNumParentTypeArgumentsPos;
+  static const word kPackedNumParentTypeArgumentsSize;
+  static const word kPackedNumTypeParametersPos;
+  static const word kPackedNumTypeParametersSize;
+  static const word kPackedNumImplicitParametersPos;
+  static const word kPackedNumImplicitParametersSize;
+  static const word kPackedHasNamedOptionalParametersPos;
+  static const word kPackedNumFixedParametersPos;
+  static const word kPackedNumFixedParametersSize;
+  static const word kPackedNumOptionalParametersPos;
+  static const word kPackedNumOptionalParametersSize;
 };
 
 class UntaggedPcDescriptors : public AllStatic {
@@ -470,6 +499,7 @@ class UntaggedTypeParameter : public AllStatic {
 
 class Object : public AllStatic {
  public:
+  static const word kHashBits;
   // Offset of the tags word.
   static word tags_offset();
   static word InstanceSize();
@@ -523,6 +553,25 @@ class Class : public AllStatic {
 
   // Whether to trace allocation for this klass.
   static bool TraceAllocation(const dart::Class& klass);
+
+  static const word kConstBitPos;
+  static const word kImplementedBitPos;
+  static const word kClassFinalizedBitsPos;
+  static const word kClassFinalizedBitsSize;
+  static const word kClassLoadingBitsPos;
+  static const word kClassLoadingBitsSize;
+  static const word kAbstractBitPos;
+  static const word kEnumBitPos;
+  static const word kTransformedMixinApplicationBitPos;
+  static const word kIsLoadedBitPos;
+  static const word kHasPragmaBitPos;
+  static const word kSealedBitPos;
+  static const word kMixinClassBitPos;
+  static const word kBaseClassBitPos;
+  static const word kInterfaceClassBitPos;
+  static const word kFinalBitPos;
+  static const word kIsIsolateUnsendableBitPos;
+  static const word kIsDeeplyImmutableBitPos;
 };
 
 class Instance : public AllStatic {
@@ -943,6 +992,12 @@ class CompressedStackMaps : public AllStatic {
  private:
   static word ObjectHeaderSize();
   static word PayloadHeaderSize();
+};
+
+class LocalVarDescriptor : public AllStatic {
+ public:
+  static word InstanceSize();
+  FINAL_CLASS();
 };
 
 class LocalVarDescriptors : public AllStatic {
@@ -1398,6 +1453,13 @@ class IsolateGroup : public AllStatic {
   static word cached_class_table_table_offset();
 };
 
+class VMTag : public AllStatic {
+ public:
+  static const word kDartTagId;
+  static const word kRuntimeTagId;
+  static const word kNativeTagId;
+};
+
 class ClassTable : public AllStatic {
  public:
 #if !defined(PRODUCT)
@@ -1482,6 +1544,7 @@ class SubtypeTestCache : public AllStatic {
   static word num_inputs_offset();
 
   static const word kMaxInputs;
+  static const word kMaxLinearCacheSize;
   static const word kTestEntryLength;
   static const word kInstanceCidOrSignature;
   static const word kDestinationType;
@@ -1540,8 +1603,7 @@ class Page : public AllStatic {
   static const word kPageMask;
 
   static word card_table_offset();
-  static word original_top_offset();
-  static word original_end_offset();
+  static word survivor_end_offset();
 };
 
 class Heap : public AllStatic {
@@ -1604,6 +1666,20 @@ class Field : public AllStatic {
   static word host_offset_or_field_id_offset();
   static word InstanceSize();
   FINAL_CLASS();
+
+  static const word kConstBitPos;
+  static const word kStaticBitPos;
+  static const word kFinalBitPos;
+  static const word kHasNontrivialInitializerBitPos;
+  static const word kUnboxedBitPos;
+  static const word kHasPragmaBitPos;
+  static const word kCovariantBitPos;
+  static const word kGenericCovariantImplBitPos;
+  static const word kIsLateBitPos;
+  static const word kIsExtensionMemberBitPos;
+  static const word kIsExtensionTypeMemberBitPos;
+  static const word kHasInitializerBitPos;
+  static const word kSharedBitPos;
 };
 
 class TypeParameters : public AllStatic {
@@ -1628,6 +1704,7 @@ class TypeArguments : public AllStatic {
   static word InstanceSize();
   FINAL_CLASS();
 
+  static const word kAllDynamicHash;
   static const word kMaxElements;
 };
 
@@ -1652,6 +1729,34 @@ class ForwardingCorpse : public AllStatic {
 class FieldTable : public AllStatic {
  public:
   static word OffsetOf(const dart::Field& field);
+};
+
+class CallbackMetadata : public AllStatic {
+ public:
+  static const word kCall;
+  static const word kTailCall;
+  static const word kCallRet4;
+
+  static word InstanceSize();
+  static word entry_point_offset();
+  static word type_offset();
+  static word epilogue_offset();
+  static word caller_isolate_offset();
+  static word caller_isolate_group_offset();
+  static word function_handle_offset();
+  static word interpreted_runtime_entry_offset();
+};
+
+class CallbackContext : public AllStatic {
+ public:
+  static const word kNumIntegerArguments;
+  static const word kNumDoubleArguments;
+
+  static word InstanceSize();
+  static word integer_arguments_offset();
+  static word double_arguments_offset();
+  static word return_struct_pointer_offset();
+  static word sp_offset();
 };
 
 void UnboxFieldIfSupported(const dart::Field& field,

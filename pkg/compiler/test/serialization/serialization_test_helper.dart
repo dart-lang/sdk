@@ -183,9 +183,8 @@ runTest({
   Expect.isTrue(resultCfeDill.isSuccess);
   Expect.isTrue(cfeDillCollector.binaryOutputMap.containsKey(cfeDillFileUri));
 
-  File(
-    cfeDillFileUri.path,
-  ).writeAsBytesSync(cfeDillCollector.binaryOutputMap[cfeDillFileUri]!.list);
+  File(cfeDillFileUri.path)
+      .writeAsBytesSync(cfeDillCollector.binaryOutputMap[cfeDillFileUri]!.list);
 
   var closedWorldUri = Uri.parse('world.data');
   OutputCollector collector3a = OutputCollector();
@@ -319,9 +318,11 @@ JClosedWorld cloneClosedWorld(
   SerializationIndices indices = SerializationIndices();
   ir.Component component = closedWorld.elementMap.programEnv.mainComponent;
   Uint8List irData = strategy.serializeComponent(component);
-  final closedWorldData =
-      strategy.serializeClosedWorld(closedWorld, compiler.options, indices)
-          as List<int>;
+  final closedWorldData = strategy.serializeClosedWorld(
+    closedWorld,
+    compiler.options,
+    indices,
+  ) as List<int>;
   print('data size: ${closedWorldData.length}');
 
   ir.Component newComponent = strategy.deserializeComponent(irData);
@@ -334,9 +335,11 @@ JClosedWorld cloneClosedWorld(
     indices,
   );
   indices = SerializationIndices();
-  final newClosedWorldData =
-      strategy.serializeClosedWorld(newClosedWorld, compiler.options, indices)
-          as List<int>;
+  final newClosedWorldData = strategy.serializeClosedWorld(
+    newClosedWorld,
+    compiler.options,
+    indices,
+  ) as List<int>;
   checkData(closedWorldData, newClosedWorldData);
   return newClosedWorld;
 }
@@ -354,13 +357,11 @@ GlobalTypeInferenceResults cloneInferenceResults(
 ) {
   SerializationIndices indices = SerializationIndices(testMode: true);
   Uint8List irData = strategy.unpackAndSerializeComponent(results);
-  final closedWorldData =
-      strategy.serializeClosedWorld(
-            results.closedWorld,
-            compiler.options,
-            indices,
-          )
-          as List<int>;
+  final closedWorldData = strategy.serializeClosedWorld(
+    results.closedWorld,
+    compiler.options,
+    indices,
+  ) as List<int>;
   ir.Component newComponent = strategy.deserializeComponent(irData);
   var newClosedWorld = strategy.deserializeClosedWorld(
     compiler.options,
@@ -371,13 +372,11 @@ GlobalTypeInferenceResults cloneInferenceResults(
     indices,
   );
   indices = SerializationIndices(testMode: true);
-  final worldData =
-      strategy.serializeGlobalTypeInferenceResults(
-            results,
-            compiler.options,
-            indices,
-          )
-          as List<int>;
+  final worldData = strategy.serializeGlobalTypeInferenceResults(
+    results,
+    compiler.options,
+    indices,
+  ) as List<int>;
   print('data size: ${worldData.length}');
   GlobalTypeInferenceResults initialResults = strategy
       .deserializeGlobalTypeInferenceResults(
@@ -391,13 +390,11 @@ GlobalTypeInferenceResults cloneInferenceResults(
         indices,
       );
   indices = SerializationIndices(testMode: true);
-  final initialWorldData =
-      strategy.serializeGlobalTypeInferenceResults(
-            initialResults,
-            compiler.options,
-            indices,
-          )
-          as List<int>;
+  final initialWorldData = strategy.serializeGlobalTypeInferenceResults(
+    initialResults,
+    compiler.options,
+    indices,
+  ) as List<int>;
   GlobalTypeInferenceResults finalResults = strategy
       .deserializeGlobalTypeInferenceResults(
         compiler.options,
@@ -410,13 +407,11 @@ GlobalTypeInferenceResults cloneInferenceResults(
         indices,
       );
   indices = SerializationIndices(testMode: true);
-  final finalWorldData =
-      strategy.serializeGlobalTypeInferenceResults(
-            finalResults,
-            compiler.options,
-            indices,
-          )
-          as List<int>;
+  final finalWorldData = strategy.serializeGlobalTypeInferenceResults(
+    finalResults,
+    compiler.options,
+    indices,
+  ) as List<int>;
   checkData(initialWorldData, finalWorldData);
   return finalResults;
 }

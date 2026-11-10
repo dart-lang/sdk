@@ -1,0 +1,16 @@
+Problems reported:
+
+parser/error_recovery/binary_file_02.crash:1:1: Unable to decode bytes as UTF-8.
+��
+^
+
+parser/error_recovery/binary_file_02.crash:1:2: Unable to decode bytes as UTF-8.
+��
+ ^
+
+beginCompilationUnit()
+  handleErrorToken(EncodingErrorToken())
+  handleRecoverableError(Encoding, EncodingErrorToken(), EncodingErrorToken())
+  handleErrorToken(EncodingErrorToken())
+  handleRecoverableError(Encoding, EncodingErrorToken(), EncodingErrorToken())
+endCompilationUnit(0, )

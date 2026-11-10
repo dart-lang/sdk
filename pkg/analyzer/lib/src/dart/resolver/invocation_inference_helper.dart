@@ -14,9 +14,7 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
-import 'package:analyzer/src/dart/type_instantiation_target.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 
 /// Information about a constructor element to instantiate.
 ///
@@ -37,7 +35,7 @@ class ConstructorElementToInfer {
   /// The element, might be [SubstitutedConstructorElementImpl].
   final InternalConstructorElement element;
 
-  ConstructorElementToInfer(this.typeParameters, this.element);
+  new(this.typeParameters, this.element);
 
   /// Return the equivalent generic function type that we could use to
   /// forward to the constructor, or for a non-generic type simply returns
@@ -58,21 +56,19 @@ class ConstructorElementToInfer {
 }
 
 class InvocationInferenceHelper {
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _typeAnalyzer;
   final DiagnosticReporter _diagnosticReporter;
   final TypeSystemImpl _typeSystem;
   final bool _genericMetadataIsEnabled;
   final TypeConstraintGenerationDataForTesting? dataForTesting;
 
-  InvocationInferenceHelper({
-    required ResolverVisitor resolver,
-    required DiagnosticReporter diagnosticReporter,
-    required TypeSystemImpl typeSystem,
+  new({
+    required TypeAnalyzer typeAnalyzer,
+    required this._diagnosticReporter,
+    required this._typeSystem,
     required this.dataForTesting,
-  }) : _resolver = resolver,
-       _diagnosticReporter = diagnosticReporter,
-       _typeSystem = typeSystem,
-       _genericMetadataIsEnabled = resolver.definingLibrary.featureSet
+  }) : _typeAnalyzer = typeAnalyzer,
+       _genericMetadataIsEnabled = typeAnalyzer.definingLibrary.featureSet
            .isEnabled(Feature.generic_metadata);
 
   /// If the constructor referenced by the [constructorName] is generic,
@@ -116,46 +112,33 @@ class InvocationInferenceHelper {
     return ConstructorElementToInfer(typeParameters, rawElement);
   }
 
-  /// Given an uninstantiated generic function type, referenced by the
-  /// [identifier] in the tear-off [expression], try to infer the instantiated
-  /// generic function type from the surrounding context.
+  /// Given an uninstantiated generic function type [tearOffType] of the
+  /// tear-off [expression], try to infer the instantiated generic function
+  /// type from the surrounding context.
+  ///
+  /// The inferred type arguments are passed to [recordTypeArguments].
   DartType inferTearOff(
     ExpressionImpl expression,
-    SimpleIdentifierImpl identifier,
     DartType tearOffType, {
     required DartType contextType,
-  }) {
-    return inferTearOff2(
-      expression,
-      tearOffType,
-      contextType: contextType,
-      recordTypeArguments: (typeArguments) {
-        identifier.tearOffTypeArgumentTypes = typeArguments;
-      },
-    );
-  }
-
-  DartType inferTearOff2(
-    ExpressionImpl expression,
-    DartType tearOffType, {
-    required DartType contextType,
-    required void Function(List<TypeImpl>) recordTypeArguments,
+    void Function(List<TypeImpl>)? recordTypeArguments,
   }) {
     if (contextType is FunctionTypeImpl && tearOffType is FunctionTypeImpl) {
       var typeArguments = _typeSystem.inferFunctionTypeInstantiation(
         contextType,
         tearOffType,
         diagnosticReporter: _diagnosticReporter,
-        errorNode: expression,
+        expression: expression,
         genericMetadataIsEnabled: _genericMetadataIsEnabled,
-        inferenceUsingBoundsIsEnabled: _resolver.inferenceUsingBoundsIsEnabled,
-        strictInference: _resolver.analysisOptions.strictInference,
-        strictCasts: _resolver.analysisOptions.strictCasts,
-        typeSystemOperations: _resolver.flowAnalysis.typeOperations,
+        inferenceUsingBoundsIsEnabled:
+            _typeAnalyzer.inferenceUsingBoundsIsEnabled,
+        strictInference: _typeAnalyzer.analysisOptions.strictInference,
+        strictCasts: _typeAnalyzer.analysisOptions.strictCasts,
+        typeSystemOperations: _typeAnalyzer.flowAnalysis.typeOperations,
         dataForTesting: dataForTesting,
         nodeForTesting: expression,
       );
-      recordTypeArguments(typeArguments);
+      recordTypeArguments?.call(typeArguments);
       if (typeArguments.isNotEmpty) {
         return tearOffType.instantiate(typeArguments);
       }
@@ -163,45 +146,15 @@ class InvocationInferenceHelper {
     return tearOffType;
   }
 
-  /// Finish resolution of the [DotShorthandInvocation].
-  ///
-  /// We have already found the invoked [ExecutableElement]. Here we perform
-  /// downwards inference, resolution of arguments, and upwards inference.
-  void resolveDotShorthandInvocation({
-    required DotShorthandInvocationImpl node,
-    required List<WhyNotPromotedGetter> whyNotPromotedArguments,
-    required TypeImpl contextType,
-    required InvocationTarget target,
-  }) {
-    var returnType = DotShorthandInvocationInferrer(
-      resolver: _resolver,
-      node: node,
-      argumentList: node.argumentList,
-      contextType: contextType,
-      whyNotPromotedArguments: whyNotPromotedArguments,
-      target: target,
-    ).resolveInvocation();
-    node.recordStaticType(returnType, resolver: _resolver);
-  }
-
-  /// Finish resolution of the [MethodInvocation].
-  ///
-  /// We have already found the invoked [ExecutableElement]. Here we perform
-  /// downwards inference, resolution of arguments, and upwards inference.
-  void resolveMethodInvocation({
-    required MethodInvocationImpl node,
-    required List<WhyNotPromotedGetter> whyNotPromotedArguments,
-    required TypeImpl contextType,
-    required InvocationTarget? target,
-  }) {
-    var returnType = MethodInvocationInferrer(
-      resolver: _resolver,
-      node: node,
-      argumentList: node.argumentList,
-      contextType: contextType,
-      whyNotPromotedArguments: whyNotPromotedArguments,
-      target: target,
-    ).resolveInvocation();
-    node.recordStaticType(returnType, resolver: _resolver);
+  /// Moves inference instrumentation when resolution replaces an AST node.
+  void transferTestData(AstNodeImpl from, AstNodeImpl to) {
+    var dataForTesting = this.dataForTesting;
+    if (dataForTesting == null) {
+      return;
+    }
+    var constraints = dataForTesting.generatedTypeConstraints.remove(from);
+    if (constraints != null) {
+      dataForTesting.generatedTypeConstraints[to] = constraints;
+    }
   }
 }

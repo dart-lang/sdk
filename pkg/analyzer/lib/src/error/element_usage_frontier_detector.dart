@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/error/element_usage_detector.dart';
 
@@ -11,7 +12,7 @@ import 'package:analyzer/src/error/element_usage_detector.dart';
 /// The "usage frontier" of a set of elements is defined as the locations in
 /// source code where elements that are _not_ in the set make use of elements
 /// that _are_ in the set.
-@ToBeDeprecated('Use ElementUsageFrontierDetector instead')
+@V1Ast('The V2 counterpart is ElementUsageFrontierDetector.')
 class ElementUsageFrontierDetector<TagInfo extends Object>
     extends ElementUsageDetector<TagInfo> {
   /// Stack corresponding to elements being visited that might be in ith
@@ -30,10 +31,7 @@ class ElementUsageFrontierDetector<TagInfo extends Object>
   /// [usagesMetadataOnly] or not.
   final List<List<bool>> _inElementStacksMetadataOnly = [];
 
-  ElementUsageFrontierDetector({
-    required super.workspacePackage,
-    required super.usagesAndReporters,
-  }) {
+  new({required super.workspacePackage, required super.usagesAndReporters}) {
     for (int i = 0; i < usagesArbitrary.length; i++) {
       _inElementStacksArbitrary.add([false]);
     }
@@ -131,10 +129,7 @@ class ElementUsageFrontierDetectorV2<TagInfo extends Object>
   /// [usagesMetadataOnly] or not.
   final List<List<bool>> _inElementStacksMetadataOnly = [];
 
-  ElementUsageFrontierDetectorV2({
-    required super.workspacePackage,
-    required super.usagesAndReporters,
-  }) {
+  new({required super.workspacePackage, required super.usagesAndReporters}) {
     for (int i = 0; i < usagesArbitrary.length; i++) {
       _inElementStacksArbitrary.add([false]);
     }
@@ -144,7 +139,12 @@ class ElementUsageFrontierDetectorV2<TagInfo extends Object>
   }
 
   @override
-  void checkUsage(Element? element, AstNode node) {
+  void checkUsage(
+    Element? element,
+    AstNode node, {
+    required SourceRange usageRange,
+    ElementUsageKind usageKind = ElementUsageKind.explicit,
+  }) {
     bool allTrue = true;
     for (var inElementStack in _inElementStacksArbitrary) {
       if (!inElementStack.last) {
@@ -162,7 +162,12 @@ class ElementUsageFrontierDetectorV2<TagInfo extends Object>
     }
     if (allTrue) return;
 
-    super.checkUsage(element, node);
+    super.checkUsage(
+      element,
+      node,
+      usageRange: usageRange,
+      usageKind: usageKind,
+    );
   }
 
   void popElement() {

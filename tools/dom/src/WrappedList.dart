@@ -44,7 +44,7 @@ class _WrappedList<E extends Node> extends ListBase<E>
     _list.length = newLength;
   }
 
-  void sort([int compare(E a, E b)?]) {
+  void sort([int Function(E a, E b)? compare]) {
     if (compare == null) {
       _list.sort();
     } else {

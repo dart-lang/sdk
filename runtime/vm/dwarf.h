@@ -138,6 +138,7 @@ class Dwarf : public ZoneObject {
         const char* compilation_unit_name = nullptr);
 
   const GrowableArray<const Code*>& codes() const { return codes_; }
+  const GrowableArray<const Function*>& functions() const { return functions_; }
   const GrowableArray<const Script*>& scripts() const { return scripts_; }
   const Trie<const char>* deobfuscation_trie() const {
     return deobfuscation_trie_;

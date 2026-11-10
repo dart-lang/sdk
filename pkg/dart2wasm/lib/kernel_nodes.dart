@@ -15,6 +15,7 @@ mixin KernelNodes {
   CoreTypes get coreTypes;
 
   // dart:_internal classes
+  late final Library internalLibrary = index.getLibrary('dart:_internal');
   late final Class symbolClass = index.getClass("dart:_internal", "Symbol");
 
   String get _stringImplClassName =>
@@ -278,7 +279,7 @@ mixin KernelNodes {
   late final Library wasmLibrary = index.getLibrary("dart:_wasm");
   late final Class wasmTypesBaseClass = index.getClass(
     "dart:_wasm",
-    "_WasmBase",
+    "WasmBase",
   );
   late final wasmI8Class = index.getClass("dart:_wasm", "WasmI8");
   late final wasmI16Class = index.getClass("dart:_wasm", "WasmI16");
@@ -396,6 +397,16 @@ mixin KernelNodes {
   late final Class wasmMemoryTypeClass = index.getClass(
     'dart:_wasm',
     'MemoryType',
+  );
+  late final Field wasmMemoryTypeLimits = index.getField(
+    'dart:_wasm',
+    'MemoryType',
+    'limits',
+  );
+  late final Field wasmMemoryTypeShared = index.getField(
+    'dart:_wasm',
+    'MemoryType',
+    'shared',
   );
   late final Field wasmLimitsMinimum = index.getField(
     'dart:_wasm',
@@ -540,6 +551,11 @@ mixin KernelNodes {
     "dart:core",
     "Object",
     "get:hashCode",
+  );
+  late final Procedure objectRuntimeType = index.getProcedure(
+    "dart:core",
+    "Object",
+    "get:runtimeType",
   );
   late final Procedure objectNoSuchMethod = index.getProcedure(
     "dart:core",
@@ -803,10 +819,19 @@ mixin KernelNodes {
     "WasmFunction",
     "get:call",
   );
+  late final Procedure wasmFunctionFromFunction = index.getProcedure(
+    "dart:_wasm",
+    "WasmFunction",
+    "fromFunction",
+  );
   late final Procedure wasmTableCallIndirect = index.getProcedure(
     "dart:_wasm",
     "WasmTable",
     "callIndirect",
+  );
+  late final Procedure exportWasmFunctionProcedure = index.getTopLevelProcedure(
+    "dart:_internal",
+    "exportWasmFunction",
   );
 
   // Hash utils

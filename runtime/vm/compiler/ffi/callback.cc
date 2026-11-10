@@ -112,43 +112,11 @@ FunctionPtr NativeCallbackFunction(const FunctionType& c_signature,
     }
     FfiCallbackFunctionSet set(object_store->ffi_callback_functions());
 
-    const intptr_t entry_count_before = set.NumOccupied();
     function ^= set.InsertOrGet(function);
-    const intptr_t entry_count_after = set.NumOccupied();
-
     object_store->set_ffi_callback_functions(set.Release());
-
-    if (entry_count_before != entry_count_after) {
-      function.AssignFfiCallbackId(entry_count_before);
-    } else {
-      ASSERT(function.FfiCallbackId() != -1);
-    }
   }
 
   return function.ptr();
-}
-
-static void EnsureFfiCallbackMetadata(Thread* thread, intptr_t callback_id) {
-  static constexpr intptr_t kInitialCallbackIdsReserved = 16;
-
-  auto object_store = thread->isolate_group()->object_store();
-  auto zone = thread->zone();
-
-  auto& code_array =
-      GrowableObjectArray::Handle(zone, object_store->ffi_callback_code());
-  if (code_array.IsNull()) {
-    code_array =
-        GrowableObjectArray::New(kInitialCallbackIdsReserved, Heap::kOld);
-    object_store->set_ffi_callback_code(code_array);
-  }
-  if (code_array.Length() <= callback_id) {
-    // Ensure we've enough space in the arrays.
-    while (!(callback_id < code_array.Length())) {
-      code_array.Add(Code::null_object());
-    }
-  }
-
-  ASSERT(callback_id < code_array.Length());
 }
 
 void SetFfiCallbackCode(Thread* thread,
@@ -157,11 +125,11 @@ void SetFfiCallbackCode(Thread* thread,
   auto zone = thread->zone();
 
   const intptr_t callback_id = ffi_trampoline.FfiCallbackId();
-  EnsureFfiCallbackMetadata(thread, callback_id);
 
   auto object_store = thread->isolate_group()->object_store();
   const auto& code_array =
       GrowableObjectArray::Handle(zone, object_store->ffi_callback_code());
+  ASSERT(callback_id < code_array.Length());
   code_array.SetAt(callback_id, code);
 }
 

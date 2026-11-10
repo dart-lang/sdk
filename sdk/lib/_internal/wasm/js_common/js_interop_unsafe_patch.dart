@@ -12,7 +12,7 @@ import 'dart:js_interop' hide JS;
 @patch
 extension JSObjectUnsafeUtilExtension on JSObject {
   @patch
-  JSBoolean hasProperty(JSAny property) => JSValue.boxT<JSBoolean>(
+  JSBoolean hasProperty(JSAny property) => JSValue.boxTUnchecked<JSBoolean>(
     JS<WasmExternRef?>('(o, p) => p in o', toExternRef, property.toExternRef),
   );
 
@@ -22,7 +22,7 @@ extension JSObjectUnsafeUtilExtension on JSObject {
   );
 
   @patch
-  void setProperty(JSAny property, JSAny? value) => JS<void>(
+  void setProperty(JSAny property, JSAny? value) => JS<WasmVoid>(
     '(o, p, v) => o[p] = v',
     toExternRef,
     property.toExternRef,
@@ -60,7 +60,7 @@ extension JSObjectUnsafeUtilExtension on JSObject {
       );
 
   @patch
-  JSBoolean delete(JSAny property) => JSValue.boxT<JSBoolean>(
+  JSBoolean delete(JSAny property) => JSValue.boxTUnchecked<JSBoolean>(
     JS<WasmExternRef?>(
       '(o, p) => delete o[p]',
       toExternRef,
@@ -77,7 +77,7 @@ extension JSFunctionUnsafeUtilExtension on JSFunction {
     JSAny? arg2,
     JSAny? arg3,
     JSAny? arg4,
-  ]) => JSValue.boxT<JSObject>(
+  ]) => JSValue.boxTUnchecked<JSObject>(
     callConstructorVarArgsRaw(
       toExternRef,
       [
@@ -91,7 +91,7 @@ extension JSFunctionUnsafeUtilExtension on JSFunction {
 
   @patch
   JSObject _callAsConstructorVarArgs([List<JSAny?>? arguments]) =>
-      JSValue.boxT<JSObject>(
+      JSValue.boxTUnchecked<JSObject>(
         callConstructorVarArgsRaw(
           toExternRef,
           (arguments ?? <JSAny?>[]).toJS.toExternRef,

@@ -16,7 +16,7 @@ const bool _hasTimeline = const bool.fromEnvironment(
 typedef TimelineSyncFunction<T> = T Function();
 
 // TODO: This typedef is not used.
-typedef Future TimelineAsyncFunction();
+typedef TimelineAsyncFunction = Future Function();
 
 // These values must be kept in sync with the enum "EventType" in
 // runtime/vm/timeline.h, along with the JS-specific implementations in:

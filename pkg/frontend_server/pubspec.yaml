@@ -4,7 +4,7 @@ description: A resident kernel compiler
 publish_to: none
 
 environment:
-  sdk: '^3.13.0-0'
+  sdk: '^3.15.0-0'
 
 resolution: workspace
 
@@ -24,6 +24,5 @@ dependencies:
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
   _fe_analyzer_shared: any
-  collection: any
   lints: any
   test: any

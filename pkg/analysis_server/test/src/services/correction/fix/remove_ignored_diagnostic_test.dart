@@ -75,7 +75,7 @@ class C {
 }
 
 @reflectiveTest
-class RemoveUnnecessaryIgnoreTest extends FixProcessorLintTest {
+class RemoveUnnecessaryIgnoreTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeIgnoredDiagnostic;
 

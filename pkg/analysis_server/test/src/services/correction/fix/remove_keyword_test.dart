@@ -117,12 +117,13 @@ class C<T>(final T v);
   }
 }
 
-abstract class RemoveKeywordLintTest extends FixProcessorLintTest {
+abstract class RemoveKeywordLintTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeKeyword;
 }
 
-abstract class RemoveKeywordTest extends FixProcessorTest {
+abstract class RemoveKeywordTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeKeyword;
 }

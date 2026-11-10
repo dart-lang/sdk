@@ -31,7 +31,17 @@ extension E extends A with B, C implements D { }
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: extends
+    extendedType: NamedType
+      name: A
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionDeclaration
   extensionKeyword: extension
   name: E
   onClause: ExtensionOnClause
@@ -55,7 +65,17 @@ extension E implements C, D { }
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: implements
+    extendedType: NamedType
+      name: C
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionDeclaration
   extensionKeyword: extension
   name: E
   onClause: ExtensionOnClause
@@ -75,7 +95,23 @@ extension E on C<T> {}
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: T
+        rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionDeclaration
   extensionKeyword: extension
   name: E
   onClause: ExtensionOnClause
@@ -101,7 +137,29 @@ extension E<T> on C<T> {}
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  extensionKeyword: extension
+  name: E
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+    rightBracket: >
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: T
+        rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionDeclaration
   extensionKeyword: extension
   name: E
   typeParameters: TypeParameterList
@@ -133,7 +191,28 @@ extension<T> on C<T> {}
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  extensionKeyword: extension
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+    rightBracket: >
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: T
+        rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionDeclaration
   extensionKeyword: extension
   typeParameters: TypeParameterList
     leftBracket: <
@@ -169,7 +248,17 @@ class C {}
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: C
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionDeclaration
   extensionKeyword: extension
   name: E
   onClause: ExtensionOnClause
@@ -194,7 +283,17 @@ class C {}
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: C
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionDeclaration
   extensionKeyword: extension
   name: E
   onClause: ExtensionOnClause
@@ -219,7 +318,17 @@ extension E
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on <synthetic>
+    extendedType: NamedType
+      name: <empty> <synthetic>
+  body: BlockInstanceDeclarationBody
+    leftBracket: { <synthetic>
+    rightBracket: } <synthetic>
+V1: ExtensionDeclaration
   extensionKeyword: extension
   name: E
   onClause: ExtensionOnClause
@@ -243,7 +352,17 @@ extension E {}
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on <synthetic>
+    extendedType: NamedType
+      name: <empty> <synthetic>
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionDeclaration
   extensionKeyword: extension
   name: E
   onClause: ExtensionOnClause
@@ -265,7 +384,17 @@ extension E C {}
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on <synthetic>
+    extendedType: NamedType
+      name: C
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionDeclaration
   extensionKeyword: extension
   name: E
   onClause: ExtensionOnClause
@@ -285,9 +414,29 @@ void late() {
 }
 ''');
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelFunctionDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  returnType: NamedType
+    name: void
+  name: late
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements2
+        ExpressionStatement
+          expression2: ParsedValueArguments
+            operand: ParsedUnqualifiedName
+              name: late
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+          semicolon: ;
+      rightBracket: }
+V1: FunctionDeclaration
   returnType: NamedType
     name: void
   name: late
@@ -300,7 +449,7 @@ FunctionDeclaration
         leftBracket: {
         statements
           ExpressionStatement
-            expression2: MethodInvocation
+            expression: MethodInvocation
               methodName: SimpleIdentifier
                 token: late
               argumentList: ArgumentList
@@ -318,7 +467,17 @@ extension E on C {}
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: C
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionDeclaration
   extensionKeyword: extension
   name: E
   onClause: ExtensionOnClause
@@ -340,7 +499,17 @@ extension E extends C { }
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: extends
+    extendedType: NamedType
+      name: C
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionDeclaration
   extensionKeyword: extension
   name: E
   onClause: ExtensionOnClause
@@ -362,7 +531,17 @@ extension E implements C { }
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: implements
+    extendedType: NamedType
+      name: C
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionDeclaration
   extensionKeyword: extension
   name: E
   onClause: ExtensionOnClause
@@ -382,7 +561,16 @@ extension on C {}
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  extensionKeyword: extension
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: C
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionDeclaration
   extensionKeyword: extension
   onClause: ExtensionOnClause
     onKeyword: on
@@ -403,7 +591,17 @@ extension E with C { }
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: with
+    extendedType: NamedType
+      name: C
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionDeclaration
   extensionKeyword: extension
   name: E
   onClause: ExtensionOnClause
@@ -423,7 +621,17 @@ extension E on void {}
 
     var node = parseResult.findNode.singleExtensionDeclaration;
     assertParsedNodeText(node, r'''
-ExtensionDeclaration
+ExtensionDeclaration2
+  extensionKeyword: extension
+  name: E
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: void
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ExtensionDeclaration
   extensionKeyword: extension
   name: E
   onClause: ExtensionOnClause

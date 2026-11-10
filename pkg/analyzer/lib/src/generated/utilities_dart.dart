@@ -159,7 +159,7 @@ class ParameterKind implements Comparable<ParameterKind> {
   final bool isOptional;
 
   /// Initialize a newly created kind with the given state.
-  const ParameterKind({
+  const new({
     required this.name,
     required this.ordinal,
     required this.isPositional,

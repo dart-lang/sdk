@@ -8,6 +8,7 @@ expect
   lib/async_helper.dart
   lib/config.dart
   lib/expect.dart
+  lib/float_bits.dart
   lib/legacy/async_minitest.dart
   lib/legacy/minitest.dart
   lib/minitest.dart

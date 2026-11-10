@@ -56,7 +56,8 @@ void f() {
 }
 
 @reflectiveTest
-class UseEffectiveIntegerDivisionTest extends FixProcessorLintTest {
+class UseEffectiveIntegerDivisionTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.useEffectiveIntegerDivision;
 

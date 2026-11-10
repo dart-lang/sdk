@@ -8,6 +8,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
+import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
@@ -71,6 +72,9 @@ class SearchTest extends PubPackageResolutionTest {
   );
   late AnalysisDriver driver = driverFor(testFile);
   Set<Uri>? includedLibraryUris;
+
+  /// Whether to print the enclosing fragment of each search result.
+  bool withEnclosingFragment = false;
 
   String get testUriStr => 'package:test/test.dart';
 
@@ -361,6 +365,24 @@ class {
       r'''
 ''',
     );
+  }
+
+  test_declarations_constructor_unnamed_doesNotMatchNew() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A();
+}
+''');
+    var results = WorkspaceSymbols();
+    await FindDeclarations(
+      [driver],
+      results,
+      'new',
+      null,
+      ownedFiles: analysisContextCollection.ownedFiles,
+      performance: performance,
+    ).compute();
+    assertDeclarationsText(results, {testFile: 'testFile'}, '');
   }
 
   test_declarations_discover() async {
@@ -1271,9 +1293,9 @@ class A {}
 ''');
 
     // Configure `package:my`.
-    writePackageConfig(
+    writePackageConfig2(
       myRoot.path,
-      PackageConfigFileBuilder()..add(name: 'my', rootFolder: myRoot),
+      config: PackageConfigFileBuilder()..add(name: 'my', rootFolder: myRoot),
     );
 
     var mySession = contextFor(myFile).currentSession;
@@ -1402,6 +1424,22 @@ class A {}
     var element = result.typeProvider.objectType.element;
     await assertElementReferencesText(element, r'''''');
     await assertDirectSubtypeReferencesText(element, '');
+  }
+
+  test_scenario_ClassElement_hierarchy_class_extends_implicitObject_primaryConstructor() async {
+    includedLibraryUris = {Uri.parse(testUriStr)};
+    withEnclosingFragment = true;
+
+    var result = await resolveTestCode('''
+class A();
+void f(Object _) {}
+''');
+    var element = result.typeProvider.objectType.element;
+    await assertDirectSubtypeReferencesText(element, r'''
+class A();
+      ^0 REFERENCE_IN_EXTENDS_CLAUSE qualified, enclosing: class A
+void f(Object _) {}
+''');
   }
 
   test_scenario_ClassElement_hierarchy_class_implements() async {
@@ -1999,9 +2037,9 @@ class C {
 
   test_searchReferences_analyzer_diagnosticCode() async {
     var analyzerPackageRootPath = '$workspaceRootPath/pkg/analyzer';
-    writePackageConfig(
+    writePackageConfig2(
       analyzerPackageRootPath,
-      PackageConfigFileBuilder()
+      config: PackageConfigFileBuilder()
         ..add(name: 'analyzer', rootFolder: getFolder(analyzerPackageRootPath)),
     );
 
@@ -2377,6 +2415,22 @@ main(A p) {
 ''');
   }
 
+  test_searchReferences_ClassElement_reference_importCombinator_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', r'''
+import 'test.dart' show A;
+''');
+    var result = await resolveTestCode('''
+class A {}
+''');
+    var element = result.findElement.class_('A');
+    await assertElementReferencesText(element, r'''
+package:test/other.dart
+-----------------------
+import 'test.dart' show A;
+                        ^ REFERENCE qualified
+''');
+  }
+
   test_searchReferences_ClassElement_reference_instanceCreation() async {
     var result = await resolveTestCode(r'''
 import 'test.dart' as p;
@@ -2462,6 +2516,30 @@ void f() {
   List<p.A> v4;
          ^ REFERENCE qualified
 }
+''');
+  }
+
+  test_searchReferences_ClassElement_reference_primaryConstructor() async {
+    withEnclosingFragment = true;
+
+    var result = await resolveTestCode('''
+class A {}
+class B<T extends A>(A a, {A? b});
+class C<T extends A>.named(final A a);
+class D<T extends A> {}
+''');
+    var element = result.findElement.class_('A');
+    await assertElementReferencesText(element, r'''
+class A {}
+class B<T extends A>(A a, {A? b});
+                  ^ REFERENCE, enclosing: type parameter T
+                     ^ REFERENCE, enclosing: formal parameter a
+                           ^ REFERENCE, enclosing: formal parameter b
+class C<T extends A>.named(final A a);
+                  ^ REFERENCE, enclosing: type parameter T
+                                 ^ REFERENCE, enclosing: formal parameter a
+class D<T extends A> {}
+                  ^ REFERENCE, enclosing: type parameter T
 ''');
   }
 
@@ -2623,7 +2701,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_class_named_newHead() async {
     var result = await resolveTestCode('''
-/// [new A.foo] and [A.foo]
+/// [A.foo]
 class A {
   new foo() {}
   new bar() : this.foo();
@@ -2640,9 +2718,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.constructor('foo');
     await assertElementReferencesText(element, r'''
-/// [new A.foo] and [A.foo]
-          ^^^^ REFERENCE qualified
-                      ^^^^ REFERENCE qualified
+/// [A.foo]
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A {
   new foo() {}
   new bar() : this.foo();
@@ -2667,7 +2744,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_class_named_primary() async {
     var result = await resolveTestCode('''
-/// [new A.foo] and [A.foo]
+/// [A.foo]
 class A.foo() {
   new bar() : this.foo();
   factory baz() = A.foo;
@@ -2683,9 +2760,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.constructor('foo');
     await assertElementReferencesText(element, r'''
-/// [new A.foo] and [A.foo]
-          ^^^^ REFERENCE qualified
-                      ^^^^ REFERENCE qualified
+/// [A.foo]
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A.foo() {
   new bar() : this.foo();
                   ^^^^ INVOCATION qualified
@@ -2709,7 +2785,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_class_named_typeName() async {
     var result = await resolveTestCode('''
-/// [new A.foo] and [A.foo]
+/// [A.foo]
 class A {
   A.foo() {}
   A.bar() : this.foo();
@@ -2726,9 +2802,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.constructor('foo');
     await assertElementReferencesText(element, r'''
-/// [new A.foo] and [A.foo]
-          ^^^^ REFERENCE qualified
-                      ^^^^ REFERENCE qualified
+/// [A.foo]
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A {
   A.foo() {}
   A.bar() : this.foo();
@@ -2753,7 +2828,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_class_named_typeName_viaTypeAlias() async {
     var result = await resolveTestCode('''
-/// [new B.foo] and [B.foo]
+/// [B.foo]
 class A<T> {
   A.foo() {}
   A.bar() : this.foo();
@@ -2772,9 +2847,8 @@ void useConstructor() {
 
     var element = result.findElement.constructor('foo');
     await assertElementReferencesText(element, r'''
-/// [new B.foo] and [B.foo]
-          ^^^^ REFERENCE qualified
-                      ^^^^ REFERENCE qualified
+/// [B.foo]
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A<T> {
   A.foo() {}
   A.bar() : this.foo();
@@ -2826,7 +2900,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_class_unnamed_implicit() async {
     var result = await resolveTestCode('''
-/// [new A] and [A.new]
+/// [A.new]
 class B {
   B();
   factory B.baz() = A;
@@ -2843,9 +2917,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.unnamedConstructor('A');
     await assertElementReferencesText(element, r'''
-/// [new A] and [A.new]
-          ^0 REFERENCE qualified
-                  ^^^^ REFERENCE qualified
+/// [A.new]
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class B {
   B();
   factory B.baz() = A;
@@ -2932,7 +3005,7 @@ class C extends A {}
 
   test_searchReferences_ConstructorElement_class_unnamed_newHead() async {
     var result = await resolveTestCode('''
-/// [new A] and [A.new]
+/// [A.new]
 class A {
   new () {}
   new bar() : this();
@@ -2949,9 +3022,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.unnamedConstructor('A');
     await assertElementReferencesText(element, r'''
-/// [new A] and [A.new]
-          ^0 REFERENCE qualified
-                  ^^^^ REFERENCE qualified
+/// [A.new]
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A {
   new () {}
   new bar() : this();
@@ -3005,7 +3077,7 @@ void f() {
 
   test_searchReferences_ConstructorElement_class_unnamed_primary() async {
     var result = await resolveTestCode('''
-/// [new A] and [A.new]
+/// [A.new]
 class A() {
   new bar() : this();
   factory baz() = A;
@@ -3021,9 +3093,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.unnamedConstructor('A');
     await assertElementReferencesText(element, r'''
-/// [new A] and [A.new]
-          ^0 REFERENCE qualified
-                  ^^^^ REFERENCE qualified
+/// [A.new]
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A() {
   new bar() : this();
                   ^0 INVOCATION qualified
@@ -3047,7 +3118,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_class_unnamed_typeName() async {
     var result = await resolveTestCode('''
-/// [new A] and [A.new]
+/// [A.new]
 class A {
   A() {}
   A.bar() : this();
@@ -3064,9 +3135,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.unnamedConstructor('A');
     await assertElementReferencesText(element, r'''
-/// [new A] and [A.new]
-          ^0 REFERENCE qualified
-                  ^^^^ REFERENCE qualified
+/// [A.new]
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A {
   A() {}
   A.bar() : this();
@@ -3091,7 +3161,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_class_unnamed_typeName_explicitNew() async {
     var result = await resolveTestCode('''
-/// [new A] and [A.new]
+/// [A.new]
 class A {
   A.new() {}
   A.bar() : this.new();
@@ -3108,9 +3178,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.unnamedConstructor('A');
     await assertElementReferencesText(element, r'''
-/// [new A] and [A.new]
-          ^0 REFERENCE qualified
-                  ^^^^ REFERENCE qualified
+/// [A.new]
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A {
   A.new() {}
   A.bar() : this.new();
@@ -3291,7 +3360,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_enum_named_newHead() async {
     var result = await resolveTestCode('''
-/// [new E.foo] and [E.foo]
+/// [E.foo]
 enum E {
   v.foo();
   const new foo();
@@ -3306,9 +3375,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.constructor('foo');
     await assertElementReferencesText(element, r'''
-/// [new E.foo] and [E.foo]
-          ^^^^ REFERENCE qualified
-                      ^^^^ REFERENCE qualified
+/// [E.foo]
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E {
   v.foo();
    ^^^^ INVOCATION qualified
@@ -3331,7 +3399,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_enum_named_primary() async {
     var result = await resolveTestCode('''
-/// [new E.foo] and [E.foo]
+/// [E.foo]
 enum E.foo() {
   v.foo();
   const new bar() : this.foo();
@@ -3345,9 +3413,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.constructor('foo');
     await assertElementReferencesText(element, r'''
-/// [new E.foo] and [E.foo]
-          ^^^^ REFERENCE qualified
-                      ^^^^ REFERENCE qualified
+/// [E.foo]
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E.foo() {
   v.foo();
    ^^^^ INVOCATION qualified
@@ -3369,7 +3436,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_enum_named_typeName() async {
     var result = await resolveTestCode('''
-/// [new E.foo] and [E.foo]
+/// [E.foo]
 enum E {
   v.foo();
   const E.foo();
@@ -3384,9 +3451,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.constructor('foo');
     await assertElementReferencesText(element, r'''
-/// [new E.foo] and [E.foo]
-          ^^^^ REFERENCE qualified
-                      ^^^^ REFERENCE qualified
+/// [E.foo]
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E {
   v.foo();
    ^^^^ INVOCATION qualified
@@ -3409,7 +3475,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_enum_unnamed_implicit() async {
     var result = await resolveTestCode('''
-/// [new E] and [E.new]
+/// [E.new]
 enum E {
   v1,
   v2(),
@@ -3424,9 +3490,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.unnamedConstructor('E');
     await assertElementReferencesText(element, r'''
-/// [new E] and [E.new]
-          ^0 REFERENCE qualified
-                  ^^^^ REFERENCE qualified
+/// [E.new]
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E {
   v1,
     ^0 INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
@@ -3450,7 +3515,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_enum_unnamed_newHead() async {
     var result = await resolveTestCode('''
-/// [new E] and [E.new]
+/// [E.new]
 enum E {
   v1,
   v2(),
@@ -3466,9 +3531,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.unnamedConstructor('E');
     await assertElementReferencesText(element, r'''
-/// [new E] and [E.new]
-          ^0 REFERENCE qualified
-                  ^^^^ REFERENCE qualified
+/// [E.new]
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E {
   v1,
     ^0 INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
@@ -3493,7 +3557,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_enum_unnamed_primary() async {
     var result = await resolveTestCode('''
-/// [new E] and [E.new]
+/// [E.new]
 enum E() {
   v1,
   v2(),
@@ -3508,9 +3572,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.unnamedConstructor('E');
     await assertElementReferencesText(element, r'''
-/// [new E] and [E.new]
-          ^0 REFERENCE qualified
-                  ^^^^ REFERENCE qualified
+/// [E.new]
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E() {
   v1,
     ^0 INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
@@ -3534,7 +3597,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_enum_unnamed_typeName() async {
     var result = await resolveTestCode('''
-/// [new E] and [E.new]
+/// [E.new]
 enum E {
   v1,
   v2(),
@@ -3550,9 +3613,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.unnamedConstructor('E');
     await assertElementReferencesText(element, r'''
-/// [new E] and [E.new]
-          ^0 REFERENCE qualified
-                  ^^^^ REFERENCE qualified
+/// [E.new]
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E {
   v1,
     ^0 INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
@@ -3577,7 +3639,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_enum_unnamed_typeName_explicitNew() async {
     var result = await resolveTestCode('''
-/// [new E] and [E.new]
+/// [E.new]
 enum E {
   v1,
   v2(),
@@ -3593,9 +3655,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.unnamedConstructor('E');
     await assertElementReferencesText(element, r'''
-/// [new E] and [E.new]
-          ^0 REFERENCE qualified
-                  ^^^^ REFERENCE qualified
+/// [E.new]
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E {
   v1,
     ^0 INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
@@ -3620,7 +3681,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_extensionType_named_newHead() async {
     var result = await resolveTestCode('''
-/// [new A.foo] and [A.foo]
+/// [A.foo]
 extension type A(int it) {
   new foo(this.it);
   new bar() : this.foo(0);
@@ -3634,9 +3695,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.constructor('foo');
     await assertElementReferencesText(element, r'''
-/// [new A.foo] and [A.foo]
-          ^^^^ REFERENCE qualified
-                      ^^^^ REFERENCE qualified
+/// [A.foo]
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 extension type A(int it) {
   new foo(this.it);
   new bar() : this.foo(0);
@@ -3657,7 +3717,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_extensionType_named_primary() async {
     var result = await resolveTestCode('''
-/// [new A.foo] and [A.foo]
+/// [A.foo]
 extension type A.foo(int it) {
   new bar() : this.foo(0);
   factory baz(int it) = A.foo;
@@ -3670,9 +3730,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.constructor('foo');
     await assertElementReferencesText(element, r'''
-/// [new A.foo] and [A.foo]
-          ^^^^ REFERENCE qualified
-                      ^^^^ REFERENCE qualified
+/// [A.foo]
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 extension type A.foo(int it) {
   new bar() : this.foo(0);
                   ^^^^ INVOCATION qualified
@@ -3692,7 +3751,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_extensionType_named_typeName() async {
     var result = await resolveTestCode('''
-/// [new A.foo] and [A.foo]
+/// [A.foo]
 extension type A(int it) {
   A.foo(this.it);
   A.bar() : this.foo(0);
@@ -3706,9 +3765,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.constructor('foo');
     await assertElementReferencesText(element, r'''
-/// [new A.foo] and [A.foo]
-          ^^^^ REFERENCE qualified
-                      ^^^^ REFERENCE qualified
+/// [A.foo]
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 extension type A(int it) {
   A.foo(this.it);
   A.bar() : this.foo(0);
@@ -3729,7 +3787,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_extensionType_unnamed_newHead() async {
     var result = await resolveTestCode('''
-/// [new A] and [A.new]
+/// [A.new]
 extension type A.named(int it) {
   new (this.it);
   new bar() : this(0);
@@ -3743,9 +3801,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.unnamedConstructor('A');
     await assertElementReferencesText(element, r'''
-/// [new A] and [A.new]
-          ^0 REFERENCE qualified
-                  ^^^^ REFERENCE qualified
+/// [A.new]
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 extension type A.named(int it) {
   new (this.it);
   new bar() : this(0);
@@ -3766,7 +3823,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_extensionType_unnamed_primary() async {
     var result = await resolveTestCode('''
-/// [new A] and [A.new]
+/// [A.new]
 extension type A(int it) {
   new bar() : this(0);
   factory baz(int it) = A.new;
@@ -3779,9 +3836,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.unnamedConstructor('A');
     await assertElementReferencesText(element, r'''
-/// [new A] and [A.new]
-          ^0 REFERENCE qualified
-                  ^^^^ REFERENCE qualified
+/// [A.new]
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 extension type A(int it) {
   new bar() : this(0);
                   ^0 INVOCATION qualified
@@ -3801,7 +3857,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_extensionType_unnamed_typeName() async {
     var result = await resolveTestCode('''
-/// [new A] and [A.new]
+/// [A.new]
 extension type A.named(int it) {
   A(this.it);
   A.bar() : this(0);
@@ -3815,9 +3871,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.unnamedConstructor('A');
     await assertElementReferencesText(element, r'''
-/// [new A] and [A.new]
-          ^0 REFERENCE qualified
-                  ^^^^ REFERENCE qualified
+/// [A.new]
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 extension type A.named(int it) {
   A(this.it);
   A.bar() : this(0);
@@ -3838,7 +3893,7 @@ void useConstructor() {
 
   test_searchReferences_ConstructorElement_extensionType_unnamed_typeName_explicitNew() async {
     var result = await resolveTestCode('''
-/// [new A] and [A.new]
+/// [A.new]
 extension type A.named(int it) {
   A.new(this.it);
   A.bar() : this.new(0);
@@ -3852,9 +3907,8 @@ void useConstructor() {
 ''');
     var element = result.findElement.unnamedConstructor('A');
     await assertElementReferencesText(element, r'''
-/// [new A] and [A.new]
-          ^0 REFERENCE qualified
-                  ^^^^ REFERENCE qualified
+/// [A.new]
+       ^^^ REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 extension type A.named(int it) {
   A.new(this.it);
   A.bar() : this.new(0);
@@ -4088,6 +4142,32 @@ main() {
   ^ REFERENCE
   E.bar();
   ^ REFERENCE
+}
+''');
+  }
+
+  test_searchReferences_ExtensionElement_invalidRead() async {
+    var result = await resolveTestCode('''
+import 'test.dart' as p;
+
+extension E<T> on List<T> {}
+
+void f() {
+  E<int>;
+  p.E;
+}
+''');
+    var element = result.findElement.extension_('E');
+    await assertElementReferencesText(element, r'''
+import 'test.dart' as p;
+
+extension E<T> on List<T> {}
+
+void f() {
+  E<int>;
+  ^ REFERENCE
+  p.E;
+    ^ REFERENCE qualified
 }
 ''');
   }
@@ -4707,6 +4787,36 @@ void use(A a, A? nullableA, B b, B? nullableB) {
     );
   }
 
+  test_searchReferences_FieldElement_ofClass_instance_propertyAssignmentTarget_cascade_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', r'''
+import 'test.dart';
+
+void use(A a) {
+  A()..x = 1;
+  a..x = 2;
+}
+''');
+    var result = await resolveTestCode('''
+class A {
+  num x = 0;
+}
+''');
+
+    var field = result.findElement.field('x', of: 'A');
+    await assertElementReferencesText(field, r'''
+package:test/other.dart
+-----------------------
+import 'test.dart';
+
+void use(A a) {
+  A()..x = 1;
+       ^ WRITE qualified
+  a..x = 2;
+     ^ WRITE qualified
+}
+''');
+  }
+
   test_searchReferences_FieldElement_ofClass_instance_propertyExtraction() async {
     var result = await resolveTestCode('''
 class A {
@@ -4991,6 +5101,10 @@ enum E {
     foo = 1;
   }
 }
+void g(E e) {
+  e.foo = 2;
+  e..foo = 3;
+}
 ''');
     var field = result.findElement.field('foo');
 
@@ -5005,6 +5119,14 @@ enum E {
     ^^^ field REFERENCE
     ^^^ getter REFERENCE
   }
+}
+void g(E e) {
+  e.foo = 2;
+    ^^^ field REFERENCE qualified
+    ^^^ getter REFERENCE qualified
+  e..foo = 3;
+     ^^^ field REFERENCE qualified
+     ^^^ getter REFERENCE qualified
 }
 ''',
     );
@@ -6807,6 +6929,31 @@ main() {
 ''');
   }
 
+  test_searchReferences_FunctionElement_local_invalidWrite() async {
+    makeFilePriority(testFile);
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f() {
+  void foo() {}
+  foo = 0;
+//^^^
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The function 'foo' can't be assigned to.
+  for (foo in [0]) {}
+//     ^^^
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The function 'foo' can't be assigned to.
+}
+''');
+    var element = result.findElement.localFunction('foo');
+    await assertElementReferencesText(element, r'''
+void f() {
+  void foo() {}
+  foo = 0;
+  ^^^ REFERENCE
+  for (foo in [0]) {}
+       ^^^ REFERENCE
+}
+''');
+  }
+
   test_searchReferences_GetterElement_ofClass_instance_invalidWrite() async {
     var result = await resolveTestCode('''
 class A {
@@ -7065,6 +7212,36 @@ main() {
 }
 math.Random bar() => null;
 ^^^^^
+''');
+  }
+
+  test_searchReferences_ImportElement_withPrefix_assignmentTargets() async {
+    newFile('$testPackageLibPath/a.dart', 'int x = 0;');
+    var result = await resolveTestCode('''
+import 'a.dart' as p;
+void f() {
+  p.x = 0;
+  p.x += 1;
+  p.x ??= 2;
+  ++p.x;
+  p.x--;
+}
+''');
+    var element = result.findElement.import('package:test/a.dart');
+    await assertLibraryImportReferencesText(element, r'''
+import 'a.dart' as p;
+void f() {
+  p.x = 0;
+  ^^
+  p.x += 1;
+  ^^
+  p.x ??= 2;
+  ^^
+  ++p.x;
+    ^^
+  p.x--;
+  ^^
+}
 ''');
   }
 
@@ -7486,6 +7663,44 @@ void useFoo(A a) {
 ''');
   }
 
+  test_searchReferences_MethodElement_normal_ofClass_instance_combinedSignature() async {
+    var result = await resolveTestCode('''
+abstract class A {
+  void foo(covariant int x);
+}
+
+class B {
+  void foo(num x) {}
+}
+
+class C extends B implements A {}
+
+void useFoo(C c) {
+  c.foo(0);
+  c.foo;
+}
+''');
+    var element = result.findElement.method('foo', of: 'B');
+    await assertElementReferencesText(element, r'''
+abstract class A {
+  void foo(covariant int x);
+}
+
+class B {
+  void foo(num x) {}
+}
+
+class C extends B implements A {}
+
+void useFoo(C c) {
+  c.foo(0);
+    ^^^ INVOCATION qualified
+  c.foo;
+    ^^^ REFERENCE qualified
+}
+''');
+  }
+
   test_searchReferences_MethodElement_normal_ofClass_instance_generic() async {
     var result = await resolveTestCode('''
 /// [foo] and [A.foo]
@@ -7545,7 +7760,7 @@ class A {
 void f(A a) {
   (a).foo ??= () {};
 //    ^^^
-// [diag.assignmentToMethod] Methods can't be assigned a value.
+// [diag.undefinedInstanceMemberWriteWrongKind] The method 'foo' of the type 'A' can't be assigned to.
 //            ^^^^^
 // [diag.deadCode] Dead code.
 // [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
@@ -7562,7 +7777,7 @@ void f(A a) {
   (a).foo ??= () {};
       ^^^ REFERENCE qualified
 //    ^^^
-// [diag.assignmentToMethod] Methods can't be assigned a value.
+// [diag.undefinedInstanceMemberWriteWrongKind] The method 'foo' of the type 'A' can't be assigned to.
 //            ^^^^^
 // [diag.deadCode] Dead code.
 // [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
@@ -8115,7 +8330,271 @@ void useOperator(A a) {
 ''');
   }
 
-  test_searchReferences_MethodElement_operator_ofClass_indexAssignmentTarget() async {
+  test_searchReferences_MethodElement_operator_ofClass_binary_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useOperator(A a) {
+  a + 1;
+}
+''');
+    var result = await resolveTestCode('''
+class A {
+  A operator +(other) => this;
+}
+''');
+    var element = result.findElement.method('+');
+
+    await assertElementReferencesText(element, r'''
+package:test/other.dart
+-----------------------
+import 'test.dart';
+
+void useOperator(A a) {
+  a + 1;
+    ^ INVOCATION qualified
+}
+''');
+  }
+
+  test_searchReferences_MethodElement_operator_ofClass_cascadeIndexAssignmentTarget_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useOperator(A a) {
+  a..[0] = 1;
+  a..[1] += 2;
+}
+''');
+    var result = await resolveTestCode('''
+class A {
+  num operator [](int i) => 0;
+  void operator []=(int i, num v) {}
+}
+''');
+    await assertElementsReferencesText(
+      {
+        'read': result.findElement.method('[]'),
+        'write': result.findElement.method('[]='),
+      },
+      r'''
+package:test/other.dart
+-----------------------
+import 'test.dart';
+
+void useOperator(A a) {
+  a..[0] = 1;
+     ^ write INVOCATION qualified
+  a..[1] += 2;
+     ^ read INVOCATION qualified
+     ^ write INVOCATION qualified
+}
+''',
+    );
+  }
+
+  test_searchReferences_MethodElement_operator_ofClass_cascadeIndexExpression_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useOperator(A a) {
+  a..[0];
+}
+''');
+    var result = await resolveTestCode('''
+class A {
+  num operator [](int i) => 0;
+}
+''');
+    var element = result.findElement.method('[]');
+
+    await assertElementReferencesText(element, r'''
+package:test/other.dart
+-----------------------
+import 'test.dart';
+
+void useOperator(A a) {
+  a..[0];
+     ^ INVOCATION qualified
+}
+''');
+  }
+
+  test_searchReferences_MethodElement_operator_ofClass_equal_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useOperator(A a, A b) {
+  a == b;
+}
+''');
+    var result = await resolveTestCode('''
+class A {
+  @override
+  bool operator ==(Object other) => true;
+}
+''');
+    var element = result.findElement.method('==');
+
+    await assertElementReferencesText(element, r'''
+package:test/other.dart
+-----------------------
+import 'test.dart';
+
+void useOperator(A a, A b) {
+  a == b;
+    ^^ INVOCATION qualified
+}
+''');
+  }
+
+  test_searchReferences_MethodElement_operator_ofClass_indexExpression() async {
+    var result = await resolveTestCode('''
+/// [operator []] and [A.operator []]
+class A {
+  num operator [](int i) => 0;
+}
+void useOperator(A a, A? b) {
+  a[0];
+  b?[1];
+}
+''');
+    var element = result.findElement.method('[]');
+
+    await assertElementReferencesText(element, r'''
+/// [operator []] and [A.operator []]
+class A {
+  num operator [](int i) => 0;
+}
+void useOperator(A a, A? b) {
+  a[0];
+   ^ INVOCATION qualified
+  b?[1];
+    ^ INVOCATION qualified
+}
+''');
+  }
+
+  test_searchReferences_MethodElement_operator_ofClass_indexExpression_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useOperator(A a, A? b) {
+  a[0];
+  b?[1];
+}
+''');
+    var result = await resolveTestCode('''
+class A {
+  num operator [](int i) => 0;
+}
+''');
+    var element = result.findElement.method('[]');
+
+    await assertElementReferencesText(element, r'''
+package:test/other.dart
+-----------------------
+import 'test.dart';
+
+void useOperator(A a, A? b) {
+  a[0];
+   ^ INVOCATION qualified
+  b?[1];
+    ^ INVOCATION qualified
+}
+''');
+  }
+
+  test_searchReferences_MethodElement_operator_ofClass_notEqual_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useOperator(A a, A b) {
+  a != b;
+}
+''');
+    var result = await resolveTestCode('''
+class A {
+  @override
+  bool operator ==(Object other) => true;
+}
+''');
+    var element = result.findElement.method('==');
+
+    await assertElementReferencesText(element, r'''
+package:test/other.dart
+-----------------------
+import 'test.dart';
+
+void useOperator(A a, A b) {
+  a != b;
+    ^^ INVOCATION qualified
+}
+''');
+  }
+
+  test_searchReferences_MethodElement_operator_ofClass_prefix() async {
+    var result = await resolveTestCode('''
+/// [operator ~] and [A.operator ~]
+class A {
+  A operator ~() => this;
+}
+void useOperator(A a) {
+  ~a;
+}
+''');
+    var element = result.findElement.method('~');
+
+    await assertElementReferencesText(element, r'''
+/// [operator ~] and [A.operator ~]
+              ^ REFERENCE
+                                 ^ REFERENCE qualified
+class A {
+  A operator ~() => this;
+}
+void useOperator(A a) {
+  ~a;
+  ^ INVOCATION qualified
+}
+''');
+  }
+
+  test_searchReferences_MethodElement_operator_ofClass_prefix_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useOperator(A a) {
+  ~a;
+  -a;
+}
+''');
+    var result = await resolveTestCode('''
+class A {
+  A operator ~() => this;
+  A operator -() => this;
+}
+''');
+    await assertElementsReferencesText(
+      {
+        'tilde': result.findElement.method('~'),
+        'negate': result.findElement.method('-'),
+      },
+      r'''
+package:test/other.dart
+-----------------------
+import 'test.dart';
+
+void useOperator(A a) {
+  ~a;
+  ^ tilde INVOCATION qualified
+  -a;
+  ^ negate INVOCATION qualified
+}
+''',
+    );
+  }
+
+  test_searchReferences_MethodElement_operator_ofClass_receiverIndexAssignmentTarget() async {
     var result = await resolveTestCode('''
 class A {
   num operator [](int i) => 0;
@@ -8175,55 +8654,167 @@ void useOperator(A a, A? nullableA, B b, B? nullableB) {
     );
   }
 
-  test_searchReferences_MethodElement_operator_ofClass_indexExpression() async {
-    var result = await resolveTestCode('''
-/// [operator []] and [A.operator []]
-class A {
-  num operator [](int i) => 0;
-}
-void useOperator(A a, A? b) {
-  a[0];
-  b?[1];
+  test_searchReferences_MethodElement_operator_ofClass_receiverIndexAssignmentTarget_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useOperator(A a) {
+  a[0] = 1;
+  a[1] += 2;
 }
 ''');
-    var element = result.findElement.method('[]');
-
-    await assertElementReferencesText(element, r'''
-/// [operator []] and [A.operator []]
+    var result = await resolveTestCode('''
 class A {
   num operator [](int i) => 0;
+  void operator []=(int i, num v) {}
 }
-void useOperator(A a, A? b) {
-  a[0];
-   ^ INVOCATION qualified
-  b?[1];
-    ^ INVOCATION qualified
+''');
+    await assertElementsReferencesText(
+      {
+        'read': result.findElement.method('[]'),
+        'write': result.findElement.method('[]='),
+      },
+      r'''
+package:test/other.dart
+-----------------------
+import 'test.dart';
+
+void useOperator(A a) {
+  a[0] = 1;
+   ^ write INVOCATION qualified
+  a[1] += 2;
+   ^ read INVOCATION qualified
+   ^ write INVOCATION qualified
+}
+''',
+    );
+  }
+
+  test_searchReferences_MethodElement_operator_ofClass_relationalPattern() async {
+    var result = await resolveTestCode('''
+class A {
+  bool operator <(int other) => true;
+  bool operator ==(Object other) => true;
+}
+void useOperator(A a) {
+  if (a case < 0) {}
+  if (a case == 0) {}
+  if (a case != 0) {}
+  switch (a) {
+    case < 0:
+  }
+}
+''');
+    await assertElementsReferencesText(
+      {
+        'less': result.findElement.method('<'),
+        'equal': result.findElement.method('=='),
+      },
+      r'''
+class A {
+  bool operator <(int other) => true;
+  bool operator ==(Object other) => true;
+}
+void useOperator(A a) {
+  if (a case < 0) {}
+             ^ less INVOCATION qualified
+  if (a case == 0) {}
+             ^^ equal INVOCATION qualified
+  if (a case != 0) {}
+             ^^ equal INVOCATION qualified
+  switch (a) {
+    case < 0:
+         ^ less INVOCATION qualified
+  }
+}
+''',
+    );
+  }
+
+  test_searchReferences_MethodElement_operator_ofClass_relationalPattern_equal_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useOperator(A a) {
+  if (a case == 0) {}
+}
+''');
+    var result = await resolveTestCode('''
+class A {
+  bool operator ==(Object other) => true;
+}
+''');
+    var element = result.findElement.method('==');
+
+    await assertElementReferencesText(element, r'''
+package:test/other.dart
+-----------------------
+import 'test.dart';
+
+void useOperator(A a) {
+  if (a case == 0) {}
+             ^^ INVOCATION qualified
 }
 ''');
   }
 
-  test_searchReferences_MethodElement_operator_ofClass_prefix() async {
-    var result = await resolveTestCode('''
-/// [operator ~] and [A.operator ~]
-class A {
-  A operator ~() => this;
-}
+  test_searchReferences_MethodElement_operator_ofClass_relationalPattern_notEqual_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
 void useOperator(A a) {
-  ~a;
+  if (a case != 0) {}
 }
 ''');
-    var element = result.findElement.method('~');
+    var result = await resolveTestCode('''
+class A {
+  bool operator ==(Object other) => true;
+}
+''');
+    var element = result.findElement.method('==');
 
     await assertElementReferencesText(element, r'''
-/// [operator ~] and [A.operator ~]
-              ^ REFERENCE
-                                 ^ REFERENCE qualified
-class A {
-  A operator ~() => this;
-}
+package:test/other.dart
+-----------------------
+import 'test.dart';
+
 void useOperator(A a) {
-  ~a;
-  ^ INVOCATION qualified
+  if (a case != 0) {}
+             ^^ INVOCATION qualified
+}
+''');
+  }
+
+  test_searchReferences_MethodElement_operator_ofClass_relationalPattern_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useOperator(A a) {
+  if (a case < 0) {}
+  switch (a) {
+    case < 0:
+  }
+}
+''');
+    var result = await resolveTestCode('''
+class A {
+  bool operator <(int other) => true;
+}
+''');
+    var element = result.findElement.method('<');
+
+    await assertElementReferencesText(element, r'''
+package:test/other.dart
+-----------------------
+import 'test.dart';
+
+void useOperator(A a) {
+  if (a case < 0) {}
+             ^ INVOCATION qualified
+  switch (a) {
+    case < 0:
+         ^ INVOCATION qualified
+  }
 }
 ''');
   }
@@ -9463,7 +10054,10 @@ void foo() {}
 void f() {
   foo = 0;
 //^^^
-// [diag.assignmentToFunction] Functions can't be assigned a value.
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The function 'foo' can't be assigned to.
+  for (foo in [0]) {}
+//     ^^^
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The function 'foo' can't be assigned to.
 }
 ''');
     var element = result.findElement.topFunction('foo');
@@ -9473,6 +10067,8 @@ void foo() {}
 void f() {
   foo = 0;
   ^^^ REFERENCE
+  for (foo in [0]) {}
+       ^^^ REFERENCE
 }
 ''');
   }
@@ -9497,6 +10093,81 @@ void f() {
 ''');
   }
 
+  test_searchReferences_TopLevelFunctionElement_primaryConstructorBody() async {
+    withEnclosingFragment = true;
+
+    var result = await resolveTestCode('''
+int foo() => 0;
+class A {
+  A(int _);
+}
+class B(int x) extends A {
+  final int y;
+  this : y = foo(), super(foo()) {
+    foo();
+  }
+  void m() {
+    foo();
+  }
+}
+class C {
+  final int y;
+  C() : y = foo() {
+    foo();
+  }
+}
+''');
+    var element = result.findElement.topFunction('foo');
+    await assertElementReferencesText(element, r'''
+int foo() => 0;
+class A {
+  A(int _);
+}
+class B(int x) extends A {
+  final int y;
+  this : y = foo(), super(foo()) {
+             ^^^ INVOCATION, enclosing: constructor B.new
+                          ^^^ INVOCATION, enclosing: constructor B.new
+    foo();
+    ^^^ INVOCATION, enclosing: constructor B.new
+  }
+  void m() {
+    foo();
+    ^^^ INVOCATION, enclosing: method m
+  }
+}
+class C {
+  final int y;
+  C() : y = foo() {
+            ^^^ INVOCATION, enclosing: constructor C.new
+    foo();
+    ^^^ INVOCATION, enclosing: constructor C.new
+  }
+}
+''');
+  }
+
+  test_searchReferences_TopLevelFunctionElement_primaryConstructorBody_comment() async {
+    withEnclosingFragment = true;
+
+    var result = await resolveTestCode('''
+int foo() => 0;
+class A() {
+  /// [foo]
+  this;
+}
+''');
+    var element = result.findElement.topFunction('foo');
+    await assertElementReferencesText(element, r'''
+int foo() => 0;
+class A() {
+  /// [foo]
+       ^^^ REFERENCE, enclosing: constructor A.new
+  this;
+}
+''');
+  }
+
   test_searchReferences_TopLevelFunctionElement_unqualified_ifNull() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void foo() {}
@@ -9504,10 +10175,7 @@ void foo() {}
 void f() {
   foo ??= () {};
 //^^^
-// [diag.assignmentToFunction] Functions can't be assigned a value.
-//        ^^^^^
-// [diag.deadCode] Dead code.
-// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The function 'foo' can't be assigned to.
 }
 ''');
     var element = result.findElement.topFunction('foo');
@@ -9566,7 +10234,7 @@ int get foo => 0;
 void f() {
   foo = 1;
 //^^^
-// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
+// [diag.undefinedUnqualifiedNameWriteGetterOnly] There's a getter 'foo', but no setter.
 }
 ''');
 
@@ -9707,6 +10375,55 @@ import 'test.dart' show foo;
 
 int get foo => 0;
 void set foo(_) {}
+''',
+    );
+  }
+
+  test_searchReferences_TopLevelVariableElement_importPrefixedWrites() async {
+    newFile(testFile.path, '''
+import 'a.dart' as p;
+void f(int value) {
+  p.value = value;
+  p.value += 1;
+  p.value ??= 2;
+  ++p.value;
+  p.value--;
+}
+''');
+    var result = await resolveFileCode('$testPackageLibPath/a.dart', '''
+int? get value => 0;
+set value(num? value) {}
+''');
+    var variable = result.findElement.topVar('value');
+    await assertElementsReferencesText(
+      {
+        'variable': variable,
+        'getter': variable.getter!,
+        'setter': variable.setter!,
+      },
+      r'''
+import 'a.dart' as p;
+void f(int value) {
+  p.value = value;
+    ^^^^^ variable WRITE qualified
+    ^^^^^ setter INVOCATION qualified
+  p.value += 1;
+    ^^^^^ variable READ_WRITE qualified
+    ^^^^^ getter INVOCATION qualified
+    ^^^^^ setter INVOCATION qualified
+  p.value ??= 2;
+    ^^^^^ variable READ_WRITE qualified
+    ^^^^^ getter INVOCATION qualified
+    ^^^^^ setter INVOCATION qualified
+  ++p.value;
+      ^^^^^ variable READ_WRITE qualified
+      ^^^^^ getter INVOCATION qualified
+      ^^^^^ setter INVOCATION qualified
+  p.value--;
+    ^^^^^ variable READ_WRITE qualified
+    ^^^^^ getter INVOCATION qualified
+    ^^^^^ setter INVOCATION qualified
+}
 ''',
     );
   }
@@ -10509,6 +11226,18 @@ class NoMatchABCDEF {}
         if (!result.isResolved) {
           buffer.write(' unresolved');
         }
+        if (withEnclosingFragment) {
+          var element = result.enclosingFragment.element;
+          buffer.write(', enclosing: ');
+          // TODO(scheglov): Remove the exception when the display name of
+          // `ElementKind.PARAMETER` is changed to "formal parameter".
+          buffer.write(switch (element) {
+            FormalParameterElement() => 'formal parameter',
+            _ => element.kind.displayName,
+          });
+          buffer.write(' ');
+          buffer.write(element.displayName);
+        }
         (annotationsByPath[unitPath] ??= []).add(
           _SearchAnnotation(
             offset: result.offset,
@@ -10629,10 +11358,17 @@ class _SearchAnnotation {
   final int order;
   final String text;
 
-  _SearchAnnotation({
+  new({
     required this.offset,
     required this.length,
     this.order = 0,
     required this.text,
   });
+}
+
+extension on FindNode2 {
+  BindPatternVariableElement bindPatternVariableElement(String search) {
+    var node = declaredVariablePattern(search);
+    return node.declaredFragment!.element;
+  }
 }

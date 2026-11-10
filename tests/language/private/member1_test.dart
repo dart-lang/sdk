@@ -10,7 +10,7 @@ class Test extends B {
   test() {
     _instanceField = true;
     // [error column 5, length 14]
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_WRITE
     // [cfe] The setter '_instanceField' isn't defined for the type 'Test'.
   }
 }

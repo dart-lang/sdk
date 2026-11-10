@@ -82,15 +82,12 @@ class _Visitor(final SizedBoxShrinkExpand rule) extends SimpleAstVisitor<void> {
 }
 
 extension on Expression {
-  double? get argumentValue {
-    var self = this;
-    return switch (self) {
-      IntegerLiteral() => self.value?.toDouble(),
-      DoubleLiteral() => self.value,
-      PrefixedIdentifier(:var identifier, :var prefix)
-          when identifier.name == 'infinity' && prefix.name == 'double' =>
-        double.infinity,
-      _ => null,
-    };
-  }
+  double? get argumentValue => switch (this) {
+    IntegerLiteral() => value?.toDouble(),
+    DoubleLiteral() => value,
+    PrefixedIdentifier(:var identifier, :var prefix)
+        when identifier.name == 'infinity' && prefix.name == 'double' =>
+      double.infinity,
+    _ => null,
+  };
 }

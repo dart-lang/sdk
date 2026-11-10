@@ -22,7 +22,162 @@ main() {
 
 @reflectiveTest
 class ConstructorInvocationResolutionTest extends PubPackageResolutionTest
-    with ConstructorInvocationTestCases {}
+    with ConstructorInvocationTestCases {
+  test_functionTypeAlias_noPrefix_instantiated() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+typedef Fn<T> = void Function(T);
+
+void bar() {
+  Fn<int>.foo();
+//        ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The function type 'Fn' doesn't have a static member named 'foo'.
+}
+
+extension E on Type {
+  void foo() {}
+}
+''');
+
+    var node = result.findNode.singleConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      name: Fn
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: <testLibrary>::@typeAlias::Fn
+      type: void Function(int)
+        alias: <testLibrary>::@typeAlias::Fn
+          typeArguments
+            int
+    selector: ConstructorSelector
+      period: .
+      name2: foo
+    element: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: InvalidType
+V1: InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: Fn
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: <testLibrary>::@typeAlias::Fn
+      type: void Function(int)
+        alias: <testLibrary>::@typeAlias::Fn
+          typeArguments
+            int
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: InvalidType
+''');
+  }
+
+  test_functionTypeAlias_withPrefix_instantiated() async {
+    newFile('$testPackageLibPath/a.dart', '''
+typedef Fn<T> = void Function(T);
+''');
+    var result = await resolveTestCodeWithDiagnostics('''
+import 'a.dart' as a;
+
+void bar() {
+  a.Fn<int>.foo();
+//          ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The function type 'a.Fn' doesn't have a static member named 'foo'.
+}
+
+extension E on Type {
+  void foo() {}
+}
+''');
+
+    var node = result.findNode.singleConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      importPrefix: ImportPrefixReference
+        name: a
+        period: .
+        element: <testLibraryFragment>::@prefix::a
+      name: Fn
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: package:test/a.dart::@typeAlias::Fn
+      type: void Function(int)
+        alias: package:test/a.dart::@typeAlias::Fn
+          typeArguments
+            int
+    selector: ConstructorSelector
+      period: .
+      name2: foo
+    element: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: InvalidType
+V1: InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: a
+        period: .
+        element: <testLibraryFragment>::@prefix::a
+      name: Fn
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: package:test/a.dart::@typeAlias::Fn
+      type: void Function(int)
+        alias: package:test/a.dart::@typeAlias::Fn
+          typeArguments
+            int
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: InvalidType
+''');
+  }
+}
 
 @reflectiveTest
 class ConstructorInvocationResolutionTest_beforeConstructorTearoffs
@@ -669,12 +824,14 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
-      SimpleIdentifier
-        token: s
+      UnqualifiedNameExpression
+        name: s
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::s
+          type: S & int
         correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::t
           substitution: {T: S}
-        element: <testLibrary>::@function::f::@formalParameter::s
         staticType: S & int
     rightParenthesis: )
   staticType: A<S>
@@ -699,6 +856,70 @@ V1: InstanceCreationExpression
         staticType: S & int
     rightParenthesis: )
   staticType: A<S>
+''');
+  }
+
+  test_error_named_missingName_typeArguments_implicitNew() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C<T> {
+  const C.named();
+}
+
+const x = C<int>.();
+//        ^^^^^^^^^
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+//               ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+
+    var node = result.findNode.singleTopLevelVariable.initializer!;
+    assertResolvedNodeText(node, r'''
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      name: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: <testLibrary>::@class::C
+      type: C<int>
+    selector: ConstructorSelector
+      period: .
+      name2: <empty> <synthetic>
+    element: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: C<int>
+V1: InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: <testLibrary>::@class::C
+      type: C<int>
+    period: .
+    name: SimpleIdentifier
+      token: <empty> <synthetic>
+      element: <null>
+      staticType: null
+    element: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: C<int>
 ''');
   }
 
@@ -1081,26 +1302,26 @@ ConstructorInvocation
         period: .
         element: <testLibraryFragment>::@prefix::p
       name: Foo
-      typeArguments: TypeArgumentList
-        leftBracket: <
-        arguments
-          NamedType
-            name: int
-            element: dart:core::@class::int
-            type: int
-        rightBracket: >
       element: package:test/a.dart::@class::Foo
-      type: Foo<int>
+      type: Foo<dynamic>
     selector: ConstructorSelector
       period: .
       name2: bar
     element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::Foo::@constructor::bar
-      substitution: {X: int}
+      substitution: {X: dynamic}
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticType: Foo<int>
+  staticType: Foo<dynamic>
 V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
@@ -1109,30 +1330,30 @@ V1: InstanceCreationExpression
         period: .
         element: <testLibraryFragment>::@prefix::p
       name: Foo
-      typeArguments: TypeArgumentList
-        leftBracket: <
-        arguments
-          NamedType
-            name: int
-            element: dart:core::@class::int
-            type: int
-        rightBracket: >
       element: package:test/a.dart::@class::Foo
-      type: Foo<int>
+      type: Foo<dynamic>
     period: .
     name: SimpleIdentifier
       token: bar
       element: SubstitutedConstructorElementImpl
         baseElement: package:test/a.dart::@class::Foo::@constructor::bar
-        substitution: {X: int}
+        substitution: {X: dynamic}
       staticType: null
     element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::Foo::@constructor::bar
-      substitution: {X: int}
+      substitution: {X: dynamic}
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  staticType: Foo<int>
+  staticType: Foo<dynamic>
 ''');
   }
 
@@ -1628,6 +1849,83 @@ V1: InstanceCreationExpression
 ''');
   }
 
+  test_importPrefix_class_typeArguments_missingName() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class C<T> {
+  const C.named();
+}
+''');
+    var result = await resolveTestCodeWithDiagnostics('''
+import 'a.dart' as p;
+
+const x = p.C<int>.();
+//        ^^^^^^^^^^^
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+//                 ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+
+    assertResolvedNodeText(
+      result.findNode.singleTopLevelVariable.initializer!,
+      r'''
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+        element: <testLibraryFragment>::@prefix::p
+      name: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: package:test/a.dart::@class::C
+      type: C<int>
+    selector: ConstructorSelector
+      period: .
+      name2: <empty> <synthetic>
+    element: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: C<int>
+V1: InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+        element: <testLibraryFragment>::@prefix::p
+      name: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: package:test/a.dart::@class::C
+      type: C<int>
+    period: .
+    name: SimpleIdentifier
+      token: <empty> <synthetic>
+      element: <null>
+      staticType: null
+    element: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: C<int>
+''',
+    );
+  }
+
   test_importPrefix_class_typeArguments_named() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A<T> {
@@ -2040,60 +2338,60 @@ ConstructorInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
-      MethodInvocation
-        methodName: SimpleIdentifier
-          token: g1
-          element: <testLibrary>::@function::g1
-          staticType: T Function<T>()
+      UnqualifiedFunctionInvocation
+        name: g1
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::g1
+          invokeType: A Function()
+          type: A
         correspondingParameter: <testLibrary>::@class::X::@constructor::new::@formalParameter::a
-        staticInvokeType: A Function()
         staticType: A
         typeArgumentTypes
           A
       NamedArgument
         name: c
         colon: :
-        argumentExpression2: MethodInvocation
-          methodName: SimpleIdentifier
-            token: g3
-            element: <testLibrary>::@function::g3
-            staticType: T Function<T>()
+        argumentExpression2: UnqualifiedFunctionInvocation
+          name: g3
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )
-          staticInvokeType: C? Function()
+          resolution: ExecutableInvocationResolution
+            element: <testLibrary>::@function::g3
+            invokeType: C? Function()
+            type: C?
           staticType: C?
           typeArgumentTypes
             C?
         correspondingParameter: <testLibrary>::@class::X::@constructor::new::@formalParameter::c
-      MethodInvocation
-        methodName: SimpleIdentifier
-          token: g2
-          element: <testLibrary>::@function::g2
-          staticType: T Function<T>()
+      UnqualifiedFunctionInvocation
+        name: g2
         argumentList: ArgumentList
           leftParenthesis: (
           rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::g2
+          invokeType: B Function()
+          type: B
         correspondingParameter: <testLibrary>::@class::X::@constructor::new::@formalParameter::b
-        staticInvokeType: B Function()
         staticType: B
         typeArgumentTypes
           B
       NamedArgument
         name: d
         colon: :
-        argumentExpression2: MethodInvocation
-          methodName: SimpleIdentifier
-            token: g4
-            element: <testLibrary>::@function::g4
-            staticType: T Function<T>()
+        argumentExpression2: UnqualifiedFunctionInvocation
+          name: g4
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )
-          staticInvokeType: D? Function()
+          resolution: ExecutableInvocationResolution
+            element: <testLibrary>::@function::g4
+            invokeType: D? Function()
+            type: D?
           staticType: D?
           typeArgumentTypes
             D?
@@ -2287,6 +2585,104 @@ V1: InstanceCreationExpression
     rightParenthesis: )
   staticType: C
 ''');
+  }
+
+  test_typeAlias_generic_class_generic_named_explicit_importPrefix() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class C<T, U> {
+  C.named(T first, U second);
+}
+typedef A<V> = C<int, V>;
+''');
+    var result = await resolveTestCodeWithDiagnostics('''
+import 'a.dart' as p;
+
+var x = p.A<String>.named(0, 's');
+''');
+
+    assertResolvedNodeText(
+      result.findNode.constructorInvocation("p.A<String>.named(0, 's')"),
+      r'''
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+        element: <testLibraryFragment>::@prefix::p
+      name: A
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: String
+            element: dart:core::@class::String
+            type: String
+        rightBracket: >
+      element: package:test/a.dart::@typeAlias::A
+      type: C<int, String>
+    selector: ConstructorSelector
+      period: .
+      name2: named
+    element: SubstitutedConstructorElementImpl
+      baseElement: package:test/a.dart::@class::C::@constructor::named
+      substitution: {T: int, U: String}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: package:test/a.dart::@class::C::@constructor::named::@formalParameter::first
+          substitution: {T: int, U: String}
+        staticType: int
+      SimpleStringLiteral
+        literal: 's'
+    rightParenthesis: )
+  staticType: C<int, String>
+V1: InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+        element: <testLibraryFragment>::@prefix::p
+      name: A
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: String
+            element: dart:core::@class::String
+            type: String
+        rightBracket: >
+      element: package:test/a.dart::@typeAlias::A
+      type: C<int, String>
+    period: .
+    name: SimpleIdentifier
+      token: named
+      element: SubstitutedConstructorElementImpl
+        baseElement: package:test/a.dart::@class::C::@constructor::named
+        substitution: {T: int, U: String}
+      staticType: null
+    element: SubstitutedConstructorElementImpl
+      baseElement: package:test/a.dart::@class::C::@constructor::named
+      substitution: {T: int, U: String}
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: package:test/a.dart::@class::C::@constructor::named::@formalParameter::first
+          substitution: {T: int, U: String}
+        staticType: int
+      SimpleStringLiteral
+        literal: 's'
+    rightParenthesis: )
+  staticType: C<int, String>
+''',
+    );
   }
 
   test_typeAlias_generic_class_generic_named_infer_all() async {
@@ -2895,8 +3291,8 @@ V1: InstanceCreationExpression
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   new Unresolved.named(0);
-//    ^^^^^^^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'Unresolved'.
+//    ^^^^^^^^^^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'Unresolved'.
 }
 
 ''');
@@ -2952,8 +3348,8 @@ V1: InstanceCreationExpression
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   new unresolved.Foo.bar(0);
-//    ^^^^^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'unresolved'.
+//    ^^^^^^^^^^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'unresolved'.
 }
 
 ''');

@@ -28,6 +28,39 @@ f() { for () assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithExpression
+                initialization2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                initialization(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: )
+              body2: AssertStatement
+                assertKeyword: assert
+                leftParenthesis: (
+                condition2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -42,17 +75,17 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization2: SimpleIdentifier
+                  initialization: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: )
                 body: AssertStatement
                   assertKeyword: assert
                   leftParenthesis: (
-                  condition2: BooleanLiteral
+                  condition: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   semicolon: ;
@@ -72,6 +105,35 @@ f() { for () {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithExpression
+                initialization2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                initialization(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -86,10 +148,10 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization2: SimpleIdentifier
+                  initialization: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: )
@@ -112,6 +174,35 @@ f() { for () break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithExpression
+                initialization2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                initialization(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: )
+              body2: BreakStatement
+                breakKeyword: break
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -126,10 +217,10 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization2: SimpleIdentifier
+                  initialization: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: )
@@ -152,6 +243,35 @@ f() { for () continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithExpression
+                initialization2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                initialization(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: )
+              body2: ContinueStatement
+                continueKeyword: continue
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -166,10 +286,10 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization2: SimpleIdentifier
+                  initialization: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: )
@@ -192,6 +312,43 @@ f() { for () do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithExpression
+                initialization2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                initialization(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: )
+              body2: DoStatement
+                doKeyword: do
+                body2: Block
+                  leftBracket: {
+                  rightBracket: }
+                whileKeyword: while
+                leftParenthesis: (
+                condition2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -206,10 +363,10 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization2: SimpleIdentifier
+                  initialization: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: )
@@ -220,7 +377,7 @@ CompilationUnit
                     rightBracket: }
                   whileKeyword: while
                   leftParenthesis: (
-                  condition2: BooleanLiteral
+                  condition: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   semicolon: ;
@@ -243,6 +400,38 @@ f() { for () }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithExpression
+                initialization2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                initialization(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: )
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -257,15 +446,15 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization2: SimpleIdentifier
+                  initialization: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: )
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -284,6 +473,48 @@ f() { for () for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithExpression
+                initialization2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                initialization(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: )
+              body2: ForStatement
+                forKeyword: for
+                leftParenthesis: (
+                forLoopParts: ForEachPartsWithDeclaration
+                  loopVariable: DeclaredIdentifier
+                    keyword: var
+                    name: x
+                  inKeyword: in
+                  iterable2: ParsedUnqualifiedName
+                    name: y
+                  iterable(v1): SimpleIdentifier
+                    token: y
+                rightParenthesis: )
+                body2: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -298,10 +529,10 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization2: SimpleIdentifier
+                  initialization: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: )
@@ -313,7 +544,7 @@ CompilationUnit
                       keyword: var
                       name: x
                     inKeyword: in
-                    iterable2: SimpleIdentifier
+                    iterable: SimpleIdentifier
                       token: y
                   rightParenthesis: )
                   body: Block
@@ -335,6 +566,41 @@ f() { for () if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithExpression
+                initialization2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                initialization(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: )
+              body2: IfStatement
+                ifKeyword: if
+                leftParenthesis: (
+                expression2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                thenStatement2: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -349,17 +615,17 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization2: SimpleIdentifier
+                  initialization: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: )
                 body: IfStatement
                   ifKeyword: if
                   leftParenthesis: (
-                  expression2: BooleanLiteral
+                  expression: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   thenStatement: Block
@@ -381,6 +647,40 @@ f() { for () l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithExpression
+                initialization2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                initialization(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: )
+              body2: LabeledStatement
+                labels
+                  Label
+                    name: l
+                    colon: :
+                statement2: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -395,10 +695,10 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization2: SimpleIdentifier
+                  initialization: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: )
@@ -426,6 +726,56 @@ f() { for () int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithExpression
+                initialization2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                initialization(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: )
+              body2: LocalFunctionDeclaration
+                returnType: NamedType
+                  name: int
+                name: f
+                formalParameters: FormalParameterList
+                  leftParenthesis: (
+                  rightParenthesis: )
+                body: BlockFunctionBody
+                  block: Block
+                    leftBracket: {
+                    rightBracket: }
+              body(v1): FunctionDeclarationStatement
+                functionDeclaration: FunctionDeclaration
+                  returnType: NamedType
+                    name: int
+                  name: f
+                  functionExpression: FunctionExpression
+                    parameters: FormalParameterList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                    body: BlockFunctionBody
+                      block: Block
+                        leftBracket: {
+                        rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -440,10 +790,10 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization2: SimpleIdentifier
+                  initialization: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: )
@@ -476,6 +826,56 @@ f() { for () void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithExpression
+                initialization2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                initialization(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: )
+              body2: LocalFunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                formalParameters: FormalParameterList
+                  leftParenthesis: (
+                  rightParenthesis: )
+                body: BlockFunctionBody
+                  block: Block
+                    leftBracket: {
+                    rightBracket: }
+              body(v1): FunctionDeclarationStatement
+                functionDeclaration: FunctionDeclaration
+                  returnType: NamedType
+                    name: void
+                  name: f
+                  functionExpression: FunctionExpression
+                    parameters: FormalParameterList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                    body: BlockFunctionBody
+                      block: Block
+                        leftBracket: {
+                        rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -490,10 +890,10 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization2: SimpleIdentifier
+                  initialization: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: )
@@ -526,6 +926,46 @@ f() { for () var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithExpression
+                initialization2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                initialization(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: )
+              body2: LocalVariablesDeclarationStatement
+                declaration: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: x
+                semicolon: ;
+              body(v1): VariableDeclarationStatement
+                variables: VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: x
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -540,10 +980,10 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization2: SimpleIdentifier
+                  initialization: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: )
@@ -570,6 +1010,35 @@ f() { for () return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithExpression
+                initialization2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                initialization(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: )
+              body2: ReturnStatement
+                returnKeyword: return
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -584,10 +1053,10 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization2: SimpleIdentifier
+                  initialization: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: )
@@ -610,6 +1079,42 @@ f() { for () switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithExpression
+                initialization2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                initialization(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: )
+              body2: SwitchStatement
+                switchKeyword: switch
+                leftParenthesis: (
+                expression2: ParsedUnqualifiedName
+                  name: x
+                expression(v1): SimpleIdentifier
+                  token: x
+                rightParenthesis: )
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -624,17 +1129,17 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization2: SimpleIdentifier
+                  initialization: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: )
                 body: SwitchStatement
                   switchKeyword: switch
                   leftParenthesis: (
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: x
                   rightParenthesis: )
                   leftBracket: {
@@ -655,6 +1160,41 @@ f() { for () try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithExpression
+                initialization2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                initialization(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: )
+              body2: TryStatement
+                tryKeyword: try
+                body: Block
+                  leftBracket: {
+                  rightBracket: }
+                finallyKeyword: finally
+                finallyBlock: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -669,10 +1209,10 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization2: SimpleIdentifier
+                  initialization: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: )
@@ -701,6 +1241,41 @@ f() { for () while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithExpression
+                initialization2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                initialization(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: )
+              body2: WhileStatement
+                whileKeyword: while
+                leftParenthesis: (
+                condition2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                body2: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -715,17 +1290,17 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization2: SimpleIdentifier
+                  initialization: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: )
                 body: WhileStatement
                   whileKeyword: while
                   leftParenthesis: (
-                  condition2: BooleanLiteral
+                  condition: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   body: Block
@@ -748,6 +1323,64 @@ f() { for (var i = assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: CallInvocation
+                        receiver: ParsedUnqualifiedName
+                          name: assert
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments2
+                            BooleanLiteral
+                              literal: true
+                          rightParenthesis: )
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: FunctionExpressionInvocation
+                        function: SimpleIdentifier
+                          token: assert
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments
+                            BooleanLiteral
+                              literal: true
+                          rightParenthesis: )
+                leftSeparator: ;
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -768,22 +1401,22 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: FunctionExpressionInvocation
-                          function2: SimpleIdentifier
+                        initializer: FunctionExpressionInvocation
+                          function: SimpleIdentifier
                             token: assert
                           argumentList: ArgumentList
                             leftParenthesis: (
-                            arguments2
+                            arguments
                               BooleanLiteral
                                 literal: true
                             rightParenthesis: )
                   leftSeparator: ;
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -803,6 +1436,54 @@ f() { for (var i = {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: SetOrMapLiteral
+                        leftBracket: {
+                        rightBracket: }
+                        isMap: false
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: SetOrMapLiteral
+                        leftBracket: {
+                        rightBracket: }
+                        isMap: false
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -823,17 +1504,17 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: SetOrMapLiteral
+                        initializer: SetOrMapLiteral
                           leftBracket: {
                           rightBracket: }
                           isMap: false
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -858,6 +1539,56 @@ f() { for (var i = break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: SimpleIdentifier
+                        token: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -878,18 +1609,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: SimpleIdentifier
+                        initializer: SimpleIdentifier
                           token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -914,6 +1645,56 @@ f() { for (var i = continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: SimpleIdentifier
+                        token: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -934,18 +1715,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: SimpleIdentifier
+                        initializer: SimpleIdentifier
                           token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -970,6 +1751,56 @@ f() { for (var i = do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: SimpleIdentifier
+                        token: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -990,18 +1821,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: SimpleIdentifier
+                        initializer: SimpleIdentifier
                           token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1021,6 +1852,50 @@ f() { for (var i = }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: SimpleIdentifier
+                        token: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1041,15 +1916,15 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: SimpleIdentifier
+                        initializer: SimpleIdentifier
                           token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1074,6 +1949,56 @@ f() { for (var i = for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: SimpleIdentifier
+                        token: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1094,18 +2019,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: SimpleIdentifier
+                        initializer: SimpleIdentifier
                           token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1130,6 +2055,56 @@ f() { for (var i = if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: SimpleIdentifier
+                        token: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1150,18 +2125,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: SimpleIdentifier
+                        initializer: SimpleIdentifier
                           token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1185,6 +2160,36 @@ f() { for (var i = l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: i
+                inKeyword: :
+                iterable2: SetOrMapLiteral
+                  leftBracket: {
+                  rightBracket: }
+                  isMap: false
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1203,13 +2208,13 @@ CompilationUnit
                     keyword: var
                     name: i
                   inKeyword: :
-                  iterable2: SetOrMapLiteral
+                  iterable: SetOrMapLiteral
                     leftBracket: {
                     rightBracket: }
                     isMap: false
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1231,6 +2236,62 @@ f() { for (var i = int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: FunctionExpression
+                        parameters: FormalParameterList
+                          leftParenthesis: (
+                          rightParenthesis: )
+                        body: BlockFunctionBody
+                          block: Block
+                            leftBracket: {
+                            rightBracket: }
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: FunctionExpression
+                        parameters: FormalParameterList
+                          leftParenthesis: (
+                          rightParenthesis: )
+                        body: BlockFunctionBody
+                          block: Block
+                            leftBracket: {
+                            rightBracket: }
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1251,7 +2312,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: FunctionExpression
+                        initializer: FunctionExpression
                           parameters: FormalParameterList
                             leftParenthesis: (
                             rightParenthesis: )
@@ -1260,12 +2321,12 @@ CompilationUnit
                               leftBracket: {
                               rightBracket: }
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1287,6 +2348,62 @@ f() { for (var i = void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: FunctionExpression
+                        parameters: FormalParameterList
+                          leftParenthesis: (
+                          rightParenthesis: )
+                        body: BlockFunctionBody
+                          block: Block
+                            leftBracket: {
+                            rightBracket: }
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: FunctionExpression
+                        parameters: FormalParameterList
+                          leftParenthesis: (
+                          rightParenthesis: )
+                        body: BlockFunctionBody
+                          block: Block
+                            leftBracket: {
+                            rightBracket: }
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1307,7 +2424,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: FunctionExpression
+                        initializer: FunctionExpression
                           parameters: FormalParameterList
                             leftParenthesis: (
                             rightParenthesis: )
@@ -1316,12 +2433,12 @@ CompilationUnit
                               leftBracket: {
                               rightBracket: }
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1346,6 +2463,56 @@ f() { for (var i = var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: SimpleIdentifier
+                        token: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1366,18 +2533,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: SimpleIdentifier
+                        initializer: SimpleIdentifier
                           token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1400,6 +2567,50 @@ f() { for (var i = return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: SimpleIdentifier
+                        token: <empty> <synthetic>
+                leftSeparator: ;
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1420,15 +2631,15 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: SimpleIdentifier
+                        initializer: SimpleIdentifier
                           token: <empty> <synthetic>
                   leftSeparator: ;
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1448,6 +2659,64 @@ f() { for (var i = switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: SwitchExpression
+                        switchKeyword: switch
+                        leftParenthesis: (
+                        expression2: ParsedUnqualifiedName
+                          name: x
+                        expression(v1): SimpleIdentifier
+                          token: x
+                        rightParenthesis: )
+                        leftBracket: {
+                        rightBracket: }
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: SwitchExpression
+                        switchKeyword: switch
+                        leftParenthesis: (
+                        expression: SimpleIdentifier
+                          token: x
+                        rightParenthesis: )
+                        leftBracket: {
+                        rightBracket: }
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1468,21 +2737,21 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: SwitchExpression
+                        initializer: SwitchExpression
                           switchKeyword: switch
                           leftParenthesis: (
-                          expression2: SimpleIdentifier
+                          expression: SimpleIdentifier
                             token: x
                           rightParenthesis: )
                           leftBracket: {
                           rightBracket: }
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1507,6 +2776,56 @@ f() { for (var i = try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: SimpleIdentifier
+                        token: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1527,18 +2846,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: SimpleIdentifier
+                        initializer: SimpleIdentifier
                           token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1563,6 +2882,56 @@ f() { for (var i = while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: SimpleIdentifier
+                        token: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1583,18 +2952,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: SimpleIdentifier
+                        initializer: SimpleIdentifier
                           token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1614,6 +2983,64 @@ f() { for (var i = 0; assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                condition2: CallInvocation
+                  receiver: ParsedUnqualifiedName
+                    name: assert
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      BooleanLiteral
+                        literal: true
+                    rightParenthesis: )
+                condition(v1): FunctionExpressionInvocation
+                  function: SimpleIdentifier
+                    token: assert
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments
+                      BooleanLiteral
+                        literal: true
+                    rightParenthesis: )
+                rightSeparator: ;
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1634,22 +3061,22 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
-                  condition2: FunctionExpressionInvocation
-                    function2: SimpleIdentifier
+                  condition: FunctionExpressionInvocation
+                    function: SimpleIdentifier
                       token: assert
                     argumentList: ArgumentList
                       leftParenthesis: (
-                      arguments2
+                      arguments
                         BooleanLiteral
                           literal: true
                       rightParenthesis: )
                   rightSeparator: ;
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1669,6 +3096,50 @@ f() { for (var i = 0; {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                condition2: SetOrMapLiteral
+                  leftBracket: {
+                  rightBracket: }
+                  isMap: false
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1689,17 +3160,17 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
-                  condition2: SetOrMapLiteral
+                  condition: SetOrMapLiteral
                     leftBracket: {
                     rightBracket: }
                     isMap: false
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1724,6 +3195,56 @@ f() { for (var i = 0; break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1744,18 +3265,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1780,6 +3301,56 @@ f() { for (var i = 0; continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1800,18 +3371,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1836,6 +3407,56 @@ f() { for (var i = 0; do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1856,18 +3477,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1887,6 +3508,50 @@ f() { for (var i = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1907,15 +3572,15 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1940,6 +3605,56 @@ f() { for (var i = 0; for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1960,18 +3675,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1996,6 +3711,56 @@ f() { for (var i = 0; if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2016,18 +3781,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2052,6 +3817,56 @@ f() { for (var i = 0; l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                condition2: ParsedUnqualifiedName
+                  name: l
+                condition(v1): SimpleIdentifier
+                  token: l
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2072,18 +3887,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: l
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2105,6 +3920,54 @@ f() { for (var i = 0; int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                condition2: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2125,10 +3988,10 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
-                  condition2: FunctionExpression
+                  condition: FunctionExpression
                     parameters: FormalParameterList
                       leftParenthesis: (
                       rightParenthesis: )
@@ -2139,7 +4002,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2161,6 +4024,54 @@ f() { for (var i = 0; void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                condition2: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2181,10 +4092,10 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
-                  condition2: FunctionExpression
+                  condition: FunctionExpression
                     parameters: FormalParameterList
                       leftParenthesis: (
                       rightParenthesis: )
@@ -2195,7 +4106,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2220,6 +4131,56 @@ f() { for (var i = 0; var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2240,18 +4201,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2274,6 +4235,50 @@ f() { for (var i = 0; return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ;
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2294,15 +4299,15 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ;
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2322,6 +4327,56 @@ f() { for (var i = 0; switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                condition2: SwitchExpression
+                  switchKeyword: switch
+                  leftParenthesis: (
+                  expression2: ParsedUnqualifiedName
+                    name: x
+                  expression(v1): SimpleIdentifier
+                    token: x
+                  rightParenthesis: )
+                  leftBracket: {
+                  rightBracket: }
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2342,13 +4397,13 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
-                  condition2: SwitchExpression
+                  condition: SwitchExpression
                     switchKeyword: switch
                     leftParenthesis: (
-                    expression2: SimpleIdentifier
+                    expression: SimpleIdentifier
                       token: x
                     rightParenthesis: )
                     leftBracket: {
@@ -2356,7 +4411,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2381,6 +4436,56 @@ f() { for (var i = 0; try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2401,18 +4506,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2437,6 +4542,56 @@ f() { for (var i = 0; while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2457,18 +4612,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2490,6 +4645,64 @@ f() { for (var i = 0 assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ; <synthetic>
+                condition2: CallInvocation
+                  receiver: ParsedUnqualifiedName
+                    name: assert
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      BooleanLiteral
+                        literal: true
+                    rightParenthesis: )
+                condition(v1): FunctionExpressionInvocation
+                  function: SimpleIdentifier
+                    token: assert
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments
+                      BooleanLiteral
+                        literal: true
+                    rightParenthesis: )
+                rightSeparator: ;
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2510,22 +4723,22 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ; <synthetic>
-                  condition2: FunctionExpressionInvocation
-                    function2: SimpleIdentifier
+                  condition: FunctionExpressionInvocation
+                    function: SimpleIdentifier
                       token: assert
                     argumentList: ArgumentList
                       leftParenthesis: (
-                      arguments2
+                      arguments
                         BooleanLiteral
                           literal: true
                       rightParenthesis: )
                   rightSeparator: ;
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2547,6 +4760,50 @@ f() { for (var i = 0 {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ; <synthetic>
+                condition2: SetOrMapLiteral
+                  leftBracket: {
+                  rightBracket: }
+                  isMap: false
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2567,17 +4824,17 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ; <synthetic>
-                  condition2: SetOrMapLiteral
+                  condition: SetOrMapLiteral
                     leftBracket: {
                     rightBracket: }
                     isMap: false
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2602,6 +4859,56 @@ f() { for (var i = 0 break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2622,18 +4929,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2658,6 +4965,56 @@ f() { for (var i = 0 continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2678,18 +5035,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2714,6 +5071,56 @@ f() { for (var i = 0 do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2734,18 +5141,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2765,6 +5172,50 @@ f() { for (var i = 0 }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2785,15 +5236,15 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2818,6 +5269,56 @@ f() { for (var i = 0 for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2838,18 +5339,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2874,6 +5375,56 @@ f() { for (var i = 0 if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2894,18 +5445,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2932,6 +5483,56 @@ f() { for (var i = 0 l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: l
+                condition(v1): SimpleIdentifier
+                  token: l
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2952,18 +5553,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: l
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -2987,6 +5588,54 @@ f() { for (var i = 0 int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ; <synthetic>
+                condition2: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3007,10 +5656,10 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ; <synthetic>
-                  condition2: FunctionExpression
+                  condition: FunctionExpression
                     parameters: FormalParameterList
                       leftParenthesis: (
                       rightParenthesis: )
@@ -3021,7 +5670,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -3045,6 +5694,54 @@ f() { for (var i = 0 void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ; <synthetic>
+                condition2: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3065,10 +5762,10 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ; <synthetic>
-                  condition2: FunctionExpression
+                  condition: FunctionExpression
                     parameters: FormalParameterList
                       leftParenthesis: (
                       rightParenthesis: )
@@ -3079,7 +5776,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -3104,6 +5801,56 @@ f() { for (var i = 0 var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3124,18 +5871,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -3160,6 +5907,50 @@ f() { for (var i = 0 return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ;
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3180,15 +5971,15 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ;
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -3210,6 +6001,56 @@ f() { for (var i = 0 switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ; <synthetic>
+                condition2: SwitchExpression
+                  switchKeyword: switch
+                  leftParenthesis: (
+                  expression2: ParsedUnqualifiedName
+                    name: x
+                  expression(v1): SimpleIdentifier
+                    token: x
+                  rightParenthesis: )
+                  leftBracket: {
+                  rightBracket: }
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3230,13 +6071,13 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ; <synthetic>
-                  condition2: SwitchExpression
+                  condition: SwitchExpression
                     switchKeyword: switch
                     leftParenthesis: (
-                    expression2: SimpleIdentifier
+                    expression: SimpleIdentifier
                       token: x
                     rightParenthesis: )
                     leftBracket: {
@@ -3244,7 +6085,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -3269,6 +6110,56 @@ f() { for (var i = 0 try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3289,18 +6180,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -3325,6 +6216,56 @@ f() { for (var i = 0 while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3345,18 +6286,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -3373,6 +6314,37 @@ f() { for assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForPartsWithExpression
+                leftSeparator: ; <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3391,13 +6363,13 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -3415,6 +6387,33 @@ f() { for {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForPartsWithExpression
+                leftSeparator: ; <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3433,7 +6432,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               Block
@@ -3454,6 +6453,33 @@ f() { for break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForPartsWithExpression
+                leftSeparator: ; <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3472,7 +6498,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               BreakStatement
@@ -3493,6 +6519,33 @@ f() { for continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForPartsWithExpression
+                leftSeparator: ; <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3511,7 +6564,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               ContinueStatement
@@ -3531,6 +6584,41 @@ f() { for do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForPartsWithExpression
+                leftSeparator: ; <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3549,7 +6637,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               DoStatement
@@ -3559,7 +6647,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -3577,6 +6665,30 @@ f() { for }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForPartsWithExpression
+                leftSeparator: ; <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3595,7 +6707,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -3612,6 +6724,46 @@ f() { for for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForPartsWithExpression
+                leftSeparator: ; <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: y
+                iterable(v1): SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3630,7 +6782,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               ForStatement
@@ -3641,7 +6793,7 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -3661,6 +6813,39 @@ f() { for if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForPartsWithExpression
+                leftSeparator: ; <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3679,13 +6864,13 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: BooleanLiteral
+                expression: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -3705,6 +6890,38 @@ f() { for l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForPartsWithExpression
+                leftSeparator: ; <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            LabeledStatement
+              labels
+                Label
+                  name: l
+                  colon: :
+              statement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3723,7 +6940,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               LabeledStatement
@@ -3748,6 +6965,66 @@ f() { for int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForPartsWithExpression
+                leftSeparator: ; <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            ForStatement
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForPartsWithExpression
+                leftSeparator: ; <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body: ExpressionStatement
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: int
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3766,7 +7043,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               FunctionDeclarationStatement
@@ -3796,6 +7073,66 @@ f() { for void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForPartsWithExpression
+                leftSeparator: ; <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            ForStatement
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForPartsWithExpression
+                leftSeparator: ; <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body: ExpressionStatement
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3814,7 +7151,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               FunctionDeclarationStatement
@@ -3844,6 +7181,56 @@ f() { for var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForPartsWithExpression
+                leftSeparator: ; <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            ForStatement
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForPartsWithExpression
+                leftSeparator: ; <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body: ExpressionStatement
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: x
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3862,7 +7249,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               VariableDeclarationStatement
@@ -3886,6 +7273,33 @@ f() { for return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForPartsWithExpression
+                leftSeparator: ; <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3904,7 +7318,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               ReturnStatement
@@ -3924,6 +7338,40 @@ f() { for switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForPartsWithExpression
+                leftSeparator: ; <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3942,13 +7390,13 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -3967,6 +7415,39 @@ f() { for try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForPartsWithExpression
+                leftSeparator: ; <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3985,7 +7466,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               TryStatement
@@ -4011,6 +7492,39 @@ f() { for while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForPartsWithExpression
+                leftSeparator: ; <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4029,13 +7543,13 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -4058,6 +7572,52 @@ f() { for ( assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithExpression
+                initialization2: CallInvocation
+                  receiver: ParsedUnqualifiedName
+                    name: assert
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      BooleanLiteral
+                        literal: true
+                    rightParenthesis: )
+                initialization(v1): FunctionExpressionInvocation
+                  function: SimpleIdentifier
+                    token: assert
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments
+                      BooleanLiteral
+                        literal: true
+                    rightParenthesis: )
+                leftSeparator: ;
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4072,22 +7632,22 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization2: FunctionExpressionInvocation
-                    function2: SimpleIdentifier
+                  initialization: FunctionExpressionInvocation
+                    function: SimpleIdentifier
                       token: assert
                     argumentList: ArgumentList
                       leftParenthesis: (
-                      arguments2
+                      arguments
                         BooleanLiteral
                           literal: true
                       rightParenthesis: )
                   leftSeparator: ;
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4107,6 +7667,38 @@ f() { for ( {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithExpression
+                initialization2: SetOrMapLiteral
+                  leftBracket: {
+                  rightBracket: }
+                  isMap: false
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4121,17 +7713,17 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization2: SetOrMapLiteral
+                  initialization: SetOrMapLiteral
                     leftBracket: {
                     rightBracket: }
                     isMap: false
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4156,6 +7748,44 @@ f() { for ( break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithExpression
+                initialization2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                initialization(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4170,18 +7800,18 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization2: SimpleIdentifier
+                  initialization: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4206,6 +7836,44 @@ f() { for ( continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithExpression
+                initialization2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                initialization(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4220,18 +7888,18 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization2: SimpleIdentifier
+                  initialization: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4256,6 +7924,44 @@ f() { for ( do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithExpression
+                initialization2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                initialization(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4270,18 +7976,18 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization2: SimpleIdentifier
+                  initialization: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4301,6 +8007,38 @@ f() { for ( }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithExpression
+                initialization2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                initialization(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4315,15 +8053,15 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization2: SimpleIdentifier
+                  initialization: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4348,6 +8086,44 @@ f() { for ( for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithExpression
+                initialization2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                initialization(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4362,18 +8138,18 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization2: SimpleIdentifier
+                  initialization: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4398,6 +8174,44 @@ f() { for ( if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithExpression
+                initialization2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                initialization(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4412,18 +8226,18 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization2: SimpleIdentifier
+                  initialization: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4445,6 +8259,37 @@ f() { for ( l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithIdentifier
+                target: UnqualifiedNameAssignmentTarget
+                  name: l
+                inKeyword: :
+                iterable2: SetOrMapLiteral
+                  leftBracket: {
+                  rightBracket: }
+                  isMap: false
+                identifier: SimpleIdentifier
+                  token: l
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4459,17 +8304,16 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: l
-                  identifier(v1): SimpleIdentifier
+                  identifier: SimpleIdentifier
                     token: l
                   inKeyword: :
-                  iterable2: SetOrMapLiteral
+                  iterable: SetOrMapLiteral
                     leftBracket: {
                     rightBracket: }
                     isMap: false
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4491,6 +8335,50 @@ f() { for ( int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  type: NamedType
+                    name: int
+                  variables
+                    LocalVariable
+                      name: f
+                variables(v1): VariableDeclarationList
+                  type: NamedType
+                    name: int
+                  variables
+                    VariableDeclaration
+                      name: f
+                leftSeparator: ; <synthetic>
+                condition2: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4512,7 +8400,7 @@ CompilationUnit
                       VariableDeclaration
                         name: f
                   leftSeparator: ; <synthetic>
-                  condition2: FunctionExpression
+                  condition: FunctionExpression
                     parameters: FormalParameterList
                       leftParenthesis: (
                       rightParenthesis: )
@@ -4523,7 +8411,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4545,6 +8433,50 @@ f() { for ( void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  type: NamedType
+                    name: void
+                  variables
+                    LocalVariable
+                      name: f
+                variables(v1): VariableDeclarationList
+                  type: NamedType
+                    name: void
+                  variables
+                    VariableDeclaration
+                      name: f
+                leftSeparator: ; <synthetic>
+                condition2: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4566,7 +8498,7 @@ CompilationUnit
                       VariableDeclaration
                         name: f
                   leftSeparator: ; <synthetic>
-                  condition2: FunctionExpression
+                  condition: FunctionExpression
                     parameters: FormalParameterList
                       leftParenthesis: (
                       rightParenthesis: )
@@ -4577,7 +8509,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4597,6 +8529,44 @@ f() { for ( var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: x
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: x
+                leftSeparator: ;
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4617,12 +8587,12 @@ CompilationUnit
                       VariableDeclaration
                         name: x
                   leftSeparator: ;
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4645,6 +8615,38 @@ f() { for ( return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithExpression
+                initialization2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                initialization(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                leftSeparator: ;
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4659,15 +8661,15 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization2: SimpleIdentifier
+                  initialization: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ;
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4687,6 +8689,44 @@ f() { for ( switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithExpression
+                initialization2: SwitchExpression
+                  switchKeyword: switch
+                  leftParenthesis: (
+                  expression2: ParsedUnqualifiedName
+                    name: x
+                  expression(v1): SimpleIdentifier
+                    token: x
+                  rightParenthesis: )
+                  leftBracket: {
+                  rightBracket: }
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4701,21 +8741,21 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization2: SwitchExpression
+                  initialization: SwitchExpression
                     switchKeyword: switch
                     leftParenthesis: (
-                    expression2: SimpleIdentifier
+                    expression: SimpleIdentifier
                       token: x
                     rightParenthesis: )
                     leftBracket: {
                     rightBracket: }
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4740,6 +8780,44 @@ f() { for ( try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithExpression
+                initialization2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                initialization(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4754,18 +8832,18 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization2: SimpleIdentifier
+                  initialization: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4790,6 +8868,44 @@ f() { for ( while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithExpression
+                initialization2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                initialization(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4804,18 +8920,18 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForPartsWithExpression
-                  initialization2: SimpleIdentifier
+                  initialization: SimpleIdentifier
                     token: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -4830,6 +8946,47 @@ f() { for (var i = 0;;) assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                rightSeparator: ;
+              rightParenthesis: )
+              body2: AssertStatement
+                assertKeyword: assert
+                leftParenthesis: (
+                condition2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4850,7 +9007,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
@@ -4858,7 +9015,7 @@ CompilationUnit
                 body: AssertStatement
                   assertKeyword: assert
                   leftParenthesis: (
-                  condition2: BooleanLiteral
+                  condition: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   semicolon: ;
@@ -4874,6 +9031,43 @@ f() { for (var i = 0;;) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                rightSeparator: ;
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4894,7 +9088,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
@@ -4914,6 +9108,43 @@ f() { for (var i = 0;;) break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                rightSeparator: ;
+              rightParenthesis: )
+              body2: BreakStatement
+                breakKeyword: break
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4934,7 +9165,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
@@ -4954,6 +9185,43 @@ f() { for (var i = 0;;) continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                rightSeparator: ;
+              rightParenthesis: )
+              body2: ContinueStatement
+                continueKeyword: continue
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4974,7 +9242,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
@@ -4994,6 +9262,51 @@ f() { for (var i = 0;;) do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                rightSeparator: ;
+              rightParenthesis: )
+              body2: DoStatement
+                doKeyword: do
+                body2: Block
+                  leftBracket: {
+                  rightBracket: }
+                whileKeyword: while
+                leftParenthesis: (
+                condition2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5014,7 +9327,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
@@ -5026,7 +9339,7 @@ CompilationUnit
                     rightBracket: }
                   whileKeyword: while
                   leftParenthesis: (
-                  condition2: BooleanLiteral
+                  condition: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   semicolon: ;
@@ -5046,6 +9359,46 @@ f() { for (var i = 0;;) }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                rightSeparator: ;
+              rightParenthesis: )
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5066,13 +9419,13 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
                 rightParenthesis: )
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -5087,6 +9440,56 @@ f() { for (var i = 0;;) for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                rightSeparator: ;
+              rightParenthesis: )
+              body2: ForStatement
+                forKeyword: for
+                leftParenthesis: (
+                forLoopParts: ForEachPartsWithDeclaration
+                  loopVariable: DeclaredIdentifier
+                    keyword: var
+                    name: x
+                  inKeyword: in
+                  iterable2: ParsedUnqualifiedName
+                    name: y
+                  iterable(v1): SimpleIdentifier
+                    token: y
+                rightParenthesis: )
+                body2: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5107,7 +9510,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
@@ -5120,7 +9523,7 @@ CompilationUnit
                       keyword: var
                       name: x
                     inKeyword: in
-                    iterable2: SimpleIdentifier
+                    iterable: SimpleIdentifier
                       token: y
                   rightParenthesis: )
                   body: Block
@@ -5138,6 +9541,49 @@ f() { for (var i = 0;;) if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                rightSeparator: ;
+              rightParenthesis: )
+              body2: IfStatement
+                ifKeyword: if
+                leftParenthesis: (
+                expression2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                thenStatement2: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5158,7 +9604,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
@@ -5166,7 +9612,7 @@ CompilationUnit
                 body: IfStatement
                   ifKeyword: if
                   leftParenthesis: (
-                  expression2: BooleanLiteral
+                  expression: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   thenStatement: Block
@@ -5184,6 +9630,48 @@ f() { for (var i = 0;;) l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                rightSeparator: ;
+              rightParenthesis: )
+              body2: LabeledStatement
+                labels
+                  Label
+                    name: l
+                    colon: :
+                statement2: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5204,7 +9692,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
@@ -5229,6 +9717,64 @@ f() { for (var i = 0;;) int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                rightSeparator: ;
+              rightParenthesis: )
+              body2: LocalFunctionDeclaration
+                returnType: NamedType
+                  name: int
+                name: f
+                formalParameters: FormalParameterList
+                  leftParenthesis: (
+                  rightParenthesis: )
+                body: BlockFunctionBody
+                  block: Block
+                    leftBracket: {
+                    rightBracket: }
+              body(v1): FunctionDeclarationStatement
+                functionDeclaration: FunctionDeclaration
+                  returnType: NamedType
+                    name: int
+                  name: f
+                  functionExpression: FunctionExpression
+                    parameters: FormalParameterList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                    body: BlockFunctionBody
+                      block: Block
+                        leftBracket: {
+                        rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5249,7 +9795,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
@@ -5279,6 +9825,64 @@ f() { for (var i = 0;;) void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                rightSeparator: ;
+              rightParenthesis: )
+              body2: LocalFunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                formalParameters: FormalParameterList
+                  leftParenthesis: (
+                  rightParenthesis: )
+                body: BlockFunctionBody
+                  block: Block
+                    leftBracket: {
+                    rightBracket: }
+              body(v1): FunctionDeclarationStatement
+                functionDeclaration: FunctionDeclaration
+                  returnType: NamedType
+                    name: void
+                  name: f
+                  functionExpression: FunctionExpression
+                    parameters: FormalParameterList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                    body: BlockFunctionBody
+                      block: Block
+                        leftBracket: {
+                        rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5299,7 +9903,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
@@ -5329,6 +9933,54 @@ f() { for (var i = 0;;) var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                rightSeparator: ;
+              rightParenthesis: )
+              body2: LocalVariablesDeclarationStatement
+                declaration: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: x
+                semicolon: ;
+              body(v1): VariableDeclarationStatement
+                variables: VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: x
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5349,7 +10001,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
@@ -5373,6 +10025,43 @@ f() { for (var i = 0;;) return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                rightSeparator: ;
+              rightParenthesis: )
+              body2: ReturnStatement
+                returnKeyword: return
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5393,7 +10082,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
@@ -5413,6 +10102,50 @@ f() { for (var i = 0;;) switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                rightSeparator: ;
+              rightParenthesis: )
+              body2: SwitchStatement
+                switchKeyword: switch
+                leftParenthesis: (
+                expression2: ParsedUnqualifiedName
+                  name: x
+                expression(v1): SimpleIdentifier
+                  token: x
+                rightParenthesis: )
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5433,7 +10166,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
@@ -5441,7 +10174,7 @@ CompilationUnit
                 body: SwitchStatement
                   switchKeyword: switch
                   leftParenthesis: (
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: x
                   rightParenthesis: )
                   leftBracket: {
@@ -5458,6 +10191,49 @@ f() { for (var i = 0;;) try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                rightSeparator: ;
+              rightParenthesis: )
+              body2: TryStatement
+                tryKeyword: try
+                body: Block
+                  leftBracket: {
+                  rightBracket: }
+                finallyKeyword: finally
+                finallyBlock: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5478,7 +10254,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
@@ -5504,6 +10280,49 @@ f() { for (var i = 0;;) while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                rightSeparator: ;
+              rightParenthesis: )
+              body2: WhileStatement
+                whileKeyword: while
+                leftParenthesis: (
+                condition2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                body2: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5524,7 +10343,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
@@ -5532,7 +10351,7 @@ CompilationUnit
                 body: WhileStatement
                   whileKeyword: while
                   leftParenthesis: (
-                  condition2: BooleanLiteral
+                  condition: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   body: Block
@@ -5556,6 +10375,66 @@ f() { for (var i = 0;; assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                rightSeparator: ;
+                updaters2
+                  CallInvocation
+                    receiver: ParsedUnqualifiedName
+                      name: assert
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      arguments2
+                        BooleanLiteral
+                          literal: true
+                      rightParenthesis: )
+                updaters(v1)
+                  FunctionExpressionInvocation
+                    function: SimpleIdentifier
+                      token: assert
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      arguments
+                        BooleanLiteral
+                          literal: true
+                      rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5576,23 +10455,23 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
-                  updaters2
+                  updaters
                     FunctionExpressionInvocation
-                      function2: SimpleIdentifier
+                      function: SimpleIdentifier
                         token: assert
                       argumentList: ArgumentList
                         leftParenthesis: (
-                        arguments2
+                        arguments
                           BooleanLiteral
                             literal: true
                         rightParenthesis: )
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -5612,6 +10491,51 @@ f() { for (var i = 0;; {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                rightSeparator: ;
+                updaters2
+                  SetOrMapLiteral
+                    leftBracket: {
+                    rightBracket: }
+                    isMap: false
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5632,18 +10556,18 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
-                  updaters2
+                  updaters
                     SetOrMapLiteral
                       leftBracket: {
                       rightBracket: }
                       isMap: false
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -5666,6 +10590,52 @@ f() { for (var i = 0;; break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                rightSeparator: ;
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5686,16 +10656,16 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -5718,6 +10688,52 @@ f() { for (var i = 0;; continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                rightSeparator: ;
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5738,16 +10754,16 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -5770,6 +10786,52 @@ f() { for (var i = 0;; do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                rightSeparator: ;
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5790,16 +10852,16 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -5819,6 +10881,46 @@ f() { for (var i = 0;; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                rightSeparator: ;
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5839,13 +10941,13 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -5868,6 +10970,52 @@ f() { for (var i = 0;; for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                rightSeparator: ;
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5888,16 +11036,16 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -5920,6 +11068,52 @@ f() { for (var i = 0;; if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                rightSeparator: ;
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5940,16 +11134,16 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -5971,6 +11165,52 @@ f() { for (var i = 0;; l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                rightSeparator: ;
+                updaters2
+                  ParsedUnqualifiedName
+                    name: l
+                updaters(v1)
+                  SimpleIdentifier
+                    token: l
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5991,16 +11231,16 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: l
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6022,6 +11262,55 @@ f() { for (var i = 0;; int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                rightSeparator: ;
+                updaters2
+                  FunctionExpression
+                    parameters: FormalParameterList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                    body: BlockFunctionBody
+                      block: Block
+                        leftBracket: {
+                        rightBracket: }
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6042,11 +11331,11 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
-                  updaters2
+                  updaters
                     FunctionExpression
                       parameters: FormalParameterList
                         leftParenthesis: (
@@ -6057,7 +11346,7 @@ CompilationUnit
                           rightBracket: }
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6079,6 +11368,55 @@ f() { for (var i = 0;; void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                rightSeparator: ;
+                updaters2
+                  FunctionExpression
+                    parameters: FormalParameterList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                    body: BlockFunctionBody
+                      block: Block
+                        leftBracket: {
+                        rightBracket: }
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6099,11 +11437,11 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
-                  updaters2
+                  updaters
                     FunctionExpression
                       parameters: FormalParameterList
                         leftParenthesis: (
@@ -6114,7 +11452,7 @@ CompilationUnit
                           rightBracket: }
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6137,6 +11475,52 @@ f() { for (var i = 0;; var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                rightSeparator: ;
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6157,16 +11541,16 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6190,6 +11574,52 @@ f() { for (var i = 0;; return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                rightSeparator: ;
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6210,16 +11640,16 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6239,6 +11669,57 @@ f() { for (var i = 0;; switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                rightSeparator: ;
+                updaters2
+                  SwitchExpression
+                    switchKeyword: switch
+                    leftParenthesis: (
+                    expression2: ParsedUnqualifiedName
+                      name: x
+                    expression(v1): SimpleIdentifier
+                      token: x
+                    rightParenthesis: )
+                    leftBracket: {
+                    rightBracket: }
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6259,22 +11740,22 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
-                  updaters2
+                  updaters
                     SwitchExpression
                       switchKeyword: switch
                       leftParenthesis: (
-                      expression2: SimpleIdentifier
+                      expression: SimpleIdentifier
                         token: x
                       rightParenthesis: )
                       leftBracket: {
                       rightBracket: }
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6297,6 +11778,52 @@ f() { for (var i = 0;; try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                rightSeparator: ;
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6317,16 +11844,16 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6349,6 +11876,52 @@ f() { for (var i = 0;; while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                      equals: =
+                      initializer: IntegerLiteral
+                        literal: 0
+                leftSeparator: ;
+                rightSeparator: ;
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6369,16 +11942,16 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                         equals: =
-                        initializer2: IntegerLiteral
+                        initializer: IntegerLiteral
                           literal: 0
                   leftSeparator: ;
                   rightSeparator: ;
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6402,6 +11975,58 @@ f() { for (var assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: CallInvocation
+                  receiver: ParsedUnqualifiedName
+                    name: assert
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      BooleanLiteral
+                        literal: true
+                    rightParenthesis: )
+                condition(v1): FunctionExpressionInvocation
+                  function: SimpleIdentifier
+                    token: assert
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments
+                      BooleanLiteral
+                        literal: true
+                    rightParenthesis: )
+                rightSeparator: ;
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6422,19 +12047,19 @@ CompilationUnit
                       VariableDeclaration
                         name: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: FunctionExpressionInvocation
-                    function2: SimpleIdentifier
+                  condition: FunctionExpressionInvocation
+                    function: SimpleIdentifier
                       token: assert
                     argumentList: ArgumentList
                       leftParenthesis: (
-                      arguments2
+                      arguments
                         BooleanLiteral
                           literal: true
                       rightParenthesis: )
                   rightSeparator: ;
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6458,6 +12083,44 @@ f() { for (var {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: SetOrMapLiteral
+                  leftBracket: {
+                  rightBracket: }
+                  isMap: false
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6478,14 +12141,14 @@ CompilationUnit
                       VariableDeclaration
                         name: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SetOrMapLiteral
+                  condition: SetOrMapLiteral
                     leftBracket: {
                     rightBracket: }
                     isMap: false
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6510,6 +12173,50 @@ f() { for (var break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6530,15 +12237,15 @@ CompilationUnit
                       VariableDeclaration
                         name: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6563,6 +12270,50 @@ f() { for (var continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6583,15 +12334,15 @@ CompilationUnit
                       VariableDeclaration
                         name: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6616,6 +12367,50 @@ f() { for (var do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6636,15 +12431,15 @@ CompilationUnit
                       VariableDeclaration
                         name: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6658,13 +12453,50 @@ f() { for (var }
 // [diag.expectedToken] Expected to find ';'.
 //             ^
 // [diag.missingIdentifier] Expected an identifier.
-// [diag.unexpectedToken] Unexpected text '}'.
 // [diag.expectedToken] Expected to find ')'.
 ''');
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6685,25 +12517,14 @@ CompilationUnit
                       VariableDeclaration
                         name: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
-                    SimpleIdentifier
-                      token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
-              ExpressionStatement
-                expression2: SimpleIdentifier
-                  token: <empty> <synthetic>
-                semicolon: ; <synthetic>
-              ExpressionStatement
-                expression2: SimpleIdentifier
-                  token: <empty> <synthetic>
-                semicolon: ; <synthetic>
             rightBracket: }
 ''');
   }
@@ -6726,6 +12547,50 @@ f() { for (var for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6746,15 +12611,15 @@ CompilationUnit
                       VariableDeclaration
                         name: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6779,6 +12644,50 @@ f() { for (var if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6799,15 +12708,15 @@ CompilationUnit
                       VariableDeclaration
                         name: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6829,6 +12738,36 @@ f() { for (var l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: l
+                inKeyword: :
+                iterable2: SetOrMapLiteral
+                  leftBracket: {
+                  rightBracket: }
+                  isMap: false
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6847,13 +12786,13 @@ CompilationUnit
                     keyword: var
                     name: l
                   inKeyword: :
-                  iterable2: SetOrMapLiteral
+                  iterable: SetOrMapLiteral
                     leftBracket: {
                     rightBracket: }
                     isMap: false
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6877,6 +12816,52 @@ f() { for (var int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  type: NamedType
+                    name: int
+                  variables
+                    LocalVariable
+                      name: f
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  type: NamedType
+                    name: int
+                  variables
+                    VariableDeclaration
+                      name: f
+                leftSeparator: ; <synthetic>
+                condition2: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6899,7 +12884,7 @@ CompilationUnit
                       VariableDeclaration
                         name: f
                   leftSeparator: ; <synthetic>
-                  condition2: FunctionExpression
+                  condition: FunctionExpression
                     parameters: FormalParameterList
                       leftParenthesis: (
                       rightParenthesis: )
@@ -6910,7 +12895,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6934,6 +12919,52 @@ f() { for (var void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  type: NamedType
+                    name: void
+                  variables
+                    LocalVariable
+                      name: f
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  type: NamedType
+                    name: void
+                  variables
+                    VariableDeclaration
+                      name: f
+                leftSeparator: ; <synthetic>
+                condition2: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6956,7 +12987,7 @@ CompilationUnit
                       VariableDeclaration
                         name: f
                   leftSeparator: ; <synthetic>
-                  condition2: FunctionExpression
+                  condition: FunctionExpression
                     parameters: FormalParameterList
                       leftParenthesis: (
                       rightParenthesis: )
@@ -6967,7 +12998,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -6989,6 +13020,44 @@ f() { for (var var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: x
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: x
+                leftSeparator: ;
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7009,12 +13078,12 @@ CompilationUnit
                       VariableDeclaration
                         name: x
                   leftSeparator: ;
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7040,6 +13109,44 @@ f() { for (var return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ;
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7060,12 +13167,12 @@ CompilationUnit
                       VariableDeclaration
                         name: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ;
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7089,6 +13196,50 @@ f() { for (var switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: SwitchExpression
+                  switchKeyword: switch
+                  leftParenthesis: (
+                  expression2: ParsedUnqualifiedName
+                    name: x
+                  expression(v1): SimpleIdentifier
+                    token: x
+                  rightParenthesis: )
+                  leftBracket: {
+                  rightBracket: }
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7109,10 +13260,10 @@ CompilationUnit
                       VariableDeclaration
                         name: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SwitchExpression
+                  condition: SwitchExpression
                     switchKeyword: switch
                     leftParenthesis: (
-                    expression2: SimpleIdentifier
+                    expression: SimpleIdentifier
                       token: x
                     rightParenthesis: )
                     leftBracket: {
@@ -7120,7 +13271,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7145,6 +13296,50 @@ f() { for (var try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7165,15 +13360,15 @@ CompilationUnit
                       VariableDeclaration
                         name: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7198,6 +13393,50 @@ f() { for (var while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: <empty> <synthetic>
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: <empty> <synthetic>
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7218,15 +13457,15 @@ CompilationUnit
                       VariableDeclaration
                         name: <empty> <synthetic>
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7248,6 +13487,58 @@ f() { for (var i assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                leftSeparator: ; <synthetic>
+                condition2: CallInvocation
+                  receiver: ParsedUnqualifiedName
+                    name: assert
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      BooleanLiteral
+                        literal: true
+                    rightParenthesis: )
+                condition(v1): FunctionExpressionInvocation
+                  function: SimpleIdentifier
+                    token: assert
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments
+                      BooleanLiteral
+                        literal: true
+                    rightParenthesis: )
+                rightSeparator: ;
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7268,19 +13559,19 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                   leftSeparator: ; <synthetic>
-                  condition2: FunctionExpressionInvocation
-                    function2: SimpleIdentifier
+                  condition: FunctionExpressionInvocation
+                    function: SimpleIdentifier
                       token: assert
                     argumentList: ArgumentList
                       leftParenthesis: (
-                      arguments2
+                      arguments
                         BooleanLiteral
                           literal: true
                       rightParenthesis: )
                   rightSeparator: ;
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7302,6 +13593,44 @@ f() { for (var i {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                leftSeparator: ; <synthetic>
+                condition2: SetOrMapLiteral
+                  leftBracket: {
+                  rightBracket: }
+                  isMap: false
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7322,14 +13651,14 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                   leftSeparator: ; <synthetic>
-                  condition2: SetOrMapLiteral
+                  condition: SetOrMapLiteral
                     leftBracket: {
                     rightBracket: }
                     isMap: false
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7354,6 +13683,50 @@ f() { for (var i break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7374,15 +13747,15 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7407,6 +13780,50 @@ f() { for (var i continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7427,15 +13844,15 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7460,6 +13877,50 @@ f() { for (var i do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7480,15 +13941,15 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7508,6 +13969,44 @@ f() { for (var i }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7528,12 +14027,12 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7558,6 +14057,50 @@ f() { for (var i for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7578,15 +14121,15 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7611,6 +14154,50 @@ f() { for (var i if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7631,15 +14218,15 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7663,6 +14250,38 @@ f() { for (var i l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  type: NamedType
+                    name: i
+                  name: l
+                inKeyword: :
+                iterable2: SetOrMapLiteral
+                  leftBracket: {
+                  rightBracket: }
+                  isMap: false
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7683,13 +14302,13 @@ CompilationUnit
                       name: i
                     name: l
                   inKeyword: :
-                  iterable2: SetOrMapLiteral
+                  iterable: SetOrMapLiteral
                     leftBracket: {
                     rightBracket: }
                     isMap: false
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7715,6 +14334,52 @@ f() { for (var i int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  type: NamedType
+                    name: i
+                  variables
+                    LocalVariable
+                      name: int
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  type: NamedType
+                    name: i
+                  variables
+                    VariableDeclaration
+                      name: int
+                leftSeparator: ; <synthetic>
+                condition2: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7737,7 +14402,7 @@ CompilationUnit
                       VariableDeclaration
                         name: int
                   leftSeparator: ; <synthetic>
-                  condition2: FunctionExpression
+                  condition: FunctionExpression
                     parameters: FormalParameterList
                       leftParenthesis: (
                       rightParenthesis: )
@@ -7748,7 +14413,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7772,6 +14437,48 @@ f() { for (var i void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                leftSeparator: ; <synthetic>
+                condition2: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7792,7 +14499,7 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                   leftSeparator: ; <synthetic>
-                  condition2: FunctionExpression
+                  condition: FunctionExpression
                     parameters: FormalParameterList
                       leftParenthesis: (
                       rightParenthesis: )
@@ -7803,7 +14510,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7828,6 +14535,50 @@ f() { for (var i var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7848,15 +14599,15 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7881,6 +14632,44 @@ f() { for (var i return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ;
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7901,12 +14690,12 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ;
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7928,6 +14717,50 @@ f() { for (var i switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                leftSeparator: ; <synthetic>
+                condition2: SwitchExpression
+                  switchKeyword: switch
+                  leftParenthesis: (
+                  expression2: ParsedUnqualifiedName
+                    name: x
+                  expression(v1): SimpleIdentifier
+                    token: x
+                  rightParenthesis: )
+                  leftBracket: {
+                  rightBracket: }
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7948,10 +14781,10 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                   leftSeparator: ; <synthetic>
-                  condition2: SwitchExpression
+                  condition: SwitchExpression
                     switchKeyword: switch
                     leftParenthesis: (
-                    expression2: SimpleIdentifier
+                    expression: SimpleIdentifier
                       token: x
                     rightParenthesis: )
                     leftBracket: {
@@ -7959,7 +14792,7 @@ CompilationUnit
                   rightSeparator: ; <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -7984,6 +14817,50 @@ f() { for (var i try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -8004,15 +14881,15 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -8037,6 +14914,50 @@ f() { for (var i while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForPartsWithDeclarations
+                variables2: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: i
+                variables(v1): VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: i
+                leftSeparator: ; <synthetic>
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightSeparator: ; <synthetic>
+                updaters2
+                  ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                updaters(v1)
+                  SimpleIdentifier
+                    token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -8057,15 +14978,15 @@ CompilationUnit
                       VariableDeclaration
                         name: i
                   leftSeparator: ; <synthetic>
-                  condition2: SimpleIdentifier
+                  condition: SimpleIdentifier
                     token: <empty> <synthetic>
                   rightSeparator: ; <synthetic>
-                  updaters2
+                  updaters
                     SimpleIdentifier
                       token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }

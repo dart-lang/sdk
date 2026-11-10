@@ -102,7 +102,7 @@ void f() {}
 }
 
 @reflectiveTest
-class RemoveUnusedImportMultiTest extends FixProcessorTest {
+class RemoveUnusedImportMultiTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeUnusedImportMulti;
 
@@ -162,7 +162,7 @@ void f() {}
 }
 
 @reflectiveTest
-class RemoveUnusedImportTest extends FixProcessorTest {
+class RemoveUnusedImportTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeUnusedImport;
 
@@ -226,6 +226,21 @@ part of lib;
 import 'part.dart';
 ''');
     await assertHasFix('''
+''');
+  }
+
+  Future<void> test_inPartFile() async {
+    newFile('$testPackageLibPath/lib.dart', r'''
+part 'test.dart';
+''');
+    await resolveTestCode(r'''
+part of 'lib.dart';
+
+import 'dart:math';
+''');
+    await assertHasFix('''
+part of 'lib.dart';
+
 ''');
   }
 

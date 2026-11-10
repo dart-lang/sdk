@@ -28,6 +28,37 @@ f() { do {} while (a assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: a
+              condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -45,14 +76,14 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -72,6 +103,33 @@ f() { do {} while (a {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: a
+              condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -89,7 +147,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -114,6 +172,33 @@ f() { do {} while (a break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: a
+              condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -131,7 +216,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -156,6 +241,33 @@ f() { do {} while (a continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: a
+              condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -173,7 +285,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -196,6 +308,41 @@ f() { do {} while (a do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: a
+              condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -213,7 +360,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -224,7 +371,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -244,6 +391,30 @@ f() { do {} while (a }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: a
+              condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -261,7 +432,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -281,6 +452,46 @@ f() { do {} while (a for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: a
+              condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: y
+                iterable(v1): SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -298,7 +509,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -310,7 +521,7 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -332,6 +543,39 @@ f() { do {} while (a if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: a
+              condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -349,14 +593,14 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: BooleanLiteral
+                expression: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -378,6 +622,38 @@ f() { do {} while (a l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: a
+              condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            LabeledStatement
+              labels
+                Label
+                  name: l
+                  colon: :
+              statement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -395,7 +671,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -423,6 +699,66 @@ f() { do {} while (a int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: a
+              condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition: SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: int
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -440,7 +776,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -473,6 +809,66 @@ f() { do {} while (a void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: a
+              condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition: SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -490,7 +886,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -523,6 +919,56 @@ f() { do {} while (a var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: a
+              condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition: SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: x
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -540,7 +986,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -567,6 +1013,33 @@ f() { do {} while (a return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: a
+              condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -584,7 +1057,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -607,6 +1080,40 @@ f() { do {} while (a switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: a
+              condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -624,14 +1131,14 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -652,6 +1159,39 @@ f() { do {} while (a try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: a
+              condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -669,7 +1209,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -698,6 +1238,39 @@ f() { do {} while (a while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: a
+              condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -715,14 +1288,14 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -746,6 +1319,34 @@ f() { do assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: AssertStatement
+                assertKeyword: assert
+                leftParenthesis: (
+                condition2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                semicolon: ;
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -761,13 +1362,13 @@ CompilationUnit
                 body: AssertStatement
                   assertKeyword: assert
                   leftParenthesis: (
-                  condition2: BooleanLiteral
+                  condition: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   semicolon: ;
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -789,6 +1390,30 @@ f() { do {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -806,7 +1431,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -828,6 +1453,30 @@ f() { do break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: BreakStatement
+                breakKeyword: break
+                semicolon: ;
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -845,7 +1494,7 @@ CompilationUnit
                   semicolon: ;
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -867,6 +1516,30 @@ f() { do continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: ContinueStatement
+                continueKeyword: continue
+                semicolon: ;
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -884,7 +1557,7 @@ CompilationUnit
                   semicolon: ;
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -906,6 +1579,38 @@ f() { do do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: DoStatement
+                doKeyword: do
+                body2: Block
+                  leftBracket: {
+                  rightBracket: }
+                whileKeyword: while
+                leftParenthesis: (
+                condition2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                semicolon: ;
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -925,13 +1630,13 @@ CompilationUnit
                     rightBracket: }
                   whileKeyword: while
                   leftParenthesis: (
-                  condition2: BooleanLiteral
+                  condition: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   semicolon: ;
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -953,6 +1658,33 @@ f() { do }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -966,12 +1698,12 @@ CompilationUnit
               DoStatement
                 doKeyword: do
                 body: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -993,6 +1725,43 @@ f() { do for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: ForStatement
+                forKeyword: for
+                leftParenthesis: (
+                forLoopParts: ForEachPartsWithDeclaration
+                  loopVariable: DeclaredIdentifier
+                    keyword: var
+                    name: x
+                  inKeyword: in
+                  iterable2: ParsedUnqualifiedName
+                    name: y
+                  iterable(v1): SimpleIdentifier
+                    token: y
+                rightParenthesis: )
+                body2: Block
+                  leftBracket: {
+                  rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1013,7 +1782,7 @@ CompilationUnit
                       keyword: var
                       name: x
                     inKeyword: in
-                    iterable2: SimpleIdentifier
+                    iterable: SimpleIdentifier
                       token: y
                   rightParenthesis: )
                   body: Block
@@ -1021,7 +1790,7 @@ CompilationUnit
                     rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1043,6 +1812,36 @@ f() { do if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: IfStatement
+                ifKeyword: if
+                leftParenthesis: (
+                expression2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                thenStatement2: Block
+                  leftBracket: {
+                  rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1058,7 +1857,7 @@ CompilationUnit
                 body: IfStatement
                   ifKeyword: if
                   leftParenthesis: (
-                  expression2: BooleanLiteral
+                  expression: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   thenStatement: Block
@@ -1066,7 +1865,7 @@ CompilationUnit
                     rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1088,6 +1887,35 @@ f() { do l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: LabeledStatement
+                labels
+                  Label
+                    name: l
+                    colon: :
+                statement2: Block
+                  leftBracket: {
+                  rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1110,7 +1938,7 @@ CompilationUnit
                     rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1132,6 +1960,51 @@ f() { do int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: LocalFunctionDeclaration
+                returnType: NamedType
+                  name: int
+                name: f
+                formalParameters: FormalParameterList
+                  leftParenthesis: (
+                  rightParenthesis: )
+                body: BlockFunctionBody
+                  block: Block
+                    leftBracket: {
+                    rightBracket: }
+              body(v1): FunctionDeclarationStatement
+                functionDeclaration: FunctionDeclaration
+                  returnType: NamedType
+                    name: int
+                  name: f
+                  functionExpression: FunctionExpression
+                    parameters: FormalParameterList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                    body: BlockFunctionBody
+                      block: Block
+                        leftBracket: {
+                        rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1159,7 +2032,7 @@ CompilationUnit
                           rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1181,6 +2054,51 @@ f() { do void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: LocalFunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                formalParameters: FormalParameterList
+                  leftParenthesis: (
+                  rightParenthesis: )
+                body: BlockFunctionBody
+                  block: Block
+                    leftBracket: {
+                    rightBracket: }
+              body(v1): FunctionDeclarationStatement
+                functionDeclaration: FunctionDeclaration
+                  returnType: NamedType
+                    name: void
+                  name: f
+                  functionExpression: FunctionExpression
+                    parameters: FormalParameterList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                    body: BlockFunctionBody
+                      block: Block
+                        leftBracket: {
+                        rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1208,7 +2126,7 @@ CompilationUnit
                           rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1230,6 +2148,41 @@ f() { do var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: LocalVariablesDeclarationStatement
+                declaration: LocalVariablesDeclaration
+                  constFinalOrVarKeyword: var
+                  variables
+                    LocalVariable
+                      name: x
+                semicolon: ;
+              body(v1): VariableDeclarationStatement
+                variables: VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: x
+                semicolon: ;
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1251,7 +2204,7 @@ CompilationUnit
                   semicolon: ;
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1273,6 +2226,30 @@ f() { do return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: ReturnStatement
+                returnKeyword: return
+                semicolon: ;
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1290,7 +2267,7 @@ CompilationUnit
                   semicolon: ;
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1312,6 +2289,37 @@ f() { do switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: SwitchStatement
+                switchKeyword: switch
+                leftParenthesis: (
+                expression2: ParsedUnqualifiedName
+                  name: x
+                expression(v1): SimpleIdentifier
+                  token: x
+                rightParenthesis: )
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1327,14 +2335,14 @@ CompilationUnit
                 body: SwitchStatement
                   switchKeyword: switch
                   leftParenthesis: (
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: x
                   rightParenthesis: )
                   leftBracket: {
                   rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1356,6 +2364,36 @@ f() { do try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: TryStatement
+                tryKeyword: try
+                body: Block
+                  leftBracket: {
+                  rightBracket: }
+                finallyKeyword: finally
+                finallyBlock: Block
+                  leftBracket: {
+                  rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1379,7 +2417,7 @@ CompilationUnit
                     rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1401,6 +2439,36 @@ f() { do while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: WhileStatement
+                whileKeyword: while
+                leftParenthesis: (
+                condition2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                body2: Block
+                  leftBracket: {
+                  rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1416,7 +2484,7 @@ CompilationUnit
                 body: WhileStatement
                   whileKeyword: while
                   leftParenthesis: (
-                  condition2: BooleanLiteral
+                  condition: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   body: Block
@@ -1424,7 +2492,7 @@ CompilationUnit
                     rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1447,6 +2515,38 @@ f() { do { assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                statements2
+                  AssertStatement
+                    assertKeyword: assert
+                    leftParenthesis: (
+                    condition2: BooleanLiteral
+                      literal: true
+                    rightParenthesis: )
+                    semicolon: ;
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: } <synthetic>
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1465,14 +2565,14 @@ CompilationUnit
                     AssertStatement
                       assertKeyword: assert
                       leftParenthesis: (
-                      condition2: BooleanLiteral
+                      condition: BooleanLiteral
                         literal: true
                       rightParenthesis: )
                       semicolon: ;
                   rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1495,6 +2595,34 @@ f() { do { {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                statements2
+                  Block
+                    leftBracket: {
+                    rightBracket: }
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: } <synthetic>
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1516,7 +2644,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1539,6 +2667,34 @@ f() { do { break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                statements2
+                  BreakStatement
+                    breakKeyword: break
+                    semicolon: ;
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: } <synthetic>
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1560,7 +2716,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1583,6 +2739,34 @@ f() { do { continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                statements2
+                  ContinueStatement
+                    continueKeyword: continue
+                    semicolon: ;
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: } <synthetic>
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1604,7 +2788,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1627,6 +2811,42 @@ f() { do { do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                statements2
+                  DoStatement
+                    doKeyword: do
+                    body2: Block
+                      leftBracket: {
+                      rightBracket: }
+                    whileKeyword: while
+                    leftParenthesis: (
+                    condition2: BooleanLiteral
+                      literal: true
+                    rightParenthesis: )
+                    semicolon: ;
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: } <synthetic>
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1649,14 +2869,14 @@ CompilationUnit
                         rightBracket: }
                       whileKeyword: while
                       leftParenthesis: (
-                      condition2: BooleanLiteral
+                      condition: BooleanLiteral
                         literal: true
                       rightParenthesis: )
                       semicolon: ;
                   rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1679,6 +2899,30 @@ f() { do { }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: } <synthetic>
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1696,7 +2940,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1719,6 +2963,47 @@ f() { do { for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                statements2
+                  ForStatement
+                    forKeyword: for
+                    leftParenthesis: (
+                    forLoopParts: ForEachPartsWithDeclaration
+                      loopVariable: DeclaredIdentifier
+                        keyword: var
+                        name: x
+                      inKeyword: in
+                      iterable2: ParsedUnqualifiedName
+                        name: y
+                      iterable(v1): SimpleIdentifier
+                        token: y
+                    rightParenthesis: )
+                    body2: Block
+                      leftBracket: {
+                      rightBracket: }
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: } <synthetic>
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1742,7 +3027,7 @@ CompilationUnit
                           keyword: var
                           name: x
                         inKeyword: in
-                        iterable2: SimpleIdentifier
+                        iterable: SimpleIdentifier
                           token: y
                       rightParenthesis: )
                       body: Block
@@ -1751,7 +3036,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1774,6 +3059,40 @@ f() { do { if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                statements2
+                  IfStatement
+                    ifKeyword: if
+                    leftParenthesis: (
+                    expression2: BooleanLiteral
+                      literal: true
+                    rightParenthesis: )
+                    thenStatement2: Block
+                      leftBracket: {
+                      rightBracket: }
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: } <synthetic>
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1792,7 +3111,7 @@ CompilationUnit
                     IfStatement
                       ifKeyword: if
                       leftParenthesis: (
-                      expression2: BooleanLiteral
+                      expression: BooleanLiteral
                         literal: true
                       rightParenthesis: )
                       thenStatement: Block
@@ -1801,7 +3120,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1824,6 +3143,39 @@ f() { do { l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                statements2
+                  LabeledStatement
+                    labels
+                      Label
+                        name: l
+                        colon: :
+                    statement2: Block
+                      leftBracket: {
+                      rightBracket: }
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: } <synthetic>
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1850,7 +3202,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1873,6 +3225,56 @@ f() { do { int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                statements2
+                  LocalFunctionDeclaration
+                    returnType: NamedType
+                      name: int
+                    name: f
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                    body: BlockFunctionBody
+                      block: Block
+                        leftBracket: {
+                        rightBracket: }
+                statements(v1)
+                  FunctionDeclarationStatement
+                    functionDeclaration: FunctionDeclaration
+                      returnType: NamedType
+                        name: int
+                      name: f
+                      functionExpression: FunctionExpression
+                        parameters: FormalParameterList
+                          leftParenthesis: (
+                          rightParenthesis: )
+                        body: BlockFunctionBody
+                          block: Block
+                            leftBracket: {
+                            rightBracket: }
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: } <synthetic>
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1904,7 +3306,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1927,6 +3329,56 @@ f() { do { void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                statements2
+                  LocalFunctionDeclaration
+                    returnType: NamedType
+                      name: void
+                    name: f
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                    body: BlockFunctionBody
+                      block: Block
+                        leftBracket: {
+                        rightBracket: }
+                statements(v1)
+                  FunctionDeclarationStatement
+                    functionDeclaration: FunctionDeclaration
+                      returnType: NamedType
+                        name: void
+                      name: f
+                      functionExpression: FunctionExpression
+                        parameters: FormalParameterList
+                          leftParenthesis: (
+                          rightParenthesis: )
+                        body: BlockFunctionBody
+                          block: Block
+                            leftBracket: {
+                            rightBracket: }
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: } <synthetic>
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1958,7 +3410,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1981,6 +3433,46 @@ f() { do { var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                statements2
+                  LocalVariablesDeclarationStatement
+                    declaration: LocalVariablesDeclaration
+                      constFinalOrVarKeyword: var
+                      variables
+                        LocalVariable
+                          name: x
+                    semicolon: ;
+                statements(v1)
+                  VariableDeclarationStatement
+                    variables: VariableDeclarationList
+                      keyword: var
+                      variables
+                        VariableDeclaration
+                          name: x
+                    semicolon: ;
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: } <synthetic>
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2006,7 +3498,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2029,6 +3521,34 @@ f() { do { return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                statements2
+                  ReturnStatement
+                    returnKeyword: return
+                    semicolon: ;
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: } <synthetic>
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2050,7 +3570,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2073,6 +3593,41 @@ f() { do { switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                statements2
+                  SwitchStatement
+                    switchKeyword: switch
+                    leftParenthesis: (
+                    expression2: ParsedUnqualifiedName
+                      name: x
+                    expression(v1): SimpleIdentifier
+                      token: x
+                    rightParenthesis: )
+                    leftBracket: {
+                    rightBracket: }
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: } <synthetic>
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2091,7 +3646,7 @@ CompilationUnit
                     SwitchStatement
                       switchKeyword: switch
                       leftParenthesis: (
-                      expression2: SimpleIdentifier
+                      expression: SimpleIdentifier
                         token: x
                       rightParenthesis: )
                       leftBracket: {
@@ -2099,7 +3654,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2122,6 +3677,40 @@ f() { do { try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                statements2
+                  TryStatement
+                    tryKeyword: try
+                    body: Block
+                      leftBracket: {
+                      rightBracket: }
+                    finallyKeyword: finally
+                    finallyBlock: Block
+                      leftBracket: {
+                      rightBracket: }
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: } <synthetic>
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2149,7 +3738,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2172,6 +3761,40 @@ f() { do { while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                statements2
+                  WhileStatement
+                    whileKeyword: while
+                    leftParenthesis: (
+                    condition2: BooleanLiteral
+                      literal: true
+                    rightParenthesis: )
+                    body2: Block
+                      leftBracket: {
+                      rightBracket: }
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: } <synthetic>
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2190,7 +3813,7 @@ CompilationUnit
                     WhileStatement
                       whileKeyword: while
                       leftParenthesis: (
-                      condition2: BooleanLiteral
+                      condition: BooleanLiteral
                         literal: true
                       rightParenthesis: )
                       body: Block
@@ -2199,7 +3822,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2217,6 +3840,44 @@ f() { do {} while ( assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: CallInvocation
+                receiver: ParsedUnqualifiedName
+                  name: assert
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  arguments2
+                    BooleanLiteral
+                      literal: true
+                  rightParenthesis: )
+              condition(v1): FunctionExpressionInvocation
+                function: SimpleIdentifier
+                  token: assert
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  arguments
+                    BooleanLiteral
+                      literal: true
+                  rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2234,12 +3895,12 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: FunctionExpressionInvocation
-                  function2: SimpleIdentifier
+                condition: FunctionExpressionInvocation
+                  function: SimpleIdentifier
                     token: assert
                   argumentList: ArgumentList
                     leftParenthesis: (
-                    arguments2
+                    arguments
                       BooleanLiteral
                         literal: true
                     rightParenthesis: )
@@ -2261,6 +3922,30 @@ f() { do {} while ( {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: SetOrMapLiteral
+                leftBracket: {
+                rightBracket: }
+                isMap: false
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2278,7 +3963,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SetOrMapLiteral
+                condition: SetOrMapLiteral
                   leftBracket: {
                   rightBracket: }
                   isMap: false
@@ -2303,6 +3988,33 @@ f() { do {} while ( break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2320,7 +4032,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2346,6 +4058,33 @@ f() { do {} while ( continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2363,7 +4102,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2388,6 +4127,41 @@ f() { do {} while ( do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2405,7 +4179,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2416,7 +4190,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -2437,6 +4211,30 @@ f() { do {} while ( }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2454,7 +4252,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2476,6 +4274,46 @@ f() { do {} while ( for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: y
+                iterable(v1): SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2493,7 +4331,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2505,7 +4343,7 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -2529,6 +4367,39 @@ f() { do {} while ( if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2546,14 +4417,14 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: BooleanLiteral
+                expression: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -2577,6 +4448,39 @@ f() { do {} while ( l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: l
+              condition(v1): SimpleIdentifier
+                token: l
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            ExpressionStatement
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2594,12 +4498,12 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: l
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               ExpressionStatement
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               Block
@@ -2623,6 +4527,34 @@ f() { do {} while ( int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: FunctionExpression
+                parameters: FormalParameterList
+                  leftParenthesis: (
+                  rightParenthesis: )
+                body: BlockFunctionBody
+                  block: Block
+                    leftBracket: {
+                    rightBracket: }
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2640,7 +4572,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: FunctionExpression
+                condition: FunctionExpression
                   parameters: FormalParameterList
                     leftParenthesis: (
                     rightParenthesis: )
@@ -2668,6 +4600,34 @@ f() { do {} while ( void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: FunctionExpression
+                parameters: FormalParameterList
+                  leftParenthesis: (
+                  rightParenthesis: )
+                body: BlockFunctionBody
+                  block: Block
+                    leftBracket: {
+                    rightBracket: }
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2685,7 +4645,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: FunctionExpression
+                condition: FunctionExpression
                   parameters: FormalParameterList
                     leftParenthesis: (
                     rightParenthesis: )
@@ -2713,6 +4673,56 @@ f() { do {} while ( var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition: SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: x
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2730,7 +4740,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2758,6 +4768,30 @@ f() { do {} while ( return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2775,7 +4809,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ;
@@ -2795,6 +4829,36 @@ f() { do {} while ( switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: SwitchExpression
+                switchKeyword: switch
+                leftParenthesis: (
+                expression2: ParsedUnqualifiedName
+                  name: x
+                expression(v1): SimpleIdentifier
+                  token: x
+                rightParenthesis: )
+                leftBracket: {
+                rightBracket: }
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2812,10 +4876,10 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SwitchExpression
+                condition: SwitchExpression
                   switchKeyword: switch
                   leftParenthesis: (
-                  expression2: SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: x
                   rightParenthesis: )
                   leftBracket: {
@@ -2840,6 +4904,39 @@ f() { do {} while ( try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2857,7 +4954,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2888,6 +4985,39 @@ f() { do {} while ( while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2905,14 +5035,14 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -2936,6 +5066,37 @@ f() { do {} assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2953,14 +5114,14 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -2982,6 +5143,33 @@ f() { do {} {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2999,7 +5187,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -3025,6 +5213,33 @@ f() { do {} break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3042,7 +5257,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -3068,6 +5283,33 @@ f() { do {} continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3085,7 +5327,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -3110,6 +5352,41 @@ f() { do {} do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3127,7 +5404,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -3138,7 +5415,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -3160,6 +5437,30 @@ f() { do {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3177,7 +5478,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -3199,6 +5500,46 @@ f() { do {} for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: y
+                iterable(v1): SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3216,7 +5557,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -3228,7 +5569,7 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -3252,6 +5593,39 @@ f() { do {} if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3269,14 +5643,14 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: BooleanLiteral
+                expression: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -3300,6 +5674,38 @@ f() { do {} l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            LabeledStatement
+              labels
+                Label
+                  name: l
+                  colon: :
+              statement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3317,7 +5723,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -3347,6 +5753,66 @@ f() { do {} int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition: SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: int
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3364,7 +5830,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -3399,6 +5865,66 @@ f() { do {} void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition: SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3416,7 +5942,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -3451,6 +5977,56 @@ f() { do {} var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition: SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: x
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3468,7 +6044,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -3497,6 +6073,33 @@ f() { do {} return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3514,7 +6117,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -3539,6 +6142,40 @@ f() { do {} switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3556,14 +6193,14 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -3586,6 +6223,39 @@ f() { do {} try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3603,7 +6273,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while <synthetic>
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -3630,6 +6300,31 @@ f() { do {} while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3647,7 +6342,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3668,6 +6363,37 @@ f() { do {} while (a) assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: a
+              condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: )
+              semicolon: ; <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3685,14 +6411,14 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: a
                 rightParenthesis: )
                 semicolon: ; <synthetic>
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -3710,6 +6436,33 @@ f() { do {} while (a) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: a
+              condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: )
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3727,7 +6480,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: a
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3750,6 +6503,33 @@ f() { do {} while (a) break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: a
+              condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: )
+              semicolon: ; <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3767,7 +6547,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: a
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3790,6 +6570,33 @@ f() { do {} while (a) continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: a
+              condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: )
+              semicolon: ; <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3807,7 +6614,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: a
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3828,6 +6635,41 @@ f() { do {} while (a) do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: a
+              condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: )
+              semicolon: ; <synthetic>
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3845,7 +6687,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: a
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3856,7 +6698,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -3874,6 +6716,30 @@ f() { do {} while (a) }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: a
+              condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: )
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3891,7 +6757,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: a
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3909,6 +6775,46 @@ f() { do {} while (a) for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: a
+              condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: )
+              semicolon: ; <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: y
+                iterable(v1): SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3926,7 +6832,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: a
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3938,7 +6844,7 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -3958,6 +6864,39 @@ f() { do {} while (a) if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: a
+              condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: )
+              semicolon: ; <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3975,14 +6914,14 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: a
                 rightParenthesis: )
                 semicolon: ; <synthetic>
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: BooleanLiteral
+                expression: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -4002,6 +6941,38 @@ f() { do {} while (a) l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: a
+              condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: )
+              semicolon: ; <synthetic>
+            LabeledStatement
+              labels
+                Label
+                  name: l
+                  colon: :
+              statement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4019,7 +6990,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: a
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -4045,6 +7016,66 @@ f() { do {} while (a) int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: a
+              condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: )
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition: SimpleIdentifier
+                token: a
+              rightParenthesis: )
+              semicolon: ; <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: int
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4062,7 +7093,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: a
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -4093,6 +7124,66 @@ f() { do {} while (a) void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: a
+              condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: )
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition: SimpleIdentifier
+                token: a
+              rightParenthesis: )
+              semicolon: ; <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4110,7 +7201,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: a
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -4141,6 +7232,56 @@ f() { do {} while (a) var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: a
+              condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: )
+              semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition: SimpleIdentifier
+                token: a
+              rightParenthesis: )
+              semicolon: ; <synthetic>
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: x
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4158,7 +7299,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: a
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -4183,6 +7324,33 @@ f() { do {} while (a) return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: a
+              condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: )
+              semicolon: ; <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4200,7 +7368,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: a
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -4221,6 +7389,40 @@ f() { do {} while (a) switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: a
+              condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: )
+              semicolon: ; <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4238,14 +7440,14 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: a
                 rightParenthesis: )
                 semicolon: ; <synthetic>
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -4264,6 +7466,39 @@ f() { do {} while (a) try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: a
+              condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: )
+              semicolon: ; <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4281,7 +7516,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: a
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -4308,6 +7543,39 @@ f() { do {} while (a) while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: ParsedUnqualifiedName
+                name: a
+              condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: )
+              semicolon: ; <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4325,14 +7593,14 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: a
                 rightParenthesis: )
                 semicolon: ; <synthetic>
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -4355,6 +7623,37 @@ f() { do {} while assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4372,14 +7671,14 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -4400,6 +7699,33 @@ f() { do {} while {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4417,7 +7743,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4442,6 +7768,33 @@ f() { do {} while break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4459,7 +7812,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4484,6 +7837,33 @@ f() { do {} while continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4501,7 +7881,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4525,6 +7905,41 @@ f() { do {} while do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4542,7 +7957,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4553,7 +7968,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -4574,6 +7989,30 @@ f() { do {} while }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4591,7 +8030,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4612,6 +8051,46 @@ f() { do {} while for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: y
+                iterable(v1): SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4629,7 +8108,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4641,7 +8120,7 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -4664,6 +8143,39 @@ f() { do {} while if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4681,14 +8193,14 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: BooleanLiteral
+                expression: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -4711,6 +8223,38 @@ f() { do {} while l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            LabeledStatement
+              labels
+                Label
+                  name: l
+                  colon: :
+              statement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4728,7 +8272,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4757,6 +8301,66 @@ f() { do {} while int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: ( <synthetic>
+              condition: SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: int
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4774,7 +8378,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4808,6 +8412,66 @@ f() { do {} while void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: ( <synthetic>
+              condition: SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4825,7 +8489,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4859,6 +8523,56 @@ f() { do {} while var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: ( <synthetic>
+              condition: SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: x
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4876,7 +8590,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4904,6 +8618,33 @@ f() { do {} while return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4921,7 +8662,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4945,6 +8686,40 @@ f() { do {} while switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4962,14 +8737,14 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -4991,6 +8766,39 @@ f() { do {} while try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5008,7 +8816,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -5038,6 +8846,39 @@ f() { do {} while while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: ( <synthetic>
+              condition2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5055,14 +8896,14 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block

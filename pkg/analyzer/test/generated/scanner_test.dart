@@ -194,9 +194,5 @@ class ScannerTest_ExpectedLocation {
 
   final int _columnNumber;
 
-  ScannerTest_ExpectedLocation(
-    this._offset,
-    this._lineNumber,
-    this._columnNumber,
-  );
+  new(this._offset, this._lineNumber, this._columnNumber);
 }

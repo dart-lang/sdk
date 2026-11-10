@@ -940,13 +940,15 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     _typeTable = TypeTable('T', _runtimeCall);
     // Insert a circular reference so neither the constant table or its cache
     // are optimized away by V8. Required for expression evaluation.
-    var constTableDeclaration = js
-        .statement('const # = Object.create({# : () => (#, #)});', [
-          _constTable,
-          js_ast.LiteralString('_'),
-          _constTableCache.containerId,
-          _constTable,
-        ]);
+    var constTableDeclaration = js.statement(
+      'const # = Object.create({# : () => (#, #)});',
+      [
+        _constTable,
+        js_ast.LiteralString('_'),
+        _constTableCache.containerId,
+        _constTable,
+      ],
+    );
     _moduleItems.add(constTableDeclaration);
 
     // Record a safe index after the declaration of type generators and
@@ -1127,16 +1129,18 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var typeVariances = _typeRecipeGenerator.variances;
     if (typeVariances.isNotEmpty) {
       var addTypeParameterVariancesTemplate = '#._Universe.#(#, JSON.parse(#))';
-      var addTypeParameterVariancesStatement =
-          js.call(addTypeParameterVariancesTemplate, [
-            _emitLibraryName(_rtiLibrary),
-            _emitMemberName(
-              'addTypeParameterVariances',
-              memberClass: universeClass,
-            ),
-            _runtimeCall('typeUniverse'),
-            js.string(jsonEncode(typeVariances), "'"),
-          ]).toStatement();
+      var addTypeParameterVariancesStatement = js.call(
+        addTypeParameterVariancesTemplate,
+        [
+          _emitLibraryName(_rtiLibrary),
+          _emitMemberName(
+            'addTypeParameterVariances',
+            memberClass: universeClass,
+          ),
+          _runtimeCall('typeUniverse'),
+          js.string(jsonEncode(typeVariances), "'"),
+        ],
+      ).toStatement();
       _typeRuleLinks.add(addTypeParameterVariancesStatement);
     }
 
@@ -2389,21 +2393,18 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // TODO(jmesserly): do covariant type parameter bounds also need to be
       // reified as `Object`?
       result = FunctionType(
-        List<DartType>.generate(
+        DartTypeList.generate(
           f.positionalParameters.length,
           (index) => reifyParameter(
             f.positionalParameters[index],
             fComputed.positionalParameters[index],
           ),
         ),
-        f.returnType,
+        fComputed.returnType,
         Nullability.nonNullable,
-        namedParameters: List<NamedType>.generate(
-          f.namedParameters.length,
-          (index) => reifyNamedParameter(
-            f.namedParameters[index],
-            fComputedNamedByName[f.namedParameters[index].parameterName]!,
-          ),
+        namedParameters: NamedDartTypeList.mapped(
+          f.namedParameters,
+          (p) => reifyNamedParameter(p, fComputedNamedByName[p.parameterName]!),
         )..sort(),
         typeParameters: fComputed.typeParameters,
         requiredParameterCount: f.requiredParameterCount,
@@ -3026,9 +3027,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
               )) {
         return const [];
       }
-      var setterType = substituteType(
-        superMember.superSetterType,
-      ).extensionTypeErasure;
+      var setterType = substituteType(superMember.superSetterType)
+          .extensionTypeErasure;
       if (_types.isTop(setterType)) return const [];
       return [
         js_ast.Method(
@@ -3048,13 +3048,9 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
     assert(!member.isAccessor);
 
-    var superMethodType =
-        substituteType(
-              superMemberFunction!.computeThisFunctionType(
-                Nullability.nonNullable,
-              ),
-            )
-            as FunctionType;
+    var superMethodType = substituteType(
+      superMemberFunction!.computeThisFunctionType(Nullability.nonNullable),
+    ) as FunctionType;
     var function = member.function;
     var body = <js_ast.Statement>[];
     var typeParameters = function.typeParameters;
@@ -3313,10 +3309,9 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // TODO(nshahan) Don't access values in `runtimeModule` outside of
       // `runtimeCall`.
       js.call('function() { return new #.JsIterator(this.#); }', [
-            _emitLibraryName(_runtimeLibrary),
-            _emitMemberName('iterator', memberClass: _coreTypes.iterableClass),
-          ])
-          as js_ast.Fun,
+        _emitLibraryName(_runtimeLibrary),
+        _emitMemberName('iterator', memberClass: _coreTypes.iterableClass),
+      ]) as js_ast.Fun,
     );
   }
 
@@ -3921,7 +3916,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       if (!isAllowInterop(f)) {
         return StaticInvocation(
           _assertInteropMethod,
-          Arguments([f], types: [type]),
+          Arguments(ExpressionList(f), types: DartTypeList(type)),
         );
       }
     }
@@ -6041,7 +6036,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Statement visitFunctionDeclaration(FunctionDeclaration node) {
     var func = node.function;
-    var fn = _emitFunction(func, node.variable.cosmeticName);
+    var fn = _emitFunction(func, node.variable.name);
 
     var name = _emitVariableDef(node.variable);
     js_ast.Statement declareFn;
@@ -6157,9 +6152,9 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // hand side, to help normalize the inconsistent locations of the CFE
     // lowerings for ++x, x++, x+=, etc.
     // See https://github.com/dart-lang/sdk/issues/55691.
-    return _visitExpression(node.value).toAssignExpression(
-      _emitVariableRef(node.variable),
-    )..sourceInformation = _nodeStart(node.value);
+    return _visitExpression(node.value)
+        .toAssignExpression(_emitVariableRef(node.variable))
+      ..sourceInformation = _nodeStart(node.value);
   }
 
   @override
@@ -6740,6 +6735,19 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     //  - Calls to extension types that implement their own call method are
     //    lowered by the CFE to top level static method calls.
     var erasedGetterType = node.interfaceTarget.getterType.extensionTypeErasure;
+    if (erasedGetterType is TypeParameterType) {
+      // Instantiate with the static type so there is a concrete interface to
+      // inspect for the callable target check.
+      var receiverClass = node.interfaceTarget.enclosingClass!;
+      var instantiatedClassType = node.receiver.getStaticTypeAsInstanceOf(
+        receiverClass,
+        _staticTypeContext,
+      );
+      var instantiatedGetterType = Substitution.fromInterfaceType(
+        instantiatedClassType,
+      ).substituteType(erasedGetterType);
+      erasedGetterType = instantiatedGetterType.extensionTypeErasure;
+    }
     if (erasedGetterType is InterfaceType) {
       var callName = _implicitCallTarget(erasedGetterType);
       if (callName != null) {
@@ -7667,14 +7675,13 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           _visitExpression(node.arguments.positional[1]),
         );
       } else if (name == '_setPropertyUnchecked') {
-        return _visitExpression(
-          node.arguments.positional[2],
-        ).toAssignExpression(
-          js_ast.PropertyAccess(
-            _visitExpression(node.arguments.positional[0]),
-            _visitExpression(node.arguments.positional[1]),
-          ),
-        );
+        return _visitExpression(node.arguments.positional[2])
+            .toAssignExpression(
+              js_ast.PropertyAccess(
+                _visitExpression(node.arguments.positional[0]),
+                _visitExpression(node.arguments.positional[1]),
+              ),
+            );
       } else if (_callMethodUncheckedRegex.hasMatch(name)) {
         // Note that we don't lower `_callMethodTrustType`. This is because it
         // uses `assertInterop` checks.
@@ -8479,9 +8486,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (jsOperand is js_ast.LiteralBool) {
       // Flipping the value here for `!true` or `!false` allows for simpler
       // `if (true)` or `if (false)` detection and optimization.
-      return js_ast.LiteralBool(
-            !jsOperand.value,
-          ).withSourceInformation(jsOperand.sourceInformation)
+      return js_ast.LiteralBool(!jsOperand.value)
+              .withSourceInformation(jsOperand.sourceInformation)
           as js_ast.LiteralBool;
     }
 
@@ -8757,9 +8763,11 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (itemType == const DynamicType()) return list;
 
     // Call `new JSArray<E>.of(list)`
-    var type = InterfaceType(_jsArrayClass, Nullability.nonNullable, [
-      itemType,
-    ]);
+    var type = InterfaceType(
+      _jsArrayClass,
+      Nullability.nonNullable,
+      DartTypeList(itemType),
+    );
     var arrayClass = _emitClassRef(type);
     var arrayRti = _emitType(type);
     return js.call('#.of(#, #)', [arrayClass, arrayRti, list]);
@@ -8779,9 +8787,11 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression visitSetLiteral(SetLiteral node) {
     // TODO(markzipan): remove const check when we use front-end const eval
     if (!node.isConst) {
-      var type = InterfaceType(_linkedHashSetClass, Nullability.nonNullable, [
-        node.typeArgument,
-      ]);
+      var type = InterfaceType(
+        _linkedHashSetClass,
+        Nullability.nonNullable,
+        DartTypeList(node.typeArgument),
+      );
       var setClass = _emitClassRef(type);
       var rti = _emitType(type);
       if (node.expressions.isEmpty) {

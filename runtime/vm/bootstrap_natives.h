@@ -155,10 +155,7 @@ namespace dart {
   V(MicrotaskMirrorQueue_onAsyncCallbackComplete, 2)                           \
   V(TypedDataBase_length, 1)                                                   \
   V(TypedDataBase_setClampedRange, 5)                                          \
-  V(TypedData_GetFloat32, 2)                                                   \
-  V(TypedData_SetFloat32, 3)                                                   \
-  V(TypedData_GetFloat64, 2)                                                   \
-  V(TypedData_SetFloat64, 3)                                                   \
+  V(TypedDataBase_memEquals, 5)                                                \
   V(TypedData_GetFloat32x4, 2)                                                 \
   V(TypedData_SetFloat32x4, 3)                                                 \
   V(TypedData_GetInt32x4, 2)                                                   \
@@ -168,24 +165,8 @@ namespace dart {
   V(TypedDataView_offsetInBytes, 1)                                            \
   V(TypedDataView_typedData, 1)                                                \
   V(Float32x4_fromDoubles, 4)                                                  \
-  V(Float32x4_splat, 1)                                                        \
   V(Float32x4_fromInt32x4Bits, 1)                                              \
-  V(Float32x4_fromFloat64x2, 1)                                                \
-  V(Float32x4_zero, 0)                                                         \
-  V(Float32x4_add, 2)                                                          \
-  V(Float32x4_negate, 1)                                                       \
-  V(Float32x4_sub, 2)                                                          \
-  V(Float32x4_mul, 2)                                                          \
-  V(Float32x4_div, 2)                                                          \
-  V(Float32x4_cmplt, 2)                                                        \
-  V(Float32x4_cmplte, 2)                                                       \
-  V(Float32x4_cmpgt, 2)                                                        \
-  V(Float32x4_cmpgte, 2)                                                       \
-  V(Float32x4_cmpequal, 2)                                                     \
-  V(Float32x4_cmpnequal, 2)                                                    \
   V(Float32x4_scale, 2)                                                        \
-  V(Float32x4_abs, 1)                                                          \
-  V(Float32x4_clamp, 3)                                                        \
   V(Float32x4_getX, 1)                                                         \
   V(Float32x4_getY, 1)                                                         \
   V(Float32x4_getZ, 1)                                                         \
@@ -197,60 +178,22 @@ namespace dart {
   V(Float32x4_setY, 2)                                                         \
   V(Float32x4_setZ, 2)                                                         \
   V(Float32x4_setW, 2)                                                         \
-  V(Float32x4_min, 2)                                                          \
-  V(Float32x4_max, 2)                                                          \
-  V(Float32x4_sqrt, 1)                                                         \
   V(Float32x4_reciprocal, 1)                                                   \
   V(Float32x4_reciprocalSqrt, 1)                                               \
   V(Float64x2_fromDoubles, 2)                                                  \
-  V(Float64x2_splat, 1)                                                        \
-  V(Float64x2_zero, 0)                                                         \
   V(Float64x2_fromFloat32x4, 1)                                                \
-  V(Float64x2_add, 2)                                                          \
-  V(Float64x2_negate, 1)                                                       \
-  V(Float64x2_sub, 2)                                                          \
-  V(Float64x2_mul, 2)                                                          \
-  V(Float64x2_div, 2)                                                          \
-  V(Float64x2_scale, 2)                                                        \
-  V(Float64x2_abs, 1)                                                          \
-  V(Float64x2_clamp, 3)                                                        \
   V(Float64x2_getX, 1)                                                         \
   V(Float64x2_getY, 1)                                                         \
   V(Float64x2_getSignMask, 1)                                                  \
   V(Float64x2_setX, 2)                                                         \
   V(Float64x2_setY, 2)                                                         \
-  V(Float64x2_min, 2)                                                          \
-  V(Float64x2_max, 2)                                                          \
-  V(Float64x2_sqrt, 1)                                                         \
   V(Int32x4_fromInts, 4)                                                       \
-  V(Int32x4_fromBools, 4)                                                      \
+  V(Int32x4_select, 3)                                                         \
   V(Int32x4_fromFloat32x4Bits, 1)                                              \
-  V(Int32x4_or, 2)                                                             \
-  V(Int32x4_and, 2)                                                            \
-  V(Int32x4_xor, 2)                                                            \
-  V(Int32x4_not, 1)                                                            \
-  V(Int32x4_add, 2)                                                            \
-  V(Int32x4_sub, 2)                                                            \
   V(Int32x4_getX, 1)                                                           \
   V(Int32x4_getY, 1)                                                           \
   V(Int32x4_getZ, 1)                                                           \
   V(Int32x4_getW, 1)                                                           \
-  V(Int32x4_setX, 2)                                                           \
-  V(Int32x4_setY, 2)                                                           \
-  V(Int32x4_setZ, 2)                                                           \
-  V(Int32x4_setW, 2)                                                           \
-  V(Int32x4_getSignMask, 1)                                                    \
-  V(Int32x4_shuffle, 2)                                                        \
-  V(Int32x4_shuffleMix, 3)                                                     \
-  V(Int32x4_getFlagX, 1)                                                       \
-  V(Int32x4_getFlagY, 1)                                                       \
-  V(Int32x4_getFlagZ, 1)                                                       \
-  V(Int32x4_getFlagW, 1)                                                       \
-  V(Int32x4_setFlagX, 2)                                                       \
-  V(Int32x4_setFlagY, 2)                                                       \
-  V(Int32x4_setFlagZ, 2)                                                       \
-  V(Int32x4_setFlagW, 2)                                                       \
-  V(Int32x4_select, 3)                                                         \
   V(Isolate_create_, 1)                                                        \
   V(Isolate_exit_, 2)                                                          \
   V(Isolate_getCurrentRootUriStr, 0)                                           \

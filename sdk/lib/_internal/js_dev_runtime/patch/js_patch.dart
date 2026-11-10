@@ -6,6 +6,7 @@
 library dart.js;
 
 import 'dart:collection' show HashMap, ListMixin;
+import 'dart:js_interop' show JSObject;
 
 import 'dart:_js_helper' show NoReifyGeneric, Primitives;
 import 'dart:_foreign_helper' show JS, TYPE_REF;
@@ -144,10 +145,13 @@ class JsObject {
     }
     return _convertToDart(JS('', '#.apply(#, #)', fn, _jsObject, args));
   }
+
+  @patch
+  JSObject get rawJSObject => JSObject.fromInteropObject(_jsObject);
 }
 
 @patch
-class JsFunction extends JsObject {
+class JsFunction {
   @patch
   factory JsFunction.withThis(Function f) {
     return JsFunction._fromJs(
@@ -303,7 +307,7 @@ class JsArray<E> /*extends JsObject with ListMixin<E>*/ {
   }
 
   @patch
-  void sort([int compare(E a, E b)?]) {
+  void sort([int Function(E a, E b)? compare]) {
     // Note: arr.sort(null) is a type error in FF
     callMethod('sort', compare == null ? [] : [compare]);
   }
@@ -450,7 +454,7 @@ final Object _dartProxies = JS('', 'new WeakMap()');
 final Object _jsProxies = JS('', 'new WeakMap()');
 
 @NoReifyGeneric()
-T _putIfAbsent<T>(Object weakMap, Object o, T getValue(Object o)) {
+T _putIfAbsent<T>(Object weakMap, Object o, T Function(Object o) getValue) {
   T? value = JS('', '#.get(#)', weakMap, o);
   if (value == null) {
     value = getValue(o);

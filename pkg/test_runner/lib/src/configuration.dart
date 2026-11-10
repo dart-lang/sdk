@@ -73,6 +73,7 @@ class TestConfiguration {
     this.fastTestsOnly = false,
     this.printPassingStdout = false,
     this.noSandbox = false,
+    this.headless = true,
   }) : packages = packages ?? '.dart_tool/package_config.json';
 
   final Map<String, RegExp?> selectors;
@@ -103,6 +104,7 @@ class TestConfiguration {
   final bool writeLogs;
   final bool printPassingStdout;
   final bool noSandbox;
+  final bool headless;
 
   Architecture get architecture => configuration.architecture;
   Compiler get compiler => configuration.compiler;
@@ -201,10 +203,12 @@ class TestConfiguration {
       Compiler.appJitk,
       Compiler.ddc,
       Compiler.dartk,
+      Compiler.dartResident,
       Compiler.dartkp,
       Compiler.fasta,
       Compiler.dart2js,
       Compiler.dart2wasm,
+      Compiler.dart2wasmDev,
     ];
     return fastaCompilers.contains(compiler);
   }
@@ -534,8 +538,49 @@ class TestConfiguration {
     return future;
   }
 
+  late final Directory residentCompilerInfoDir = Directory.systemTemp
+      .createTempSync('resident_server-test-');
+
+  late final String residentCompilerInfoFile =
+      '${residentCompilerInfoDir.path}/server.info';
+
+  Future<void> startResidentCompiler() async {
+    if (compiler != Compiler.dartResident) return;
+    var executable = runtimeConfiguration.dartVmBinaryFileName;
+    var result = await Process.run(executable, [
+      'compilation-server',
+      'start',
+      '--resident-compiler-info-file=$residentCompilerInfoFile',
+    ]);
+    if (result.exitCode != 0) {
+      throw StateError(
+        'Failed to start resident frontend compiler: ${result.stderr}\n${result.stdout}',
+      );
+    }
+    if (isVerbose) {
+      print('Started Resident Frontend Compiler: $residentCompilerInfoFile');
+    }
+  }
+
+  void stopResidentCompiler() {
+    if (compiler != Compiler.dartResident) return;
+    if (!residentCompilerInfoDir.existsSync()) return;
+    var executable = runtimeConfiguration.dartVmBinaryFileName;
+    try {
+      Process.runSync(executable, [
+        'compilation-server',
+        'shutdown',
+        '--resident-compiler-info-file=$residentCompilerInfoFile',
+      ]);
+    } catch (_) {}
+    try {
+      residentCompilerInfoDir.deleteSync(recursive: true);
+    } catch (_) {}
+  }
+
   void stopServers() {
     _servers?.stopServers();
+    stopResidentCompiler();
   }
 
   /// Returns the correct configuration directory (the last component of the

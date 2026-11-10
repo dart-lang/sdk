@@ -1,7 +1,3 @@
-analyzer:
-  exclude:
-    - test/fixtures/**
-
 linter:
   rules:
     - unnecessary_type_name_in_constructor
@@ -19,4 +15,5 @@ linter:
     - unrelated_type_equality_checks
     - annotate_overrides
     - always_declare_return_types
+    - unnecessary_this_alias
     # - always_specify_types

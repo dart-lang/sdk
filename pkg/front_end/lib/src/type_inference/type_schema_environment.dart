@@ -243,7 +243,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
 
   /// Performs upwards inference, producing a final set of inferred types that
   /// does not  contain references to the "unknown type".
-  List<DartType> chooseFinalTypes(
+  DartTypeList chooseFinalTypes(
     Map<StructuralParameter, MergedTypeConstraint> constraints,
     List<StructuralParameter> typeParametersToInfer,
     List<DartType>? previouslyInferredTypes, {
@@ -306,11 +306,10 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       }
     }
 
-    for (int i = 0; i < inferredTypes.length; i++) {
-      inferredTypes[i] = demoteTypeInLibrary(inferredTypes[i]);
-    }
-
-    return inferredTypes;
+    return new DartTypeList.generate(
+      inferredTypes.length,
+      (int i) => demoteTypeInLibrary(inferredTypes[i]),
+    );
   }
 }
 

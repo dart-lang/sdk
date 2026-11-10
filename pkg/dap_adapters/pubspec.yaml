@@ -1,5 +1,5 @@
 name: dap_adapters
-version: 1.0.0
+version: 1.2.0-wip
 description: >-
   Dart Debug Adapter Protocol (DAP) adapters translating the DAP protocol
   to the Dart VM Service protocol.
@@ -17,7 +17,7 @@ dependencies:
   json_rpc_2: '>=3.0.0 <5.0.0'
   meta: ^1.1.8
   path: ^1.8.0
-  vm_service: '>=14.3.0 <16.0.0'
+  vm_service: '>=15.1.0 <16.0.0'
 
 dev_dependencies:
   dds: any

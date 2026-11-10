@@ -50,6 +50,22 @@ f(int? a) {
 ''');
   }
 
+  /// `super` is a `SuperReference`, not an `Expression`, so it has no type to
+  /// test, but it can never be `null`.
+  test_equal_superReceiver() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {}
+
+class B extends A {
+  void f() {
+    super == null;
+//        ^^^^^^^
+// [diag.unnecessaryNullComparisonNeverNullFalse] The operand can't be 'null', so the condition is always 'false'.
+  }
+}
+''');
+  }
+
   test_implicitlyAssigned_false() async {
     await resolveTestCodeWithDiagnostics('''
 f() {
@@ -158,6 +174,20 @@ f(int a) {
 f(int? a) {
   a != null;
   null != a;
+}
+''');
+  }
+
+  test_notEqual_superReceiver() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {}
+
+class B extends A {
+  void f() {
+    super != null;
+//        ^^^^^^^
+// [diag.unnecessaryNullComparisonNeverNullTrue] The operand can't be 'null', so the condition is always 'true'.
+  }
 }
 ''');
   }

@@ -1,0 +1,41 @@
+augment class Class {
+  augment int get instanceGetter2 => 0;
+  augment int get instanceGetter3 => 0;
+  augment static int get staticGetter2 => 0;
+  augment static int get staticGetter3 => 0;
+  augment static void set staticSetter2(int value) {}
+  augment static void set staticSetter3(int value) {}
+  augment static void staticMethod2() {}
+  augment static void staticMethod3() {}
+  augment void instanceMethod2() {}
+  augment void instanceMethod3() {}
+  augment void set instanceSetter2(int value) {}
+  augment void set instanceSetter3(int value) {}
+  int get instanceGetter3;
+  static int get staticGetter3;
+  static void set staticSetter3(int value);
+  static void staticMethod3();
+  void instanceMethod3();
+  void set instanceSetter3(int value);
+}
+
+class Class {
+  augment int get instanceGetter1 => 0;
+  augment static int get staticGetter1 => 0;
+  augment static void set staticSetter1(int value) {}
+  augment static void staticMethod1() {}
+  augment void instanceMethod1() {}
+  augment void set instanceSetter1(int value) {}
+  int get instanceGetter1;
+  int get instanceGetter2;
+  static int get staticGetter1;
+  static int get staticGetter2;
+  static void set staticSetter1(int value);
+  static void set staticSetter2(int value);
+  static void staticMethod1();
+  static void staticMethod2();
+  void instanceMethod1();
+  void instanceMethod2();
+  void set instanceSetter1(int value);
+  void set instanceSetter2(int value);
+}

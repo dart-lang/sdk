@@ -23,15 +23,31 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionExpressionInvocation;
+    var node = result.findNode.singleCallInvocation;
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: IntegerLiteral
+CallInvocation
+  receiver: IntegerLiteral
     literal: 3
     staticType: int
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      IntegerLiteral
+        literal: 5
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: FunctionExpressionInvocation
+  function: IntegerLiteral
+    literal: 3
+    staticType: int
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
       IntegerLiteral
         literal: 5
         correspondingParameter: <null>

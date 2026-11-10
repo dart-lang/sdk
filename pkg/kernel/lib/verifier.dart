@@ -1304,11 +1304,15 @@ class _VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   @override
   void visitPositionalParameter(PositionalParameter node) {
+    // TODO(johnniwinther): Verify that only optional parameters have default
+    //  values.
     _verifyVariable(node);
   }
 
   @override
   void visitNamedParameter(NamedParameter node) {
+    // TODO(johnniwinther): Verify that only optional parameters have default
+    //  values.
     _verifyVariable(node);
   }
 

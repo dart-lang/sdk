@@ -399,6 +399,7 @@ class IntertwinedStep extends Step<TestDescription, TestDescription, Context> {
           context.addTrace,
           context.annotateLines,
           source,
+          description.shortName,
         );
     TestParser parser = new TestParser(
       parserTestListener,
@@ -544,8 +545,8 @@ class ParserTestListenerForIntertwined
     extends ParserTestListenerWithMessageFormatting {
   late TestParser parser;
 
-  new(bool trace, bool annotateLines, Source source)
-    : super(trace, annotateLines, source, null);
+  new(bool trace, bool annotateLines, Source source, String shortName)
+    : super(trace, annotateLines, source, shortName);
 
   @override
   void doPrint(String s) {

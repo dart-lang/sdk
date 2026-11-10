@@ -9,11 +9,11 @@ import 'package:analyzer/dart/ast/visitor.dart';
 class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
   final Set<String> _names;
 
-  MixinSuperInvokedNamesCollector(this._names);
+  new(this._names);
 
   @override
   void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
-    if (node.leftOperand is SuperExpression) {
+    if (node.leftOperand is SuperReference && node.binaryOperator != null) {
       _names.add(node.operator.lexeme);
     }
     super.visitBinaryOperatorInvocation(node);
@@ -21,7 +21,7 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
 
   @override
   void visitCascadeIndexAssignmentTarget(CascadeIndexAssignmentTarget node) {
-    if (_cascadeTarget(node) is SuperExpression) {
+    if (_cascadeTarget(node) is SuperReference) {
       if (node.hasRead) {
         _names.add('[]');
       }
@@ -32,7 +32,7 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
 
   @override
   void visitCascadeIndexExpression(CascadeIndexExpression node) {
-    if (_cascadeTarget(node) is SuperExpression) {
+    if (_cascadeTarget(node) is SuperReference) {
       _names.add('[]');
     }
     super.visitCascadeIndexExpression(node);
@@ -42,91 +42,94 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
   void visitCascadePropertyAssignmentTarget(
     CascadePropertyAssignmentTarget node,
   ) {
-    if (_cascadeTarget(node) is SuperExpression) {
+    if (_cascadeTarget(node) is SuperReference) {
       if (node.parent2 is CompoundAssignment ||
           node.parent2 is IfNullAssignment) {
-        _names.add(node.propertyName.lexeme);
+        _names.add(node.name.lexeme);
       }
-      _names.add('${node.propertyName.lexeme}=');
+      _names.add('${node.name.lexeme}=');
     }
     super.visitCascadePropertyAssignmentTarget(node);
   }
 
   @override
   void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
-    if (_cascadeTarget(node) is SuperExpression) {
-      _names.add(node.propertyName.lexeme);
+    if (_cascadeTarget(node) is SuperReference) {
+      _names.add(node.name.lexeme);
     }
     super.visitCascadePropertyExtraction(node);
   }
 
   @override
-  void visitIndexAssignmentTarget(IndexAssignmentTarget node) {
-    if (node.receiver is SuperExpression) {
-      if (node.hasRead) {
+  void visitIncrementOrDecrementExpression(
+    IncrementOrDecrementExpression node,
+  ) {
+    if (node.position == IncrementOrDecrementPosition.prefix) {
+      if (node.target is InvalidSuperAssignmentTarget) {
+        _names.add(node.operation.binaryOperatorName);
+      }
+    }
+    node.visitChildren2(this);
+  }
+
+  @override
+  void visitParsedNameAccess(ParsedNameAccess node) {
+    if (node.operand is SuperReference) {
+      _names.add(node.name.lexeme);
+    }
+    super.visitParsedNameAccess(node);
+  }
+
+  @override
+  void visitReceiverIndexAssignmentTarget(ReceiverIndexAssignmentTarget node) {
+    if (node.receiver is SuperReference) {
+      if (node.parent2 is CompoundAssignment ||
+          node.parent2 is IfNullAssignment) {
         _names.add('[]');
       }
       _names.add('[]=');
     }
-    super.visitIndexAssignmentTarget(node);
+    super.visitReceiverIndexAssignmentTarget(node);
   }
 
   @override
-  void visitIndexExpression(IndexExpression node) {
-    if (node.target2 is SuperExpression) {
-      if (node.inGetterContext()) {
-        _names.add('[]');
-      }
-      if (node.inSetterContext()) {
-        _names.add('[]=');
-      }
-    }
-    super.visitIndexExpression(node);
-  }
-
-  @override
-  void visitIndexExpression2(IndexExpression2 node) {
-    if (node.receiver is SuperExpression) {
+  void visitReceiverIndexExpression(ReceiverIndexExpression node) {
+    if (node.receiver is SuperReference) {
       _names.add('[]');
     }
-    super.visitIndexExpression2(node);
+    super.visitReceiverIndexExpression(node);
   }
 
   @override
-  void visitMethodInvocation(MethodInvocation node) {
-    if (node.target2 is SuperExpression) {
-      _names.add(node.methodName.name);
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    if (node.receiver is SuperReference) {
+      _names.add(node.name.lexeme);
     }
-    super.visitMethodInvocation(node);
+    super.visitReceiverMethodInvocation(node);
   }
 
   @override
-  void visitPrefixDecrement(PrefixDecrement node) {
-    _visitPrefixIncrementOrDecrement(node, '-');
-  }
-
-  @override
-  void visitPrefixIncrement(PrefixIncrement node) {
-    _visitPrefixIncrementOrDecrement(node, '+');
-  }
-
-  @override
-  void visitPropertyAccess(PropertyAccess node) {
-    if (node.target2 is SuperExpression) {
-      var name = node.propertyName.name;
-      if (node.propertyName.inGetterContext()) {
-        _names.add(name);
-      }
-      if (node.propertyName.inSetterContext()) {
-        _names.add('$name=');
-      }
+  void visitReceiverPropertyAssignmentTarget(
+    ReceiverPropertyAssignmentTarget node,
+  ) {
+    if (node.receiver is SuperReference) {
+      if (node.hasRead) _names.add(node.name.lexeme);
+      _names.add('${node.name.lexeme}=');
     }
-    super.visitPropertyAccess(node);
+    super.visitReceiverPropertyAssignmentTarget(node);
+  }
+
+  @override
+  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
+    if (node.receiver is SuperReference) {
+      _names.add(node.name.lexeme);
+    }
+    super.visitReceiverPropertyExtraction(node);
   }
 
   @override
   void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
-    if (node.operand is SuperExpression) {
+    if (node.operand is SuperReference) {
       _names.add(switch (node.unaryOperator) {
         UnaryOperator.negate => 'unary-',
         UnaryOperator.bitwiseComplement => '~',
@@ -144,17 +147,5 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
       if (ancestor is CascadeExpression) return ancestor.target2;
     }
     return null;
-  }
-
-  void _visitPrefixIncrementOrDecrement(
-    IncrementOrDecrementExpression node,
-    String operatorName,
-  ) {
-    if (node.target case InvalidExpressionAssignmentTarget(
-      expression: SuperExpression(),
-    )) {
-      _names.add(operatorName);
-    }
-    node.visitChildren2(this);
   }
 }

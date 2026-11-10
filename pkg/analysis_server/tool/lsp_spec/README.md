@@ -9,11 +9,12 @@
 
 ## Running the Server
 
-Start the language server using the `dart language-server` command. Pass the `--client-id` and `--client-version` flags to identify your editor/plugin and version:
+Start the language server using the `dart language-server` command. Set the following environment variables to identify your editor/plugin and version:
 
-```
-dart language-server --client-id my-editor.my-plugin --client-version 1.2
-```
+- `DASH__IDE_NAME` - The name of the IDE that the user launched (for example "VS Code", "Antigravity")
+- `DASH__IDE_VERSION` - The version of the software named in `DASH__IDE_NAME`
+- `DASH__PLUGIN_NAME` - The name of the plugin that provides the integration with Dart/Flutter tools (for example "Dart-Code")
+- `DASH__PLUGIN_VERSION` - The version of the software named in `DASH__PLUGIN_NAME`
 
 Note: In LSP the client makes the first request so there is no obvious confirmation that the server is working correctly until the client sends an `initialize` request. Unlike standard JSON RPC, [LSP requires that headers are sent](https://microsoft.github.io/language-server-protocol/specification).
 
@@ -25,7 +26,7 @@ When there are no open workspace folders (or if the initialization option `onlyA
 
 - `onlyAnalyzeProjectsWithOpenFiles` (`bool?`): When set to `true`, workspace folders will be ignored and analysis will be performed based on the open files, as if no workspace was open at all. This allows opening large folders without causing them to be completely analyzed. Defaults to `false`.
 - `suggestFromUnimportedLibraries` (`bool?`): When set to `false`, completion will not include symbols that are not already imported into the current file. Defaults to `true`, though the client must additionally support `workspace/applyEdit` for these completions to be included.
-- `closingLabels` (`bool?`): When set to `true`, `dart/textDocument/publishClosingLabels` notifications will be sent with information to render editor closing labels.
+- `closingLabels` (`bool?`): **Deprecated** Use client capabilities `experimental.closingLabels={}` instead. When set to `true`, `dart/textDocument/publishClosingLabels` notifications will be sent with information to render editor closing labels.
 - `outline` (`bool?`): When set to `true`, `dart/textDocument/publishOutline` notifications will be sent with outline information for open files.
 - `flutterOutline` (`bool?`): When set to `true`, `dart/textDocument/publishFlutterOutline` notifications will be sent with Flutter outline information for open files.
 - `allowOpenUri`: When set to `true`, indicates that the client will handle `dart/openUri` notifications by opening a browser for the supplied URI.
@@ -37,7 +38,7 @@ Client workspace settings are requested with `workspace/configuration` during in
 - `dart.analysisExcludedFolders` (`List<String>?`): An array of paths (absolute or relative to each workspace folder) that should be excluded from analysis.
 - `dart.enableSdkFormatter` (`bool?`): When set to `false`, prevents registration (or unregisters) the SDK formatter. When set to `true` or not supplied, will register/reregister the SDK formatter.
 - `dart.lineLength` (`int?`): **Deprecated** Use `formatter.page_width` in `analysis_options.yaml` instead. Sets a default value for the formatter to wrap code at if no value is specified in `formatter.page_width` in `analysis_options.yaml`. If unspecified by both, code will be wrapped at `80` characters.
-- `dart.completeFunctionCalls` (`bool?`): When set to true, completes functions/methods with their required parameters.
+- `dart.completeFunctionCalls` (`bool?`): Whether to complete functions/methods with their required parameters. Uses TextMate snippet syntax so only works if clients also support snippets. Defaults to `true`.
 - `dart.showTodos` (`bool?`): Whether to generate diagnostics for TODO comments. If unspecified, diagnostics will not be generated.
 - `dart.renameFilesWithClasses` (`String`): When set to `"always"`, will include edits to rename files when classes are renamed if the filename matches the class name (but in snake_form). When set to `"prompt"`, a prompt will be shown on each class rename asking to confirm the file rename. Otherwise, files will not be renamed. Renames are performed using LSP's ResourceOperation edits - that means the rename is simply included in the resulting `WorkspaceEdit` and must be handled by the client.
 - `dart.enableSnippets` (`bool?`): Whether to include code snippets (such as `class`, `stful`, `switch`) in code completion. When unspecified, snippets will be included.
@@ -303,13 +304,26 @@ Direction: Client -> Server
 Params: `DartMigrateParams`
 Returns: `DartMigrateResult`
 
-Migrates the provided pub workspace folders or non-pub workspace packages to the
-latest Dart version. For packages that are part of a pub workspace, only the
-workspace root should be passed. Migrating individual packages within a
-workspace independently is not supported.
+Returns edits to migrate the provided pub workspace folders or non-pub workspace
+packages to the latest Dart version. For packages that are part of a pub
+workspace, only the workspace root should be passed. Migrating individual
+packages within a workspace independently is not supported.
 
 The response includes a summary of the results and a `WorkspaceEdit` containing
 the changes to be applied.
+
+### dart/workspace/fixes/get Method (Experimental)
+
+Direction: Client -> Server
+Params: `DartGetWorkspaceFixesParams`
+Returns: `DartGetWorkspaceFixesResult`
+
+Returns edits to apply all fixes for fixable diagnostics in the workspace. This
+is similar to the "Fix All in Workspace" command but instead of asking the
+editor to apply the edits, returns them to the caller.
+
+Options for filtering which fixes are included are available in the parameters
+definition.
 
 ### dart/workspace/analysis/complete Method
 
@@ -341,21 +355,6 @@ Params: `{ uri: Uri }`
 Notifies the client that the server would like to open a given URI. This event is only sent in response to direct user actions (such as if the user clicks a "Learn More" button in a `window/showMessageRequest`). URIs could be either external web pages (http/https) to be opened in the browser or documents (file:///) to be opened in the editor.
 
 This notification (and functionality that relies on it) will only be sent if the client passes `allowOpenUri: true` in `initializationOptions`.
-
-### dart/textDocumentContent Method (Experimental)
-
-Direction: Client -> Server
-Params: `{ uri: Uri }`
-Returns: `{ content: string | undefined }`
-
-Returns the content of the virtual document with `uri`. This is intended for generated files (such as those generated by macros) and is not supported for 'file' URIs.
-
-### dart/textDocumentContentDidChange Notification
-
-Direction: Server -> Client
-Params: `{ uri: Uri }`
-
-Notifies the client that the content in the virtual file with `uri` may have changed (for example because a macro executed and regenerated its content).
 
 ### dart/connectToDtd Method
 

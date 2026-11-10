@@ -391,9 +391,12 @@ class TFADevirtualization extends Devirtualization {
             callSite.isNullableReceiver,
           );
         } else if (!isArtificialNode(singleTarget)) {
+          final bool checkReceiverForNull =
+              callSite.isNullableReceiver &&
+              singleTarget.enclosingClass != coreTypes.objectClass;
           return DirectCallMetadata.targetMember(
             singleTarget,
-            callSite.isNullableReceiver,
+            checkReceiverForNull,
           );
         }
       }
@@ -422,8 +425,9 @@ class AnnotateKernel extends RecursiveVisitor {
   final Class _intClass;
   final TFClass _intTFClass;
   late final Constant _nullConstant = NullConstant();
+  StaticTypeContext? _staticTypeContext;
 
-  AnnotateKernel(
+  AnnotateKernel._(
     Component component,
     this._typeFlowAnalysis,
     this.hierarchy,
@@ -432,12 +436,19 @@ class AnnotateKernel extends RecursiveVisitor {
     this._tableSelectorAssigner,
     this._unboxingInfo,
     this._closureIdMetadata,
+    Map<InferredType, InferredType> canonicalInferredTypes,
   ) : _directCallMetadataRepository =
           component.metadata[DirectCallMetadataRepository.repositoryTag]
               as DirectCallMetadataRepository,
-      _inferredTypeMetadata = InferredTypeMetadataRepository(),
-      _inferredArgTypeMetadata = InferredArgTypeMetadataRepository(),
-      _inferredReturnTypeMetadata = InferredReturnTypeMetadataRepository(),
+      _inferredTypeMetadata = InferredTypeMetadataRepository(
+        canonicalInferredTypes,
+      ),
+      _inferredArgTypeMetadata = InferredArgTypeMetadataRepository(
+        canonicalInferredTypes,
+      ),
+      _inferredReturnTypeMetadata = InferredReturnTypeMetadataRepository(
+        canonicalInferredTypes,
+      ),
       _unreachableNodeMetadata = UnreachableNodeMetadataRepository(),
       _procedureAttributesMetadata = ProcedureAttributesMetadataRepository(),
       _tableSelectorMetadata = TableSelectorMetadataRepository(),
@@ -456,6 +467,29 @@ class AnnotateKernel extends RecursiveVisitor {
     component.addMetadataRepository(_unboxingInfoMetadata);
   }
 
+  factory AnnotateKernel(
+    Component component,
+    TypeFlowAnalysis typeFlowAnalysis,
+    ClassHierarchy hierarchy,
+    FieldMorpher fieldMorpher,
+    Constant Function(Constant) treeShakeConstant,
+    TableSelectorAssigner tableSelectorAssigner,
+    UnboxingInfoManager unboxingInfo,
+    ClosureIdMetadataRepository closureIdMetadata,
+  ) {
+    return AnnotateKernel._(
+      component,
+      typeFlowAnalysis,
+      hierarchy,
+      fieldMorpher,
+      treeShakeConstant,
+      tableSelectorAssigner,
+      unboxingInfo,
+      closureIdMetadata,
+      <InferredType, InferredType>{},
+    );
+  }
+
   // Query whether a call site was marked as a direct call by the analysis.
   bool _callSiteUsesDirectCall(TreeNode node) {
     return _directCallMetadataRepository.mapping.containsKey(node);
@@ -463,29 +497,39 @@ class AnnotateKernel extends RecursiveVisitor {
 
   InferredType? _convertType(
     Type type, {
+    DartType? staticType,
     bool skipCheck = false,
     bool receiverNotInt = false,
   }) {
-    InterfaceType? exactType;
-    Class? concreteClass;
+    InterfaceType? dartType;
     Constant? constantValue;
     Member? closureMember;
     int closureId = 0;
     bool isInt = false;
+    bool isExactClass = false;
+    bool isExactType = false;
 
     final nullable = type is NullableType;
     if (nullable) {
       type = type.baseType;
     }
 
+    final nullability = nullable
+        ? Nullability.nullable
+        : Nullability.nonNullable;
+
     if (nullable && type == emptyType) {
-      concreteClass =
+      final nullClass =
           _typeFlowAnalysis.environment.coreTypes.deprecatedNullClass;
+      dartType = InterfaceType(nullClass, nullability, DartTypeList.empty);
+      isExactClass = true;
+      isExactType = true;
       constantValue = _nullConstant;
     } else {
-      concreteClass = type.getConcreteClass(_typeFlowAnalysis.hierarchyCache);
+      (dartType, isExactClass: isExactClass, isExactType: isExactType) =
+          _tfaTypeToApproximateDartType(type, nullability);
 
-      if (concreteClass == null) {
+      if (!isExactClass) {
         isInt = type.isSubtypeOf(_intTFClass);
       }
 
@@ -514,28 +558,19 @@ class AnnotateKernel extends RecursiveVisitor {
       }
     }
 
-    if (type is ConcreteType && type.typeArgs != null) {
-      final typeArgs = <DartType>[];
-      bool allKnown = true;
-      for (int i = 0, n = type.numImmediateTypeArgs; i < n; ++i) {
-        final t = type.typeArgs![i];
-        if (t is UnknownType) {
-          allKnown = false;
-          break;
-        }
-        typeArgs.add((t as RuntimeType).representedType);
-      }
-      if (allKnown) {
-        exactType = InterfaceType(
-          concreteClass!,
-          nullable ? Nullability.nullable : Nullability.nonNullable,
-          typeArgs,
-        );
-      }
+    // Clear `dartType` if we don't gain value from it or we have its
+    // information in other form (nullability, is-int, static type).
+    if (dartType != null &&
+        !_shouldKeepDartType(
+          dartType,
+          staticType,
+          isExactClass: isExactClass,
+          isInt: isInt,
+        )) {
+      dartType = null;
     }
 
-    if (exactType != null ||
-        concreteClass != null ||
+    if (dartType != null ||
         !nullable ||
         isInt ||
         constantValue != null ||
@@ -545,30 +580,173 @@ class AnnotateKernel extends RecursiveVisitor {
       if (constantValue != null) {
         constantValue = treeShakeConstant(constantValue);
       }
-      return new InferredType(
-        exactType,
-        concreteClass,
-        nullable,
-        isInt,
-        constantValue,
-        closureMember,
-        closureId,
-        skipCheck: skipCheck,
-        receiverNotInt: receiverNotInt,
+      return _inferredTypeMetadata.canonicalize(
+        InferredType(
+          dartType,
+          nullable,
+          isInt,
+          constantValue,
+          closureMember,
+          closureId,
+          isExactClass: isExactClass,
+          isExactType: isExactType,
+          skipCheck: skipCheck,
+          receiverNotInt: receiverNotInt,
+        ),
       );
     }
 
     return null;
   }
 
+  bool _shouldKeepDartType(
+    InterfaceType dartType,
+    DartType? staticType, {
+    required bool isExactClass,
+    required bool isInt,
+  }) {
+    final env = _typeFlowAnalysis.environment;
+
+    if (dartType.classNode == env.coreTypes.deprecatedNullClass) {
+      return true;
+    }
+
+    if (!isExactClass) {
+      if (isInt) {
+        // Captured via `flagInt` (avoid writing inferred base class of all
+        // integers - which is e.g. on VM `_IntegerImplementation`)
+        return false;
+      }
+      if (dartType.classNode == env.coreTypes.objectClass) {
+        // Nullability is captured via `flagNullable` and inferring base type
+        // `Object` adds no additional value.
+        return false;
+      }
+    }
+
+    if (staticType != null) {
+      final staticTypeWithNullability = staticType.withDeclaredNullability(
+        dartType.nullability,
+      );
+      if (!isExactClass &&
+          env.isSubtypeOf(staticTypeWithNullability, dartType)) {
+        // Static type is already at least as specific as the inferred type.
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  (InterfaceType?, {bool isExactClass, bool isExactType})
+  _tfaTypeToApproximateDartType(Type type, Nullability nullability) {
+    if (type is ConeType && type is! WideConeType) {
+      final specialized = _typeFlowAnalysis.hierarchyCache.specializeTypeCone(
+        type.cls,
+        allowWideCone: true,
+      );
+      if (specialized is ConcreteType) {
+        type = specialized;
+      }
+    }
+
+    switch (type) {
+      case ConcreteType():
+        final (dartType, :isExactType) = _concreteTypeToApproximateDartType(
+          type,
+          nullability,
+        );
+        return (dartType, isExactClass: true, isExactType: isExactType);
+      case SetType(:final types):
+        var (dartType, isExactType: _) = _concreteTypeToApproximateDartType(
+          types.first,
+          nullability,
+        );
+        bool isExactClass = true;
+        for (int i = 1; i < types.length; ++i) {
+          final (interfaceType, isExactType: _) =
+              _concreteTypeToApproximateDartType(types[i], nullability);
+          if (dartType.classNode != interfaceType.classNode) {
+            isExactClass = false;
+          }
+          dartType =
+              _typeFlowAnalysis.environment.getStandardUpperBound(
+                    dartType,
+                    interfaceType,
+                  )
+                  as InterfaceType;
+        }
+        return (
+          dartType.extensionTypeErasure as InterfaceType,
+          isExactClass: isExactClass,
+          isExactType: false,
+        );
+      case ConeType(:final cls):
+        return (
+          interfaceTypeWithDefaultBounds(cls.classNode, nullability),
+          isExactClass: false,
+          isExactType: false,
+        );
+      default:
+        return (null, isExactClass: false, isExactType: false);
+    }
+  }
+
+  (InterfaceType, {bool isExactType}) _concreteTypeToApproximateDartType(
+    ConcreteType type,
+    Nullability nullability,
+  ) {
+    final concreteClass = type.cls.classNode;
+    switch (type) {
+      case RecordConcreteType():
+        assert(concreteClass.typeParameters.isEmpty);
+        return (
+          InterfaceType(concreteClass, nullability, DartTypeList.empty),
+          // Record classes don't capture field types, so the DartType is not exact.
+          isExactType: false,
+        );
+      case ClassConcreteType(:final typeArgs, :final numImmediateTypeArgs):
+        if (concreteClass.typeParameters.isEmpty) {
+          return (
+            InterfaceType(concreteClass, nullability, DartTypeList.empty),
+            isExactType: true,
+          );
+        }
+        if (typeArgs != null) {
+          bool isExactType = true;
+          final dartTypeArgs = DartTypeList.generate(numImmediateTypeArgs, (i) {
+            final t = typeArgs[i];
+            if (t is RuntimeType) {
+              return t.representedType;
+            }
+            isExactType = false;
+            return concreteClass
+                .typeParameters[i]
+                .defaultType
+                .extensionTypeErasure;
+          });
+          return (
+            InterfaceType(concreteClass, nullability, dartTypeArgs),
+            isExactType: isExactType,
+          );
+        }
+        return (
+          interfaceTypeWithDefaultBounds(concreteClass, nullability),
+          isExactType: false,
+        );
+    }
+  }
+
   void _setInferredType(
     TreeNode node,
     Type type, {
+    DartType? staticType,
     bool skipCheck = false,
     bool receiverNotInt = false,
   }) {
     final inferredType = _convertType(
       type,
+      staticType: staticType,
       skipCheck: skipCheck,
       receiverNotInt: receiverNotInt,
     );
@@ -577,15 +755,28 @@ class AnnotateKernel extends RecursiveVisitor {
     }
   }
 
-  void _setInferredArgType(TreeNode node, Type type, {bool skipCheck = false}) {
-    final inferredType = _convertType(type, skipCheck: skipCheck);
+  void _setInferredArgType(
+    TreeNode node,
+    Type type, {
+    DartType? staticType,
+    bool skipCheck = false,
+  }) {
+    final inferredType = _convertType(
+      type,
+      staticType: staticType,
+      skipCheck: skipCheck,
+    );
     if (inferredType != null) {
       _inferredArgTypeMetadata.mapping[node] = inferredType;
     }
   }
 
-  void _setInferredReturnType(TreeNode node, Type type) {
-    final inferredType = _convertType(type);
+  void _setInferredReturnType(
+    TreeNode node,
+    Type type, {
+    DartType? staticType,
+  }) {
+    final inferredType = _convertType(type, staticType: staticType);
     if (inferredType != null) {
       _inferredReturnTypeMetadata.mapping[node] = inferredType;
     }
@@ -618,7 +809,9 @@ class AnnotateKernel extends RecursiveVisitor {
       if (node is! StaticInvocation &&
           node is! StaticSet &&
           node is! StaticGet &&
-          node is! StaticTearOff) {
+          node is! StaticTearOff &&
+          node is! RecordIndexGet &&
+          node is! RecordNameGet) {
         // The compiler uses another heuristic in addition to the call-site
         // annotation: if the call-site is non-dynamic and the interface target does
         // not exist in the parent chain of _Smi (int is used as an approximation
@@ -646,9 +839,13 @@ class AnnotateKernel extends RecursiveVisitor {
         : nullableAnyType;
 
     if (markSkipCheck || markReceiverNotInt || callSite.isResultUsed) {
+      final staticType = _staticTypeContext != null && node is Expression
+          ? node.getStaticType(_staticTypeContext!)
+          : null;
       _setInferredType(
         node,
         resultType,
+        staticType: staticType,
         skipCheck: markSkipCheck,
         receiverNotInt: markReceiverNotInt,
       );
@@ -679,10 +876,18 @@ class AnnotateKernel extends RecursiveVisitor {
   void _annotateMember(Member member) {
     if (_typeFlowAnalysis.isMemberUsed(member)) {
       if (member is Field) {
-        _setInferredType(member, _typeFlowAnalysis.fieldType(member)!);
+        _setInferredType(
+          member,
+          _typeFlowAnalysis.fieldType(member)!,
+          staticType: member.type,
+        );
       } else {
         if (member is Procedure && !member.isSetter) {
-          _setInferredReturnType(member, _typeFlowAnalysis.resultType(member)!);
+          _setInferredReturnType(
+            member,
+            _typeFlowAnalysis.resultType(member)!,
+            staticType: member.function.returnType,
+          );
         }
 
         Args<Type> argTypes = _typeFlowAnalysis.argumentTypes(member)!;
@@ -702,6 +907,7 @@ class AnnotateKernel extends RecursiveVisitor {
           _setInferredArgType(
             positionalParams[i],
             argTypes.values[firstParamIndex + i],
+            staticType: positionalParams[i].type,
             skipCheck: uncheckedParameters!.contains(positionalParams[i]),
           );
         }
@@ -714,6 +920,7 @@ class AnnotateKernel extends RecursiveVisitor {
           _setInferredArgType(
             param,
             argTypes.values[firstParamIndex + positionalParams.length + i],
+            staticType: param.type,
             skipCheck: uncheckedParameters!.contains(param),
           );
         }
@@ -778,22 +985,28 @@ class AnnotateKernel extends RecursiveVisitor {
 
   @override
   visitConstructor(Constructor node) {
+    _staticTypeContext = StaticTypeContext(node, _typeFlowAnalysis.environment);
     _annotateMember(node);
     super.visitConstructor(node);
+    _staticTypeContext = null;
   }
 
   @override
   visitProcedure(Procedure node) {
+    _staticTypeContext = StaticTypeContext(node, _typeFlowAnalysis.environment);
     if (node.stubKind != ProcedureStubKind.RepresentationField) {
       _annotateMember(node);
     }
     super.visitProcedure(node);
+    _staticTypeContext = null;
   }
 
   @override
   visitField(Field node) {
+    _staticTypeContext = StaticTypeContext(node, _typeFlowAnalysis.environment);
     _annotateMember(node);
     super.visitField(node);
+    _staticTypeContext = null;
   }
 
   @override
@@ -842,6 +1055,18 @@ class AnnotateKernel extends RecursiveVisitor {
   visitDynamicGet(DynamicGet node) {
     _annotateCallSite(node, null);
     super.visitDynamicGet(node);
+  }
+
+  @override
+  visitRecordIndexGet(RecordIndexGet node) {
+    _annotateCallSite(node, null);
+    super.visitRecordIndexGet(node);
+  }
+
+  @override
+  visitRecordNameGet(RecordNameGet node) {
+    _annotateCallSite(node, null);
+    super.visitRecordNameGet(node);
   }
 
   @override
@@ -896,7 +1121,7 @@ class AnnotateKernel extends RecursiveVisitor {
   defaultVariable(Variable node) {
     final inferredType = _typeFlowAnalysis.capturedVariableType(node);
     if (inferredType != null) {
-      _setInferredType(node, inferredType);
+      _setInferredType(node, inferredType, staticType: node.type);
     }
     super.defaultVariable(node);
   }
@@ -1013,6 +1238,10 @@ class TreeShaker {
   bool isMemberBodyReachable(Member m) =>
       typeFlowAnalysis.isMemberUsed(m) ||
       fieldMorpher.isExtraMemberWithReachableBody(m);
+  bool isLocalFunctionBodyReachable(
+    Member enclosingMember,
+    LocalFunction function,
+  ) => typeFlowAnalysis.isLocalFunctionUsed(enclosingMember, function);
   bool isFieldInitializerReachable(Field f) =>
       typeFlowAnalysis.isFieldInitializerUsed(f);
   bool isFieldGetterReachable(Field f) => typeFlowAnalysis.isFieldGetterUsed(f);
@@ -1200,7 +1429,7 @@ class FieldMorpher {
         ProcedureKind.Setter,
         new FunctionNode(
           null,
-          positionalParameters: [parameter],
+          positionalParameters: PositionalParameterList(parameter),
           returnType: const VoidType(),
         )..fileOffset = field.fileOffset,
         isAbstract: isAbstract,
@@ -1612,6 +1841,9 @@ class _TreeShakerPass1 extends RemovingTransformer {
     FunctionDeclaration node,
     TreeNode? removalSentinel,
   ) {
+    if (!shaker.isLocalFunctionBodyReachable(currentMember, node)) {
+      return removalSentinel ?? EmptyStatement();
+    }
     node.id = (_localFunctionIdGenerator ??= LocalFunctionIdGenerator())
         .allocateId();
     return super.visitFunctionDeclaration(node, removalSentinel);
@@ -1678,6 +1910,26 @@ class _TreeShakerPass1 extends RemovingTransformer {
 
   @override
   TreeNode visitDynamicGet(DynamicGet node, TreeNode? removalSentinel) {
+    node.transformOrRemoveChildren(this);
+    if (_isUnreachable(node)) {
+      return _makeUnreachableCall([node.receiver]);
+    } else {
+      return node;
+    }
+  }
+
+  @override
+  TreeNode visitRecordIndexGet(RecordIndexGet node, TreeNode? removalSentinel) {
+    node.transformOrRemoveChildren(this);
+    if (_isUnreachable(node)) {
+      return _makeUnreachableCall([node.receiver]);
+    } else {
+      return node;
+    }
+  }
+
+  @override
+  TreeNode visitRecordNameGet(RecordNameGet node, TreeNode? removalSentinel) {
     node.transformOrRemoveChildren(this);
     if (_isUnreachable(node)) {
       return _makeUnreachableCall([node.receiver]);
@@ -1997,8 +2249,10 @@ class _TreeShakerPass1 extends RemovingTransformer {
         return StaticInvocation(
           unsafeCast,
           Arguments(
-            [result],
-            types: [visitDartType(node.staticType, cannotRemoveSentinel)],
+            ExpressionList(result),
+            types: DartTypeList(
+              visitDartType(node.staticType, cannotRemoveSentinel),
+            ),
           ),
         )..fileOffset = node.fileOffset;
       } else {
@@ -2072,7 +2326,7 @@ class _TreeShakerPass1 extends RemovingTransformer {
     if (check != null && check.alwaysPass) {
       return StaticInvocation(
         unsafeCast,
-        Arguments([node.operand], types: [node.type]),
+        Arguments(ExpressionList(node.operand), types: DartTypeList(node.type)),
       )..fileOffset = node.fileOffset;
     }
     return node;
@@ -2086,8 +2340,8 @@ class _TreeShakerPass1 extends RemovingTransformer {
       return StaticInvocation(
         unsafeCast,
         Arguments(
-          [node.operand],
-          types: [node.getStaticType(staticTypeContext)],
+          ExpressionList(node.operand),
+          types: DartTypeList(node.getStaticType(staticTypeContext)),
         ),
       )..fileOffset = node.fileOffset;
     }
@@ -2258,7 +2512,7 @@ class _TreeShakerPass2 extends RemovingTransformer {
           .objectClass
           .asRawSupertype;
       node.implementedTypes.clear();
-      node.typeParameters.clear();
+      node.typeParameters = TypeParameterList.empty;
       node.isAbstract = true;
       node.isEnum = false;
       node.isEliminatedMixin = false;
@@ -2764,15 +3018,15 @@ class _ConstantTreeShaker implements ConstantVisitor<Constant> {
     );
   }
 
-  List<Constant> treeShakeConstantList(List<Constant> original) {
-    List<Constant>? newEntries;
+  ConstantList treeShakeConstantList(ConstantList original) {
+    ConstantList? newEntries;
     for (int i = 0; i < original.length; ++i) {
       final entry = original[i];
       final entryResult = treeShakeConstant(entry);
       if (newEntries != null) {
         newEntries[i] = entryResult;
       } else if (!identical(entryResult, entry)) {
-        newEntries = List.from(original, growable: false);
+        newEntries = ConstantList.from(original);
         newEntries[i] = entryResult;
       }
     }
@@ -2793,17 +3047,15 @@ class _ConstantTreeShaker implements ConstantVisitor<Constant> {
     return newValues ?? original;
   }
 
-  List<ConstantMapEntry> treeShakeMapEntryList(
-    List<ConstantMapEntry> original,
-  ) {
-    List<ConstantMapEntry>? newEntries;
+  ConstantMapEntryList treeShakeMapEntryList(ConstantMapEntryList original) {
+    ConstantMapEntryList? newEntries;
     for (int i = 0; i < original.length; ++i) {
       final entry = original[i];
       final entryResult = treeShakeMapEntry(entry);
       if (newEntries != null) {
         newEntries[i] = entryResult;
       } else if (!identical(entryResult, entry)) {
-        newEntries = List.from(original, growable: false);
+        newEntries = ConstantMapEntryList.from(original);
         newEntries[i] = entryResult;
       }
     }

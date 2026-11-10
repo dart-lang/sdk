@@ -29,7 +29,7 @@ void buildExtensionTypes(Linker linker) {
 class _DependenciesCollector extends RecursiveTypeVisitor {
   final List<ExtensionTypeElementImpl> dependencies = [];
 
-  _DependenciesCollector() : super(includeTypeAliasArguments: false);
+  new() : super(includeTypeAliasArguments: false);
 
   @override
   bool visitInterfaceType(InterfaceType type) {
@@ -49,7 +49,7 @@ class _Node extends graph.Node<_Node> {
   @override
   bool isEvaluated = false;
 
-  _Node(this.walker, this.element);
+  new(this.walker, this.element);
 
   @override
   List<_Node> computeDependencies() {
@@ -93,7 +93,7 @@ class _Walker extends graph.DependencyWalker<_Node> {
   final Linker linker;
   final Map<ExtensionTypeElementImpl, _Node> nodeMap = Map.identity();
 
-  _Walker(this.linker);
+  new(this.linker);
 
   @override
   void evaluate(_Node v) {

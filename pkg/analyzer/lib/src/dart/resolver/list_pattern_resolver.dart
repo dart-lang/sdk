@@ -6,14 +6,14 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 
 class ListPatternResolver {
-  final ResolverVisitor resolverVisitor;
+  final TypeAnalyzer typeAnalyzer;
 
-  ListPatternResolver(this.resolverVisitor);
+  new(this.typeAnalyzer);
 
   PatternResult resolve({
     required ListPatternImpl node,
@@ -21,11 +21,11 @@ class ListPatternResolver {
   }) {
     var typeArguments = node.typeArguments;
     if (typeArguments != null) {
-      typeArguments.accept2(resolverVisitor);
+      typeArguments.accept2(typeAnalyzer);
       // Check that we have exactly one type argument.
       var length = typeArguments.arguments.length;
       if (length != 1) {
-        resolverVisitor.diagnosticReporter.report(
+        typeAnalyzer.diagnosticReporter.report(
           diag.expectedOneListPatternTypeArguments
               .withArguments(count: length)
               .at(typeArguments),
@@ -34,15 +34,16 @@ class ListPatternResolver {
     }
 
     var elementType = typeArguments?.arguments.first.typeOrThrow;
-    var result = resolverVisitor.analyzeListPattern(
+    var result = typeAnalyzer.analyzeListPattern(
       context,
       node,
       elementType: elementType?.wrapSharedTypeView(),
       elements: node.elements,
+      promoteForPatternOffset: node.leftBracket.offset,
     );
     node.requiredType = result.requiredType.unwrapTypeView();
 
-    resolverVisitor.checkPatternNeverMatchesValueType(
+    typeAnalyzer.checkPatternNeverMatchesValueType(
       context: context,
       pattern: node,
       requiredType: result.requiredType.unwrapTypeView(),

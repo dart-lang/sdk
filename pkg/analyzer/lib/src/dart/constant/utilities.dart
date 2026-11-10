@@ -6,12 +6,14 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 
 /// Callback used by [ReferenceFinder] to report that a dependency was found.
-typedef ReferenceFinderCallback =
-    void Function(ConstantEvaluationTarget dependency);
+typedef ReferenceFinderCallback = void Function(
+  ConstantEvaluationTarget dependency,
+);
 
 /// A visitor used to traverse the AST structures of all of the compilation
 /// units being resolved and build the full set of dependencies for all constant
@@ -36,13 +38,13 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor2 {
   }
 
   @override
-  void visitDotShorthandConstructorInvocation(
-    DotShorthandConstructorInvocation node,
+  void visitDotShorthandConstructorInvocation2(
+    DotShorthandConstructorInvocation2 node,
   ) {
     if (node.isConst) {
       _find(node);
     } else {
-      super.visitDotShorthandConstructorInvocation(node);
+      super.visitDotShorthandConstructorInvocation2(node);
     }
   }
 
@@ -99,7 +101,7 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor2 {
   @override
   void visitSwitchCase(SwitchCase node) {
     _find(node.expression2);
-    node.statements.accept2(this);
+    node.statements2.accept2(this);
   }
 
   /// Add dependencies of a [CollectionElement] or [Expression] (which is a type
@@ -112,8 +114,12 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor2 {
 
 /// A visitor used to traverse the AST structures of all of the compilation
 /// units being resolved and build tables of the constant variables, constant
-/// constructors, constant constructor invocations, and annotations found in
-/// those compilation units.
+/// constructors, and constant constructor invocations found in those
+/// compilation units.
+///
+/// Annotations are not included. An annotation is verified like any other
+/// constant expression, by `ConstantVerifier`, which evaluates it; its value
+/// as an `ElementAnnotation` is computed only when requested.
 class ConstantFinder extends RecursiveAstVisitor2<void> {
   final ConstantEvaluationConfiguration configuration;
 
@@ -125,27 +131,10 @@ class ConstantFinder extends RecursiveAstVisitor2<void> {
   /// treated as "const".
   bool treatFinalInstanceVarAsConst = false;
 
-  ConstantFinder({required this.configuration});
+  new({required this.configuration});
 
   @override
-  void visitAnnotation(covariant AnnotationImpl node) {
-    super.visitAnnotation(node);
-    var elementAnnotation = node.elementAnnotation;
-    if (elementAnnotation == null) {
-      // Analyzer ignores annotations on "part of" directives and on enum
-      // constant declarations.
-      assert(
-        node.parent2 is PartDirective ||
-            node.parent2 is PartOfDirective ||
-            node.parent2 is EnumConstantDeclaration,
-      );
-    } else {
-      constantsToCompute.add(elementAnnotation);
-    }
-  }
-
-  @override
-  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
+  void visitClassDeclaration2(covariant ClassDeclaration2Impl node) {
     bool prevTreatFinalInstanceVarAsConst = treatFinalInstanceVarAsConst;
     if (node.declaredFragment!.constructors.any((e) => e.isConst) &&
         node.namePart is! PrimaryConstructorDeclaration) {
@@ -155,15 +144,17 @@ class ConstantFinder extends RecursiveAstVisitor2<void> {
       treatFinalInstanceVarAsConst = true;
     }
     try {
-      super.visitClassDeclaration(node);
+      super.visitClassDeclaration2(node);
     } finally {
       treatFinalInstanceVarAsConst = prevTreatFinalInstanceVarAsConst;
     }
   }
 
   @override
-  void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
-    super.visitConstructorDeclaration(node);
+  void visitConstructorDeclaration2(
+    covariant ConstructorDeclaration2Impl node,
+  ) {
+    super.visitConstructorDeclaration2(node);
     if (node.constKeyword != null) {
       var fragment = node.declaredFragment;
       if (fragment != null) {
@@ -175,10 +166,10 @@ class ConstantFinder extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitEnumConstantDeclaration(
-    covariant EnumConstantDeclarationImpl node,
+  void visitEnumConstantDeclaration2(
+    covariant EnumConstantDeclaration2Impl node,
   ) {
-    super.visitEnumConstantDeclaration(node);
+    super.visitEnumConstantDeclaration2(node);
 
     var element = node.declaredFragment!.element;
     constantsToCompute.add(element);
@@ -190,9 +181,21 @@ class ConstantFinder extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitField2(covariant Field2Impl node) {
+    super.visitField2(node);
+    _visitVariable(node);
+  }
+
+  @override
   void visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
     super.visitFieldFormalParameter(node);
     _visitFormalParameter(node);
+  }
+
+  @override
+  void visitLocalVariable(covariant LocalVariableImpl node) {
+    super.visitLocalVariable(node);
+    _visitVariable(node);
   }
 
   @override
@@ -208,15 +211,26 @@ class ConstantFinder extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
-    super.visitVariableDeclaration(node);
+  void visitTopLevelVariable2(covariant TopLevelVariable2Impl node) {
+    super.visitTopLevelVariable2(node);
+    _visitVariable(node);
+  }
+
+  void _visitFormalParameter(FormalParameterImpl node) {
+    if (node.defaultClause != null && node.declaredFragment != null) {
+      constantsToCompute.add(node.declaredFragment!.element);
+    }
+  }
+
+  void _visitVariable(VariableBindingImpl node) {
     var initializer = node.initializer2;
-    var element = node.declaredFragment!.element;
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
     if (initializer != null &&
-        (node.isConst ||
+        (fragment.isConst ||
             treatFinalInstanceVarAsConst &&
                 element is FieldElementImpl &&
-                node.isFinal &&
+                fragment.isFinal &&
                 !element.isStatic)) {
       constantsToCompute.add(element);
       // Fill error nodes.
@@ -226,12 +240,6 @@ class ConstantFinder extends RecursiveAstVisitor2<void> {
           fromAst: node.initializer2,
         );
       }
-    }
-  }
-
-  void _visitFormalParameter(FormalParameterImpl node) {
-    if (node.defaultClause != null && node.declaredFragment != null) {
-      constantsToCompute.add(node.declaredFragment!.element);
     }
   }
 }
@@ -246,7 +254,7 @@ class ReferenceFinder extends RecursiveAstVisitor2<void> {
   /// Initialize a newly created reference finder to find references from a
   /// given variable to other variables and to add those references to the given
   /// graph. The [_callback] will be invoked for every dependency found.
-  ReferenceFinder(this._callback);
+  new(this._callback);
 
   @override
   void visitConstructorInvocation(covariant ConstructorInvocationImpl node) {
@@ -260,16 +268,32 @@ class ReferenceFinder extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitDotShorthandConstructorInvocation(
-    covariant DotShorthandConstructorInvocationImpl node,
+  void visitDotShorthandConstructorInvocation2(
+    covariant DotShorthandConstructorInvocation2Impl node,
   ) {
     if (node.isConst) {
-      var constructor = node.constructorName.element?.baseElement;
-      if (constructor is ConstructorElementImpl && constructor.isConst) {
+      var constructor = node.element?.baseElement;
+      if (constructor != null && constructor.isConst) {
         _callback(constructor);
       }
     }
-    super.visitDotShorthandConstructorInvocation(node);
+    super.visitDotShorthandConstructorInvocation2(node);
+  }
+
+  @override
+  void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
+    if (node.resolution case GetterInvocationResolution(:var element)) {
+      var variable = element.variable;
+      if (variable case ConstantEvaluationTarget dependency
+          when variable.isConst) {
+        _callback(dependency);
+      }
+    }
+  }
+
+  @override
+  void visitImportPrefixedNameExpression(ImportPrefixedNameExpression node) {
+    _recordNamedReadDependency(node.resolution);
   }
 
   @override
@@ -279,6 +303,12 @@ class ReferenceFinder extends RecursiveAstVisitor2<void> {
     // don't want to visit the SimpleIdentifier for the label because that's a
     // reference to a function parameter that needs to be filled in; it's not a
     // constant whose value we depend on.
+  }
+
+  @override
+  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
+    _recordNamedReadDependency(node.resolution);
+    node.receiver.accept2(this);
   }
 
   @override
@@ -293,18 +323,6 @@ class ReferenceFinder extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    var element = node.element;
-    if (element is GetterElementImpl) {
-      element = element.variable;
-    }
-
-    if (element is VariableElementImpl && element.isConst) {
-      _callback(element);
-    }
-  }
-
-  @override
   void visitSuperConstructorInvocation(
     covariant SuperConstructorInvocationImpl node,
   ) {
@@ -312,6 +330,21 @@ class ReferenceFinder extends RecursiveAstVisitor2<void> {
     var constructor = node.element?.baseElement;
     if (constructor != null) {
       _callback(constructor);
+    }
+  }
+
+  @override
+  void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
+    _recordNamedReadDependency(node.resolution);
+  }
+
+  void _recordNamedReadDependency(NamedReadResolution? resolution) {
+    var element = resolution?.elementOrRecovery;
+    if (element is GetterElementImpl) {
+      element = element.variable;
+    }
+    if (element is VariableElementImpl && element.isConst) {
+      _callback(element);
     }
   }
 }

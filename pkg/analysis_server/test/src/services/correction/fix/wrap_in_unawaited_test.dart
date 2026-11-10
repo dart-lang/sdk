@@ -16,7 +16,8 @@ void main() {
 }
 
 @reflectiveTest
-class WrapDiscardedFutureInUnawaitedTest extends FixProcessorLintTest {
+class WrapDiscardedFutureInUnawaitedTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.wrapInUnawaited;
 
@@ -75,20 +76,12 @@ void f() {
   g();
 }
 ''');
-    await assertHasFix('''
-import 'dart:async';
-
-FutureOr<void> g() async { }
-
-void f() {
-  unawaited(g());
-}
-''');
+    await assertNoFix();
   }
 }
 
 @reflectiveTest
-class WrapInUnawaitedTest extends FixProcessorLintTest {
+class WrapInUnawaitedTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.wrapInUnawaited;
 

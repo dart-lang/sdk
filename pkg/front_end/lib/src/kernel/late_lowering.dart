@@ -77,9 +77,11 @@ Statement createGetterWithInitializer(
           body: new ConditionalExpression(
             new StaticInvocation(
               coreTypes.isSentinelMethod,
-              new Arguments(<Expression>[
-                new VariableGet(fieldCache.variable)..fileOffset = fileOffset,
-              ])..fileOffset = fileOffset,
+              new Arguments(
+                new ExpressionList(
+                  new VariableGet(fieldCache.variable)..fileOffset = fileOffset,
+                ),
+              )..fileOffset = fileOffset,
             )..fileOffset = fileOffset,
             createVariableWrite(initializer)..fileOffset = fileOffset,
             new VariableGet(fieldCache.variable, type)..fileOffset = fileOffset,
@@ -137,9 +139,11 @@ Statement createGetterWithInitializerWithRecheck(
       new Throw(
           new ConstructorInvocation(
             constructor,
-            new Arguments(<Expression>[
-              new StringLiteral(name)..fileOffset = fileOffset,
-            ])..fileOffset = fileOffset,
+            new Arguments(
+              new ExpressionList(
+                new StringLiteral(name)..fileOffset = fileOffset,
+              ),
+            )..fileOffset = fileOffset,
           )..fileOffset = fileOffset,
         )
         ..fileOffset = fileOffset
@@ -214,19 +218,23 @@ Statement createGetterWithInitializerWithRecheck(
           body: new ConditionalExpression(
             new StaticInvocation(
               coreTypes.isSentinelMethod,
-              new Arguments(<Expression>[
-                new VariableGet(fieldCache.variable)..fileOffset = fileOffset,
-              ])..fileOffset = fileOffset,
+              new Arguments(
+                new ExpressionList(
+                  new VariableGet(fieldCache.variable)..fileOffset = fileOffset,
+                ),
+              )..fileOffset = fileOffset,
             )..fileOffset = fileOffset,
             extern.createLet(
               cache: initializerCache,
               body: new ConditionalExpression(
                 new StaticInvocation(
                   coreTypes.isSentinelMethod,
-                  new Arguments(<Expression>[
-                    createVariableRead(needsPromotion: false)
-                      ..fileOffset = fileOffset,
-                  ])..fileOffset = fileOffset,
+                  new Arguments(
+                    new ExpressionList(
+                      createVariableRead(needsPromotion: false)
+                        ..fileOffset = fileOffset,
+                    ),
+                  )..fileOffset = fileOffset,
                 )..fileOffset = fileOffset,
                 createVariableWrite(
                   new VariableGet(initializerCache.variable)
@@ -305,9 +313,11 @@ Statement createGetterBodyWithoutInitializer(
             forField
                 ? coreTypes.lateInitializationFieldNotInitializedConstructor
                 : coreTypes.lateInitializationLocalNotInitializedConstructor,
-            new Arguments(<Expression>[
-              new StringLiteral(name)..fileOffset = fileOffset,
-            ])..fileOffset = fileOffset,
+            new Arguments(
+              new ExpressionList(
+                new StringLiteral(name)..fileOffset = fileOffset,
+              ),
+            )..fileOffset = fileOffset,
           )..fileOffset = fileOffset,
         )
         ..fileOffset = fileOffset
@@ -340,9 +350,11 @@ Statement createGetterBodyWithoutInitializer(
           body: new ConditionalExpression(
             new StaticInvocation(
               coreTypes.isSentinelMethod,
-              new Arguments(<Expression>[
-                new VariableGet(fieldCache.variable)..fileOffset = fileOffset,
-              ])..fileOffset = fileOffset,
+              new Arguments(
+                new ExpressionList(
+                  new VariableGet(fieldCache.variable)..fileOffset = fileOffset,
+                ),
+              )..fileOffset = fileOffset,
             )..fileOffset = fileOffset,
             exception,
             new VariableGet(fieldCache.variable, type)..fileOffset = fileOffset,
@@ -449,9 +461,11 @@ Statement createSetterBodyFinal(
                 ? coreTypes.lateInitializationFieldAlreadyInitializedConstructor
                 : coreTypes
                       .lateInitializationLocalAlreadyInitializedConstructor,
-            new Arguments(<Expression>[
-              new StringLiteral(name)..fileOffset = fileOffset,
-            ])..fileOffset = fileOffset,
+            new Arguments(
+              new ExpressionList(
+                new StringLiteral(name)..fileOffset = fileOffset,
+              ),
+            )..fileOffset = fileOffset,
           )..fileOffset = fileOffset,
         )
         ..fileOffset = fileOffset
@@ -501,9 +515,9 @@ Statement createSetterBodyFinal(
       return new IfStatement(
         new StaticInvocation(
           coreTypes.isSentinelMethod,
-          new Arguments(<Expression>[
-            createVariableRead()..fileOffset = fileOffset,
-          ])..fileOffset = fileOffset,
+          new Arguments(
+            new ExpressionList(createVariableRead()..fileOffset = fileOffset),
+          )..fileOffset = fileOffset,
         )..fileOffset = fileOffset,
         createReturn(
           createVariableWrite(

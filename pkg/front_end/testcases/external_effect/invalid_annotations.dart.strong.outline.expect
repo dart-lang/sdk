@@ -82,11 +82,11 @@ class A extends core::Object {
   @/*original=core::pragma::•*/ const core::pragma::_("external-effect")
   external static method d(core::int i) → void;
   @/*original=core::pragma::•*/ const core::pragma::_("external-effect")
-  external static method e([has-declared-initializer core::Object? o]) → void;
+  external static method e([core::Object? o = const core::Object::•()]) → void;
   @/*original=core::pragma::•*/ const core::pragma::_("external-effect")
   external static method f({required core::Object? o}) → void;
   @/*original=core::pragma::•*/ const core::pragma::_("external-effect")
-  external static method g({has-declared-initializer core::Object? o}) → void;
+  external static method g({core::Object? o = 3}) → void;
   @/*original=core::pragma::•*/ const core::pragma::_("external-effect")
   external static method h<T extends core::Object? = dynamic>(self::A::h::T? t) → void;
 }
@@ -116,6 +116,7 @@ Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///invalid_annot
 Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///invalid_annotations.dart:32:4 -> InstanceConstant(const pragma{pragma.name: "external-effect", pragma.options: null})
 Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///invalid_annotations.dart:35:4 -> InstanceConstant(const pragma{pragma.name: "external-effect", pragma.options: null})
 Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///invalid_annotations.dart:38:4 -> InstanceConstant(const pragma{pragma.name: "external-effect", pragma.options: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///invalid_annotations.dart:39:45 -> InstanceConstant(const Object{})
 Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///invalid_annotations.dart:41:4 -> InstanceConstant(const pragma{pragma.name: "external-effect", pragma.options: null})
 Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///invalid_annotations.dart:44:4 -> InstanceConstant(const pragma{pragma.name: "external-effect", pragma.options: null})
 Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///invalid_annotations.dart:47:4 -> InstanceConstant(const pragma{pragma.name: "external-effect", pragma.options: null})
@@ -126,4 +127,4 @@ Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///invalid_annot
 Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///invalid_annotations.dart:14:2 -> InstanceConstant(const pragma{pragma.name: "external-effect", pragma.options: null})
 Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///invalid_annotations.dart:17:2 -> InstanceConstant(const pragma{pragma.name: "external-effect", pragma.options: null})
 Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///invalid_annotations.dart:22:2 -> InstanceConstant(const pragma{pragma.name: "external-effect", pragma.options: null})
-Extra constant evaluation: evaluated: 15, effectively constant: 15
+Extra constant evaluation: evaluated: 16, effectively constant: 16

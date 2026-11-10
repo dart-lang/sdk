@@ -196,6 +196,92 @@ class X extends B with M2 {}
 ''');
   }
 
+  test_class_OK_invalidBinaryOperator_eqEqEq() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {}
+
+mixin M on A {
+  void foo() {
+    super === 0;
+//        ^
+// [diag.unsupportedOperator] The '===' operator is not supported.
+  }
+}
+
+class X extends A with M {}
+''');
+
+    var node = result.findNode.singleBinaryOperatorInvocation;
+    assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SuperReference
+    superKeyword: super
+  operator: ===
+  rightOperand: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: null
+  element: <null>
+  staticType: InvalidType
+V1: BinaryExpression
+  leftOperand: SuperExpression
+    superKeyword: super
+    staticType: M
+  operator: ===
+  rightOperand: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  element: <null>
+  staticInvokeType: null
+  staticType: InvalidType
+''');
+  }
+
+  test_class_OK_invalidBinaryOperator_tilde() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {}
+
+mixin M on A {
+  void foo() {
+    super ~ 0;
+//        ^
+// [diag.notBinaryOperator] '~' isn't a binary operator.
+  }
+}
+
+class X extends A with M {}
+''');
+
+    var node = result.findNode.singleBinaryOperatorInvocation;
+    assertResolvedNodeText(node, r'''
+BinaryOperatorInvocation
+  leftOperand: SuperReference
+    superKeyword: super
+  operator: ~
+  rightOperand: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: null
+  element: <null>
+  staticType: InvalidType
+V1: BinaryExpression
+  leftOperand: SuperExpression
+    superKeyword: super
+    staticType: M
+  operator: ~
+  rightOperand: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  element: <null>
+  staticInvokeType: null
+  staticType: InvalidType
+''');
+  }
+
   test_class_OK_notInvoked() async {
     await resolveTestCodeWithDiagnostics(r'''
 abstract class A {

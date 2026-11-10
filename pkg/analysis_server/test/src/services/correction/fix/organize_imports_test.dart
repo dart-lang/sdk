@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -19,6 +20,25 @@ void main() {
 
 @reflectiveTest
 class OrganizeImportsBulkTest extends BulkFixProcessorTest {
+  Future<void> test_comments() async {
+    await parseTestCode('''
+import 'dart:io'; // comment1
+
+// comment2
+import 'dart:async';
+
+Future? a;
+''');
+
+    await assertOrganize('''
+// comment2
+import 'dart:async';
+import 'dart:io'; // comment1
+
+Future? a;
+''');
+  }
+
   Future<void> test_partFile() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
@@ -85,7 +105,8 @@ Future? a;
 }
 
 @reflectiveTest
-class OrganizeImportsDirectivesOrderingTest extends FixProcessorLintTest {
+class OrganizeImportsDirectivesOrderingTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.organizeImports;
 
@@ -118,6 +139,177 @@ import 'dart:async';
 import 'dart:io';
 
 void f(Stream<String> args) { }
+''');
+  }
+
+  Future<void> test_organizeImports_docImports() async {
+    newFile('$testPackageLibPath/a.dart', '');
+    await resolveTestCode('''
+/// @docImport 'a.dart';
+/// @docImport 'dart:math';
+library;
+''');
+    await assertHasFix('''
+/// @docImport 'dart:math';
+///
+/// @docImport 'a.dart';
+library;
+''');
+  }
+
+  Future<void> test_organizeImports_docImports_blockComment() async {
+    newFile('$testPackageLibPath/a.dart', '');
+    await resolveTestCode('''
+/**
+ * @docImport 'a.dart';
+ * @docImport 'dart:math';
+ */
+library;
+''');
+    await assertHasFix('''
+/**
+ * @docImport 'dart:math';
+ *
+ * @docImport 'a.dart';
+ */
+library;
+''');
+  }
+
+  Future<void> test_organizeImports_docImports_blockComment_weird() async {
+    newFile('$testPackageLibPath/a.dart', '');
+    await resolveTestCode('''
+/** @docImport 'a.dart';
+ * @docImport 'dart:math';*/
+library;
+''');
+    // The `@docImport`s aren't recognized here: the first shares its line with
+    // the opening `/**` and the second with the closing `*/`, so neither is
+    // parsed as a doc import and `directives_ordering` never fires. There is
+    // no fix to offer.
+    expect(
+      testAnalysisResult.diagnostics.where(lintNameFilter(lintCode)),
+      isEmpty,
+    );
+  }
+
+  Future<void> test_organizeImports_docImports_multiple() async {
+    // TODO(FMorschel): Move docImports with preceding comments together. Since
+    //  they might be ignores or information related to it.
+    await resolveTestCode('''
+/// Text
+/// @docImport 'dart:math';
+/// one
+/// @docImport 'dart:async';
+/// two
+/// @docImport 'dart:io';
+/// three
+library;
+''');
+    await assertHasFix('''
+/// Text
+/// @docImport 'dart:async';
+/// @docImport 'dart:io';
+/// @docImport 'dart:math';
+/// one
+/// two
+/// three
+library;
+''');
+  }
+
+  Future<void> test_organizeImports_docImports_noTextBefore() async {
+    newFile('$testPackageLibPath/a.dart', '');
+    await resolveTestCode('''
+/// @docImport 'a.dart';
+/// middle
+/// @docImport 'dart:math';
+/// end
+library;
+''');
+    await assertHasFix('''
+/// @docImport 'dart:math';
+///
+/// @docImport 'a.dart';
+/// middle
+/// end
+library;
+''');
+  }
+
+  Future<void> test_organizeImports_docImports_other() async {
+    newFile('$testPackageLibPath/a.dart', '');
+    await resolveTestCode('''
+/// Text
+/// @docImport 'a.dart';
+/// all
+/// @docImport 'dart:math';
+/// over
+library;
+''');
+    await assertHasFix('''
+/// Text
+/// @docImport 'dart:math';
+///
+/// @docImport 'a.dart';
+/// all
+/// over
+library;
+''');
+  }
+
+  Future<void> test_organizeImports_docImports_packageImport() async {
+    newFile('$testPackageLibPath/a.dart', '');
+    await resolveTestCode('''
+/// Text
+/// @docImport 'package:test/a.dart';
+/// middle
+/// @docImport 'dart:math';
+/// end
+library;
+''');
+    await assertHasFix('''
+/// Text
+/// @docImport 'dart:math';
+///
+/// @docImport 'package:test/a.dart';
+/// middle
+/// end
+library;
+''');
+  }
+
+  Future<void>
+  test_organizeImports_docImports_removesRedundantBlankLine() async {
+    await resolveTestCode('''
+/// @docImport 'dart:math';
+///
+/// @docImport 'dart:async';
+library;
+''');
+    await assertHasFix('''
+/// @docImport 'dart:async';
+/// @docImport 'dart:math';
+library;
+''');
+  }
+
+  Future<void> test_organizeImports_docImports_textBeforeAndAfter() async {
+    newFile('$testPackageLibPath/a.dart', '');
+    await resolveTestCode('''
+/// Text
+/// @docImport 'a.dart';
+/// @docImport 'dart:math';
+/// End
+library;
+''');
+    await assertHasFix('''
+/// Text
+/// @docImport 'dart:math';
+///
+/// @docImport 'a.dart';
+/// End
+library;
 ''');
   }
 

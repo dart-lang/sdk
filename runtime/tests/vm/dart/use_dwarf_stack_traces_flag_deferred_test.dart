@@ -25,6 +25,10 @@ import 'use_flag_test_helper.dart';
 import 'use_dwarf_stack_traces_flag_helper.dart';
 
 Future<void> main() async {
+  if (Platform.isMacOS) {
+    return; // Deferred loading not implemented for Mach-O.
+  }
+
   await runTests(
     'dwarf-flag-deferred-test',
     path.join(

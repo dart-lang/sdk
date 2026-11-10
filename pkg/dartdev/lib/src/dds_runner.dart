@@ -8,9 +8,10 @@ import 'dart:io';
 
 import 'package:path/path.dart';
 
+import 'core.dart';
 import 'sdk.dart';
 
-class DDSRunner {
+final class DDSRunner {
   Uri? ddsUri;
 
   Future<bool> start({
@@ -23,7 +24,7 @@ class DDSRunner {
     required bool enableServicePortFallback,
   }) async {
     void printError(String details) =>
-        stderr.writeln('Could not start the VM service:\n$details');
+        log.stderr('Could not start the VM service:\n$details');
 
     final sdkDir = dirname(sdk.dart);
     final fullSdk = sdkDir.endsWith('bin');
@@ -33,7 +34,7 @@ class DDSRunner {
     var snapshotName = fullSdk
         ? sdk.ddsAotSnapshot
         : absolute(sdkDir, 'dds_aot.dart.snapshot');
-    final isAot = checkArtifactExists(snapshotName) ? true : false;
+    final isAot = checkArtifactExists(snapshotName);
     if (!isAot) {
       printError('Unable to find snapshot for the development server');
       return false;
@@ -63,23 +64,47 @@ class DDSRunner {
           .listen((event) {
             if (event.startsWith(devToolsMessagePrefix)) {
               final ddsDebuggingUri = event.split(' ').last;
-              print(
+              log.stdout(
                 'A DevTools debugger for DDS is available at: $ddsDebuggingUri',
               );
               stdoutSub.cancel();
             }
           });
+    } else {
+      unawaited(process.stdout.drain());
     }
 
-    // DDS will close stderr once it's finished launching.
-    final launchResult = await process.stderr.transform(utf8.decoder).join();
+    final completer = Completer<String>();
+    process.stderr
+        .transform(utf8.decoder)
+        .transform(const LineSplitter())
+        .listen(
+          (line) {
+            if (!completer.isCompleted) {
+              completer.complete(line);
+            }
+          },
+          onError: (Object e, StackTrace st) {
+            if (!completer.isCompleted) {
+              completer.completeError(e, st);
+            }
+          },
+          onDone: () {
+            if (!completer.isCompleted) {
+              completer.complete('');
+            }
+          },
+          cancelOnError: false,
+        );
+
+    final launchResult = await completer.future;
 
     try {
       final result = json.decode(launchResult) as Map<String, dynamic>;
       if (result case {'state': 'started', 'ddsUri': final String ddsUriStr}) {
         ddsUri = Uri.parse(ddsUriStr);
         if (result case {'devToolsUri': String devToolsUri}) {
-          print('$devToolsMessagePrefix $devToolsUri');
+          log.stdout('$devToolsMessagePrefix $devToolsUri');
         }
       } else {
         final error = result['error'] ?? result;

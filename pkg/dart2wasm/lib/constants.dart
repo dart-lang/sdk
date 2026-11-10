@@ -131,10 +131,15 @@ class ConstantInfo {
   }
 }
 
-typedef ConstantCodeGenerator =
-    void Function(ConstantInfo, w.InstructionsBuilder, bool isLazy);
-typedef ConstantCodeGeneratorLazy =
-    bool Function(ConstantInfo, w.ModuleBuilder);
+typedef ConstantCodeGenerator = void Function(
+  ConstantInfo,
+  w.InstructionsBuilder,
+  bool isLazy,
+);
+typedef ConstantCodeGeneratorLazy = bool Function(
+  ConstantInfo,
+  w.ModuleBuilder,
+);
 
 /// Handles the creation of Dart constants.
 ///
@@ -209,16 +214,19 @@ class Constants {
   }
 
   Constant makeWasmI32(int value) {
-    return InstanceConstant(translator.wasmI32Class.reference, const [], {
-      translator.wasmI32Value.fieldReference: IntConstant(value),
-    });
+    return InstanceConstant(
+      translator.wasmI32Class.reference,
+      DartTypeList.empty,
+      {translator.wasmI32Value.fieldReference: IntConstant(value)},
+    );
   }
 
   /// Makes a `WasmArray<_Type>` [InstanceConstant].
   InstanceConstant makeTypeArray(Iterable<DartType> types) {
+    final list = types is List<DartType> ? types : types.toList();
     return makeArrayOf(
       translator.typeType,
-      types.map(_lowerTypeToConstant).toList(),
+      ConstantList.mapped(list, _lowerTypeToConstant),
     );
   }
 
@@ -226,7 +234,7 @@ class Constants {
   InstanceConstant makeNamedParameterConstant(NamedType n) {
     return InstanceConstant(
       translator.namedParameterClass.reference,
-      const [],
+      DartTypeList.empty,
       {
         translator.namedParameterNameField.fieldReference: translator.symbols
             .symbolForNamedParameter(n.name),
@@ -244,19 +252,19 @@ class Constants {
   /// `_FunctionType`.
   InstanceConstant makeNamedParametersArray(FunctionType type) => makeArrayOf(
     translator.namedParameterType,
-    [for (final n in type.namedParameters) makeNamedParameterConstant(n)],
+    ConstantList.mapped(type.namedParameters, makeNamedParameterConstant),
   );
 
   /// Creates a `WasmArray<T>` with the given [Constant]s
   InstanceConstant makeArrayOf(
     InterfaceType elementType,
-    List<Constant> entries, {
+    ConstantList entries, {
     bool mutable = true,
   }) => InstanceConstant(
     mutable
         ? translator.wasmArrayClass.reference
         : translator.immutableWasmArrayClass.reference,
-    [elementType],
+    DartTypeList(elementType),
     {
       mutable
               ? translator.wasmArrayValueField.fieldReference
@@ -348,6 +356,7 @@ class Constants {
     Constant constant,
     w.ValueType expectedType, {
     w.ModuleBuilder? deferredModuleGuard,
+    bool dummyValueIfIncompatible = false,
   }) {
     if (expectedType == translator.voidMarker) return;
     ConstantInstantiator(
@@ -355,6 +364,7 @@ class Constants {
       b,
       expectedType,
       deferredModuleGuard,
+      dummyValueIfIncompatible: dummyValueIfIncompatible,
     ).instantiate(constant);
   }
 
@@ -452,7 +462,7 @@ class Constants {
     ]);
     final names = makeArrayOf(
       coreTypes.stringNonNullableRawType,
-      type.named.map((t) => StringConstant(t.name)).toList(),
+      ConstantList.mapped(type.named, (n) => StringConstant(n.name)),
       mutable: false,
     );
     return _makeTypeConstant(translator.recordTypeClass, type.nullability, {
@@ -545,7 +555,11 @@ class Constants {
         nullability == Nullability.nullable
         ? _cachedTrueConstant
         : _cachedFalseConstant;
-    return InstanceConstant(classNode.reference, const [], fieldValues);
+    return InstanceConstant(
+      classNode.reference,
+      DartTypeList.empty,
+      fieldValues,
+    );
   }
 }
 
@@ -555,13 +569,15 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType>
   final w.InstructionsBuilder b;
   final w.ValueType expectedType;
   final w.ModuleBuilder? deferredModuleGuard;
+  final bool dummyValueIfIncompatible;
 
   ConstantInstantiator(
     this.constants,
     this.b,
     this.expectedType,
-    this.deferredModuleGuard,
-  );
+    this.deferredModuleGuard, {
+    this.dummyValueIfIncompatible = false,
+  });
 
   Translator get translator => constants.translator;
 
@@ -571,6 +587,16 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType>
       if (expectedType == const w.RefType.extern(nullable: true)) {
         assert(resultType.isSubtypeOf(w.RefType.any(nullable: true)));
         b.extern_convert_any();
+      } else if (dummyValueIfIncompatible) {
+        // In a dispatch table call, an optional parameter may be declared by
+        // some targets in the selector (where it is always explicitly passed at
+        // call sites reaching those targets, giving it a narrower inferred type
+        // in the selector signature than its declared default value), while the
+        // targets actually reachable from this call site do not declare the
+        // parameter at all. Any reachable callee will ignore this parameter, so
+        // we can pass a dummy value of the expected signature type.
+        b.drop();
+        constants.instantiateDummyValueConstant(b, expectedType);
       } else {
         // This only happens in invalid but unreachable code produced by the
         // TFA dead-code elimination.
@@ -641,7 +667,7 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType>
           ..i64_const(constant.value)
           ..struct_new(info.struct)
           ..end();
-        return definedGlobal;
+        return definedGlobal.build();
       });
       b.global_get(perModuleGlobal);
       return perModuleGlobal.type.type;
@@ -677,7 +703,7 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType>
           ..f64_const(constant.value)
           ..struct_new(info.struct)
           ..end();
-        return definedGlobal;
+        return definedGlobal.build();
       });
       b.global_get(perModuleGlobal);
       return perModuleGlobal.type.type;
@@ -1058,7 +1084,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
             }
             b.i32_const(segment.length);
             b.i32_const(elements.length);
-            b.array_new_data(arrayType, segment);
+            b.array_new_data(arrayType, segment.dataSegment);
             segment.append(bytes);
             return;
           }
@@ -1128,14 +1154,14 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
   ConstantInfo? visitListConstant(ListConstant constant) {
     final instanceConstant = InstanceConstant(
       translator.immutableListClass.reference,
-      [constant.typeArgument],
+      DartTypeList(constant.typeArgument),
       {
         translator.listBaseLengthField.fieldReference: IntConstant(
           constant.entries.length,
         ),
         translator.listBaseDataField.fieldReference: InstanceConstant(
           translator.wasmArrayClass.reference,
-          [translator.coreTypes.objectNullableRawType],
+          DartTypeList(translator.coreTypes.objectNullableRawType),
           {
             translator.wasmArrayValueField.fieldReference: ListConstant(
               translator.coreTypes.objectNullableRawType,
@@ -1150,14 +1176,16 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
 
   @override
   ConstantInfo? visitMapConstant(MapConstant constant) {
-    final listElements = List.generate(constant.entries.length * 2, (i) {
+    final listElements = ConstantList.generate(constant.entries.length * 2, (
+      i,
+    ) {
       ConstantMapEntry entry = constant.entries[i >> 1];
       return i.isEven ? entry.key : entry.value;
     });
 
     final instanceConstant = InstanceConstant(
       translator.immutableMapClass.reference,
-      [constant.keyType, constant.valueType],
+      DartTypeList(constant.keyType, constant.valueType),
       {
         // _index = _uninitializedHashBaseIndex
         translator.hashFieldBaseIndexField.fieldReference:
@@ -1169,7 +1197,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         // _data
         translator.hashFieldBaseDataField.fieldReference: InstanceConstant(
           translator.wasmArrayClass.reference,
-          [translator.coreTypes.objectNullableRawType],
+          DartTypeList(translator.coreTypes.objectNullableRawType),
           {
             translator.wasmArrayValueField.fieldReference: ListConstant(
               translator.coreTypes.objectNullableRawType,
@@ -1195,7 +1223,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
   ConstantInfo? visitSetConstant(SetConstant constant) {
     final instanceConstant = InstanceConstant(
       translator.immutableSetClass.reference,
-      [constant.typeArgument],
+      DartTypeList(constant.typeArgument),
       {
         // _index = _uninitializedHashBaseIndex
         translator.hashFieldBaseIndexField.fieldReference:
@@ -1207,7 +1235,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         // _data
         translator.hashFieldBaseDataField.fieldReference: InstanceConstant(
           translator.wasmArrayClass.reference,
-          [translator.coreTypes.objectNullableRawType],
+          DartTypeList(translator.coreTypes.objectNullableRawType),
           {
             translator.wasmArrayValueField.fieldReference: ListConstant(
               translator.coreTypes.objectNullableRawType,
@@ -1378,16 +1406,16 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         final targetModule = b.moduleBuilder;
 
         w.BaseFunction makeDynamicCallEntry() {
-          final function = targetModule.functions.define(
+          final functionBuilder = targetModule.functions.define(
             translator.dynamicCallVtableEntryFunctionType,
             "dynamic call entry",
           );
 
-          final b = function.body;
+          final b = functionBuilder.body;
 
-          final typeArgsListLocal = function.locals[1]; // empty
-          final posArgsListLocal = function.locals[2];
-          final namedArgsListLocal = function.locals[3];
+          final typeArgsListLocal = functionBuilder.locals[1]; // empty
+          final posArgsListLocal = functionBuilder.locals[2];
+          final namedArgsListLocal = functionBuilder.locals[3];
 
           constants.instantiateConstant(
             b,
@@ -1403,8 +1431,13 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
           b.local_get(namedArgsListLocal);
           translator.callFunction(tearOffClosure.dynamicCallEntry!, b);
           b.end();
+          if (!functionBuilder.body.hasPatchPoints) {
+            functionBuilder.build();
+          } else {
+            translator.linkingActions.add(functionBuilder.build);
+          }
 
-          return function;
+          return functionBuilder.function;
         }
 
         void declareAndAddRefFunc(w.BaseFunction function) {
@@ -1418,7 +1451,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
             global.initializer
               ..ref_func(function)
               ..end();
-            b.global_get(global);
+            b.global_get(global.build());
           } else {
             b.ref_func(function);
           }
@@ -1432,12 +1465,12 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
             tearOffFunction.type.inputs.length ==
                 signature.inputs.length + typeConstantInfos.length,
           );
-          final function = b.moduleBuilder.functions.define(
+          final functionBuilder = b.moduleBuilder.functions.define(
             signature,
             "instantiation constant trampoline",
           );
-          final b2 = function.body;
-          b2.local_get(function.locals[0]);
+          final b2 = functionBuilder.body;
+          b2.local_get(functionBuilder.locals[0]);
           for (final type in typeConstantInfos) {
             constants.instantiateConstant(
               b2,
@@ -1446,11 +1479,16 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
             );
           }
           for (int i = 1; i < signature.inputs.length; i++) {
-            b2.local_get(function.locals[i]);
+            b2.local_get(functionBuilder.locals[i]);
           }
           translator.callFunction(tearOffFunction, b2);
           b2.end();
-          return function;
+          if (!functionBuilder.body.hasPatchPoints) {
+            functionBuilder.build();
+          } else {
+            translator.linkingActions.add(functionBuilder.build);
+          }
+          return functionBuilder.function;
         }
 
         void fillVtableEntry(int posArgCount, NameCombination nameCombination) {
@@ -1622,7 +1660,8 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         if (type is w.StructType) {
           for (w.FieldType field in type.fields) {
             final unpackedType = field.type.unpacked;
-            if (unpackedType is w.RefType && !unpackedType.nullable) {
+            if (unpackedType is w.RefType &&
+                !hasTrivialDummyValue(unpackedType)) {
               childConstants.add(
                 ensureConstant(
                   constants._getDummyValueConstant(unpackedType.heapType),
@@ -1832,7 +1871,7 @@ class _ConstantAccessor {
   /// We maintain a table for lazily initialized constants that are used across
   /// modules. This avoids having many invidiual globals of the same type with
   /// null initializer.
-  final Map<w.RefType, w.TableBuilder> lazySlotTables = {};
+  final Map<w.RefType, w.Table> lazySlotTables = {};
   late final tableImporter = WasmTableImporter(translator, 'constant-table');
 
   _ConstantAccessor(this.translator);
@@ -2070,7 +2109,7 @@ class _ConstantAccessor {
     final ConstantDefinition definition;
     if (lazy) {
       if (targetModule == null) {
-        final w.TableBuilder table = lazySlotTables.putIfAbsent(info.type, () {
+        final w.Table table = lazySlotTables.putIfAbsent(info.type, () {
           return translator.mainModule.tables.define(
             info.type.withNullability(true),
             0,
@@ -2105,7 +2144,7 @@ class _ConstantAccessor {
     return definition;
   }
 
-  (w.GlobalBuilder, w.FunctionBuilder) _createLazyConstant(
+  (w.Global, w.BaseFunction) _createLazyConstant(
     w.ModuleBuilder targetModule,
     ConstantInfo info,
   ) {
@@ -2122,7 +2161,7 @@ class _ConstantAccessor {
     return (definedGlobal, initFunction);
   }
 
-  w.GlobalBuilder _createLazyGlobal(
+  w.Global _createLazyGlobal(
     w.ModuleBuilder module,
     String name,
     ConstantInfo info,
@@ -2131,12 +2170,12 @@ class _ConstantAccessor {
     final definedGlobal = module.globals.define(globalType, name);
     definedGlobal.initializer.ref_null(w.HeapType.none);
     definedGlobal.initializer.end();
-    return definedGlobal;
+    return definedGlobal.build();
   }
 
-  w.FunctionBuilder _createLazyGlobalInitializer(
+  w.BaseFunction _createLazyGlobalInitializer(
     w.ModuleBuilder module,
-    w.GlobalBuilder definedGlobal,
+    w.Global definedGlobal,
     String name,
     ConstantInfo info,
   ) {
@@ -2144,24 +2183,29 @@ class _ConstantAccessor {
     final initFunctionType = translator.typesBuilder.defineFunction(const [], [
       type,
     ]);
-    final initFunction = module.functions.define(
+    final initFunctionBuilder = module.functions.define(
       initFunctionType,
       '$name (lazy initializer)',
     );
-    final b = initFunction.body;
+    final b = initFunctionBuilder.body;
     info._codeGen(info, b, true);
     w.Local temp = b.addLocal(type);
     b.local_tee(temp);
     translator.globals.writeGlobal(b, definedGlobal);
     b.local_get(temp);
     b.end();
+    if (!initFunctionBuilder.body.hasPatchPoints) {
+      initFunctionBuilder.build();
+    } else {
+      translator.linkingActions.add(initFunctionBuilder.build);
+    }
 
-    return initFunction;
+    return initFunctionBuilder.function;
   }
 
-  w.FunctionBuilder _createLazyTableInitializer(
+  w.BaseFunction _createLazyTableInitializer(
     w.ModuleBuilder module,
-    w.TableBuilder table,
+    w.Table table,
     int tableIndex,
     String name,
     ConstantInfo info,
@@ -2170,11 +2214,11 @@ class _ConstantAccessor {
     final initFunctionType = translator.typesBuilder.defineFunction(const [], [
       type,
     ]);
-    final initFunction = module.functions.define(
+    final initFunctionBuilder = module.functions.define(
       initFunctionType,
       '$name (lazy initializer)',
     );
-    final b = initFunction.body;
+    final b = initFunctionBuilder.body;
     b.i32_const(tableIndex);
     info._codeGen(info, b, true);
     w.Local temp = b.addLocal(type);
@@ -2182,11 +2226,16 @@ class _ConstantAccessor {
     b.table_set(tableImporter.get(table, module));
     b.local_get(temp);
     b.end();
+    if (!initFunctionBuilder.body.hasPatchPoints) {
+      initFunctionBuilder.build();
+    } else {
+      translator.linkingActions.add(initFunctionBuilder.build);
+    }
 
-    return initFunction;
+    return initFunctionBuilder.function;
   }
 
-  w.GlobalBuilder _createNonLazyConstant(
+  w.Global _createNonLazyConstant(
     w.ModuleBuilder targetModule,
     ConstantInfo info,
   ) {
@@ -2204,7 +2253,7 @@ class _ConstantAccessor {
     definedGlobal.initializer.end();
     constants.currentlyCreating = false;
 
-    return definedGlobal;
+    return definedGlobal.build();
   }
 
   bool constantIsAlwaysEager(Constant constant) {

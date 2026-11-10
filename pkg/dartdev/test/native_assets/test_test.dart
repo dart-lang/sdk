@@ -31,28 +31,38 @@ void main([List<String> args = const []]) async {
     'native_dynamic_linking',
     'system_library',
   ]) {
-    test('package:$package dart test', timeout: longTimeout, () async {
-      await nativeAssetsTest(package, usePubWorkspace: true,
-          (packageUri) async {
-        final result = await runDart(
-          arguments: [
-            'test',
-          ],
-          workingDirectory: packageUri,
-          logger: logger,
-        );
-        expect(result.stdout, contains('Running build hooks'));
-        expect(result.stdout, isNot(contains('Running link hooks')));
-        expect(
-          result.stdout,
-          stringContainsInOrder(
-            [
-              'All tests passed!',
+    for (final compiler in [
+      null,
+      if (package == 'dev_dependency_with_hook') 'cli',
+    ]) {
+      final compilerArgs = [
+        if (compiler != null) ...['--compiler', compiler]
+      ];
+      final suffix = compiler != null ? ' --compiler $compiler' : '';
+      test('package:$package dart test$suffix', timeout: longTimeout, () async {
+        await nativeAssetsTest(package, usePubWorkspace: true,
+            (packageUri) async {
+          final result = await runDart(
+            arguments: [
+              'test',
+              ...compilerArgs,
             ],
-          ),
-        );
+            workingDirectory: packageUri,
+            logger: logger,
+          );
+          expect(result.stdout, contains('Running build hooks'));
+          expect(result.stdout, isNot(contains('Running link hooks')));
+          expect(
+            result.stdout,
+            stringContainsInOrder(
+              [
+                'All tests passed!',
+              ],
+            ),
+          );
+        });
       });
-    });
+    }
   }
 
   for (final compiler in ['kernel', 'cli']) {
@@ -243,4 +253,41 @@ void main([List<String> args = const []]) async {
       );
     });
   });
+
+  test(
+    'updating native assets between runs takes effect rather than reusing stale pub snapshot',
+    timeout: longTimeout,
+    () async {
+      await nativeAssetsTest('native_add', usePubWorkspace: true, (
+        packageUri,
+      ) async {
+        final result1 = await runDart(
+          arguments: ['test'],
+          workingDirectory: packageUri,
+          logger: logger,
+        );
+        expect(result1.stdout, contains('All tests passed!'));
+
+        // Update the C code so add(a, b) returns a + b + 1.
+        // The Dart test file is NOT modified, so its kernel is not recompiled
+        // due to Dart source changes.
+        final cFile = File.fromUri(packageUri.resolve('src/native_add.c'));
+        final originalC = await cFile.readAsString();
+        await cFile.writeAsString(
+          originalC.replaceAll('return a + b;', 'return a + b + 1;'),
+        );
+
+        final result2 = await runDart(
+          arguments: ['test'],
+          workingDirectory: packageUri,
+          logger: logger,
+          expectExitCodeZero: false,
+        );
+        expect(result2.exitCode, isNot(0));
+        expect(result2.stdout, contains('Expected: <10>'));
+        expect(result2.stdout, contains('Actual: <11>'));
+        expect(result2.stdout, contains('Some tests failed.'));
+      });
+    },
+  );
 }

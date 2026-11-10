@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertToCascadeTest extends FixProcessorLintTest {
+class ConvertToCascadeTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToCascade;
 
@@ -45,6 +45,36 @@ void f(A a) {
   a..x = 1
   ..x = 2
   ..m();
+}
+''');
+  }
+
+  Future<void> test_declaration_binaryExpression_nullAware() async {
+    await resolveTestCode('''
+void foo(int? one, int two) {
+  var result = one ?? two;
+  result.abs();
+}
+''');
+    await assertHasFix('''
+void foo(int? one, int two) {
+  var result = (one ?? two)
+  ..abs();
+}
+''');
+  }
+
+  Future<void> test_declaration_binaryExpression_plus() async {
+    await resolveTestCode('''
+void foo(int two) {
+  var result = two + 1;
+  result.abs();
+}
+''');
+    await assertHasFix('''
+void foo(int two) {
+  var result = (two + 1)
+  ..abs();
 }
 ''');
   }

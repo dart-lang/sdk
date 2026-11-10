@@ -34,6 +34,7 @@ import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// A utility class used to build an analysis context based on a context root.
 class ContextBuilderImpl {
@@ -43,10 +44,13 @@ class ContextBuilderImpl {
   /// Analysis options mappings shared by all contexts built by this builder.
   final AnalysisOptionsMap _optionsMap = AnalysisOptionsMap();
 
+  /// Folder-based SDKs shared by contexts using the same SDK folder.
+  final Map<Folder, FolderBasedDartSdk> _folderSdks = {};
+
   /// Initialize a newly created context builder. If a [resourceProvider] is
   /// given, then it will be used to access the file system, otherwise the
   /// default resource provider will be used.
-  ContextBuilderImpl({ResourceProvider? resourceProvider})
+  new({ResourceProvider? resourceProvider})
     : resourceProvider = resourceProvider ?? PhysicalResourceProvider.INSTANCE;
 
   /// Return an analysis context corresponding to the given [contextRoot].
@@ -73,14 +77,13 @@ class ContextBuilderImpl {
     DeclaredVariables? declaredVariables,
     bool drainStreams = true,
     bool enableIndex = false,
+    Version? languageVersionOverride,
     List<String>? librarySummaryPaths,
     PerformanceLog? performanceLog,
     bool retainDataForTesting = false,
     AnalysisDriverScheduler? scheduler,
     required String sdkPath,
     String? sdkSummaryPath,
-    void Function({required AnalysisOptionsImpl analysisOptions})?
-    updateAnalysisOptions4,
     void Function({required AnalysisOptionsBuilder analysisOptionsBuilder})?
     configureAnalysisOptionsBuilder,
     FileContentCache? fileContentCache,
@@ -125,6 +128,33 @@ class ContextBuilderImpl {
     var sourceFactory = workspace.createSourceFactory(sdk, summaryData);
     var analysisOptionsParseSession = AnalysisOptionsParseSession();
 
+    // Applies the client's settings to analysis options. Every
+    // `AnalysisOptionsImpl` of the context goes through this function once:
+    // from the explicit options file, from each options file in the context
+    // root, or the default options when there are no options files.
+    //
+    // Non-empty `enabledExperiments` replace the experiments from analysis
+    // options files, so the client can also disable them. Empty means that
+    // the client has no preference, and the options files are used.
+    AnalysisOptionsImpl updateOptions(AnalysisOptionsImpl options) {
+      if (enabledExperiments.isEmpty &&
+          configureAnalysisOptionsBuilder == null) {
+        return options;
+      }
+
+      var analysisOptionsBuilder = AnalysisOptionsBuilder.from(options);
+      if (enabledExperiments.isNotEmpty) {
+        analysisOptionsBuilder.contextFeatures = FeatureSet.fromEnableFlags2(
+          sdkLanguageVersion: sdk.languageVersion,
+          flags: enabledExperiments,
+        );
+      }
+      configureAnalysisOptionsBuilder?.call(
+        analysisOptionsBuilder: analysisOptionsBuilder,
+      );
+      return analysisOptionsBuilder.build();
+    }
+
     AnalysisOptionsMap analysisOptionsMap;
     // If there's an options file defined (as, e.g. passed into the
     // AnalysisContextCollection), use a shared options map based on it.
@@ -135,10 +165,7 @@ class ContextBuilderImpl {
           analysisOptionsParseSession,
           sourceFactory,
           contextRoot.root,
-          sdk,
-          updateAnalysisOptions4,
-          configureAnalysisOptionsBuilder,
-          enabledExperiments,
+          updateOptions,
         ),
       );
     } else {
@@ -148,8 +175,7 @@ class ContextBuilderImpl {
         contextRoot,
         analysisOptionsParseSession,
         sourceFactory,
-        updateAnalysisOptions4,
-        configureAnalysisOptionsBuilder,
+        updateOptions,
       );
     }
 
@@ -167,6 +193,7 @@ class ContextBuilderImpl {
       packages: _createPackageMap(contextRoot: contextRoot),
       analysisContext: analysisContext,
       enableIndex: enableIndex,
+      languageVersionOverride: languageVersionOverride,
       externalSummaries: summaryData,
       retainDataForTesting: retainDataForTesting,
       fileContentCache: fileContentCache,
@@ -192,10 +219,7 @@ class ContextBuilderImpl {
     ContextRootImpl contextRoot,
     AnalysisOptionsParseSession analysisOptionsParseSession,
     SourceFactory sourceFactory,
-    void Function({required AnalysisOptionsImpl analysisOptions})?
-    updateAnalysisOptions4,
-    void Function({required AnalysisOptionsBuilder analysisOptionsBuilder})?
-    configureAnalysisOptionsBuilder,
+    AnalysisOptionsImpl Function(AnalysisOptionsImpl) updateOptions,
   ) {
     var optionsMappings = contextRoot.optionsFileMap.entries;
     for (var MapEntry(key: file, value: folders) in optionsMappings) {
@@ -212,11 +236,7 @@ class ContextBuilderImpl {
         // Ignore exception.
         options = AnalysisOptionsImpl(file: file);
       }
-      options = _updatedAnalysisOptions(
-        options,
-        updateAnalysisOptions4,
-        configureAnalysisOptionsBuilder,
-      );
+      options = updateOptions(options);
 
       for (var folder in folders) {
         _optionsMap[folder] = options;
@@ -225,11 +245,7 @@ class ContextBuilderImpl {
 
     if (_optionsMap.folders.isEmpty) {
       return AnalysisOptionsMap.forSharedOptions(
-        _updatedAnalysisOptions(
-          AnalysisOptionsImpl(),
-          updateAnalysisOptions4,
-          configureAnalysisOptionsBuilder,
-        ),
+        updateOptions(AnalysisOptionsImpl()),
       );
     }
     return _optionsMap;
@@ -259,9 +275,10 @@ class ContextBuilderImpl {
       return SummaryBasedDartSdk.forBundle(PackageBundleReader(bytes));
     }
 
-    var folderSdk = FolderBasedDartSdk(
+    var sdkFolder = resourceProvider.getFolder(sdkPath);
+    var folderSdk = _folderSdks[sdkFolder] ??= FolderBasedDartSdk(
       resourceProvider,
-      resourceProvider.getFolder(sdkPath),
+      sdkFolder,
     );
 
     {
@@ -295,12 +312,7 @@ class ContextBuilderImpl {
     AnalysisOptionsParseSession analysisOptionsParseSession,
     SourceFactory sourceFactory,
     Folder contextRoot,
-    DartSdk sdk,
-    void Function({required AnalysisOptionsImpl analysisOptions})?
-    updateAnalysisOptions4,
-    void Function({required AnalysisOptionsBuilder analysisOptionsBuilder})?
-    configureAnalysisOptionsBuilder,
-    List<String> enabledExperiments,
+    AnalysisOptionsImpl Function(AnalysisOptionsImpl) updateOptions,
   ) {
     AnalysisOptionsImpl options;
 
@@ -317,46 +329,6 @@ class ContextBuilderImpl {
       options = AnalysisOptionsImpl(file: optionsFile);
     }
 
-    var analysisOptionsBuilder = AnalysisOptionsBuilder.from(options)
-      ..contextFeatures = FeatureSet.fromEnableFlags2(
-        sdkLanguageVersion: sdk.languageVersion,
-        flags: enabledExperiments,
-      );
-
-    options = analysisOptionsBuilder.build();
-    if (updateAnalysisOptions4 != null) {
-      updateAnalysisOptions4(analysisOptions: options);
-    }
-
-    analysisOptionsBuilder = AnalysisOptionsBuilder.from(options);
-    if (configureAnalysisOptionsBuilder != null) {
-      configureAnalysisOptionsBuilder(
-        analysisOptionsBuilder: analysisOptionsBuilder,
-      );
-    }
-
-    return analysisOptionsBuilder.build();
-  }
-
-  AnalysisOptionsImpl _updatedAnalysisOptions(
-    AnalysisOptionsImpl options,
-    void Function({required AnalysisOptionsImpl analysisOptions})?
-    updateAnalysisOptions4,
-    void Function({required AnalysisOptionsBuilder analysisOptionsBuilder})?
-    configureAnalysisOptionsBuilder,
-  ) {
-    if (updateAnalysisOptions4 != null) {
-      updateAnalysisOptions4(analysisOptions: options);
-    }
-
-    if (configureAnalysisOptionsBuilder == null) {
-      return options;
-    }
-
-    var analysisOptionsBuilder = AnalysisOptionsBuilder.from(options);
-    configureAnalysisOptionsBuilder(
-      analysisOptionsBuilder: analysisOptionsBuilder,
-    );
-    return analysisOptionsBuilder.build();
+    return updateOptions(options);
   }
 }

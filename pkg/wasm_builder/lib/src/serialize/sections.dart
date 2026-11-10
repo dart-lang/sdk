@@ -4,6 +4,7 @@
 
 import 'dart:typed_data';
 
+import '../../debug_info.dart';
 import '../ir/ir.dart' as ir;
 import 'deserializer.dart';
 import 'printer.dart' show IndentPrinter;
@@ -23,17 +24,13 @@ abstract class Section implements Serializable {
   Section(this.watchPoints);
 
   @override
-  void serialize(Serializer s) {
+  void serialize(Serializer s, [DebugInfoSerializer? debugInfoSerializer]) {
     final contents = Serializer();
     serializeContents(contents);
     final data = contents.data;
     if (data.isNotEmpty) {
       s.writeByte(id);
       s.writeUnsigned(data.length);
-      s.sourceMapSerializer.copyMappings(
-        contents.sourceMapSerializer,
-        s.offset,
-      );
       s.writeData(contents, watchPoints);
     }
   }
@@ -689,9 +686,29 @@ class CodeSection extends Section {
   int get id => sectionId;
 
   @override
-  void serializeContents(Serializer s) {
+  void serializeContents(
+    Serializer s, [
+    DebugInfoSerializer? debugInfoSerializer,
+  ]) {
     if (functions.isNotEmpty) {
-      s.writeList(functions);
+      s.writeUnsigned(functions.length);
+      for (int i = 0; i < functions.length; i++) {
+        functions[i].serialize(s, debugInfoSerializer);
+      }
+    }
+  }
+
+  @override
+  void serialize(Serializer s, [DebugInfoSerializer? debugInfoSerializer]) {
+    final contents = Serializer();
+    serializeContents(contents, debugInfoSerializer);
+    final data = contents.data;
+    if (data.isNotEmpty) {
+      s.writeByte(id);
+      s.writeUnsigned(data.length);
+      final fileOffset = s.offset;
+      s.writeData(contents, watchPoints);
+      debugInfoSerializer?.setCodeSectionFileOffset(fileOffset);
     }
   }
 
@@ -705,11 +722,14 @@ class CodeSection extends Section {
     ir.Memories memories,
     ir.Tags tags,
     ir.Globals globals,
-    ir.DataSegments dataSegments,
-  ) {
+    ir.DataSegments dataSegments, {
+    int? sectionFileOffset,
+    DebugInfoDeserializer? debugInfoDeserializer,
+  }) {
     if (d == null) {
       return;
     }
+    assert(debugInfoDeserializer == null || sectionFileOffset != null);
 
     final count = d.readUnsigned();
     if (count != functions.defined.length) {
@@ -727,6 +747,7 @@ class CodeSection extends Section {
       final instructions = <ir.Instruction>[];
 
       final bodySize = d.readUnsigned();
+      final bodyOffset = d.offset;
       final bodyDeserializer = Deserializer(d.readBytes(bodySize));
 
       final localDeclCount = bodyDeserializer.readUnsigned();
@@ -737,7 +758,24 @@ class CodeSection extends Section {
           locals.add(ir.Local(locals.length, type));
         }
       }
+
+      if (debugInfoDeserializer != null) {
+        final functionCodeOffset = bodyOffset + bodyDeserializer.offset;
+        debugInfoDeserializer.startFunction(
+          sectionFileOffset! + functionCodeOffset,
+        );
+      }
+
+      int instructionIdx = 0;
       while (!bodyDeserializer.isAtEnd) {
+        if (debugInfoDeserializer != null) {
+          final instructionFileOffset =
+              sectionFileOffset! + bodyOffset + bodyDeserializer.offset;
+          debugInfoDeserializer.onInstruction(
+            instructionIdx,
+            instructionFileOffset,
+          );
+        }
         final instruction = ir.Instruction.deserialize(
           bodyDeserializer,
           types,
@@ -749,9 +787,21 @@ class CodeSection extends Section {
           functions,
         );
         instructions.add(instruction);
+        instructionIdx++;
       }
 
-      function.body = ir.Instructions(locals, {}, instructions, null, [], []);
+      final debugInfo = debugInfoDeserializer?.endFunction(
+        sectionFileOffset! + bodyOffset + bodyDeserializer.offset,
+      );
+
+      function.body = ir.Instructions(
+        locals,
+        {},
+        instructions,
+        null,
+        [],
+        debugInfo,
+      );
     }
   }
 }
@@ -844,7 +894,7 @@ abstract class CustomSection extends Section {
 class NameSection extends CustomSection {
   static const String customSectionName = 'name';
 
-  final String? moduleName;
+  final String moduleName;
   final ir.Functions functions;
   final List<List<ir.DefType>> types;
   final ir.Globals globals;
@@ -860,9 +910,7 @@ class NameSection extends CustomSection {
   @override
   void serializeContents(Serializer s) {
     final moduleNameSubsection = Serializer();
-    if (moduleName != null) {
-      moduleNameSubsection.writeName(moduleName!);
-    }
+    moduleNameSubsection.writeName(moduleName);
 
     int functionNameCount = 0;
     final functionNames = Serializer();
@@ -890,11 +938,7 @@ class NameSection extends CustomSection {
             typeNameCount++;
             if (defType is ir.StructType && defType.fieldNames.isNotEmpty) {
               fieldNames.writeUnsigned(typeIndex);
-              fieldNames.writeUnsigned(defType.fieldNames.length);
-              for (final entry in defType.fieldNames.entries) {
-                fieldNames.writeUnsigned(entry.key);
-                fieldNames.writeName(entry.value);
-              }
+              _writeNameMap(fieldNames, defType.fieldNames);
               typesWithNamedFieldsCount++;
             }
           }
@@ -921,11 +965,7 @@ class NameSection extends CustomSection {
       if (function is ir.DefinedFunction) {
         if (function.localNames.isNotEmpty) {
           localNames.writeUnsigned(function.finalizableIndex.value);
-          localNames.writeUnsigned(function.localNames.length);
-          for (final entry in function.localNames.entries) {
-            localNames.writeUnsigned(entry.key);
-            localNames.writeName(entry.value);
-          }
+          _writeNameMap(localNames, function.localNames);
           functionsWithLocalNamesCount++;
         }
       }
@@ -934,10 +974,8 @@ class NameSection extends CustomSection {
     s.writeName(customSectionName);
 
     s.writeByte(0); // Module name subsection
-    if (moduleNameSubsection.offset > 0) {
-      s.writeUnsigned(moduleNameSubsection.data.length);
-      s.writeData(moduleNameSubsection);
-    }
+    s.writeUnsigned(moduleNameSubsection.data.length);
+    s.writeData(moduleNameSubsection);
 
     if (functionNameCount > 0) {
       s.writeByte(1); // Function names subsection
@@ -987,6 +1025,19 @@ class NameSection extends CustomSection {
       );
       s.writeUnsigned(typesWithNamedFieldsCount);
       s.writeData(fieldNames);
+    }
+  }
+
+  /// Writes [names] as a Wasm name map.
+  ///
+  /// The spec requires name map entries to be in increasing index order, and
+  /// engines may discard the whole name section otherwise.
+  static void _writeNameMap(Serializer s, Map<int, String> names) {
+    final sortedIndices = names.keys.toList()..sort();
+    s.writeUnsigned(sortedIndices.length);
+    for (final index in sortedIndices) {
+      s.writeUnsigned(index);
+      s.writeName(names[index]!);
     }
   }
 

@@ -9,7 +9,9 @@ import 'dart:io';
 
 enum CompilerOutcome { Ok, Fail }
 
-typedef Future<CompilerOutcome> BatchCallback(List<String> arguments);
+typedef BatchCallback = Future<CompilerOutcome> Function(
+  List<String> arguments,
+);
 
 /// Runs the given [callback] in the batch mode for use by the test framework in
 /// `dart-lang/sdk`.

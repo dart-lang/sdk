@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -35,10 +36,11 @@ class CreateExtensionGetter extends _CreateExtensionMember {
   Future<void> compute(ChangeBuilder builder) async {
     var addStaticKeyword = inStaticContext;
     var nameNode = node;
-    if (nameNode is! SimpleIdentifier) {
+    if (nameNode is! SimpleIdentifier ||
+        nameNode.annotationContainingName != null) {
       return;
     }
-    if (!nameNode.inGetterContext()) {
+    if (!nameNode.inGetterContext() || nameNode.isInvocationName) {
       return;
     }
 
@@ -821,31 +823,23 @@ extension on TypeParameterElement {
 extension on DartType {
   List<TypeParameterElement> recursiveTypeParameters(List<DartType?> visited) {
     visited.add(this);
-    var self = this;
-    if (self is TypeParameterType) {
-      return self.element.referencedTypeParameters(visited);
-    } else if (self is InterfaceType) {
-      return self.typeArguments.typeParameters(visited);
-    } else {
-      return [];
-    }
+    return switch (this) {
+      TypeParameterType() => element.referencedTypeParameters(visited),
+      InterfaceType() => typeArguments.typeParameters(visited),
+      _ => [],
+    };
   }
 }
 
 extension on Element? {
   bool get declaresIndex {
-    var element = this;
-    if (element is! InterfaceElement) {
+    if (this is! InterfaceElement) {
       return false;
     }
-    var indexName = Name.forLibrary(element.library, TokenType.INDEX.lexeme);
-    var indexEqName = Name.forLibrary(
-      element.library,
-      TokenType.INDEX_EQ.lexeme,
-    );
+    var indexName = Name.forLibrary(library, TokenType.INDEX.lexeme);
+    var indexEqName = Name.forLibrary(library, TokenType.INDEX_EQ.lexeme);
     var member =
-        element.getInterfaceMember(indexName) ??
-        element.getInterfaceMember(indexEqName);
+        getInterfaceMember(indexName) ?? getInterfaceMember(indexEqName);
     return member != null;
   }
 }

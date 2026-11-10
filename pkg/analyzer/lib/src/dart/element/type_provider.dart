@@ -152,12 +152,8 @@ class TypeProviderImpl extends TypeProviderBase {
   InterfaceTypeImpl? _typeType;
 
   /// Initialize a newly created type provider to provide the types defined in
-  /// the given [coreLibrary] and [asyncLibrary].
-  TypeProviderImpl({
-    required LibraryElementImpl coreLibrary,
-    required LibraryElementImpl asyncLibrary,
-  }) : _coreLibrary = coreLibrary,
-       _asyncLibrary = asyncLibrary;
+  /// the given [_coreLibrary] and [_asyncLibrary].
+  new({required this._coreLibrary, required this._asyncLibrary});
 
   @override
   ClassElementImpl get boolElement {

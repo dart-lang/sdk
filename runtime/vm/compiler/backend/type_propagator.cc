@@ -576,31 +576,65 @@ void CompileType::Union(CompileType* other) {
     return;
   }
 
-  const AbstractType* abstract_type = ToAbstractType();
+  const AbstractType* this_type = ToAbstractType();
   if (cid_ != other->cid_) {
     cid_ = kDynamicCid;
   }
 
-  const AbstractType* other_abstract_type = other->ToAbstractType();
-  if (abstract_type->IsSubtypeOf(*other_abstract_type, Heap::kOld)) {
-    type_ = other_abstract_type;
+  const AbstractType* other_type = other->ToAbstractType();
+  if (this_type->IsSubtypeOf(*other_type, Heap::kOld)) {
+    type_ = other_type;
     return;
-  } else if (other_abstract_type->IsSubtypeOf(*abstract_type, Heap::kOld)) {
+  } else if (other_type->IsSubtypeOf(*this_type, Heap::kOld)) {
     return;  // Nothing to do.
   }
 
   // Climb up the hierarchy to find a suitable supertype. Note that interface
   // types are not considered, making the union potentially non-commutative
-  if (abstract_type->IsInstantiated() && !abstract_type->IsDynamicType() &&
-      !abstract_type->IsFunctionType() && !abstract_type->IsRecordType()) {
-    Class& cls = Class::Handle(abstract_type->type_class());
-    for (; !cls.IsNull() && !cls.IsGeneric(); cls = cls.SuperClass()) {
-      type_ = &AbstractType::ZoneHandle(cls.RareType());
-      if (other_abstract_type->IsSubtypeOf(*type_, Heap::kOld)) {
-        // Found suitable supertype: keep type_ only.
-        cid_ = kDynamicCid;
-        return;
+  if (this_type->IsInstantiated() && this_type->IsType() &&
+      !this_type->IsTopType() && other_type->IsType()) {
+    auto* const thread = Thread::Current();
+    auto* const zone = thread->zone();
+    const auto& this_cls = Class::Handle(zone, this_type->type_class());
+    const auto& other_cls = Class::Handle(zone, other_type->type_class());
+
+    // Find the lowest superclass of `this_cls` that `other_cls` is also a
+    // subtype of.
+    auto& base_cls = Class::Handle(zone, this_cls.ptr());
+    for (; !base_cls.IsNull(); base_cls = base_cls.SuperClass()) {
+      if (base_cls.IsObjectClass() ||
+          other_cls.FindInstantiationOf(zone, base_cls)) {
+        break;
       }
+    }
+
+    if (!base_cls.IsNull()) {
+      if (base_cls.IsGeneric()) {
+        const bool base_tav_equals_this_flattened_tav =
+            this_cls.NumTypeArguments() == base_cls.NumTypeParameters(thread);
+        if (base_tav_equals_this_flattened_tav) {
+          const auto& this_flattened_tav = TypeArguments::Handle(
+              zone,
+              Type::Cast(*this_type)
+                  .GetInstanceTypeArguments(thread, /*canonicalize=*/false));
+          auto& base_type = Type::Handle(
+              zone, Type::New(base_cls, this_flattened_tav,
+                              other_type->nullability(), Heap::kOld));
+          base_type.SetIsFinalized();
+          if (other_type->IsSubtypeOf(base_type, Heap::kOld)) {
+            // Nullability is tracked on this [CompileType] already.
+            base_type =
+                base_type.ToNullability(Nullability::kNonNullable, Heap::kOld);
+            base_type ^= base_type.Canonicalize(thread);
+            type_ = &AbstractType::ZoneHandle(zone, base_type.ptr());
+            return;
+          }
+        }
+      }
+
+      // Fallback to the rare type.
+      type_ = &AbstractType::ZoneHandle(zone, base_cls.RareType());
+      return;
     }
   }
 
@@ -664,7 +698,8 @@ CompileType* CompileType::ComputeRefinedType(CompileType* old_type,
   if ((preferred_type->is_nullable() && !can_be_null) ||
       (preferred_type->can_be_sentinel() && !can_be_sentinel)) {
     return new CompileType(can_be_null, can_be_sentinel, preferred_type->cid_,
-                           preferred_type->type_);
+                           preferred_type->type_,
+                           preferred_type->is_exact_type());
   } else {
     ASSERT(preferred_type->is_nullable() == can_be_null);
     ASSERT(preferred_type->can_be_sentinel() == can_be_sentinel);
@@ -1023,7 +1058,8 @@ void CompileType::PrintTo(BaseTextBuffer* f) const {
   } else if (is_exact_type()) {
     prefix = "==";
     type_name = type_->ScrubbedNameCString();
-  } else if ((cid_ != kIllegalCid) && (cid_ != kDynamicCid)) {
+  } else if (cid_ != kIllegalCid && cid_ != kDynamicCid &&
+             (cid_ != kRecordCid || type_ == nullptr)) {
     const Class& cls =
         Class::Handle(IsolateGroup::Current()->class_table()->At(cid_));
     type_name = cls.ScrubbedNameCString();
@@ -1262,25 +1298,15 @@ CompileType ParameterInstr::ComputeType() const {
                                      : pf.RawParameterVariable(param_index);
     ASSERT(param != nullptr);
 
-    CompileType* inferred_type = nullptr;
-    intptr_t inferred_cid = kDynamicCid;
-    bool inferred_nullable = true;
-    if (!block_->IsCatchBlockEntry()) {
-      inferred_type = param->inferred_arg_type();
-
-      if (inferred_type != nullptr) {
-        // Use inferred type if it is an int.
-        if (inferred_type->IsNullableInt()) {
-          TraceStrongModeType(this, inferred_type);
-          return *inferred_type;
-        }
-        // Otherwise use inferred cid and nullability.
-        inferred_cid = inferred_type->ToNullableCid();
-        inferred_nullable = inferred_type->is_nullable();
-      }
+    CompileType* const inferred_type =
+        !block_->IsCatchBlockEntry() ? param->inferred_arg_type() : nullptr;
+    if (inferred_type != nullptr && inferred_type->IsNullableInt()) {
+      TraceStrongModeType(this, inferred_type);
+      return *inferred_type;
     }
-    // If parameter type was checked by caller, then use Dart type annotation,
-    // plus non-nullability from inferred type if known.
+    // If parameter type was checked by caller, then use Dart type annotation
+    // combined with inferred type (cid, nullability, and more specific Dart
+    // type) if known.
     // Do not trust static parameter type of 'operator ==' as it is a
     // non-nullable Object but VM handles comparison with null in
     // the callee, so 'operator ==' can take null as an argument.
@@ -1289,11 +1315,26 @@ CompileType ParameterInstr::ComputeType() const {
          (is_unchecked_entry_param &&
           !param->is_explicit_covariant_parameter()))) {
       const AbstractType& static_type = param->static_type();
-      CompileType result(
-          inferred_nullable && !static_type.IsStrictlyNonNullable(),
-          block_->IsCatchBlockEntry() && param->is_late(),
-          inferred_cid == kDynamicCid ? kIllegalCid : inferred_cid,
-          &static_type);
+      intptr_t cid = kIllegalCid;
+      bool is_nullable = !static_type.IsStrictlyNonNullable();
+      const AbstractType* abstract_type = &static_type;
+      bool is_exact_type = false;
+      if (inferred_type != nullptr) {
+        is_nullable = is_nullable && inferred_type->is_nullable();
+        const intptr_t inferred_cid = inferred_type->ToNullableCid();
+        if (inferred_cid != kDynamicCid) {
+          cid = inferred_cid;
+        }
+        if (inferred_type->is_exact_type() ||
+            (inferred_cid == kDynamicCid &&
+             !inferred_type->ToAbstractType()->IsDynamicType())) {
+          abstract_type = inferred_type->ToAbstractType();
+          is_exact_type = inferred_type->is_exact_type();
+        }
+      }
+      CompileType result(is_nullable,
+                         block_->IsCatchBlockEntry() && param->is_late(), cid,
+                         abstract_type, is_exact_type);
       TraceStrongModeType(this, &result);
       return result;
     }
@@ -1596,11 +1637,12 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
   bool is_nullable = true;
   intptr_t cid = kIllegalCid;  // Abstract type is known, calculate cid lazily.
 
-  AbstractType* abstract_type = &AbstractType::ZoneHandle(field.exact_type());
-  bool is_exact_type = true;
+  AbstractType* abstract_type =
+      &AbstractType::ZoneHandle(field.inferred_type());
+  bool is_exact_type = field.is_inferred_type_exact();
   if (abstract_type->IsNull()) {
     *abstract_type = field.type();
-    is_exact_type = false;
+    ASSERT(!is_exact_type);
   }
   TraceStrongModeType(this, *abstract_type);
   if (abstract_type->IsStrictlyNonNullable()) {

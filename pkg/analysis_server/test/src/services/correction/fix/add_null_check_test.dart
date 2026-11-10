@@ -18,7 +18,8 @@ void main() {
 }
 
 @reflectiveTest
-class AddNullCheckReplaceWithNullAwareTest extends FixProcessorTest {
+class AddNullCheckReplaceWithNullAwareTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.replaceWithNullAware;
 
@@ -47,7 +48,7 @@ void f(List<int>? l) {
 void f(List<int>? l) {
   l![0] + 1;
 }
-''', matchFixMessage: "Replace '?' with '!' in invocation");
+''', fixMessageContains: "Replace '?' with '!' in invocation");
   }
 
   Future<void> test_indexExpression_notLast() async {
@@ -132,7 +133,7 @@ void f(String? s) {
 }
 
 @reflectiveTest
-class AddNullCheckTest extends FixProcessorTest {
+class AddNullCheckTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addNullCheck;
 
@@ -314,6 +315,70 @@ class C {
 ''');
   }
 
+  Future<void> test_functionInstantiation() async {
+    await resolveTestCode('''
+void f(T Function<T>(T)? g) {
+  g<int>;
+}
+''');
+    await assertHasFix('''
+void f(T Function<T>(T)? g) {
+  g!<int>;
+}
+''');
+  }
+
+  Future<void> test_functionInstantiation_parenthesized() async {
+    await resolveTestCode('''
+void f(A? a) {
+  (a?.foo)<int>;
+}
+class A {
+  T foo<T>(T t) => t;
+}
+''');
+    await assertHasFix('''
+void f(A? a) {
+  (a?.foo)!<int>;
+}
+class A {
+  T foo<T>(T t) => t;
+}
+''');
+  }
+
+  Future<void> test_functionInstantiation_prefixedIdentifier() async {
+    await resolveTestCode('''
+void f(A a) {
+  a.foo<int>;
+}
+class A {
+  T Function<T>(T)? foo;
+}
+''');
+    await assertHasFix('''
+void f(A a) {
+  a.foo!<int>;
+}
+class A {
+  T Function<T>(T)? foo;
+}
+''');
+  }
+
+  Future<void> test_indexAssignment_value() async {
+    await resolveTestCode('''
+void f(List<int> l, int? y) {
+  l[0] = y;
+}
+''');
+    await assertHasFix('''
+void f(List<int> l, int? y) {
+  l[0] = y!;
+}
+''');
+  }
+
   Future<void> test_indexExpression() async {
     await resolveTestCode('''
 void f (List<String>? args) {
@@ -327,6 +392,27 @@ void f (List<String>? args) {
 ''');
   }
 
+  Future<void> test_indexExpression_assignment_index() async {
+    await resolveTestCode('''
+class C {
+  void operator []=(int a, int b) {}
+}
+
+void f(C c, int? a) {
+  c[a] = 0;
+}
+''');
+    await assertHasFix('''
+class C {
+  void operator []=(int a, int b) {}
+}
+
+void f(C c, int? a) {
+  c[a!/**/] = 0;
+}
+''');
+  }
+
   Future<void> test_indexExpression_nonNullableTarget() async {
     await resolveTestCode('''
 void f(Map<String, String> map) {
@@ -336,6 +422,19 @@ void f(Map<String, String> map) {
     await assertHasFix('''
 void f(Map<String, String> map) {
   print('' + map['']!);
+}
+''');
+  }
+
+  Future<void> test_indexExpression_read_index() async {
+    await resolveTestCode('''
+void f(List<int> list, int? a) {
+  list[a];
+}
+''');
+    await assertHasFix('''
+void f(List<int> list, int? a) {
+  list[a!/**/];
 }
 ''');
   }
@@ -674,7 +773,7 @@ Iterable<String> f(List<String>? args) sync* {
 }
 
 @reflectiveTest
-class CastNullableToNonNullableTest extends FixProcessorLintTest {
+class CastNullableToNonNullableTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.addNullCheck;
 

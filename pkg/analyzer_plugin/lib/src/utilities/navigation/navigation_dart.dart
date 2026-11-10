@@ -103,7 +103,7 @@ class _DartNavigationCollector {
   final int? requestedOffset;
   final int? requestedLength;
 
-  _DartNavigationCollector(
+  new(
     this.collector,
     this.resourceProvider,
     this.requestedOffset,
@@ -216,7 +216,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   final DartDocumentLinkVisitor _documentLinkVisitor;
   final _DartNavigationCollector computer;
 
-  _DartNavigationComputerVisitor({
+  new({
     required this.resourceProvider,
     required this.unit,
     required this.computer,
@@ -695,6 +695,12 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     }
 
     super.visitRegularFormalParameter(node);
+  }
+
+  @override
+  void visitRelationalPattern(RelationalPattern node) {
+    computer._addRegionForElement(node.operator, node.element);
+    super.visitRelationalPattern(node);
   }
 
   @override

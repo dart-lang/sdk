@@ -7,12 +7,14 @@ import 'dart:convert';
 import 'package:analysis_server/protocol/protocol_generated.dart' as protocol;
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/flutter/widget_descriptions.dart';
+import 'package:analyzer_testing/src/single_unit.dart';
 import 'package:test/test.dart';
 
-import '../../../abstract_single_unit.dart';
-
-class WidgetDescriptionBase extends AbstractSingleUnitTest {
+class WidgetDescriptionBase extends SingleUnitTest {
   final descriptions = WidgetDescriptions();
+
+  @override
+  bool get addFlutterPackageDep => true;
 
   void assertExpectedChange(SetPropertyValueResult result, String expected) {
     expect(result.errorCode, isNull);
@@ -81,12 +83,6 @@ class WidgetDescriptionBase extends AbstractSingleUnitTest {
 
     var properties = widgetDescription.properties;
     return properties.singleWhere((property) => property.name == name);
-  }
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
   }
 
   void _removeNotInterestingElements(Map<String, dynamic> json) {

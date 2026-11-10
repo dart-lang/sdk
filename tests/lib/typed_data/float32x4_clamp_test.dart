@@ -4,17 +4,14 @@
 
 // VMOptions=--optimization-counter-threshold=10 --no-background-compilation
 
-// Library tag to be able to run in html test framework.
-library float32x4_clamp_test;
-
 import 'dart:typed_data';
 
 import 'package:expect/expect.dart';
 
 void testClampLowerGreaterThanUpper() {
-  Float32x4 l = new Float32x4(1.0, 1.0, 1.0, 1.0);
-  Float32x4 u = new Float32x4(-1.0, -1.0, -1.0, -1.0);
-  Float32x4 z = new Float32x4.zero();
+  Float32x4 l = Float32x4(1.0, 1.0, 1.0, 1.0);
+  Float32x4 u = Float32x4(-1.0, -1.0, -1.0, -1.0);
+  Float32x4 z = Float32x4.zero();
   Float32x4 a = z.clamp(l, u);
   Expect.equals(a.x, 1.0);
   Expect.equals(a.y, 1.0);
@@ -23,9 +20,9 @@ void testClampLowerGreaterThanUpper() {
 }
 
 void testClamp() {
-  Float32x4 l = new Float32x4(-1.0, -1.0, -1.0, -1.0);
-  Float32x4 u = new Float32x4(1.0, 1.0, 1.0, 1.0);
-  Float32x4 z = new Float32x4.zero();
+  Float32x4 l = Float32x4(-1.0, -1.0, -1.0, -1.0);
+  Float32x4 u = Float32x4(1.0, 1.0, 1.0, 1.0);
+  Float32x4 z = Float32x4.zero();
   Float32x4 a = z.clamp(l, u);
   Expect.equals(a.x, 0.0);
   Expect.equals(a.y, 0.0);
@@ -43,22 +40,45 @@ Float32x4 zeroClamp() {
   return Float32x4.zero().clamp(negOne, -Float32x4.zero());
 }
 
+// compareTo orders -0.0 below 0.0, so it pins the sign of a zero result.
+void expectLanes(Float32x4 value, double expected) {
+  Expect.equals(0, value.x.compareTo(expected));
+  Expect.equals(0, value.y.compareTo(expected));
+  Expect.equals(0, value.z.compareTo(expected));
+  Expect.equals(0, value.w.compareTo(expected));
+}
+
+void expectLanesNaN(Float32x4 value) {
+  Expect.isTrue(value.x.isNaN);
+  Expect.isTrue(value.y.isNaN);
+  Expect.isTrue(value.z.isNaN);
+  Expect.isTrue(value.w.isNaN);
+}
+
 // Regression test for https://github.com/dart-lang/sdk/issues/40426.
 void testNegativeZeroClamp(Float32x4 unopt) {
   final res = negativeZeroClamp();
-  Expect.equals(res.x.compareTo(unopt.x), 0);
-  Expect.equals(res.y.compareTo(unopt.y), 0);
-  Expect.equals(res.z.compareTo(unopt.z), 0);
-  Expect.equals(res.w.compareTo(unopt.w), 0);
+  expectLanes(unopt, -0.0);
+  expectLanes(res, -0.0);
 }
 
 // Regression test for https://github.com/dart-lang/sdk/issues/40426.
 void testZeroClamp(Float32x4 unopt) {
   final res = zeroClamp();
-  Expect.equals(res.x.compareTo(unopt.x), 0);
-  Expect.equals(res.y.compareTo(unopt.y), 0);
-  Expect.equals(res.z.compareTo(unopt.z), 0);
-  Expect.equals(res.w.compareTo(unopt.w), 0);
+  expectLanes(unopt, -0.0);
+  expectLanes(res, -0.0);
+}
+
+// clamp is a min followed by a max, so a NaN in any operand reaches the
+// result. Which NaN it is is not specified, so only NaN-ness is checked.
+void testNaNClamp() {
+  final l = Float32x4(-1.0, -1.0, -1.0, -1.0);
+  final u = Float32x4(1.0, 1.0, 1.0, 1.0);
+  final z = Float32x4.zero();
+  final n = Float32x4.splat(double.nan);
+  expectLanesNaN(n.clamp(l, u));
+  expectLanesNaN(z.clamp(n, u));
+  expectLanesNaN(z.clamp(l, n));
 }
 
 main() {
@@ -69,5 +89,6 @@ main() {
     testClamp();
     testNegativeZeroClamp(unoptNegZeroClamp);
     testZeroClamp(unoptZeroClamp);
+    testNaNClamp();
   }
 }

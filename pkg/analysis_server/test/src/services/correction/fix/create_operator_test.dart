@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class CreateOperatorMixinTest extends FixProcessorTest {
+class CreateOperatorMixinTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createOperator;
 
@@ -190,7 +190,7 @@ mixin M {
 }
 
 @reflectiveTest
-class CreateOperatorTest extends FixProcessorTest {
+class CreateOperatorTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createOperator;
 

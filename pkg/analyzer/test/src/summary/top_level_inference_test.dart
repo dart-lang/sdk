@@ -9677,7 +9677,7 @@ library
               formalParameters
                 #F6 optionalPositional hasImplicitType isFinal isOriginDeclaration this.f (nameOffset:33) (firstTokenOffset:28) (offset:33)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
-                  initializer: expression_0
+                  constantInitializer2: expression_0
                     SimpleStringLiteral
                       literal: 'hello' @37
           getters
@@ -9710,9 +9710,7 @@ library
             #E0 optionalPositional hasDefaultValue hasImplicitType isFinal this.f
               firstFragment: #F6
               type: int
-              constantInitializer
-                fragment: #F6
-                expression: expression_0
+              constantInitializer2: expression_0
               field: <testLibrary>::@class::A::@field::f
       getters
         isOriginVariable f
@@ -13244,6 +13242,176 @@ library
               type: int
           returnType: void
           variable: <testLibrary>::@class::B::@field::x
+''');
+  }
+
+  test_instanceField_inheritsCovariant_fromSetter_field_combinedSignature() async {
+    var library = await _encodeDecodeLibrary(r'''
+abstract class A {
+  void set x(covariant int _);
+}
+abstract class B {
+  void set x(num _);
+}
+abstract class C implements A, B {}
+class D implements C {
+  int x;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 isAbstract class A (nameOffset:15) (firstTokenOffset:0) (offset:15)
+          element: <testLibrary>::@class::A
+          fields
+            #F2 isOriginGetterSetter x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@class::A::@field::x
+          constructors
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          setters
+            #F4 isAbstract isOriginDeclaration x (nameOffset:30) (firstTokenOffset:21) (offset:30)
+              element: <testLibrary>::@class::A::@setter::x
+              formalParameters
+                #F5 requiredPositional isExplicitlyCovariant isOriginDeclaration _ (nameOffset:46) (firstTokenOffset:32) (offset:46)
+                  element: <testLibrary>::@class::A::@setter::x::@formalParameter::_
+        #F6 isAbstract class B (nameOffset:67) (firstTokenOffset:52) (offset:67)
+          element: <testLibrary>::@class::B
+          fields
+            #F7 isOriginGetterSetter x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
+              element: <testLibrary>::@class::B::@field::x
+          constructors
+            #F8 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+          setters
+            #F9 isAbstract isOriginDeclaration x (nameOffset:82) (firstTokenOffset:73) (offset:82)
+              element: <testLibrary>::@class::B::@setter::x
+              formalParameters
+                #F10 requiredPositional isOriginDeclaration _ (nameOffset:88) (firstTokenOffset:84) (offset:88)
+                  element: <testLibrary>::@class::B::@setter::x::@formalParameter::_
+        #F11 isAbstract class C (nameOffset:109) (firstTokenOffset:94) (offset:109)
+          element: <testLibrary>::@class::C
+          constructors
+            #F12 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
+              element: <testLibrary>::@class::C::@constructor::new
+              typeName: C
+        #F13 class D (nameOffset:136) (firstTokenOffset:130) (offset:136)
+          element: <testLibrary>::@class::D
+          fields
+            #F14 isOriginDeclaration x (nameOffset:159) (firstTokenOffset:159) (offset:159)
+              element: <testLibrary>::@class::D::@field::x
+              inducedGetter: #F15
+              inducedSetter: #F16
+          constructors
+            #F17 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:136)
+              element: <testLibrary>::@class::D::@constructor::new
+              typeName: D
+          getters
+            #F15 isComplete isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:159)
+              element: <testLibrary>::@class::D::@getter::x
+              inducingVariable: #F14
+          setters
+            #F16 isComplete isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:159)
+              element: <testLibrary>::@class::D::@setter::x
+              inducingVariable: #F14
+              formalParameters
+                #F18 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:159)
+                  element: <testLibrary>::@class::D::@setter::x::@formalParameter::value
+  classes
+    isAbstract isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        isOriginGetterSetter x
+          reference: <testLibrary>::@class::A::@field::x
+          firstFragment: #F2
+          type: int
+          setter: <testLibrary>::@class::A::@setter::x
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+      setters
+        isOriginDeclaration x
+          reference: <testLibrary>::@class::A::@setter::x
+          firstFragment: #F4
+          formalParameters
+            #E0 requiredPositional isCovariant _
+              firstFragment: #F5
+              type: int
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::x
+    isAbstract isSimplyBounded class B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F6
+      fields
+        isOriginGetterSetter x
+          reference: <testLibrary>::@class::B::@field::x
+          firstFragment: #F7
+          type: num
+          setter: <testLibrary>::@class::B::@setter::x
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F8
+      setters
+        isOriginDeclaration x
+          reference: <testLibrary>::@class::B::@setter::x
+          firstFragment: #F9
+          formalParameters
+            #E1 requiredPositional _
+              firstFragment: #F10
+              type: num
+          returnType: void
+          variable: <testLibrary>::@class::B::@field::x
+    isAbstract isSimplyBounded class C
+      reference: <testLibrary>::@class::C
+      firstFragment: #F11
+      interfaces
+        A
+        B
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F12
+    hasNonFinalField isSimplyBounded class D
+      reference: <testLibrary>::@class::D
+      firstFragment: #F13
+      interfaces
+        C
+      fields
+        isOriginDeclaration x
+          reference: <testLibrary>::@class::D::@field::x
+          firstFragment: #F14
+          type: int
+          getter: <testLibrary>::@class::D::@getter::x
+          setter: <testLibrary>::@class::D::@setter::x
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::D::@constructor::new
+          firstFragment: #F17
+      getters
+        isOriginVariable x
+          reference: <testLibrary>::@class::D::@getter::x
+          firstFragment: #F15
+          returnType: int
+          variable: <testLibrary>::@class::D::@field::x
+      setters
+        isOriginVariable x
+          reference: <testLibrary>::@class::D::@setter::x
+          firstFragment: #F16
+          formalParameters
+            #E2 requiredPositional isCovariant value
+              firstFragment: #F18
+              type: int
+          returnType: void
+          variable: <testLibrary>::@class::D::@field::x
 ''');
   }
 

@@ -27,6 +27,39 @@ f() { try {} catch assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -55,7 +88,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -73,6 +106,32 @@ f() { try {} catch {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: {
+                    rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -114,6 +173,35 @@ f() { try {} catch break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -158,6 +246,35 @@ f() { try {} catch continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -201,6 +318,43 @@ f() { try {} catch do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -233,7 +387,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -252,6 +406,32 @@ f() { try {} catch }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -292,6 +472,48 @@ f() { try {} catch for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: y
+                iterable(v1): SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -325,7 +547,7 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -348,6 +570,39 @@ f() { try {} catch (e assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -376,7 +631,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -395,6 +650,32 @@ f() { try {} catch (e {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: {
+                    rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -438,6 +719,35 @@ f() { try {} catch (e break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -484,6 +794,35 @@ f() { try {} catch (e continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -529,6 +868,43 @@ f() { try {} catch (e do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -561,7 +937,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -580,6 +956,32 @@ f() { try {} catch (e }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -622,6 +1024,48 @@ f() { try {} catch (e for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: y
+                iterable(v1): SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -655,7 +1099,7 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -678,6 +1122,41 @@ f() { try {} catch (e if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -706,7 +1185,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: BooleanLiteral
+                expression: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -728,6 +1207,40 @@ f() { try {} catch (e l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LabeledStatement
+              labels
+                Label
+                  name: l
+                  colon: :
+              statement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -778,6 +1291,72 @@ f() { try {} catch (e int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: int
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -833,6 +1412,72 @@ f() { try {} catch (e void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -888,6 +1533,62 @@ f() { try {} catch (e var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: x
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -937,6 +1638,35 @@ f() { try {} catch (e return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -982,6 +1712,42 @@ f() { try {} catch (e switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1010,7 +1776,7 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -1032,6 +1798,41 @@ f() { try {} catch (e try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1083,6 +1884,41 @@ f() { try {} catch (e while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1111,7 +1947,7 @@ CompilationUnit
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -1134,6 +1970,42 @@ f() { try {} catch (e,  assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1165,7 +2037,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -1188,6 +2060,35 @@ f() { try {} catch (e,  {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1234,6 +2135,38 @@ f() { try {} catch (e,  break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1283,6 +2216,38 @@ f() { try {} catch (e,  continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1331,6 +2296,46 @@ f() { try {} catch (e,  do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1366,7 +2371,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -1386,6 +2391,35 @@ f() { try {} catch (e,  }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1431,6 +2465,51 @@ f() { try {} catch (e,  for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: y
+                iterable(v1): SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1467,7 +2546,7 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -1490,6 +2569,44 @@ f() { try {} catch (e,  if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1521,7 +2638,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: BooleanLiteral
+                expression: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -1547,6 +2664,44 @@ f() { try {} catch (e,  l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: l
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ExpressionStatement
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1576,7 +2731,7 @@ CompilationUnit
                       leftBracket: { <synthetic>
                       rightBracket: } <synthetic>
               ExpressionStatement
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               Block
@@ -1598,6 +2753,74 @@ f() { try {} catch (e,  int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: int
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: int
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1654,6 +2877,78 @@ f() { try {} catch (e,  void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1712,6 +3007,68 @@ f() { try {} catch (e,  var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: x
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1764,6 +3121,38 @@ f() { try {} catch (e,  return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1812,6 +3201,45 @@ f() { try {} catch (e,  switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1843,7 +3271,7 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -1865,6 +3293,44 @@ f() { try {} catch (e,  try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1919,6 +3385,44 @@ f() { try {} catch (e,  while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1950,7 +3454,7 @@ CompilationUnit
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -1973,6 +3477,42 @@ f() { try {} catch (e, s assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2004,7 +3544,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -2023,6 +3563,35 @@ f() { try {} catch (e, s {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: {
+                    rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2069,6 +3638,38 @@ f() { try {} catch (e, s break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2118,6 +3719,38 @@ f() { try {} catch (e, s continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2166,6 +3799,46 @@ f() { try {} catch (e, s do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2201,7 +3874,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -2220,6 +3893,35 @@ f() { try {} catch (e, s }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2265,6 +3967,51 @@ f() { try {} catch (e, s for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: y
+                iterable(v1): SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2301,7 +4048,7 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -2324,6 +4071,44 @@ f() { try {} catch (e, s if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2355,7 +4140,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: BooleanLiteral
+                expression: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -2377,6 +4162,43 @@ f() { try {} catch (e, s l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LabeledStatement
+              labels
+                Label
+                  name: l
+                  colon: :
+              statement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2431,6 +4253,78 @@ f() { try {} catch (e, s int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: int
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2489,6 +4383,78 @@ f() { try {} catch (e, s void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2547,6 +4513,68 @@ f() { try {} catch (e, s var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: x
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2599,6 +4627,38 @@ f() { try {} catch (e, s return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2647,6 +4707,45 @@ f() { try {} catch (e, s switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2678,7 +4777,7 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -2700,6 +4799,44 @@ f() { try {} catch (e, s try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2754,6 +4891,44 @@ f() { try {} catch (e, s while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2785,7 +4960,7 @@ CompilationUnit
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -2806,6 +4981,41 @@ f() { try {} catch if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2834,7 +5044,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: BooleanLiteral
+                expression: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -2855,6 +5065,40 @@ f() { try {} catch l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LabeledStatement
+              labels
+                Label
+                  name: l
+                  colon: :
+              statement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2905,6 +5149,39 @@ f() { try {} catch ( assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2933,7 +5210,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -2956,6 +5233,32 @@ f() { try {} catch ( {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2999,6 +5302,35 @@ f() { try {} catch ( break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3045,6 +5377,35 @@ f() { try {} catch ( continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3090,6 +5451,43 @@ f() { try {} catch ( do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3122,7 +5520,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -3142,6 +5540,32 @@ f() { try {} catch ( }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3184,6 +5608,48 @@ f() { try {} catch ( for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: y
+                iterable(v1): SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3217,7 +5683,7 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -3240,6 +5706,41 @@ f() { try {} catch ( if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3268,7 +5769,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: BooleanLiteral
+                expression: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -3294,6 +5795,41 @@ f() { try {} catch ( l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: l
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ExpressionStatement
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3320,7 +5856,7 @@ CompilationUnit
                       leftBracket: { <synthetic>
                       rightBracket: } <synthetic>
               ExpressionStatement
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               Block
@@ -3342,6 +5878,68 @@ f() { try {} catch ( int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: int
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: int
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3395,6 +5993,72 @@ f() { try {} catch ( void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3450,6 +6114,62 @@ f() { try {} catch ( var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: x
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3499,6 +6219,35 @@ f() { try {} catch ( return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3544,6 +6293,42 @@ f() { try {} catch ( switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3572,7 +6357,7 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -3594,6 +6379,41 @@ f() { try {} catch ( try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3645,6 +6465,41 @@ f() { try {} catch ( while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3673,7 +6528,7 @@ CompilationUnit
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -3694,6 +6549,72 @@ f() { try {} catch int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: int
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3747,6 +6668,72 @@ f() { try {} catch void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3800,6 +6787,62 @@ f() { try {} catch var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: x
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3847,6 +6890,35 @@ f() { try {} catch return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3889,6 +6961,42 @@ f() { try {} catch (e, s) assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3920,7 +7028,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -3936,6 +7044,35 @@ f() { try {} catch (e, s) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: {
+                    rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3980,6 +7117,38 @@ f() { try {} catch (e, s) break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4027,6 +7196,38 @@ f() { try {} catch (e, s) continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4072,6 +7273,46 @@ f() { try {} catch (e, s) do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4107,7 +7348,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -4125,6 +7366,35 @@ f() { try {} catch (e, s) }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4167,6 +7437,51 @@ f() { try {} catch (e, s) for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: y
+                iterable(v1): SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4203,7 +7518,7 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -4223,6 +7538,44 @@ f() { try {} catch (e, s) if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4254,7 +7607,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: BooleanLiteral
+                expression: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -4274,6 +7627,43 @@ f() { try {} catch (e, s) l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LabeledStatement
+              labels
+                Label
+                  name: l
+                  colon: :
+              statement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4324,6 +7714,78 @@ f() { try {} catch (e, s) int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: int
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4379,6 +7841,78 @@ f() { try {} catch (e, s) void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4434,6 +7968,68 @@ f() { try {} catch (e, s) var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: x
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4483,6 +8079,38 @@ f() { try {} catch (e, s) return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4528,6 +8156,45 @@ f() { try {} catch (e, s) switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4559,7 +8226,7 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -4578,6 +8245,44 @@ f() { try {} catch (e, s) try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4629,6 +8334,44 @@ f() { try {} catch (e, s) while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4660,7 +8403,7 @@ CompilationUnit
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -4681,6 +8424,42 @@ f() { try {} catch switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4709,7 +8488,7 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -4729,6 +8508,41 @@ f() { try {} catch try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4778,6 +8592,41 @@ f() { try {} catch while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4806,7 +8655,7 @@ CompilationUnit
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -4826,6 +8675,43 @@ f() { try {} catch (e) {} finally assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: {
+                    rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4858,7 +8744,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -4874,6 +8760,36 @@ f() { try {} catch (e) {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: {
+                    rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4919,6 +8835,39 @@ f() { try {} catch (e) {} finally break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: {
+                    rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -4967,6 +8916,39 @@ f() { try {} catch (e) {} finally continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: {
+                    rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5013,6 +8995,47 @@ f() { try {} catch (e) {} finally do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: {
+                    rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5049,7 +9072,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -5067,6 +9090,36 @@ f() { try {} catch (e) {} finally }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: {
+                    rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5110,6 +9163,52 @@ f() { try {} catch (e) {} finally for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: {
+                    rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: y
+                iterable(v1): SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5147,7 +9246,7 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -5167,6 +9266,45 @@ f() { try {} catch (e) {} finally if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: {
+                    rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5199,7 +9337,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: BooleanLiteral
+                expression: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -5219,6 +9357,44 @@ f() { try {} catch (e) {} finally l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: {
+                    rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            LabeledStatement
+              labels
+                Label
+                  name: l
+                  colon: :
+              statement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5270,6 +9446,80 @@ f() { try {} catch (e) {} finally int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: {
+                    rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: {
+                    rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: int
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5326,6 +9576,80 @@ f() { try {} catch (e) {} finally void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: {
+                    rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: {
+                    rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5382,6 +9706,70 @@ f() { try {} catch (e) {} finally var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: {
+                    rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: {
+                    rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: x
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5432,6 +9820,39 @@ f() { try {} catch (e) {} finally return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: {
+                    rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5478,6 +9899,46 @@ f() { try {} catch (e) {} finally switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: {
+                    rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5510,7 +9971,7 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -5529,6 +9990,45 @@ f() { try {} catch (e) {} finally try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: {
+                    rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5581,6 +10081,45 @@ f() { try {} catch (e) {} finally while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: {
+                    rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5613,7 +10152,7 @@ CompilationUnit
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -5633,6 +10172,33 @@ f() { try {} finally assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5655,7 +10221,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -5671,6 +10237,26 @@ f() { try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5706,6 +10292,29 @@ f() { try {} finally break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5744,6 +10353,29 @@ f() { try {} finally continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5780,6 +10412,37 @@ f() { try {} finally do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5806,7 +10469,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -5824,6 +10487,26 @@ f() { try {} finally }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5857,6 +10540,42 @@ f() { try {} finally for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: y
+                iterable(v1): SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5884,7 +10603,7 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -5904,6 +10623,35 @@ f() { try {} finally if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5926,7 +10674,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: BooleanLiteral
+                expression: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -5946,6 +10694,34 @@ f() { try {} finally l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            LabeledStatement
+              labels
+                Label
+                  name: l
+                  colon: :
+              statement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -5987,6 +10763,60 @@ f() { try {} finally int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: int
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6033,6 +10863,60 @@ f() { try {} finally void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6079,6 +10963,50 @@ f() { try {} finally var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: x
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6119,6 +11047,29 @@ f() { try {} finally return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6155,6 +11106,36 @@ f() { try {} finally switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6177,7 +11158,7 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -6196,6 +11177,35 @@ f() { try {} finally try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6238,6 +11248,35 @@ f() { try {} finally while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6260,7 +11299,7 @@ CompilationUnit
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -6281,6 +11320,29 @@ f() { try assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6299,7 +11361,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -6317,6 +11379,22 @@ f() { try {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6349,6 +11427,25 @@ f() { try break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6384,6 +11481,25 @@ f() { try continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6417,6 +11533,33 @@ f() { try do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6439,7 +11582,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -6458,6 +11601,22 @@ f() { try }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6488,6 +11647,38 @@ f() { try for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: y
+                iterable(v1): SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6511,7 +11702,7 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -6532,6 +11723,31 @@ f() { try if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6550,7 +11766,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: BooleanLiteral
+                expression: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -6571,6 +11787,30 @@ f() { try l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            LabeledStatement
+              labels
+                Label
+                  name: l
+                  colon: :
+              statement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6609,6 +11849,52 @@ f() { try int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: int
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6652,6 +11938,52 @@ f() { try void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6695,6 +12027,42 @@ f() { try var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: x
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6732,6 +12100,25 @@ f() { try return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6765,6 +12152,32 @@ f() { try switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6783,7 +12196,7 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -6803,6 +12216,31 @@ f() { try try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6842,6 +12280,31 @@ f() { try while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6860,7 +12323,7 @@ CompilationUnit
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -6880,6 +12343,29 @@ f() { try {} assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6898,7 +12384,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -6916,6 +12402,25 @@ f() { try {} {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+            Block
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6950,6 +12455,25 @@ f() { try {} break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -6984,6 +12508,25 @@ f() { try {} continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7016,6 +12559,33 @@ f() { try {} do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7038,7 +12608,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -7056,6 +12626,22 @@ f() { try {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7085,6 +12671,38 @@ f() { try {} for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: y
+                iterable(v1): SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7108,7 +12726,7 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -7128,6 +12746,31 @@ f() { try {} if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7146,7 +12789,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: BooleanLiteral
+                expression: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -7166,6 +12809,30 @@ f() { try {} l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+            LabeledStatement
+              labels
+                Label
+                  name: l
+                  colon: :
+              statement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7203,6 +12870,52 @@ f() { try {} int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: int
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7245,6 +12958,52 @@ f() { try {} void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7287,6 +13046,42 @@ f() { try {} var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: x
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7323,6 +13118,25 @@ f() { try {} return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7355,6 +13169,32 @@ f() { try {} switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7373,7 +13213,7 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -7392,6 +13232,31 @@ f() { try {} try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7430,6 +13295,31 @@ f() { try {} while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7448,7 +13338,7 @@ CompilationUnit
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -7469,6 +13359,37 @@ f() { try {} on assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: <empty> <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7495,7 +13416,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -7513,6 +13434,30 @@ f() { try {} on {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: <empty> <synthetic>
+                  body: Block
+                    leftBracket: {
+                    rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7552,6 +13497,33 @@ f() { try {} on break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: <empty> <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7593,6 +13565,42 @@ f() { try {} on A catch assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7624,7 +13632,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -7642,6 +13650,35 @@ f() { try {} on A catch {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: {
+                    rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7686,6 +13723,38 @@ f() { try {} on A catch break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7733,6 +13802,38 @@ f() { try {} on A catch continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7779,6 +13880,46 @@ f() { try {} on A catch do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7814,7 +13955,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -7833,6 +13974,35 @@ f() { try {} on A catch }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7876,6 +14046,51 @@ f() { try {} on A catch for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: y
+                iterable(v1): SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7912,7 +14127,7 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -7935,6 +14150,42 @@ f() { try {} on A catch (e assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -7966,7 +14217,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -7985,6 +14236,35 @@ f() { try {} on A catch (e {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: {
+                    rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -8031,6 +14311,38 @@ f() { try {} on A catch (e break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -8080,6 +14392,38 @@ f() { try {} on A catch (e continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -8128,6 +14472,46 @@ f() { try {} on A catch (e do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -8163,7 +14547,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -8182,6 +14566,35 @@ f() { try {} on A catch (e }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -8227,6 +14640,51 @@ f() { try {} on A catch (e for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: y
+                iterable(v1): SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -8263,7 +14721,7 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -8286,6 +14744,44 @@ f() { try {} on A catch (e if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -8317,7 +14813,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: BooleanLiteral
+                expression: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -8339,6 +14835,43 @@ f() { try {} on A catch (e l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LabeledStatement
+              labels
+                Label
+                  name: l
+                  colon: :
+              statement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -8392,6 +14925,78 @@ f() { try {} on A catch (e int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: int
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -8450,6 +15055,78 @@ f() { try {} on A catch (e void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -8508,6 +15185,68 @@ f() { try {} on A catch (e var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: x
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -8560,6 +15299,38 @@ f() { try {} on A catch (e return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -8608,6 +15379,45 @@ f() { try {} on A catch (e switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -8639,7 +15449,7 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -8661,6 +15471,44 @@ f() { try {} on A catch (e try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -8715,6 +15563,44 @@ f() { try {} on A catch (e while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -8746,7 +15632,7 @@ CompilationUnit
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -8769,6 +15655,45 @@ f() { try {} on A catch (e,  assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -8803,7 +15728,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -8826,6 +15751,38 @@ f() { try {} on A catch (e,  {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -8875,6 +15832,41 @@ f() { try {} on A catch (e,  break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -8927,6 +15919,41 @@ f() { try {} on A catch (e,  continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -8978,6 +16005,49 @@ f() { try {} on A catch (e,  do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -9016,7 +16086,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -9036,6 +16106,38 @@ f() { try {} on A catch (e,  }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -9084,6 +16186,54 @@ f() { try {} on A catch (e,  for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: y
+                iterable(v1): SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -9123,7 +16273,7 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -9146,6 +16296,47 @@ f() { try {} on A catch (e,  if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -9180,7 +16371,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: BooleanLiteral
+                expression: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -9206,6 +16397,47 @@ f() { try {} on A catch (e,  l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: l
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ExpressionStatement
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -9238,7 +16470,7 @@ CompilationUnit
                       leftBracket: { <synthetic>
                       rightBracket: } <synthetic>
               ExpressionStatement
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               Block
@@ -9260,6 +16492,80 @@ f() { try {} on A catch (e,  int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: int
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: int
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -9319,6 +16625,84 @@ f() { try {} on A catch (e,  void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -9380,6 +16764,74 @@ f() { try {} on A catch (e,  var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: x
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -9435,6 +16887,41 @@ f() { try {} on A catch (e,  return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -9486,6 +16973,48 @@ f() { try {} on A catch (e,  switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -9520,7 +17049,7 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -9542,6 +17071,47 @@ f() { try {} on A catch (e,  try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -9599,6 +17169,47 @@ f() { try {} on A catch (e,  while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -9633,7 +17244,7 @@ CompilationUnit
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -9656,6 +17267,45 @@ f() { try {} on A catch (e, s assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -9690,7 +17340,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -9709,6 +17359,38 @@ f() { try {} on A catch (e, s {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: {
+                    rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -9758,6 +17440,41 @@ f() { try {} on A catch (e, s break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -9810,6 +17527,41 @@ f() { try {} on A catch (e, s continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -9861,6 +17613,49 @@ f() { try {} on A catch (e, s do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -9899,7 +17694,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -9918,6 +17713,38 @@ f() { try {} on A catch (e, s }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -9966,6 +17793,54 @@ f() { try {} on A catch (e, s for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: y
+                iterable(v1): SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -10005,7 +17880,7 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -10028,6 +17903,47 @@ f() { try {} on A catch (e, s if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -10062,7 +17978,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: BooleanLiteral
+                expression: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -10084,6 +18000,46 @@ f() { try {} on A catch (e, s l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LabeledStatement
+              labels
+                Label
+                  name: l
+                  colon: :
+              statement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -10141,6 +18097,84 @@ f() { try {} on A catch (e, s int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: int
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -10203,6 +18237,84 @@ f() { try {} on A catch (e, s void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -10264,6 +18376,74 @@ f() { try {} on A catch (e, s var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: x
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -10319,6 +18499,41 @@ f() { try {} on A catch (e, s return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -10370,6 +18585,48 @@ f() { try {} on A catch (e, s switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -10404,7 +18661,7 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -10426,6 +18683,47 @@ f() { try {} on A catch (e, s try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -10483,6 +18781,47 @@ f() { try {} on A catch (e, s while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -10517,7 +18856,7 @@ CompilationUnit
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -10538,6 +18877,44 @@ f() { try {} on A catch if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -10569,7 +18946,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: BooleanLiteral
+                expression: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -10590,6 +18967,43 @@ f() { try {} on A catch l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LabeledStatement
+              labels
+                Label
+                  name: l
+                  colon: :
+              statement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -10643,6 +19057,42 @@ f() { try {} on A catch ( assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -10674,7 +19124,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -10697,6 +19147,35 @@ f() { try {} on A catch ( {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -10743,6 +19222,38 @@ f() { try {} on A catch ( break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -10792,6 +19303,38 @@ f() { try {} on A catch ( continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -10840,6 +19383,46 @@ f() { try {} on A catch ( do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -10875,7 +19458,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -10895,6 +19478,35 @@ f() { try {} on A catch ( }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -10940,6 +19552,51 @@ f() { try {} on A catch ( for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: y
+                iterable(v1): SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -10976,7 +19633,7 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -10999,6 +19656,44 @@ f() { try {} on A catch ( if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -11030,7 +19725,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: BooleanLiteral
+                expression: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -11056,6 +19751,44 @@ f() { try {} on A catch ( l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: l
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ExpressionStatement
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -11085,7 +19818,7 @@ CompilationUnit
                       leftBracket: { <synthetic>
                       rightBracket: } <synthetic>
               ExpressionStatement
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               Block
@@ -11107,6 +19840,74 @@ f() { try {} on A catch ( int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: int
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: int
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -11163,6 +19964,78 @@ f() { try {} on A catch ( void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -11221,6 +20094,68 @@ f() { try {} on A catch ( var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: x
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -11273,6 +20208,38 @@ f() { try {} on A catch ( return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -11321,6 +20288,45 @@ f() { try {} on A catch ( switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -11352,7 +20358,7 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -11374,6 +20380,44 @@ f() { try {} on A catch ( try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -11428,6 +20472,44 @@ f() { try {} on A catch ( while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -11459,7 +20541,7 @@ CompilationUnit
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -11480,6 +20562,78 @@ f() { try {} on A catch int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: int
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -11536,6 +20690,78 @@ f() { try {} on A catch void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -11592,6 +20818,68 @@ f() { try {} on A catch var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: x
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -11642,6 +20930,38 @@ f() { try {} on A catch return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -11687,6 +21007,45 @@ f() { try {} on A catch (e, s) assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -11721,7 +21080,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -11737,6 +21096,38 @@ f() { try {} on A catch (e, s) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: {
+                    rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -11784,6 +21175,41 @@ f() { try {} on A catch (e, s) break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -11834,6 +21260,41 @@ f() { try {} on A catch (e, s) continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -11882,6 +21343,49 @@ f() { try {} on A catch (e, s) do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -11920,7 +21424,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -11938,6 +21442,38 @@ f() { try {} on A catch (e, s) }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -11983,6 +21519,54 @@ f() { try {} on A catch (e, s) for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: y
+                iterable(v1): SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -12022,7 +21606,7 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -12042,6 +21626,47 @@ f() { try {} on A catch (e, s) if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -12076,7 +21701,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: BooleanLiteral
+                expression: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -12096,6 +21721,46 @@ f() { try {} on A catch (e, s) l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LabeledStatement
+              labels
+                Label
+                  name: l
+                  colon: :
+              statement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -12149,6 +21814,84 @@ f() { try {} on A catch (e, s) int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: int
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -12207,6 +21950,84 @@ f() { try {} on A catch (e, s) void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -12265,6 +22086,74 @@ f() { try {} on A catch (e, s) var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: x
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -12317,6 +22206,41 @@ f() { try {} on A catch (e, s) return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -12365,6 +22289,48 @@ f() { try {} on A catch (e, s) switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -12399,7 +22365,7 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -12418,6 +22384,47 @@ f() { try {} on A catch (e, s) try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -12472,6 +22479,47 @@ f() { try {} on A catch (e, s) while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -12506,7 +22554,7 @@ CompilationUnit
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -12527,6 +22575,45 @@ f() { try {} on A catch switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -12558,7 +22645,7 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -12578,6 +22665,44 @@ f() { try {} on A catch try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -12630,6 +22755,44 @@ f() { try {} on A catch while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -12661,7 +22824,7 @@ CompilationUnit
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -12683,6 +22846,33 @@ f() { try {} on continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: <empty> <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -12724,6 +22914,41 @@ f() { try {} on do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: <empty> <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -12754,7 +22979,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -12773,6 +22998,30 @@ f() { try {} on }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: <empty> <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -12811,6 +23060,46 @@ f() { try {} on for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: <empty> <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: y
+                iterable(v1): SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -12842,7 +23131,7 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -12862,6 +23151,37 @@ f() { try {} on A assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -12888,7 +23208,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -12904,6 +23224,30 @@ f() { try {} on A {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  body: Block
+                    leftBracket: {
+                    rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -12943,6 +23287,33 @@ f() { try {} on A break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -12985,6 +23356,33 @@ f() { try {} on A continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -13025,6 +23423,41 @@ f() { try {} on A do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -13055,7 +23488,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -13073,6 +23506,30 @@ f() { try {} on A }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -13110,6 +23567,46 @@ f() { try {} on A for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: y
+                iterable(v1): SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -13141,7 +23638,7 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -13161,6 +23658,39 @@ f() { try {} on A if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -13187,7 +23717,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: BooleanLiteral
+                expression: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -13207,6 +23737,38 @@ f() { try {} on A l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LabeledStatement
+              labels
+                Label
+                  name: l
+                  colon: :
+              statement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -13252,6 +23814,68 @@ f() { try {} on A int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: int
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -13302,6 +23926,68 @@ f() { try {} on A void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -13352,6 +24038,58 @@ f() { try {} on A var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: x
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -13396,6 +24134,33 @@ f() { try {} on A return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -13436,6 +24201,40 @@ f() { try {} on A switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -13462,7 +24261,7 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -13481,6 +24280,39 @@ f() { try {} on A try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -13527,6 +24359,39 @@ f() { try {} on A while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -13553,7 +24418,7 @@ CompilationUnit
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -13574,6 +24439,39 @@ f() { try {} on if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: <empty> <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -13600,7 +24498,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: BooleanLiteral
+                expression: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -13624,6 +24522,39 @@ f() { try {} on l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: l
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ExpressionStatement
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -13648,7 +24579,7 @@ CompilationUnit
                       leftBracket: { <synthetic>
                       rightBracket: } <synthetic>
               ExpressionStatement
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               Block
@@ -13668,6 +24599,64 @@ f() { try {} on int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: int
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: int
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -13717,6 +24706,64 @@ f() { try {} on void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: void
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: void
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -13766,6 +24813,58 @@ f() { try {} on var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: <empty> <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: <empty> <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: x
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -13811,6 +24910,33 @@ f() { try {} on return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: <empty> <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -13852,6 +24978,40 @@ f() { try {} on switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: <empty> <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -13878,7 +25038,7 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -13898,6 +25058,39 @@ f() { try {} on try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: <empty> <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -13945,6 +25138,39 @@ f() { try {} on while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: <empty> <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -13971,7 +25197,7 @@ CompilationUnit
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block

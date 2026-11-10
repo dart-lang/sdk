@@ -112,7 +112,7 @@ foo() async {
   return unknown;
 }
 ''',
-      [error(diag.undefinedIdentifier, 23, 7)],
+      [error(diag.undefinedUnqualifiedNameReadNotFound, 23, 7)],
     );
   }
 

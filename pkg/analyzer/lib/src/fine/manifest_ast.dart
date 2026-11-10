@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/binary/binary_reader.dart';
 import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/fine/manifest_context.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -74,7 +75,7 @@ class ManifestNode {
   /// behavior of [_ElementCollector].
   final Uint32List elementIndexList;
 
-  factory ManifestNode.encode(EncodeContext context, AstNode node) {
+  factory encode(EncodeContext context, AstNode node) {
     var buffer = StringBuffer();
     var lengthList = GrowableUint32List();
 
@@ -115,7 +116,7 @@ class ManifestNode {
     }
   }
 
-  factory ManifestNode.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return ManifestNode._(
       isValid: reader.readBool(),
       tokenBuffer: reader.readStringReference(),
@@ -125,7 +126,7 @@ class ManifestNode {
     );
   }
 
-  ManifestNode._({
+  new _({
     required this.isValid,
     required this.tokenBuffer,
     required this.tokenLengthList,
@@ -219,7 +220,7 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
   final Map<Element, int> map = Map.identity();
   final GrowableUint32List elementIndexList = GrowableUint32List();
 
-  _ElementCollector({
+  new({
     required this.indexOfTypeParameter,
     required this.indexOfFormalParameter,
   });
@@ -232,7 +233,6 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
   @override
   void visitAnnotation(Annotation node) {
     node.visitChildren2(this);
-    _addElement(node.element);
   }
 
   @override
@@ -261,10 +261,7 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
 
   @override
   void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
-    var element = switch (node.resolution) {
-      NamedReadResolutionWithElement(:var element) => element,
-      _ => null,
-    };
+    var element = node.resolution?.element;
     _addElement(element);
   }
 
@@ -306,20 +303,24 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
+    _visitNamedFunctionInvocation(node);
+  }
+
+  @override
+  void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
+    var element = node.resolution?.element;
+    _addElement(element);
+  }
+
+  @override
   void visitDoubleLiteral(DoubleLiteral node) {}
 
   @override
   void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
-    node.visitChildren2(this);
-    switch (node.write) {
-      case InvalidNamedWriteResolution(:var candidates):
-        for (var element in candidates) {
-          _addElement(element);
-        }
-      case NamedWriteResolutionWithElement(:var element):
-        _addElement(element);
-      case null:
-      case DynamicPropertyWriteResolution():
+    node.iterable2.accept2(this);
+    if (node.target.write?.elementOrRecovery case var element?) {
+      _addElement(element);
     }
   }
 
@@ -351,6 +352,19 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
   @override
   void visitIfNull(IfNull node) {
     node.visitChildren2(this);
+  }
+
+  @override
+  void visitImportPrefixedFunctionInvocation(
+    ImportPrefixedFunctionInvocation node,
+  ) {
+    _visitNamedFunctionInvocation(node);
+  }
+
+  @override
+  void visitImportPrefixedNameExpression(ImportPrefixedNameExpression node) {
+    node.importPrefix.accept2(this);
+    _addReadResolution(node.resolution);
   }
 
   @override
@@ -400,17 +414,6 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitMethodInvocation(MethodInvocation node) {
-    if (node.methodName.element case TopLevelFunctionElement element) {
-      if (element.isDartCoreIdentical) {
-        node.visitChildren2(this);
-        return;
-      }
-    }
-    isValid = false;
-  }
-
-  @override
   void visitNamedArgument(NamedArgument node) {
     node.argumentExpression2.accept2(this);
   }
@@ -440,23 +443,14 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    node.prefix.accept2(this);
-    _addElement(node.element);
-  }
-
-  @override
-  void visitPropertyAccess(PropertyAccess node) {
-    node.visitChildren2(this);
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    _visitNamedFunctionInvocation(node);
   }
 
   @override
   void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
     node.visitChildren2(this);
-    var element = switch (node.resolution) {
-      NamedReadResolutionWithElement(:var element) => element,
-      _ => null,
-    };
+    var element = node.resolution?.element;
     _addElement(element);
   }
 
@@ -478,16 +472,17 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    _addElement(node.element);
-  }
-
-  @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {}
 
   @override
   void visitSpreadElement(SpreadElement node) {
     node.visitChildren2(this);
+  }
+
+  @override
+  void visitStaticQualifier(StaticQualifier node) {
+    node.visitChildren2(this);
+    _addElement(node.element);
   }
 
   @override
@@ -527,6 +522,16 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
   void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
     node.visitChildren2(this);
     _addElement(node.element);
+  }
+
+  @override
+  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
+    _visitNamedFunctionInvocation(node);
+  }
+
+  @override
+  void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
+    _addReadResolution(node.resolution);
   }
 
   void _addElement(Element? element) {
@@ -581,6 +586,24 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
         _addElement(element.variable);
       }
     }
+  }
+
+  void _addReadResolution(NamedReadResolution? resolution) {
+    // Keep one manifest slot per syntactic name, even when resolution fails.
+    _addElement(resolution?.elementOrRecovery);
+  }
+
+  void _visitNamedFunctionInvocation(NamedFunctionInvocation node) {
+    var element = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      _ => null,
+    };
+    if (element is TopLevelFunctionElement && element.isDartCoreIdentical) {
+      _addElement(element);
+      node.visitChildren2(this);
+      return;
+    }
+    isValid = false;
   }
 }
 

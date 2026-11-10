@@ -10,6 +10,8 @@ import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/fine/library_manifest_ids.dart';
 import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_context.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
@@ -18,7 +20,6 @@ import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
-import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -86,7 +87,7 @@ class LibraryManifest {
   /// can be skipped; if it differs, the check must be re-run.
   Hash hashForRequirements;
 
-  LibraryManifest({
+  new({
     required this.name,
     required this.isOriginNotExistingFile,
     required this.isSynthetic,
@@ -113,13 +114,13 @@ class LibraryManifest {
     required this.hashForRequirements,
   });
 
-  factory LibraryManifest.fromBytes(Uint8List bytes) {
+  factory fromBytes(Uint8List bytes) {
     var reader = BinaryReader(bytes);
     reader.initFromTableTrailer();
     return LibraryManifest.read(reader);
   }
 
-  factory LibraryManifest.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return LibraryManifest(
       name: reader.readOptionalStringUtf8(),
       isOriginNotExistingFile: reader.readBool(),
@@ -168,27 +169,6 @@ class LibraryManifest {
     );
   }
 
-  Map<LookupName, ManifestItemId> get exportedIds {
-    return Map.fromEntries([
-      ...reExportMap.entries,
-      ...declaredConflicts.entries,
-      ...<Map<LookupName, ManifestItem>>[
-            declaredClasses,
-            declaredEnums,
-            declaredExtensions,
-            declaredExtensionTypes,
-            declaredMixins,
-            declaredTypeAliases,
-            declaredGetters,
-            declaredSetters,
-            declaredFunctions,
-          ]
-          .expand((map) => map.entries)
-          .whereNot((entry) => entry.key.isPrivate)
-          .mapValue((item) => item.id),
-    ]);
-  }
-
   /// Returns the ID of a declared top-level element, or `null` if there is no
   /// such element.
   ManifestItemId? getDeclaredId(LookupName name) {
@@ -202,12 +182,6 @@ class LibraryManifest {
         declaredGetters[name]?.id ??
         declaredSetters[name]?.id ??
         declaredFunctions[name]?.id;
-  }
-
-  /// Returns the ID of a top-level element either declared or re-exported,
-  /// or `null` if there is no such element.
-  ManifestItemId? getExportedId(LookupName name) {
-    return exportMap[name];
   }
 
   Uint8List toBytes() {
@@ -298,7 +272,7 @@ class LibraryManifestBuilder {
   /// items for declared elements that don't have items in this map.
   final Map<Element, ManifestItem> declaredItems = Map.identity();
 
-  LibraryManifestBuilder({
+  new({
     required this.elementFactory,
     required this.inputLibraries,
     required this.inputManifests,
@@ -330,6 +304,10 @@ class LibraryManifestBuilder {
     performance.run('computeHashForRequirements', (_) {
       _computeHashForRequirements();
     });
+
+    for (var libraryElement in libraryElements) {
+      libraryElement.manifest!.finishBuilding();
+    }
 
     assert(_assertSerialization());
 
@@ -880,6 +858,14 @@ class LibraryManifestBuilder {
       if (!const ListEquality<int>().equals(bytes, readBytes)) {
         throw StateError('Library manifest bytes are different: $uri');
       }
+
+      var idsBytes = LibraryManifestIds.fromManifest(manifest).toBytes();
+      var readIds = LibraryManifestIds.fromBytes(idsBytes);
+      var readIdsBytes = readIds.toBytes();
+
+      if (!const ListEquality<int>().equals(idsBytes, readIdsBytes)) {
+        throw StateError('Library manifest IDs bytes are different: $uri');
+      }
     }
 
     return true;
@@ -1146,7 +1132,7 @@ class LibraryManifestBuilder {
         exportedExtensions: ManifestItemIdList([]),
         hashForRequirements: Hash.empty,
       );
-      libraryElement.manifest = LibraryManifestHandle.fromInstance(newManifest);
+      libraryElement.manifest = LibraryManifestHandle.building(newManifest);
     }
 
     _fillInterfaceElementsInterface();
@@ -1295,6 +1281,8 @@ class LibraryManifestBuilder {
                 .map((item) => item.id)
                 .sorted();
             classItem.allSubtypes = ManifestItemIdList(ids);
+          } else {
+            classItem.allSubtypes = null;
           }
         }
       }
@@ -1353,7 +1341,7 @@ class LibraryManifestBuilder {
     var interface = inheritance.getInterface(element);
 
     for (var entry in interface.map.entries) {
-      var executable = entry.value.baseElement;
+      var executable = entry.value;
 
       var lookupName = executable.lookupName?.asLookupName;
       if (lookupName == null) {
@@ -1367,32 +1355,14 @@ class LibraryManifestBuilder {
       }
 
       var combinedCandidates = interface.combinedSignatures[entry.key];
-      if (combinedCandidates != null) {
-        var candidateElements = combinedCandidates
-            .map((candidate) => candidate.baseElement)
-            .toSet()
-            .toList();
-        if (candidateElements.length == 1) {
-          executable = candidateElements[0];
-        } else {
-          var candidateIds = candidateElements.map((candidate) {
-            return _getInterfaceElementMemberId(candidate);
-          }).toList();
-          var idList = ManifestItemIdList(candidateIds);
-          var id = item.interface.combinedIdsTemp[idList];
-          id ??= ManifestItemId.generate();
-          item.interface.map[lookupName] = id;
-          item.interface.combinedIds[idList] = id;
-          continue;
-        }
-      }
-
-      var id = _getInterfaceElementMemberId(executable);
+      var id = combinedCandidates != null
+          ? _getCombinedMemberId(item.interface, combinedCandidates)
+          : _getInterfaceElementMemberId(executable);
       item.interface.map[lookupName] = id;
     }
 
     for (var entry in interface.implemented.entries) {
-      var executable = entry.value.baseElement;
+      var executable = entry.value;
       var lookupName = executable.lookupName?.asLookupName;
       if (lookupName != null && !lookupName.isPrivate) {
         var id = _getInterfaceElementMemberId(executable);
@@ -1403,7 +1373,7 @@ class LibraryManifestBuilder {
     for (var superImplemented in interface.superImplemented) {
       var layer = <LookupName, ManifestItemId>{};
       for (var entry in superImplemented.entries) {
-        var executable = entry.value.baseElement;
+        var executable = entry.value;
         var lookupName = executable.lookupName?.asLookupName;
         if (lookupName != null && !lookupName.isPrivate) {
           layer[lookupName] = _getInterfaceElementMemberId(executable);
@@ -1413,7 +1383,7 @@ class LibraryManifestBuilder {
     }
 
     for (var entry in inheritance.getInheritedMap(element).entries) {
-      var executable = entry.value.baseElement;
+      var executable = entry.value;
       var lookupName = executable.lookupName?.asLookupName;
       if (lookupName != null && !lookupName.isPrivate) {
         var id = _getInterfaceElementMemberId(executable);
@@ -1456,9 +1426,8 @@ class LibraryManifestBuilder {
     }
 
     // Fill interfaces of supertypes before interfaces of subtypes.
-    // So that if there are synthetic top-merged members in interfaces of
-    // supertypes (these members are not included into declared), we can
-    // get corresponding IDs.
+    // So that we can get IDs of members for combined member signatures in
+    // interfaces of supertypes, which are not declared.
     for (var element in interfaceList) {
       _fillInterfaceElementInterface(element);
     }
@@ -1528,6 +1497,27 @@ class LibraryManifestBuilder {
       ..getDataInt('transitiveAffectedCount').add(affectedElements.length);
   }
 
+  /// Returns the ID of the interface member combined from [candidates].
+  ///
+  /// If all candidates have the same ID, returns it. Otherwise, the ID
+  /// depends on the IDs of all candidates, and stays the same while they do.
+  ManifestItemId _getCombinedMemberId(
+    ManifestInterface interface,
+    List<InternalExecutableElement> candidates,
+  ) {
+    var candidateIds = candidates
+        .map(_getInterfaceElementMemberId)
+        .toSet()
+        .toList();
+    if (candidateIds.length == 1) {
+      return candidateIds[0];
+    }
+    var idList = ManifestItemIdList(candidateIds);
+    var id = interface.combinedIdsTemp[idList] ?? ManifestItemId.generate();
+    interface.combinedIds[idList] = id;
+    return id;
+  }
+
   /// Returns the manifest from [inputManifests], empty if absent.
   LibraryManifest _getInputManifest(Uri uri) {
     return inputManifests[uri] ??
@@ -1559,9 +1549,19 @@ class LibraryManifestBuilder {
         );
   }
 
-  ManifestItemId _getInterfaceElementMemberId(ExecutableElementImpl element) {
-    var enclosingElement = element.enclosingElement;
-    enclosingElement as InterfaceElementImpl;
+  ManifestItemId _getInterfaceElementMemberId(
+    InternalExecutableElement member,
+  ) {
+    InternalExecutableElement element;
+    InterfaceElementImpl enclosingElement;
+    if (member is CombinedExecutableElementImpl) {
+      // Not declared, so identified by the interface that has it.
+      element = member;
+      enclosingElement = member.owner;
+    } else {
+      element = member.baseElement;
+      enclosingElement = element.enclosingElement as InterfaceElementImpl;
+    }
 
     var enclosingItem = declaredItems[enclosingElement];
     if (enclosingItem != null) {
@@ -1578,25 +1578,25 @@ class LibraryManifestBuilder {
 
       // SAFETY: null asserts are safe, because element is in this library.
       switch (element) {
-        case GetterElementImpl():
+        case InternalGetterElement():
           var declaredGetter = enclosingItem.declaredGetters[lookupName];
           if (declaredGetter != null) {
             return declaredGetter.id;
           }
           return enclosingItem.interface.map[lookupName]!;
-        case SetterElementImpl():
+        case InternalSetterElement():
           var declaredSetter = enclosingItem.declaredSetters[lookupName];
           if (declaredSetter != null) {
             return declaredSetter.id;
           }
           return enclosingItem.interface.map[lookupName]!;
-        case MethodElementImpl():
+        case InternalMethodElement():
           var declaredMethod = enclosingItem.declaredMethods[lookupName];
           if (declaredMethod != null) {
             return declaredMethod.id;
           }
           return enclosingItem.interface.map[lookupName]!;
-        case ConstructorElementImpl():
+        case InternalConstructorElement():
           if (enclosingItem.declaredConstructors[lookupName] case var item?) {
             return item.id;
           }
@@ -1637,78 +1637,132 @@ class LibraryManifestBuilder {
   }
 }
 
-/// Handle for [LibraryManifest.hashForRequirements] or [instance].
+/// Handle for [LibraryManifest.hashForRequirements], [ids], or [instance],
+/// in the order of increasing cost to read.
 ///
-/// Most [RequirementsManifest] can be checked using just [hashForRequirements],
-/// so we don't even need to read the whole [instance] from bytes. But we can,
-/// if we have to check for details of the manifest.
+/// Most [RequirementsManifest] can be checked using just [hashForRequirements].
+/// Recording requirements, and checking them in detail, needs only [ids].
+/// Only building the next manifest needs the whole [instance].
 ///
-/// This class has several states:
-/// 1. Has incomplete [_instance], during building.
-/// 2. Has complete [_instance], no bytes, after building.
-/// 3. Has [_instance], has bytes, after building and write.
-/// 4. No [_instance], has bytes, after [discardInstance] or `read`.
-/// 5. Has [instance], has bytes, after [instance] read it.
+/// This class has two lifecycle phases:
+/// 1. Building, from [LibraryManifestHandle.building] until [finishBuilding]:
+///    has the incomplete [instance], no bytes, and no [hashForRequirements];
+///    [ids] is `null`.
+/// 2. Built, after [finishBuilding] or [LibraryManifestHandle.read]: has
+///    [hashForRequirements], and bytes for [ids] and [instance]. The decoded
+///    [_ids] and [_instance] are caches, set by [finishBuilding] or decoded on
+///    demand. [discardDecoded] discards both; [discardDecodedOnIdle] discards
+///    [_instance], and also [_ids] unless they are still requested, see its
+///    documentation.
 class LibraryManifestHandle {
-  Hash? _hashForRequirements;
-  Uint8List? _bytes;
+  bool _isBuilding;
+
+  late final Hash _hashForRequirements;
+
+  late final Uint8List _idsBytes;
+  LibraryManifestIds? _ids;
+
+  /// Whether [ids] was requested during the current period of work.
+  bool _idsRequested = false;
+
+  /// Whether [ids] was requested during the previous period of work.
+  bool _idsRequestedBefore = false;
+
+  late final Uint8List _instanceBytes;
   LibraryManifest? _instance;
 
-  LibraryManifestHandle({
-    required Hash? hashForRequirements,
-    required Uint8List? bytes,
-    required LibraryManifest? instance,
-  }) : _hashForRequirements = hashForRequirements,
-       _bytes = bytes,
-       _instance = instance;
+  /// Returns the handle for the [instance] that the builder has started to
+  /// fill. The builder must invoke [finishBuilding] after filling it.
+  new building(LibraryManifest instance)
+    : _isBuilding = true,
+      _instance = instance;
 
-  factory LibraryManifestHandle.fromInstance(LibraryManifest instance) {
-    // Note, we don't convert instance to bytes here.
-    // The instance is not finished yet in the builder.
-    return LibraryManifestHandle(
-      bytes: null,
-      hashForRequirements: null,
-      instance: instance,
-    );
-  }
-
-  factory LibraryManifestHandle.read(BinaryReader reader) {
-    return LibraryManifestHandle(
-      hashForRequirements: Hash.read(reader),
-      bytes: reader.readUint8List(),
-      instance: null,
-    );
-  }
+  new read(BinaryReader reader)
+    : _isBuilding = false,
+      _hashForRequirements = Hash.read(reader),
+      _idsBytes = reader.readUint8List(),
+      _instanceBytes = reader.readUint8List();
 
   Hash get hashForRequirements {
-    return _hashForRequirements ?? _instance!.hashForRequirements;
+    return _hashForRequirements;
   }
+
+  /// The IDs of the manifest, or `null` while the manifest is being built.
+  ///
+  /// Requirements to a library whose manifest is being built are not
+  /// interesting, because they are to the library cycle being linked.
+  LibraryManifestIds? get ids {
+    if (_isBuilding) {
+      return null;
+    }
+    _idsRequested = true;
+    return _ids ??= LibraryManifestIds.fromBytes(_idsBytes);
+  }
+
+  /// Whether [ids] was requested during the current period of work.
+  bool get idsRequested => _idsRequested;
 
   LibraryManifest get instance {
-    return _instance ??= LibraryManifest.fromBytes(_bytes!);
+    return _instance ??= LibraryManifest.fromBytes(_instanceBytes);
   }
 
-  void discardInstance() {
-    if (_instance case var instance?) {
-      _hashForRequirements ??= instance.hashForRequirements;
-      _bytes ??= instance.toBytes();
-    }
+  /// Discards [ids] and [instance], keeping their bytes to read them again.
+  void discardDecoded() {
+    assert(!_isBuilding);
+    _ids = null;
+    _idsRequested = false;
+    _idsRequestedBefore = false;
     _instance = null;
   }
 
-  void write(BinaryWriter writer) {
-    var hashForRequirements =
-        _hashForRequirements ?? _instance?.hashForRequirements;
-    if (hashForRequirements == null) {
-      throw StateError('Missing hashForRequirements');
+  /// Discards [instance], keeping its bytes to read it again. Must be invoked
+  /// when the analysis goes idle.
+  ///
+  /// If [endsPeriod], the current period of work ends, and [ids] are
+  /// discarded unless they were requested during each of the last two
+  /// periods. Resolving a library records requirements against the IDs of
+  /// every library it uses, so while the user edits a library, the IDs of
+  /// the libraries it uses stay decoded. But the IDs requested only once,
+  /// for example during the initial analysis, are discarded. And the IDs
+  /// not requested during the last period, for example when the user
+  /// switched to editing other libraries, are discarded too.
+  ///
+  /// Returns whether [ids] stay decoded.
+  bool discardDecodedOnIdle({required bool endsPeriod}) {
+    assert(!_isBuilding);
+    _instance = null;
+    if (endsPeriod) {
+      if (!(_idsRequested && _idsRequestedBefore)) {
+        _ids = null;
+      }
+      _idsRequestedBefore = _idsRequested;
+      _idsRequested = false;
     }
-    hashForRequirements.write(writer);
+    return _ids != null;
+  }
 
-    var bytes = _bytes ?? _instance?.toBytes();
-    if (bytes == null) {
-      throw StateError('Missing bytes');
-    }
-    writer.writeUint8List(bytes);
+  /// Serializes the [instance] that the builder has filled, and its [ids].
+  ///
+  /// From now on, the bytes are the source of [ids] and [instance], so these
+  /// can be discarded at any time. The [ids] just derived are kept, because
+  /// resolving the libraries that depend on this one records requirements
+  /// against them right away.
+  void finishBuilding() {
+    assert(_isBuilding);
+    var instance = _instance!;
+    var ids = LibraryManifestIds.fromManifest(instance);
+    _hashForRequirements = instance.hashForRequirements;
+    _idsBytes = ids.toBytes();
+    _instanceBytes = instance.toBytes();
+    _ids = ids;
+    _isBuilding = false;
+  }
+
+  void write(BinaryWriter writer) {
+    assert(!_isBuilding);
+    _hashForRequirements.write(writer);
+    writer.writeUint8List(_idsBytes);
+    writer.writeUint8List(_instanceBytes);
   }
 }
 
@@ -1748,7 +1802,7 @@ class _LibraryMatch {
   /// [refElementsMap].
   final Map<Element, ManifestItemId> refExternalIds;
 
-  _LibraryMatch({
+  new({
     required this.manifest,
     required this.library,
     required this.itemMap,

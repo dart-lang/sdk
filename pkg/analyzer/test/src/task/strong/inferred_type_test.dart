@@ -169,6 +169,37 @@ main() {
     _assertTypeStr(f.type, 'Stream<num> Function()');
   }
 
+  test_blockBodiedLambdas_asyncStar_yieldStarDynamic() async {
+    // https://github.com/dart-lang/sdk/issues/64825
+    var result = await resolveTestCodeWithDiagnostics(r'''
+main() {
+  var f = (dynamic d) async* {
+    yield 1;
+    yield* d;
+  };
+  print(f);
+}
+''');
+
+    var f = result.findElement.localVar('f');
+    _assertTypeStr(f.type, 'Stream<dynamic> Function(dynamic)');
+  }
+
+  test_blockBodiedLambdas_asyncStar_yieldStarNever() async {
+    // https://github.com/dart-lang/sdk/issues/64825
+    var result = await resolveTestCodeWithDiagnostics(r'''
+main() {
+  var f = () async* {
+    yield* (throw 0);
+  };
+  print(f);
+}
+''');
+
+    var f = result.findElement.localVar('f');
+    _assertTypeStr(f.type, 'Stream<Never> Function()');
+  }
+
   test_blockBodiedLambdas_basic() async {
     await resolveTestCodeWithDiagnostics(r'''
 test1() {
@@ -394,6 +425,37 @@ main() {
 
     var f = result.findElement.localVar('f');
     _assertTypeStr(f.type, 'Iterable<num> Function()');
+  }
+
+  test_blockBodiedLambdas_syncStar_yieldStarDynamic() async {
+    // https://github.com/dart-lang/sdk/issues/64825
+    var result = await resolveTestCodeWithDiagnostics(r'''
+main() {
+  var f = (dynamic d) sync* {
+    yield 1;
+    yield* d;
+  };
+  print(f);
+}
+''');
+
+    var f = result.findElement.localVar('f');
+    _assertTypeStr(f.type, 'Iterable<dynamic> Function(dynamic)');
+  }
+
+  test_blockBodiedLambdas_syncStar_yieldStarNever() async {
+    // https://github.com/dart-lang/sdk/issues/64825
+    var result = await resolveTestCodeWithDiagnostics(r'''
+main() {
+  var f = () sync* {
+    yield* (throw 0);
+  };
+  print(f);
+}
+''');
+
+    var f = result.findElement.localVar('f');
+    _assertTypeStr(f.type, 'Iterable<Never> Function()');
   }
 
   test_bottom() async {
@@ -1205,7 +1267,7 @@ void main () {
 //                         ^^
 // [diag.unusedLocalVariable] The value of the local variable 'l3' isn't used.
 //                                       ^^^^^^^^^
-// [diag.undefinedMethod] The method 'substring' isn't defined for the type 'int'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'substring' isn't defined for the type 'int'.
     Function2<String, String> l4 = (x) => x.substring(3);
 //                            ^^
 // [diag.unusedLocalVariable] The value of the local variable 'l4' isn't used.
@@ -1449,7 +1511,7 @@ void main () {
 // [diag.returnOfInvalidTypeFromClosure] The returned type 'int' isn't returnable from a 'String' function, as required by the closure's context.
     y = <T>(x) => x.substring(3);
 //                  ^^^^^^^^^
-// [diag.undefinedMethod] The method 'substring' isn't defined for the type 'int'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'substring' isn't defined for the type 'int'.
     var z = string2String;
 //      ^
 // [diag.unusedLocalVariable] The value of the local variable 'z' isn't used.
@@ -3583,10 +3645,10 @@ var a = new A();
 // Note: it doesn't matter that some of these refer to 'x'.
 var b = new B(x);  // allocations
 //            ^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
 var c1 = [x];      // list literals
 //        ^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
 var c2 = const [];
 var d = <dynamic, dynamic>{'a': 'b'};     // map literals
 var e = new A()..x = 3; // cascades
@@ -5078,7 +5140,7 @@ test1() {
 // [diag.argumentTypeNotAssignable] The argument type 'double' can't be assigned to the parameter type 'int'.
   x[3] = 42;
 //       ^^
-// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'String'.
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
   Map<num, String> y = x;
 //                 ^
 // [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
@@ -5093,7 +5155,7 @@ test2() {
   x[4.0] = 'u';
   x[3] = 42;
 //       ^^
-// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'Pattern'.
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'Pattern'.
   Pattern p = null;
 //            ^^^^
 // [diag.invalidAssignment] A value of type 'Null' can't be assigned to a variable of type 'Pattern'.
@@ -5120,7 +5182,7 @@ test1() {
 // [diag.argumentTypeNotAssignable] The argument type 'double' can't be assigned to the parameter type 'int'.
   x1[3] = 42;
 //        ^^
-// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'String'.
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
   Map<num, String> y = x1;
 //                 ^
 // [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
@@ -5135,7 +5197,7 @@ test2() {
   x2[4.0] = 'u';
   x2[3] = 42;
 //        ^^
-// [diag.invalidAssignment] A value of type 'int' can't be assigned to a variable of type 'Pattern'.
+// [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'Pattern'.
   Pattern p = null;
 //            ^^^^
 // [diag.invalidAssignment] A value of type 'Null' can't be assigned to a variable of type 'Pattern'.
@@ -5157,7 +5219,7 @@ test1() {
 //  ^
 // [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'Null'.
 //       ^^^
-// [diag.invalidAssignment] A value of type 'String' can't be assigned to a variable of type 'Null'.
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'Null'.
 }
 ''');
 

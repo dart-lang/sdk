@@ -569,7 +569,7 @@ abstract class CombinedMemberSignatureBase {
       new FunctionNode(
         null,
         returnType: const VoidType(),
-        positionalParameters: [setterParameter],
+        positionalParameters: new PositionalParameterList(setterParameter),
       ),
       isAbstract: true,
       fileUri: fileUri,

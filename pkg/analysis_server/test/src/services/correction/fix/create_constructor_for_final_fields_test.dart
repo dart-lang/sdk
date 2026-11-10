@@ -23,7 +23,10 @@ void main() {
 
 @reflectiveTest
 class CreateConstructorForFinalFieldsRequiredNamedTest
-    extends FixProcessorTest {
+    extends FixProcessorForBuiltInDiagnosticTest {
+  @override
+  bool get addFlutterPackageDep => true;
+
   @override
   FixKind get kind => DartFixKind.createConstructorForFinalFieldsRequiredNamed;
 
@@ -45,7 +48,6 @@ class Test {
   }
 
   Future<void> test_class_flutter() async {
-    writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
@@ -69,8 +71,39 @@ class Test extends StatelessWidget {
     );
   }
 
+  Future<void> test_class_flutter_inheritedNonFinal() async {
+    await resolveTestCode('''
+import 'package:flutter/widgets.dart';
+
+mixin M {
+  int counter = 0;
+}
+
+class Test extends StatelessWidget with M {
+  final int a;
+}
+''');
+    await assertHasFix(
+      '''
+import 'package:flutter/widgets.dart';
+
+mixin M {
+  int counter = 0;
+}
+
+class Test extends StatelessWidget with M {
+  final int a;
+
+  new({super.key, required this.a});
+}
+''',
+      filter: (error) {
+        return error.message.contains("'a' must be initialized");
+      },
+    );
+  }
+
   Future<void> test_class_flutter_lint() async {
-    writeTestPackageConfig(flutter: true);
     createAnalysisOptionsFile(
       lints: [LintNames.always_put_required_named_parameters_first],
     );
@@ -98,7 +131,6 @@ class Test extends StatelessWidget {
   }
 
   Future<void> test_class_flutter_lint_notRequired() async {
-    writeTestPackageConfig(flutter: true);
     createAnalysisOptionsFile(
       lints: [LintNames.always_put_required_named_parameters_first],
     );
@@ -130,6 +162,30 @@ class Test extends Base {
   new({required this.other, super.key, super.a});
 }
 ''');
+  }
+
+  Future<void> test_class_flutter_nonFinal() async {
+    await resolveTestCode('''
+import 'package:flutter/widgets.dart';
+
+class Test extends StatelessWidget {
+  int a;
+}
+''');
+    await assertHasFix(
+      '''
+import 'package:flutter/widgets.dart';
+
+class Test extends StatelessWidget {
+  int a;
+
+  new({super.key, required this.a});
+}
+''',
+      filter: (error) {
+        return error.message.contains("'a' must be initialized");
+      },
+    );
   }
 
   Future<void> test_class_hasSuperClass_withOptionalNamed() async {
@@ -266,6 +322,122 @@ class Test {
         return error.message.contains("'a'");
       },
     );
+  }
+
+  Future<void> test_class_nonFinal_excludesLate() async {
+    await resolveTestCode('''
+class Test {
+  int a;
+  late int b;
+}
+''');
+    await assertHasFix('''
+class Test {
+  int a;
+  late int b;
+
+  new({required this.a});
+}
+''');
+  }
+
+  Future<void> test_class_nonFinal_hasPrivate() async {
+    await resolveTestCode('''
+class Test {
+  int _a;
+}
+''');
+    await assertHasFix(
+      '''
+class Test {
+  int _a;
+
+  new({required this._a});
+}
+''',
+      filter: (error) {
+        return error.diagnosticCode ==
+            diag.notInitializedNonNullableInstanceField;
+      },
+    );
+  }
+
+  Future<void>
+  test_class_nonFinal_hasPrivate_unsupportedPrivateNamedParameters() async {
+    await resolveTestCode('''
+// @dart=3.11
+class Test {
+  int _a;
+}
+''');
+    await assertHasFix(
+      '''
+// @dart=3.11
+class Test {
+  int _a;
+
+  Test({required int a}) : _a = a;
+}
+''',
+      filter: (error) {
+        return error.diagnosticCode ==
+            diag.notInitializedNonNullableInstanceField;
+      },
+    );
+  }
+
+  Future<void> test_class_nonFinal_mixedWithFinal() async {
+    await resolveTestCode('''
+class Test {
+  final int a;
+  int b;
+}
+''');
+    await assertHasFix(
+      '''
+class Test {
+  final int a;
+  int b;
+
+  new({required this.a, required this.b});
+}
+''',
+      filter: (error) {
+        return error.message.contains("'b'");
+      },
+    );
+  }
+
+  Future<void> test_class_nonFinal_nullableNotTouched() async {
+    await resolveTestCode('''
+class Test {
+  int a;
+  int? b;
+}
+''');
+    await assertHasFix('''
+class Test {
+  int a;
+  int? b;
+
+  new({required this.a});
+}
+''');
+  }
+
+  Future<void> test_class_nonFinal_single() async {
+    await resolveTestCode('''
+class Test {
+  int a;
+}
+''');
+    await assertHasFix('''
+class Test {
+  int a;
+
+  new({required this.a});
+}
+''');
   }
 
   Future<void> test_class_noSuperClass() async {
@@ -415,7 +587,10 @@ enum E {
 
 @reflectiveTest
 class CreateConstructorForFinalFieldsRequiredPositionalTest
-    extends FixProcessorTest {
+    extends FixProcessorForBuiltInDiagnosticTest {
+  @override
+  bool get addFlutterPackageDep => true;
+
   @override
   FixKind get kind => DartFixKind.createConstructorForFinalFields;
 
@@ -437,7 +612,6 @@ class Test {
   }
 
   Future<void> test_class_flutter() async {
-    writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
@@ -466,7 +640,6 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_class_flutter_childLast() async {
-    writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
@@ -495,7 +668,6 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_class_flutter_childrenLast() async {
-    writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
@@ -578,6 +750,28 @@ class Test {
 ''',
       filter: (error) {
         return error.message.contains("'a'");
+      },
+    );
+  }
+
+  Future<void> test_class_nonFinal_mixedWithFinal() async {
+    await resolveTestCode('''
+class Test {
+  final int a;
+  int b;
+}
+''');
+    await assertHasFix(
+      '''
+class Test {
+  final int a;
+  int b;
+
+  new(this.a, this.b);
+}
+''',
+      filter: (error) {
+        return error.message.contains("'b'");
       },
     );
   }
@@ -668,7 +862,10 @@ final int v;
 
 @reflectiveTest
 class CreateConstructorForFinalFieldsWithoutSuperParametersTest
-    extends FixProcessorTest {
+    extends FixProcessorForBuiltInDiagnosticTest {
+  @override
+  bool get addFlutterPackageDep => true;
+
   @override
   FixKind get kind => DartFixKind.createConstructorForFinalFields;
 
@@ -676,7 +873,6 @@ class CreateConstructorForFinalFieldsWithoutSuperParametersTest
   String get testPackageLanguageVersion => '2.16';
 
   Future<void> test_class_flutter() async {
-    writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
@@ -705,7 +901,6 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_class_flutter_childLast() async {
-    writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
@@ -734,7 +929,6 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_class_flutter_childrenLast() async {
-    writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
@@ -763,7 +957,6 @@ class MyWidget extends StatelessWidget {
   }
 
   Future<void> test_class_flutter_private_field() async {
-    writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 

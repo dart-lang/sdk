@@ -17,7 +17,7 @@ void main() {
 }
 
 @reflectiveTest
-class AssignToLocalVariableTest extends AssistProcessorTest {
+class AssignToLocalVariableTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.assignToLocalVariable;
 
@@ -59,17 +59,97 @@ List<int> readBytes() => <int>[];
     await assertHasAssist('''
 void f() {
   List<int> bytes;
-  var readBytes = readBytes();
+  var readBytes2 = readBytes();
 }
 List<int> readBytes() => <int>[];
 ''');
     assertLinkedGroup(
       0,
-      ['readBytes = '],
+      ['readBytes2 = '],
       expectedSuggestions(LinkedEditSuggestionKind.VARIABLE, [
         'list',
         'bytes2',
-        'readBytes',
+        'readBytes2',
+      ]),
+    );
+  }
+
+  Future<void> test_invocation_forLoopVariable() async {
+    await resolveTestCode('''
+void f(List<List<int>> lists) {
+  for (var bytes in lists) {
+    ^readBytes();
+  }
+}
+List<int> readBytes() => <int>[];
+''');
+    await assertHasAssist('''
+void f(List<List<int>> lists) {
+  for (var bytes in lists) {
+    var readBytes2 = readBytes();
+  }
+}
+List<int> readBytes() => <int>[];
+''');
+    assertLinkedGroup(
+      0,
+      ['readBytes2 = '],
+      expectedSuggestions(LinkedEditSuggestionKind.VARIABLE, [
+        'list',
+        'bytes2',
+        'readBytes2',
+      ]),
+    );
+  }
+
+  Future<void> test_invocation_laterPatternVariable() async {
+    await resolveTestCode('''
+void f() {
+  ^readBytes();
+  var (bytes, _) = (0, 0);
+}
+List<int> readBytes() => <int>[];
+''');
+    await assertHasAssist('''
+void f() {
+  var readBytes2 = readBytes();
+  var (bytes, _) = (0, 0);
+}
+List<int> readBytes() => <int>[];
+''');
+    assertLinkedGroup(
+      0,
+      ['readBytes2 = '],
+      expectedSuggestions(LinkedEditSuggestionKind.VARIABLE, [
+        'list',
+        'bytes2',
+        'readBytes2',
+      ]),
+    );
+  }
+
+  Future<void> test_invocation_patternVariable() async {
+    await resolveTestCode('''
+void f() {
+  var (bytes, _) = (<int>[], 0);
+  ^readBytes();
+}
+List<int> readBytes() => <int>[];
+''');
+    await assertHasAssist('''
+void f() {
+  var (bytes, _) = (<int>[], 0);
+  var readBytes2 = readBytes();
+}
+List<int> readBytes() => <int>[];
+''');
+    assertLinkedGroup(
+      0,
+      ['readBytes2 = '],
+      expectedSuggestions(LinkedEditSuggestionKind.VARIABLE, [
+        'list',
+        'bytes2',
+        'readBytes2',
       ]),
     );
   }

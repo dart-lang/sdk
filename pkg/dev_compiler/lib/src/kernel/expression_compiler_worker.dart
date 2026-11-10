@@ -202,6 +202,7 @@ class ExpressionCompilerWorker {
       explicitExperimentalFlags: explicitExperimentalFlags,
       sdkRoot: _argToUri(parsedArgs.option('sdk-root')),
       trackCreationLocations: parsedArgs.flag('track-creation-locations'),
+      deprecatedJsInterop: parsedArgs.flag('deprecated-js-interop'),
       moduleFormat: moduleFormat,
       canaryFeatures: parsedArgs.flag('canary'),
       enableAsserts: parsedArgs.flag('enable-asserts'),
@@ -228,6 +229,7 @@ class ExpressionCompilerWorker {
     Map<ExperimentalFlag, bool> explicitExperimentalFlags = const {},
     Uri? sdkRoot,
     bool trackCreationLocations = false,
+    bool deprecatedJsInterop = true,
     ModuleFormat moduleFormat = ModuleFormat.amd,
     bool canaryFeatures = false,
     bool enableAsserts = true,
@@ -245,6 +247,7 @@ class ExpressionCompilerWorker {
       ..librariesSpecificationUri = librariesSpecificationUri
       ..target = DevCompilerTarget(
         TargetFlags(trackCreationLocations: trackCreationLocations),
+        deprecatedJsInterop: deprecatedJsInterop,
       )
       ..fileSystem = fileSystem
       ..omitPlatform = true
@@ -909,6 +912,13 @@ final argParser = ArgParser()
   // is tested with enabled asserts.
   // Issue: https://github.com/dart-lang/sdk/issues/43986
   ..addFlag('enable-asserts', negatable: true, defaultsTo: false)
+  ..addFlag(
+    'deprecated-js-interop',
+    help:
+        'Allow the deprecated JS interop libraries (e.g. dart:html, dart:js).\n'
+        'Should match the value used to compile the application.',
+    defaultsTo: true,
+  )
   ..addFlag('verbose', defaultsTo: false);
 
 Uri? _argToUri(String? uriArg) =>

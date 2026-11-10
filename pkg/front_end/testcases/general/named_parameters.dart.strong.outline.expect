@@ -22,9 +22,9 @@ class Subclass extends self::Superclass {
   method namedCallback(({alpha: core::String, beta: core::int}) → dynamic callback) → dynamic
     ;
 }
-static method topLevelNamed(dynamic beta, dynamic alpha, {dynamic gamma, dynamic delta}) → dynamic
+static method topLevelNamed(dynamic beta, dynamic alpha, {dynamic gamma = null, dynamic delta = null}) → dynamic
   ;
-static method topLevelOptional(dynamic beta, dynamic alpha, [dynamic gamma, dynamic delta]) → dynamic
+static method topLevelOptional(dynamic beta, dynamic alpha, [dynamic gamma = null, dynamic delta = null]) → dynamic
   ;
 static method main() → dynamic
   ;

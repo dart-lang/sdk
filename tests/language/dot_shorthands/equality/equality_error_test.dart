@@ -11,14 +11,12 @@ class ConstConstructorAssert {
   //                                                      ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
   //                                                       ^^^^
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
   // [cfe] No type was provided to find the dot shorthand 'blue'.
 
   const ConstConstructorAssert.notBlue(Color color) : assert(.blue != color);
   //                                                         ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
   //                                                          ^^^^
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
   // [cfe] No type was provided to find the dot shorthand 'blue'.
 
   const ConstConstructorAssert.one(Integer integer)
@@ -26,7 +24,6 @@ class ConstConstructorAssert {
   //         ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
   //          ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
   // [cfe] No type was provided to find the dot shorthand 'constOne'.
 
   const ConstConstructorAssert.notOne(Integer integer)
@@ -34,7 +31,6 @@ class ConstConstructorAssert {
   //         ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
   //          ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
   // [cfe] No type was provided to find the dot shorthand 'constOne'.
 
   const ConstConstructorAssert.oneExt(IntegerExt integer)
@@ -42,7 +38,6 @@ class ConstConstructorAssert {
   //         ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
   //          ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
   // [cfe] No type was provided to find the dot shorthand 'constOne'.
 
   const ConstConstructorAssert.notOneExt(IntegerExt integer)
@@ -50,7 +45,6 @@ class ConstConstructorAssert {
   //         ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
   //          ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
   // [cfe] No type was provided to find the dot shorthand 'constOne'.
 
   const ConstConstructorAssert.oneMixin(IntegerMixin integer)
@@ -58,7 +52,6 @@ class ConstConstructorAssert {
   //         ^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
   //          ^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
   // [cfe] No type was provided to find the dot shorthand 'mixinConstOne'.
 
   const ConstConstructorAssert.notOneMixin(IntegerMixin integer)
@@ -66,7 +59,6 @@ class ConstConstructorAssert {
   //         ^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
   //          ^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
   // [cfe] No type was provided to find the dot shorthand 'mixinConstOne'.
 }
 
@@ -80,14 +72,12 @@ void notSymmetrical(
 
   const bool symBlueEq = .blue == constColor;
   //                     ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
   //                      ^
   // [cfe] No type was provided to find the dot shorthand 'blue'.
 
   const bool symBlueNeq = .blue != constColor;
   //                      ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
   //                       ^
   // [cfe] No type was provided to find the dot shorthand 'blue'.
@@ -95,14 +85,12 @@ void notSymmetrical(
   const constInteger = Integer.constOne;
   const bool symOneEq = .one == constInteger;
   //                    ^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
   //                     ^
   // [cfe] No type was provided to find the dot shorthand 'one'.
 
   const bool symOneNeq = .one != constInteger;
   //                     ^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
   //                      ^
   // [cfe] No type was provided to find the dot shorthand 'one'.
@@ -110,14 +98,12 @@ void notSymmetrical(
   const constIntegerExt = IntegerExt.constOne;
   const bool symOneExtEq = .one == constIntegerExt;
   //                       ^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
   //                        ^
   // [cfe] No type was provided to find the dot shorthand 'one'.
 
   const bool symOneExtNeq = .one != constIntegerExt;
   //                        ^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
   //                         ^
   // [cfe] No type was provided to find the dot shorthand 'one'.
@@ -190,7 +176,6 @@ void rhsNeedsToBeShorthand(
   //                                                             ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
   //                                                              ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [cfe] No type was provided to find the dot shorthand 'green'.
 
   const bool rhsColorNeq = constColor != (constCondition ? .red : .green);
@@ -201,7 +186,6 @@ void rhsNeedsToBeShorthand(
   //                                                              ^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
   //                                                               ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [cfe] No type was provided to find the dot shorthand 'green'.
 
   if (color == (.red)) print('not ok');
@@ -238,22 +222,20 @@ void rhsNeedsToBeShorthand(
 
   if (color case == (constCondition ? .red : .green)) {
     //                                 ^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
     // [cfe] The static getter or field 'red' isn't defined for the type 'Object?'.
     //                                        ^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
-    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
     // [cfe] The static getter or field 'green' isn't defined for the type 'Object?'.
     print('not ok');
   }
 
   if (color case != (constCondition ? .red : .green)) {
     //                                 ^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
     // [cfe] The static getter or field 'red' isn't defined for the type 'Object?'.
     //                                        ^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
-    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
     // [cfe] The static getter or field 'green' isn't defined for the type 'Object?'.
     print('not ok');
   }
@@ -268,7 +250,6 @@ void rhsNeedsToBeShorthand(
   //                                                ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
   //                                                 ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [cfe] No type was provided to find the dot shorthand 'constTwo'.
 
   const bool rhsIntegerNeq =
@@ -280,7 +261,6 @@ void rhsNeedsToBeShorthand(
   //                                                ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
   //                                                 ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [cfe] No type was provided to find the dot shorthand 'constTwo'.
 
   if (integer == (condition ? .constOne : .constTwo)) {
@@ -309,22 +289,20 @@ void rhsNeedsToBeShorthand(
 
   if (integer case == (constCondition ? .constOne : .constTwo)) {
     //                                   ^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
     // [cfe] The static getter or field 'constOne' isn't defined for the type 'Object?'.
     //                                               ^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
-    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
     // [cfe] The static getter or field 'constTwo' isn't defined for the type 'Object?'.
     print('not ok');
   }
 
   if (integer case != (constCondition ? .constOne : .constTwo)) {
     //                                   ^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
     // [cfe] The static getter or field 'constOne' isn't defined for the type 'Object?'.
     //                                               ^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
-    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
     // [cfe] The static getter or field 'constTwo' isn't defined for the type 'Object?'.
     print('not ok');
   }
@@ -339,7 +317,6 @@ void rhsNeedsToBeShorthand(
   //                                                   ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
   //                                                    ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [cfe] No type was provided to find the dot shorthand 'constTwo'.
 
   const bool rhsIntegerExtNeq =
@@ -351,7 +328,6 @@ void rhsNeedsToBeShorthand(
   //                                                   ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
   //                                                    ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [cfe] No type was provided to find the dot shorthand 'constTwo'.
 
   if (integerExt == (condition ? .constOne : .constTwo)) {
@@ -380,22 +356,20 @@ void rhsNeedsToBeShorthand(
 
   if (integerExt case == (constCondition ? .constOne : .constTwo)) {
     //                                      ^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
     // [cfe] The static getter or field 'constOne' isn't defined for the type 'Object?'.
     //                                                  ^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
-    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
     // [cfe] The static getter or field 'constTwo' isn't defined for the type 'Object?'.
     print('not ok');
   }
 
   if (integerExt case != (constCondition ? .constOne : .constTwo)) {
     //                                      ^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
     // [cfe] The static getter or field 'constOne' isn't defined for the type 'Object?'.
     //                                                  ^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
-    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
     // [cfe] The static getter or field 'constTwo' isn't defined for the type 'Object?'.
     print('not ok');
   }
@@ -410,7 +384,6 @@ void rhsNeedsToBeShorthand(
   //                                                          ^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
   //                                                           ^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [cfe] No type was provided to find the dot shorthand 'mixinConstTwo'.
 
   const bool rhsIntegerMixinNeq =
@@ -422,7 +395,6 @@ void rhsNeedsToBeShorthand(
   //                                                          ^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
   //                                                           ^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [cfe] No type was provided to find the dot shorthand 'mixinConstTwo'.
 
   if (integerMixin == (condition ? .mixinConstOne : .mixinConstTwo)) {
@@ -451,22 +423,20 @@ void rhsNeedsToBeShorthand(
 
   if (integerMixin case == (constCondition ? .mixinConstOne : .mixinConstTwo)) {
     //                                        ^^^^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
     // [cfe] The static getter or field 'mixinConstOne' isn't defined for the type 'Object?'.
     //                                                         ^^^^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
-    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
     // [cfe] The static getter or field 'mixinConstTwo' isn't defined for the type 'Object?'.
     print('not ok');
   }
 
   if (integerMixin case != (constCondition ? .mixinConstOne : .mixinConstTwo)) {
     //                                        ^^^^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
     // [cfe] The static getter or field 'mixinConstOne' isn't defined for the type 'Object?'.
     //                                                         ^^^^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
-    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
     // [cfe] The static getter or field 'mixinConstTwo' isn't defined for the type 'Object?'.
     print('not ok');
   }
@@ -480,205 +450,167 @@ void objectContextType(
 ) {
   const Color constColor = Color.red;
   const bool contextTypeColorEq = (constColor as Object) == .blue;
-  //                                                        ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   //                                                         ^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static getter or field 'blue' isn't defined for the type 'Object'.
 
   const bool contextTypeColorNeq = (constColor as Object) != .blue;
-  //                                                         ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   //                                                          ^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static getter or field 'blue' isn't defined for the type 'Object'.
 
   if ((color as Object) == .blue) print('not ok');
   //                        ^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static getter or field 'blue' isn't defined for the type 'Object'.
 
   if ((color as Object) case == .blue) print('not ok');
-  //                            ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
   //                             ^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static getter or field 'blue' isn't defined for the type 'Object'.
 
   if ((color as Object) != .blue) print('not ok');
   //                        ^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static getter or field 'blue' isn't defined for the type 'Object'.
 
   if ((color as Object) case != .blue) print('not ok');
-  //                            ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
   //                             ^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static getter or field 'blue' isn't defined for the type 'Object'.
 
   const Integer constInteger = Integer.constOne;
   const bool contextTypeIntegerEq = (constInteger as Object) == .constTwo;
-  //                                                            ^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   //                                                             ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static getter or field 'constTwo' isn't defined for the type 'Object'.
 
   const bool contextTypeIntegerNeq = (constInteger as Object) != .constTwo;
-  //                                                             ^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   //                                                              ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static getter or field 'constTwo' isn't defined for the type 'Object'.
 
   if ((integer as Object) == .one) print('not ok');
   //                          ^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static getter or field 'one' isn't defined for the type 'Object'.
 
   if ((integer as Object) case == .constOne) print('not ok');
-  //                              ^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
   //                               ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static getter or field 'constOne' isn't defined for the type 'Object'.
 
   if ((integer as Object) != .one) print('not ok');
   //                          ^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static getter or field 'one' isn't defined for the type 'Object'.
 
   if ((integer as Object) case != .constOne) print('not ok');
-  //                              ^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
   //                               ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static getter or field 'constOne' isn't defined for the type 'Object'.
 
   const IntegerExt constIntegerExt = IntegerExt.constOne;
   const bool contextTypeIntegerExtEq = (constIntegerExt as Object) == .constTwo;
-  //                                                                  ^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   //                                                                   ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static getter or field 'constTwo' isn't defined for the type 'Object'.
 
   const bool contextTypeIntegerExtNeq =
       (constIntegerExt as Object) != .constTwo;
-  //                                 ^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   //                                  ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static getter or field 'constTwo' isn't defined for the type 'Object'.
 
   if ((integerExt as Object) == .one) print('not ok');
   //                             ^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static getter or field 'one' isn't defined for the type 'Object'.
 
   if ((integerExt as Object) case == .constOne) print('not ok');
-  //                                 ^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
   //                                  ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static getter or field 'constOne' isn't defined for the type 'Object'.
 
   if ((integerExt as Object) != .one) print('not ok');
   //                             ^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static getter or field 'one' isn't defined for the type 'Object'.
 
   if ((integerExt as Object) case != .constOne) print('not ok');
-  //                                 ^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
   //                                  ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static getter or field 'constOne' isn't defined for the type 'Object'.
 
   const IntegerMixin constIntegerMixin = IntegerMixin.mixinConstOne;
   const bool contextTypeIntegerMixinEq =
       (constIntegerMixin as Object) == .mixinConstTwo;
-  //                                   ^^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   //                                    ^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static getter or field 'mixinConstTwo' isn't defined for the type 'Object'.
 
   const bool contextTypeIntegerMixinNeq =
       (constIntegerMixin as Object) != .mixinConstTwo;
-  //                                   ^^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   //                                    ^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static getter or field 'mixinConstTwo' isn't defined for the type 'Object'.
 
   if ((integerMixin as Object) == .mixinOne) print('not ok');
   //                               ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static getter or field 'mixinOne' isn't defined for the type 'Object'.
 
   if ((integerMixin as Object) case == .mixinConstOne) print('not ok');
-  //                                   ^^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
   //                                    ^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static getter or field 'mixinConstOne' isn't defined for the type 'Object'.
 
   if ((integerMixin as Object) != .mixinOne) print('not ok');
   //                               ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static getter or field 'mixinOne' isn't defined for the type 'Object'.
 
   if ((integerMixin as Object) case != .mixinConstOne) print('not ok');
-  //                                   ^^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
   //                                    ^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static getter or field 'mixinConstOne' isn't defined for the type 'Object'.
 }
 
 void typeParameterContext<C extends Color, T extends Object>(C color, T value) {
   if (color == .red) print('not ok');
-  //           ^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //            ^
+  //            ^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static getter or field 'red' isn't defined for the type 'C'.
   if (value is Color) {
     if (value == .red) print('not ok');
-    //           ^^^^
-    // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-    //            ^
+    //            ^^^
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
     // [cfe] The static getter or field 'red' isn't defined for the type 'T'.
   }
 }
 
 void dynamicAndVoidContext(dynamic d, void v) {
   if (d == .blue) print('not ok');
-  //       ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //        ^
+  //        ^^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] No type was provided to find the dot shorthand 'blue'.
   if (d != .blue) print('not ok');
-  //       ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //        ^
+  //        ^^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] No type was provided to find the dot shorthand 'blue'.
   if (v == .blue) print('not ok');
   //  ^
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   // [cfe] This expression has type 'void' and can't be used.
-  //       ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //        ^
+  //        ^^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] No type was provided to find the dot shorthand 'blue'.
   if (v != .blue) print('not ok');
   //  ^
   // [analyzer] COMPILE_TIME_ERROR.USE_OF_VOID_RESULT
   // [cfe] This expression has type 'void' and can't be used.
-  //       ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //        ^
+  //        ^^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] No type was provided to find the dot shorthand 'blue'.
 }
 
@@ -700,27 +632,11 @@ void main() {
   // Test the constant evaluation for dot shorthands in const constructor
   // asserts.
   const ConstConstructorAssert.blue(Color.blue);
-  // [error column 3, length 45]
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
   const ConstConstructorAssert.notBlue(Color.red);
-  // [error column 3, length 47]
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
   const ConstConstructorAssert.one(Integer.constOne);
-  // [error column 3, length 50]
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
   const ConstConstructorAssert.notOne(Integer.constTwo);
-  // [error column 3, length 53]
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
   const ConstConstructorAssert.oneExt(IntegerExt.constOne);
-  // [error column 3, length 56]
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
   const ConstConstructorAssert.notOneExt(IntegerExt.constTwo);
-  // [error column 3, length 59]
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
   const ConstConstructorAssert.oneMixin(IntegerMixin.mixinConstOne);
-  // [error column 3, length 65]
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
   const ConstConstructorAssert.notOneMixin(IntegerMixin.mixinConstTwo);
-  // [error column 3, length 68]
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
 }

@@ -224,9 +224,6 @@ class DartCallHierarchyComputer {
     assert(target.file == _result.path);
     var node = _findTargetNode(target.nameRange.offset);
     var element = _getElementOfNode(node);
-    if (element == null || !_isMatchingElement(element, target)) {
-      return [];
-    }
 
     // Implicit constructors are handled using the Class element and a kind of
     // `constructor`, because we need to locate them using an `offset`, which
@@ -237,6 +234,10 @@ class DartCallHierarchyComputer {
         target.kind == CallHierarchyKind.constructor;
     if (isImplicitConstructor) {
       element = element.unnamedConstructor;
+    }
+
+    if (element == null || !_isMatchingElement(element, target)) {
+      return [];
     }
 
     // We only find incoming calls to executable elements.

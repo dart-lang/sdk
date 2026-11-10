@@ -21,8 +21,8 @@ library;
 import 'dart:io' as io;
 
 import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
+import 'package:_fe_analyzer_shared/src/exhaustiveness/shape.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
-import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:front_end/src/kernel/external_effect.dart' show ExternalEffect;
 import 'package:kernel/ast.dart';
@@ -520,6 +520,10 @@ class ConstantsTransformer extends RemovingTransformer {
     TreeNode result = constantEvaluator.withNewEnvironment(() {
       Expression? initializer = node.initializer;
       if (node.isConst) {
+        assert(
+          initializer != null,
+          "Missing initializer on constant field $node.",
+        );
         transformAnnotations(node.annotations, node);
         initializer = node.initializer = evaluateAndTransformWithContext(
           node,
@@ -985,19 +989,19 @@ class ConstantsTransformer extends RemovingTransformer {
           ..parent = patternSwitchCase;
 
         List<int> expressionOffsets = [];
-        List<Expression> expressions = [];
-        for (PatternGuard patternGuard in patternSwitchCase.patternGuards) {
-          ConstantPattern constantPattern =
-              patternGuard.pattern as ConstantPattern;
-          expressionOffsets.add(constantPattern.fileOffset);
-          expressions.add(
-            extern.createConstantExpression(
+        ExpressionList expressions = ExpressionList.mapped(
+          patternSwitchCase.patternGuards,
+          (PatternGuard patternGuard) {
+            ConstantPattern constantPattern =
+                patternGuard.pattern as ConstantPattern;
+            expressionOffsets.add(constantPattern.fileOffset);
+            return extern.createConstantExpression(
               constantPattern.value!,
-              constantPattern.expressionType!,
+              constantPattern.expressionType,
               fileOffset: constantPattern.expression.fileOffset,
-            ),
-          );
-        }
+            );
+          },
+        );
         SwitchCase switchCase = extern.createSwitchCase(
           expressions: expressions,
           expressionOffsets: expressionOffsets,
@@ -1287,13 +1291,13 @@ class ConstantsTransformer extends RemovingTransformer {
           ], fileOffset: switchCase.fileOffset);
 
           SwitchCase replacementCase = extern.createSwitchCase(
-            expressions: [
+            expressions: new ExpressionList(
               extern.createIntLiteral(
                 typeEnvironment.coreTypes,
                 continueTargetIndex,
                 fileOffset: node.fileOffset,
               ),
-            ],
+            ),
             expressionOffsets: [node.fileOffset],
             body: extern.createBlock([
               for (VariableDeclaration jointVariableDeclaration
@@ -1319,17 +1323,15 @@ class ConstantsTransformer extends RemovingTransformer {
 
           replacementCases.add(replacementCase);
         } else {
-          Scope? bodyScope;
-          if (body is Block) {
-            bodyScope = body.scope;
-            body.scope = null;
-          }
-          caseBlock = extern.createBlock([
-            for (VariableDeclaration jointVariableDeclaration
-                in switchCase.jointVariableDeclarations)
-              extern.createVariableStatement(jointVariableDeclaration),
-            if (body is! Block || body.statements.isNotEmpty) body,
-          ], fileOffset: switchCase.fileOffset)..scope = bodyScope;
+          caseBlock = extern.createBlock(
+            [
+              for (VariableDeclaration jointVariableDeclaration
+                  in switchCase.jointVariableDeclarations)
+                extern.createVariableStatement(jointVariableDeclaration),
+              if (body is! Block || body.statements.isNotEmpty) body,
+            ],
+            fileOffset: switchCase.fileOffset,
+          )..scope = switchCase.jointVariableScope;
         }
 
         if (caseCondition != null) {
@@ -1492,7 +1494,7 @@ class ConstantsTransformer extends RemovingTransformer {
     required bool mustBeExhaustive,
     required bool isSwitchExpression,
   }) {
-    StaticType type = _exhaustivenessCache!.getStaticType(
+    Shape shape = _exhaustivenessCache!.getShapeForType(
       // Treat invalid types as empty.
       expressionType is InvalidType
           ? const NeverType.nonNullable()
@@ -1510,7 +1512,7 @@ class ConstantsTransformer extends RemovingTransformer {
     for (PatternGuard patternGuard in patternGuards) {
       caseIsGuarded.add(patternGuard.guard != null);
       caseSpaces.add(
-        patternConverter.createRootSpace(type, patternGuard.pattern),
+        patternConverter.createRootSpace(shape, patternGuard.pattern),
       );
     }
     // Coverage-ignore(suite): Not run.
@@ -1519,7 +1521,7 @@ class ConstantsTransformer extends RemovingTransformer {
         : null;
     NonExhaustiveness? nonExhaustiveness = computeExhaustiveness(
       _exhaustivenessCache!,
-      type,
+      shape,
       caseIsGuarded,
       caseSpaces,
       caseUnreachabilities: caseUnreachabilities,
@@ -1544,10 +1546,11 @@ class ConstantsTransformer extends RemovingTransformer {
     }
     if (_exhaustivenessDataForTesting != null) {
       // Coverage-ignore-block(suite): Not run.
-      _exhaustivenessDataForTesting.objectFieldLookup ??= _exhaustivenessCache;
+      _exhaustivenessDataForTesting.objectPropertyLookup ??=
+          _exhaustivenessCache;
       _exhaustivenessDataForTesting
           .switchResults[replacement] = new ExhaustivenessResult(
-        type,
+        shape,
         caseSpaces,
         patternGuards.map((c) => c.fileOffset).toList(),
         {
@@ -1604,7 +1607,7 @@ class ConstantsTransformer extends RemovingTransformer {
         new MatchingExpressionVisitor(matchingCache, typeEnvironment.coreTypes);
     CacheableExpression matchedExpression = matchingCache.createRootExpression(
       node.expression,
-      node.matchedValueType!,
+      node.matchedValueType,
     );
     // This expression is used, even if the matching expression doesn't read it.
     matchedExpression.registerUse();
@@ -1698,7 +1701,7 @@ class ConstantsTransformer extends RemovingTransformer {
           otherwise: node.otherwise,
           fileOffset: node.fileOffset,
         ),
-      ], fileOffset: node.fileOffset);
+      ], fileOffset: node.fileOffset)..scope = node.scope;
     } else {
       ifStatement = extern.createIfStatement(
         condition,
@@ -1726,7 +1729,7 @@ class ConstantsTransformer extends RemovingTransformer {
     MatchingCache matchingCache = createMatchingCache();
     MatchingExpressionVisitor matchingExpressionVisitor =
         new MatchingExpressionVisitor(matchingCache, typeEnvironment.coreTypes);
-    DartType matchedType = node.matchedValueType!;
+    DartType matchedType = node.matchedValueType;
     CacheableExpression matchedExpression = matchingCache.createRootExpression(
       node.initializer,
       matchedType,
@@ -1822,7 +1825,7 @@ class ConstantsTransformer extends RemovingTransformer {
     MatchingCache matchingCache = createMatchingCache();
     MatchingExpressionVisitor matchingExpressionVisitor =
         new MatchingExpressionVisitor(matchingCache, typeEnvironment.coreTypes);
-    DartType matchedType = node.matchedValueType!;
+    DartType matchedType = node.matchedValueType;
     CacheableExpression matchedExpression = matchingCache.createRootExpression(
       node.expression,
       matchedType,
@@ -2009,7 +2012,8 @@ class ConstantsTransformer extends RemovingTransformer {
     // patterns whose value has a primitive equals method. For this case we
     // generate switch using an ordinary switch statement.
     bool primitiveEqualConstantsOnly = true;
-    for (SwitchExpressionCase switchCase in node.cases) {
+    for (int caseIndex = 0; caseIndex < node.cases.length; caseIndex++) {
+      SwitchExpressionCase switchCase = node.cases[caseIndex];
       if (primitiveEqualConstantsOnly) {
         PatternGuard patternGuard = switchCase.patternGuard;
         if (patternGuard.guard != null) {
@@ -2027,6 +2031,10 @@ class ConstantsTransformer extends RemovingTransformer {
               primitiveEqualConstantsOnly = false;
               break;
             }
+          } else if (caseIndex == node.cases.length - 1 &&
+              pattern is WildcardPattern &&
+              pattern.type == null) {
+            // Trailing untyped wildcard pattern acts as default case.
           } else {
             primitiveEqualConstantsOnly = false;
             break;
@@ -2051,20 +2059,28 @@ class ConstantsTransformer extends RemovingTransformer {
         fileOffset: node.fileOffset,
       );
       List<SwitchCase> switchCases = [];
+      bool hasDefaultCase = false;
       for (SwitchExpressionCase switchExpressionCase in node.cases) {
         List<int> expressionOffsets = [];
-        List<Expression> expressions = [];
+        ExpressionList expressions;
         PatternGuard patternGuard = switchExpressionCase.patternGuard;
-        ConstantPattern constantPattern =
-            patternGuard.pattern as ConstantPattern;
-        expressionOffsets.add(constantPattern.fileOffset);
-        expressions.add(
-          extern.createConstantExpression(
-            constantPattern.value!,
-            constantPattern.expressionType!,
-            fileOffset: constantPattern.expression.fileOffset,
-          ),
-        );
+        Pattern pattern = patternGuard.pattern;
+        bool isDefault = false;
+        if (pattern is WildcardPattern) {
+          isDefault = true;
+          hasDefaultCase = true;
+          expressions = ExpressionList.empty;
+        } else {
+          ConstantPattern constantPattern = pattern as ConstantPattern;
+          expressionOffsets.add(constantPattern.fileOffset);
+          expressions = new ExpressionList(
+            extern.createConstantExpression(
+              constantPattern.value!,
+              constantPattern.expressionType,
+              fileOffset: constantPattern.expression.fileOffset,
+            ),
+          );
+        }
 
         SwitchCase switchCase = extern.createSwitchCase(
           expressions: expressions,
@@ -2082,7 +2098,7 @@ class ConstantsTransformer extends RemovingTransformer {
               fileOffset: switchExpressionCase.expression.fileOffset,
             ),
           ], fileOffset: switchExpressionCase.fileOffset),
-          isDefault: false,
+          isDefault: isDefault,
           fileOffset: switchExpressionCase.fileOffset,
         );
         switchCases.add(switchCase);
@@ -2091,7 +2107,7 @@ class ConstantsTransformer extends RemovingTransformer {
       labeledStatement.body = extern.createSwitchStatement(
         expression: node.expression,
         cases: switchCases,
-        isExplicitlyExhaustive: true,
+        isExplicitlyExhaustive: !hasDefaultCase,
         expressionType: scrutineeType,
         fileOffset: node.fileOffset,
       )..parent = labeledStatement;
@@ -2229,7 +2245,7 @@ class ConstantsTransformer extends RemovingTransformer {
               ], fileOffset: switchCase.fileOffset),
               fileOffset: switchCase.fileOffset,
             ),
-          ], fileOffset: switchCase.fileOffset),
+          ], fileOffset: switchCase.fileOffset)..scope = switchCase.scope,
         );
       }
       bool forUnsoundness = false;
@@ -2338,13 +2354,10 @@ class ConstantsTransformer extends RemovingTransformer {
       bool allConstant = true;
       bool hasUnevaluated = false;
 
-      List<Constant> positional = [];
-
       for (int i = 0; i < node.positional.length; i++) {
         Expression result = transform(node.positional[i]);
         node.positional[i] = result..parent = node;
         if (allConstant && result is ConstantExpression) {
-          positional.add(result.constant);
           if (result.constant is UnevaluatedConstant) {
             hasUnevaluated = true;
           }
@@ -2372,6 +2385,10 @@ class ConstantsTransformer extends RemovingTransformer {
           // Coverage-ignore-block(suite): Not run.
           return makeConstantExpression(new UnevaluatedConstant(node), node);
         } else {
+          ConstantList positional = ConstantList.mapped(
+            node.positional,
+            (Expression e) => (e as ConstantExpression).constant,
+          );
           Constant constant = constantEvaluator.canonicalize(
             new RecordConstant.fromTypeContext(
               positional,
@@ -2725,11 +2742,14 @@ class ConstantEvaluator
     return norm(coreTypes, type);
   }
 
-  List<DartType> convertTypes(List<DartType> types) {
-    return types.map((DartType type) => norm(coreTypes, type)).toList();
+  DartTypeList convertTypes(List<DartType> types) {
+    return new DartTypeList.generate(
+      types.length,
+      (int i) => norm(coreTypes, types[i]),
+    );
   }
 
-  LocatedMessage createLocatedMessage(TreeNode? node, Message message) {
+  LocatedMessage createLocatedMessage(TreeNode node, Message message) {
     Uri? uri = getFileUri(node);
     if (uri == null) {
       // TODO(johnniwinther): Ensure that we always have a uri.
@@ -2740,7 +2760,7 @@ class ConstantEvaluator
   }
 
   LocatedMessage createLocatedMessageWithOffset(
-    TreeNode? node,
+    TreeNode node,
     int offset,
     Message message,
   ) {
@@ -3302,7 +3322,7 @@ class ConstantEvaluator
     // constant, so we report an error on the expressions when these are not
     // constants.
 
-    List<Constant>? positional = _evaluatePositionalArguments(node.positional);
+    ConstantList? positional = _evaluatePositionalArguments(node.positional);
     if (positional == null) {
       AbortConstant error = _gotError!;
       _gotError = null;
@@ -3323,11 +3343,11 @@ class ConstantEvaluator
       return unevaluated(
         node,
         new RecordLiteral(
-          [for (Constant c in positional) _wrap(c)],
-          [
+          ExpressionList.mapped(positional, _wrap),
+          new NamedExpressionList.from([
             for (String key in named.keys)
               new NamedExpression(key, _wrap(named[key]!)),
-          ],
+          ]),
           node.recordType,
           isConst: true,
         ),
@@ -3590,7 +3610,7 @@ class ConstantEvaluator
       );
     }
 
-    List<DartType>? types = _evaluateTypeArguments(node, node.arguments);
+    DartTypeList? types = _evaluateTypeArguments(node, node.arguments);
     if (types == null) {
       AbortConstant error = _gotError!;
       _gotError = null;
@@ -3598,17 +3618,16 @@ class ConstantEvaluator
     }
     assert(_gotError == null);
 
-    final List<DartType> typeArguments = convertTypes(types);
+    DartTypeList typeArguments = convertTypes(types);
 
-    // Fill in any missing type arguments with "dynamic".
-    for (
-      int i = typeArguments.length;
-      i < klass.typeParameters.length;
-      // Coverage-ignore(suite): Not run.
-      i++
-    ) {
-      // Coverage-ignore: Probably unreachable.
-      typeArguments.add(const DynamicType());
+    if (typeArguments.length < klass.typeParameters.length) {
+      // Coverage-ignore-block(suite): Not run.
+      // Fill in any missing type arguments with "dynamic".
+      typeArguments = new DartTypeList.generate(
+        klass.typeParameters.length,
+        (int i) =>
+            i < typeArguments.length ? typeArguments[i] : const DynamicType(),
+      );
     }
 
     // Start building a new instance.
@@ -4478,7 +4497,7 @@ class ConstantEvaluator
             );
           case 'add':
             if (receiver is MutableListConstant) {
-              receiver.entries.add(other);
+              receiver.mutableEntries.add(other);
               return receiver;
             }
             return new _AbortDueToThrowConstant(node, new UnsupportedError(op));
@@ -4499,7 +4518,7 @@ class ConstantEvaluator
       }
     } else if (enableConstFunctions) {
       // Evaluate type arguments of the method invoked.
-      List<DartType>? typeArguments = _evaluateTypeArguments(node, arguments);
+      DartTypeList? typeArguments = _evaluateTypeArguments(node, arguments);
       if (typeArguments == null) {
         // Coverage-ignore-block(suite): Not run.
         AbortConstant error = _gotError!;
@@ -5062,22 +5081,19 @@ class ConstantEvaluator
     }
     if (concatenated.length > 1) {
       // Coverage-ignore-block(suite): Not run.
-      final List<Expression> expressions = new List<Expression>.generate(
-        concatenated.length,
-        (int i) {
-          Object value = concatenated[i];
-          if (value is StringBuffer) {
-            return new ConstantExpression(
-              canonicalize(new StringConstant(value.toString())),
-            );
-          } else {
-            // The value is either unevaluated constant or a non-primitive
-            // constant in an unevaluated expression.
-            return _wrap(value as Constant);
-          }
-        },
-        growable: false,
-      );
+      final ExpressionList expressions = ExpressionList.mapped(concatenated, (
+        Object value,
+      ) {
+        if (value is StringBuffer) {
+          return new ConstantExpression(
+            canonicalize(new StringConstant(value.toString())),
+          );
+        } else {
+          // The value is either unevaluated constant or a non-primitive
+          // constant in an unevaluated expression.
+          return _wrap(value as Constant);
+        }
+      });
       return unevaluated(node, new StringConcatenation(expressions));
     }
     return canonicalize(new StringConstant(concatenated.single.toString()));
@@ -5541,7 +5557,10 @@ class ConstantEvaluator
         node,
         new Instantiation(
           _wrap(constant),
-          node.typeArguments.map((t) => env.substituteType(t)).toList(),
+          new DartTypeList.generate(
+            node.typeArguments.length,
+            (i) => env.substituteType(node.typeArguments[i]),
+          ),
         ),
       );
     }
@@ -5610,12 +5629,11 @@ class ConstantEvaluator
     if (constant is TearOffConstant) {
       FreshStructuralParameters freshTypeParameters =
           getFreshStructuralParameters(node.structuralParameters);
-      List<StructuralParameter> typeParameters =
+      StructuralParameterList typeParameters =
           freshTypeParameters.freshTypeParameters;
-      List<DartType> typeArguments = new List<DartType>.generate(
+      DartTypeList typeArguments = new DartTypeList.generate(
         node.typeArguments.length,
         (int i) => freshTypeParameters.substitute(node.typeArguments[i]),
-        growable: false,
       );
       return canonicalize(
         new TypedefTearOffConstant(typeParameters, constant, typeArguments),
@@ -5785,7 +5803,7 @@ class ConstantEvaluator
           new InterfaceType(
             typeEnvironment.coreTypes.doubleClass,
             constantType.nullability,
-            const <DartType>[],
+            DartTypeList.empty,
           ),
           type,
         );
@@ -5795,7 +5813,7 @@ class ConstantEvaluator
           new InterfaceType(
             typeEnvironment.coreTypes.intClass,
             constantType.nullability,
-            const <DartType>[],
+            DartTypeList.empty,
           ),
           type,
         );
@@ -5823,13 +5841,13 @@ class ConstantEvaluator
 
   /// Returns the types on success and null on failure.
   /// Note that on failure an errorConstant is saved in [_gotError].
-  List<DartType>? _evaluateTypeArguments(TreeNode node, Arguments arguments) {
+  DartTypeList? _evaluateTypeArguments(TreeNode node, Arguments arguments) {
     return _evaluateDartTypes(node, arguments.types);
   }
 
   /// Returns the types on success and null on failure.
   /// Note that on failure an errorConstant is saved in [_gotError].
-  List<DartType>? _evaluateSuperTypeArguments(TreeNode node, Supertype type) {
+  DartTypeList? _evaluateSuperTypeArguments(TreeNode node, Supertype type) {
     return _evaluateDartTypes(node, type.typeArguments);
   }
 
@@ -5841,15 +5859,11 @@ class ConstantEvaluator
 
   /// Returns the types on success and null on failure.
   /// Note that on failure an errorConstant is saved in [_gotError].
-  List<DartType>? _evaluateDartTypes(TreeNode node, List<DartType> types) {
+  DartTypeList? _evaluateDartTypes(TreeNode node, List<DartType> types) {
     // TODO: Once the frontend guarantees that there are no free type parameters
     // left over after substitution, we can enable this shortcut again:
     // if (env.isEmpty) return types;
-    List<DartType> result = new List<DartType>.filled(
-      types.length,
-      dummyDartType,
-      growable: true,
-    );
+    DartTypeList result = new DartTypeList.filled(types.length, dummyDartType);
     for (int i = 0; i < types.length; i++) {
       DartType? type = _evaluateDartType(node, types[i]);
       if (type == null) {
@@ -5883,11 +5897,10 @@ class ConstantEvaluator
 
   /// Returns the [positional] arguments on success and null on failure.
   /// Note that on failure an errorConstant is saved in [_gotError].
-  List<Constant>? _evaluatePositionalArguments(List<Expression> positional) {
-    List<Constant> result = new List<Constant>.filled(
+  ConstantList? _evaluatePositionalArguments(List<Expression> positional) {
+    ConstantList result = new ConstantList.filled(
       positional.length,
       dummyConstant,
-      growable: true,
     );
     // These expressions are at the same level, so one of them being
     // unevaluated doesn't mean a sibling is or has an unevaluated child.
@@ -5939,13 +5952,13 @@ class ConstantEvaluator
   Arguments unevaluatedArguments(
     List<Constant> positionalArgs,
     Map<String, Constant> namedArgs,
-    List<DartType> types,
+    DartTypeList types,
   ) {
-    final List<Expression> positional = new List<Expression>.filled(
+    final ExpressionList positional = new ExpressionList.filled(
       positionalArgs.length,
       dummyExpression,
     );
-    final List<NamedExpression> named = new List<NamedExpression>.filled(
+    final NamedExpressionList named = new NamedExpressionList.filled(
       namedArgs.length,
       dummyNamedExpression,
     );
@@ -5968,11 +5981,7 @@ class ConstantEvaluator
     return canonicalizationCache[constant] ??= constant;
   }
 
-  T withNewInstanceBuilder<T>(
-    Class klass,
-    List<DartType> typeArguments,
-    T fn(),
-  ) {
+  T withNewInstanceBuilder<T>(Class klass, DartTypeList typeArguments, T fn()) {
     InstanceBuilder? old = instanceBuilder;
     instanceBuilder = new InstanceBuilder(this, klass, typeArguments);
     T result = fn();
@@ -6549,7 +6558,7 @@ class InstanceBuilder {
   final Class klass;
 
   /// The values of the type parameters of the new instance.
-  final List<DartType> typeArguments;
+  final DartTypeList typeArguments;
 
   /// The field values of the new instance.
   final Map<Field, Constant> fields = <Field, Constant>{};
@@ -6585,7 +6594,7 @@ class InstanceBuilder {
       typeArguments,
       fieldValues,
       asserts,
-      unusedArguments,
+      new ExpressionList.from(unusedArguments),
     );
   }
 }
@@ -6708,8 +6717,15 @@ class AbortStatus(final AbortConstant error) extends ExecutionStatus;
 class BreakStatus(final LabeledStatement target) extends ExecutionStatus;
 
 /// Mutable lists used within the [ConstantEvaluator].
-class MutableListConstant(super.typeArgument, super.entries)
-    extends ListConstant {
+class MutableListConstant extends ListConstant {
+  final List<Constant> mutableEntries;
+
+  new(DartType typeArgument, this.mutableEntries)
+    : super(typeArgument, ConstantList.empty);
+
+  @override
+  ConstantList get entries => new ConstantList.from(mutableEntries);
+
   @override
   String toString() => 'MutableListConstant(${toStringInternal()})';
 }

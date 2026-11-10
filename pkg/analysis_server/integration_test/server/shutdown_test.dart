@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -15,15 +17,15 @@ void main() {
 
 @reflectiveTest
 class ShutdownTest extends AbstractAnalysisServerIntegrationTest {
-  Future<void> test_shutdown() {
-    return sendServerShutdown().then((_) {
-      return Future.delayed(Duration(seconds: 1)).then((_) {
-        sendServerGetVersion().then((_) {
-          fail('Server still alive after server.shutdown');
-        });
-        // Give the server time to respond before terminating the test.
-        return Future.delayed(Duration(seconds: 1));
-      });
-    });
+  Future<void> test_shutdown() async {
+    await sendServerShutdown();
+    await Future.delayed(Duration(seconds: 1));
+    // Expect sendServerGetVersion to either throw or timeout, it should not
+    // complete successfully.
+    await expectLater(
+      Future.sync(sendServerGetVersion).timeout(Duration(seconds: 1)),
+      throwsA(anything),
+      reason: 'Server still responsive after server.shutdown',
+    );
   }
 }

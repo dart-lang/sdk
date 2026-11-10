@@ -17,7 +17,7 @@ class Driver implements ServerPluginStarter {
 
   /// Initialize a newly created driver that can be used to start the given
   /// plugin.
-  Driver(this.plugin);
+  new(this.plugin);
 
   @override
   void start(SendPort sendPort) {

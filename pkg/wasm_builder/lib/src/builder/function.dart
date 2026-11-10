@@ -6,44 +6,48 @@ import '../ir/ir.dart' as ir;
 import 'builder.dart';
 
 /// A function defined in a module.
-class FunctionBuilder extends ir.BaseFunction
-    with IndexableBuilder<ir.DefinedFunction> {
+class FunctionBuilder with Builder<ir.DefinedFunction> {
   final ModuleBuilder moduleBuilder;
+  final ir.DefinedFunction function;
 
   /// All local variables defined in the function, including its inputs.
   List<ir.Local> get locals => body.locals;
 
   /// The body of the function.
-  late InstructionsBuilder _body;
+  InstructionsBuilder? _body;
 
-  FunctionBuilder(
-    this.moduleBuilder,
-    ir.FinalizableIndex index,
-    ir.FunctionType type, [
-    String? functionName,
-  ]) : super(moduleBuilder.module, index, type, functionName) {
-    _body = InstructionsBuilder(moduleBuilder, type.inputs, type.outputs);
+  FunctionBuilder(this.moduleBuilder, this.function) {
+    _body = InstructionsBuilder(
+      moduleBuilder,
+      function.type.inputs,
+      function.type.outputs,
+    );
   }
 
-  InstructionsBuilder get body => _body;
+  ir.FunctionType get type => function.type;
+  ir.FinalizableIndex get finalizableIndex => function.finalizableIndex;
+  ir.Module get enclosingModule => function.enclosingModule;
+  String? get functionName => function.functionName;
+  String get name => function.name;
 
-  void replaceBody(InstructionsBuilder newBody) {
-    _body = newBody;
+  bool get isPure => function.isPure;
+  set isPure(bool value) => function.isPure = value;
+
+  bool get isJSCalled => function.isJSCalled;
+  set isJSCalled(bool value) => function.isJSCalled = value;
+
+  int? get inlineHint => function.inlineHint;
+  set inlineHint(int? value) => function.inlineHint = value;
+
+  InstructionsBuilder get body => _body!;
+
+  @override
+  ir.DefinedFunction forceBuild() {
+    function.body = body.build();
+    _body = null;
+    return function;
   }
 
   @override
-  ir.DefinedFunction forceBuild() =>
-      ir.DefinedFunction(
-          enclosingModule,
-          body.build(),
-          finalizableIndex,
-          type,
-          functionName,
-        )
-        ..isPure = isPure
-        ..isJSCalled = isJSCalled
-        ..inlineHint = inlineHint;
-
-  @override
-  String toString() => functionName ?? "#$finalizableIndex";
+  String toString() => function.toString();
 }

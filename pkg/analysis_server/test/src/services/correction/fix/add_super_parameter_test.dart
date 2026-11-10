@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class AddSuperParameterTest extends FixProcessorTest {
+class AddSuperParameterTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addSuperParameter;
 
@@ -385,7 +385,7 @@ class A {
 class B extends A {
   B(super.a, super.b, {required super.c, required super.d});
 }
-''', matchFixMessage: 'Add required parameters');
+''', fixMessageContains: 'Add required parameters');
   }
 
   Future<void> test_positional_single() async {

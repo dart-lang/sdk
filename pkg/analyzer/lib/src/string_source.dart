@@ -17,7 +17,7 @@ class StringSource extends Source {
   @override
   final Uri uri;
 
-  StringSource(this._contents, String? fullName, {Uri? uri})
+  new(this._contents, String? fullName, {Uri? uri})
     : fullName = fullName ?? '/test.dart',
       uri = _computeUri(uri, fullName);
 

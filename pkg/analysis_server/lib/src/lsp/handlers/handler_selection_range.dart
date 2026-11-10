@@ -16,7 +16,7 @@ typedef StaticOptions =
     Either3<bool, SelectionRangeOptions, SelectionRangeRegistrationOptions>;
 
 class SelectionRangeHandler
-    extends LspMessageHandler<SelectionRangeParams, List<SelectionRange>?> {
+    extends SharedMessageHandler<SelectionRangeParams, List<SelectionRange>?> {
   new(super.server);
   @override
   Method get handlesMessage => Method.textDocument_selectionRange;
@@ -24,6 +24,9 @@ class SelectionRangeHandler
   @override
   LspJsonHandler<SelectionRangeParams> get jsonHandler =>
       SelectionRangeParams.jsonHandler;
+
+  @override
+  bool get requiresTrustedCaller => false;
 
   @override
   Future<ErrorOr<List<SelectionRange>?>> handle(
@@ -35,20 +38,18 @@ class SelectionRangeHandler
       return success(null);
     }
 
-    var path = pathOfDoc(params.textDocument);
-    return path.mapResult((path) async {
-      var unit = await requireUnresolvedUnit(path);
-      return unit.mapResultSync((unit) {
-        var positions = params.positions;
-        var offsets = positions
-            .map((pos) => toOffset(unit.lineInfo, pos))
-            .errorOrResults;
-        var allRanges = offsets.mapResultSync(
-          (offsets) => success(_getSelectionRangesForOffsets(offsets, unit)),
-        );
-
-        return allRanges;
-      });
+    return withParsedUnit(textDocument: params.textDocument, token, (
+      unit,
+      _,
+      _,
+    ) async {
+      var positions = params.positions;
+      var offsets = positions
+          .map((pos) => toOffset(unit.lineInfo, pos))
+          .errorOrResults;
+      return offsets.mapResultSync(
+        (offsets) => success(_getSelectionRangesForOffsets(offsets, unit)),
+      );
     });
   }
 

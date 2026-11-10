@@ -12,25 +12,25 @@ library;
 //
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:5:19: Error: An extension type can't depend on itself through its representation type.
 // extension type E1(E1 it) /* Error */ {}
-//                   ^
+//                   ^^
 //
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:7:20: Error: An extension type can't depend on itself through its representation type.
 // extension type E2a(E2b it) /* Error */ {}
-//                    ^
+//                    ^^^
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:9:16: Context: The issue arises via this extension type declaration.
 // extension type E2b(E2a it) /* Error */ {}
 //                ^^^
 //
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:9:20: Error: An extension type can't depend on itself through its representation type.
 // extension type E2b(E2a it) /* Error */ {}
-//                    ^
+//                    ^^^
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:7:16: Context: The issue arises via this extension type declaration.
 // extension type E2a(E2b it) /* Error */ {}
 //                ^^^
 //
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:11:20: Error: An extension type can't depend on itself through its representation type.
 // extension type E3a(E3b it) /* Error */ {}
-//                    ^
+//                    ^^^
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:13:16: Context: The issue arises via this extension type declaration.
 // extension type E3b(E3c it) /* Error */ {}
 //                ^^^
@@ -40,7 +40,7 @@ library;
 //
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:13:20: Error: An extension type can't depend on itself through its representation type.
 // extension type E3b(E3c it) /* Error */ {}
-//                    ^
+//                    ^^^
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:15:16: Context: The issue arises via this extension type declaration.
 // extension type E3c(E3a it) /* Error */ {}
 //                ^^^
@@ -50,7 +50,7 @@ library;
 //
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:15:20: Error: An extension type can't depend on itself through its representation type.
 // extension type E3c(E3a it) /* Error */ {}
-//                    ^
+//                    ^^^
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:11:16: Context: The issue arises via this extension type declaration.
 // extension type E3a(E3b it) /* Error */ {}
 //                ^^^
@@ -76,46 +76,46 @@ library;
 //
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:25:22: Error: An extension type can't depend on itself through its representation type.
 // extension type E8<T>(List<E8> it) /* Error */ {}
-//                      ^
+//                      ^^^^
 //
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:29:19: Error: An extension type can't depend on itself through its representation type.
 // extension type E9(Alias9 it) /* Error */ {}
-//                   ^
+//                   ^^^^^^
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:27:9: Context: The issue arises via this type alias.
 // typedef Alias9 = E9;
 //         ^^^^^^
 //
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:33:23: Error: An extension type can't depend on itself through its representation type.
 // extension type E10<T>(Alias10<T> it) /* Error */ {}
-//                       ^
+//                       ^^^^^^^
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:31:9: Context: The issue arises via this type alias.
 // typedef Alias10<T> = E10<T>;
 //         ^^^^^^^
 //
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:37:20: Error: An extension type can't depend on itself through its representation type.
 // extension type E11(Alias11 it) /* Error */ {}
-//                    ^
+//                    ^^^^^^^
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:35:9: Context: The issue arises via this type alias.
 // typedef Alias11 = E11 Function();
 //         ^^^^^^^
 //
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:41:20: Error: An extension type can't depend on itself through its representation type.
 // extension type E12(Alias12 it) /* Error */ {}
-//                    ^
+//                    ^^^^^^^
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:39:9: Context: The issue arises via this type alias.
 // typedef Alias12 = void Function(E12);
 //         ^^^^^^^
 //
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:45:20: Error: An extension type can't depend on itself through its representation type.
 // extension type E13(Alias13 it) /* Error */ {}
-//                    ^
+//                    ^^^^^^^
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:43:9: Context: The issue arises via this type alias.
 // typedef Alias13 = void Function<T extends E13>();
 //         ^^^^^^^
 //
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:53:21: Error: An extension type can't depend on itself through its representation type.
 // extension type E15a(Alias15<E15b> it) /* Error */ {}
-//                     ^
+//                     ^^^^^^^
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:55:16: Context: The issue arises via this extension type declaration.
 // extension type E15b(Alias15<E15a> it) /* Error */ {}
 //                ^^^^
@@ -125,7 +125,7 @@ library;
 //
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:55:21: Error: An extension type can't depend on itself through its representation type.
 // extension type E15b(Alias15<E15a> it) /* Error */ {}
-//                     ^
+//                     ^^^^^^^
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:53:16: Context: The issue arises via this extension type declaration.
 // extension type E15a(Alias15<E15b> it) /* Error */ {}
 //                ^^^^
@@ -135,7 +135,7 @@ library;
 //
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:60:21: Error: An extension type can't depend on itself through its representation type.
 // extension type E16a(Alias16a<int> it) /* Error */ {}
-//                     ^
+//                     ^^^^^^^^
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:62:16: Context: The issue arises via this extension type declaration.
 // extension type E16b(Alias16b<int> it) /* Error */ {}
 //                ^^^^
@@ -148,7 +148,7 @@ library;
 //
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:62:21: Error: An extension type can't depend on itself through its representation type.
 // extension type E16b(Alias16b<int> it) /* Error */ {}
-//                     ^
+//                     ^^^^^^^^
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:60:16: Context: The issue arises via this extension type declaration.
 // extension type E16a(Alias16a<int> it) /* Error */ {}
 //                ^^^^
@@ -165,7 +165,7 @@ library;
 //
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:69:20: Error: An extension type can't depend on itself through its representation type.
 // extension type E18(Alias18a<int> it) /* Error */ {}
-//                    ^
+//                    ^^^^^^^^
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:66:9: Context: The issue arises via this type alias.
 // typedef Alias18a<T> = Alias18b<E18>;
 //         ^^^^^^^^
@@ -179,14 +179,14 @@ library;
 //
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:90:20: Error: An extension type can't depend on itself through its representation type.
 // extension type E23(Alias23 it) /* Error */ {}
-//                    ^
+//                    ^^^^^^^
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:88:9: Context: The issue arises via this type alias.
 // typedef Alias23<T extends E23> = List<T>;
 //         ^^^^^^^
 //
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:94:23: Error: An extension type can't depend on itself through its representation type.
 // extension type E24<T>(Alias24 it) /* Error */ {}
-//                       ^
+//                       ^^^^^^^
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:92:9: Context: The issue arises via this type alias.
 // typedef Alias24<T extends E24<T>> = List<T>;
 //         ^^^^^^^

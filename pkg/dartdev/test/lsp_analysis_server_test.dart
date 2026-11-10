@@ -8,8 +8,6 @@ import 'dart:io' as io;
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/lsp_packet_transformer.dart';
-import 'package:cli_util/cli_logging.dart';
-import 'package:dartdev/src/core.dart';
 import 'package:dartdev/src/lsp_analysis_server.dart';
 import 'package:dartdev/src/sdk.dart';
 import 'package:test/test.dart';
@@ -18,10 +16,6 @@ import 'utils.dart';
 
 void main() {
   group('LspAnalysisServer', () {
-    setUp(() {
-      log = Logger.standard();
-    });
-
     group('with real process', () {
       test('can start', () async {
         final p = project();
@@ -200,6 +194,64 @@ void main() {
         await expectLater(server.onExit, completion(0));
         expect(server.serverErrorReceived, isTrue);
         expect(server.hasCrashed, isFalse); // Was not a crash
+      });
+
+      test(
+        'passes plugin and workspace trust flags to server process',
+        () async {
+          late List<String> capturedArgs;
+          final mockProcess = MockServerProcess();
+          final server = LspAnalysisServer(
+            null,
+            io.Directory(sdk.sdkPath),
+            [],
+            commandName: 'testing',
+            argResults: null,
+            usePlugins: null,
+            trustPlugins: true,
+            alwaysTrustPlugins: true,
+            suppressAnalytics: true,
+            processFactory: (_, arguments) async {
+              capturedArgs = arguments;
+              return mockProcess;
+            },
+          );
+          await server.start();
+          await server.shutdown();
+
+          expect(capturedArgs, isNot(contains('--plugins')));
+          expect(capturedArgs, isNot(contains('--no-plugins')));
+          expect(capturedArgs, contains('--trust-plugins'));
+          expect(capturedArgs, contains('--always-trust-plugins'));
+          expect(capturedArgs, isNot(contains('--never-trust-plugins')));
+        },
+      );
+
+      test('passes --plugins or --no-plugins when usePlugins is set', () async {
+        for (final value in [true, false]) {
+          late List<String> capturedArgs;
+          final mockProcess = MockServerProcess();
+          final server = LspAnalysisServer(
+            null,
+            io.Directory(sdk.sdkPath),
+            [],
+            commandName: 'testing',
+            argResults: null,
+            usePlugins: value,
+            suppressAnalytics: true,
+            processFactory: (_, arguments) async {
+              capturedArgs = arguments;
+              return mockProcess;
+            },
+          );
+          await server.start();
+          await server.shutdown();
+
+          expect(
+            capturedArgs,
+            value ? contains('--plugins') : contains('--no-plugins'),
+          );
+        }
       });
     });
   });

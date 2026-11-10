@@ -27,7 +27,13 @@ const int b = a as int;
     var node = result.findNode.asExpression('as int');
     assertResolvedNodeText(node, r'''
 AsExpression
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      type: num
+    staticType: num
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
     staticType: num
@@ -51,7 +57,13 @@ void f() {
     var node = result.findNode.singleAsExpression;
     assertResolvedNodeText(node, r'''
 AsExpression
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: v
+    resolution: VariableReadResolution
+      element: v@17
+      type: num
+    staticType: num
+  expression(v1): SimpleIdentifier
     token: v
     element: v@17
     staticType: num
@@ -78,7 +90,11 @@ class A<T> {
     var node = result.findNode.singleAsExpression;
     assertResolvedNodeText(node, r'''
 AsExpression
-  expression2: SuperExpression
+  expression2: InvalidSuperExpression
+    superReference: SuperReference
+      superKeyword: super
+    staticType: InvalidType
+  expression(v1): SuperExpression
     superKeyword: super
     staticType: A<T>
   asOperator: as
@@ -105,7 +121,13 @@ AsExpression
   expression2: SwitchExpression
     switchKeyword: switch
     leftParenthesis: (
-    expression2: SimpleIdentifier
+    expression2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: Object?
+      staticType: Object?
+    expression(v1): SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Object?

@@ -116,6 +116,8 @@ See also [Building Dart SDK for ARM or RISC-V](Building-Dart-SDK-for-ARM-or-RISC
 
 By default the build and test scripts select the debug binaries. You can build and test the release version of the VM by specifying `--mode=release` or both debug and release by specifying `--mode=all` on the respective `build.py` and `test.py` command lines.  This can be shortened to `-mrelease` or `-m release`, and the architecture can be specified with `--arch=x64` or `-a x64`, the default.  Other architectures, like `arm`, `arm64` and `riscv64` are also supported.
 
+To build with [Siso](https://chromium.googlesource.com/build/+/refs/heads/main/siso/README.md) instead of Ninja, pass `--siso` to `./tools/gn.py` or `./tools/build.py` (or set `DART_SISO=1` in your environment). When combined with `--rbe` (or `RBE=1`), Siso uses `gcloud auth application-default login` by default (configured via `SISO_CREDENTIAL_HELPER=google-application-default` in `build/config/siso/.sisoenv`), or `third_party/siso/siso login` if `SISO_CREDENTIAL_HELPER` is unset.
+
 We recommend that you use a local file system at least for the output of the builds. The output directory is `out` on linux, `xcodebuild` on macOS, and `build` on Windows.  If your code is in some NFS partition, you can link the `out` directory to a local directory:
 ```bash
 
@@ -129,6 +131,17 @@ $ ln -s -f /usr/local/dart-out/ out
 The environment variable `DART_BUILD_NOTIFICATION_DELAY` controls if `build.py` displays a notification when the build is done. If a build takes longer than `DART_BUILD_NOTIFICATION_DELAY` a notification will be displayed.
 
 A notification is a small transient non-modal window, for now, only supported on Mac and Linux.
+
+### Running from the build directory
+
+On Linux and macOS, if you wish to use the `dart` tool uninstalled after building the Dart SDK, you should add the directory `dart-sdk/bin` inside the output directory to your `$PATH`. While there is a `dart` binary at the top level of the output directory, some tools (such as `dart run`) will generate incorrect paths when executing other tools if run from that location. For example, if building `--release` on Linux x64, building the SDK and setting the correct `PATH` for running uninstalled would look like:
+```bash
+
+# From within the "dart-sdk/sdk" directory.
+./tools/build.py --release create_sdk
+export PATH="$PATH:$(pwd)/out/ReleaseX64/dart-sdk/bin"
+dart --version
+```
 
 ## Special note for Windows users using Visual Studio Community Edition:
 Your Visual Studio executable command may have a different name from the standard Visual Studio installations. You can specify the name for that executable by passing the additional flag "--executable=$VS\_EXECUTABLE\_NAME" to build.py. The executable name will probably be something like "VSExpress.exe".

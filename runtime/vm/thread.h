@@ -67,6 +67,7 @@ class JSONObject;
 class NoActiveIsolateScope;
 class PcDescriptors;
 class RuntimeEntry;
+class Simulator;
 class Smi;
 class StackResource;
 class StackTrace;
@@ -1284,6 +1285,7 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
   void UnwindScopes(uword stack_marker);
 
   void InitVMConstants();
+  void UpdateCachedVMStubs();
   void FixInitiallyNullFields();
 
   int64_t GetNextTaskId() { return next_task_id_++; }
@@ -1324,6 +1326,11 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
     return SafepointLevel::kGCAndDeoptAndReload;
 #endif
   }
+
+#if defined(DART_INCLUDE_SIMULATOR)
+  Simulator* simulator() const { return simulator_; }
+  void set_simulator(Simulator* value) { simulator_ = value; }
+#endif
 
 #if defined(DART_DYNAMIC_MODULES)
   Interpreter* interpreter() const { return interpreter_; }
@@ -1644,6 +1651,10 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
 
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   HeapProfileSampler heap_sampler_;
+#endif
+
+#if defined(DART_INCLUDE_SIMULATOR)
+  Simulator* simulator_ = nullptr;
 #endif
 
 #if defined(DART_DYNAMIC_MODULES)

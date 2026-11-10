@@ -91,11 +91,11 @@ class GSUtil(object):
         assert remote_path.startswith('gs://')
 
         if multithread:
-            args = ['-m', 'cp']
+            args = ['cp']
         else:
             args = ['cp']
         if recursive:
-            args += ['-R']
+            args += ['--recursive']
         args += [local_path, remote_path]
         self.execute(args)
 
@@ -107,11 +107,22 @@ class GSUtil(object):
         return stdout
 
     def setGroupReadACL(self, remote_path, group):
-        args = ['acl', 'ch', '-g', '%s:R' % group, remote_path]
+        args = [
+            'objects',
+            'update',
+            '--add-acl-grant',
+            'entity=group-%s,role=READER' % group,
+            remote_path,
+        ]
         self.execute(args)
 
     def setContentType(self, remote_path, content_type):
-        args = ['setmeta', '-h', 'Content-Type:%s' % content_type, remote_path]
+        args = [
+            'objects',
+            'update',
+            '--content-type=%s' % content_type,
+            remote_path,
+        ]
         self.execute(args)
 
     def remove(self, remote_path, recursive=False):
@@ -119,6 +130,6 @@ class GSUtil(object):
 
         args = ['rm']
         if recursive:
-            args += ['-R']
+            args += ['--recursive']
         args += [remote_path]
         self.execute(args)

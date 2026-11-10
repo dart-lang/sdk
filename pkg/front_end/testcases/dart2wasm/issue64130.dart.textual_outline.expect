@@ -1,0 +1,9 @@
+Future<String?> getNull() async => null;
+
+Future<bool> testAnd() async =>
+    (await getNull()) != null && await Future<bool>.value(true);
+
+Future<bool> testOr() async =>
+    (await getNull()) == null || await Future<bool>.value(false);
+
+void main() async {}

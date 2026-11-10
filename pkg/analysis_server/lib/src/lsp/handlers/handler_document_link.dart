@@ -18,7 +18,7 @@ import 'package:analyzer/src/util/file_paths.dart';
 import 'package:analyzer_plugin/src/utilities/navigation/document_links.dart';
 
 class DocumentLinkHandler
-    extends LspMessageHandler<DocumentLinkParams, List<lsp.DocumentLink>?>
+    extends SharedMessageHandler<DocumentLinkParams, List<lsp.DocumentLink>?>
     with LspPluginRequestHandlerMixin {
   new(super.server);
 
@@ -30,6 +30,9 @@ class DocumentLinkHandler
       DocumentLinkParams.jsonHandler;
 
   @override
+  bool get requiresTrustedCaller => false;
+
+  @override
   Future<ErrorOr<List<lsp.DocumentLink>?>> handle(
     DocumentLinkParams params,
     MessageInfo message,
@@ -38,7 +41,7 @@ class DocumentLinkHandler
     var path = pathOfDoc(params.textDocument);
     return path.mapResult((path) async {
       if (isDartDocument(params.textDocument)) {
-        return _getDartDocumentLinks(path);
+        return _getDartDocumentLinks(path, token);
       } else if (isPubspecYaml(pathContext, path)) {
         return _getPubspecDocumentLinks(path);
       } else if (isAnalysisOptionsYaml(pathContext, path)) {
@@ -86,10 +89,9 @@ class DocumentLinkHandler
   /// Get the [lsp.DocumentLink]s for a Dart file.
   Future<ErrorOr<List<lsp.DocumentLink>>> _getDartDocumentLinks(
     String filePath,
-  ) async {
-    var parsedUnit = await requireUnresolvedUnit(filePath);
-
-    return parsedUnit.mapResult((unit) async {
+    CancellationToken token,
+  ) {
+    return withParsedUnit(path: filePath, token, (unit, _, _) async {
       /// Helper to convert using LineInfo.
       lsp.DocumentLink convert(DocumentLink link) {
         return _convert(link, unit.lineInfo);

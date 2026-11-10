@@ -7,7 +7,7 @@
 
 var a = b;
 //      ^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
 // [cfe] Undefined name 'b'.
 
 main() {

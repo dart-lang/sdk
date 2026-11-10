@@ -92,6 +92,10 @@ abstract class Feature {
   static final private_named_parameters =
       ExperimentalFeatures.private_named_parameters;
 
+  /// Feature information for promotion chain intersection join.
+  static final promotion_chain_intersection_join =
+      ExperimentalFeatures.promotion_chain_intersection_join;
+
   /// Feature information for records.
   static final records = ExperimentalFeatures.records;
 
@@ -106,6 +110,9 @@ abstract class Feature {
 
   /// Feature information for sound flow analysis.
   static final sound_flow_analysis = ExperimentalFeatures.sound_flow_analysis;
+
+  /// Feature information for single combinators.
+  static final single_combinators = ExperimentalFeatures.single_combinators;
 
   /// Feature information for static extensions.
   static final static_extensions = ExperimentalFeatures.static_extensions;
@@ -158,7 +165,7 @@ abstract class Feature {
 abstract class FeatureSet {
   /// Computes the set of features implied by the given set of experimental
   /// enable flags.
-  factory FeatureSet.fromEnableFlags2({
+  factory fromEnableFlags2({
     required Version sdkLanguageVersion,
     required List<String> flags,
   }) = ExperimentStatus.fromStrings2;
@@ -169,7 +176,7 @@ abstract class FeatureSet {
   /// that the code that you process is valid for the latest language version.
   ///
   /// Otherwise, it is recommended to use [FeatureSet.fromEnableFlags2].
-  factory FeatureSet.latestLanguageVersion({List<String> flags}) =
+  factory latestLanguageVersion({List<String> flags}) =
       ExperimentStatus.latestLanguageVersion;
 
   /// Queries whether the given [feature] is contained in this feature set.

@@ -6,6 +6,7 @@ library tests.web.interop_anonymous_unreachable_test;
 
 import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
+
 import '../helpers/compiler_helper.dart';
 
 testUnreachableCrash() async {

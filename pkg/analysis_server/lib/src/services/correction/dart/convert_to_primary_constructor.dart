@@ -193,10 +193,9 @@ extension on ConstructorDeclaration {
 extension on ClassMember {
   /// Whether this class member is a non-redirecting generative constructor.
   bool get isNonRedirectingGenerativeConstructor {
-    var self = this;
-    return self is ConstructorDeclaration &&
-        self.factoryKeyword == null &&
-        self.declaredFragment?.element.redirectedConstructor == null;
+    return this is ConstructorDeclaration &&
+        factoryKeyword == null &&
+        declaredFragment?.element.redirectedConstructor == null;
   }
 }
 

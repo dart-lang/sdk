@@ -1,0 +1,5 @@
+class JSValue {
+  new(Object? ref);
+}
+
+typedef ExternalDartReferenceType<T> = JSValue?;

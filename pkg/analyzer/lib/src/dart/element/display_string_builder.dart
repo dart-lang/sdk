@@ -20,16 +20,19 @@ class ElementDisplayStringBuilder {
   /// Whether to allow a display string to be written in multiple lines.
   final bool _multiline;
 
+  /// Whether to include parameter names for positional parameters.
+  final bool _includePositionalParameterNames;
+
   /// Whether to write instantiated type alias when available.
   final bool preferTypeAlias;
 
-  ElementDisplayStringBuilder({
+  new({
     @Deprecated('Only non-nullable by default mode is supported')
-    bool withNullability = true,
-    bool multiline = false,
+    this._withNullability = true,
+    this._multiline = false,
+    this._includePositionalParameterNames = false,
     required this.preferTypeAlias,
-  }) : _withNullability = withNullability,
-       _multiline = multiline;
+  });
 
   @override
   String toString() => _buffer.toString();
@@ -534,7 +537,7 @@ class ElementDisplayStringBuilder {
 
     _writeType(element.type);
 
-    if (forElement || element.isNamed) {
+    if (forElement || element.isNamed || _includePositionalParameterNames) {
       if (element.name case var name?) {
         _write(' $name');
       }

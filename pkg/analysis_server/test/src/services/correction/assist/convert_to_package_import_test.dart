@@ -10,12 +10,33 @@ import 'assist_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ConvertToPackageImportSrcTest);
     defineReflectiveTests(ConvertToPackageImportTest);
   });
 }
 
 @reflectiveTest
-class ConvertToPackageImportTest extends AssistProcessorTest {
+class ConvertToPackageImportSrcTest extends BuiltInAssistProcessorTest {
+  @override
+  AssistKind get kind => DartAssistKind.convertToPackageImport;
+
+  @override
+  String get testFilePath => convertPath('$testPackageLibPath/src/test.dart');
+
+  Future<void> test_path() async {
+    newFile('$testPackageLibPath/foo/bar.dart', '');
+
+    await resolveTestCode('''
+import '../foo/^bar.dart';
+''');
+    await assertHasAssist('''
+import 'package:test/foo/bar.dart';
+''');
+  }
+}
+
+@reflectiveTest
+class ConvertToPackageImportTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertToPackageImport;
 
@@ -27,6 +48,23 @@ class ConvertToPackageImportTest extends AssistProcessorTest {
 ''');
     // Validate assist is on import keyword too.
     await assertHasAssist('''
+import 'package:test/foo.dart';
+''');
+  }
+
+  Future<void> test_fileName_onImport_inPart() async {
+    newFile('$testPackageLibPath/foo.dart', '');
+    newFile('$testPackageLibPath/a.dart', '''
+part 'test.dart';
+''');
+    await resolveTestCode('''
+part of 'a.dart';
+
+^import 'foo.dart';
+''');
+    await assertHasAssist('''
+part of 'a.dart';
+
 import 'package:test/foo.dart';
 ''');
   }
@@ -52,7 +90,6 @@ import ':[^invalidUri]';
 
   Future<void> test_nonPackage_Uri() async {
     newFile('$testPackageLibPath/foo.dart', '');
-    testFilePath = convertPath('$testPackageLibPath/src/test.dart');
     await resolveTestCode('''
 /*0*/import '/*1*/dart:core';
 ''');
@@ -69,18 +106,5 @@ import ':[^invalidUri]';
 ''');
     await assertNoAssist();
     await assertNoAssist(1);
-  }
-
-  Future<void> test_path() async {
-    newFile('$testPackageLibPath/foo/bar.dart', '');
-
-    testFilePath = convertPath('$testPackageLibPath/src/test.dart');
-
-    await resolveTestCode('''
-import '../foo/^bar.dart';
-''');
-    await assertHasAssist('''
-import 'package:test/foo/bar.dart';
-''');
   }
 }

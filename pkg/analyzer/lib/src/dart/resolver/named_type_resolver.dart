@@ -24,6 +24,7 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart'
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/listener.dart';
+import 'package:analyzer/src/error/lookup_failure_reporter.dart';
 import 'package:analyzer/src/generated/scope_helpers.dart';
 
 /// Helper for resolving types.
@@ -33,13 +34,12 @@ class NamedTypeResolver with ScopeHelpers {
   final TypeSystemImpl typeSystem;
   final TypeSystemOperations typeSystemOperations;
   final bool strictCasts;
-  final bool strictInference;
 
   @override
   final DiagnosticReporter diagnosticReporter;
 
-  /// If not `null`, the element of the [ClassDeclaration], or the
-  /// [ClassTypeAlias] being resolved.
+  /// If not `null`, the element of the [ClassDeclaration2], or the
+  /// [ClassTypeAlias2] being resolved.
   InterfaceElementImpl? enclosingClass;
 
   /// If not `null`, a direct child of an [ExtendsClause], [WithClause],
@@ -52,12 +52,11 @@ class NamedTypeResolver with ScopeHelpers {
   /// If [resolve] reported an error, this flag is set to `true`.
   bool hasErrorReported = false;
 
-  NamedTypeResolver(
+  new(
     LibraryElementImpl libraryElement,
     this._libraryFragment,
     this._scopeContext,
     this.diagnosticReporter, {
-    required this.strictInference,
     required this.strictCasts,
     required this.typeSystemOperations,
   }) : typeSystem = libraryElement.typeSystem;
@@ -258,12 +257,28 @@ class NamedTypeResolver with ScopeHelpers {
         );
         type = InvalidTypeImpl.instance;
       } else if (type is! InterfaceTypeImpl) {
+        // Keep the represented type for invalid function-alias constructor
+        // selections. The enclosing operation reports the selected member;
+        // this qualifier is not a Type-valued receiver.
+        if (type is FunctionTypeImpl &&
+            typeArguments != null &&
+            switch (node.parent2) {
+              ConstructorTearOff() => true,
+              ConstructorReference2(
+                selector: ConstructorSelector(),
+                parent2: ConstructorInvocation(keyword: null),
+              ) =>
+                true,
+              _ => false,
+            }) {
+          return node.type = type;
+        }
         if (_isFactoryRedirectionTarget(node)) {
           _reportRedirectToNonClass(node);
         } else {
           var invocation = node.parent2?.parent2;
           var isConst = switch (invocation) {
-            ConstructorInvocation(isConst: var isConst) => isConst,
+            ConstructorInvocation(:var isConst) => isConst,
             _ => false,
           };
           diagnosticReporter.report(
@@ -283,13 +298,13 @@ class NamedTypeResolver with ScopeHelpers {
     }
 
     if (importPrefix != null && importPrefix.element == null) {
-      diagnosticReporter.report(
-        diag.undefinedIdentifier
-            .withArguments(name: importPrefix.name.lexeme)
-            .atOffset(
-              offset: importPrefix.offset,
-              length: node.name.end - importPrefix.offset,
-            ),
+      LookupFailureReporter(
+        diagnosticReporter,
+        _libraryFragment,
+      ).reportReadFailure(
+        domain: UnqualifiedLookupDomain(),
+        name: importPrefix.name,
+        foundInstead: null,
       );
       return node.type = InvalidTypeImpl.instance;
     }
@@ -297,7 +312,7 @@ class NamedTypeResolver with ScopeHelpers {
     if (!node.name.isSynthetic) {
       var invocation = node.parent2?.parent2;
       var isConst = switch (invocation) {
-        ConstructorInvocation(isConst: var isConst) => isConst,
+        ConstructorInvocation(:var isConst) => isConst,
         _ => false,
       };
       var diagnostic = (isConst ? diag.constWithNonType : diag.newWithNonType)
@@ -327,15 +342,22 @@ class NamedTypeResolver with ScopeHelpers {
     var argumentCount = arguments.length;
 
     if (argumentCount != parameterCount) {
+      // Expression type applications historically highlight the arguments and
+      // recover with dynamic, unlike type annotations.
+      // TODO(scheglov): Update this.
+      var isTypeLiteral = node.parent2 is TypeLiteral;
       diagnosticReporter.report(
         target
             .wrongNumberOfTypeArgumentsError(
               typeParameterCount: parameterCount,
               typeArgumentCount: argumentCount,
             )
-            .at(node),
+            .at(isTypeLiteral ? argumentList : node),
       );
-      return List.filled(parameterCount, InvalidTypeImpl.instance);
+      return List.filled(
+        parameterCount,
+        isTypeLiteral ? DynamicTypeImpl.instance : InvalidTypeImpl.instance,
+      );
     }
 
     if (parameterCount == 0) {
@@ -347,6 +369,24 @@ class NamedTypeResolver with ScopeHelpers {
       (i) => arguments[i].typeOrThrow,
       growable: false,
     );
+  }
+
+  void _checkTypeArgumentsOnNonGenericType(
+    NamedTypeImpl node, {
+    required TypeInstantiationTarget target,
+  }) {
+    if (node.parent2 is TypeLiteral) {
+      // The parser reports the feature error in older language versions.
+      if (_libraryFragment.element.featureSet.isEnabled(
+        Feature.constructor_tearoffs,
+      )) {
+        diagnosticReporter.report(
+          diag.disallowedTypeInstantiationExpression.at(node.name),
+        );
+      }
+    } else {
+      _buildTypeArguments(node, node.typeArguments!, 0, target: target);
+    }
   }
 
   NullabilitySuffix _getNullability(NamedType node) {
@@ -377,7 +417,6 @@ class NamedTypeResolver with ScopeHelpers {
           contextReturnType: enclosingClass!.thisType,
           genericMetadataIsEnabled: _genericMetadataIsEnabled,
           inferenceUsingBoundsIsEnabled: _inferenceUsingBoundsIsEnabled,
-          strictInference: strictInference,
           strictCasts: strictCasts,
           typeSystemOperations: typeSystemOperations,
           dataForTesting: dataForTesting,
@@ -425,33 +464,26 @@ class NamedTypeResolver with ScopeHelpers {
         );
         return _verifyTypeAliasForContext(node, element, type);
       } else if (element is DynamicElementImpl) {
-        _buildTypeArguments(
+        _checkTypeArgumentsOnNonGenericType(
           node,
-          argumentList,
-          0,
           target: const TypeInstantiationTargetDynamicTypeElement(),
         );
         return DynamicTypeImpl.instance;
       } else if (element is NeverElementImpl) {
-        _buildTypeArguments(
+        _checkTypeArgumentsOnNonGenericType(
           node,
-          argumentList,
-          0,
           target: const TypeInstantiationTargetNeverTypeElement(),
         );
         return _instantiateElementNever(nullability);
       } else if (element is TypeParameterElementImpl) {
-        _buildTypeArguments(
+        _checkTypeArgumentsOnNonGenericType(
           node,
-          argumentList,
-          0,
           target: TypeInstantiationTargetTypeParameterElement(element),
         );
         return InvalidTypeImpl.instance;
       } else {
-        _ErrorHelper(
-          diagnosticReporter,
-        ).reportNullOrNonTypeElement(node, element);
+        _ErrorHelper(diagnosticReporter)
+            .reportNullOrNonTypeElement(node, element);
         return InvalidTypeImpl.instance;
       }
     }
@@ -485,9 +517,8 @@ class NamedTypeResolver with ScopeHelpers {
         nullability: nullability,
       );
     } else {
-      _ErrorHelper(
-        diagnosticReporter,
-      ).reportNullOrNonTypeElement(node, element);
+      _ErrorHelper(diagnosticReporter)
+          .reportNullOrNonTypeElement(node, element);
       return InvalidTypeImpl.instance;
     }
   }
@@ -595,7 +626,7 @@ class NamedTypeResolver with ScopeHelpers {
     if (identical(node, classHierarchy_namedType)) {
       if (type.nullabilitySuffix == NullabilitySuffix.question) {
         var parent = node.parent2;
-        if (parent is ExtendsClause || parent is ClassTypeAlias) {
+        if (parent is ExtendsClause || parent is ClassTypeAlias2) {
           diagnosticReporter.report(diag.nullableTypeInExtendsClause.at(node));
         } else if (parent is ImplementsClause) {
           diagnosticReporter.report(
@@ -658,7 +689,7 @@ class NamedTypeResolver with ScopeHelpers {
     var reference = node.parent2;
     if (reference is ConstructorReference2Impl) {
       var declaration = reference.parent2;
-      return declaration is ConstructorDeclarationImpl &&
+      return declaration is ConstructorDeclaration2Impl &&
           identical(declaration.factoryRedirectionTarget, reference);
     }
     return false;
@@ -669,7 +700,7 @@ class NamedTypeResolver with ScopeHelpers {
 class _ErrorHelper {
   final DiagnosticReporter diagnosticReporter;
 
-  _ErrorHelper(this.diagnosticReporter);
+  new(this.diagnosticReporter);
 
   void reportNullOrNonTypeElement(NamedType node, Element? element) {
     if (node.name.isSynthetic) {
@@ -738,7 +769,7 @@ class _ErrorHelper {
     if (parent is ExtendsClause ||
         parent is ImplementsClause ||
         parent is WithClause ||
-        parent is ClassTypeAlias) {
+        parent is ClassTypeAlias2) {
       // Ignored. The error will be reported elsewhere.
       return;
     }

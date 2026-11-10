@@ -15,15 +15,16 @@ dependencies:
   analyzer: any
   args: any
   cli_util: any
+  clock: any
   code_assets: any
   collection: any
   dap_adapters: any
   dart2native: any
   dart_data_home: any
+  dart_runtime_service_dds: any
   dart_style: any
   dartdoc: any
   data_assets: any
-  dds: any
   dds_service_extensions: any
   dtd_impl: any
   file: any
@@ -49,6 +50,7 @@ dependencies:
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
   expect: any
+  fake_async: any
   lints: any
   pub_semver: any
   record_use: any

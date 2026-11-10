@@ -236,19 +236,19 @@ class B extends A {
       bool t0 = fieldInExtensionScope;
       //        ^^^^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
       // [cfe] The property 'fieldInExtensionScope' is defined in multiple extensions for 'B' and neither is more specific.
       checkExtensionValue(t0);
       bool t1 = getterInExtensionScope;
       //        ^^^^^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
       // [cfe] The property 'getterInExtensionScope' is defined in multiple extensions for 'B' and neither is more specific.
       checkExtensionValue(t1);
       setterInExtensionScope = extensionValue;
       // [error column 7, length 22]
       // [analyzer] COMPILE_TIME_ERROR.AMBIGUOUS_EXTENSION_MEMBER_ACCESS
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_WRITE
       // [cfe] The property 'setterInExtensionScope' is defined in multiple extensions for 'B' and neither is more specific.
       bool t2 = methodInExtensionScope();
       //        ^^^^^^^^^^^^^^^^^^^^^^

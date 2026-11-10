@@ -152,7 +152,7 @@ class A() {
 void f() {
   A();
 //^^^
-// [diag.unusedResult] The value of 'A' should be used.
+// [diag.unusedResult] The value of 'A.new' should be used.
 }
 ''');
   }
@@ -185,8 +185,346 @@ class A {
 void f() {
   A();
 //^^^
-// [diag.unusedResult] The value of 'A' should be used.
+// [diag.unusedResult] The value of 'A.new' should be used.
 }
+''');
+  }
+
+  test_dotShorthandCallableGetter_result_invoked() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  static A Function() get factory => A.new;
+}
+
+void f() {
+  A value = .factory();
+  print(value);
+}
+''');
+  }
+
+  test_dotShorthandConstructor_result_assigned() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  A.named();
+}
+
+void f() {
+  A value = .named();
+  print(value);
+}
+''');
+  }
+
+  test_dotShorthandConstructor_result_assignedInDeclarationPattern() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  final int value;
+
+  @useResult
+  A.named(this.value);
+}
+
+void f() {
+  var A(:value) = .named(0);
+  print(value);
+}
+''');
+  }
+
+  test_dotShorthandConstructor_result_returned() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  A.named();
+}
+
+A f() => .named();
+''');
+  }
+
+  test_dotShorthandConstructor_result_usedAsArgument() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  A.named();
+}
+
+void consume(A value) {}
+
+void f() {
+  consume(.named());
+}
+''');
+  }
+
+  test_dotShorthandField_result_assigned() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  static A instance = A();
+}
+
+void f() {
+  A value = .instance;
+  print(value);
+}
+''');
+  }
+
+  test_dotShorthandField_result_returned() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  static A instance = A();
+}
+
+A f() => .instance;
+''');
+  }
+
+  test_dotShorthandGetter_result_assigned() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  static A get instance => A();
+}
+
+void f() {
+  A value = .instance;
+  print(value);
+}
+''');
+  }
+
+  test_dotShorthandGetter_result_assignedInDeclarationPattern() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  final int value;
+
+  A(this.value);
+
+  @useResult
+  static A get instance => A(0);
+}
+
+void f() {
+  var A(:value) = .instance;
+  print(value);
+}
+''');
+  }
+
+  test_dotShorthandGetter_result_usedAsArgument() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  static A get instance => A();
+}
+
+void consume(A value) {}
+
+void f() {
+  consume(.instance);
+}
+''');
+  }
+
+  test_dotShorthandMethod_result_assigned() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  static A make() => A();
+}
+
+void f() {
+  A value = .make();
+  print(value);
+}
+''');
+  }
+
+  test_dotShorthandMethod_result_assigned_parenthesized() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  static A make() => A();
+}
+
+void f() {
+  A value = (.make());
+  print(value);
+}
+''');
+  }
+
+  test_dotShorthandMethod_result_assignedInDeclarationPattern() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  final int value;
+
+  A(this.value);
+
+  @useResult
+  static A make() => A(0);
+}
+
+void f() {
+  var A(:value) = .make();
+  print(value);
+}
+''');
+  }
+
+  test_dotShorthandMethod_result_assignedInPattern() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  final int value;
+
+  A(this.value);
+
+  @useResult
+  static A make() => A(0);
+}
+
+void f(int value) {
+  A(:value) = .make();
+  print(value);
+}
+''');
+  }
+
+  test_dotShorthandMethod_result_customMessage_assigned() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @UseResult('The result must be retained.')
+  static A make() => A();
+}
+
+void f() {
+  A value = .make();
+  print(value);
+}
+''');
+  }
+
+  test_dotShorthandMethod_result_returned() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  static A make() => A();
+}
+
+A f() => .make();
+''');
+  }
+
+  test_dotShorthandMethod_result_unlessParameterDefined() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @UseResult.unless(parameterDefined: 'fallback')
+  static A make({A? fallback}) => fallback ?? A();
+}
+
+void f(A fallback) {
+  A value = .make(fallback: fallback);
+  print(value);
+}
+''');
+  }
+
+  test_dotShorthandMethod_result_unlessParameterNotDefined() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @UseResult.unless(parameterDefined: 'fallback')
+  static A make({A? fallback}) => fallback ?? A();
+}
+
+void f() {
+  A value = .make();
+  print(value);
+}
+''');
+  }
+
+  test_dotShorthandMethod_result_usedAsArgument() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  static A make() => A();
+}
+
+void consume(A value) {}
+
+void f() {
+  consume(.make());
+}
+''');
+  }
+
+  test_dotShorthandMethod_result_usedInEquality() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  static A make() => A();
+}
+
+bool f(A value) => value == .make();
+''');
+  }
+
+  test_dotShorthandMethod_result_usedInIfNull() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  static A make() => A();
+}
+
+A f(A? value) => value ?? .make();
 ''');
   }
 
@@ -360,6 +698,29 @@ class A {
 void main() {
   A().foo;
 //    ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
+}
+''');
+  }
+
+  test_field_result_unassigned_combinedSignature_mergedType() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+abstract class A {
+  Future<dynamic> get foo;
+}
+
+class B {
+  @useResult
+  final Future<void> foo = Future.value();
+}
+
+class C extends B implements A {}
+
+void f(C c) {
+  c.foo;
+//  ^^^
 // [diag.unusedResult] The value of 'foo' should be used.
 }
 ''');
@@ -660,6 +1021,111 @@ class A {
 void main() {
   A().foo;
 //    ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
+}
+''');
+  }
+
+  test_getter_result_unassigned_cascade() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int get foo => 0;
+}
+
+void f(A a) {
+  a..foo;
+//   ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
+}
+''');
+  }
+
+  test_getter_result_unassigned_chain() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  A get b => this;
+  @useResult
+  int get foo => 0;
+}
+
+void f(A a) {
+  a.b.foo;
+//    ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
+}
+''');
+  }
+
+  test_getter_result_unassigned_chain_constructor() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  A get b => this;
+  @useResult
+  int get foo => 0;
+}
+
+void f() {
+  A().b.foo;
+//      ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
+}
+''');
+  }
+
+  test_getter_result_unassigned_nullAware() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int get foo => 0;
+}
+
+void f(A? a) {
+  a?.foo;
+//   ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
+}
+''');
+  }
+
+  test_getter_result_unassigned_parenthesizedReceiver() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int get foo => 0;
+}
+
+void f(A a) {
+  (a).foo;
+//    ^^^
+// [diag.unusedResult] The value of 'foo' should be used.
+}
+''');
+  }
+
+  test_getter_result_unassigned_static_importPrefixed() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+import '' as self;
+
+class A {
+  @useResult
+  static int get foo => 0;
+}
+
+void f() {
+  self.A.foo;
+//       ^^^
 // [diag.unusedResult] The value of 'foo' should be used.
 }
 ''');
@@ -1033,26 +1499,6 @@ int f(A a) {
 ''');
   }
 
-  test_method_result_indexAssignmentTarget() async {
-    await resolveTestCodeWithDiagnostics('''
-import 'package:meta/meta.dart';
-
-class A {
-  void operator []=(int index, int value) {}
-}
-
-@useResult
-A receiver() => A();
-
-@useResult
-int index() => 0;
-
-void f() {
-  receiver()[index()] = 1;
-}
-''');
-  }
-
   test_method_result_indexExpression() async {
     await resolveTestCodeWithDiagnostics('''
 import 'package:meta/meta.dart';
@@ -1143,6 +1589,26 @@ f() {
 
 @useResult
 A g() => A(1);
+''');
+  }
+
+  test_method_result_receiverIndexAssignmentTarget() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'package:meta/meta.dart';
+
+class A {
+  void operator []=(int index, int value) {}
+}
+
+@useResult
+A receiver() => A();
+
+@useResult
+int index() => 0;
+
+void f() {
+  receiver()[index()] = 1;
+}
 ''');
   }
 

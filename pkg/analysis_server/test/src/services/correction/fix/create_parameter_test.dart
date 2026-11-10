@@ -15,9 +15,20 @@ void main() {
 }
 
 @reflectiveTest
-class CreateParameterTest extends FixProcessorTest {
+class CreateParameterTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createParameter;
+
+  Future<void> test_annotation() async {
+    await resolveTestCode('''
+void f() {
+  @foo
+  var x = 0;
+  print(x);
+}
+''');
+    await assertNoFix();
+  }
 
   Future<void> test_final_comma() async {
     await resolveTestCode('''
@@ -37,6 +48,15 @@ int f(
   return i;
 }
 ''');
+  }
+
+  Future<void> test_invocation() async {
+    await resolveTestCode('''
+void f() {
+  test();
+}
+''');
+    await assertNoFix();
   }
 
   Future<void> test_method_type() async {

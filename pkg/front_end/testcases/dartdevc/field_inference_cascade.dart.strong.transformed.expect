@@ -1,0 +1,41 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+class A extends core::Object {
+  static field self::B? _#b = null;
+  static field core::bool _#b#isSet = false;
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  static get b() → self::B
+    return let final self::B? #t1 = self::A::_#b in #t1 == null ?{self::B} let final self::B #t2 = let final self::B #t3 = new self::B::•() in block {
+      #t3.{self::B::c} = self::c;
+    } =>#t3 in self::A::_#b == null ?{self::B} self::A::_#b = #t2 : throw{for-error-handling} new _in::LateError::fieldADI("b") : #t1{self::B};
+  static synthetic method _#new#tearOff() → self::A
+    return new self::A::•();
+}
+class B extends core::Object {
+  field self::C? _#B#c = null;
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+  get c() → self::C
+    return let final self::C? #t4 = this.{self::B::_#B#c}{self::C?} in #t4 == null ?{self::C} throw{for-error-handling} new _in::LateError::fieldNI("c") : #t4{self::C};
+  set c(self::C c#param) → void
+    this.{self::B::_#B#c} = c#param;
+  static synthetic method _#new#tearOff() → self::B
+    return new self::B::•();
+}
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  static synthetic method _#new#tearOff() → self::C
+    return new self::C::•();
+}
+static field self::C? _#c = null;
+static field core::bool _#c#isSet = false;
+static get c() → self::C
+  return let final self::C? #t5 = self::_#c in #t5 == null ?{self::C} let final self::C #t6 = new self::C::•() in self::_#c == null ?{self::C} self::_#c = #t6 : throw{for-error-handling} new _in::LateError::fieldADI("c") : #t5{self::C};

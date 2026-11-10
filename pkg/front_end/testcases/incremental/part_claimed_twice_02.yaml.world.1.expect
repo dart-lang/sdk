@@ -1,0 +1,76 @@
+main = main::main;
+//
+// Problems in component:
+//
+// org-dartlang-test:///part.dart:6:7: Error: Deeply immutable classes must only have final non-late instance fields.
+// Add the 'final' modifier to this field, and remove 'late' modifier from this field.
+//   int foo = 42;
+//       ^
+//
+// org-dartlang-test:///part.dart:6:7: Error: Field 'foo' is a dart:ffi Pointer to a struct field and therefore cannot be initialized before constructor execution.
+// Mark the field as external to avoid having to initialize it.
+//   int foo = 42;
+//       ^
+//
+library from "org-dartlang-test:///bad.dart" as bad {
+//
+// Problems in library:
+//
+// org-dartlang-test:///bad.dart:2:6: Error: Using 'org-dartlang-test:///part.dart' as part of 'org-dartlang-test:///bad.dart' but its 'part of' declaration says 'org-dartlang-test:///good.dart'.
+// part "part.dart";
+//      ^
+//
+
+  import "dart:ffi";
+
+  part part.dart;
+}
+library from "org-dartlang-test:///good.dart" as good {
+
+  import "dart:ffi";
+
+  part part.dart;
+  @#C3
+  final class BadStruct extends dart.ffi::Struct { // from org-dartlang-test:///part.dart
+    @#C4
+    @#C3
+    field dart.core::int foo = 42;
+    synthetic constructor •() → good::BadStruct
+      : super dart.ffi::Struct::•()
+      ;
+    constructor #fromTypedDataBase(synthesized dart.core::Object #typedDataBase, synthesized dart.core::int #offsetInBytes) → good::BadStruct
+      : super dart.ffi::Struct::_fromTypedDataBase(#typedDataBase, #offsetInBytes)
+      ;
+    @#C6
+    constructor #fromTypedData(synthesized dart.typed_data::TypedData #typedData, synthesized dart.core::int #offset, synthesized dart.core::int #sizeInBytes) → good::BadStruct
+      : super dart.ffi::Struct::_fromTypedData(#typedData, #offset, #sizeInBytes)
+      ;
+    @#C6
+    static synthetic get #sizeOf() → dart.core::int
+      return #C8.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///bad.dart";
+  import "org-dartlang-test:///good.dart";
+
+  static method main() → dynamic {}
+}
+constants  {
+  #C1 = "vm:deeply-immutable"
+  #C2 = null
+  #C3 = dart.core::pragma {name:#C1, options:#C2}
+  #C4 = dart.ffi::Int8 {}
+  #C5 = "vm:prefer-inline"
+  #C6 = dart.core::pragma {name:#C5, options:#C2}
+  #C7 = 0
+  #C8 = <dart.core::int>[#C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7]
+}
+
+
+Constructor coverage from constants:
+org-dartlang-test:///part.dart:
+- Int8. (from org-dartlang-sdk:///sdk/lib/ffi/native_type.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+

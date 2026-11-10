@@ -6,8 +6,8 @@ part of html;
 
 class _HttpRequestUtils {
   // Helper for factory HttpRequest.get
-  static HttpRequest get(
-      String url, onComplete(HttpRequest request), bool withCredentials) {
+  static HttpRequest get(String url,
+      void Function(HttpRequest request) onComplete, bool withCredentials) {
     final request = new HttpRequest();
     request.open('GET', url, async: true);
 

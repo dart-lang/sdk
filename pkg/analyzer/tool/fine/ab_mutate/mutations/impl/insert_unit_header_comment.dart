@@ -10,7 +10,7 @@ import '../kinds.dart';
 
 /// Insert a harmless line comment at unit start. Pure trivia; never breaks AST.
 class InsertUnitHeaderCommentMutation extends Mutation {
-  InsertUnitHeaderCommentMutation({required super.path});
+  new({required super.path});
 
   @override
   MutationKind get kind => MutationKind.insertUnitHeaderComment;
@@ -32,7 +32,7 @@ class InsertUnitHeaderCommentMutation extends Mutation {
 
   static List<Mutation> discover(String filePath, CompilationUnit unit) {
     var mutations = <Mutation>[];
-    if (unit.declarations.isNotEmpty) {
+    if (unit.declarations2.isNotEmpty) {
       mutations.add(InsertUnitHeaderCommentMutation(path: filePath));
     }
     return mutations;

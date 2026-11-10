@@ -127,7 +127,7 @@ main() {
 class A {
   set sss(x) {}
 }''');
-    var rhs = result.findNode.assignment(' = 0;').rightHandSide2;
+    var rhs = result.findNode.directAssignment(' = 0;').value;
     expect(rhs.correspondingParameter, result.findElement.parameter('x'));
   }
 
@@ -143,7 +143,7 @@ class A {
 class B {
   set sss(x) {}
 }''');
-    var rhs = result.findNode.assignment(' = 0;').rightHandSide2;
+    var rhs = result.findNode.directAssignment(' = 0;').value;
     expect(rhs.correspondingParameter, result.findElement.parameter('x'));
   }
 
@@ -156,7 +156,7 @@ main() {
 class A {
   set sss(x) {}
 }''');
-    var rhs = result.findNode.assignment(' = 0;').rightHandSide2;
+    var rhs = result.findNode.directAssignment(' = 0;').value;
     expect(rhs.correspondingParameter, result.findElement.parameter('x'));
   }
 
@@ -172,7 +172,7 @@ class A {
 class B {
   set sss(x) {}
 }''');
-    var rhs = result.findNode.assignment(' = 0;').rightHandSide2;
+    var rhs = result.findNode.directAssignment(' = 0;').value;
     expect(rhs.correspondingParameter, result.findElement.parameter('x'));
   }
 
@@ -514,9 +514,15 @@ class A {
         xParameter.declaredFragment!.element as FieldFormalParameterElement;
     expect(xParameterElement.field, result.findElement.field('x'));
 
-    var node1 = result.findNode.simple('x {}');
+    var node1 = result.findNode.unqualifiedNameExpression('x {}');
     assertResolvedNodeText(node1, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: x
+  resolution: VariableReadResolution
+    element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: x
   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
   staticType: int
@@ -576,9 +582,15 @@ class C extends B with M1, M2 {
 
     // Verify that the getter for "x" in C.f() refers to the getter defined in
     // M2.
-    var node2 = result.findNode.simple('x;');
+    var node2 = result.findNode.unqualifiedNameExpression('x;');
     assertResolvedNodeText(node2, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: x
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@mixin::M2::@getter::x
+    type: dynamic
+  staticType: dynamic
+V1: SimpleIdentifier
   token: x
   element: <testLibrary>::@mixin::M2::@getter::x
   staticType: dynamic
@@ -604,11 +616,45 @@ void main() {
 
     // Verify that the getter for "x" in "new C().x" refers to the getter
     // defined in M2.
-    var node3 = result.findNodeV1.simple('x;');
-    assertResolvedNodeText(node3, r'''
-SimpleIdentifier
-  token: x
-  element: <testLibrary>::@mixin::M2::@getter::x
+    var node = result.findNode.singleReceiverPropertyExtraction;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: ConstructorInvocation
+    keyword: new
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: C
+        element: <testLibrary>::@class::C
+        type: C
+      element: <testLibrary>::@class::C::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C
+  operator: .
+  name: x
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@mixin::M2::@getter::x
+    type: dynamic
+  staticType: dynamic
+V1: PropertyAccess
+  target: InstanceCreationExpression
+    keyword: new
+    constructorName: ConstructorName
+      type: NamedType
+        name: C
+        element: <testLibrary>::@class::C
+        type: C
+      element: <testLibrary>::@class::C::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C
+  operator: .
+  propertyName: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@mixin::M2::@getter::x
+    staticType: dynamic
   staticType: dynamic
 ''');
   }
@@ -736,7 +782,7 @@ f() {
   List<List<int>> b = [];
   b[0][0] = 'hi';
 //          ^^^^
-// [diag.invalidAssignment] A value of type 'String' can't be assigned to a variable of type 'int'.
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
 }''');
   }
 
@@ -867,7 +913,7 @@ main() {
   var myVar = (int p) => 'foo';
   myVar(42);
 }''');
-    var node = result.findNode.simple('myVar(42)');
+    var node = result.findNode.unqualifiedNameExpression('myVar(42)');
     assertType(node, 'String Function(int)');
   }
 
@@ -884,6 +930,12 @@ const A = null;
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: UnqualifiedNameExpression
+    name: A
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::A
+      type: dynamic
+    staticType: dynamic
   name: SimpleIdentifier
     token: A
     element: <testLibrary>::@getter::A
@@ -908,6 +960,12 @@ mixin E {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: UnqualifiedNameExpression
+    name: A
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::A
+      type: dynamic
+    staticType: dynamic
   name: SimpleIdentifier
     token: A
     element: <testLibrary>::@getter::A
@@ -930,6 +988,12 @@ const A = null;
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: UnqualifiedNameExpression
+    name: A
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::A
+      type: dynamic
+    staticType: dynamic
   name: SimpleIdentifier
     token: A
     element: <testLibrary>::@getter::A
@@ -951,6 +1015,12 @@ const A = null;
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: UnqualifiedNameExpression
+    name: A
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::A
+      type: dynamic
+    staticType: dynamic
   name: SimpleIdentifier
     token: A
     element: <testLibrary>::@getter::A
@@ -1002,11 +1072,17 @@ const A = null;
     var annotations = result.findElement.topFunction('f').metadata.annotations;
     expect(annotations, hasLength(1));
 
-    var fDeclaration = result.findNode.functionDeclaration('f<A>');
+    var fDeclaration = result.findNode.topLevelFunctionDeclaration('f<A>');
     var node = fDeclaration.metadata[0];
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: UnqualifiedNameExpression
+    name: A
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::A
+      type: dynamic
+    staticType: dynamic
   name: SimpleIdentifier
     token: A
     element: <testLibrary>::@getter::A
@@ -1029,6 +1105,12 @@ const A = null;
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: UnqualifiedNameExpression
+    name: A
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::A
+      type: dynamic
+    staticType: dynamic
   name: SimpleIdentifier
     token: A
     element: <testLibrary>::@getter::A
@@ -1059,6 +1141,12 @@ f(@A int p<A>(int x)) {}''');
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: UnqualifiedNameExpression
+    name: A
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::A
+      type: dynamic
+    staticType: dynamic
   name: SimpleIdentifier
     token: A
     element: <testLibrary>::@getter::A
@@ -1081,6 +1169,12 @@ const A = null;
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: UnqualifiedNameExpression
+    name: A
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::A
+      type: dynamic
+    staticType: dynamic
   name: SimpleIdentifier
     token: A
     element: <testLibrary>::@getter::A
@@ -1124,6 +1218,12 @@ class C {
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: UnqualifiedNameExpression
+    name: A
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::A
+      type: dynamic
+    staticType: dynamic
   name: SimpleIdentifier
     token: A
     element: <testLibrary>::@getter::A
@@ -1145,6 +1245,12 @@ const A = null;
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: UnqualifiedNameExpression
+    name: A
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::A
+      type: dynamic
+    staticType: dynamic
   name: SimpleIdentifier
     token: A
     element: <testLibrary>::@getter::A
@@ -1200,6 +1306,12 @@ const A = null;
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: UnqualifiedNameExpression
+    name: A
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::A
+      type: dynamic
+    staticType: dynamic
   name: SimpleIdentifier
     token: A
     element: <testLibrary>::@getter::A
@@ -1238,12 +1350,54 @@ void main() {
 }
 ''');
 
-    var node4 = result.findNode.simple('f();');
+    var node4 = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node4, r'''
-SimpleIdentifier
-  token: f
-  element: <testLibrary>::@mixin::M2::@method::f
-  staticType: void Function()
+ReceiverMethodInvocation
+  receiver: ConstructorInvocation
+    keyword: new
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: C
+        element: <testLibrary>::@class::C
+        type: C
+      element: <testLibrary>::@class::C::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C
+  operator: .
+  name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@mixin::M2::@method::f
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: InstanceCreationExpression
+    keyword: new
+    constructorName: ConstructorName
+      type: NamedType
+        name: C
+        element: <testLibrary>::@class::C
+        type: C
+      element: <testLibrary>::@class::C::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C
+  operator: .
+  methodName: SimpleIdentifier
+    token: f
+    element: <testLibrary>::@mixin::M2::@method::f
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
 ''');
   }
 
@@ -1263,12 +1417,28 @@ class C extends B with M1, M2 {
 }
 ''');
 
-    var node5 = result.findNode.simple('f();');
+    var node5 = result.findNode.unqualifiedFunctionInvocation('f();');
     assertResolvedNodeText(node5, r'''
-SimpleIdentifier
-  token: f
-  element: <testLibrary>::@mixin::M2::@method::f
-  staticType: void Function()
+UnqualifiedFunctionInvocation
+  name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@mixin::M2::@method::f
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  methodName: SimpleIdentifier
+    token: f
+    element: <testLibrary>::@mixin::M2::@method::f
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
 ''');
   }
 
@@ -1287,12 +1457,54 @@ void main() {
 }
 ''');
 
-    var node6 = result.findNode.simple('f();');
+    var node6 = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node6, r'''
-SimpleIdentifier
-  token: f
-  element: <testLibrary>::@mixin::M2::@method::f
-  staticType: void Function()
+ReceiverMethodInvocation
+  receiver: ConstructorInvocation
+    keyword: new
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: C
+        element: <testLibrary>::@class::C
+        type: C
+      element: <testLibrary>::@class::C::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C
+  operator: .
+  name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@mixin::M2::@method::f
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: InstanceCreationExpression
+    keyword: new
+    constructorName: ConstructorName
+      type: NamedType
+        name: C
+        element: <testLibrary>::@class::C
+        type: C
+      element: <testLibrary>::@class::C::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C
+  operator: .
+  methodName: SimpleIdentifier
+    token: f
+    element: <testLibrary>::@mixin::M2::@method::f
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
 ''');
   }
 
@@ -1382,7 +1594,7 @@ main() {
     var g = result.findElement.method('g');
     var parameters = g.formalParameters;
 
-    var invocation = result.findNode.methodInvocation(');');
+    var invocation = result.findNode.unqualifiedFunctionInvocation(');');
 
     var arguments = invocation.argumentList.arguments2;
 

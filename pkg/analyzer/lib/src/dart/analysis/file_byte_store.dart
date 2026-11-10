@@ -9,6 +9,7 @@ import 'dart:typed_data';
 
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/fletcher16.dart';
+import 'package:analyzer/src/util/platform_info.dart';
 import 'package:path/path.dart';
 
 /// The request that is sent from the main isolate to the clean-up isolate.
@@ -17,7 +18,7 @@ class CacheCleanUpRequest {
   final int maxSizeBytes;
   final SendPort replyTo;
 
-  CacheCleanUpRequest(this.cachePath, this.maxSizeBytes, this.replyTo);
+  new(this.cachePath, this.maxSizeBytes, this.replyTo);
 }
 
 /// The result that is sent from the clean-up isolate back to the main
@@ -29,7 +30,7 @@ class CacheCleanUpResult {
   final int elapsedMilliseconds;
   final int fileCount;
 
-  CacheCleanUpResult({
+  new({
     required this.currentSizeBytes,
     required this.deletedBytes,
     required this.deletedFileCount,
@@ -60,7 +61,7 @@ class EvictingFileByteStore implements ByteStore {
   int? _lastKnownSizeBytes;
   int? _lastScannedFileCount;
 
-  EvictingFileByteStore(this._cachePath, this._maxSizeBytes)
+  new(this._cachePath, this._maxSizeBytes)
     : _fileByteStore = FileByteStore(_cachePath) {
     _requestCacheCleanUp();
   }
@@ -80,6 +81,9 @@ class EvictingFileByteStore implements ByteStore {
   int get readMissCount => _fileByteStore.readMissCount;
   int get writeBytes => _fileByteStore.writeBytes;
   int get writeCount => _fileByteStore.writeCount;
+
+  /// Returns the future that completes when all file writes are done.
+  Future<void> flush() => _fileByteStore.flush();
 
   @override
   Uint8List? get(String key) => _fileByteStore.get(key);
@@ -229,7 +233,7 @@ class FileByteStore implements ByteStore {
 
   /// If the same cache path is used from more than one isolate of the same
   /// process, then a unique [tempNameSuffix] must be provided for each isolate.
-  FileByteStore(this._cachePath, {String tempNameSuffix = ''})
+  new(this._cachePath, {String tempNameSuffix = ''})
     : _tempSuffix =
           '-temp-$pid${tempNameSuffix.isEmpty ? '' : '-$tempNameSuffix'}';
 
@@ -240,6 +244,18 @@ class FileByteStore implements ByteStore {
   int get readMissCount => _readMissCount;
   int get writeBytes => _writeBytes;
   int get writeCount => _writeCount;
+
+  /// Returns the future that completes when all file writes are done.
+  ///
+  /// On Windows this is a no-op because writing a large number of files can be
+  /// very slow and cause `dart analyze` and analysis_server shutdowns to take
+  /// a long time.
+  Future<void> flush() {
+    return platform.isWindows
+        // No-op on Windows, see https://github.com/dart-lang/sdk/issues/64190
+        ? Future.value()
+        : _pool.waitForIdle();
+  }
 
   @override
   Uint8List? get(String key) {
@@ -297,12 +313,13 @@ class FileByteStore implements ByteStore {
         await Directory(shardPath).create(recursive: true);
         var path = join(shardPath, key);
         await tempFile.rename(path);
-        if (_writeInProgress[key] == bytes) {
-          _writeInProgress.remove(key);
-        }
       } catch (_) {
         // ignore exceptions
         _failedWriteCount++;
+      } finally {
+        if (_writeInProgress[key] == bytes) {
+          _writeInProgress.remove(key);
+        }
       }
     });
 
@@ -383,16 +400,26 @@ class FileByteStoreValidator {
 
 class FuturePool {
   int _available;
+  Completer<void>? _idleCompleter;
+  int _pending = 0;
   List<Future Function()> waiting = [];
 
-  FuturePool(this._available);
+  new(this._available);
 
   void execute(Future Function() fn) {
+    _pending++;
     if (_available > 0) {
       _run(fn);
     } else {
       waiting.add(fn);
     }
+  }
+
+  Future<void> waitForIdle() {
+    if (_pending == 0) {
+      return Future<void>.value();
+    }
+    return (_idleCompleter ??= Completer<void>()).future;
   }
 
   void _run(Future Function() fn) {
@@ -401,9 +428,15 @@ class FuturePool {
     unawaited(
       fn().whenComplete(() {
         _available++;
+        _pending--;
 
         if (waiting.isNotEmpty) {
           _run(waiting.removeAt(0));
+        }
+
+        if (_pending == 0) {
+          _idleCompleter?.complete();
+          _idleCompleter = null;
         }
       }),
     );

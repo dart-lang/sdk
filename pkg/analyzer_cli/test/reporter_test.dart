@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_cli/src/ansi.dart' as ansi;
 import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:analyzer_cli/src/options.dart';
@@ -95,7 +96,8 @@ void f() {
 
     expect(
       out.toString().trim(),
-      "error • Undefined name 'x'. • package:test/test.dart:2:3 • undefined_identifier",
+      "error • Undefined name 'x'. • package:test/test.dart:2:3 • "
+      'undefined_unqualified_name_read',
     );
   }
 
@@ -157,21 +159,23 @@ void f() {
     ])!;
     var reporter = JsonErrorFormatter(out, options, stats);
 
-    var libFile = newFile('$testPackageRootPath/lib/lib.dart', r'''
+    var libCode = TestCode.parseNormalized(r'''
 class C {
-  final int? foo;
+  final int? [!foo!];
   C(this.foo);
 }
 ''');
+    var libFile = newFile('$testPackageRootPath/lib/lib.dart', libCode.code);
 
-    newFile(testFile.path, r'''
+    var testCode = TestCode.parseNormalized(r'''
 import 'lib.dart';
 void f(C c) {
   if (c.foo != null) {
-    c.foo.isEven;
+    c.foo.[!isEven!];
   }
 }
 ''');
+    newFile(testFile.path, testCode.code);
 
     var errorsResult = await _getErrorsResultForFile(testFile);
     await reporter.formatErrors([errorsResult]);
@@ -187,8 +191,16 @@ void f(C c) {
           'location': {
             'file': testFile.path,
             'range': {
-              'start': {'offset': 66, 'line': 4, 'column': 11},
-              'end': {'offset': 72, 'line': 4, 'column': 17},
+              'start': {
+                'offset': testCode.range.sourceRange.offset,
+                'line': 4,
+                'column': 11,
+              },
+              'end': {
+                'offset': testCode.range.sourceRange.end,
+                'line': 4,
+                'column': 17,
+              },
             },
           },
           'problemMessage': "The property 'isEven' can't be unconditionally accessed because the receiver can be 'null'.",
@@ -198,8 +210,16 @@ void f(C c) {
               'location': {
                 'file': libFile.path,
                 'range': {
-                  'start': {'offset': 23, 'line': 2, 'column': 14},
-                  'end': {'offset': 26, 'line': 2, 'column': 17},
+                  'start': {
+                    'offset': libCode.range.sourceRange.offset,
+                    'line': 2,
+                    'column': 14,
+                  },
+                  'end': {
+                    'offset': libCode.range.sourceRange.end,
+                    'line': 2,
+                    'column': 17,
+                  },
                 },
               },
               'message': "'foo' refers to a public property so it couldn't be promoted.  See https://dart.dev/go/non-promo-public-field",
@@ -221,11 +241,12 @@ void f(C c) {
     ])!;
     var reporter = JsonErrorFormatter(out, options, stats);
 
-    newFile(testFile.path, r'''
+    var testCode = TestCode.parseNormalized(r'''
 void f() {
-  x;
+  [!x!];
 }
 ''');
+    newFile(testFile.path, testCode.code);
 
     var errorsResult = await _getErrorsResultForFile(testFile);
     await reporter.formatErrors([errorsResult]);
@@ -235,19 +256,28 @@ void f() {
       'version': 1,
       'diagnostics': [
         {
-          'code': 'undefined_identifier',
+          'code': 'undefined_unqualified_name_read',
           'severity': 'ERROR',
           'type': 'COMPILE_TIME_ERROR',
           'location': {
             'file': testFile.path,
             'range': {
-              'start': {'offset': 13, 'line': 2, 'column': 3},
-              'end': {'offset': 14, 'line': 2, 'column': 4},
+              'start': {
+                'offset': testCode.range.sourceRange.offset,
+                'line': 2,
+                'column': 3,
+              },
+              'end': {
+                'offset': testCode.range.sourceRange.end,
+                'line': 2,
+                'column': 4,
+              },
             },
           },
           'problemMessage': "Undefined name 'x'.",
-          'correctionMessage': 'Try correcting the name to one that is defined, or defining the name.',
-          'documentation': 'https://dart.dev/diagnostics/undefined_identifier',
+          'correctionMessage':
+              "Try importing the library that defines 'x', correcting the "
+              'name to one that is defined, or defining the name.',
         },
       ],
     };
@@ -255,10 +285,11 @@ void f() {
   }
 
   Future<ErrorsResult> _getErrorsResultForFile(File file) async {
-    var errorsResult = await contextCollection
-        .contextFor(file.path)
-        .currentSession
-        .getErrors(file.path);
+    var analysisContext = contextFor2(file);
+    await analysisContext.applyPendingFileChanges();
+    var errorsResult = await analysisContext.currentSession.getErrors(
+      file.path,
+    );
     return errorsResult as ErrorsResult;
   }
 }

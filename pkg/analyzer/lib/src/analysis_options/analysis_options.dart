@@ -29,8 +29,6 @@ final class AnalysisOptionsBuilder {
 
   ExperimentStatus _contextFeatures = ExperimentStatus();
 
-  FeatureSet nonPackageFeatureSet = ExperimentStatus();
-
   List<String> enabledLegacyPluginNames = [];
 
   List<ErrorProcessor> errorProcessors = [];
@@ -67,13 +65,11 @@ final class AnalysisOptionsBuilder {
   String? pluginDependencyOverrides;
 
   /// Creates a builder initialized with default options.
-  AnalysisOptionsBuilder({this.file});
+  new({this.file});
 
   /// Creates a builder initialized from an existing options object.
-  AnalysisOptionsBuilder.from(AnalysisOptionsImpl options)
-    : file = options.file {
+  new from(AnalysisOptionsImpl options) : file = options.file {
     contextFeatures = options.contextFeatures;
-    nonPackageFeatureSet = options.nonPackageFeatureSet;
     enabledLegacyPluginNames = options.enabledLegacyPluginNames.toList();
     pluginsOptions = PluginsOptions(
       configurations: options.pluginsOptions.configurations.toList(),
@@ -106,14 +102,12 @@ final class AnalysisOptionsBuilder {
 
   set contextFeatures(FeatureSet featureSet) {
     _contextFeatures = featureSet as ExperimentStatus;
-    nonPackageFeatureSet = featureSet;
   }
 
   AnalysisOptionsImpl build() {
     return AnalysisOptionsImpl._(
       file: file,
       contextFeatures: _contextFeatures,
-      nonPackageFeatureSet: nonPackageFeatureSet,
       enabledLegacyPluginNames: enabledLegacyPluginNames.toList(),
       pluginsOptions: PluginsOptions(
         configurations: pluginsOptions.configurations.toList(),
@@ -151,10 +145,7 @@ final class AnalysisOptionsExcludePattern {
   /// The pattern as written in [declaringFile].
   final String pattern;
 
-  AnalysisOptionsExcludePattern({
-    required this.declaringFile,
-    required this.pattern,
-  });
+  new({required this.declaringFile, required this.pattern});
 
   @override
   int get hashCode => Object.hash(declaringFile, pattern);
@@ -185,14 +176,8 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     '>= 2.12.0',
   );
 
-  ExperimentStatus _contextFeatures;
-
-  /// The set of features to use for libraries that are not in a package.
-  ///
-  /// If a library is in a package, this feature set is *not* used, even if the
-  /// package does not specify the language version. Instead [contextFeatures]
-  /// is used.
-  FeatureSet nonPackageFeatureSet;
+  @override
+  final ExperimentStatus contextFeatures;
 
   @override
   final List<String> enabledLegacyPluginNames;
@@ -208,11 +193,14 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /// The associated `analysis_options.yaml` file (or `null` if there is none).
   final File? file;
 
-  bool _lint;
+  @override
+  final bool lint;
 
-  bool _warning;
+  @override
+  final bool warning;
 
-  List<AbstractAnalysisRule> _lintRules;
+  @override
+  final List<AbstractAnalysisRule> lintRules;
 
   /// Whether linter exceptions should be propagated to the caller (by
   /// rethrowing them).
@@ -245,22 +233,21 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /// Returns a newly instantiated [AnalysisOptionsImpl].
   ///
   /// Optionally pass [file] as the file where the YAML can be found.
-  factory AnalysisOptionsImpl({File? file}) {
+  factory({File? file}) {
     var builder = AnalysisOptionsBuilder(file: file);
     return builder.build();
   }
 
-  AnalysisOptionsImpl._({
+  new _({
     required this.file,
-    required ExperimentStatus contextFeatures,
-    required this.nonPackageFeatureSet,
+    required this.contextFeatures,
     required this.excludePatterns2,
     required this.enabledLegacyPluginNames,
     required this.pluginsOptions,
     required this.errorProcessors,
-    required bool lint,
-    required bool warning,
-    required List<AbstractAnalysisRule> lintRules,
+    required this.lint,
+    required this.warning,
+    required this.lintRules,
     required this.propagateLinterExceptions,
     required this.strictCasts,
     required this.strictInference,
@@ -269,24 +256,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     required this.codeStyleOptions,
     required this.formatterOptions,
     required this.unignorableDiagnosticCodeNames,
-  }) : _contextFeatures = contextFeatures,
-       _lint = lint,
-       _warning = warning,
-       _lintRules = lintRules {
+  }) {
     assert(unignorableDiagnosticCodeNames.every((n) => n == n.toLowerCase()));
     (codeStyleOptions as CodeStyleOptionsImpl).options = this;
-  }
-
-  @override
-  FeatureSet get contextFeatures => _contextFeatures;
-
-  // TODO(scheglov): Remove these compatibility setters after clients migrate
-  // to AnalysisOptionsBuilder.
-  @Deprecated('Use AnalysisOptionsBuilder instead.')
-  set contextFeatures(FeatureSet featureSet) {
-    _contextFeatures = featureSet as ExperimentStatus;
-    nonPackageFeatureSet = featureSet;
-    _clearCachedSignatures();
   }
 
   @Deprecated(
@@ -294,33 +266,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     "'AnalysisContext.contextRoot.analyzedFiles' instead.",
   )
   @override
-  List<String> get excludePatterns => {
-    for (var excludePattern in excludePatterns2) excludePattern.pattern,
-  }.toList();
-
-  @override
-  bool get lint => _lint;
-
-  @Deprecated('Use AnalysisOptionsBuilder instead.')
-  set lint(bool value) {
-    _lint = value;
-    _clearCachedSignatures();
-  }
-
-  @override
-  List<AbstractAnalysisRule> get lintRules => _lintRules;
-
-  @Deprecated('Use AnalysisOptionsBuilder instead.')
-  set lintRules(List<AbstractAnalysisRule> value) {
-    _lintRules = value;
-    _clearCachedSignatures();
-  }
-
-  /// The language version to use for libraries that are not in a package.
-  ///
-  /// If a library is in a package, this language version is *not* used,
-  /// even if the package does not specify the language version.
-  Version get nonPackageLanguageVersion => ExperimentStatus.currentVersion;
+  List<String> get excludePatterns =>
+      {for (var excludePattern in excludePatterns2) excludePattern.pattern}
+          .toList();
 
   List<PluginConfiguration> get pluginConfigurations =>
       pluginsOptions.configurations;
@@ -464,15 +412,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   }
 
   @override
-  bool get warning => _warning;
-
-  @Deprecated('Use AnalysisOptionsBuilder instead.')
-  set warning(bool value) {
-    _warning = value;
-    _clearCachedSignatures();
-  }
-
-  @override
   bool isLintEnabled(String name) {
     return lintRules.any((rule) => rule.name == name);
   }
@@ -529,19 +468,13 @@ class AnalysisOptionsImpl implements AnalysisOptions {
         },
     };
   }
-
-  void _clearCachedSignatures() {
-    _unlinkedSignature = null;
-    _signature = null;
-    _signatureForElements = null;
-  }
 }
 
 /// A code block for use as "debug information."
 final class DebugCodeBlock {
   final String text;
   final String? lang;
-  DebugCodeBlock(this.text, {this.lang});
+  new(this.text, {this.lang});
 }
 
 /// A debug link object, to be rendered as a Markdown link or an HTML link.
@@ -550,7 +483,7 @@ final class DebugCodeBlock {
 final class DebugLink {
   final String text;
   final String? url;
-  DebugLink(this.text, this.url);
+  new(this.text, this.url);
 }
 
 final class GitPluginSource implements PluginSource {
@@ -562,7 +495,7 @@ final class GitPluginSource implements PluginSource {
 
   final String? tagPattern;
 
-  GitPluginSource({required this.url, this.path, this.ref, this.tagPattern});
+  new({required this.url, this.path, this.ref, this.tagPattern});
 
   @override
   int get hashCode => Object.hash(url, path, ref, tagPattern);
@@ -598,7 +531,7 @@ final class GitPluginSource implements PluginSource {
 final class PathPluginSource implements PluginSource {
   final String path;
 
-  PathPluginSource({required this.path});
+  new({required this.path});
 
   @override
   int get hashCode => path.hashCode;
@@ -630,7 +563,7 @@ final class PluginConfiguration {
   /// Whether the plugin is enabled.
   final bool isEnabled;
 
-  PluginConfiguration({
+  new({
     required this.name,
     required this.source,
     Map<String, DiagnosticConfig> diagnosticConfigs = const {},
@@ -657,10 +590,7 @@ final class PluginsOptions {
   /// The dependency overrides, if specified.
   final Map<String, PluginSource>? dependencyOverrides;
 
-  PluginsOptions({
-    required this.configurations,
-    required this.dependencyOverrides,
-  });
+  new({required this.configurations, required this.dependencyOverrides});
 }
 
 /// A description of the source of a plugin.
@@ -680,7 +610,7 @@ final class VersionedPluginSource implements PluginSource {
   final String constraint;
   final String? hostedUrl;
 
-  VersionedPluginSource({required this.constraint, this.hostedUrl});
+  new({required this.constraint, this.hostedUrl});
 
   @override
   int get hashCode => Object.hash(constraint, hostedUrl);

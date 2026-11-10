@@ -41,7 +41,7 @@ class ContextsPage extends DiagnosticPageWithNav {
       return;
     }
 
-    var (folder: folder, driver: driver) = currentContext(params);
+    var (:folder, :driver) = currentContext(params);
     var contextPath = folder.path;
 
     writeContextNavigationTabs(folder);
@@ -55,7 +55,7 @@ class ContextsPage extends DiagnosticPageWithNav {
     // Display analysis options entries inside this context root.
     var optionsList = getOptionsList(folder, driver);
     var foldersInContextRoot = [
-      for (var options in optionsList) options.file!.path,
+      for (var options in optionsList) options.file!.parent.path,
     ];
     var separator = folder.provider.pathContext.separator;
     ul(foldersInContextRoot, (folderPath) {
@@ -102,18 +102,21 @@ class ContextsPage extends DiagnosticPageWithNav {
     }
     buf.writeln('</p>');
 
-    buf.writeln('</div>');
-
     h3('Plugins');
     var optionsData = collectOptionsData(driver);
     p(optionsData.plugins.toList().join(', '));
 
-    var priorityFiles = driver.priorityFiles;
-    var addedFiles = driver.addedFiles.toList();
-    var knownFiles = driver.knownFiles.map((f) => f.path).toSet();
-    var implicitFiles = knownFiles.difference(driver.addedFiles).toList();
-    addedFiles.sort();
-    implicitFiles.sort();
+    var contextRoot = driver.analysisContext!.contextRoot;
+    var priorityFiles =
+        driver.priorityFiles.where(contextRoot.isAnalyzed).toList()..sort();
+    var addedFiles = driver.addedFiles.where(contextRoot.isAnalyzed).toList()
+      ..sort();
+    var knownFiles = driver.knownFiles
+        .map((f) => f.path)
+        .where(contextRoot.isAnalyzed)
+        .toSet();
+    var implicitFiles = knownFiles.difference(driver.addedFiles).toList()
+      ..sort();
 
     h3('Context files');
 
@@ -177,16 +180,17 @@ class ContextsPage extends DiagnosticPageWithNav {
 
     h3('Largest library cycles');
     Set<LibraryCycle> cycles = {};
-    var contextRoot = driver.analysisContext!.contextRoot;
     var pathContext = contextRoot.resourceProvider.pathContext;
-    for (var filePath in contextRoot.analyzedFiles()) {
-      if (!file_paths.isDart(pathContext, filePath)) continue;
-      var fileState = driver.fsState.getFileForPath(filePath);
-      var kind = fileState.kind;
-      if (kind is LibraryFileKind) {
-        cycles.add(kind.libraryCycle);
+    server.timingResourceProvider.withoutMeasuring(() {
+      for (var filePath in contextRoot.analyzedFiles()) {
+        if (!file_paths.isDart(pathContext, filePath)) continue;
+        var fileState = driver.fsState.getFileForPath(filePath);
+        var kind = fileState.kind;
+        if (kind is LibraryFileKind) {
+          cycles.add(kind.libraryCycle);
+        }
       }
-    }
+    });
     var sortedMultiLibraryCycles =
         cycles.where((cycle) => cycle.size > 1).toList()
           ..sort((first, second) => second.size - first.size);

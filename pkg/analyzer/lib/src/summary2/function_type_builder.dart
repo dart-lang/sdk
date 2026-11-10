@@ -36,7 +36,7 @@ class FunctionTypeBuilder extends TypeBuilder {
   /// and set for the [node].
   FunctionTypeImpl? _type;
 
-  FunctionTypeBuilder({
+  new({
     required this.typeParameters,
     required this.formalParameters,
     required this.returnType,
@@ -44,7 +44,7 @@ class FunctionTypeBuilder extends TypeBuilder {
     this.node,
   });
 
-  factory FunctionTypeBuilder.of(
+  factory of(
     GenericFunctionTypeImpl node,
     NullabilitySuffix nullabilitySuffix,
   ) {

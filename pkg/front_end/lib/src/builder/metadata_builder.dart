@@ -146,8 +146,8 @@ class MetadataBuilder {
         Expression annotation = cloner.cloneInContext(
           annotationBuilder._expression!,
         );
-        // Coverage-ignore(suite): Not run.
         if (createFileUriExpression && annotation is! FileUriExpression) {
+          // Coverage-ignore-block(suite): Not run.
           annotation = extern.createFileUriExpression(
             expression: annotation,
             fileUri: annotationBuilder.fileUri,

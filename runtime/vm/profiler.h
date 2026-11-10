@@ -529,7 +529,7 @@ class AbstractCode {
     if (code_.IsCode()) {
       return Code::Cast(code_).IsStubCode();
     } else if (code_.IsBytecode()) {
-      return (Bytecode::Cast(code_).function() == Function::null());
+      return (Bytecode::Cast(code_).IsSharedBytecodeStub());
     } else {
       return false;
     }

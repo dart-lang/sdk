@@ -41,14 +41,6 @@ class RemoveConstructorName extends RefactoringProducer {
       return ComputeStatusFailure();
     }
 
-    for (var constructor in element.enclosingElement.constructors) {
-      if (constructor.name == 'new' || constructor.name == null) {
-        return ComputeStatusFailure(
-          reason: "There's already an unnamed constructor.",
-        );
-      }
-    }
-
     var refactoring = _createRefactoring(element);
     if (refactoring == null) {
       return ComputeStatusFailure();
@@ -56,11 +48,24 @@ class RemoveConstructorName extends RefactoringProducer {
 
     refactoring.newName = '';
     var status = await refactoring.checkAllConditions();
-    if (status.hasError) {
+    if (status.hasFatalError) {
       return ComputeStatusFailure(reason: status.message);
     }
+    // For non-fatal errors and warnings, we must still compute the change to
+    // give the user the choice to proceed.
     await refactoring.createChange(builder: builder);
-    return ComputeStatusSuccess();
+
+    for (var constructor in element.enclosingElement.constructors) {
+      if (constructor.name == 'new' || constructor.name == null) {
+        return ComputeStatusWarning("There's already an unnamed constructor.");
+      }
+    }
+
+    if (status.hasError || status.hasWarning) {
+      return ComputeStatusWarning(status.message);
+    } else {
+      return ComputeStatusSuccess();
+    }
   }
 
   @override

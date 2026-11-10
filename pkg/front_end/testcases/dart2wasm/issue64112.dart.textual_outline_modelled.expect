@@ -1,0 +1,5 @@
+Future<bool> applyState() async => true;
+
+Future<bool> test() async {}
+
+void main() async {}

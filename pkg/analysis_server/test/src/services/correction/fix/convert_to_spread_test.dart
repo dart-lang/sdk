@@ -49,7 +49,7 @@ f2() {
 }
 
 @reflectiveTest
-class ConvertToSpreadTest extends FixProcessorLintTest {
+class ConvertToSpreadTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToSpread;
 

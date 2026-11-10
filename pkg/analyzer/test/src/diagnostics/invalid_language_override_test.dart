@@ -17,7 +17,7 @@ class InvalidLanguageOverrideTest extends PubPackageResolutionTest {
   test_correct_11_12() async {
     await resolveTestCodeWithDiagnostics(r'''
 // @dart = 11.12
-// [diag.invalidLanguageVersionOverrideGreater][column 1][length 16] The language version override can't specify a version greater than the latest known language version: 3.14.
+// [diag.invalidLanguageVersionOverrideGreater][column 1][length 16] The language version override can't specify a version greater than the latest known language version: 3.15.
 int i = 0;
 ''');
   }
@@ -25,7 +25,7 @@ int i = 0;
   test_correct_3_190() async {
     await resolveTestCodeWithDiagnostics(r'''
 // @dart = 3.190
-// [diag.invalidLanguageVersionOverrideGreater][column 1][length 16] The language version override can't specify a version greater than the latest known language version: 3.14.
+// [diag.invalidLanguageVersionOverrideGreater][column 1][length 16] The language version override can't specify a version greater than the latest known language version: 3.15.
 int i = 0;
 ''');
   }
@@ -312,6 +312,14 @@ int i = 0;
     await resolveTestCodeWithDiagnostics(r'''
 // @dart = v2.0
 // [diag.invalidLanguageVersionOverridePrefix][column 1][length 15] The Dart language version override number can't be prefixed with a letter.
+int i = 0;
+''');
+  }
+
+  test_wrongVersion_quoted() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// @dart="2.0"
+// [diag.invalidLanguageVersionOverrideNumber][column 1][length 14] The Dart language version override comment must be specified with a version number, like '2.0', after the '=' character.
 int i = 0;
 ''');
   }

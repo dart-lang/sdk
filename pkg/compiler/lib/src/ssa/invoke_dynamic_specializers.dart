@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:js_runtime/synced/array_flags.dart' show ArrayFlags;
+
 import '../common/elements.dart' show JCommonElements;
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';

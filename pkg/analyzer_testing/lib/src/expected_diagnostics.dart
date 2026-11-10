@@ -74,7 +74,7 @@ final class _ExpectedDiagnosticsForFilesUpdater {
   int nextMarkerIndex = 0;
   int nextContextId = 1;
 
-  _ExpectedDiagnosticsForFilesUpdater(Map<File, String> contentByFile) {
+  new(Map<File, String> contentByFile) {
     for (var entry in contentByFile.entries) {
       var updater = _ExpectedDiagnosticsUpdater(entry.value);
       updatersByFile[entry.key] = updater;
@@ -143,7 +143,7 @@ final class _ExpectedDiagnosticsUpdater {
   int nextMarkerIndex = 0;
   int nextContextId = 1;
 
-  _ExpectedDiagnosticsUpdater(String content)
+  new(String content)
     : lines = _Line.parse(content),
       lineInfo = LineInfo.fromContent(content) {
     for (var line in lines) {
@@ -366,7 +366,7 @@ final class _GeneratedMarker {
   final String expectationText;
 
   /// Creates a marker for a diagnostic context message.
-  factory _GeneratedMarker.context({
+  factory context({
     required int offset,
     required int index,
     required int id,
@@ -394,7 +394,7 @@ final class _GeneratedMarker {
   }
 
   /// Creates a marker for a diagnostic.
-  factory _GeneratedMarker.diagnostic({
+  factory diagnostic({
     required int offset,
     required int index,
     required String constantName,
@@ -425,7 +425,7 @@ final class _GeneratedMarker {
     );
   }
 
-  _GeneratedMarker._({
+  new _({
     required this.offset,
     required this.kind,
     required this.index,
@@ -461,11 +461,7 @@ final class _Line {
   /// The line terminator, if present.
   final String lineTerminator;
 
-  _Line({
-    required this.number,
-    required this.text,
-    required this.lineTerminator,
-  });
+  new({required this.number, required this.text, required this.lineTerminator});
 
   /// Splits [content] into lines while preserving each line's offset.
   ///

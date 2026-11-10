@@ -141,7 +141,7 @@ class LateLowering {
     int fileOffset,
   ) => ConstructorInvocation(
     _coreTypes.cellNamedConstructor,
-    Arguments([name])..fileOffset = fileOffset,
+    Arguments(ExpressionList(name))..fileOffset = fileOffset,
   )..fileOffset = fileOffset;
 
   ConstructorInvocation _callInitializedCellConstructor(
@@ -157,7 +157,7 @@ class LateLowering {
     int fileOffset,
   ) => ConstructorInvocation(
     _coreTypes.initializedCellConstructor,
-    Arguments([initializer])..fileOffset = fileOffset,
+    Arguments(ExpressionList(initializer))..fileOffset = fileOffset,
   )..fileOffset = fileOffset;
 
   ConstructorInvocation _callInitializedCellNamedConstructor(
@@ -166,7 +166,7 @@ class LateLowering {
     int fileOffset,
   ) => ConstructorInvocation(
     _coreTypes.initializedCellNamedConstructor,
-    Arguments([name, initializer])..fileOffset = fileOffset,
+    Arguments(ExpressionList(name, initializer))..fileOffset = fileOffset,
   )..fileOffset = fileOffset;
 
   StringLiteral _nameLiteral(String? name, int fileOffset) =>
@@ -179,12 +179,13 @@ class LateLowering {
     int fileOffset,
   ) {
     Procedure procedure = reader._procedure;
-    List<DartType> typeArguments = [type];
+    DartTypeList typeArguments = DartTypeList(type);
     return InstanceInvocation(
       InstanceAccessKind.Instance,
       receiver,
       procedure.name,
-      Arguments(const [], types: typeArguments)..fileOffset = fileOffset,
+      Arguments(ExpressionList.empty, types: typeArguments)
+        ..fileOffset = fileOffset,
       interfaceTarget: procedure,
       functionType: FunctionTypeInstantiator.instantiate(
         reader._type,
@@ -209,7 +210,7 @@ class LateLowering {
   StaticInvocation _callIsSentinel(Expression value, int fileOffset) =>
       StaticInvocation(
         _coreTypes.isSentinelMethod,
-        Arguments([value])..fileOffset = fileOffset,
+        Arguments(ExpressionList(value))..fileOffset = fileOffset,
       )..fileOffset = fileOffset;
 
   void exitLibrary() {
@@ -430,7 +431,7 @@ class LateLowering {
               fileOffset,
             ),
           )..fileOffset = fileOffset,
-          positionalParameters: [setterValue],
+          positionalParameters: PositionalParameterList(setterValue),
           returnType: VoidType(),
         )..fileOffset = fileOffset,
         isStatic: true,
@@ -529,7 +530,8 @@ class LateLowering {
             type: type,
             initializer: StaticInvocation(
               _coreTypes.createSentinelMethod,
-              Arguments(const [], types: [type])..fileOffset = fileOffset,
+              Arguments(ExpressionList.empty, types: DartTypeList(type))
+                ..fileOffset = fileOffset,
             )..fileOffset = fileOffset,
             fileUri: fileUri,
             fieldReference: field.fieldReference,
@@ -560,8 +562,8 @@ class LateLowering {
           StaticInvocation(
             _coreTypes.lateReadCheck,
             Arguments(
-              [fieldRead(), _nameLiteral(nameText, fileOffset)],
-              types: [type],
+              ExpressionList(fieldRead(), _nameLiteral(nameText, fileOffset)),
+              types: DartTypeList(type),
             )..fileOffset = fileOffset,
           )..fileOffset = fileOffset,
         )..fileOffset = fileOffset;
@@ -600,8 +602,12 @@ class LateLowering {
               ExpressionStatement(
                 StaticInvocation(
                   _coreTypes.lateInitializeOnceCheck,
-                  Arguments([fieldRead(), _nameLiteral(nameText, fileOffset)])
-                    ..fileOffset = fileOffset,
+                  Arguments(
+                    ExpressionList(
+                      fieldRead(),
+                      _nameLiteral(nameText, fileOffset),
+                    ),
+                  )..fileOffset = fileOffset,
                 )..fileOffset = fileOffset,
               )..fileOffset = fileOffset,
               ExpressionStatement(
@@ -701,8 +707,9 @@ class LateLowering {
           ExpressionStatement(
             StaticInvocation(
               _coreTypes.lateWriteOnceCheck,
-              Arguments([fieldRead(), _nameLiteral(nameText, fileOffset)])
-                ..fileOffset = fileOffset,
+              Arguments(
+                ExpressionList(fieldRead(), _nameLiteral(nameText, fileOffset)),
+              )..fileOffset = fileOffset,
             )..fileOffset = fileOffset,
           )..fileOffset = fileOffset,
           ExpressionStatement(fieldWrite(setterValueRead()))
@@ -721,7 +728,7 @@ class LateLowering {
         ProcedureKind.Setter,
         FunctionNode(
           body,
-          positionalParameters: [setterValue],
+          positionalParameters: PositionalParameterList(setterValue),
           returnType: VoidType(),
         )..fileOffset = fileOffset,
         fileUri: fileUri,
@@ -751,10 +758,14 @@ class LateLowering {
   }
 
   InstanceConstant _pragmaConstant(String pragmaName) {
-    return InstanceConstant(_coreTypes.pragmaClass.reference, [], {
-      _coreTypes.pragmaName.fieldReference: StringConstant(pragmaName),
-      _coreTypes.pragmaOptions.fieldReference: NullConstant(),
-    });
+    return InstanceConstant(
+      _coreTypes.pragmaClass.reference,
+      DartTypeList.empty,
+      {
+        _coreTypes.pragmaName.fieldReference: StringConstant(pragmaName),
+        _coreTypes.pragmaOptions.fieldReference: NullConstant(),
+      },
+    );
   }
 
   TreeNode transformField(Field field, Member contextMember) {

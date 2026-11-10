@@ -7,7 +7,7 @@ import "package:record_use_test/loading_units_shared_constant_helper_a.dart" def
 import "package:record_use_test/loading_units_shared_constant_helper_b.dart" deferred as b;
 
 
-[@vm.inferred-return-type.metadata=dart.async::_Future]
+[@vm.inferred-return-type.metadata=dart.async::_Future<dynamic> (inexact type args)]
 static method main() → void async /* emittedValueType= void */ {
   await LoadLibrary(a);
   let final dynamic #t1 = CheckLibraryIsLoaded(a) in loa::runA();

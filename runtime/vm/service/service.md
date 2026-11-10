@@ -1,4 +1,4 @@
-# Dart VM Service Protocol 4.22
+# Dart VM Service Protocol 4.23
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
@@ -2070,6 +2070,9 @@ class BoundVariable extends Response {
   string name;
   @Instance|@TypeArguments|Sentinel value;
 
+ // The static type of this variable, as declared in source.
+  @Instance staticType;
+
   // The token position where this variable was declared.
   int declarationTokenPos;
 
@@ -2212,6 +2215,13 @@ class Class extends Object {
 
   // A list of subclasses of this class.
   @Class[] subclasses;
+
+  // The native memory layout of this class.
+  //
+  // Provided if this class is a subclass of `dart:ffi`'s `Struct` and its
+  // layout could be computed. It is emitted on the compound class itself. A
+  // `Pointer<MyStruct>` object has no `ffiLayout`
+  FfiStructLayout ffiLayout [optional];
 }
 ```
 
@@ -2823,6 +2833,68 @@ class ExtensionData {
 ```
 
 An _ExtensionData_ is an arbitrary map that can have any contents.
+
+### FfiStructField
+
+```
+class FfiStructField {
+  // The declared name of the struct field.
+  string name;
+
+  // Human-readable native (C-semantics) type name (e.g. "int32", a compound's
+  // class name, or "Array").
+  string nativeType;
+
+  // The byte offset of this field from the start of the struct, not from the
+  // start of the backing storage.
+  int offset;
+
+  // The size of this field in bytes.
+  int size;
+
+  // The number of elements if this field is an inline Array.
+  int length [optional];
+
+  // The element type name if this field is an inline Array (e.g. "uint8", "InnerStruct").
+  string arrayElementType [optional];
+
+  // Whether the nested compound described by `fields` is a struct or a union.
+  //
+  // Provided if `fields` is provided. Either "struct" or "union".
+  string kind [optional];
+
+  // The layout of the nested compound in this field.
+  //
+  // Provided if this field is itself a compound, or if this field is an inline
+  // Array whose element type is a compound.
+  FfiStructField[] fields [optional];
+}
+```
+
+An _FfiStructField_ describes a single member of an
+[FfiStructLayout](#ffistructlayout).
+
+### FfiStructLayout
+
+```
+class FfiStructLayout {
+  // The total size of the compound in bytes, including padding.
+  int size;
+
+  // Whether this compound is a struct or a union. Either "struct" or "union".
+  //
+  // The members of a union all have the same offset.
+  string kind;
+
+  // The ordered list of fields in the compound layout.
+  FfiStructField[] fields;
+}
+```
+
+An _FfiStructLayout_ describes the native memory layout of a `dart:ffi`
+compound.
+
+See [Class](#class).
 
 ### Field
 
@@ -5081,5 +5153,6 @@ version | comments
 4.20 | Deprecated `streamCpuSamplesWithUserTag` RPC.
 4.21 | Added `InstanceKind.Pointer`.
 4.22 | Deprecated `messages` property on `Stack`. Deprecated `Message` type.
+4.23 | Add non-optional `staticType` property to `BoundVariable`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

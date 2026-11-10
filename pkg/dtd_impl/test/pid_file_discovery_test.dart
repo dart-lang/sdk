@@ -6,6 +6,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:dart_data_home/dart_data_home.dart';
+import 'package:dtd/dtd.dart' as dtd_client;
 import 'package:dtd_impl/dtd.dart';
 import 'package:dtd_impl/src/dtd_connection_info.dart';
 import 'package:path/path.dart' as p;
@@ -22,13 +23,14 @@ void main() {
   // correct absolute path to `bin/dtd.dart` so test subprocesses do not crash.
   late String dtdScriptPath;
 
-  Future<(Process process, String uri)> startDtdProcess() async {
+  Future<(Process process, String uri, String secret)> startDtdProcess() async {
     final process = await Process.start(Platform.resolvedExecutable, [
       dtdScriptPath,
       '--port=0',
     ], environment: env);
 
     String? uri;
+    String? secret;
     process.stderr.transform(utf8.decoder).listen((error) {
       if (error.trim().isNotEmpty) {
         print('DTD stderr: $error');
@@ -38,6 +40,7 @@ void main() {
     final uriRegex = RegExp(
       r'The Dart Tooling Daemon is listening on (ws://.*)',
     );
+    final secretRegex = RegExp(r'Trusted Client Secret: (.*)');
     await for (final line
         in process.stdout
             .transform(utf8.decoder)
@@ -47,14 +50,20 @@ void main() {
         if (match != null) {
           uri = match[1];
         }
-      } else if (line.startsWith('Trusted Client Secret')) {
+      } else if (line.startsWith('Trusted Client Secret:')) {
+        final match = secretRegex.firstMatch(line);
+        if (match != null) {
+          secret = match[1];
+        }
         break; // We have both the URI (printed first) and the secret.
       }
     }
 
-    if (uri == null) {
+    if (uri == null || secret == null) {
       process.kill();
-      throw StateError('Failed to start DTD process. No URI printed.');
+      throw StateError(
+        'Failed to start DTD process. Missing URI or secret ($uri, $secret).',
+      );
     }
 
     final dataHome = getDartDataHome(dtdDirName, environment: env);
@@ -68,7 +77,7 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 50));
     }
 
-    return (process, uri);
+    return (process, uri, secret);
   }
 
   // To prevent test flakiness when running `dart test` in parallel, we
@@ -125,7 +134,7 @@ void main() {
 
   group('PID File Discovery', () {
     test('broadcasts connection info via pid file', () async {
-      final (process, uri) = await startDtdProcess();
+      final (process, uri, _) = await startDtdProcess();
 
       final dataHome = getDartDataHome(dtdDirName, environment: env);
       expect(dataHome, isNotEmpty);
@@ -141,14 +150,15 @@ void main() {
       expect(info.wsUri, uri);
       expect(info.pid, processPid);
       expect(info.dartVersion, Platform.version);
-      expect(info.workspaceRoot, Directory.current.path);
+      expect(info.workingDirectory, Directory.current.path);
+      expect(info.workspaceRoots, isEmpty);
 
       process.kill();
       expect(await process.exitCode, isNot(0));
     });
 
-    test('connection info contains correct workspaceRoot', () async {
-      final (process, _) = await startDtdProcess();
+    test('connection info contains correct workingDirectory', () async {
+      final (process, _, _) = await startDtdProcess();
 
       final dataHome = getDartDataHome(dtdDirName, environment: env);
       final file = File(p.join(dataHome, process.pid.toString()));
@@ -158,9 +168,9 @@ void main() {
       final json = jsonDecode(content) as Map<String, Object?>;
       final info = DTDConnectionInfo.fromJson(json);
 
-      // Verify that workspaceRoot matches the current working directory of the
-      // process.
-      expect(info.workspaceRoot, Directory.current.path);
+      // Verify that workingDirectory matches the current working directory of
+      // the process.
+      expect(info.workingDirectory, Directory.current.path);
 
       process.kill();
       expect(await process.exitCode, isNot(0));
@@ -168,7 +178,7 @@ void main() {
 
     test('connection info contains IDE information from env vars', () async {
       env['DASH__IDE_NAME'] = 'TEST IDE';
-      final (process, _) = await startDtdProcess();
+      final (process, _, _) = await startDtdProcess();
       addTearDown(process.kill);
 
       final dataHome = getDartDataHome(dtdDirName, environment: env);
@@ -182,6 +192,93 @@ void main() {
       expect(info.ideName, 'TEST IDE');
     });
 
+    test(
+      'connection info updates workspaceRoots on setIDEWorkspaceRoots',
+      () async {
+        final (process, uri, secret) = await startDtdProcess();
+        addTearDown(process.kill);
+
+        final dirA = Directory(p.join(tempDir.path, 'project_alpha'))
+          ..createSync();
+        final dirB = Directory(p.join(tempDir.path, 'project_beta'))
+          ..createSync();
+        final dirC = Directory(p.join(tempDir.path, 'c'))..createSync();
+
+        final client = await dtd_client.DartToolingDaemon.connect(
+          Uri.parse(uri),
+        );
+        addTearDown(client.close);
+
+        await client.setIDEWorkspaceRoots(secret, <Uri>[dirA.uri, dirB.uri]);
+
+        final dataHome = getDartDataHome(dtdDirName, environment: env);
+        final file = File(p.join(dataHome, process.pid.toString()));
+        expect(file.existsSync(), isTrue);
+
+        var info = DTDConnectionInfo.fromJson(
+          jsonDecode(file.readAsStringSync()) as Map<String, Object?>,
+        );
+        expect(info.workingDirectory, Directory.current.path);
+        expect(
+          info.workspaceRoots,
+          equals(<String>[p.normalize(dirA.path), p.normalize(dirB.path)]),
+        );
+
+        var listResult = await Process.run(Platform.resolvedExecutable, [
+          dtdScriptPath,
+          '--list',
+        ], environment: env);
+        expect(
+          listResult.stdout.toString(),
+          allOf(
+            contains('Working Directory: ${Directory.current.path}'),
+            contains(
+              'Workspace Roots:   '
+              '${p.normalize(dirA.path)}, ${p.normalize(dirB.path)}',
+            ),
+          ),
+        );
+
+        final listMachineResult = await Process.run(
+          Platform.resolvedExecutable,
+          [dtdScriptPath, '--list', '--machine'],
+          environment: env,
+        );
+        final machineList =
+            jsonDecode(listMachineResult.stdout.toString()) as List<Object?>;
+        expect(machineList, hasLength(1));
+        final machineEntry = machineList.first as Map<String, Object?>;
+        expect(machineEntry['workingDirectory'], Directory.current.path);
+        expect(
+          machineEntry['workspaceRoots'],
+          equals(<String>[p.normalize(dirA.path), p.normalize(dirB.path)]),
+        );
+
+        // Update workspace roots dynamically to a shorter list/path and verify
+        // the pid file is truncated cleanly and remains locked (not purged as
+        // stale by `--list`).
+        await client.setIDEWorkspaceRoots(secret, <Uri>[dirC.uri]);
+
+        info = DTDConnectionInfo.fromJson(
+          jsonDecode(file.readAsStringSync()) as Map<String, Object?>,
+        );
+        expect(info.workspaceRoots, equals(<String>[p.normalize(dirC.path)]));
+
+        listResult = await Process.run(Platform.resolvedExecutable, [
+          dtdScriptPath,
+          '--list',
+        ], environment: env);
+        expect(
+          listResult.stdout.toString(),
+          allOf(
+            contains('Found 1 Dart Tooling Daemon instance(s):'),
+            contains('Workspace Roots:   ${p.normalize(dirC.path)}'),
+            isNot(contains('project_alpha')),
+          ),
+        );
+      },
+    );
+
     test('list cleans up stale pid files', () async {
       final dataHome = getDartDataHome(dtdDirName, environment: env);
       final garbageFile = File(p.join(dataHome, '999999'));
@@ -194,7 +291,7 @@ void main() {
           'epoch': 123456789,
           'pid': 999999,
           'dartVersion': '3.0.0',
-          'workspaceRoot': '/test',
+          'workingDirectory': '/test',
         }),
       );
 
@@ -221,7 +318,7 @@ void main() {
       expect(result.stdout.toString(), contains(noInstancesMessage));
 
       // 1 instance.
-      final (dtd1, _) = await startDtdProcess();
+      final (dtd1, _, _) = await startDtdProcess();
       result = await Process.run(Platform.resolvedExecutable, [
         dtdScriptPath,
         '--list',
@@ -232,7 +329,7 @@ void main() {
       );
 
       // 2 instances.
-      final (dtd2, _) = await startDtdProcess();
+      final (dtd2, _, _) = await startDtdProcess();
       result = await Process.run(Platform.resolvedExecutable, [
         dtdScriptPath,
         '--list',
@@ -256,27 +353,27 @@ void main() {
         '--list',
         '--machine',
       ], environment: env);
-      var json = jsonDecode(result.stdout.toString()) as List;
+      var json = jsonDecode(result.stdout.toString()) as List<Object?>;
       expect(json, isEmpty);
 
       // 1 instance.
-      final (dtd1, _) = await startDtdProcess();
+      final (dtd1, _, _) = await startDtdProcess();
       result = await Process.run(Platform.resolvedExecutable, [
         dtdScriptPath,
         '--list',
         '--machine',
       ], environment: env);
-      json = jsonDecode(result.stdout.toString()) as List;
+      json = jsonDecode(result.stdout.toString()) as List<Object?>;
       expect(json.length, 1);
 
       // 2 instances.
-      final (dtd2, _) = await startDtdProcess();
+      final (dtd2, _, _) = await startDtdProcess();
       result = await Process.run(Platform.resolvedExecutable, [
         dtdScriptPath,
         '--list',
         '--machine',
       ], environment: env);
-      json = jsonDecode(result.stdout.toString()) as List;
+      json = jsonDecode(result.stdout.toString()) as List<Object?>;
       expect(json.length, 2);
 
       dtd1.kill();

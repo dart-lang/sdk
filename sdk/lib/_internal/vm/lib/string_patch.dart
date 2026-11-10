@@ -223,7 +223,7 @@ abstract final class _StringBase implements String {
     // outside of the range U+0000 .. U+10FFFF.
     int bits = 0;
     int takeCount = (end == null) ? -1 : (end - start); // -1 means no limit.
-    var list = <int>[];
+    var list = _GrowableList<int>(0);
     while (takeCount != 0 && it.moveNext()) {
       takeCount -= 1;
       int code = it.current;
@@ -247,7 +247,7 @@ abstract final class _StringBase implements String {
         "Contains invalid character code, not 0 <= code <= 0x10FFFF",
       );
     }
-    List<int> codeUnitList = makeListFixedLength<int>(list);
+    List<int> codeUnitList = list._mutateIntoFixedLengthList();
     int length = codeUnitList.length;
     bool isOneByteString = (bits <= _maxLatin1);
     if (isOneByteString) {
@@ -762,7 +762,10 @@ abstract final class _StringBase implements String {
     bool replacementStringsAreOneByte,
   );
 
-  String replaceAllMapped(Pattern pattern, String replace(Match match)) {
+  String replaceAllMapped(
+    Pattern pattern,
+    String Function(Match match) replace,
+  ) {
     List matches = [];
     int length = 0;
     int startIndex = 0;
@@ -793,7 +796,7 @@ abstract final class _StringBase implements String {
 
   String replaceFirstMapped(
     Pattern pattern,
-    String replace(Match match), [
+    String Function(Match match) replace, [
     int startIndex = 0,
   ]) {
     RangeError.checkValueInInterval(startIndex, 0, this.length, "startIndex");
@@ -809,8 +812,8 @@ abstract final class _StringBase implements String {
   static String _stringIdentity(String string) => string;
 
   String _splitMapJoinEmptyString(
-    String onMatch(Match match),
-    String onNonMatch(String nonMatch),
+    String Function(Match match) onMatch,
+    String Function(String nonMatch) onNonMatch,
   ) {
     // Pattern is the empty string.
     StringBuffer buffer = StringBuffer();
@@ -841,8 +844,8 @@ abstract final class _StringBase implements String {
 
   String splitMapJoin(
     Pattern pattern, {
-    String onMatch(Match match)?,
-    String onNonMatch(String nonMatch)?,
+    String Function(Match match)? onMatch,
+    String Function(String nonMatch)? onNonMatch,
   }) {
     onMatch ??= _matchString;
     onNonMatch ??= _stringIdentity;

@@ -66,6 +66,7 @@ class BaseMarshaller : public ZoneObject {
   intptr_t DefinitionInArgument(intptr_t def_index_global,
                                 intptr_t arg_index) const;
   intptr_t DefinitionIndex(intptr_t def_index_in_arg, intptr_t arg_index) const;
+  intptr_t StackTopInBytes() const;
 
   // The location of the argument at `arg_index`.
   const NativeLocation& Location(intptr_t arg_index) const {

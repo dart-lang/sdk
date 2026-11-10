@@ -16,6 +16,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     as protocol
     show Element, ElementKind;
@@ -152,7 +153,7 @@ protocol.Element createLocalElementFromToken(
   var flags = protocol.Element.makeFlags(
     isAbstract: isAbstract,
     isDeprecated: isDeprecated,
-    isPrivate: Identifier.isPrivateName(name),
+    isPrivate: name.isPrivateName,
   );
   return protocol.Element(
     kind,

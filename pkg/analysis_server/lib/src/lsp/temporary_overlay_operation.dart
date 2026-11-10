@@ -10,6 +10,7 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 
 /// Base class for an operation that locks the server to prevent other requests
 /// from being processed and overlays to be temporarily updated.
@@ -84,11 +85,15 @@ abstract class TemporaryOverlayOperation {
     // We expect the content from any overlay and that in fsState to match
     // because we have paused watchers and incoming events and expect a
     // consistent state.
+    // FileSystemState only tracks Dart files, so non-Dart files
+    // (such as pubspec.yaml) will not have their content updated in fsState.
     var overlayContent = resourceProvider.getFile(path).readAsStringSync();
-    assert(
-      overlayContent == context.driver.fsState.getFileForPath(path).content,
-      'Overlay and analyzed content do not match',
-    );
+    if (file_paths.isDart(resourceProvider.pathContext, path)) {
+      assert(
+        overlayContent == context.driver.fsState.getFileForPath(path).content,
+        'Overlay and analyzed content do not match',
+      );
+    }
 
     var newContent = SourceEdit.applySequence(overlayContent, fileEdit.edits);
     applyTemporaryOverlay(path, newContent, overlayContent);

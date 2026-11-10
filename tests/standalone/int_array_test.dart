@@ -4,9 +4,6 @@
 //
 // Dart test program for testing native int arrays.
 
-// Library tag to be able to run in html test framework.
-library IntArrayTest;
-
 import "package:expect/expect.dart";
 
 import 'dart:typed_data';

@@ -16,6 +16,10 @@ parser/error_recovery/issue_48371_prime4:3:32: 'enum' can't be used as an identi
 import "lib.dart" as enum show enum hide enum;
                                ^^^^
 
+parser/error_recovery/issue_48371_prime4:3:37: At most one 'show' or 'hide' combinator can be used on an import or export directive.
+import "lib.dart" as enum show enum hide enum;
+                                    ^^^^
+
 parser/error_recovery/issue_48371_prime4:3:42: 'enum' can't be used as an identifier because it's a keyword.
 import "lib.dart" as enum show enum hide enum;
                                          ^^^^
@@ -23,6 +27,10 @@ import "lib.dart" as enum show enum hide enum;
 parser/error_recovery/issue_48371_prime4:4:24: 'enum' can't be used as an identifier because it's a keyword.
 import "lib.dart" show enum hide enum as enum;
                        ^^^^
+
+parser/error_recovery/issue_48371_prime4:4:29: At most one 'show' or 'hide' combinator can be used on an import or export directive.
+import "lib.dart" show enum hide enum as enum;
+                            ^^^^
 
 parser/error_recovery/issue_48371_prime4:4:34: 'enum' can't be used as an identifier because it's a keyword.
 import "lib.dart" show enum hide enum as enum;
@@ -64,6 +72,10 @@ parser/error_recovery/issue_48371_prime4:7:41: 'enum' can't be used as an identi
 import "lib.dart" as enum show enum, x, enum hide enum, x, enum;
                                         ^^^^
 
+parser/error_recovery/issue_48371_prime4:7:46: At most one 'show' or 'hide' combinator can be used on an import or export directive.
+import "lib.dart" as enum show enum, x, enum hide enum, x, enum;
+                                             ^^^^
+
 parser/error_recovery/issue_48371_prime4:7:51: 'enum' can't be used as an identifier because it's a keyword.
 import "lib.dart" as enum show enum, x, enum hide enum, x, enum;
                                                   ^^^^
@@ -79,6 +91,10 @@ import "lib.dart" show enum, x, enum hide enum, x, enum as enum;
 parser/error_recovery/issue_48371_prime4:8:33: 'enum' can't be used as an identifier because it's a keyword.
 import "lib.dart" show enum, x, enum hide enum, x, enum as enum;
                                 ^^^^
+
+parser/error_recovery/issue_48371_prime4:8:38: At most one 'show' or 'hide' combinator can be used on an import or export directive.
+import "lib.dart" show enum, x, enum hide enum, x, enum as enum;
+                                     ^^^^
 
 parser/error_recovery/issue_48371_prime4:8:43: 'enum' can't be used as an identifier because it's a keyword.
 import "lib.dart" show enum, x, enum hide enum, x, enum as enum;
@@ -150,6 +166,7 @@ beginCompilationUnit(import)
           handleIdentifier(enum, combinator)
           handleIdentifierList(1)
         endShow(show)
+        handleRecoverableError(MultipleCombinators, hide, hide)
         beginHide(hide)
           handleRecoverableError(Message[Template(ExpectedIdentifierButGotKeyword), 'enum' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: enum}], enum, enum)
           handleIdentifier(enum, combinator)
@@ -173,6 +190,7 @@ beginCompilationUnit(import)
           handleIdentifier(enum, combinator)
           handleIdentifierList(1)
         endShow(show)
+        handleRecoverableError(MultipleCombinators, hide, hide)
         beginHide(hide)
           handleRecoverableError(Message[Template(ExpectedIdentifierButGotKeyword), 'enum' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: enum}], enum, enum)
           handleIdentifier(enum, combinator)
@@ -252,6 +270,7 @@ beginCompilationUnit(import)
           handleIdentifier(enum, combinator)
           handleIdentifierList(3)
         endShow(show)
+        handleRecoverableError(MultipleCombinators, hide, hide)
         beginHide(hide)
           handleRecoverableError(Message[Template(ExpectedIdentifierButGotKeyword), 'enum' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: enum}], enum, enum)
           handleIdentifier(enum, combinator)
@@ -281,6 +300,7 @@ beginCompilationUnit(import)
           handleIdentifier(enum, combinator)
           handleIdentifierList(3)
         endShow(show)
+        handleRecoverableError(MultipleCombinators, hide, hide)
         beginHide(hide)
           handleRecoverableError(Message[Template(ExpectedIdentifierButGotKeyword), 'enum' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: enum}], enum, enum)
           handleIdentifier(enum, combinator)

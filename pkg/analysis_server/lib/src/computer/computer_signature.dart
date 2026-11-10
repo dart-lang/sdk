@@ -51,9 +51,7 @@ class DartUnitSignatureComputer {
       parameters = element is FunctionTypedElement
           ? element.formalParameters
           : null;
-    } else if (parent case FunctionExpressionInvocation(
-      function: Identifier function,
-    )) {
+    } else if (parent case FunctionExpressionInvocation(:Identifier function)) {
       name = function.name;
 
       if (function.staticType case FunctionType functionType) {
@@ -97,7 +95,9 @@ class DartUnitSignatureComputer {
       }
     }
 
-    var dartdoc = _documentationComputer.compute(element)?.full;
+    var dartdoc = _documentationComputer
+        .compute(element, includeFull: true, includeSummary: false)
+        ?.full;
 
     return SignatureInformation(
       name: name,

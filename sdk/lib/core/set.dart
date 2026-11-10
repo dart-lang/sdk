@@ -264,7 +264,7 @@ abstract interface class Set<E> implements Iterable<E>, _SetIterable<E> {
   /// characters.removeWhere((element) => element.startsWith('B'));
   /// print(characters); // {A, C}
   /// ```
-  void removeWhere(bool test(E element));
+  void removeWhere(bool Function(E element) test);
 
   /// Removes all elements of this set that fail to satisfy [test].
   /// ```dart
@@ -273,7 +273,7 @@ abstract interface class Set<E> implements Iterable<E>, _SetIterable<E> {
   ///     (element) => element.startsWith('B') || element.startsWith('C'));
   /// print(characters); // {B, C}
   /// ```
-  void retainWhere(bool test(E element));
+  void retainWhere(bool Function(E element) test);
 
   /// Whether this set contains all the elements of [other].
   /// ```dart

@@ -17,7 +17,7 @@ void main() {
 }
 
 @reflectiveTest
-class AddAsyncTest extends FixProcessorTest {
+class AddAsyncTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addAsync;
 
@@ -522,7 +522,7 @@ f() async {
 }
 
 @reflectiveTest
-class DiscardedFuturesTest extends FixProcessorLintTest {
+class DiscardedFuturesTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.addAsync;
 
@@ -683,6 +683,25 @@ class C {
   }
 
   Future<void> g() async { }
+}
+''');
+  }
+
+  Future<void> test_futureOr() async {
+    await resolveTestCode('''
+import 'dart:async';
+FutureOr<void> f() async {}
+
+void foo() {
+  f();
+}
+''');
+    await assertHasFix('''
+import 'dart:async';
+FutureOr<void> f() async {}
+
+Future<void> foo() async {
+  await f();
 }
 ''');
   }

@@ -2865,7 +2865,6 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
       break;
 
     case Slot::Kind::kTypeArguments:
-    case Slot::Kind::kTypeArgumentsIndex:
 #define NATIVE_SLOT_CASE(ClassName, __, FieldName, ___, ____)                  \
   case Slot::Kind::k##ClassName##_##FieldName:
       NOT_INT_NATIVE_SLOTS_LIST(NATIVE_SLOT_CASE)
@@ -2983,6 +2982,24 @@ void Utf8ScanInstr::InferRange(RangeAnalysis* analysis, Range* range) {
   // The input bytes given to the Utf8Scan instruction are in non-negative Smi
   // range and so is the resulting computed length.
   *range = Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
+}
+
+void SimdOpInstr::InferRange(RangeAnalysis* analysis, Range* range) {
+  switch (kind()) {
+    // A sign mask has one bit per lane, so it is in [0, 2^lanes - 1].
+    case kInt32x4GetSignMask:
+    case kFloat32x4GetSignMask:
+      *range = Range(RangeBoundary::FromConstant(0),
+                     RangeBoundary::FromConstant(15));
+      break;
+    case kFloat64x2GetSignMask:
+      *range =
+          Range(RangeBoundary::FromConstant(0), RangeBoundary::FromConstant(3));
+      break;
+    default:
+      Definition::InferRange(analysis, range);
+      break;
+  }
 }
 
 void IfThenElseInstr::InferRange(RangeAnalysis* analysis, Range* range) {

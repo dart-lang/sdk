@@ -433,11 +433,38 @@ m(B b) {
 }
 ''');
 
-    var node1 = result.findNode.assignment('x = 1');
+    var node1 = result.findNode.directAssignment('x = 1');
     assertResolvedNodeText(node1, r'''
-AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: PrefixedIdentifier
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ReceiverPropertyExtraction
+      receiver: UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::m::@formalParameter::b
+          type: B
+        staticType: B
+      operator: .
+      name: a
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@class::B::@getter::a
+        type: A?
+      staticType: A?
+    operator: ?.
+    name: x
+    read: <null>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::x
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::value
+    staticType: int
+  staticType: int?
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: b
         element: <testLibrary>::@function::m::@formalParameter::b
@@ -456,7 +483,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 1
     correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::value
     staticType: int
@@ -468,11 +495,38 @@ AssignmentExpression
   staticType: int?
 ''');
 
-    var node2 = result.findNode.assignment('x = 2');
+    var node2 = result.findNode.directAssignment('x = 2');
     assertResolvedNodeText(node2, r'''
-AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: PrefixedIdentifier
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ReceiverPropertyExtraction
+      receiver: UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::m::@formalParameter::b
+          type: B
+        staticType: B
+      operator: .
+      name: a
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@class::B::@getter::a
+        type: A?
+      staticType: A?
+    operator: .
+    name: x
+    read: <null>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::x
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 2
+    correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::value
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: b
         element: <testLibrary>::@function::m::@formalParameter::b
@@ -491,7 +545,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 2
     correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::value
     staticType: int
@@ -512,9 +566,22 @@ m(int x, int? y) {
 }
 ''');
 
-    var node1 = result.findNode.assignment('x =');
+    var node1 = result.findNode.directAssignment('x =');
     assertResolvedNodeText(node1, r'''
-AssignmentExpression
+DirectAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: x
+    read: <null>
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::m::@formalParameter::x
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::m::@formalParameter::x
@@ -532,9 +599,22 @@ AssignmentExpression
   staticType: int
 ''');
 
-    var node2 = result.findNode.assignment('y =');
+    var node2 = result.findNode.directAssignment('y =');
     assertResolvedNodeText(node2, r'''
-AssignmentExpression
+DirectAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: y
+    read: <null>
+    write: VariableWriteResolution
+      element: <testLibrary>::@function::m::@formalParameter::y
+      acceptedType: int?
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: y
     element: <testLibrary>::@function::m::@formalParameter::y
@@ -574,11 +654,43 @@ m(B b) {
 }
 ''');
 
-    var node1 = result.findNode.assignment('x +=');
+    var node1 = result.findNode.compoundAssignment('x +=');
     assertResolvedNodeText(node1, r'''
-AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: PrefixedIdentifier
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ReceiverPropertyExtraction
+      receiver: UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::m::@formalParameter::b
+          type: B
+        staticType: B
+      operator: .
+      name: a
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@class::B::@getter::a
+        type: A
+      staticType: A
+    operator: .
+    name: x
+    read: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::x
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::x
+      acceptedType: int
+  operator: +=
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: b
         element: <testLibrary>::@function::m::@formalParameter::b
@@ -597,7 +709,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: +=
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 0
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
@@ -609,11 +721,43 @@ AssignmentExpression
   staticType: int
 ''');
 
-    var node2 = result.findNode.assignment('y +=');
+    var node2 = result.findNode.compoundAssignment('y +=');
     assertResolvedNodeText(node2, r'''
-AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: PrefixedIdentifier
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ReceiverPropertyExtraction
+      receiver: UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::m::@formalParameter::b
+          type: B
+        staticType: B
+      operator: .
+      name: a
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@class::B::@getter::a
+        type: A
+      staticType: A
+    operator: .
+    name: y
+    read: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::y
+      type: int?
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::y
+      acceptedType: int?
+  operator: +=
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: b
         element: <testLibrary>::@function::m::@formalParameter::b
@@ -632,7 +776,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: +=
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 0
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
@@ -665,11 +809,43 @@ m(B b) {
 }
 ''');
 
-    var node1 = result.findNode.assignment('x += 1');
+    var node1 = result.findNode.compoundAssignment('x += 1');
     assertResolvedNodeText(node1, r'''
-AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: PrefixedIdentifier
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ReceiverPropertyExtraction
+      receiver: UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::m::@formalParameter::b
+          type: B
+        staticType: B
+      operator: .
+      name: a
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@class::B::@getter::a
+        type: A?
+      staticType: A?
+    operator: ?.
+    name: x
+    read: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::x
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::x
+      acceptedType: int
+  operator: +=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int?
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: b
         element: <testLibrary>::@function::m::@formalParameter::b
@@ -688,7 +864,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: +=
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 1
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
@@ -700,11 +876,43 @@ AssignmentExpression
   staticType: int?
 ''');
 
-    var node2 = result.findNode.assignment('x += 2');
+    var node2 = result.findNode.compoundAssignment('x += 2');
     assertResolvedNodeText(node2, r'''
-AssignmentExpression
-  leftHandSide2: PropertyAccess
-    target2: PrefixedIdentifier
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: ReceiverPropertyExtraction
+      receiver: UnqualifiedNameExpression
+        name: b
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::m::@formalParameter::b
+          type: B
+        staticType: B
+      operator: .
+      name: a
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@class::B::@getter::a
+        type: A?
+      staticType: A?
+    operator: .
+    name: x
+    read: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::x
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::x
+      acceptedType: int
+  operator: +=
+  value: IntegerLiteral
+    literal: 2
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: b
         element: <testLibrary>::@function::m::@formalParameter::b
@@ -723,7 +931,7 @@ AssignmentExpression
       staticType: null
     staticType: null
   operator: +=
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 2
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
@@ -905,6 +1113,155 @@ m(int? x) {
 ''');
   }
 
+  test_cascade_nullable_propertyExtraction_call_Function() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+m(Function? x) {
+  x..call;
+//   ^^^^
+// [diag.uncheckedPropertyAccessOfNullableValue] The property 'call' can't be unconditionally accessed because the receiver can be 'null'.
+}
+''');
+
+    var node = result.findNode.singleCascadePropertyExtraction;
+    assertResolvedNodeText(node, r'''
+CascadePropertyExtraction
+  name: call
+  resolution: FunctionInterfaceCallTearOffResolution
+    type: Function?
+  staticType: Function?
+V1: PropertyAccess
+  operator: ..
+  propertyName: SimpleIdentifier
+    token: call
+    element: <null>
+    staticType: Function?
+  staticType: Function?
+''');
+  }
+
+  test_cascade_nullable_propertyExtraction_call_functionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+m(void Function()? x) {
+  x..call;
+//   ^^^^
+// [diag.uncheckedPropertyAccessOfNullableValue] The property 'call' can't be unconditionally accessed because the receiver can be 'null'.
+}
+''');
+
+    var node = result.findNode.singleCascadePropertyExtraction;
+    assertResolvedNodeText(node, r'''
+CascadePropertyExtraction
+  name: call
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PropertyAccess
+  operator: ..
+  propertyName: SimpleIdentifier
+    token: call
+    element: <null>
+    staticType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_cascade_nullable_propertyExtraction_call_functionType_instantiated() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+m(void Function<T>()? x) {
+  x..call<int>;
+//   ^^^^
+// [diag.uncheckedPropertyAccessOfNullableValue] The property 'call' can't be unconditionally accessed because the receiver can be 'null'.
+}
+''');
+
+    var node = result.findNode.singleFunctionInstantiation;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: CascadePropertyExtraction
+    name: call
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: PropertyAccess
+    operator: ..
+    propertyName: SimpleIdentifier
+      token: call
+      element: <null>
+      staticType: InvalidType
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+''');
+  }
+
+  test_cascade_nullable_propertyExtraction_call_null_aware() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+m(void Function()? x) {
+  x?..call;
+}
+''');
+
+    var node = result.findNode.singleCascadePropertyExtraction;
+    assertResolvedNodeText(node, r'''
+CascadePropertyExtraction
+  name: call
+  resolution: FunctionCallTearOffResolution
+    type: void Function()
+    associatedFunctionType: void Function()
+  staticType: void Function()
+V1: PropertyAccess
+  operator: ?..
+  propertyName: SimpleIdentifier
+    token: call
+    element: <null>
+    staticType: void Function()
+  staticType: void Function()
+''');
+  }
+
+  test_cascade_nullable_propertyExtraction_call_typeParameter() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+m<T extends void Function()?>(T x) {
+  x..call;
+//   ^^^^
+// [diag.uncheckedPropertyAccessOfNullableValue] The property 'call' can't be unconditionally accessed because the receiver can be 'null'.
+}
+''');
+
+    var node = result.findNode.singleCascadePropertyExtraction;
+    assertResolvedNodeText(node, r'''
+CascadePropertyExtraction
+  name: call
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PropertyAccess
+  operator: ..
+  propertyName: SimpleIdentifier
+    token: call
+    element: <null>
+    staticType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
   test_eqEq_nullable() async {
     await resolveTestCodeWithDiagnostics(r'''
 m() {
@@ -950,6 +1307,390 @@ m() {
 //                ^
 // [diag.uncheckedUseOfNullableValueAsIterator] A nullable expression can't be used as an iterator in a for-in loop.
 }
+''');
+  }
+
+  test_functionInstantiation_nonNullable() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+m(T Function<T>(T) x) {
+  x<int>;
+}
+''');
+
+    var node = result.findNode.singleFunctionInstantiation;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::m::@formalParameter::x
+      type: T Function<T>(T)
+    staticType: T Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::m::@formalParameter::x
+    staticType: T Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_functionInstantiation_nullable() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+m(T Function<T>(T)? x) {
+  x<int>;
+//^
+// [diag.uncheckedInstantiationOfNullableValue] The function can't be unconditionally instantiated because it can be 'null'.
+}
+''');
+
+    var node = result.findNode.singleFunctionInstantiation;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::m::@formalParameter::x
+      type: T Function<T>(T)?
+    staticType: T Function<T>(T)?
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)?
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::m::@formalParameter::x
+    staticType: T Function<T>(T)?
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)?
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_functionInstantiation_nullable_notPromotableField() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  final T Function<T>(T)? foo;
+//                        ^^^
+// [context 1] 'foo' refers to a public property so it couldn't be promoted.
+  A(this.foo);
+}
+
+m(A a) {
+  if (a.foo != null) {
+    a.foo<int>;
+//  ^^^^^
+// [diag.uncheckedInstantiationOfNullableValue][context 1] The function can't be unconditionally instantiated because it can be 'null'.
+  }
+}
+''');
+
+    var node = result.findNode.singleFunctionInstantiation;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::m::@formalParameter::a
+        type: A
+      staticType: A
+    operator: .
+    name: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::foo
+      type: T Function<T>(T)?
+    staticType: T Function<T>(T)?
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)?
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      element: <testLibrary>::@function::m::@formalParameter::a
+      staticType: A
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::A::@getter::foo
+      staticType: T Function<T>(T)?
+    element: <testLibrary>::@class::A::@getter::foo
+    staticType: T Function<T>(T)?
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)?
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_functionInstantiation_nullable_parenthesized_nullAware() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  T foo<T>(T t) => t;
+}
+
+m(A? a) {
+  (a?.foo)<int>;
+//^^^^^^^^
+// [diag.uncheckedInstantiationOfNullableValue] The function can't be unconditionally instantiated because it can be 'null'.
+}
+''');
+
+    var node = result.findNode.singleFunctionInstantiation;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: ReceiverPropertyExtraction
+      receiver: UnqualifiedNameExpression
+        name: a
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::m::@formalParameter::a
+          type: A?
+        staticType: A?
+      operator: ?.
+      name: foo
+      resolution: ExecutableTearOffResolution
+        element: <testLibrary>::@class::A::@method::foo
+        type: T Function<T>(T)
+      staticType: T Function<T>(T)?
+    rightParenthesis: )
+    staticType: T Function<T>(T)?
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)?
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: ParenthesizedExpression
+    leftParenthesis: (
+    expression: PropertyAccess
+      target: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::m::@formalParameter::a
+        staticType: A?
+      operator: ?.
+      propertyName: SimpleIdentifier
+        token: foo
+        element: <testLibrary>::@class::A::@method::foo
+        staticType: T Function<T>(T)
+      staticType: T Function<T>(T)?
+    rightParenthesis: )
+    staticType: T Function<T>(T)?
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)?
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_functionInstantiation_nullable_promoted() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+m(T Function<T>(T)? x) {
+  if (x != null) {
+    x<int>;
+  }
+}
+''');
+
+    var node = result.findNode.singleFunctionInstantiation;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::m::@formalParameter::x
+      type: T Function<T>(T)
+    staticType: T Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::m::@formalParameter::x
+    staticType: T Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_functionInstantiation_typeParameter_nullable() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+m<F extends T Function<T>(T)>(F? x) {
+  x<int>;
+//^
+// [diag.uncheckedInstantiationOfNullableValue] The function can't be unconditionally instantiated because it can be 'null'.
+}
+''');
+
+    var node = result.findNode.singleFunctionInstantiation;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::m::@formalParameter::x
+      type: F?
+    staticType: F?
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::m::@formalParameter::x
+    staticType: F?
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_functionInstantiation_typeParameter_nullableBound() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+m<F extends T Function<T>(T)?>(F x) {
+  x<int>;
+//^
+// [diag.uncheckedInstantiationOfNullableValue] The function can't be unconditionally instantiated because it can be 'null'.
+}
+''');
+
+    var node = result.findNode.singleFunctionInstantiation;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::m::@formalParameter::x
+      type: F
+    staticType: F
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)?
+  typeArgumentTypes
+    int
+V1: FunctionReference
+  function: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::m::@formalParameter::x
+    staticType: F
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)?
+  typeArgumentTypes
+    int
 ''');
   }
 
@@ -1112,10 +1853,31 @@ m() {
 }
 ''');
 
-    var node = result.findNode.simple('isEven;');
+    var node = result.findNode.receiverPropertyExtraction('isEven;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
-  token: isEven
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: x@13
+      type: int?
+    staticType: int?
+  operator: .
+  name: isEven
+  resolution: GetterInvocationResolution
+    element: dart:core::@class::int::@getter::isEven
+    type: bool
+  staticType: bool
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: x
+    element: x@13
+    staticType: int?
+  period: .
+  identifier: SimpleIdentifier
+    token: isEven
+    element: dart:core::@class::int::@getter::isEven
+    staticType: bool
   element: dart:core::@class::int::@getter::isEven
   staticType: bool
 ''');
@@ -1330,8 +2092,8 @@ void f(A? a) {
   a?.foo.abs();
 }
 ''');
-    assertType(result.findNode.propertyAccess('.foo'), 'int');
-    assertType(result.findNode.methodInvocation('.abs()'), 'int?');
+    assertType(result.findNode.receiverPropertyExtraction('.foo'), 'int');
+    assertType(result.findNode.receiverMethodInvocation('.abs()'), 'int?');
   }
 
   test_nullable_dotQ_propertyAccess_dot_propertyAccess() async {
@@ -1344,8 +2106,8 @@ void f(A? a) {
   a?.foo.isEven;
 }
 ''');
-    assertType(result.findNode.propertyAccess('.foo'), 'int');
-    assertType(result.findNode.propertyAccess('.isEven'), 'bool?');
+    assertType(result.findNode.receiverPropertyExtraction('.foo'), 'int');
+    assertType(result.findNode.receiverPropertyExtraction('.isEven'), 'bool?');
   }
 
   test_operatorMinus_nonNullable() async {
@@ -1568,6 +2330,44 @@ m(int? x) {
 ''');
   }
 
+  test_propertyExtraction_call_nullable() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+m(void Function()? x) {
+  x.call;
+//  ^^^^
+// [diag.uncheckedPropertyAccessOfNullableValue] The property 'call' can't be unconditionally accessed because the receiver can be 'null'.
+}
+''');
+
+    var node = result.findNode.singleReceiverPropertyExtraction;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::m::@formalParameter::x
+      type: void Function()?
+    staticType: void Function()?
+  operator: .
+  name: call
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::m::@formalParameter::x
+    staticType: void Function()?
+  period: .
+  identifier: SimpleIdentifier
+    token: call
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
   test_read_propertyAccess2_short1() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -1582,13 +2382,17 @@ m(A? a) {
 // [diag.uncheckedPropertyAccessOfNullableValue] The property 'x' can't be unconditionally accessed because the receiver can be 'null'.
 }
 ''');
-    var propertyAccess1 = result.findNode.propertyAccess('a?.x; // 1');
-    var propertyAccess2 = result.findNode.prefixed('a.x; // 2');
-    assertType(propertyAccess1.target2, 'A?');
-    assertType(propertyAccess2.prefix, 'A?');
+    var propertyAccess1 = result.findNode.receiverPropertyExtraction(
+      'a?.x; // 1',
+    );
+    var propertyAccess2 = result.findNode.receiverPropertyExtraction(
+      'a.x; // 2',
+    );
+    assertType(propertyAccess1.receiver, 'A?');
+    assertType(propertyAccess2.receiver, 'A?');
 
-    assertType(propertyAccess1.propertyName, 'int');
-    assertType(propertyAccess2.identifier, 'int');
+    assertType(propertyAccess1.resolution!.type, 'int');
+    assertType(propertyAccess2.resolution!.type, 'int');
 
     assertType(propertyAccess1, 'int?');
     assertType(propertyAccess2, 'int');
@@ -1613,13 +2417,17 @@ m(B b) {
 // [diag.uncheckedPropertyAccessOfNullableValue] The property 'x' can't be unconditionally accessed because the receiver can be 'null'.
 }
 ''');
-    var propertyAccess1 = result.findNode.propertyAccess('b.a?.x; // 1');
-    var propertyAccess2 = result.findNode.propertyAccess('b.a.x; // 2');
-    assertType(propertyAccess1.target2, 'A?');
-    assertType(propertyAccess2.target2, 'A?');
+    var propertyAccess1 = result.findNode.receiverPropertyExtraction(
+      '?.x; // 1',
+    );
+    var propertyAccess2 = result.findNode.receiverPropertyExtraction(
+      '.x; // 2',
+    );
+    assertType(propertyAccess1.receiver, 'A?');
+    assertType(propertyAccess2.receiver, 'A?');
 
-    assertType(propertyAccess1.propertyName, 'int');
-    assertType(propertyAccess2.propertyName, 'int');
+    assertType(propertyAccess1.resolution!.type, 'int');
+    assertType(propertyAccess2.resolution!.type, 'int');
 
     assertType(propertyAccess1, 'int?');
     assertType(propertyAccess2, 'int');
@@ -1644,13 +2452,13 @@ m(B? b) {
 // [diag.uncheckedPropertyAccessOfNullableValue] The property 'a' can't be unconditionally accessed because the receiver can be 'null'.
 }
 ''');
-    var propertyAccess1 = result.findNode.propertyAccess('x; // 1');
-    var propertyAccess2 = result.findNode.propertyAccess('x; // 2');
-    assertType(propertyAccess1.target2, 'A');
-    assertType(propertyAccess2.target2, 'A');
+    var propertyAccess1 = result.findNode.receiverPropertyExtraction('x; // 1');
+    var propertyAccess2 = result.findNode.receiverPropertyExtraction('x; // 2');
+    assertType(propertyAccess1.receiver, 'A');
+    assertType(propertyAccess2.receiver, 'A');
 
-    assertType(propertyAccess1.propertyName, 'int');
-    assertType(propertyAccess2.propertyName, 'int');
+    assertType(propertyAccess1.resolution!.type, 'int');
+    assertType(propertyAccess2.resolution!.type, 'int');
 
     assertType(propertyAccess1, 'int?');
     assertType(propertyAccess2, 'int');
@@ -1680,13 +2488,13 @@ m(C c) {
 // [diag.uncheckedPropertyAccessOfNullableValue] The property 'x' can't be unconditionally accessed because the receiver can be 'null'.
 }
 ''');
-    var propertyAccess1 = result.findNode.propertyAccess('x; // 1');
-    var propertyAccess2 = result.findNode.propertyAccess('x; // 2');
-    assertType(propertyAccess1.target2, 'A?');
-    assertType(propertyAccess2.target2, 'A?');
+    var propertyAccess1 = result.findNode.receiverPropertyExtraction('x; // 1');
+    var propertyAccess2 = result.findNode.receiverPropertyExtraction('x; // 2');
+    assertType(propertyAccess1.receiver, 'A?');
+    assertType(propertyAccess2.receiver, 'A?');
 
-    assertType(propertyAccess1.propertyName, 'int');
-    assertType(propertyAccess2.propertyName, 'int');
+    assertType(propertyAccess1.resolution!.type, 'int');
+    assertType(propertyAccess2.resolution!.type, 'int');
 
     assertType(propertyAccess1, 'int?');
     assertType(propertyAccess2, 'int');
@@ -1716,17 +2524,19 @@ m(C c) {
 // [diag.uncheckedPropertyAccessOfNullableValue] The property 'a' can't be unconditionally accessed because the receiver can be 'null'.
 }
 ''');
-    var propertyAccess1 = result.findNode.propertyAccess('x; // 1');
-    var propertyAccess2 = result.findNode.propertyAccess('x; // 2');
-    var propertyAccess1t = propertyAccess1.target2 as PropertyAccess;
-    var propertyAccess2t = propertyAccess1.target2 as PropertyAccess;
-    assertType(propertyAccess1t.target2, 'B?');
-    assertType(propertyAccess2t.target2, 'B?');
+    var propertyAccess1 = result.findNode.receiverPropertyExtraction('x; // 1');
+    var propertyAccess2 = result.findNode.receiverPropertyExtraction('x; // 2');
+    var propertyAccess1t =
+        propertyAccess1.receiver as ReceiverPropertyExtraction;
+    var propertyAccess2t =
+        propertyAccess2.receiver as ReceiverPropertyExtraction;
+    assertType(propertyAccess1t.receiver, 'B?');
+    assertType(propertyAccess2t.receiver, 'B?');
     assertType(propertyAccess1t, 'A');
     assertType(propertyAccess2t, 'A');
 
-    assertType(propertyAccess1.propertyName, 'int');
-    assertType(propertyAccess2.propertyName, 'int');
+    assertType(propertyAccess1.resolution!.type, 'int');
+    assertType(propertyAccess2.resolution!.type, 'int');
 
     assertType(propertyAccess1, 'int?');
     assertType(propertyAccess2, 'int');

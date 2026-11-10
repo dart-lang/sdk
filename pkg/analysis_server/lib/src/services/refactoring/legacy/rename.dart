@@ -208,7 +208,10 @@ class RenameProcessor2 {
         continue;
       }
       await builder.addDartFileEdit(reference.unitSource.fullName, (builder) {
-        builder.addSimpleReplacement(reference.range, newName);
+        builder.addSimpleReplacement(
+          reference.range,
+          referenceReplacement(sessionHelper.session, reference, newName),
+        );
       });
     }
   }
@@ -262,6 +265,21 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
       oldName = _getOldName(element);
 
   Element get element => _element;
+
+  @override
+  Future<RefactoringStatus> checkAllConditions() async {
+    var result = RefactoringStatus();
+    result.addStatus(await checkInitialConditions());
+    if (result.hasFatalError) {
+      return result;
+    }
+    result.addStatus(checkNewName());
+    if (result.hasFatalError) {
+      return result;
+    }
+    result.addStatus(await checkFinalConditions());
+    return result;
+  }
 
   @override
   Future<RefactoringStatus> checkInitialConditions() {

@@ -11,6 +11,6 @@ main() {
   // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
   // [cfe] A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).
   //                  ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
   // [cfe] Undefined name 'x'.
 }

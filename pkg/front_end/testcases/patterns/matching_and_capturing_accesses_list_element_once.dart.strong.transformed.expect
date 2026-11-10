@@ -506,6 +506,7 @@ abstract class _A&Object&ListMixin extends core::Object implements col::ListBase
       this.{col::ListBase::setRange}(index, index.{core::num::+}(iterable.{core::Iterable::length}{core::int}){(core::num) → core::int}, iterable){(core::int, core::int, core::Iterable<core::int>, [core::int]) → void};
     }
     else {
+      core::RangeError::checkValueInInterval(index, 0, this.{core::List::length}{core::int}, "index");
       {
         synthesized core::Iterator<core::int> :sync-for-iterator = iterable.{core::Iterable::iterator}{core::Iterator<core::int>};
         for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
@@ -563,8 +564,8 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:454:12 -> IntConstant(-1)
-Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:462:12 -> IntConstant(-1)
-Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:471:12 -> IntConstant(-1)
-Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:480:12 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 1101, effectively constant: 4
+Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:456:12 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:464:12 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:473:12 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:482:12 -> IntConstant(-1)
+Extra constant evaluation: evaluated: 1105, effectively constant: 4

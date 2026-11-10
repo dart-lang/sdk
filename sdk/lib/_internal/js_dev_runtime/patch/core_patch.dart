@@ -219,7 +219,7 @@ class int {
   static int parse(
     String source, {
     int? radix,
-    @deprecated int onError(String source)?,
+    @deprecated int Function(String source)? onError,
   }) {
     var value = tryParse(source, radix: radix);
     if (value != null) return value;
@@ -246,7 +246,7 @@ class double {
   @patch
   static double parse(
     String source, [
-    @deprecated double onError(String source)?,
+    @deprecated double Function(String source)? onError,
   ]) {
     var value = tryParse(source);
     if (value != null) return value;
@@ -366,7 +366,7 @@ class List<E> {
   @patch
   factory List.generate(
     int length,
-    E generator(int index), {
+    E Function(int index) generator, {
     bool growable = true,
   }) {
     final result = JSArray<E>.of(JS('', 'new Array(#)', length));

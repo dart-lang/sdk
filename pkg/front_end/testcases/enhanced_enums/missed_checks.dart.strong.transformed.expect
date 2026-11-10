@@ -65,15 +65,15 @@ library;
 //
 // pkg/front_end/testcases/enhanced_enums/missed_checks.dart:34:16: Error: A concrete instance member named '==' can't be inherited from 'SuperclassWithEquals' in a class that implements 'Enum'.
 // abstract class A1 extends SuperclassWithEquals implements Enum {} // Error.
-//                ^
+//                ^^
 //
 // pkg/front_end/testcases/enhanced_enums/missed_checks.dart:36:16: Error: A concrete instance member named 'hashCode' can't be inherited from 'SuperclassWithHashCode' in a class that implements 'Enum'.
 // abstract class A2 extends SuperclassWithHashCode implements Enum {} // Error.
-//                ^
+//                ^^
 //
 // pkg/front_end/testcases/enhanced_enums/missed_checks.dart:38:16: Error: A concrete instance member named 'values' can't be inherited from 'SuperclassWithValues' in a class that implements 'Enum'.
 // abstract class A3 extends SuperclassWithValues implements Enum {} // Error.
-//                ^
+//                ^^
 //
 // pkg/front_end/testcases/enhanced_enums/missed_checks.dart:55:3: Error: A const constructor can't have a body.
 // Try removing either the 'const' keyword or the body.

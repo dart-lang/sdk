@@ -5,10 +5,12 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstantPatternWithNonConstantExpressionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -48,7 +50,17 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    expression2: PrefixedIdentifier
+    expression2: ReceiverPropertyExtraction
+      receiver: StaticQualifier
+        name: A
+        element: <testLibrary>::@class::A
+      operator: .
+      name: a
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@class::A::@getter::a
+        type: int
+      staticType: int
+    expression(v1): PrefixedIdentifier
       prefix: SimpleIdentifier
         token: A
         element: <testLibrary>::@class::A
@@ -115,8 +127,22 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    expression2: PropertyAccess
-      target2: PrefixedIdentifier
+    expression2: ReceiverPropertyExtraction
+      receiver: StaticQualifier
+        importPrefix: ImportPrefixReference
+          name: prefix
+          period: .
+          element: <testLibraryFragment>::@prefix::prefix
+        name: A
+        element: package:test/a.dart::@class::A
+      operator: .
+      name: a
+      resolution: GetterInvocationResolution
+        element: package:test/a.dart::@class::A::@getter::a
+        type: int
+      staticType: int
+    expression(v1): PropertyAccess
+      target: PrefixedIdentifier
         prefix: SimpleIdentifier
           token: prefix
           element: <testLibraryFragment>::@prefix::prefix
@@ -157,8 +183,22 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    expression2: PropertyAccess
-      target2: PrefixedIdentifier
+    expression2: ReceiverPropertyExtraction
+      receiver: StaticQualifier
+        importPrefix: ImportPrefixReference
+          name: prefix
+          period: .
+          element: <testLibraryFragment>::@prefix::prefix
+        name: A
+        element: package:test/a.dart::@class::A
+      operator: .
+      name: a
+      resolution: GetterInvocationResolution
+        element: package:test/a.dart::@class::A::@getter::a
+        type: int
+      staticType: int
+    expression(v1): PropertyAccess
+      target: PrefixedIdentifier
         prefix: SimpleIdentifier
           token: prefix
           element: <testLibraryFragment>::@prefix::prefix
@@ -280,6 +320,13 @@ GuardedPattern
     expression2: ListLiteral
       leftBracket: [
       elements2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@20
+            type: int
+          staticType: int
+      elements(v1)
         SimpleIdentifier
           token: a
           element: a@20
@@ -313,7 +360,13 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    expression2: SimpleIdentifier
+    expression2: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: a@20
+        type: int
+      staticType: int
+    expression(v1): SimpleIdentifier
       token: a
       element: a@20
       staticType: int
@@ -379,7 +432,13 @@ GuardedPattern
       leftBracket: {
       elements2
         MapLiteralEntry
-          key2: SimpleIdentifier
+          key2: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: a@20
+              type: int
+            staticType: int
+          key(v1): SimpleIdentifier
             token: a
             element: a@20
             staticType: int
@@ -426,7 +485,13 @@ GuardedPattern
             literal: 0
             staticType: int
           separator: :
-          value2: SimpleIdentifier
+          value2: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: a@20
+              type: int
+            staticType: int
+          value(v1): SimpleIdentifier
             token: a
             element: a@20
             staticType: int
@@ -533,6 +598,13 @@ GuardedPattern
     expression2: SetOrMapLiteral
       leftBracket: {
       elements2
+        UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@20
+            type: int
+          staticType: int
+      elements(v1)
         SimpleIdentifier
           token: a
           element: a@20
@@ -570,7 +642,13 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    expression2: SimpleIdentifier
+    expression2: UnqualifiedNameExpression
+      name: a
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@getter::a
+        type: int
+      staticType: int
+    expression(v1): SimpleIdentifier
       token: a
       element: <testLibrary>::@getter::a
       staticType: int
@@ -593,7 +671,13 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    expression2: SimpleIdentifier
+    expression2: UnqualifiedNameExpression
+      name: a
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@getter::a
+        type: int
+      staticType: int
+    expression(v1): SimpleIdentifier
       token: a
       element: <testLibrary>::@getter::a
       staticType: int
@@ -606,7 +690,7 @@ GuardedPattern
 void f(Object? x) {
   if (x case foo) {}
 //           ^^^
-// [diag.undefinedIdentifier] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
 }
 ''');
 
@@ -614,7 +698,12 @@ void f(Object? x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    expression2: SimpleIdentifier
+    expression2: UnqualifiedNameExpression
+      name: foo
+      resolution: InvalidNamedReadResolution
+        recoveryElement: <null>
+      staticType: InvalidType
+    expression(v1): SimpleIdentifier
       token: foo
       element: <null>
       staticType: InvalidType

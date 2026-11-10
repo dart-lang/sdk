@@ -7,10 +7,10 @@ import 'dart:convert';
 import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_testing/src/abstract_context.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../abstract_context.dart';
 import '../../utils/test_code_extensions.dart';
 
 void main() {
@@ -46,10 +46,7 @@ class AbstractOutlineComputerTest extends AbstractContextTest {
 @reflectiveTest
 class FlutterOutlineComputerTest extends AbstractOutlineComputerTest {
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  bool get addFlutterPackageDep => true;
 
   Future<void> test_columnWithChildren() async {
     var unitOutline = await _computeOutline('''
@@ -149,6 +146,9 @@ MyWidget
 
 @reflectiveTest
 class OutlineComputerTest extends AbstractOutlineComputerTest {
+  @override
+  bool get addMetaPackageDep => true;
+
   void assertJson(Object object, Map<String, dynamic> expected) {
     var expectedJson = JsonEncoder.withIndent('  ').convert(expected);
     var actual = JsonEncoder.withIndent('  ').convert(object);
@@ -1095,7 +1095,6 @@ void f(p()) {
   }
 
   Future<void> test_isTest_isTestGroup() async {
-    writeTestPackageConfig(meta: true);
     var outline = await _computeOutline('''
 import 'package:meta/meta.dart';
 

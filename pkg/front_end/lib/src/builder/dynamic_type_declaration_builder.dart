@@ -4,13 +4,14 @@
 
 import 'package:kernel/ast.dart' show DartType, Nullability;
 
+import '../base/uris.dart';
 import 'declaration_builders.dart';
 import 'library_builder.dart';
 import 'type_builder.dart';
 
 class DynamicTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
-  new(DartType type, LibraryBuilder compilationUnit, int charOffset)
-    : super("dynamic", type, compilationUnit, charOffset);
+  new(DartType type, LibraryBuilder compilationUnit)
+    : super("dynamic", type, compilationUnit, dartCoreUriOffset);
 
   @override
   Nullability computeNullabilityWithArguments(

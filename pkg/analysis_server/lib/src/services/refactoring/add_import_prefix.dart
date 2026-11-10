@@ -99,10 +99,15 @@ class AddImportPrefix extends ParameterizedRefactoringProducer {
     prefixName ??= _computeName(element);
     refactoring.newName = prefixName;
     var status = await refactoring.checkAllConditions();
-    if (status.hasError) {
-      return ComputeStatusFailure();
+    if (status.hasFatalError) {
+      return ComputeStatusFailure(reason: status.message);
     }
+    // For non-fatal errors and warnings, we must still compute the change to
+    // give the user the choice to proceed.
     await refactoring.createChange(builder: builder);
+    if (status.hasError || status.hasWarning) {
+      return ComputeStatusWarning(status.message);
+    }
     return ComputeStatusSuccess();
   }
 

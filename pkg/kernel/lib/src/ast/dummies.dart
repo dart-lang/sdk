@@ -4,13 +4,8 @@
 
 part of '../../ast.dart';
 
-/// Almost const <NamedExpression>[], but not const in an attempt to avoid
-/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<NamedExpression> emptyListOfNamedExpression = List.filled(
-  0,
-  dummyNamedExpression,
-  growable: false,
-);
+final Uint8List emptyUint8List = new Uint8List(0);
+final Uint32List emptyUint32List = new Uint32List(0);
 
 /// Almost const <VariableDeclaration>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
@@ -36,35 +31,11 @@ final List<DeclaredVariable> emptyListOfDeclaredVariable = List.filled(
   growable: false,
 );
 
-/// Almost const <PositionalParameter>[], but not const in an attempt to avoid
-/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<PositionalParameter> emptyListOfPositionalParameter = List.filled(
-  0,
-  dummyPositionalParameter,
-  growable: false,
-);
-
-/// Almost const <NamedParameter>[], but not const in an attempt to avoid
-/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<NamedParameter> emptyListOfNamedParameter = List.filled(
-  0,
-  dummyNamedParameter,
-  growable: false,
-);
-
 /// Almost const <Combinator>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
 final List<Combinator> emptyListOfCombinator = List.filled(
   0,
   dummyCombinator,
-  growable: false,
-);
-
-/// Almost const <Expression>[], but not const in an attempt to avoid
-/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<Expression> emptyListOfExpression = List.filled(
-  0,
-  dummyExpression,
   growable: false,
 );
 
@@ -113,46 +84,6 @@ final List<Catch> emptyListOfCatch = List.filled(
 final List<Supertype> emptyListOfSupertype = List.filled(
   0,
   dummySupertype,
-  growable: false,
-);
-
-/// Almost const <DartType>[], but not const in an attempt to avoid
-/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<DartType> emptyListOfDartType = List.filled(
-  0,
-  dummyDartType,
-  growable: false,
-);
-
-/// Almost const <NamedType>[], but not const in an attempt to avoid
-/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<NamedType> emptyListOfNamedType = List.filled(
-  0,
-  dummyNamedType,
-  growable: false,
-);
-
-/// Almost const <TypeParameter>[], but not const in an attempt to avoid
-/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<TypeParameter> emptyListOfTypeParameter = List.filled(
-  0,
-  dummyTypeParameter,
-  growable: false,
-);
-
-/// Almost const <StructuralParameter>[], but not const in an attempt to
-/// avoid polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<StructuralParameter> emptyListOfStructuralParameter = List.filled(
-  0,
-  dummyStructuralParameter,
-  growable: false,
-);
-
-/// Almost const <Constant>[], but not const in an attempt to avoid
-/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<Constant> emptyListOfConstant = List.filled(
-  0,
-  dummyConstant,
   growable: false,
 );
 
@@ -280,7 +211,7 @@ final DartType dummyDartType = new DynamicType();
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final Supertype dummySupertype = new Supertype(dummyClass, const []);
+final Supertype dummySupertype = new Supertype(dummyClass, DartTypeList.empty);
 
 /// Non-nullable [NamedType] dummy value.
 ///
@@ -336,7 +267,7 @@ final Combinator dummyCombinator = new Combinator(false, const []);
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final LibraryPart dummyLibraryPart = new LibraryPart(const [], '');
+final LibraryPart dummyLibraryPart = new LibraryPart(const [], '', dummyUri);
 
 /// Non-nullable [Class] dummy value.
 ///
@@ -599,7 +530,7 @@ final MapLiteralEntry dummyMapLiteralEntry = new MapLiteralEntry(
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final Arguments dummyArguments = new Arguments(const []);
+final Arguments dummyArguments = new Arguments.empty();
 
 /// Non-nullable [AssertStatement] dummy value.
 ///

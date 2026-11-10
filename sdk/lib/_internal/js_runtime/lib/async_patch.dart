@@ -29,7 +29,7 @@ void _trySetStackTrace(Object error, StackTrace stackTrace) {
 @patch
 class _AsyncRun {
   @patch
-  static void _scheduleImmediate(void callback()) {
+  static void _scheduleImmediate(void Function() callback) {
     _scheduleImmediateClosure(callback);
   }
 
@@ -62,7 +62,7 @@ class _AsyncRun {
       );
       JS('', '#.observe(#, { childList: true })', observer, div);
 
-      return (void callback()) {
+      return (void Function() callback) {
         assert(storedCallback == null);
         storedCallback = callback;
         // Because of a broken shadow-dom polyfill we have to change the
@@ -84,7 +84,7 @@ class _AsyncRun {
     return _scheduleImmediateWithTimer;
   }
 
-  static void _scheduleImmediateJsOverride(void callback()) {
+  static void _scheduleImmediateJsOverride(void Function() callback) {
     internalCallback() {
       callback();
     }
@@ -96,7 +96,7 @@ class _AsyncRun {
     );
   }
 
-  static void _scheduleImmediateWithSetImmediate(void callback()) {
+  static void _scheduleImmediateWithSetImmediate(void Function() callback) {
     internalCallback() {
       callback();
     }
@@ -108,7 +108,7 @@ class _AsyncRun {
     );
   }
 
-  static void _scheduleImmediateWithTimer(void callback()) {
+  static void _scheduleImmediateWithTimer(void Function() callback) {
     Timer._createTimer(Duration.zero, callback);
   }
 }
@@ -116,7 +116,7 @@ class _AsyncRun {
 @patch
 class Timer {
   @patch
-  static Timer _createTimer(Duration duration, void callback()) {
+  static Timer _createTimer(Duration duration, void Function() callback) {
     int milliseconds = duration.inMilliseconds;
     if (milliseconds < 0) milliseconds = 0;
     return _TimerImpl(milliseconds, callback);
@@ -125,7 +125,7 @@ class Timer {
   @patch
   static Timer _createPeriodicTimer(
     Duration duration,
-    void callback(Timer timer),
+    void Function(Timer timer) callback,
   ) {
     int milliseconds = duration.inMilliseconds;
     if (milliseconds < 0) milliseconds = 0;
@@ -138,7 +138,7 @@ class _TimerImpl implements Timer {
   int? _handle;
   int _tick = 0;
 
-  _TimerImpl(int milliseconds, void callback()) : _once = true {
+  _TimerImpl(int milliseconds, void Function() callback) : _once = true {
     if (_hasTimer()) {
       void internalCallback() {
         _handle = null;
@@ -157,7 +157,7 @@ class _TimerImpl implements Timer {
     }
   }
 
-  _TimerImpl.periodic(int milliseconds, void callback(Timer timer))
+  _TimerImpl.periodic(int milliseconds, void Function(Timer timer) callback)
     : _once = false {
     if (_hasTimer()) {
       int start = JS('int', 'Date.now()');
@@ -210,43 +210,46 @@ bool _hasTimer() {
   return JS('', 'self.setTimeout') != null;
 }
 
-class _AsyncAwaitCompleter<T> implements Completer<T> {
+class _AsyncAwaitCompleter<T> {
   final _future = _Future<T>();
-  bool isSync;
+  bool _hasSuspended = false;
 
-  _AsyncAwaitCompleter() : isSync = false;
+  _AsyncAwaitCompleter();
 
-  void complete([FutureOr<T>? value]) {
-    // All paths require that if value is null, null as T succeeds.
-    value = (value == null) ? value as T : value;
-    if (!isSync) {
-      _future._asyncComplete(value);
-    } else if (value is Future<T>) {
-      assert(!_future._isComplete);
+  void _complete(FutureOr<T> value) {
+    // NOTE: We don't check `_hasSuspended`:
+    //   * if the body completes synchronously, the very next thing we'll
+    //     synchronously do is return the future from the call before running
+    //     any microtasks (so there are no listeners yet). `_chainFuture` will
+    //     not complete with an error synchronously, and completing with a value
+    //     synchronously is safe.
+    //   * if the body completes after a suspend point, we will already be in a
+    //     microtask queue and can run any listener callbacks immediately.
+    if (value is Future<T>) {
       _future._chainFuture(value);
     } else {
       _future._completeWithValue(value);
     }
   }
 
-  void completeError(Object e, [StackTrace? st]) {
-    st ??= AsyncError.defaultStackTrace(e);
-    if (isSync) {
-      _future._completeError(e, st);
+  void _completeError(Object e, StackTrace s) {
+    // If throwing synchronously, delay error completion to a microtask so the
+    // caller can attach an error handler before the error is reported as
+    // uncaught.
+    final error = _interceptCaughtError(e, s);
+    if (_hasSuspended) {
+      _future._completeErrorObject(error);
     } else {
-      _future._asyncCompleteError(e, st);
+      _future._asyncCompleteErrorObject(error);
     }
   }
-
-  Future<T> get future => _future;
-  bool get isCompleted => !_future._mayComplete;
 }
 
 /// Creates a Completer for an `async` function.
 ///
 /// Used as part of the runtime support for the async/await transformation.
 @pragma('dart2js:assumeDynamic') // Global type inference can't see call site.
-Completer<T> _makeAsyncAwaitCompleter<T>() {
+_AsyncAwaitCompleter<T> _makeAsyncAwaitCompleter<T>() {
   return _AsyncAwaitCompleter<T>();
 }
 
@@ -263,8 +266,8 @@ dynamic _asyncStartSync(
   _AsyncAwaitCompleter completer,
 ) {
   bodyFunction(async_status_codes.SUCCESS, null);
-  completer.isSync = true;
-  return completer.future;
+  completer._hasSuspended = true;
+  return completer._future;
 }
 
 /// Performs the `await` operation of an `async` function.
@@ -284,8 +287,8 @@ dynamic _asyncAwait(dynamic object, _WrappedAsyncBody bodyFunction) {
 ///
 /// This function is used when the `async` function returns (explicitly or
 /// implicitly).
-dynamic _asyncReturn(dynamic object, Completer completer) {
-  completer.complete(object);
+dynamic _asyncReturn(dynamic object, _AsyncAwaitCompleter completer) {
+  completer._complete(object);
 }
 
 /// Completes the future of an `async` function with an error.
@@ -293,9 +296,9 @@ dynamic _asyncReturn(dynamic object, Completer completer) {
 /// Used as part of the runtime support for the async/await transformation.
 ///
 /// This function is used when the `async` function re-throws an exception.
-dynamic _asyncRethrow(dynamic object, Completer completer) {
+dynamic _asyncRethrow(dynamic object, _AsyncAwaitCompleter completer) {
   // The error is a js-error.
-  completer.completeError(
+  completer._completeError(
     unwrapException(object),
     getTraceFromException(object),
   );
@@ -492,7 +495,7 @@ Stream _streamOfController(_AsyncStarStreamController controller) {
 /// If yielding while the subscription is paused it will become suspended. And
 /// only resume after the subscription is resumed or canceled.
 class _AsyncStarStreamController<T> {
-  late StreamController<T> controller;
+  final controller = StreamController<T>();
   Stream get stream => controller.stream;
 
   /// True when the async* function has yielded while being paused.
@@ -510,51 +513,52 @@ class _AsyncStarStreamController<T> {
   /// returning from the async function should complete [cancelationFuture].
   bool get isCanceled => cancelationFuture != null;
 
-  add(event) => controller.add(event);
+  void add(event) => controller.add(event);
 
   Future addStream(Stream<T> stream) {
     return controller.addStream(stream, cancelOnError: false);
   }
 
-  addError(error, stackTrace) => controller.addError(error, stackTrace);
+  void addError(error, stackTrace) => controller.addError(error, stackTrace);
 
-  close() => controller.close();
+  void close() => controller.close();
 
   _AsyncStarStreamController(_WrappedAsyncBody body) {
-    _resumeBody() {
-      scheduleMicrotask(() {
-        body(async_status_codes.SUCCESS, null);
-      });
-    }
+    controller.onListen = () {
+      final zone = Zone.current;
+      _resumeBody() {
+        zone.scheduleMicrotask(() {
+          body(async_status_codes.SUCCESS, null);
+        });
+      }
 
-    controller = StreamController<T>(
-      onListen: () {
-        _resumeBody();
-      },
-      onResume: () {
-        // Only schedule again if the async* function actually is suspended.
-        // Resume directly instead of scheduling, so that the sequence
-        // `pause-resume-pause` will result in one extra event produced.
-        if (isSuspended) {
-          isSuspended = false;
-          _resumeBody();
-        }
-      },
-      onCancel: () {
-        // If the async* is finished we ignore cancel events.
-        if (!controller.isClosed) {
-          cancelationFuture = _Future();
+      controller
+        ..onResume = () {
+          // Only schedule again if the async* function actually is suspended.
+          // Resume directly instead of scheduling, so that the sequence
+          // `pause-resume-pause` will result in one extra event produced.
           if (isSuspended) {
-            // Resume the suspended async* function to run finalizers.
             isSuspended = false;
-            scheduleMicrotask(() {
-              body(async_status_codes.STREAM_WAS_CANCELED, null);
-            });
+            _resumeBody();
           }
-          return cancelationFuture;
         }
-      },
-    );
+        ..onCancel = () {
+          // If the async* is finished we ignore cancel events.
+          if (!controller.isClosed) {
+            cancelationFuture = _Future();
+            if (isSuspended) {
+              // Resume the suspended async* function to run finalizers.
+              isSuspended = false;
+              zone.scheduleMicrotask(() {
+                body(async_status_codes.STREAM_WAS_CANCELED, null);
+              });
+            }
+            return cancelationFuture;
+          }
+        };
+
+      _resumeBody();
+    };
   }
 }
 

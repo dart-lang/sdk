@@ -122,4 +122,22 @@ void f(covariant int x) {}
 // [diag.extraneousModifier] Can't have modifier 'covariant' here.
 ''');
   }
+
+  test_topLevelGetter() async {
+    await resolveTestCodeWithDiagnostics('''
+int get foo(covariant int x) => 0;
+//         ^
+// [diag.getterWithParameters] Getters must be declared without a parameter list.
+//          ^^^^^^^^^
+// [diag.extraneousModifier] Can't have modifier 'covariant' here.
+''');
+  }
+
+  test_topLevelSetter() async {
+    await resolveTestCodeWithDiagnostics('''
+set foo(covariant int x) {}
+//      ^^^^^^^^^
+// [diag.extraneousModifier] Can't have modifier 'covariant' here.
+''');
+  }
 }

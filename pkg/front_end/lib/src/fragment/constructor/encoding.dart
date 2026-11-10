@@ -4,10 +4,12 @@
 
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/ast.dart' as ast;
 import 'package:kernel/type_algebra.dart';
 
 import '../../api_prototype/lowering_predicates.dart';
 import '../../base/modifiers.dart';
+import '../../base/uri_offset.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/function_signature.dart';
@@ -47,13 +49,14 @@ abstract class ConstructorEncoding {
 
   void prependInitializer(Initializer initializer);
 
-  FunctionParameter? getTearOffParameter(int index);
-
   InternalVariable? get thisVariable;
 
   List<TypeParameter>? get thisTypeParameters;
 
-  void registerInitializers(List<Initializer> initializers);
+  void registerInitializers(
+    List<Initializer> initializers, {
+    required bool isErroneous,
+  });
 
   /// Mark the constructor as erroneous.
   ///
@@ -62,8 +65,8 @@ abstract class ConstructorEncoding {
   /// members and to avoid reporting cascading errors.
   void markAsErroneous();
 
-  void buildOutlineNodes(
-    BuildNodesCallback f, {
+  void buildOutlineNodes({
+    required BuildNodesCallback callback,
     required SourceConstructorBuilder constructorBuilder,
     required SourceLibraryBuilder libraryBuilder,
     required covariant DeclarationBuilder declarationBuilder,
@@ -103,8 +106,7 @@ abstract class ConstructorEncoding {
   void addSuperParameterDefaultValueCloners({
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
     required Member superTarget,
-    required List<int?>? positionalSuperParameters,
-    required List<String>? namedSuperParameters,
+    required ParameterMapping<Constructor> parameterMapping,
     required SourceLibraryBuilder libraryBuilder,
   });
 
@@ -183,9 +185,15 @@ class RegularConstructorEncoding implements ConstructorEncoding {
   List<Initializer> get initializers => _constructor.initializers;
 
   @override
-  void registerInitializers(List<Initializer> initializers) {
+  void registerInitializers(
+    List<Initializer> initializers, {
+    required bool isErroneous,
+  }) {
     _constructor.initializers.addAll(initializers);
     setParents(initializers, _constructor);
+    if (isErroneous) {
+      markAsErroneous();
+    }
   }
 
   @override
@@ -209,8 +217,8 @@ class RegularConstructorEncoding implements ConstructorEncoding {
   List<TypeParameter>? get thisTypeParameters => null;
 
   @override
-  void buildOutlineNodes(
-    BuildNodesCallback f, {
+  void buildOutlineNodes({
+    required BuildNodesCallback callback,
     required SourceConstructorBuilder constructorBuilder,
     required SourceLibraryBuilder libraryBuilder,
     required SourceClassBuilder declarationBuilder,
@@ -250,7 +258,7 @@ class RegularConstructorEncoding implements ConstructorEncoding {
       formals: formals,
       delayedDefaultValueCloners: delayedDefaultValueCloners,
     );
-    f(
+    callback(
       member: _constructor,
       tearOff: _constructorTearOff,
       kind: BuiltMemberKind.Constructor,
@@ -319,13 +327,10 @@ class RegularConstructorEncoding implements ConstructorEncoding {
         supportsTypeParameters: false,
       );
       Class enclosingClass = classBuilder.cls;
-      List<DartType> typeParameterTypes = <DartType>[];
-      for (int i = 0; i < enclosingClass.typeParameters.length; i++) {
-        TypeParameter typeParameter = enclosingClass.typeParameters[i];
-        typeParameterTypes.add(
-          new TypeParameterType.withDefaultNullability(typeParameter),
-        );
-      }
+      DartTypeList typeParameterTypes = getAsTypeArguments(
+        enclosingClass.typeParameters,
+        libraryBuilder.library,
+      );
       InterfaceType type = new InterfaceType(
         enclosingClass,
         Nullability.nonNullable,
@@ -334,7 +339,7 @@ class RegularConstructorEncoding implements ConstructorEncoding {
       returnType.registerInferredType(type);
       _constructor.function.fileOffset = formalsOffset;
       _constructor.function.fileEndOffset = _constructor.fileEndOffset;
-      _constructor.function.typeParameters = const <TypeParameter>[];
+      _constructor.function.typeParameters = TypeParameterList.empty;
       _constructor.isConst = isConst;
       _constructor.isExternal = _isExternal;
 
@@ -408,58 +413,27 @@ class RegularConstructorEncoding implements ConstructorEncoding {
     loader.addNativeAnnotation(_constructor, nativeMethodName);
   }
 
-  @override
-  FunctionParameter? getTearOffParameter(int index) {
-    Procedure? constructorTearOff = _constructorTearOff;
-    if (constructorTearOff != null) {
-      if (index < constructorTearOff.function.positionalParameters.length) {
-        return constructorTearOff.function.positionalParameters[index];
-      } else {
-        index -= constructorTearOff.function.positionalParameters.length;
-        if (index < constructorTearOff.function.namedParameters.length) {
-          return constructorTearOff.function.namedParameters[index];
-        }
-      }
-    }
-    return null;
-  }
-
   bool _hasAddedDefaultValueCloners = false;
 
   @override
   void addSuperParameterDefaultValueCloners({
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
     required Member superTarget,
-    required List<int?>? positionalSuperParameters,
-    required List<String>? namedSuperParameters,
+    required ParameterMapping<Constructor> parameterMapping,
     required SourceLibraryBuilder libraryBuilder,
   }) {
     if (!_hasAddedDefaultValueCloners) {
       // If this constructor formals are part of a cyclic dependency this
       // might be called more than once.
       delayedDefaultValueCloners.add(
-        new DelayedDefaultValueCloner(
-          superTarget,
-          _constructor,
-          positionalSuperParameters: positionalSuperParameters ?? const <int>[],
-          namedSuperParameters: namedSuperParameters ?? const <String>[],
+        new DelayedDefaultValueCloner<Constructor>(
+          source: superTarget,
+          target: _constructor,
+          parameterMapping: parameterMapping,
           isOutlineNode: true,
           libraryBuilder: libraryBuilder,
         ),
       );
-      if (_constructorTearOff != null) {
-        delayedDefaultValueCloners.add(
-          new DelayedDefaultValueCloner(
-            superTarget,
-            _constructorTearOff,
-            positionalSuperParameters:
-                positionalSuperParameters ?? const <int>[],
-            namedSuperParameters: namedSuperParameters ?? const <String>[],
-            isOutlineNode: true,
-            libraryBuilder: libraryBuilder,
-          ),
-        );
-      }
       _hasAddedDefaultValueCloners = true;
     }
   }
@@ -529,8 +503,14 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
       new FunctionNodeSignature(_constructor.function);
 
   @override
-  void registerInitializers(List<Initializer> initializers) {
+  void registerInitializers(
+    List<Initializer> initializers, {
+    required bool isErroneous,
+  }) {
     this.initializers.addAll(initializers);
+    if (isErroneous) {
+      markAsErroneous();
+    }
   }
 
   @override
@@ -567,7 +547,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
 
   bool _hasBeenBuilt = false;
 
-  DartType _computeThisType(T declarationBuilder, List<DartType> typeArguments);
+  DartType _computeThisType(T declarationBuilder, DartTypeList typeArguments);
 
   void _build({
     required SourceConstructorBuilder constructorBuilder,
@@ -639,15 +619,9 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
           growable: false,
         );
       }
-      List<DartType> typeArguments;
-      if (_thisTypeParameters != null) {
-        typeArguments = [
-          for (TypeParameter parameter in _thisTypeParameters!)
-            new TypeParameterType.withDefaultNullability(parameter),
-        ];
-      } else {
-        typeArguments = [];
-      }
+      DartTypeList typeArguments = _thisTypeParameters != null
+          ? getAsTypeArguments(_thisTypeParameters!, libraryBuilder.library)
+          : DartTypeList.empty;
 
       _thisVariable = intern.createSyntheticVariable(
         name: syntheticThisName,
@@ -658,13 +632,10 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
         fileOffset: fileOffset,
       );
 
-      List<DartType> typeParameterTypes = <DartType>[];
-      for (int i = 0; i < _constructor.function.typeParameters.length; i++) {
-        TypeParameter typeParameter = _constructor.function.typeParameters[i];
-        typeParameterTypes.add(
-          new TypeParameterType.withDefaultNullability(typeParameter),
-        );
-      }
+      DartTypeList typeParameterTypes = getAsTypeArguments(
+        _constructor.function.typeParameters,
+        libraryBuilder.library,
+      );
       returnType.registerInferredType(
         _computeThisType(declarationBuilder, typeParameterTypes),
       );
@@ -754,22 +725,6 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
     _initializers.insert(0, initializer);
   }
 
-  @override
-  FunctionParameter? getTearOffParameter(int index) {
-    Procedure? constructorTearOff = _constructorTearOff;
-    if (constructorTearOff != null) {
-      if (index < constructorTearOff.function.positionalParameters.length) {
-        return constructorTearOff.function.positionalParameters[index];
-      } else {
-        index -= constructorTearOff.function.positionalParameters.length;
-        if (index < constructorTearOff.function.namedParameters.length) {
-          return constructorTearOff.function.namedParameters[index];
-        }
-      }
-    }
-    return null;
-  }
-
   bool _hasBuiltBody = false;
 
   @override
@@ -780,7 +735,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
     if (!_isExternal) {
       InternalDeclaredVariable thisVariable = this.thisVariable!;
       VariableStatement thisVariableStatement = extern.createVariableStatement(
-        extern.createVariableDeclaration(thisVariable.astVariable),
+        thisVariable.createDeclaration(),
       );
       List<Statement> statements = [thisVariableStatement];
       _ExtensionTypeInitializerToStatementConverter visitor =
@@ -799,7 +754,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
       }
       statements.add(
         extern.createReturnStatement(
-          extern.createVariableGet(thisVariable.astVariable),
+          extern.createVariableGet(thisVariable.readVariable),
         ),
       );
       // TODO(cstefantsova): Provide a scope here.
@@ -824,10 +779,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
       constructorBuilder,
       constructorDeclaration,
       _constructor,
-      new _ExtensionTypeConstructorContext(
-        constructorBuilder,
-        thisVariable!.astVariable,
-      ),
+      new _ExtensionTypeConstructorContext(constructorBuilder, thisVariable!),
     );
   }
 
@@ -840,8 +792,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   void addSuperParameterDefaultValueCloners({
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
     required Member superTarget,
-    required List<int?>? positionalSuperParameters,
-    required List<String>? namedSuperParameters,
+    required ParameterMapping parameterMapping,
     required SourceLibraryBuilder libraryBuilder,
   }) {
     throw new UnsupportedError(
@@ -959,9 +910,9 @@ class ExtensionTypeConstructorEncoding
   @override
   DartType _computeThisType(
     SourceExtensionTypeDeclarationBuilder declarationBuilder,
-    List<DartType> typeArguments,
+    DartTypeList typeArguments,
   ) {
-    ExtensionTypeDeclaration extensionTypeDeclaration =
+    ast.ExtensionTypeDeclaration extensionTypeDeclaration =
         declarationBuilder.extensionTypeDeclaration;
     return new ExtensionType(
       extensionTypeDeclaration,
@@ -971,8 +922,8 @@ class ExtensionTypeConstructorEncoding
   }
 
   @override
-  void buildOutlineNodes(
-    BuildNodesCallback f, {
+  void buildOutlineNodes({
+    required BuildNodesCallback callback,
     required SourceConstructorBuilder constructorBuilder,
     required SourceLibraryBuilder libraryBuilder,
     required SourceExtensionTypeDeclarationBuilder declarationBuilder,
@@ -1011,7 +962,7 @@ class ExtensionTypeConstructorEncoding
       formals: formals,
       delayedDefaultValueCloners: delayedDefaultValueCloners,
     );
-    f(
+    callback(
       member: _constructor,
       tearOff: _constructorTearOff,
       kind: BuiltMemberKind.ExtensionTypeConstructor,
@@ -1069,8 +1020,8 @@ class ExtensionConstructorEncoding
   new({required bool isExternal}) : _isExternal = isExternal;
 
   @override
-  void buildOutlineNodes(
-    BuildNodesCallback f, {
+  void buildOutlineNodes({
+    required BuildNodesCallback callback,
     required SourceConstructorBuilder constructorBuilder,
     required SourceLibraryBuilder libraryBuilder,
     required SourceExtensionBuilder declarationBuilder,
@@ -1122,7 +1073,7 @@ class ExtensionConstructorEncoding
   @override
   DartType _computeThisType(
     SourceExtensionBuilder declarationBuilder,
-    List<DartType> typeArguments,
+    DartTypeList typeArguments,
   ) {
     Extension extension = declarationBuilder.extension;
     return Substitution.fromPairs(
@@ -1185,8 +1136,7 @@ abstract class ConstructorEncodingStrategy {
   List<FormalParameterBuilder>? createFormals({
     required SourceLoader loader,
     required List<FormalParameterBuilder>? formals,
-    required Uri fileUri,
-    required int fileOffset,
+    required UriOffsetLength uriOffset,
   });
 
   List<SourceNominalParameterBuilder>? createTypeParameters({
@@ -1215,8 +1165,7 @@ class RegularConstructorEncodingStrategy
   List<FormalParameterBuilder>? createFormals({
     required SourceLoader loader,
     required List<FormalParameterBuilder>? formals,
-    required Uri fileUri,
-    required int fileOffset,
+    required UriOffsetLength uriOffset,
   }) {
     return formals;
   }
@@ -1247,8 +1196,7 @@ class EnumConstructorEncodingStrategy implements ConstructorEncodingStrategy {
   List<FormalParameterBuilder>? createFormals({
     required SourceLoader loader,
     required List<FormalParameterBuilder>? formals,
-    required Uri fileUri,
-    required int fileOffset,
+    required UriOffsetLength uriOffset,
   }) {
     return [
       new FormalParameterBuilder(
@@ -1256,9 +1204,8 @@ class EnumConstructorEncodingStrategy implements ConstructorEncodingStrategy {
         modifiers: Modifiers.empty,
         type: loader.target.intType,
         name: "#index",
-        fileOffset: fileOffset,
-        fileUri: fileUri,
         nameOffset: null,
+        uriOffset: uriOffset,
         hasImmediatelyDeclaredDefaultValue: false,
       ),
       new FormalParameterBuilder(
@@ -1266,9 +1213,8 @@ class EnumConstructorEncodingStrategy implements ConstructorEncodingStrategy {
         modifiers: Modifiers.empty,
         type: loader.target.stringType,
         name: "#name",
-        fileOffset: fileOffset,
-        fileUri: fileUri,
         nameOffset: null,
+        uriOffset: uriOffset,
         hasImmediatelyDeclaredDefaultValue: false,
       ),
       ...?formals,
@@ -1299,8 +1245,7 @@ class ExtensionConstructorEncodingStrategy
   List<FormalParameterBuilder>? createFormals({
     required SourceLoader loader,
     required List<FormalParameterBuilder>? formals,
-    required Uri fileUri,
-    required int fileOffset,
+    required UriOffsetLength uriOffset,
   }) {
     return formals;
   }
@@ -1340,8 +1285,7 @@ class ExtensionTypeConstructorEncodingStrategy
   List<FormalParameterBuilder>? createFormals({
     required SourceLoader loader,
     required List<FormalParameterBuilder>? formals,
-    required Uri fileUri,
-    required int fileOffset,
+    required UriOffsetLength uriOffset,
   }) {
     return formals;
   }
@@ -1393,14 +1337,14 @@ class _RegularConstructorContext implements ConstructorContext {
   }
 
   @override
-  Variable? get thisVariable => null;
+  InternalDeclaredVariable? get thisVariable => null;
 }
 
 class _ExtensionTypeConstructorContext implements ConstructorContext {
   final SourceConstructorBuilder _builder;
 
   @override
-  final Variable thisVariable;
+  final InternalDeclaredVariable thisVariable;
 
   new(this._builder, this.thisVariable);
 

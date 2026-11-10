@@ -5,9 +5,11 @@
 import 'dart:convert';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/plugin/plugin_trust.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/analysis_options/analysis_options.dart';
 import 'package:cli_util/cli_logging.dart';
-import 'package:dartdev/src/analysis_server.dart';
 import 'package:dartdev/src/commands/analyze.dart';
 import 'package:dartdev/src/sdk.dart';
 import 'package:path/path.dart' as path;
@@ -16,7 +18,6 @@ import 'package:test/test.dart';
 import '../utils.dart';
 
 void main() {
-  group('analysisError', defineAnalysisError, timeout: longTimeout);
   group('analyze', defineAnalyze, timeout: longTimeout);
 }
 
@@ -61,128 +62,6 @@ void main() {
 /// The exit code of the analysis server when the highest severity issue is a
 /// warning.
 const int _warningExitCode = 2;
-
-void defineAnalysisError() {
-  group('contextMessages', () {
-    test('none', () {
-      var error = AnalysisError({});
-      expect(error.contextMessages, isEmpty);
-    });
-    test('one', () {
-      var error = AnalysisError({
-        'contextMessages': [<String, dynamic>{}],
-      });
-      expect(error.contextMessages, hasLength(1));
-    });
-    test('two', () {
-      var error = AnalysisError({
-        'contextMessages': [<String, dynamic>{}, <String, dynamic>{}],
-      });
-      expect(error.contextMessages, hasLength(2));
-    });
-  });
-
-  group('sorting', () {
-    test('severity', () {
-      var errors = <AnalysisError>[
-        AnalysisError({
-          'severity': 'INFO',
-          'location': {'file': 'a.dart'},
-        }),
-        AnalysisError({
-          'severity': 'WARNING',
-          'location': {'file': 'a.dart'},
-        }),
-        AnalysisError({
-          'severity': 'ERROR',
-          'location': {'file': 'a.dart'},
-        }),
-      ];
-
-      errors.sort();
-
-      expect(errors, hasLength(3));
-      expect(errors[0].isError, isTrue);
-      expect(errors[1].isWarning, isTrue);
-      expect(errors[2].isInfo, isTrue);
-    });
-
-    test('file', () {
-      var errors = <AnalysisError>[
-        AnalysisError({
-          'severity': 'INFO',
-          'location': {'file': 'c.dart'},
-        }),
-        AnalysisError({
-          'severity': 'INFO',
-          'location': {'file': 'b.dart'},
-        }),
-        AnalysisError({
-          'severity': 'INFO',
-          'location': {'file': 'a.dart'},
-        }),
-      ];
-
-      errors.sort();
-
-      expect(errors, hasLength(3));
-      expect(errors[0].file, equals('a.dart'));
-      expect(errors[1].file, equals('b.dart'));
-      expect(errors[2].file, equals('c.dart'));
-    });
-
-    test('offset', () {
-      var errors = <AnalysisError>[
-        AnalysisError({
-          'severity': 'INFO',
-          'location': {'file': 'a.dart', 'offset': 8},
-        }),
-        AnalysisError({
-          'severity': 'INFO',
-          'location': {'file': 'a.dart', 'offset': 6},
-        }),
-        AnalysisError({
-          'severity': 'INFO',
-          'location': {'file': 'a.dart', 'offset': 4},
-        }),
-      ];
-
-      errors.sort();
-
-      expect(errors, hasLength(3));
-      expect(errors[0].offset, equals(4));
-      expect(errors[1].offset, equals(6));
-      expect(errors[2].offset, equals(8));
-    });
-
-    test('message', () {
-      var errors = <AnalysisError>[
-        AnalysisError({
-          'severity': 'INFO',
-          'location': {'file': 'a.dart', 'offset': 8},
-          'message': 'C',
-        }),
-        AnalysisError({
-          'severity': 'INFO',
-          'location': {'file': 'a.dart', 'offset': 6},
-          'message': 'B',
-        }),
-        AnalysisError({
-          'severity': 'INFO',
-          'location': {'file': 'a.dart', 'offset': 4},
-          'message': 'A',
-        }),
-      ];
-
-      errors.sort();
-
-      expect(errors, hasLength(3));
-      expect(errors[0].message, equals('A'));
-      expect(errors[1].message, equals('B'));
-      expect(errors[2].message, equals('C'));
-    });
-  });
-}
 
 void defineAnalyze() {
   late TestProject p;
@@ -965,6 +844,338 @@ warning - analysis_options.yaml:1:10 - The URI 'package:lints/recommended.yaml' 
       expect(result.exitCode, 0);
       expect(result.stderr, isEmpty);
       expect(result.stdout, contains('No issues found!'));
+    });
+
+    group('plugin trust', () {
+      PluginTrust trustForProject(TestProject p) => PluginTrust(
+        PhysicalResourceProvider(stateLocation: p.analyzerStateLocationPath),
+      );
+
+      test(
+        'skips plugins and prints message on each run while unseen until '
+        '--trust-plugins, --always-trust-plugins, or --never-trust-plugins '
+        'is passed',
+        () async {
+          p = project(
+            mainSrc: 'int get foo => 1;\n',
+            analysisOptions: '''
+plugins:
+  my_plugin:
+    path: tools/my_plugin
+''',
+          );
+          final resolvedDirPath = p.dir.resolveSymbolicLinksSync();
+          final pluginPath = path.join(p.dirPath, 'tools', 'my_plugin');
+          final source = PathPluginSource(path: pluginPath);
+
+          var firstResult = await p.runAnalyze([p.dirPath]);
+          expect(firstResult.exitCode, 0);
+          expect(
+            firstResult.stdout,
+            contains(
+              "Analyzer plugins are configured in '$resolvedDirPath', but were not "
+              'run because they are not trusted.',
+            ),
+          );
+          expect(
+            trustForProject(p).getTrust('my_plugin', source),
+            TrustSetting.unset,
+          );
+
+          // Second run while still unseen should continue printing the message.
+          var secondResult = await p.runAnalyze([p.dirPath]);
+          expect(secondResult.exitCode, 0);
+          expect(
+            secondResult.stdout,
+            contains(
+              "Analyzer plugins are configured in '$resolvedDirPath', but were not "
+              'run because they are not trusted.',
+            ),
+          );
+          expect(
+            trustForProject(p).getTrust('my_plugin', source),
+            TrustSetting.unset,
+          );
+        },
+      );
+
+      test('--plugins does not persist trust', () async {
+        p = project(
+          mainSrc: 'int get foo => 1;\n',
+          analysisOptions: '''
+plugins:
+  my_plugin: ^1.0.0
+''',
+        );
+        final source = VersionedPluginSource(constraint: '^1.0.0');
+
+        var result = await p.runAnalyze(['--plugins', p.dirPath]);
+        expect(result.exitCode, 0);
+        expect(
+          trustForProject(p).getTrust('my_plugin', source),
+          TrustSetting.unset,
+        );
+      });
+
+      test(
+        'resolveUsePlugins respects flags, CI values, and neverTrustPlugins',
+        () {
+          expect(
+            AnalyzeCommand.resolveUsePlugins(
+              pluginsFlag: null,
+              neverTrustPlugins: false,
+              environment: const {},
+            ),
+            isNull,
+          );
+          for (final truthy in const ['true', 'TRUE', ' True ', '1', 'yes']) {
+            expect(
+              AnalyzeCommand.resolveUsePlugins(
+                pluginsFlag: null,
+                neverTrustPlugins: false,
+                environment: {'CI': truthy},
+              ),
+              isTrue,
+              reason: 'CI=$truthy should enable plugins',
+            );
+          }
+          for (final falsy in const ['', '   ', 'false', 'FALSE', '0', 'no']) {
+            expect(
+              AnalyzeCommand.resolveUsePlugins(
+                pluginsFlag: null,
+                neverTrustPlugins: false,
+                environment: {'CI': falsy},
+              ),
+              isNull,
+              reason: 'CI=$falsy should not enable plugins',
+            );
+          }
+          expect(
+            AnalyzeCommand.resolveUsePlugins(
+              pluginsFlag: false,
+              neverTrustPlugins: false,
+              environment: const {'CI': 'true'},
+            ),
+            isFalse,
+          );
+          expect(
+            AnalyzeCommand.resolveUsePlugins(
+              pluginsFlag: true,
+              neverTrustPlugins: true,
+              environment: const {},
+            ),
+            isTrue,
+          );
+          expect(
+            AnalyzeCommand.resolveUsePlugins(
+              pluginsFlag: null,
+              neverTrustPlugins: true,
+              environment: const {'CI': 'true'},
+            ),
+            isNull,
+          );
+        },
+      );
+
+      test(
+        'CI environment variable enables plugins without persisting trust',
+        () async {
+          p = project(
+            mainSrc: 'int get foo => 1;\n',
+            analysisOptions: '''
+plugins:
+  my_plugin:
+    path: tools/my_plugin
+''',
+          );
+          final resolvedDirPath = p.dir.resolveSymbolicLinksSync();
+          final pluginPath = path.join(p.dirPath, 'tools', 'my_plugin');
+          final source = PathPluginSource(path: pluginPath);
+
+          var ciResult = await p.runAnalyze(
+            [p.dirPath],
+            environment: {'CI': 'true'},
+          );
+          expect(ciResult.exitCode, 0);
+          expect(
+            ciResult.stdout,
+            isNot(contains('not run because they are not trusted.')),
+          );
+          expect(
+            trustForProject(p).getTrust('my_plugin', source),
+            TrustSetting.unset,
+          );
+
+          // Explicit --no-plugins overrides CI=true.
+          var noPluginsResult = await p.runAnalyze(
+            ['--no-plugins', p.dirPath],
+            environment: {'CI': 'true'},
+          );
+          expect(noPluginsResult.exitCode, 0);
+          expect(
+            noPluginsResult.stdout,
+            isNot(contains('not run because they are not trusted.')),
+          );
+          expect(
+            trustForProject(p).getTrust('my_plugin', source),
+            TrustSetting.unset,
+          );
+
+          // Falsy CI values do not bypass plugin trust.
+          for (final falsy in const ['false', '0', '']) {
+            var result = await p.runAnalyze(
+              [p.dirPath],
+              environment: {'CI': falsy},
+            );
+            expect(result.exitCode, 0);
+            expect(
+              result.stdout,
+              contains(
+                "Analyzer plugins are configured in '$resolvedDirPath', but "
+                'were not run because they are not trusted.',
+              ),
+              reason: 'CI=$falsy should not bypass plugin trust',
+            );
+          }
+        },
+      );
+
+      test(
+        '--trust-plugins, --always-trust-plugins, and --never-trust-plugins '
+        'persist trust state and are mutually exclusive',
+        () async {
+          p = project(
+            mainSrc: 'int get foo => 1;\n',
+            analysisOptions: '''
+plugins:
+  my_plugin:
+    path: tools/my_plugin
+''',
+          );
+          p.file('tools/my_plugin/lib/main.dart', 'int x = 1;\n');
+          final pluginPath = path.join(p.dirPath, 'tools', 'my_plugin');
+          final source = PathPluginSource(path: pluginPath);
+          final provider = PhysicalResourceProvider(
+            stateLocation: p.analyzerStateLocationPath,
+          );
+          final pluginFolder = provider.getFolder(pluginPath);
+
+          var contentTrustResult = await p.runAnalyze([
+            '--trust-plugins',
+            p.dirPath,
+          ]);
+          expect(contentTrustResult.exitCode, 0);
+          expect(
+            trustForProject(
+              p,
+            ).getTrust('my_plugin', source, pluginFolder: pluginFolder),
+            TrustSetting.trusted,
+          );
+
+          // Modifying the plugin's contents invalidates content trust.
+          p.file('tools/my_plugin/lib/main.dart', 'int x = 2;\n');
+          expect(
+            trustForProject(
+              p,
+            ).getTrust('my_plugin', source, pluginFolder: pluginFolder),
+            TrustSetting.unset,
+          );
+
+          var trustResult = await p.runAnalyze([
+            '--always-trust-plugins',
+            p.dirPath,
+          ]);
+          expect(trustResult.exitCode, 0);
+          expect(
+            trustForProject(p).getTrust('my_plugin', source),
+            TrustSetting.trusted,
+          );
+
+          var untrustResult = await p.runAnalyze([
+            '--never-trust-plugins',
+            p.dirPath,
+          ]);
+          expect(untrustResult.exitCode, 0);
+          expect(
+            trustForProject(p).getTrust('my_plugin', source),
+            TrustSetting.untrusted,
+          );
+
+          var bothResult = await p.runAnalyze([
+            '--always-trust-plugins',
+            '--never-trust-plugins',
+            p.dirPath,
+          ]);
+          expect(bothResult.exitCode, 64);
+          expect(
+            bothResult.stderr,
+            contains(
+              'Cannot specify more than one of --trust-plugins, '
+              '--always-trust-plugins, and --never-trust-plugins.',
+            ),
+          );
+
+          var trustAndAlwaysResult = await p.runAnalyze([
+            '--trust-plugins',
+            '--always-trust-plugins',
+            p.dirPath,
+          ]);
+          expect(trustAndAlwaysResult.exitCode, 64);
+          expect(
+            trustAndAlwaysResult.stderr,
+            contains(
+              'Cannot specify more than one of --trust-plugins, '
+              '--always-trust-plugins, and --never-trust-plugins.',
+            ),
+          );
+        },
+      );
+
+      test(
+        'trust flags only mark plugins specified in the target directory',
+        () async {
+          p = project(
+            mainSrc: 'int get foo => 1;\n',
+            analysisOptions: '''
+plugins:
+  root_plugin:
+    path: tools/root_plugin
+''',
+          );
+          p.file('tools/root_plugin/lib/main.dart', 'int x = 1;\n');
+          p.file('subpkg/pubspec.yaml', '''
+name: subpkg
+environment:
+  sdk: ^3.0.0
+''');
+          p.file('subpkg/analysis_options.yaml', '''
+plugins:
+  sub_plugin:
+    path: ../tools/sub_plugin
+''');
+          p.file('subpkg/lib/sub.dart', 'int get bar => 1;\n');
+          p.file('tools/sub_plugin/lib/main.dart', 'int y = 1;\n');
+
+          final rootPluginPath = path.join(p.dirPath, 'tools', 'root_plugin');
+          final subPluginPath = path.join(p.dirPath, 'tools', 'sub_plugin');
+          final rootSource = PathPluginSource(path: rootPluginPath);
+          final subSource = PathPluginSource(path: subPluginPath);
+
+          var result = await p.runAnalyze([
+            '--always-trust-plugins',
+            p.dirPath,
+          ]);
+          expect(result.exitCode, 0);
+          expect(
+            trustForProject(p).getTrust('root_plugin', rootSource),
+            TrustSetting.trusted,
+          );
+          expect(
+            trustForProject(p).getTrust('sub_plugin', subSource),
+            TrustSetting.unset,
+          );
+        },
+      );
     });
   });
 }

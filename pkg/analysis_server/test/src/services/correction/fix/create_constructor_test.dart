@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class CreateConstructorMixinTest extends FixProcessorTest {
+class CreateConstructorMixinTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createConstructor;
 
@@ -33,7 +33,7 @@ void f() {
 }
 
 @reflectiveTest
-class CreateConstructorTest extends FixProcessorTest {
+class CreateConstructorTest extends FixProcessorForBuiltInDiagnosticTest {
   static final _text200 = 'x' * 200;
 
   @override
@@ -287,7 +287,7 @@ enum E {
 
   const new x();
 }
-''', matchFixMessage: "Create constructor 'E.x'");
+''', fixMessageContains: "Create constructor 'E.x'");
   }
 
   Future<void> test_undefined_enum_constructor_unnamed() async {
@@ -304,7 +304,7 @@ enum E {
 
   const new();
 }
-''', matchFixMessage: "Create constructor 'E'");
+''', fixMessageContains: "Create constructor 'E'");
   }
 
   Future<void> test_undefined_enum_constructor_unnamed_parameters() async {

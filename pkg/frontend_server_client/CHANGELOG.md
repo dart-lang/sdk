@@ -1,5 +1,13 @@
-## 4.0.1-wip
+## 4.2.0
 
+- Support the DDC library bundle format and allow Frontend Server-driven hot
+  reload, hot restart, and expression compilation.
+- Add helpers for app bootstrapping.
+
+## 4.1.0
+
+- Support running from standalone CLI executables and respect `sdkRoot` when
+  locating SDK tools and snapshots.
 - Update Dart SDK constraint to `^3.10.0`.
 - Allow package_config `3.x.x`.
 

@@ -300,15 +300,13 @@ String demangleMixinApplicationSubclassName(String name) {
 }
 
 /// Computes a list of [typeParameters] taken as types.
-List<DartType> getAsTypeArguments(
+DartTypeList getAsTypeArguments(
   List<TypeParameter> typeParameters,
   Library library,
 ) {
-  if (typeParameters.isEmpty) return const <DartType>[];
-  return new List<DartType>.generate(
+  return DartTypeList.generate(
     typeParameters.length,
     (int i) => new TypeParameterType.withDefaultNullability(typeParameters[i]),
-    growable: false,
   );
 }
 

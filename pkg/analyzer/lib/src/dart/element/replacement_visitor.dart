@@ -25,7 +25,7 @@ class ReplacementVisitor
         TypeVisitor<TypeImpl?>,
         InferenceTypeVisitor<TypeImpl?>,
         LinkingTypeVisitor<TypeImpl?> {
-  const ReplacementVisitor();
+  const new();
 
   void changeVariance() {}
 

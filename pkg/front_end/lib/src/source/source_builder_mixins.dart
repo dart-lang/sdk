@@ -104,31 +104,24 @@ mixin SourceDeclarationBuilderBaseMixin
   }
 
   @override
-  List<DartType> buildAliasedTypeArguments(
+  DartTypeList buildAliasedTypeArguments(
     LibraryBuilder library,
     List<TypeBuilder>? arguments,
     ClassHierarchyBase? hierarchy,
   ) {
     if (arguments == null && typeParameters == null) {
-      return <DartType>[];
+      return DartTypeList.empty;
     }
 
     if (arguments == null && typeParameters != null) {
-      List<DartType> result = new List<DartType>.generate(
-        typeParameters!.length,
-        (int i) {
-          if (typeParameters![i].defaultType == null) {
-            throw 'here';
-          }
-          return typeParameters![i].defaultType!.buildAliased(
-            library,
-            TypeUse.defaultTypeAsTypeArgument,
-            hierarchy,
-          );
-        },
-        growable: true,
+      return DartTypeList.mapped(
+        typeParameters!,
+        (t) => t.defaultType!.buildAliased(
+          library,
+          TypeUse.defaultTypeAsTypeArgument,
+          hierarchy,
+        ),
       );
-      return result;
     }
 
     if (arguments != null && arguments.length != typeParametersCount) {
@@ -151,16 +144,10 @@ mixin SourceDeclarationBuilderBaseMixin
     }
 
     assert(arguments!.length == typeParametersCount);
-    List<DartType> result = new List<DartType>.generate(arguments!.length, (
-      int i,
-    ) {
-      return arguments[i].buildAliased(
-        library,
-        TypeUse.typeArgument,
-        hierarchy,
-      );
-    }, growable: true);
-    return result;
+    return DartTypeList.mapped(
+      arguments!,
+      (a) => a.buildAliased(library, TypeUse.typeArgument, hierarchy),
+    );
   }
 }
 

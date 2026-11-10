@@ -1466,6 +1466,9 @@ abstract class AsyncRewriterBase extends js.NodeVisitor<Object?> {
   Never visitParameter(js.Parameter node) => unreachable(node);
 
   @override
+  Never visitRestParameter(js.RestParameter node) => unreachable(node);
+
+  @override
   js.Expression visitPostfix(js.Postfix node) {
     if (node.op == "++" || node.op == "--") {
       js.Expression argument = node.argument;
@@ -1945,10 +1948,9 @@ js.VariableInitialization _makeVariableInitializer(
     declaration = variable;
   }
   return js.VariableInitialization(
-        declaration,
-        initValue,
-      ).withSourceInformation(sourceInformation)
-      as js.VariableInitialization;
+    declaration,
+    initValue,
+  ).withSourceInformation(sourceInformation) as js.VariableInitialization;
 }
 
 class AsyncRewriter extends AsyncRewriterBase {
@@ -2028,10 +2030,13 @@ class AsyncRewriter extends AsyncRewriterBase {
   void addErrorExit(js.JavaScriptNodeSourceInformation? sourceInformation) {
     if (!hasHandlerLabels) return; // rethrow handled in method boilerplate.
     beginLabel(rethrowLabel);
+    js.Expression currentError = js
+        .js('#.at(-1)', [errorStack])
+        .withSourceInformation(sourceInformation);
     js.Expression thenHelperCall = js
-        .js("#thenHelper(#errorStack.at(-1), #completer)", {
+        .js("#thenHelper(#currentError, #completer)", {
           "thenHelper": asyncRethrow,
-          "errorStack": errorStack,
+          "currentError": currentError,
           "completer": completer,
         })
         .withSourceInformation(sourceInformation);
@@ -2146,9 +2151,8 @@ class AsyncRewriter extends AsyncRewriterBase {
             "completer": completer,
           })
           .withSourceInformation(bodySourceInformation);
-      js.Statement returnAsyncRethrow = js.Return(
-        asyncRethrowCall,
-      ).withSourceInformation(bodySourceInformation);
+      js.Statement returnAsyncRethrow = js.Return(asyncRethrowCall)
+          .withSourceInformation(bodySourceInformation);
       errorCheck = js.js
           .statement(
             """
@@ -2186,9 +2190,8 @@ class AsyncRewriter extends AsyncRewriterBase {
           "completer": completer,
         })
         .withSourceInformation(bodySourceInformation);
-    js.Statement returnAsyncStart = js.Return(
-      asyncStartCall,
-    ).withSourceInformation(bodySourceInformation);
+    js.Statement returnAsyncStart = js.Return(asyncStartCall)
+        .withSourceInformation(bodySourceInformation);
     js.Expression wrapBodyCall = js
         .js("#wrapBody(#innerFunction)", {
           "wrapBody": wrapBody,
@@ -2360,9 +2363,8 @@ class SyncStarRewriter extends AsyncRewriterBase {
           },
         )
         .withSourceInformation(functionSourceInformation);
-    js.Statement returnInnerInnerFunction = js.Return(
-      innerInnerFunction,
-    ).withSourceInformation(bodySourceInformation);
+    js.Statement returnInnerInnerFunction = js.Return(innerInnerFunction)
+        .withSourceInformation(bodySourceInformation);
     js.Expression innerFunction = js
         .js(
           """
@@ -2381,9 +2383,8 @@ class SyncStarRewriter extends AsyncRewriterBase {
           },
         )
         .withSourceInformation(functionSourceInformation);
-    js.Statement returnInnerFunction = js.Return(
-      innerFunction,
-    ).withSourceInformation(bodySourceInformation);
+    js.Statement returnInnerFunction = js.Return(innerFunction)
+        .withSourceInformation(bodySourceInformation);
     return js
             .js(
               """
@@ -2417,7 +2418,7 @@ class SyncStarRewriter extends AsyncRewriterBase {
     // SYNC_STAR_UNCAUGHT_EXCEPTION status code.
     final store = js.Assignment(
       js.PropertyAccess(js.VariableUse(iteratorName), iteratorDatumProperty),
-      js.js('#.at(-1)', [errorStack]),
+      js.js('#.at(-1)', [errorStack]).withSourceInformation(sourceInformation),
     );
     addStatement(
       js.Return(
@@ -2439,9 +2440,8 @@ class SyncStarRewriter extends AsyncRewriterBase {
       addStatement(js.Comment("implicit return"));
     }
     addStatement(
-      js.Return(
-        js.number(status_codes.SYNC_STAR_DONE),
-      ).withSourceInformation(sourceInformation),
+      js.Return(js.number(status_codes.SYNC_STAR_DONE))
+          .withSourceInformation(sourceInformation),
     );
   }
 
@@ -2620,9 +2620,8 @@ class AsyncStarRewriter extends AsyncRewriterBase {
     js.Expression gotoError = js
         .js("#goto = #handler", {"goto": goto, "handler": handler})
         .withSourceInformation(bodySourceInformation);
-    js.Statement breakStatement = js.Break(
-      null,
-    ).withSourceInformation(bodySourceInformation);
+    js.Statement breakStatement = js.Break(null)
+        .withSourceInformation(bodySourceInformation);
     js.Statement switchCase = js.js
         .statement(
           """
@@ -2738,11 +2737,14 @@ class AsyncStarRewriter extends AsyncRewriterBase {
   void addErrorExit(js.JavaScriptNodeSourceInformation? sourceInformation) {
     hasHandlerLabels = true;
     beginLabel(rethrowLabel);
+    js.Expression currentError = js
+        .js('#.at(-1)', [errorStack])
+        .withSourceInformation(sourceInformation);
     js.Expression asyncHelperCall = js
-        .js("#asyncHelper(#errorStack.at(-1), #errorCode, #controller)", {
+        .js("#asyncHelper(#currentError, #errorCode, #controller)", {
           "asyncHelper": asyncStarHelper,
           "errorCode": js.number(status_codes.ERROR),
-          "errorStack": errorStack,
+          "currentError": currentError,
           "controller": controllerName,
         })
         .withSourceInformation(sourceInformation);

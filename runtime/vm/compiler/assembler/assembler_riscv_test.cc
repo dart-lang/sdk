@@ -9379,6 +9379,135 @@ ASSEMBLER_TEST_RUN(LoadImmediate_Bseti, test) {
 }
 #endif
 
+// Use rd != rn to exercise the two-instruction shift sequences,
+// which RV_GC selects by excluding the single-instruction Zba/Zbb forms.
+ASSEMBLER_TEST_GENERATE(ExtendValueByte, assembler) {
+  __ SetExtensions(RV_GC);
+  __ ExtendValue(A0, A1, kByte);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(ExtendValueByte, test) {
+  EXPECT_EQ(0, Call(test->entry(), -1, 0));
+  EXPECT_EQ(127, Call(test->entry(), 0, 0x1234567F));
+  EXPECT_EQ(-128, Call(test->entry(), 0, 0x12345680));
+}
+
+ASSEMBLER_TEST_GENERATE(ExtendValueHalfWord, assembler) {
+  __ SetExtensions(RV_GC);
+  __ ExtendValue(A0, A1, kTwoBytes);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(ExtendValueHalfWord, test) {
+  EXPECT_EQ(0, Call(test->entry(), -1, 0));
+  EXPECT_EQ(32767, Call(test->entry(), 0, 0x12347FFF));
+  EXPECT_EQ(-32768, Call(test->entry(), 0, 0x12348000));
+}
+
+ASSEMBLER_TEST_GENERATE(ExtendValueUnsignedHalfWord, assembler) {
+  __ SetExtensions(RV_GC);
+  __ ExtendValue(A0, A1, kUnsignedTwoBytes);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(ExtendValueUnsignedHalfWord, test) {
+  EXPECT_EQ(0, Call(test->entry(), -1, 0));
+  EXPECT_EQ(0xABCD, Call(test->entry(), 0, 0x1234ABCD));
+  EXPECT_EQ(0xFFFF, Call(test->entry(), 0, -1));
+}
+
+#if XLEN == 64
+ASSEMBLER_TEST_GENERATE(ExtendValueUnsignedWord, assembler) {
+  __ SetExtensions(RV_GC);
+  __ ExtendValue(A0, A1, kUnsignedFourBytes);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(ExtendValueUnsignedWord, test) {
+  EXPECT_EQ(0, Call(test->entry(), -1, 0));
+  EXPECT_EQ(0x9ABCDEF0, Call(test->entry(), 0, 0x123456789ABCDEF0));
+  EXPECT_EQ(0xFFFFFFFF, Call(test->entry(), 0, -1));
+}
+
+ASSEMBLER_TEST_GENERATE(AndImmediateWordMask, assembler) {
+  __ SetExtensions(RV_GC);
+  __ AndImmediate(A0, A1, kMaxUint32, kFourBytes);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AndImmediateWordMask, test) {
+  EXPECT_EQ(0, Call(test->entry(), -1, 0));
+  EXPECT_EQ(0x9ABCDEF0, Call(test->entry(), 0, 0x123456789ABCDEF0));
+  EXPECT_EQ(0xFFFFFFFF, Call(test->entry(), 0, -1));
+}
+
+ASSEMBLER_TEST_GENERATE(LslImmediateUnsignedWordZero, assembler) {
+  __ SetExtensions(RV_GC);
+  __ LslImmediate(A0, A1, 0, kUnsignedFourBytes);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(LslImmediateUnsignedWordZero, test) {
+  EXPECT_EQ(0, Call(test->entry(), -1, 0));
+  EXPECT_EQ(0x9ABCDEF0, Call(test->entry(), 0, 0x123456789ABCDEF0));
+  EXPECT_EQ(0xFFFFFFFF, Call(test->entry(), 0, -1));
+}
+
+ASSEMBLER_TEST_GENERATE(LslImmediateUnsignedWordOne, assembler) {
+  __ SetExtensions(RV_GC);
+  __ LslImmediate(A0, A1, 1, kUnsignedFourBytes);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(LslImmediateUnsignedWordOne, test) {
+  EXPECT_EQ(0, Call(test->entry(), -1, 0));
+  EXPECT_EQ(0x3579BDE0, Call(test->entry(), 0, 0x123456789ABCDEF0));
+  EXPECT_EQ(0xFFFFFFFE, Call(test->entry(), 0, -1));
+}
+
+ASSEMBLER_TEST_GENERATE(LslImmediateUnsignedWordMax, assembler) {
+  __ SetExtensions(RV_GC);
+  __ LslImmediate(A0, A1, 31, kUnsignedFourBytes);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(LslImmediateUnsignedWordMax, test) {
+  EXPECT_EQ(0, Call(test->entry(), -1, 0));
+  EXPECT_EQ(0, Call(test->entry(), 0, 0x123456789ABCDEF0));
+  EXPECT_EQ(0x80000000, Call(test->entry(), 0, 0x123456789ABCDEF1));
+}
+#endif  // XLEN == 64
+
+ASSEMBLER_TEST_GENERATE(ExtractBitFieldMiddleByte, assembler) {
+  __ SetExtensions(RV_GC);
+  __ ExtractBitField(A0, A1, 8, 8);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(ExtractBitFieldMiddleByte, test) {
+  EXPECT_EQ(0, Call(test->entry(), -1, 0xFF0000FF));
+  EXPECT_EQ(0xFF, Call(test->entry(), 0, -1));
+  EXPECT_EQ(0x56, Call(test->entry(), 0, 0x12345678));
+}
+
+ASSEMBLER_TEST_GENERATE(ExtractBitFieldTopByte, assembler) {
+  __ SetExtensions(RV_GC);
+  __ ExtractBitField(A0, A1, XLEN - 8, 8);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(ExtractBitFieldTopByte, test) {
+  EXPECT_EQ(0, Call(test->entry(), -1, 1));
+  EXPECT_EQ(0xFF, Call(test->entry(), 0, -1));
+  EXPECT_EQ(0xAB, Call(test->entry(), 0,
+                       static_cast<intx_t>(uintx_t{0xAB} << (XLEN - 8))));
+}
+
+ASSEMBLER_TEST_GENERATE(ExtractBitFieldFullWord, assembler) {
+  __ SetExtensions(RV_GC);
+  __ ExtractBitField(A0, A1, 0, XLEN);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(ExtractBitFieldFullWord, test) {
+  EXPECT_EQ(0, Call(test->entry(), -1, 0));
+  EXPECT_EQ(-1, Call(test->entry(), 0, -1));
+  EXPECT_EQ(0x12345678, Call(test->entry(), 0, 0x12345678));
+#if XLEN == 64
+  EXPECT_EQ(0x123456789ABCDEF0, Call(test->entry(), 0, 0x123456789ABCDEF0));
+#endif
+}
+
 ASSEMBLER_TEST_GENERATE(BitwiseImmediates_GC, assembler) {
   __ SetExtensions(RV_GC);
   __ AndImmediate(A0, A1, ~0x10000000);

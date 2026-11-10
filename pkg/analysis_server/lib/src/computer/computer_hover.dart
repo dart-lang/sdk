@@ -128,7 +128,12 @@ class DartUnitHoverComputer {
           hover.containingLibraryPath = libraryInfo?.libraryPath;
         }
         // documentation
-        hover.dartdoc = _documentationComputer.compute(elementReference)?.full;
+        var docs = _documentationComputer.compute(
+          elementReference,
+          includeFull: true,
+          includeSummary: false,
+        );
+        hover.dartdoc = docs?.full;
       }
       // parameter
       hover.parameter = _parameterDisplayString(node);
@@ -155,7 +160,10 @@ class DartUnitHoverComputer {
   /// information to disambiguate things like constructors from types (and
   /// whether they are const).
   String? _elementDisplayString(AstNode node, Element? element) {
-    var displayString = element?.displayString(multiline: true);
+    var displayString = element?.displayString(
+      multiline: true,
+      includePositionalParameterNames: true,
+    );
 
     if (displayString != null) {
       if (element is TypeParameterElement) {

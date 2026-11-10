@@ -270,7 +270,11 @@ class OptionsParser {
       if (option.abbr != null) {
         arguments.add('-${option.abbr}');
       } else {
-        arguments.add('--${option.name}');
+        if (value == false) {
+          arguments.add('--no-${option.name}');
+        } else {
+          arguments.add('--${option.name}');
+        }
       }
       if (value is String) {
         arguments.add(value);
@@ -412,6 +416,7 @@ class OptionsParser {
         fastTestsOnly: data["fast-tests"] as bool,
         printPassingStdout: data["print-passing-stdout"] as bool,
         noSandbox: data["no-sandbox"] as bool,
+        headless: data["headless"] as bool,
       );
 
       if (configuration.validate()) {
@@ -653,6 +658,8 @@ ArgParser _createParser({required bool verbose}) => ArgParser()
           'Compile the Dart code into Kernel and then into '
           'an app snapshot.',
       'dartk': 'Compile the Dart code into Kernel before running test.',
+      'dart_resident':
+          'Run the Dart code using "dart run -r" with the resident frontend compiler.',
       'dartkp':
           'Compile the Dart code into Kernel and then Kernel into '
           'AOT snapshot before running the test.',
@@ -734,6 +741,12 @@ test options, specifying how tests should be run.''',
     'no-sandbox',
     defaultsTo: Platform.isLinux,
     help: 'Pass --no-sandbox to Chrome.',
+  )
+  ..addFlag(
+    'headless',
+    defaultsTo: true,
+    hide: !verbose,
+    help: "Pass --headless to Chrome and Firefox.",
   )
   ..addFlag(
     'host-asserts',

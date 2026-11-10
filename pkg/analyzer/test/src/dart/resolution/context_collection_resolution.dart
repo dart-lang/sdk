@@ -22,6 +22,7 @@ import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer/src/workspace/pub.dart';
+import 'package:analyzer_testing/configuration_files_mixin.dart';
 import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
@@ -31,6 +32,7 @@ import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 
 import '../../../util/diff.dart';
@@ -132,6 +134,10 @@ abstract class ContextResolutionTest
   /// Optional Dart SDK summary file, to be used instead of [sdkRoot].
   File? sdkSummaryFile;
 
+  /// The language version of the mock SDK, or `null` to use the language
+  /// version of the analyzer.
+  Version? sdkLanguageVersion;
+
   /// Optional summaries to provide for the collection.
   List<File>? librarySummaryFiles;
 
@@ -155,6 +161,7 @@ abstract class ContextResolutionTest
       resourceProvider: resourceProvider,
       root: sdkRoot,
       additionalLibraries: additionalMockSdkLibraries,
+      languageVersion: sdkLanguageVersion,
     );
 
     collection = AnalysisContextCollectionImpl(
@@ -312,7 +319,7 @@ abstract class ContextResolutionTest
 }
 
 class PubPackageResolutionTest extends ContextResolutionTest
-    with MockPackagesMixin {
+    with MockPackagesMixin, ConfigurationFilesMixin {
   AnalysisOptionsImpl get analysisOptions {
     return contextFor(testFile).getAnalysisOptionsForFile(testFile)
         as AnalysisOptionsImpl;
@@ -329,11 +336,12 @@ class PubPackageResolutionTest extends ContextResolutionTest
   @override
   File get testFile => getFile('$testPackageLibPath/test.dart');
 
-  /// The language version to use by default for `package:test`.
+  @override
   String? get testPackageLanguageVersion => null;
 
   String get testPackageLibPath => '$testPackageRootPath/lib';
 
+  @override
   String get testPackageRootPath => '$workspaceRootPath/test';
 
   String get workspaceRootPath => '/home';
@@ -344,9 +352,10 @@ class PubPackageResolutionTest extends ContextResolutionTest
   }) async {
     var rootFolder = getFolder('$workspaceRootPath/foo');
 
-    writePackageConfig(
+    writePackageConfig2(
       rootFolder.path,
-      PackageConfigFileBuilder()..add(name: 'foo', rootFolder: rootFolder),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootFolder: rootFolder),
     );
 
     for (var entry in files.entries) {
@@ -378,14 +387,6 @@ class PubPackageResolutionTest extends ContextResolutionTest
       analysisOptionsContent(experimentalFeatures: experimentalFeatures),
     );
     writeTestPackageConfig(PackageConfigFileBuilder());
-  }
-
-  void writePackageConfig(
-    String directoryPath,
-    PackageConfigFileBuilder config,
-  ) {
-    var content = config.toContent();
-    newPackageConfigJsonFile(directoryPath, content);
   }
 
   Future<File> writeSdkSummary() async {
@@ -460,7 +461,11 @@ class _VisibleOutsideTemplate {
       config.add(name: 'meta', rootFolder: getFolder(metaPath));
     }
 
-    writePackageConfig(testPackageRootPath, config);
+    writePackageConfig2(
+      testPackageRootPath,
+      packageName: 'test',
+      config: config,
+    );
   }
 
   void writeTestPackageConfigWithMeta() {

@@ -147,10 +147,12 @@ class TestCase {
 
   int get timeout {
     var result = configuration.timeout(displayName);
-    if (expectedOutcomes.contains(Expectation.slow)) {
-      result *= _slowTimeoutMultiplier;
-    } else if (expectedOutcomes.contains(Expectation.extraSlow)) {
+    // Check for ExtraSlow first, as tests can be marked both Slow and
+    // ExtraSlow by different status file entries.
+    if (expectedOutcomes.contains(Expectation.extraSlow)) {
       result *= _extraSlowTimeoutMultiplier;
+    } else if (expectedOutcomes.contains(Expectation.slow)) {
+      result *= _slowTimeoutMultiplier;
     }
     return result;
   }
@@ -257,7 +259,7 @@ class RunningProcess {
     } else {
       var processEnvironment = _createProcessEnvironment();
       var args = [...command.nonBatchArguments, ...command.arguments];
-      var processFuture = io.Process.start(
+      var processFuture = startProcess(
         command.executable,
         args,
         environment: processEnvironment,

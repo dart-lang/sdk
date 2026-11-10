@@ -73,7 +73,7 @@ class CiderByteStore implements ByteStore {
       if (entry == null) {
         // TODO(scheglov): enable and fix
         // throw StateError('No entry: $key');
-        return;
+        continue;
       }
       entry.refCount--;
       if (entry.refCount == 0) {
@@ -88,7 +88,7 @@ class CiderByteStoreEntry {
   final Uint8List bytes;
   int refCount = 1;
 
-  CiderByteStoreEntry._(this.bytes);
+  new _(this.bytes);
 
   @override
   String toString() {
@@ -125,7 +125,7 @@ class MemoryCachingByteStore implements ByteStore {
   int _storeHitCount = 0;
   int _storeMissCount = 0;
 
-  MemoryCachingByteStore(this._store, int maxSizeBytes)
+  new(this._store, int maxSizeBytes)
     : _cache = Cache<String, Uint8List>(maxSizeBytes, (v) => v.length);
 
   int get cacheHitCount => _cacheHitCount;

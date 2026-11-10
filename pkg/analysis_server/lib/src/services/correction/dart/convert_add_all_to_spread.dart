@@ -34,7 +34,7 @@ class ConvertAddAllToSpread extends ResolvedCorrectionProducer {
     var name = context.node;
     MethodInvocation? invocation;
     var isInlineInvocation = false;
-    if (name case SimpleIdentifier(parent: MethodInvocation parent)) {
+    if (name case SimpleIdentifier(:MethodInvocation parent)) {
       invocation = parent;
 
       if (name != invocation.methodName ||
@@ -171,7 +171,6 @@ class ConvertAddAllToSpread extends ResolvedCorrectionProducer {
 
 extension on Expression {
   bool get isEmptyListLiteral {
-    var self = this;
-    return self is ListLiteral && self.elements.isEmpty;
+    return this is ListLiteral && elements.isEmpty;
   }
 }

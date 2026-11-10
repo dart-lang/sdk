@@ -78,11 +78,9 @@ abstract class MembersNodeBuilder {
           ],
         );
       } else {
-        declarationBuilder.libraryBuilder.addProblem(
+        declarationBuilder.libraryBuilder.addProblem2(
           diag.inheritedMembersConflict,
-          declarationBuilder.fileOffset,
-          declarationBuilder.fullNameForErrors.length,
-          declarationBuilder.fileUri,
+          declarationBuilder.uriOffset,
           context: _inheritedConflictContext(a, b),
         );
       }
@@ -139,9 +137,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
     List<FormalParameterBuilder>? formals,
     Iterable<ClassMember> overriddenMembers, {
     required String name,
-    required Uri fileUri,
-    required int nameOffset,
-    required int nameLength,
+    required UriOffsetLength uriOffset,
   }) {
     if (declaredReturnType is InferableTypeBuilder ||
         formals != null &&
@@ -239,18 +235,14 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
           classBuilder.libraryBuilder,
           overriddenMembers,
           name: name,
-          fileUri: fileUri,
-          nameOffset: nameOffset,
-          nameLength: nameLength,
+          uriOffset: uriOffset,
         );
       } else if (cantInferReturnType) {
         reportCantInferReturnType(
           classBuilder.libraryBuilder,
           overriddenMembers,
           name: name,
-          fileUri: fileUri,
-          nameOffset: nameOffset,
-          nameLength: nameLength,
+          uriOffset: uriOffset,
         );
       } else if (cantInferParameterTypes != null) {
         reportCantInferParameterType(
@@ -319,9 +311,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
     TypeBuilder declaredTypeBuilder,
     Iterable<ClassMember> overriddenMembers, {
     required String name,
-    required Uri fileUri,
-    required int nameOffset,
-    required int nameLength,
+    required UriOffsetLength uriOffset,
   }) {
     if (declaredTypeBuilder is InferableTypeBuilder) {
       DartType? inferredType;
@@ -353,9 +343,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
             classBuilder.libraryBuilder,
             members,
             name: name,
-            fileUri: fileUri,
-            nameOffset: nameOffset,
-            nameLength: nameLength,
+            uriOffset: uriOffset,
           );
         } else {
           inferredType = combinedMemberSignatureType;
@@ -394,9 +382,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
     List<FormalParameterBuilder>? formals,
     Iterable<ClassMember> overriddenMembers, {
     required String name,
-    required Uri fileUri,
-    required int nameOffset,
-    required int nameLength,
+    required UriOffsetLength uriOffset,
   }) {
     if (formals == null) {
       // Erroneous case.
@@ -447,9 +433,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
             classBuilder.libraryBuilder,
             members,
             name: name,
-            fileUri: fileUri,
-            nameOffset: nameOffset,
-            nameLength: name.length,
+            uriOffset: uriOffset,
           );
         } else {
           inferredType = combinedMemberSignatureType;
@@ -487,9 +471,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
     TypeBuilder declaredFieldType,
     Iterable<ClassMember> overriddenMembers, {
     required String name,
-    required Uri fileUri,
-    required int nameOffset,
-    required int nameLength,
+    required UriOffsetLength uriOffset,
     required bool isAssignable,
   }) {
     if (declaredFieldType is InferableTypeBuilder) {
@@ -567,9 +549,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
           classBuilder.libraryBuilder,
           overriddenMembers,
           name: name,
-          fileUri: fileUri,
-          nameOffset: nameOffset,
-          nameLength: nameLength,
+          uriOffset: uriOffset,
         );
       } else {
         inferredType = combinedMemberSignatureType;
@@ -1155,14 +1135,12 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
     for (int i = 0; i < names.length; i++) {
       context.add(contextMap[names[i]]!);
     }
-    classBuilder.libraryBuilder.addProblem(
+    classBuilder.libraryBuilder.addProblem2(
       diag.missingImplementationNotAbstract.withArguments(
         className: classBuilder.fullNameForErrors,
         memberNames: names,
       ),
-      classBuilder.fileOffset,
-      classBuilder.fullNameForErrors.length,
-      classBuilder.fileUri,
+      classBuilder.uriOffset,
       context: context,
     );
   }
@@ -3061,11 +3039,9 @@ void reportCantInferParameterType(
       // overridden both as getters and setters.
       .toSet()
       .toList();
-  problemReporting.addProblem(
+  problemReporting.addProblem2(
     diag.cantInferTypeDueToNoCombinedSignature.withArguments(name: name),
-    parameter.fileOffset,
-    name.length,
-    parameter.fileUri,
+    parameter.uriOffset,
     wasHandled: true,
     context: context,
   );
@@ -3075,9 +3051,7 @@ void reportCantInferTypes(
   ProblemReporting problemReporting,
   Iterable<ClassMember> overriddenMembers, {
   required String name,
-  required Uri fileUri,
-  required int nameOffset,
-  required int nameLength,
+  required UriOffsetLength uriOffset,
 }) {
   List<LocatedMessage> context = overriddenMembers
       .map((ClassMember overriddenMember) {
@@ -3088,11 +3062,9 @@ void reportCantInferTypes(
       // overridden both as getters and setters.
       .toSet()
       .toList();
-  problemReporting.addProblem(
+  problemReporting.addProblem2(
     diag.cantInferTypesDueToNoCombinedSignature.withArguments(name: name),
-    nameOffset,
-    nameLength,
-    fileUri,
+    uriOffset,
     wasHandled: true,
     context: context,
   );
@@ -3102,9 +3074,7 @@ void reportCantInferReturnType(
   ProblemReporting problemReporting,
   Iterable<ClassMember> overriddenMembers, {
   required String name,
-  required Uri fileUri,
-  required int nameOffset,
-  required int nameLength,
+  required UriOffsetLength uriOffset,
 }) {
   List<LocatedMessage> context = overriddenMembers
       .map((ClassMember overriddenMember) {
@@ -3115,11 +3085,9 @@ void reportCantInferReturnType(
       // overridden both as getters and setters.
       .toSet()
       .toList();
-  problemReporting.addProblem(
+  problemReporting.addProblem2(
     diag.cantInferReturnTypeDueToNoCombinedSignature.withArguments(name: name),
-    nameOffset,
-    nameLength,
-    fileUri,
+    uriOffset,
     wasHandled: true,
     context: context,
   );
@@ -3129,9 +3097,7 @@ void reportCantInferFieldType(
   ProblemReporting problemReporting,
   Iterable<ClassMember> overriddenMembers, {
   required String name,
-  required Uri fileUri,
-  required int nameOffset,
-  required int nameLength,
+  required UriOffsetLength uriOffset,
 }) {
   List<LocatedMessage> context = overriddenMembers
       .map((ClassMember overriddenMember) {
@@ -3142,11 +3108,9 @@ void reportCantInferFieldType(
       // overridden both as getters and setters.
       .toSet()
       .toList();
-  problemReporting.addProblem(
+  problemReporting.addProblem2(
     diag.cantInferTypeDueToNoCombinedSignature.withArguments(name: name),
-    nameOffset,
-    nameLength,
-    fileUri,
+    uriOffset,
     wasHandled: true,
     context: context,
   );

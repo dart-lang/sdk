@@ -21,10 +21,7 @@ class ExtractWidgetTest extends RefactoringTest {
   late ExtractWidgetRefactoringImpl refactoring;
 
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  bool get addFlutterPackageDep => true;
 
   Future<void> test_checkAllConditions_selection() async {
     await indexTestUnit('''

@@ -1,0 +1,12 @@
+import 'super_call_lib.dart';
+
+abstract class CompleteSuper extends Super {
+  int field = 42;
+  int get getter => 42;
+  void method() {}
+  void set setter(int value) {}
+}
+
+abstract class InvalidClass extends Super with Mixin {}
+
+class ValidClass extends CompleteSuper with Mixin {}

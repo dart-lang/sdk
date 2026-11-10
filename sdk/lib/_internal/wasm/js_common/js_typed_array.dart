@@ -38,17 +38,17 @@ final class JSArrayBufferImpl extends js.JSExternWrapper implements ByteBuffer {
   bool get isSharedArrayBuffer =>
       _refType == _ArrayBufferType.sharedArrayBuffer;
 
-  JSArrayBufferImpl.fromRefUnchecked(WasmExternRef? ref)
+  JSArrayBufferImpl.fromRefUnchecked(WasmExternRef ref)
     : _immutable = false,
       super(ref) {
     assert(isArrayBuffer || isSharedArrayBuffer);
   }
 
-  JSArrayBufferImpl.fromRefImmutableUnchecked(WasmExternRef? ref)
+  JSArrayBufferImpl.fromRefImmutableUnchecked(WasmExternRef ref)
     : _immutable = true,
       super(ref);
 
-  factory JSArrayBufferImpl.fromRef(WasmExternRef? ref) {
+  factory JSArrayBufferImpl.fromRef(WasmExternRef ref) {
     final refType = _getRefType(ref);
     if (refType == _ArrayBufferType.unknown) {
       return _throwConversionFailureError("ByteBuffer");
@@ -57,6 +57,7 @@ final class JSArrayBufferImpl extends js.JSExternWrapper implements ByteBuffer {
   }
 
   static JSArrayBufferImpl? fromRefNullable(WasmExternRef? ref) {
+    if (ref == null) return null;
     final refType = _getRefType(ref);
     if (refType == _ArrayBufferType.nullOrUndefined) return null;
     if (refType == _ArrayBufferType.unknown)
@@ -65,24 +66,24 @@ final class JSArrayBufferImpl extends js.JSExternWrapper implements ByteBuffer {
   }
 
   /// Get a JS `DataView` of this `ArrayBuffer` or `SharedArrayBuffer`.
-  WasmExternRef? _jsDataView(int offsetInBytes, int? length) =>
+  WasmExternRef _jsDataView(int offsetInBytes, int? length) =>
       _newDataViewFromArrayBufferOrSharedArrayBuffer(
         wrappedExternRef,
         offsetInBytes,
         length,
       );
 
-  WasmExternRef? _cloneAsDataView(int offsetInBytes, int? lengthInBytes) {
+  WasmExternRef _cloneAsDataView(int offsetInBytes, int? lengthInBytes) {
     lengthInBytes ??= this.lengthInBytes;
-    return js.JS<WasmExternRef?>(
+    return js.JS<WasmExternRef>(
       '''(o, offsetInBytes, lengthInBytes) => {
       var dst = new ArrayBuffer(lengthInBytes);
       new Uint8Array(dst).set(new Uint8Array(o, offsetInBytes, lengthInBytes));
       return new DataView(dst);
     }''',
       wrappedExternRef,
-      offsetInBytes.toDouble(),
-      lengthInBytes.toDouble(),
+      WasmI32.fromInt(offsetInBytes),
+      WasmI32.fromInt(lengthInBytes),
     );
   }
 
@@ -206,13 +207,12 @@ abstract class JSArrayBase extends js.JSExternWrapper implements TypedData {
   /// List length
   final int length;
 
-  JSArrayBase(WasmExternRef? ref, int elementSizeShift)
-    : length = _dataViewByteLength(ref) >>> elementSizeShift,
-      super(ref);
+  JSArrayBase(super.ref, int elementSizeShift)
+    : length = _dataViewByteLength(ref) >>> elementSizeShift;
 
-  WasmExternRef? get _toExternRef => wrappedExternRef;
+  WasmExternRef get _toExternRef => wrappedExternRef;
 
-  WasmExternRef? toJSArrayExternRef([int start = 0, int? length]);
+  WasmExternRef toJSArrayExternRef([int start = 0, int? length]);
 
   @override
   JSArrayBufferImpl get buffer =>
@@ -296,7 +296,7 @@ final class JSDataViewImpl extends js.JSExternWrapper implements ByteData {
           return 2;
         }''', ref).toIntUnsigned();
 
-  JSDataViewImpl._(WasmExternRef? ref, this.lengthInBytes, this._immutable)
+  JSDataViewImpl._(WasmExternRef ref, this.lengthInBytes, this._immutable)
     : super(ref) {
     assert(_getRefType(ref) == 1);
   }
@@ -305,25 +305,28 @@ final class JSDataViewImpl extends js.JSExternWrapper implements ByteData {
     : _immutable = false,
       super(_newDataView(lengthInBytes));
 
-  JSDataViewImpl.fromRefUnchecked(WasmExternRef? ref)
+  JSDataViewImpl.fromRefUnchecked(WasmExternRef ref)
     : lengthInBytes = _dataViewByteLength(ref),
       _immutable = false,
-      super(ref);
+      super(ref) {
+    assert(_getRefType(ref) == 1);
+  }
 
-  factory JSDataViewImpl.fromRef(WasmExternRef? ref) {
+  factory JSDataViewImpl.fromRef(WasmExternRef ref) {
     final refType = _getRefType(ref);
     if (refType != 1) return _throwConversionFailureError("ByteData");
     return JSDataViewImpl.fromRefUnchecked(ref);
   }
 
   static JSDataViewImpl? fromRefNullable(WasmExternRef? ref) {
+    if (ref == null) return null;
     final refType = _getRefType(ref);
     if (refType == 0) return null;
-    if (refType == 2) return JSDataViewImpl.fromRefUnchecked(ref);
+    if (refType == 1) return JSDataViewImpl.fromRefUnchecked(ref);
     return _throwConversionFailureError("ByteData");
   }
 
-  JSDataViewImpl.immutable(WasmExternRef? ref, this.lengthInBytes)
+  JSDataViewImpl.immutable(WasmExternRef ref, this.lengthInBytes)
     : _immutable = true,
       super(ref);
 
@@ -483,14 +486,14 @@ abstract class _IntArrayIteratorBase extends js.JSExternWrapper
   int _position = -1;
   int _current = 0;
 
-  _IntArrayIteratorBase(WasmExternRef? ref, this._length) : super(ref);
+  _IntArrayIteratorBase(super.ref, this._length);
 
   @pragma("wasm:prefer-inline")
   int get current => _current;
 }
 
 mixin _IntListMixin implements List<int> {
-  WasmExternRef? toJSArrayExternRef([int start = 0, int? length]);
+  WasmExternRef toJSArrayExternRef([int start = 0, int? length]);
 
   void _setUnchecked(int index, int value);
 
@@ -511,7 +514,7 @@ mixin _IntListMixin implements List<int> {
     this[length - 1] = value;
   }
 
-  int indexWhere(bool test(int element), [int start = 0]) {
+  int indexWhere(bool Function(int element) test, [int start = 0]) {
     final length = this.length;
     if (start < 0) start = 0;
     for (int i = start; i < length; i++) {
@@ -520,7 +523,7 @@ mixin _IntListMixin implements List<int> {
     return -1;
   }
 
-  int lastIndexWhere(bool test(int element), [int? start]) {
+  int lastIndexWhere(bool Function(int element) test, [int? start]) {
     final length = this.length;
     int startIndex = (start == null || start >= length) ? length - 1 : start;
     for (int i = startIndex; i >= 0; i--) {
@@ -551,16 +554,17 @@ mixin _IntListMixin implements List<int> {
     }
   }
 
-  Iterable<int> where(bool f(int element)) => WhereIterable<int>(this, f);
+  Iterable<int> where(bool Function(int element) f) =>
+      WhereIterable<int>(this, f);
 
   Iterable<int> take(int n) => SubListIterable<int>(this, 0, n);
 
-  Iterable<int> takeWhile(bool test(int element)) =>
+  Iterable<int> takeWhile(bool Function(int element) test) =>
       TakeWhileIterable<int>(this, test);
 
   Iterable<int> skip(int n) => SubListIterable<int>(this, n, null);
 
-  Iterable<int> skipWhile(bool test(int element)) =>
+  Iterable<int> skipWhile(bool Function(int element) test) =>
       SkipWhileIterable<int>(this, test);
 
   Iterable<int> get reversed => ReversedListIterable<int>(this);
@@ -580,14 +584,14 @@ mixin _IntListMixin implements List<int> {
     return Set<int>.of(this);
   }
 
-  void forEach(void f(int element)) {
+  void forEach(void Function(int element) f) {
     final length = this.length;
     for (var i = 0; i < length; i++) {
       f(_getUnchecked(i));
     }
   }
 
-  int reduce(int combine(int value, int element)) {
+  int reduce(int Function(int value, int element) combine) {
     final length = this.length;
     if (length == 0) throw IterableElementError.noElement();
     var value = _getUnchecked(0);
@@ -597,7 +601,7 @@ mixin _IntListMixin implements List<int> {
     return value;
   }
 
-  T fold<T>(T initialValue, T combine(T initialValue, int element)) {
+  T fold<T>(T initialValue, T Function(T initialValue, int element) combine) {
     final length = this.length;
     for (var i = 0; i < length; ++i) {
       initialValue = combine(initialValue, _getUnchecked(i));
@@ -605,12 +609,13 @@ mixin _IntListMixin implements List<int> {
     return initialValue;
   }
 
-  Iterable<T> map<T>(T f(int element)) => MappedIterable<int, T>(this, f);
+  Iterable<T> map<T>(T Function(int element) f) =>
+      MappedIterable<int, T>(this, f);
 
-  Iterable<T> expand<T>(Iterable<T> f(int element)) =>
+  Iterable<T> expand<T>(Iterable<T> Function(int element) f) =>
       ExpandIterable<int, T>(this, f);
 
-  bool every(bool f(int element)) {
+  bool every(bool Function(int element) f) {
     final length = this.length;
     for (var i = 0; i < length; ++i) {
       if (!f(_getUnchecked(i))) return false;
@@ -618,7 +623,7 @@ mixin _IntListMixin implements List<int> {
     return true;
   }
 
-  bool any(bool f(int element)) {
+  bool any(bool Function(int element) f) {
     final length = this.length;
     for (var i = 0; i < length; ++i) {
       if (f(_getUnchecked(i))) return true;
@@ -626,7 +631,7 @@ mixin _IntListMixin implements List<int> {
     return false;
   }
 
-  int firstWhere(bool test(int element), {int orElse()?}) {
+  int firstWhere(bool Function(int element) test, {int Function()? orElse}) {
     final length = this.length;
     for (var i = 0; i < length; ++i) {
       final element = _getUnchecked(i);
@@ -636,7 +641,7 @@ mixin _IntListMixin implements List<int> {
     throw IterableElementError.noElement();
   }
 
-  int lastWhere(bool test(int element), {int orElse()?}) {
+  int lastWhere(bool Function(int element) test, {int Function()? orElse}) {
     final length = this.length;
     for (var i = length - 1; i >= 0; --i) {
       final element = _getUnchecked(i);
@@ -648,7 +653,7 @@ mixin _IntListMixin implements List<int> {
     throw IterableElementError.noElement();
   }
 
-  int singleWhere(bool test(int element), {int orElse()?}) {
+  int singleWhere(bool Function(int element) test, {int Function()? orElse}) {
     var result = null;
     bool foundMatching = false;
     final length = this.length;
@@ -671,7 +676,7 @@ mixin _IntListMixin implements List<int> {
     return this[index];
   }
 
-  void sort([int compare(int a, int b)?]) {
+  void sort([int Function(int a, int b)? compare]) {
     Sort.sort(this, compare ?? Comparable.compare);
   }
 
@@ -705,11 +710,11 @@ mixin _IntListMixin implements List<int> {
     throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
-  void removeWhere(bool test(int element)) {
+  void removeWhere(bool Function(int element) test) {
     throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
-  void retainWhere(bool test(int element)) {
+  void retainWhere(bool Function(int element) test) {
     throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
@@ -811,7 +816,7 @@ mixin _IntListMixin implements List<int> {
 // TODO(omersa): This mixin should override other update methods (probably just
 // setRange) that don't use `[]=` to modify the list.
 mixin _UnmodifiableIntListMixin {
-  WasmExternRef? get _toExternRef;
+  WasmExternRef get _toExternRef;
 
   JSArrayBufferImpl get buffer => JSArrayBufferImpl.fromRefImmutableUnchecked(
     _dataViewBuffer(_toExternRef),
@@ -834,7 +839,7 @@ mixin _UnmodifiableIntListMixin {
 final class JSUint8ArrayImpl extends JSIntegerArrayBase
     with _IntListMixin
     implements Uint8List {
-  JSUint8ArrayImpl._(WasmExternRef? _dataViewRef, [WasmExternRef? _arrayRef])
+  JSUint8ArrayImpl._(WasmExternRef _dataViewRef, [WasmExternRef? _arrayRef])
     : super(_dataViewRef, 0, _arrayRef);
 
   factory JSUint8ArrayImpl(int length) =>
@@ -846,12 +851,12 @@ final class JSUint8ArrayImpl extends JSIntegerArrayBase
           return 2;
         }''', ref).toIntUnsigned();
 
-  factory JSUint8ArrayImpl.fromRefUnchecked(WasmExternRef? ref) {
+  factory JSUint8ArrayImpl.fromRefUnchecked(WasmExternRef ref) {
     assert(_getRefType(ref) == 1);
     return JSUint8ArrayImpl._(_dataViewFromJSArray(ref), ref);
   }
 
-  factory JSUint8ArrayImpl.fromRef(WasmExternRef? ref) {
+  factory JSUint8ArrayImpl.fromRef(WasmExternRef ref) {
     if (_getRefType(ref) != 1) {
       return _throwConversionFailureError("Uint8List");
     }
@@ -859,6 +864,7 @@ final class JSUint8ArrayImpl extends JSIntegerArrayBase
   }
 
   static JSUint8ArrayImpl? fromRefNullable(WasmExternRef? ref) {
+    if (ref == null) return null;
     final refType = _getRefType(ref);
     if (refType == 0) return null;
     if (refType == 1) return JSUint8ArrayImpl.fromRefUnchecked(ref);
@@ -876,12 +882,12 @@ final class JSUint8ArrayImpl extends JSIntegerArrayBase
   int get elementSizeInBytes => 1;
 
   @override
-  WasmExternRef? toJSArrayExternRef([int start = 0, int? length]) {
+  WasmExternRef toJSArrayExternRef([int start = 0, int? length]) {
     length = length ?? (this.length - start);
     if (!_arrayRef.isNull && start == 0 && length == this.length) {
-      return _arrayRef;
+      return _arrayRef!;
     }
-    return js.JS<WasmExternRef?>(
+    return js.JS<WasmExternRef>(
       '(o, start, length) => new Uint8Array(o.buffer, o.byteOffset + start, length)',
       wrappedExternRef,
       WasmI32.fromInt(start),
@@ -930,7 +936,7 @@ final class JSUint8ArrayImpl extends JSIntegerArrayBase
 }
 
 final class _JSUint8ArrayIterator extends _IntArrayIteratorBase {
-  _JSUint8ArrayIterator(WasmExternRef? ref, int length) : super(ref, length);
+  _JSUint8ArrayIterator(WasmExternRef ref, int length) : super(ref, length);
 
   @pragma("wasm:prefer-inline")
   bool moveNext() {
@@ -945,13 +951,13 @@ final class _JSUint8ArrayIterator extends _IntArrayIteratorBase {
 
 final class UnmodifiableJSUint8Array extends JSUint8ArrayImpl
     with _UnmodifiableIntListMixin {
-  UnmodifiableJSUint8Array._(WasmExternRef? ref) : super._(ref);
+  UnmodifiableJSUint8Array._(WasmExternRef ref) : super._(ref);
 }
 
 final class JSInt8ArrayImpl extends JSIntegerArrayBase
     with _IntListMixin
     implements Int8List {
-  JSInt8ArrayImpl._(WasmExternRef? _dataViewRef, [WasmExternRef? _arrayRef])
+  JSInt8ArrayImpl._(WasmExternRef _dataViewRef, [WasmExternRef? _arrayRef])
     : super(_dataViewRef, 0, _arrayRef);
 
   factory JSInt8ArrayImpl(int length) =>
@@ -963,12 +969,12 @@ final class JSInt8ArrayImpl extends JSIntegerArrayBase
           return 2;
         }''', ref).toIntUnsigned();
 
-  factory JSInt8ArrayImpl.fromRefUnchecked(WasmExternRef? ref) {
+  factory JSInt8ArrayImpl.fromRefUnchecked(WasmExternRef ref) {
     assert(_getRefType(ref) == 1);
     return JSInt8ArrayImpl._(_dataViewFromJSArray(ref), ref);
   }
 
-  factory JSInt8ArrayImpl.fromRef(WasmExternRef? ref) {
+  factory JSInt8ArrayImpl.fromRef(WasmExternRef ref) {
     if (_getRefType(ref) != 1) {
       return _throwConversionFailureError("Int8List");
     }
@@ -976,6 +982,7 @@ final class JSInt8ArrayImpl extends JSIntegerArrayBase
   }
 
   static JSInt8ArrayImpl? fromRefNullable(WasmExternRef? ref) {
+    if (ref == null) return null;
     final refType = _getRefType(ref);
     if (refType == 0) return null;
     if (refType == 1) return JSInt8ArrayImpl.fromRefUnchecked(ref);
@@ -993,12 +1000,12 @@ final class JSInt8ArrayImpl extends JSIntegerArrayBase
   int get elementSizeInBytes => 1;
 
   @override
-  WasmExternRef? toJSArrayExternRef([int start = 0, int? length]) {
+  WasmExternRef toJSArrayExternRef([int start = 0, int? length]) {
     length = length ?? (this.length - start);
     if (!_arrayRef.isNull && start == 0 && length == this.length) {
-      return _arrayRef;
+      return _arrayRef!;
     }
-    return js.JS<WasmExternRef?>(
+    return js.JS<WasmExternRef>(
       '(o, start, length) => new Int8Array(o.buffer, o.byteOffset + start, length)',
       wrappedExternRef,
       WasmI32.fromInt(start),
@@ -1062,14 +1069,14 @@ final class _JSInt8ArrayIterator extends _IntArrayIteratorBase {
 
 final class UnmodifiableJSInt8Array extends JSInt8ArrayImpl
     with _UnmodifiableIntListMixin {
-  UnmodifiableJSInt8Array._(WasmExternRef? ref) : super._(ref);
+  UnmodifiableJSInt8Array._(WasmExternRef ref) : super._(ref);
 }
 
 final class JSUint8ClampedArrayImpl extends JSIntegerArrayBase
     with _IntListMixin
     implements Uint8ClampedList {
   JSUint8ClampedArrayImpl._(
-    WasmExternRef? _dataViewRef, [
+    WasmExternRef _dataViewRef, [
     WasmExternRef? _arrayRef,
   ]) : super(_dataViewRef, 0, _arrayRef);
 
@@ -1077,14 +1084,14 @@ final class JSUint8ClampedArrayImpl extends JSIntegerArrayBase
       JSUint8ClampedArrayImpl._(_newDataView(length));
 
   static bool _checkArrayRefType(WasmExternRef? ref) =>
-      js.JS<bool>('o => o instanceof Uint8ClampedArray', ref);
+      js.JS<WasmI32>('o => o instanceof Uint8ClampedArray', ref).toBool();
 
-  factory JSUint8ClampedArrayImpl.fromRefUnchecked(WasmExternRef? ref) {
+  factory JSUint8ClampedArrayImpl.fromRefUnchecked(WasmExternRef ref) {
     assert(_checkArrayRefType(ref));
     return JSUint8ClampedArrayImpl._(_dataViewFromJSArray(ref), ref);
   }
 
-  factory JSUint8ClampedArrayImpl.fromRef(WasmExternRef? ref) {
+  factory JSUint8ClampedArrayImpl.fromRef(WasmExternRef ref) {
     if (!_checkArrayRefType(ref)) {
       return _throwConversionFailureError("Uint8ClampedList");
     }
@@ -1092,10 +1099,8 @@ final class JSUint8ClampedArrayImpl extends JSIntegerArrayBase
   }
 
   static JSUint8ClampedArrayImpl? fromRefNullable(WasmExternRef? ref) {
+    if (ref == null) return null;
     if (!_checkArrayRefType(ref)) {
-      if (ref.isNull) {
-        return null;
-      }
       return _throwConversionFailureError("Uint8ClampedList");
     }
     return JSUint8ClampedArrayImpl.fromRefUnchecked(ref);
@@ -1112,12 +1117,12 @@ final class JSUint8ClampedArrayImpl extends JSIntegerArrayBase
   int get elementSizeInBytes => 1;
 
   @override
-  WasmExternRef? toJSArrayExternRef([int start = 0, int? length]) {
+  WasmExternRef toJSArrayExternRef([int start = 0, int? length]) {
     length = length ?? (this.length - start);
     if (!_arrayRef.isNull && start == 0 && length == this.length) {
-      return _arrayRef;
+      return _arrayRef!;
     }
-    return js.JS<WasmExternRef?>(
+    return js.JS<WasmExternRef>(
       '(o, start, length) => new Uint8ClampedArray(o.buffer, o.byteOffset + start, length)',
       wrappedExternRef,
       WasmI32.fromInt(start),
@@ -1167,27 +1172,27 @@ final class JSUint8ClampedArrayImpl extends JSIntegerArrayBase
 
 final class UnmodifiableJSUint8ClampedArray extends JSUint8ClampedArrayImpl
     with _UnmodifiableIntListMixin {
-  UnmodifiableJSUint8ClampedArray._(WasmExternRef? ref) : super._(ref);
+  UnmodifiableJSUint8ClampedArray._(WasmExternRef ref) : super._(ref);
 }
 
 final class JSUint16ArrayImpl extends JSIntegerArrayBase
     with _IntListMixin
     implements Uint16List {
-  JSUint16ArrayImpl._(WasmExternRef? _dataViewRef, [WasmExternRef? _arrayRef])
+  JSUint16ArrayImpl._(WasmExternRef _dataViewRef, [WasmExternRef? _arrayRef])
     : super(_dataViewRef, 1, _arrayRef);
 
   factory JSUint16ArrayImpl(int length) =>
       JSUint16ArrayImpl._(_newDataView(length * 2));
 
   static bool _checkArrayRefType(WasmExternRef? ref) =>
-      js.JS<bool>('o => o instanceof Uint16Array', ref);
+      js.JS<WasmI32>('o => o instanceof Uint16Array', ref).toBool();
 
-  factory JSUint16ArrayImpl.fromRefUnchecked(WasmExternRef? ref) {
+  factory JSUint16ArrayImpl.fromRefUnchecked(WasmExternRef ref) {
     assert(_checkArrayRefType(ref));
     return JSUint16ArrayImpl._(_dataViewFromJSArray(ref), ref);
   }
 
-  factory JSUint16ArrayImpl.fromRef(WasmExternRef? ref) {
+  factory JSUint16ArrayImpl.fromRef(WasmExternRef ref) {
     if (!_checkArrayRefType(ref)) {
       return _throwConversionFailureError("Uint16List");
     }
@@ -1195,10 +1200,8 @@ final class JSUint16ArrayImpl extends JSIntegerArrayBase
   }
 
   static JSUint16ArrayImpl? fromRefNullable(WasmExternRef? ref) {
+    if (ref == null) return null;
     if (!_checkArrayRefType(ref)) {
-      if (ref.isNull) {
-        return null;
-      }
       return _throwConversionFailureError("Uint16List");
     }
     return JSUint16ArrayImpl.fromRefUnchecked(ref);
@@ -1223,12 +1226,12 @@ final class JSUint16ArrayImpl extends JSIntegerArrayBase
   int get elementSizeInBytes => 2;
 
   @override
-  WasmExternRef? toJSArrayExternRef([int start = 0, int? length]) {
+  WasmExternRef toJSArrayExternRef([int start = 0, int? length]) {
     length = length ?? (this.length - start);
     if (!_arrayRef.isNull && start == 0 && length == this.length) {
-      return _arrayRef;
+      return _arrayRef!;
     }
-    return js.JS<WasmExternRef?>(
+    return js.JS<WasmExternRef>(
       '(o, start, length) => new Uint16Array(o.buffer, o.byteOffset + start, length)',
       wrappedExternRef,
       WasmI32.fromInt(start * 2),
@@ -1292,27 +1295,27 @@ final class _JSUint16ArrayIterator extends _IntArrayIteratorBase {
 
 final class UnmodifiableJSUint16Array extends JSUint16ArrayImpl
     with _UnmodifiableIntListMixin {
-  UnmodifiableJSUint16Array._(WasmExternRef? ref) : super._(ref);
+  UnmodifiableJSUint16Array._(WasmExternRef ref) : super._(ref);
 }
 
 final class JSInt16ArrayImpl extends JSIntegerArrayBase
     with _IntListMixin
     implements Int16List {
-  JSInt16ArrayImpl._(WasmExternRef? _dataViewRef, [WasmExternRef? _arrayRef])
+  JSInt16ArrayImpl._(WasmExternRef _dataViewRef, [WasmExternRef? _arrayRef])
     : super(_dataViewRef, 1, _arrayRef);
 
   factory JSInt16ArrayImpl(int length) =>
       JSInt16ArrayImpl._(_newDataView(length * 2));
 
   static bool _checkArrayRefType(WasmExternRef? ref) =>
-      js.JS<bool>('o => o instanceof Int16Array', ref);
+      js.JS<WasmI32>('o => o instanceof Int16Array', ref).toBool();
 
-  factory JSInt16ArrayImpl.fromRefUnchecked(WasmExternRef? ref) {
+  factory JSInt16ArrayImpl.fromRefUnchecked(WasmExternRef ref) {
     assert(_checkArrayRefType(ref));
     return JSInt16ArrayImpl._(_dataViewFromJSArray(ref), ref);
   }
 
-  factory JSInt16ArrayImpl.fromRef(WasmExternRef? ref) {
+  factory JSInt16ArrayImpl.fromRef(WasmExternRef ref) {
     if (!_checkArrayRefType(ref)) {
       return _throwConversionFailureError("Int16List");
     }
@@ -1320,10 +1323,8 @@ final class JSInt16ArrayImpl extends JSIntegerArrayBase
   }
 
   static JSInt16ArrayImpl? fromRefNullable(WasmExternRef? ref) {
+    if (ref == null) return null;
     if (!_checkArrayRefType(ref)) {
-      if (ref.isNull) {
-        return null;
-      }
       return _throwConversionFailureError("Int16List");
     }
     return JSInt16ArrayImpl.fromRefUnchecked(ref);
@@ -1346,12 +1347,12 @@ final class JSInt16ArrayImpl extends JSIntegerArrayBase
   int get elementSizeInBytes => 2;
 
   @override
-  WasmExternRef? toJSArrayExternRef([int start = 0, int? length]) {
+  WasmExternRef toJSArrayExternRef([int start = 0, int? length]) {
     length = length ?? (this.length - start);
     if (!_arrayRef.isNull && start == 0 && length == this.length) {
-      return _arrayRef;
+      return _arrayRef!;
     }
-    return js.JS<WasmExternRef?>(
+    return js.JS<WasmExternRef>(
       '(o, start, length) => new Int16Array(o.buffer, o.byteOffset + start, length)',
       wrappedExternRef,
       WasmI32.fromInt(start * 2),
@@ -1415,13 +1416,13 @@ final class _JSInt16ArrayIterator extends _IntArrayIteratorBase {
 
 final class UnmodifiableJSInt16Array extends JSInt16ArrayImpl
     with _UnmodifiableIntListMixin {
-  UnmodifiableJSInt16Array._(WasmExternRef? ref) : super._(ref);
+  UnmodifiableJSInt16Array._(WasmExternRef ref) : super._(ref);
 }
 
 final class JSUint32ArrayImpl extends JSIntegerArrayBase
     with _IntListMixin
     implements Uint32List {
-  JSUint32ArrayImpl._(WasmExternRef? _dataViewRef, [WasmExternRef? _arrayRef])
+  JSUint32ArrayImpl._(WasmExternRef _dataViewRef, [WasmExternRef? _arrayRef])
     : super(_dataViewRef, 2, _arrayRef);
 
   factory JSUint32ArrayImpl(int length) =>
@@ -1433,12 +1434,12 @@ final class JSUint32ArrayImpl extends JSIntegerArrayBase
           return 2;
         }''', ref).toIntUnsigned();
 
-  factory JSUint32ArrayImpl.fromRefUnchecked(WasmExternRef? ref) {
+  factory JSUint32ArrayImpl.fromRefUnchecked(WasmExternRef ref) {
     assert(_getRefType(ref) == 1);
     return JSUint32ArrayImpl._(_dataViewFromJSArray(ref), ref);
   }
 
-  factory JSUint32ArrayImpl.fromRef(WasmExternRef? ref) {
+  factory JSUint32ArrayImpl.fromRef(WasmExternRef ref) {
     if (_getRefType(ref) != 1) {
       return _throwConversionFailureError("Uint32List");
     }
@@ -1446,6 +1447,7 @@ final class JSUint32ArrayImpl extends JSIntegerArrayBase
   }
 
   static JSUint32ArrayImpl? fromRefNullable(WasmExternRef? ref) {
+    if (ref == null) return null;
     final refType = _getRefType(ref);
     if (refType == 0) return null;
     if (refType == 1) return JSUint32ArrayImpl.fromRefUnchecked(ref);
@@ -1471,12 +1473,12 @@ final class JSUint32ArrayImpl extends JSIntegerArrayBase
   int get elementSizeInBytes => 4;
 
   @override
-  WasmExternRef? toJSArrayExternRef([int start = 0, int? length]) {
+  WasmExternRef toJSArrayExternRef([int start = 0, int? length]) {
     length = length ?? (this.length - start);
     if (!_arrayRef.isNull && start == 0 && length == this.length) {
-      return _arrayRef;
+      return _arrayRef!;
     }
-    return js.JS<WasmExternRef?>(
+    return js.JS<WasmExternRef>(
       '(o, start, length) => new Uint32Array(o.buffer, o.byteOffset + start, length)',
       wrappedExternRef,
       WasmI32.fromInt(start * 4),
@@ -1540,13 +1542,13 @@ final class _JSUint32ArrayIterator extends _IntArrayIteratorBase {
 
 final class UnmodifiableJSUint32Array extends JSUint32ArrayImpl
     with _UnmodifiableIntListMixin {
-  UnmodifiableJSUint32Array._(WasmExternRef? ref) : super._(ref);
+  UnmodifiableJSUint32Array._(WasmExternRef ref) : super._(ref);
 }
 
 final class JSInt32ArrayImpl extends JSIntegerArrayBase
     with _IntListMixin
     implements Int32List {
-  JSInt32ArrayImpl._(WasmExternRef? _dataViewRef, [WasmExternRef? _arrayRef])
+  JSInt32ArrayImpl._(WasmExternRef _dataViewRef, [WasmExternRef? _arrayRef])
     : super(_dataViewRef, 2, _arrayRef);
 
   factory JSInt32ArrayImpl(int length) =>
@@ -1558,12 +1560,12 @@ final class JSInt32ArrayImpl extends JSIntegerArrayBase
           return 2;
         }''', ref).toIntUnsigned();
 
-  factory JSInt32ArrayImpl.fromRefUnchecked(WasmExternRef? ref) {
+  factory JSInt32ArrayImpl.fromRefUnchecked(WasmExternRef ref) {
     assert(_getRefType(ref) == 1);
     return JSInt32ArrayImpl._(_dataViewFromJSArray(ref), ref);
   }
 
-  factory JSInt32ArrayImpl.fromRef(WasmExternRef? ref) {
+  factory JSInt32ArrayImpl.fromRef(WasmExternRef ref) {
     if (_getRefType(ref) != 1) {
       return _throwConversionFailureError("Int32List");
     }
@@ -1571,6 +1573,7 @@ final class JSInt32ArrayImpl extends JSIntegerArrayBase
   }
 
   static JSInt32ArrayImpl? fromRefNullable(WasmExternRef? ref) {
+    if (ref == null) return null;
     final refType = _getRefType(ref);
     if (refType == 0) return null;
     if (refType == 1) return JSInt32ArrayImpl.fromRefUnchecked(ref);
@@ -1594,12 +1597,12 @@ final class JSInt32ArrayImpl extends JSIntegerArrayBase
   int get elementSizeInBytes => 4;
 
   @override
-  WasmExternRef? toJSArrayExternRef([int start = 0, int? length]) {
+  WasmExternRef toJSArrayExternRef([int start = 0, int? length]) {
     length = length ?? (this.length - start);
     if (!_arrayRef.isNull && start == 0 && length == this.length) {
-      return _arrayRef;
+      return _arrayRef!;
     }
-    return js.JS<WasmExternRef?>(
+    return js.JS<WasmExternRef>(
       '(o, start, length) => new Int32Array(o.buffer, o.byteOffset + start, length)',
       wrappedExternRef,
       WasmI32.fromInt(start * 4),
@@ -1663,7 +1666,7 @@ final class _JSInt32ArrayIterator extends _IntArrayIteratorBase {
 
 final class UnmodifiableJSInt32Array extends JSInt32ArrayImpl
     with _UnmodifiableIntListMixin {
-  UnmodifiableJSInt32Array._(WasmExternRef? ref) : super._(ref);
+  UnmodifiableJSInt32Array._(WasmExternRef ref) : super._(ref);
 }
 
 final class JSInt32x4ArrayImpl
@@ -1760,15 +1763,13 @@ final class JSInt32x4ArrayImpl
 final class JSBigUint64ArrayImpl extends JSIntegerArrayBase
     with _IntListMixin
     implements Uint64List {
-  JSBigUint64ArrayImpl._(
-    WasmExternRef? _dataViewRef, [
-    WasmExternRef? _arrayRef,
-  ]) : super(_dataViewRef, 3, _arrayRef);
+  JSBigUint64ArrayImpl._(WasmExternRef _dataViewRef, [WasmExternRef? _arrayRef])
+    : super(_dataViewRef, 3, _arrayRef);
 
   factory JSBigUint64ArrayImpl(int length) =>
       JSBigUint64ArrayImpl._(_newDataView(length * 8));
 
-  factory JSBigUint64ArrayImpl.fromJSArray(WasmExternRef? jsArrayRef) =>
+  factory JSBigUint64ArrayImpl.fromJSArray(WasmExternRef jsArrayRef) =>
       JSBigUint64ArrayImpl._(_dataViewFromJSArray(jsArrayRef), jsArrayRef);
 
   factory JSBigUint64ArrayImpl.view(
@@ -1790,12 +1791,12 @@ final class JSBigUint64ArrayImpl extends JSIntegerArrayBase
   int get elementSizeInBytes => 8;
 
   @override
-  WasmExternRef? toJSArrayExternRef([int start = 0, int? length]) {
+  WasmExternRef toJSArrayExternRef([int start = 0, int? length]) {
     length = length ?? (this.length - start);
     if (!_arrayRef.isNull && start == 0 && length == this.length) {
-      return _arrayRef;
+      return _arrayRef!;
     }
-    return js.JS<WasmExternRef?>(
+    return js.JS<WasmExternRef>(
       '(o, start, length) => new BigUint64Array(o.buffer, o.byteOffset + start, length)',
       wrappedExternRef,
       WasmI32.fromInt(start * 8),
@@ -1860,19 +1861,19 @@ final class _JSUint64ArrayIterator extends _IntArrayIteratorBase {
 
 final class UnmodifiableJSBigUint64Array extends JSBigUint64ArrayImpl
     with _UnmodifiableIntListMixin {
-  UnmodifiableJSBigUint64Array._(WasmExternRef? ref) : super._(ref);
+  UnmodifiableJSBigUint64Array._(WasmExternRef ref) : super._(ref);
 }
 
 final class JSBigInt64ArrayImpl extends JSIntegerArrayBase
     with _IntListMixin
     implements Int64List {
-  JSBigInt64ArrayImpl._(WasmExternRef? _dataViewRef, [WasmExternRef? _arrayRef])
+  JSBigInt64ArrayImpl._(WasmExternRef _dataViewRef, [WasmExternRef? _arrayRef])
     : super(_dataViewRef, 3, _arrayRef);
 
   factory JSBigInt64ArrayImpl(int length) =>
       JSBigInt64ArrayImpl._(_newDataView(length * 8));
 
-  factory JSBigInt64ArrayImpl.fromJSArray(WasmExternRef? jsArrayRef) =>
+  factory JSBigInt64ArrayImpl.fromJSArray(WasmExternRef jsArrayRef) =>
       JSBigInt64ArrayImpl._(_dataViewFromJSArray(jsArrayRef), jsArrayRef);
 
   factory JSBigInt64ArrayImpl.view(
@@ -1894,12 +1895,12 @@ final class JSBigInt64ArrayImpl extends JSIntegerArrayBase
   int get elementSizeInBytes => 8;
 
   @override
-  WasmExternRef? toJSArrayExternRef([int start = 0, int? length]) {
+  WasmExternRef toJSArrayExternRef([int start = 0, int? length]) {
     length = length ?? (this.length - start);
     if (!_arrayRef.isNull && start == 0 && length == this.length) {
-      return _arrayRef;
+      return _arrayRef!;
     }
-    return js.JS<WasmExternRef?>(
+    return js.JS<WasmExternRef>(
       '(o, start, length) => new BigInt64Array(o.buffer, o.byteOffset + start, length)',
       wrappedExternRef,
       WasmI32.fromInt(start * 8),
@@ -1964,7 +1965,7 @@ final class _JSInt64ArrayIterator extends _IntArrayIteratorBase {
 
 final class UnmodifiableJSBigInt64Array extends JSBigInt64ArrayImpl
     with _UnmodifiableIntListMixin {
-  UnmodifiableJSBigInt64Array._(WasmExternRef? ref) : super._(ref);
+  UnmodifiableJSBigInt64Array._(WasmExternRef ref) : super._(ref);
 }
 
 abstract class _DoubleArrayIteratorBase extends js.JSExternWrapper
@@ -1973,14 +1974,14 @@ abstract class _DoubleArrayIteratorBase extends js.JSExternWrapper
   int _position = -1;
   double _current = 0;
 
-  _DoubleArrayIteratorBase(WasmExternRef? ref, this._length) : super(ref);
+  _DoubleArrayIteratorBase(WasmExternRef ref, this._length) : super(ref);
 
   @pragma("wasm:prefer-inline")
   double get current => _current;
 }
 
 mixin _DoubleListMixin implements List<double> {
-  WasmExternRef? toJSArrayExternRef([int start = 0, int? length]);
+  WasmExternRef toJSArrayExternRef([int start = 0, int? length]);
 
   void _setUnchecked(int index, double value);
 
@@ -2001,7 +2002,7 @@ mixin _DoubleListMixin implements List<double> {
     this[length - 1] = value;
   }
 
-  int indexWhere(bool test(double element), [int start = 0]) {
+  int indexWhere(bool Function(double element) test, [int start = 0]) {
     final length = this.length;
     if (start < 0) start = 0;
     for (int i = start; i < length; i++) {
@@ -2010,7 +2011,7 @@ mixin _DoubleListMixin implements List<double> {
     return -1;
   }
 
-  int lastIndexWhere(bool test(double element), [int? start]) {
+  int lastIndexWhere(bool Function(double element) test, [int? start]) {
     final length = this.length;
     int startIndex = (start == null || start >= length) ? length - 1 : start;
     for (int i = startIndex; i >= 0; i--) {
@@ -2041,17 +2042,17 @@ mixin _DoubleListMixin implements List<double> {
     }
   }
 
-  Iterable<double> where(bool f(double element)) =>
+  Iterable<double> where(bool Function(double element) f) =>
       WhereIterable<double>(this, f);
 
   Iterable<double> take(int n) => SubListIterable<double>(this, 0, n);
 
-  Iterable<double> takeWhile(bool test(double element)) =>
+  Iterable<double> takeWhile(bool Function(double element) test) =>
       TakeWhileIterable<double>(this, test);
 
   Iterable<double> skip(int n) => SubListIterable<double>(this, n, null);
 
-  Iterable<double> skipWhile(bool test(double element)) =>
+  Iterable<double> skipWhile(bool Function(double element) test) =>
       SkipWhileIterable<double>(this, test);
 
   Iterable<double> get reversed => ReversedListIterable<double>(this);
@@ -2071,14 +2072,14 @@ mixin _DoubleListMixin implements List<double> {
     return Set<double>.of(this);
   }
 
-  void forEach(void f(double element)) {
+  void forEach(void Function(double element) f) {
     final length = this.length;
     for (var i = 0; i < length; i++) {
       f(_getUnchecked(i));
     }
   }
 
-  double reduce(double combine(double value, double element)) {
+  double reduce(double Function(double value, double element) combine) {
     final length = this.length;
     if (length == 0) throw IterableElementError.noElement();
     var value = _getUnchecked(0);
@@ -2088,7 +2089,10 @@ mixin _DoubleListMixin implements List<double> {
     return value;
   }
 
-  T fold<T>(T initialValue, T combine(T initialValue, double element)) {
+  T fold<T>(
+    T initialValue,
+    T Function(T initialValue, double element) combine,
+  ) {
     final length = this.length;
     for (var i = 0; i < length; ++i) {
       initialValue = combine(initialValue, _getUnchecked(i));
@@ -2096,12 +2100,13 @@ mixin _DoubleListMixin implements List<double> {
     return initialValue;
   }
 
-  Iterable<T> map<T>(T f(double element)) => MappedIterable<double, T>(this, f);
+  Iterable<T> map<T>(T Function(double element) f) =>
+      MappedIterable<double, T>(this, f);
 
-  Iterable<T> expand<T>(Iterable<T> f(double element)) =>
+  Iterable<T> expand<T>(Iterable<T> Function(double element) f) =>
       ExpandIterable<double, T>(this, f);
 
-  bool every(bool f(double element)) {
+  bool every(bool Function(double element) f) {
     final length = this.length;
     for (var i = 0; i < length; ++i) {
       if (!f(_getUnchecked(i))) return false;
@@ -2109,7 +2114,7 @@ mixin _DoubleListMixin implements List<double> {
     return true;
   }
 
-  bool any(bool f(double element)) {
+  bool any(bool Function(double element) f) {
     final length = this.length;
     for (var i = 0; i < length; ++i) {
       if (f(_getUnchecked(i))) return true;
@@ -2117,7 +2122,10 @@ mixin _DoubleListMixin implements List<double> {
     return false;
   }
 
-  double firstWhere(bool test(double element), {double orElse()?}) {
+  double firstWhere(
+    bool Function(double element) test, {
+    double Function()? orElse,
+  }) {
     final length = this.length;
     for (var i = 0; i < length; ++i) {
       final element = _getUnchecked(i);
@@ -2127,7 +2135,10 @@ mixin _DoubleListMixin implements List<double> {
     throw IterableElementError.noElement();
   }
 
-  double lastWhere(bool test(double element), {double orElse()?}) {
+  double lastWhere(
+    bool Function(double element) test, {
+    double Function()? orElse,
+  }) {
     final length = this.length;
     for (var i = length - 1; i >= 0; --i) {
       final element = _getUnchecked(i);
@@ -2139,7 +2150,10 @@ mixin _DoubleListMixin implements List<double> {
     throw IterableElementError.noElement();
   }
 
-  double singleWhere(bool test(double element), {double orElse()?}) {
+  double singleWhere(
+    bool Function(double element) test, {
+    double Function()? orElse,
+  }) {
     var result = null;
     bool foundMatching = false;
     final length = this.length;
@@ -2162,7 +2176,7 @@ mixin _DoubleListMixin implements List<double> {
     return this[index];
   }
 
-  void sort([int compare(double a, double b)?]) {
+  void sort([int Function(double a, double b)? compare]) {
     Sort.sort(this, compare ?? Comparable.compare);
   }
 
@@ -2196,11 +2210,11 @@ mixin _DoubleListMixin implements List<double> {
     throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
-  void removeWhere(bool test(double element)) {
+  void removeWhere(bool Function(double element) test) {
     throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
-  void retainWhere(bool test(double element)) {
+  void retainWhere(bool Function(double element) test) {
     throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
@@ -2292,7 +2306,7 @@ mixin _DoubleListMixin implements List<double> {
 }
 
 mixin _UnmodifiableDoubleListMixin {
-  WasmExternRef? get _toExternRef;
+  WasmExternRef get _toExternRef;
 
   JSArrayBufferImpl get buffer => JSArrayBufferImpl.fromRefImmutableUnchecked(
     _dataViewBuffer(_toExternRef),
@@ -2315,7 +2329,7 @@ mixin _UnmodifiableDoubleListMixin {
 final class JSFloat32ArrayImpl extends JSFloatArrayBase
     with _DoubleListMixin
     implements Float32List {
-  JSFloat32ArrayImpl._(WasmExternRef? _dataViewRef, [WasmExternRef? _arrayRef])
+  JSFloat32ArrayImpl._(WasmExternRef _dataViewRef, [WasmExternRef? _arrayRef])
     : super(_dataViewRef, 2, _arrayRef);
 
   factory JSFloat32ArrayImpl(int length) =>
@@ -2327,12 +2341,12 @@ final class JSFloat32ArrayImpl extends JSFloatArrayBase
           return 2;
         }''', ref).toIntUnsigned();
 
-  factory JSFloat32ArrayImpl.fromRefUnchecked(WasmExternRef? ref) {
+  factory JSFloat32ArrayImpl.fromRefUnchecked(WasmExternRef ref) {
     assert(_getRefType(ref) == 1);
     return JSFloat32ArrayImpl._(_dataViewFromJSArray(ref), ref);
   }
 
-  factory JSFloat32ArrayImpl.fromRef(WasmExternRef? ref) {
+  factory JSFloat32ArrayImpl.fromRef(WasmExternRef ref) {
     if (_getRefType(ref) != 1) {
       return _throwConversionFailureError("Float32List");
     }
@@ -2340,6 +2354,7 @@ final class JSFloat32ArrayImpl extends JSFloatArrayBase
   }
 
   static JSFloat32ArrayImpl? fromRefNullable(WasmExternRef? ref) {
+    if (ref == null) return null;
     final refType = _getRefType(ref);
     if (refType == 0) return null;
     if (refType == 1) return JSFloat32ArrayImpl.fromRefUnchecked(ref);
@@ -2365,13 +2380,13 @@ final class JSFloat32ArrayImpl extends JSFloatArrayBase
   int get elementSizeInBytes => 4;
 
   @override
-  WasmExternRef? toJSArrayExternRef([int start = 0, int? length]) {
+  WasmExternRef toJSArrayExternRef([int start = 0, int? length]) {
     if (!_arrayRef.isNull &&
         start == 0 &&
         (length == null || length == this.length)) {
-      return _arrayRef;
+      return _arrayRef!;
     }
-    return js.JS<WasmExternRef?>(
+    return js.JS<WasmExternRef>(
       '(o, start, length) => new Float32Array(o.buffer, o.byteOffset + start, length)',
       wrappedExternRef,
       WasmI32.fromInt(start * 4),
@@ -2436,13 +2451,13 @@ final class _JSFloat32ArrayIterator extends _DoubleArrayIteratorBase {
 
 final class UnmodifiableJSFloat32Array extends JSFloat32ArrayImpl
     with _UnmodifiableDoubleListMixin {
-  UnmodifiableJSFloat32Array._(WasmExternRef? ref) : super._(ref);
+  UnmodifiableJSFloat32Array._(WasmExternRef ref) : super._(ref);
 }
 
 final class JSFloat64ArrayImpl extends JSFloatArrayBase
     with _DoubleListMixin
     implements Float64List {
-  JSFloat64ArrayImpl._(WasmExternRef? _dataViewRef, [WasmExternRef? _arrayRef])
+  JSFloat64ArrayImpl._(WasmExternRef _dataViewRef, [WasmExternRef? _arrayRef])
     : super(_dataViewRef, 3, _arrayRef);
 
   factory JSFloat64ArrayImpl(int length) =>
@@ -2454,12 +2469,12 @@ final class JSFloat64ArrayImpl extends JSFloatArrayBase
           return 2;
         }''', ref).toIntUnsigned();
 
-  factory JSFloat64ArrayImpl.fromRefUnchecked(WasmExternRef? ref) {
+  factory JSFloat64ArrayImpl.fromRefUnchecked(WasmExternRef ref) {
     assert(_getRefType(ref) == 1);
     return JSFloat64ArrayImpl._(_dataViewFromJSArray(ref), ref);
   }
 
-  factory JSFloat64ArrayImpl.fromRef(WasmExternRef? ref) {
+  factory JSFloat64ArrayImpl.fromRef(WasmExternRef ref) {
     if (_getRefType(ref) != 1) {
       return _throwConversionFailureError("Float64List");
     }
@@ -2467,6 +2482,7 @@ final class JSFloat64ArrayImpl extends JSFloatArrayBase
   }
 
   static JSFloat64ArrayImpl? fromRefNullable(WasmExternRef? ref) {
+    if (ref == null) return null;
     final refType = _getRefType(ref);
     if (refType == 0) return null;
     if (refType == 1) return JSFloat64ArrayImpl.fromRefUnchecked(ref);
@@ -2492,13 +2508,13 @@ final class JSFloat64ArrayImpl extends JSFloatArrayBase
   int get elementSizeInBytes => 8;
 
   @override
-  WasmExternRef? toJSArrayExternRef([int start = 0, int? length]) {
+  WasmExternRef toJSArrayExternRef([int start = 0, int? length]) {
     if (!_arrayRef.isNull &&
         start == 0 &&
         (length == null || length == this.length)) {
-      return _arrayRef;
+      return _arrayRef!;
     }
-    return js.JS<WasmExternRef?>(
+    return js.JS<WasmExternRef>(
       '(o, start, length) => new Float64Array(o.buffer, o.byteOffset + start, length)',
       wrappedExternRef,
       WasmI32.fromInt(start * 8),
@@ -2563,7 +2579,7 @@ final class _JSFloat64ArrayIterator extends _DoubleArrayIteratorBase {
 
 final class UnmodifiableJSFloat64Array extends JSFloat64ArrayImpl
     with _UnmodifiableDoubleListMixin {
-  UnmodifiableJSFloat64Array._(WasmExternRef? ref) : super._(ref);
+  UnmodifiableJSFloat64Array._(WasmExternRef ref) : super._(ref);
 }
 
 final class JSFloat32x4ArrayImpl
@@ -2748,34 +2764,34 @@ final class JSFloat64x2ArrayImpl
   }
 }
 
-void _setRangeFast(WasmExternRef? targetArray, WasmExternRef? sourceArray) =>
-    js.JS<void>('(t, s) => t.set(s)', targetArray, sourceArray);
+void _setRangeFast(WasmExternRef targetArray, WasmExternRef sourceArray) =>
+    js.JS<WasmVoid>('(t, s) => t.set(s)', targetArray, sourceArray);
 
 @pragma("wasm:prefer-inline")
-WasmExternRef? _newDataView(int length) => js.JS<WasmExternRef?>(
+WasmExternRef _newDataView(int length) => js.JS<WasmExternRef>(
   'l => new DataView(new ArrayBuffer(l))',
   WasmI32.fromInt(length),
 );
 
-WasmExternRef? _dataViewFromJSArray(WasmExternRef? jsArrayRef) =>
-    js.JS<WasmExternRef?>(
+WasmExternRef _dataViewFromJSArray(WasmExternRef jsArrayRef) =>
+    js.JS<WasmExternRef>(
       '(o) => new DataView(o.buffer, o.byteOffset, o.byteLength)',
       jsArrayRef,
     );
 
 @pragma("wasm:prefer-inline")
-int _arrayBufferByteLength(WasmExternRef? ref) =>
+int _arrayBufferByteLength(WasmExternRef ref) =>
     js.JS<WasmI32>('o => o.byteLength', ref).toIntSigned();
 
-WasmExternRef? _dataViewBuffer(WasmExternRef? dataViewRef) =>
-    js.JS<WasmExternRef?>('o => o.buffer', dataViewRef);
+WasmExternRef _dataViewBuffer(WasmExternRef dataViewRef) =>
+    js.JS<WasmExternRef>('o => o.buffer', dataViewRef);
 
 @pragma("wasm:prefer-inline")
-int _dataViewByteOffset(WasmExternRef? dataViewRef) =>
+int _dataViewByteOffset(WasmExternRef dataViewRef) =>
     js.JS<WasmI32>('o => o.byteOffset', dataViewRef).toIntSigned();
 
 @pragma("wasm:prefer-inline")
-int _dataViewByteLength(WasmExternRef? ref) => js
+int _dataViewByteLength(WasmExternRef ref) => js
     .JS<WasmF64>(
       "Function.prototype.call.bind(Object.getOwnPropertyDescriptor(DataView.prototype, 'byteLength').get)",
       ref,
@@ -2784,17 +2800,17 @@ int _dataViewByteLength(WasmExternRef? ref) => js
     .toInt();
 
 @pragma("wasm:prefer-inline")
-WasmExternRef? _newDataViewFromArrayBufferOrSharedArrayBuffer(
-  WasmExternRef? bufferRef,
+WasmExternRef _newDataViewFromArrayBufferOrSharedArrayBuffer(
+  WasmExternRef bufferRef,
   int offsetInBytes,
   int? length,
 ) => length == null
-    ? js.JS<WasmExternRef?>(
+    ? js.JS<WasmExternRef>(
         '(b, o) => new DataView(b, o)',
         bufferRef,
         WasmI32.fromInt(offsetInBytes),
       )
-    : js.JS<WasmExternRef?>(
+    : js.JS<WasmExternRef>(
         '(b, o, l) => new DataView(b, o, l)',
         bufferRef,
         WasmI32.fromInt(offsetInBytes),
@@ -2802,7 +2818,7 @@ WasmExternRef? _newDataViewFromArrayBufferOrSharedArrayBuffer(
       );
 
 @pragma("wasm:prefer-inline")
-int _getUint8(WasmExternRef? ref, int byteOffset) => js
+int _getUint8(WasmExternRef ref, int byteOffset) => js
     .JS<WasmI32>(
       'Function.prototype.call.bind(DataView.prototype.getUint8)',
       ref,
@@ -2811,7 +2827,7 @@ int _getUint8(WasmExternRef? ref, int byteOffset) => js
     .toIntUnsigned();
 
 @pragma("wasm:prefer-inline")
-void _setUint8(WasmExternRef? ref, int byteOffset, int value) => js.JS<void>(
+void _setUint8(WasmExternRef ref, int byteOffset, int value) => js.JS<WasmVoid>(
   'Function.prototype.call.bind(DataView.prototype.setUint8)',
   ref,
   WasmI32.fromInt(byteOffset),
@@ -2819,7 +2835,7 @@ void _setUint8(WasmExternRef? ref, int byteOffset, int value) => js.JS<void>(
 );
 
 @pragma("wasm:prefer-inline")
-int _getInt8(WasmExternRef? ref, int byteOffset) => js
+int _getInt8(WasmExternRef ref, int byteOffset) => js
     .JS<WasmI32>(
       'Function.prototype.call.bind(DataView.prototype.getInt8)',
       ref,
@@ -2828,7 +2844,7 @@ int _getInt8(WasmExternRef? ref, int byteOffset) => js
     .toIntSigned();
 
 @pragma("wasm:prefer-inline")
-void _setInt8(WasmExternRef? ref, int byteOffset, int value) => js.JS<void>(
+void _setInt8(WasmExternRef ref, int byteOffset, int value) => js.JS<WasmVoid>(
   'Function.prototype.call.bind(DataView.prototype.setInt8)',
   ref,
   WasmI32.fromInt(byteOffset),
@@ -2836,7 +2852,7 @@ void _setInt8(WasmExternRef? ref, int byteOffset, int value) => js.JS<void>(
 );
 
 @pragma("wasm:prefer-inline")
-int _getUint16(WasmExternRef? ref, int byteOffset, bool littleEndian) => js
+int _getUint16(WasmExternRef ref, int byteOffset, bool littleEndian) => js
     .JS<WasmI32>(
       'Function.prototype.call.bind(DataView.prototype.getUint16)',
       ref,
@@ -2847,11 +2863,11 @@ int _getUint16(WasmExternRef? ref, int byteOffset, bool littleEndian) => js
 
 @pragma("wasm:prefer-inline")
 void _setUint16(
-  WasmExternRef? ref,
+  WasmExternRef ref,
   int byteOffset,
   int value,
   bool littleEndian,
-) => js.JS<void>(
+) => js.JS<WasmVoid>(
   'Function.prototype.call.bind(DataView.prototype.setUint16)',
   ref,
   WasmI32.fromInt(byteOffset),
@@ -2860,7 +2876,7 @@ void _setUint16(
 );
 
 @pragma("wasm:prefer-inline")
-int _getInt16(WasmExternRef? ref, int byteOffset, bool littleEndian) => js
+int _getInt16(WasmExternRef ref, int byteOffset, bool littleEndian) => js
     .JS<WasmI32>(
       'Function.prototype.call.bind(DataView.prototype.getInt16)',
       ref,
@@ -2871,11 +2887,11 @@ int _getInt16(WasmExternRef? ref, int byteOffset, bool littleEndian) => js
 
 @pragma("wasm:prefer-inline")
 void _setInt16(
-  WasmExternRef? ref,
+  WasmExternRef ref,
   int byteOffset,
   int value,
   bool littleEndian,
-) => js.JS<void>(
+) => js.JS<WasmVoid>(
   'Function.prototype.call.bind(DataView.prototype.setInt16)',
   ref,
   WasmI32.fromInt(byteOffset),
@@ -2884,7 +2900,7 @@ void _setInt16(
 );
 
 @pragma("wasm:prefer-inline")
-int _getUint32(WasmExternRef? ref, int byteOffset, bool littleEndian) => js
+int _getUint32(WasmExternRef ref, int byteOffset, bool littleEndian) => js
     .JS<WasmI32>(
       'Function.prototype.call.bind(DataView.prototype.getUint32)',
       ref,
@@ -2895,11 +2911,11 @@ int _getUint32(WasmExternRef? ref, int byteOffset, bool littleEndian) => js
 
 @pragma("wasm:prefer-inline")
 void _setUint32(
-  WasmExternRef? ref,
+  WasmExternRef ref,
   int byteOffset,
   int value,
   bool littleEndian,
-) => js.JS<void>(
+) => js.JS<WasmVoid>(
   'Function.prototype.call.bind(DataView.prototype.setUint32)',
   ref,
   WasmI32.fromInt(byteOffset),
@@ -2908,7 +2924,7 @@ void _setUint32(
 );
 
 @pragma("wasm:prefer-inline")
-int _getInt32(WasmExternRef? ref, int byteOffset, bool littleEndian) => js
+int _getInt32(WasmExternRef ref, int byteOffset, bool littleEndian) => js
     .JS<WasmI32>(
       'Function.prototype.call.bind(DataView.prototype.getInt32)',
       ref,
@@ -2919,11 +2935,11 @@ int _getInt32(WasmExternRef? ref, int byteOffset, bool littleEndian) => js
 
 @pragma("wasm:prefer-inline")
 void _setInt32(
-  WasmExternRef? ref,
+  WasmExternRef ref,
   int byteOffset,
   int value,
   bool littleEndian,
-) => js.JS<void>(
+) => js.JS<WasmVoid>(
   'Function.prototype.call.bind(DataView.prototype.setInt32)',
   ref,
   WasmI32.fromInt(byteOffset),
@@ -2932,7 +2948,7 @@ void _setInt32(
 );
 
 @pragma("wasm:prefer-inline")
-int _getBigUint64(WasmExternRef? ref, int byteOffset, bool littleEndian) => js
+int _getBigUint64(WasmExternRef ref, int byteOffset, bool littleEndian) => js
     .JS<WasmI64>(
       'Function.prototype.call.bind(DataView.prototype.getBigUint64)',
       ref,
@@ -2943,11 +2959,11 @@ int _getBigUint64(WasmExternRef? ref, int byteOffset, bool littleEndian) => js
 
 @pragma("wasm:prefer-inline")
 void _setBigUint64(
-  WasmExternRef? ref,
+  WasmExternRef ref,
   int byteOffset,
   int value,
   bool littleEndian,
-) => js.JS<void>(
+) => js.JS<WasmVoid>(
   'Function.prototype.call.bind(DataView.prototype.setBigUint64)',
   ref,
   WasmI32.fromInt(byteOffset),
@@ -2956,7 +2972,7 @@ void _setBigUint64(
 );
 
 @pragma("wasm:prefer-inline")
-int _getBigInt64(WasmExternRef? ref, int byteOffset, bool littleEndian) => js
+int _getBigInt64(WasmExternRef ref, int byteOffset, bool littleEndian) => js
     .JS<WasmI64>(
       'Function.prototype.call.bind(DataView.prototype.getBigInt64)',
       ref,
@@ -2967,11 +2983,11 @@ int _getBigInt64(WasmExternRef? ref, int byteOffset, bool littleEndian) => js
 
 @pragma("wasm:prefer-inline")
 void _setBigInt64(
-  WasmExternRef? ref,
+  WasmExternRef ref,
   int byteOffset,
   int value,
   bool littleEndian,
-) => js.JS<void>(
+) => js.JS<WasmVoid>(
   'Function.prototype.call.bind(DataView.prototype.setBigInt64)',
   ref,
   WasmI32.fromInt(byteOffset),
@@ -2980,7 +2996,7 @@ void _setBigInt64(
 );
 
 @pragma("wasm:prefer-inline")
-double _getFloat32(WasmExternRef? ref, int byteOffset, bool littleEndian) => js
+double _getFloat32(WasmExternRef ref, int byteOffset, bool littleEndian) => js
     .JS<WasmF32>(
       'Function.prototype.call.bind(DataView.prototype.getFloat32)',
       ref,
@@ -2991,11 +3007,11 @@ double _getFloat32(WasmExternRef? ref, int byteOffset, bool littleEndian) => js
 
 @pragma("wasm:prefer-inline")
 void _setFloat32(
-  WasmExternRef? ref,
+  WasmExternRef ref,
   int byteOffset,
   num value,
   bool littleEndian,
-) => js.JS<void>(
+) => js.JS<WasmVoid>(
   'Function.prototype.call.bind(DataView.prototype.setFloat32)',
   ref,
   WasmI32.fromInt(byteOffset),
@@ -3004,7 +3020,7 @@ void _setFloat32(
 );
 
 @pragma("wasm:prefer-inline")
-double _getFloat64(WasmExternRef? ref, int byteOffset, bool littleEndian) => js
+double _getFloat64(WasmExternRef ref, int byteOffset, bool littleEndian) => js
     .JS<WasmF64>(
       'Function.prototype.call.bind(DataView.prototype.getFloat64)',
       ref,
@@ -3015,11 +3031,11 @@ double _getFloat64(WasmExternRef? ref, int byteOffset, bool littleEndian) => js
 
 @pragma("wasm:prefer-inline")
 void _setFloat64(
-  WasmExternRef? ref,
+  WasmExternRef ref,
   int byteOffset,
   num value,
   bool littleEndian,
-) => js.JS<void>(
+) => js.JS<WasmVoid>(
   'Function.prototype.call.bind(DataView.prototype.setFloat64)',
   ref,
   WasmI32.fromInt(byteOffset),

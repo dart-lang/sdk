@@ -266,9 +266,8 @@ class RunD8 implements IOModularStep {
       throw 'error: dart_sdk.js already exists.';
     }
 
-    await File.fromUri(
-      root.resolve('sdk.js'),
-    ).copy(root.resolve('dart_sdk.js').toFilePath());
+    await File.fromUri(root.resolve('sdk.js'))
+        .copy(root.resolve('dart_sdk.js').toFilePath());
     var runjs = '''
     import { dart, _isolate_helper } from 'dart_sdk.js';
     import { main } from 'main.js';
@@ -289,9 +288,8 @@ class RunD8 implements IOModularStep {
 
     checkExitCode(result, this, module, _options.verbose);
 
-    await File.fromUri(
-      root.resolveUri(toUri(module, txtId)),
-    ).writeAsString(result.stdout as String);
+    await File.fromUri(root.resolveUri(toUri(module, txtId)))
+        .writeAsString(result.stdout as String);
   }
 
   @override
@@ -332,9 +330,9 @@ Future<void> resolveScripts(Options options) async {
   ) async {
     var result = sdkRoot.resolve(sdkSourcePath).toFilePath();
     if (_options.useSdk) {
-      var snapshot = Uri.file(
-        Platform.resolvedExecutable,
-      ).resolve(relativeSnapshotPath).toFilePath();
+      var snapshot = Uri.file(Platform.resolvedExecutable)
+          .resolve(relativeSnapshotPath)
+          .toFilePath();
       if (await File(snapshot).exists()) {
         return snapshot;
       }

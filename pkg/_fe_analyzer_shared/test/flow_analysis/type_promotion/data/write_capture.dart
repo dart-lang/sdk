@@ -114,6 +114,44 @@ forEachElement(Object a, Object b, Object c) {
   });
 }
 
+forEachLoopVariable(List<Object> list) {
+  for (var x in list) {
+    // Each iteration has a fresh copy of `x`, so the closure below (which is
+    // created later in the iteration) can't invalidate this promotion.
+    if (x is int) /*int*/ x;
+    f(0, () {
+      x = '';
+    });
+  }
+  for (var y in list) {
+    f(0, () {
+      y = '';
+    });
+    if (y is int) y;
+  }
+}
+
+forEachElementLoopVariable(List<Object> list) {
+  [
+    for (var x in list)
+      [
+        x is int ? /*int*/ x : null,
+        f(0, () {
+          x = '';
+        }),
+      ],
+  ];
+  [
+    for (var y in list)
+      [
+        f(0, () {
+          y = '';
+        }),
+        y is int ? y : null,
+      ],
+  ];
+}
+
 switchWithoutLabels(Object a, Object b, Object c) {
   switch (f(0, () {
     a = '';

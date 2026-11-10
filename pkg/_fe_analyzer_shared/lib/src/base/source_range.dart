@@ -22,7 +22,7 @@ class SourceRange {
 
   /// Initialize a newly created source range using the given [offset] and
   /// [length].
-  const SourceRange(this.offset, this.length);
+  const new(this.offset, this.length);
 
   /// Return the 0-based index of the character immediately after this source
   /// range.

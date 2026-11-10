@@ -20,11 +20,6 @@ class ObjectPointerVisitor;
 class Thread;
 class UnwindingRecords;
 
-// Simplify initialization in allocation stubs by ensuring it is safe
-// to overshoot the object end by up to kAllocationRedZoneSize. (Just as the
-// stack red zone allows one to overshoot the stack pointer.)
-static constexpr intptr_t kAllocationRedZoneSize = kObjectAlignment;
-
 // A Page is the granuitary at which the Dart heap allocates memory from the OS.
 // Pages are usually of size kPageSize, except large objects are allocated on
 // their own Page sized to the object.
@@ -40,7 +35,7 @@ static constexpr intptr_t kAllocationRedZoneSize = kObjectAlignment;
 // +----------------------+  <- object_end / top_
 // | available            |
 // +----------------------+  <- end_
-// | red zone or          |
+// | alignment gap or     |
 // | forwarding table     |
 // +----------------------+  <- memory_->end()
 class Page {
@@ -49,7 +44,7 @@ class Page {
   // object can be computed by masking the object with kPageMask.
   // This does not apply to image pages, whose address is chosen by the system
   // loader rather than the Dart VM.
-  static constexpr intptr_t kPageSize = 512 * KB;
+  static constexpr intptr_t kPageSize = 2 * MB;
   static constexpr intptr_t kPageSizeInWords = kPageSize / kWordSize;
   static constexpr intptr_t kPageMask = ~(kPageSize - 1);
 
@@ -127,10 +122,7 @@ class Page {
   uword new_object_start() const {
     return memory_->start() + NewObjectStartOffset();
   }
-  uword object_end() const {
-    if (owner_ != nullptr) return owner_->top();
-    return top_;
-  }
+  uword object_end() const { return top_; }
   intptr_t used() const { return object_end() - object_start(); }
 
   intptr_t live_bytes() const { return live_bytes_; }
@@ -159,14 +151,13 @@ class Page {
     return Utils::RoundUp(sizeof(Page), kObjectAlignment,
                           kNewObjectAlignmentOffset);
   }
-  // These are "original" in the sense that they reflect TLAB boundaries when
-  // the TLAB was acquired, not the current boundaries. An object between
-  // original_top and top may still be in use by Dart code that has eliminated
-  // write barriers.
-  uword original_top() const { return top_.load(std::memory_order_acquire); }
-  uword original_end() const { return end_.load(std::memory_order_relaxed); }
-  static intptr_t original_top_offset() { return OFFSET_OF(Page, top_); }
-  static intptr_t original_end_offset() { return OFFSET_OF(Page, end_); }
+
+  // An object at or after survivor_end may still be in use by Dart code that
+  // has eliminated write barriers.
+  uword survivor_end() const { return survivor_end_; }
+  static intptr_t survivor_end_offset() {
+    return OFFSET_OF(Page, survivor_end_);
+  }
 
   // Warning: This does not work for objects on image pages because image pages
   // are not aligned. However, it works for objects on large pages, because
@@ -212,8 +203,6 @@ class Page {
                             bool only_marked = false);
   void ResetProgressBar();
 
-  Thread* owner() const { return owner_; }
-
   // Remember the limit to which objects have been copied.
   void RecordSurvivors() { survivor_end_ = object_end(); }
 
@@ -225,38 +214,7 @@ class Page {
     return (survivor_end_ - object_start()) / kWordSize;
   }
 
-  void Acquire(Thread* thread) {
-    ASSERT(owner_ == nullptr);
-    owner_ = thread;
-    ASSERT(thread->top() == 0);
-    ASSERT(thread->end() == 0);
-    thread->set_top(top_);
-    thread->set_end(end_);
-    thread->set_true_end(end_);
-  }
-  intptr_t Release(Thread* thread) {
-    ASSERT(owner_ == thread);
-    owner_ = nullptr;
-    uword old_top = top_;
-    uword new_top = thread->top();
-    top_.store(new_top, std::memory_order_release);
-    thread->set_top(0);
-    thread->set_end(0);
-    thread->set_true_end(0);
-#if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
-    thread->heap_sampler().HandleReleasedTLAB(Thread::Current());
-#endif
-    ASSERT(new_top >= old_top);
-    return new_top - old_top;
-  }
-  void Release() {
-    if (owner_ != nullptr) {
-      Release(owner_);
-    }
-  }
-
   uword TryAllocateGC(intptr_t size) {
-    ASSERT(owner_ == nullptr);
     uword result = top_;
     uword new_top = result + size;
     if (new_top <= end_) [[likely]] {
@@ -265,19 +223,15 @@ class Page {
     }
     return 0;
   }
-
   void Unallocate(uword addr, intptr_t size) {
     ASSERT((addr + size) == top_);
-
-#if defined(DEBUG)
-    uword* cursor = reinterpret_cast<uword*>(addr);
-    uword* end = reinterpret_cast<uword*>(addr + size);
-    while (cursor < end) {
-      *cursor++ = kAllocationCanary;
-    }
-#endif
-
     top_ -= size;
+  }
+
+  void AllocateAll(uword* top, uword* end) {
+    *top = top_;
+    *end = end_;
+    top_ = end_;
   }
 
   bool IsSurvivor(uword raw_addr) const { return raw_addr < survivor_end_; }
@@ -338,9 +292,6 @@ class Page {
   RelaxedAtomic<uword>* card_table_;  // Remembered set, not marking.
   RelaxedAtomic<intptr_t> progress_bar_;
 
-  // The thread using this page for allocation, otherwise nullptr.
-  Thread* owner_;
-
   // The address of the next allocation. If owner is non-NULL, this value is
   // stale and the current value is at owner->top_. Called "NEXT" in the
   // original Cheney paper.
@@ -391,7 +342,7 @@ class PageCache {
   // to fit a complete from-space into this cache. The standalone embedder sets
   // the semispace size to 16/32MB. This cache is in units of regular heap
   // pages, which are 512kB (Page::kPageSize).
-  static constexpr intptr_t kCapacity = 128 * kWordSize;
+  static constexpr intptr_t kCapacity = (4 * kWordSize * MB) / Page::kPageSize;
   Mutex mutex_;
   VirtualMemory* cache_[2][kCapacity] = {{nullptr}, {nullptr}};
   intptr_t size_[2] = {0, 0};

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -19,7 +20,7 @@ class CreateClass extends MultiCorrectionProducer {
 
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
-    var targetNode = node;
+    var targetNode = node.annotationContainingName ?? node;
     Element? prefixElement;
     ArgumentList? arguments;
 
@@ -262,10 +263,8 @@ class _CreateClass extends ResolvedCorrectionProducer {
 extension on AstNode {
   /// If this might be a type name, return its name.
   String? get nameOfType {
-    var self = this;
-    if (self is SimpleIdentifier) {
-      var name = self.name;
-      if (self.parent is NamedType || _isNameOfType(name)) {
+    if (this is SimpleIdentifier) {
+      if (parent is NamedType || _isNameOfType(name)) {
         return name;
       }
     }

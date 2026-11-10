@@ -4,38 +4,28 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/resolver/lexical_lookup.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 
 /// Class containing static methods for resolving identifiers as implicit
 /// property gets/sets on the type of `this`.
 class ThisLookup {
   /// Do not construct
-  ThisLookup._() {
+  new _() {
     assert(false, 'Do not construct instances of LexicalLookup');
   }
 
-  /// Attempts to resolve an identifier with name, `node.name`, via implicit
-  /// `this.`, assuming we are trying to look up a getter.
-  ///
-  /// If a matching element is found, a [LexicalLookupResult] is returned.
-  /// Otherwise `null` is returned.
-  static LexicalLookupResult? lookupGetter(
-    ResolverVisitor resolver,
-    SimpleIdentifier node,
-  ) => lookupGetter2(resolver, node: node, name: node.name);
-
   /// Attempts to resolve [name] as a getter on an implicit `this` receiver.
   static LexicalLookupResult? lookupGetter2(
-    ResolverVisitor resolver, {
+    TypeAnalyzer typeAnalyzer, {
     required AstNode node,
     required String name,
   }) {
-    var thisType = resolver.thisType;
+    var thisType = typeAnalyzer.thisType;
     if (thisType == null) {
       return null;
     }
 
-    var propertyResult = resolver.typePropertyResolver.resolve(
+    var propertyResult = typeAnalyzer.typePropertyResolver.resolve(
       receiver: null,
       receiverType: thisType,
       name: name,
@@ -63,28 +53,18 @@ class ThisLookup {
     }
   }
 
-  /// Attempts to resolve an identifier with name, `node.name`, via implicit
-  /// `this.`, assuming we are trying to look up a setter.
-  ///
-  /// If a matching element is found, a [LexicalLookupResult] is returned.
-  /// Otherwise `null` is returned.
-  static LexicalLookupResult? lookupSetter(
-    ResolverVisitor resolver,
-    SimpleIdentifier node,
-  ) => lookupSetter2(resolver, node: node, name: node.name);
-
   /// Attempts to resolve [name] as a setter on an implicit `this` receiver.
   static LexicalLookupResult? lookupSetter2(
-    ResolverVisitor resolver, {
+    TypeAnalyzer typeAnalyzer, {
     required AstNode node,
     required String name,
   }) {
-    var thisType = resolver.thisType;
+    var thisType = typeAnalyzer.thisType;
     if (thisType == null) {
       return null;
     }
 
-    var propertyResult = resolver.typePropertyResolver.resolve(
+    var propertyResult = typeAnalyzer.typePropertyResolver.resolve(
       receiver: null,
       receiverType: thisType,
       name: name,

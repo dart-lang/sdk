@@ -1,0 +1,191 @@
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// dart2wasmOptions=--extra-compiler-option=--cfg
+
+import 'package:expect/expect.dart';
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int classify(int x) {
+  if (x > 0) {
+    if (x > 10) {
+      return 2;
+    } else {
+      return 1;
+    }
+  } else if (x < 0) {
+    return -1;
+  } else {
+    return 0;
+  }
+}
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int ternaryPhi(int a, int b) {
+  return a > b ? a : b;
+}
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int sumWhile(int n) {
+  int sum = 0;
+  int i = 1;
+  while (i <= n) {
+    sum += i;
+    i++;
+  }
+  return sum;
+}
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int factorialFor(int n) {
+  int result = 1;
+  for (int i = 2; i <= n; i++) {
+    result *= i;
+  }
+  return result;
+}
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int doWhileCount(int n) {
+  int count = 0;
+  do {
+    count++;
+    n--;
+  } while (n > 0);
+  return count;
+}
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int gcdEuclid(int a, int b) {
+  while (a != b) {
+    if (a > b) {
+      a -= b;
+    } else {
+      b -= a;
+    }
+  }
+  return a;
+}
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int nestedLoopsWithBreakContinue(int maxI, int maxJ) {
+  int total = 0;
+  for (int i = 0; i < maxI; i++) {
+    if (i == 3) continue;
+    for (int j = 0; j < maxJ; j++) {
+      if (j == 2) break;
+      total += i * 10 + j;
+    }
+  }
+  return total;
+}
+
+extension type WrapInt(int value) {
+  @pragma('wasm:never-inline')
+  @pragma('wasm:cfg')
+  WrapInt.create(this.value);
+}
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int unwrapPlusOne(WrapInt w) => w.value + 1;
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+bool negateBool(bool b) => !b;
+
+// `a ?? b` is lowered by the CFE to `let final #t1 = a in #t1 == null ? b : #t1{int}`,
+// where the promoted read `#t1{int}` produces an unchecked `TypeCast` in CFG IR.
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int nullCoalesce(int? a, int b) => a ?? b;
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+int promotedIncrement(int? a) {
+  if (a != null) {
+    return a + 1;
+  }
+  return 0;
+}
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+bool checkNotNull(int? x) => x != null;
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+bool sameRef(String? a, String? b) => identical(a, b);
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+bool notSameRef(String? a, String? b) => !identical(a, b);
+
+void main() {
+  final int0 = int.parse('0');
+  final int1 = int.parse('1');
+  final int3 = int.parse('3');
+  final int4 = int.parse('4');
+  final int5 = int.parse('5');
+  final int7 = int.parse('7');
+  final int10 = int.parse('10');
+  final int15 = int.parse('15');
+  final int20 = int.parse('20');
+  final negFive = int.parse('-5');
+
+  // Classification (nested ifs)
+  Expect.equals(2, classify(int15));
+  Expect.equals(1, classify(int5));
+  Expect.equals(-1, classify(negFive));
+  Expect.equals(0, classify(int0));
+
+  // Ternary / Phi
+  Expect.equals(10, ternaryPhi(int10, int5));
+  Expect.equals(20, ternaryPhi(int3, int20));
+
+  // While loop
+  Expect.equals(55, sumWhile(int10));
+  Expect.equals(0, sumWhile(int0));
+
+  // For loop
+  Expect.equals(120, factorialFor(int5));
+  Expect.equals(1, factorialFor(int1));
+
+  // Do-while loop
+  Expect.equals(5, doWhileCount(int5));
+  Expect.equals(1, doWhileCount(int0));
+
+  // GCD
+  Expect.equals(6, gcdEuclid(int.parse('54'), int.parse('24')));
+  Expect.equals(1, gcdEuclid(int7, int5));
+
+  // Nested loops with break & continue
+  Expect.equals(144, nestedLoopsWithBreakContinue(int5, int4));
+
+  // UnaryBoolOp (`!`), null/reference Comparison, and unchecked TypeCast
+  Expect.isFalse(negateBool(int5 > int0));
+  Expect.isTrue(negateBool(int0 > int5));
+  Expect.equals(5, nullCoalesce(int5, int10));
+  Expect.equals(10, nullCoalesce(null, int10));
+  Expect.equals(6, promotedIncrement(int5));
+  Expect.equals(0, promotedIncrement(null));
+  Expect.isTrue(checkNotNull(int5));
+  Expect.isFalse(checkNotNull(null));
+  const s1 = 'hello';
+  const s2 = 'world';
+  Expect.isTrue(sameRef(s1, s1));
+  Expect.isFalse(sameRef(s1, s2));
+  Expect.isFalse(sameRef(s1, null));
+  Expect.isTrue(sameRef(null, null));
+  Expect.isFalse(notSameRef(s1, s1));
+  Expect.isTrue(notSameRef(s1, s2));
+  Expect.equals(16, unwrapPlusOne(WrapInt.create(int15)));
+}

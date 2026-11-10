@@ -29,9 +29,15 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.simple('v;');
+    var node = result.findNode.unqualifiedNameExpression('v;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: v
+  resolution: VariableReadResolution
+    element: v@34
+    type: InvalidType
+  staticType: InvalidType
+V1: SimpleIdentifier
   token: v
   element: v@34
   staticType: InvalidType
@@ -164,9 +170,15 @@ void f(int a) {
 }
 ''');
 
-    var node = result.findNode.simple('v;');
+    var node = result.findNode.unqualifiedNameExpression('v;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: v
+  resolution: ExecutableTearOffResolution
+    element: v@75
+    type: void Function()
+  staticType: void Function()
+V1: SimpleIdentifier
   token: v
   element: v@75
   staticType: void Function()
@@ -191,9 +203,15 @@ void f(int a) {
 }
 ''');
 
-    var node = result.findNode.simple('v;');
+    var node = result.findNode.unqualifiedNameExpression('v;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: v
+  resolution: ExecutableTearOffResolution
+    element: v@91
+    type: void Function()
+  staticType: void Function()
+V1: SimpleIdentifier
   token: v
   element: v@91
   staticType: void Function()
@@ -217,9 +235,15 @@ void f(int a) {
 }
 ''');
 
-    var node = result.findNode.simple('v;');
+    var node = result.findNode.unqualifiedNameExpression('v;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: v
+  resolution: VariableReadResolution
+    element: v@74
+    type: dynamic
+  staticType: dynamic
+V1: SimpleIdentifier
   token: v
   element: v@74
   staticType: dynamic
@@ -244,9 +268,15 @@ void f(int a) {
 }
 ''');
 
-    var node = result.findNode.simple('v;');
+    var node = result.findNode.unqualifiedNameExpression('v;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: v
+  resolution: VariableReadResolution
+    element: v@90
+    type: dynamic
+  staticType: dynamic
+V1: SimpleIdentifier
   token: v
   element: v@90
   staticType: dynamic
@@ -270,9 +300,15 @@ void f(int a) {
 }
 ''');
 
-    var node = result.findNode.simple('v;');
+    var node = result.findNode.unqualifiedNameExpression('v;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: v
+  resolution: ExecutableTearOffResolution
+    element: v@76
+    type: void Function()
+  staticType: void Function()
+V1: SimpleIdentifier
   token: v
   element: v@76
   staticType: void Function()
@@ -297,9 +333,15 @@ void f(int a) {
 }
 ''');
 
-    var node = result.findNode.simple('v;');
+    var node = result.findNode.unqualifiedNameExpression('v;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: v
+  resolution: ExecutableTearOffResolution
+    element: v@92
+    type: void Function()
+  staticType: void Function()
+V1: SimpleIdentifier
   token: v
   element: v@92
   staticType: void Function()
@@ -323,9 +365,15 @@ void f(int a) {
 }
 ''');
 
-    var node = result.findNode.simple('v;');
+    var node = result.findNode.unqualifiedNameExpression('v;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: v
+  resolution: VariableReadResolution
+    element: v@75
+    type: dynamic
+  staticType: dynamic
+V1: SimpleIdentifier
   token: v
   element: v@75
   staticType: dynamic
@@ -350,9 +398,15 @@ void f(int a) {
 }
 ''');
 
-    var node = result.findNode.simple('v;');
+    var node = result.findNode.unqualifiedNameExpression('v;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: v
+  resolution: VariableReadResolution
+    element: v@91
+    type: dynamic
+  staticType: dynamic
+V1: SimpleIdentifier
   token: v
   element: v@91
   staticType: dynamic
@@ -419,9 +473,15 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.simple('v;');
+    var node = result.findNode.unqualifiedNameExpression('v;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: v
+  resolution: ExecutableTearOffResolution
+    element: v@50
+    type: void Function()
+  staticType: void Function()
+V1: SimpleIdentifier
   token: v
   element: v@50
   staticType: void Function()
@@ -437,9 +497,15 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.simple('v;');
+    var node = result.findNode.unqualifiedNameExpression('v;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: v
+  resolution: VariableReadResolution
+    element: v@49
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: v
   element: v@49
   staticType: int

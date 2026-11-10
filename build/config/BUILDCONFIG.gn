@@ -487,7 +487,6 @@ if (is_win) {
   }
   set_default_toolchain("//build/toolchain/mac:$toolchain_target")
 } else if (is_fuchsia) {
-  assert(host_cpu == "x64")
   if (host_os == "linux") {
     host_toolchain = "//build/toolchain/linux:clang_$host_cpu"
     set_default_toolchain("//build/toolchain/fuchsia")

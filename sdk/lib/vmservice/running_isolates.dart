@@ -10,28 +10,8 @@ final class _CompileExpressionErrorDetails {
   _CompileExpressionErrorDetails(this.details);
 }
 
-/// The message in an error response from the resident frontend compiler can
-/// either be in the 'errorMessage' property or the 'compilerOutputLines'
-/// property of the response.
-String _extractErrorMessageFromResidentFrontendCompilerResponse(
-  Map<String, dynamic> response,
-) {
-  const errorMessageString = 'errorMessage';
-
-  if (response[errorMessageString] != null) {
-    return response[errorMessageString];
-  } else {
-    return (response['compilerOutputLines'] as List<dynamic>)
-        .cast<String>()
-        .join('\n');
-  }
-}
-
 class RunningIsolates implements MessageRouter {
   static const _isolateIdString = 'isolateId';
-  static const _successString = 'success';
-  static const _useCachedCompilerOptionsAsBaseString =
-      'useCachedCompilerOptionsAsBase';
 
   final isolates = <int, RunningIsolate>{};
   int? _rootPortId;
@@ -58,71 +38,7 @@ class RunningIsolates implements MessageRouter {
     Message message,
     RunningIsolate isolate,
   ) async {
-    if (VMServiceEmbedderHooks.getResidentCompilerInfoFile!() == null) {
-      // If there isn't a resident frontend compiler available, we let the VM
-      // take care of the request.
-      return isolate.routeRequest(service, message);
-    } else {
-      const rootLibUriString = 'rootLibUri';
-
-      final String rootLibUri;
-      if (message.params[rootLibUriString] == null) {
-        // If a 'rootLibUri' property was not included in the request, we have
-        // to ask the VM for [isolate]'s root library URI.
-        final getIsolateRequest = Message.forMethod('getIsolate');
-        getIsolateRequest.params[_isolateIdString] =
-            message.params[isolate.serviceId];
-
-        final getIsolateResponse = await isolate.routeRequest(
-          service,
-          getIsolateRequest,
-        );
-        final isolateJson =
-            (getIsolateResponse.decodeJson() as Map<String, dynamic>)['result']
-                as Map<String, dynamic>;
-        final rootLibJson = isolateJson['rootLib'] as Map<String, dynamic>;
-        rootLibUri = rootLibJson['uri'];
-      } else {
-        rootLibUri = message.params[rootLibUriString];
-      }
-
-      final tempDirectory = Directory.systemTemp.createTempSync();
-      final outputDill = File(
-        '${tempDirectory.path}${Platform.pathSeparator}for_hot_reload.dill',
-      );
-      final responseFromResidentCompiler =
-          await _sendRequestToResidentFrontendCompilerAndRecieveResponse(
-            jsonEncode(<String, Object?>{
-              'command': 'compile',
-              _useCachedCompilerOptionsAsBaseString: true,
-              'executable': Uri.parse(rootLibUri).toFilePath(),
-              'output-dill': outputDill.path,
-            }),
-            VMServiceEmbedderHooks.getResidentCompilerInfoFile!()!,
-          );
-
-      if (responseFromResidentCompiler[_successString] == false) {
-        return Response.from(
-          encodeRpcError(
-            message,
-            kInternalError,
-            details: _extractErrorMessageFromResidentFrontendCompilerResponse(
-              responseFromResidentCompiler,
-            ),
-          ),
-        );
-      }
-
-      final reloadKernelRequest = Message.forMethod('_reloadKernel');
-      reloadKernelRequest.params[_isolateIdString] =
-          message.params[isolate.serviceId];
-      reloadKernelRequest.params['kernelFilePath'] = outputDill.uri
-          .toFilePath();
-      final response = await isolate.routeRequest(service, message);
-
-      tempDirectory.deleteSync(recursive: true);
-      return response;
-    }
+    return isolate.routeRequest(service, message);
   }
 
   @override
@@ -174,89 +90,6 @@ class RunningIsolates implements MessageRouter {
 
   @override
   void routeResponse(Message message) {}
-}
-
-// NOTE: The following class is a duplicate of one in
-// 'package:frontend_server/resident_frontend_server_utils.dart'. We are forced
-// to duplicate it because `dart:_vmservice` is not allowed to import
-// `package:frontend_server`.
-
-final class _ResidentCompilerInfo {
-  /// The SDK hash that kernel files compiled using the Resident Frontend
-  /// Compiler associated with this object will be stamped with.
-  final String? sdkHash;
-
-  /// The address that the Resident Frontend Compiler associated with this
-  /// object is listening from.
-  final InternetAddress address;
-
-  /// The port number that the Resident Frontend Compiler associated with this
-  /// object is listening on.
-  final int port;
-
-  /// Extracts the value associated with a key from [entries], where [entries]
-  /// is a [String] with the format '$key1:$value1 $key2:$value2 $key3:$value3 ...'.
-  static String _extractValueAssociatedWithKey(String entries, String key) =>
-      RegExp(
-        '$key:'
-        r'(\S+)(\s|$)',
-      ).allMatches(entries).first[1]!;
-
-  static _ResidentCompilerInfo fromFile(File file) {
-    final fileContents = file.readAsStringSync();
-
-    return _ResidentCompilerInfo._(
-      sdkHash: fileContents.contains('sdkHash:')
-          ? _extractValueAssociatedWithKey(fileContents, 'sdkHash')
-          : null,
-      address: InternetAddress(
-        _extractValueAssociatedWithKey(fileContents, 'address'),
-      ),
-      port: int.parse(_extractValueAssociatedWithKey(fileContents, 'port')),
-    );
-  }
-
-  _ResidentCompilerInfo._({
-    required this.sdkHash,
-    required this.port,
-    required this.address,
-  });
-}
-
-// NOTE: The following function is a duplicate of one in
-// 'package:frontend_server/resident_frontend_server_utils.dart'. We are
-// forced to duplicate it because `dart:_vmservice` is not allowed to import
-// `package:frontend_server`.
-
-/// Sends a compilation [request] to the resident frontend compiler associated
-/// with [serverInfoFile], and returns the compiler's JSON response.
-///
-/// Throws a [FileSystemException] if [serverInfoFile] cannot be accessed.
-Future<Map<String, dynamic>>
-_sendRequestToResidentFrontendCompilerAndRecieveResponse(
-  String request,
-  File serverInfoFile,
-) async {
-  Socket? client;
-  Map<String, dynamic> jsonResponse;
-  final residentCompilerInfo = _ResidentCompilerInfo.fromFile(serverInfoFile);
-
-  try {
-    client = await Socket.connect(
-      residentCompilerInfo.address,
-      residentCompilerInfo.port,
-    );
-    client.write(request);
-    final data = String.fromCharCodes(await client.first);
-    jsonResponse = jsonDecode(data);
-  } catch (e) {
-    jsonResponse = <String, dynamic>{
-      'success': false,
-      'errorMessage': e.toString(),
-    };
-  }
-  client?.destroy();
-  return jsonResponse;
 }
 
 /// Class that knows how to orchestrate expression evaluation in dart2 world.
@@ -417,38 +250,6 @@ class _Evaluator {
               json as Map<String, dynamic>,
             ),
           );
-    } else if (VMServiceEmbedderHooks.getResidentCompilerInfoFile!() != null) {
-      // Compile the expression using the resident compiler.
-      final response =
-          await _sendRequestToResidentFrontendCompilerAndRecieveResponse(
-            jsonEncode({
-              'command': _compileExpressionString,
-              RunningIsolates._useCachedCompilerOptionsAsBaseString: true,
-              _expressionString: compileParams[_expressionString],
-              _definitionsString: compileParams[_definitionsString],
-              _definitionTypesString: compileParams[_definitionTypesString],
-              _typeDefinitionsString: compileParams[_typeDefinitionsString],
-              _typeBoundsString: compileParams[_typeBoundsString],
-              _typeDefaultsString: compileParams[_typeDefaultsString],
-              _libraryUriString: compileParams[_libraryUriString],
-              'offset': compileParams[_tokenPosString],
-              _isStaticString: compileParams[_isStaticString],
-              'class': compileParams['klass'],
-              _scriptUriString: compileParams[_scriptUriString],
-              _methodString: compileParams[_methodString],
-              _rootLibraryUriString:
-                  buildScopeResponseResult[_rootLibraryUriString],
-            }),
-            VMServiceEmbedderHooks.getResidentCompilerInfoFile!()!,
-          );
-
-      if (response[RunningIsolates._successString] == true) {
-        return response[_kernelBytesString];
-      } else {
-        throw _CompileExpressionErrorDetails(
-          _extractErrorMessageFromResidentFrontendCompilerResponse(response),
-        );
-      }
     } else {
       // fallback to compile using kernel service
       final compileExpressionParams = <String, dynamic>{

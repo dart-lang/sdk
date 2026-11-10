@@ -1,0 +1,16 @@
+class Class {
+  static void staticMethod<T extends S, S extends T>() {}
+  void instanceMethod<T extends S, S extends T>() {}
+}
+
+extension Extension on int {
+  static void staticMethod<T extends S, S extends T>() {}
+  void instanceMethod<T extends S, S extends T>() {}
+}
+
+extension type ExtensionType(int i) {
+  static void staticMethod<T extends S, S extends T>() {}
+  void instanceMethod<T extends S, S extends T>() {}
+}
+
+void topLevelMethod<T extends S, S extends T>() {}

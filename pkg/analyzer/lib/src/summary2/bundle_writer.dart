@@ -19,6 +19,7 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/error/inference_error.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
 import 'package:analyzer/src/summary2/ast_binary_writer.dart';
 import 'package:analyzer/src/summary2/export.dart';
@@ -64,7 +65,7 @@ class BundleWriter {
 
   final List<_Library> _libraries = [];
 
-  BundleWriter() {
+  new() {
     _references = ReferenceTableWriter();
   }
 
@@ -570,6 +571,7 @@ class BundleWriter {
 
   void _writeLibraryExport(LibraryExportImpl element) {
     _resolutionSink._writeMetadata(element.metadata);
+    _sink.writeBool(element.isConditional);
     _sink.writeList(element.combinators, _writeNamespaceCombinator);
     _writeDirectiveUri(element.uri);
   }
@@ -605,6 +607,7 @@ class BundleWriter {
   void _writeLibraryImport(LibraryImportImpl element) {
     _resolutionSink._writeMetadata(element.metadata);
     _sink.writeBool(element.isSynthetic);
+    _sink.writeBool(element.isConditional);
     _sink.writeList(element.combinators, _writeNamespaceCombinator);
     _writeLibraryImportPrefixFragment(element.prefix);
     _writeDirectiveUri(element.uri);
@@ -707,12 +710,12 @@ class BundleWriter {
   void _writeNamespaceCombinator(NamespaceCombinator combinator) {
     switch (combinator) {
       case HideElementCombinator():
-        _sink.writeByte(Tag.HideCombinator);
+        _sink.writeEnum(NamespaceCombinatorTag.hide);
         _sink.writeList<String>(combinator.hiddenNames, (name) {
           _sink.writeStringReference(name);
         });
       case ShowElementCombinator():
-        _sink.writeByte(Tag.ShowCombinator);
+        _sink.writeEnum(NamespaceCombinatorTag.show);
         _sink.writeList<String>(combinator.shownNames, (name) {
           _sink.writeStringReference(name);
         });
@@ -920,17 +923,14 @@ class BundleWriter {
 class BundleWriterResult {
   final Uint8List resolutionBytes;
 
-  BundleWriterResult({required this.resolutionBytes});
+  new({required this.resolutionBytes});
 }
 
 class ResolutionSink extends BinaryWriter {
   final ReferenceTableWriter _references;
   final _LocalElementIndexer localElements = _LocalElementIndexer();
 
-  ResolutionSink({
-    required super.stringTableBuilder,
-    required ReferenceTableWriter references,
-  }) : _references = references;
+  new({required super.stringTableBuilder, required this._references});
 
   void withTypeParameters(
     List<TypeParameterElementImpl> typeParameters,
@@ -955,11 +955,21 @@ class ResolutionSink extends BinaryWriter {
         var baseElement = element.baseElement;
         writeElement(baseElement);
 
-        var typeArguments = _enclosingClassTypeArguments(
-          baseElement,
+        var typeArguments = _instanceTypeArguments(
+          baseElement.enclosingElement,
           element.substitution.map,
         );
         _writeTypeList(typeArguments);
+      case CombinedExecutableElementImpl element:
+        // Views are not declared, so they have no reference to read back. The
+        // reader looks them up in the interface of the owner.
+        writeEnum(ElementTag.interfaceMember);
+        var owner = element.owner;
+        writeElement(owner);
+        var name = Name.forElement(element)!;
+        writeOptionalObject(name.libraryUri, writeUri);
+        writeStringReference(name.name);
+        _writeTypeList(_instanceTypeArguments(owner, element.substitution.map));
       case TypeParameterElementImpl():
         writeEnum(ElementTag.typeParameter);
         var localIndex = localElements[element];
@@ -1151,8 +1161,10 @@ class ResolutionSink extends BinaryWriter {
     });
   }
 
-  static List<DartType> _enclosingClassTypeArguments(
-    Element declaration,
+  /// Returns the values of the type parameters of [element] in
+  /// [substitution], if it is an [InstanceElement].
+  static List<DartType> _instanceTypeArguments(
+    Element? element,
     Map<TypeParameterElement, DartType> substitution,
   ) {
     // TODO(scheglov): Just keep it null in class Member?
@@ -1160,9 +1172,8 @@ class ResolutionSink extends BinaryWriter {
       return const [];
     }
 
-    var enclosing = declaration.enclosingElement;
-    if (enclosing is InstanceElement) {
-      var typeParameters = enclosing.typeParameters;
+    if (element is InstanceElement) {
+      var typeParameters = element.typeParameters;
       if (typeParameters.isEmpty) {
         return const <DartType>[];
       }
@@ -1188,14 +1199,14 @@ class ResolutionSink extends BinaryWriter {
 class UnitToWriteAst {
   final CompilationUnit node;
 
-  UnitToWriteAst({required this.node});
+  new({required this.node});
 }
 
 class _Library {
   final String uriStr;
   final int offset;
 
-  _Library({required this.uriStr, required this.offset});
+  new({required this.uriStr, required this.offset});
 }
 
 class _LocalElementIndexer {
@@ -1231,31 +1242,23 @@ extension on Map<FragmentImpl, int> {
 
 extension _BinaryWriterExtension on BinaryWriter {
   void _writeFormalParameterElementKind(InternalFormalParameterElement p) {
-    if (p.isRequiredPositional) {
-      writeByte(Tag.ParameterKindRequiredPositional);
-    } else if (p.isOptionalPositional) {
-      writeByte(Tag.ParameterKindOptionalPositional);
-    } else if (p.isRequiredNamed) {
-      writeByte(Tag.ParameterKindRequiredNamed);
-    } else if (p.isOptionalNamed) {
-      writeByte(Tag.ParameterKindOptionalNamed);
-    } else {
-      throw StateError('Unexpected parameter kind: $p');
-    }
+    writeEnum(switch (p.parameterKind) {
+      ParameterKind.REQUIRED => FormalParameterKindTag.requiredPositional,
+      ParameterKind.POSITIONAL => FormalParameterKindTag.optionalPositional,
+      ParameterKind.NAMED_REQUIRED => FormalParameterKindTag.requiredNamed,
+      ParameterKind.NAMED => FormalParameterKindTag.optionalNamed,
+      _ => throw StateError('Unexpected parameter kind: $p'),
+    });
   }
 
   void _writeFormalParameterFragmentKind(FormalParameterFragmentImpl p) {
-    if (p.isRequiredPositional) {
-      writeByte(Tag.ParameterKindRequiredPositional);
-    } else if (p.isOptionalPositional) {
-      writeByte(Tag.ParameterKindOptionalPositional);
-    } else if (p.isRequiredNamed) {
-      writeByte(Tag.ParameterKindRequiredNamed);
-    } else if (p.isOptionalNamed) {
-      writeByte(Tag.ParameterKindOptionalNamed);
-    } else {
-      throw StateError('Unexpected parameter kind: $p');
-    }
+    writeEnum(switch (p.parameterKind) {
+      ParameterKind.REQUIRED => FormalParameterKindTag.requiredPositional,
+      ParameterKind.POSITIONAL => FormalParameterKindTag.optionalPositional,
+      ParameterKind.NAMED_REQUIRED => FormalParameterKindTag.requiredNamed,
+      ParameterKind.NAMED => FormalParameterKindTag.optionalNamed,
+      _ => throw StateError('Unexpected parameter kind: $p'),
+    });
   }
 
   void _writeTopLevelInferenceError(TopLevelInferenceError? error) {

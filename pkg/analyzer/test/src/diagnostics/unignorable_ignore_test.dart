@@ -40,7 +40,7 @@ class UnignorableIgnoreTest extends PubPackageResolutionTest
 //                  ^^^^^^^^^^^^^^^^^^^^
 // [diag.unignorableIgnore] The diagnostic 'undefined_annotation' can't be ignored.
 @x int a = 0;
-// [diag.undefinedAnnotation][column 1][length 2] Undefined name 'x' used as an annotation.
+// [diag.undefinedUnqualifiedNameReadNotFoundAnnotation][column 2][length 1] Undefined name 'x' used as an annotation.
 ''');
   }
 
@@ -53,7 +53,7 @@ class UnignorableIgnoreTest extends PubPackageResolutionTest
 //                  ^^^^^^^^^^^^^^^^^^^^
 // [diag.unignorableIgnore] The diagnostic 'undefined_annotation' can't be ignored.
 @x int a = 0;
-// [diag.undefinedAnnotation][column 1][length 2] Undefined name 'x' used as an annotation.
+// [diag.undefinedUnqualifiedNameReadNotFoundAnnotation][column 2][length 1] Undefined name 'x' used as an annotation.
 ''');
   }
 
@@ -66,7 +66,7 @@ class UnignorableIgnoreTest extends PubPackageResolutionTest
 //         ^^^^^^^^^^^^^^^^^^^^
 // [diag.unignorableIgnore] The diagnostic 'undefined_annotation' can't be ignored.
 @x int a = 0;
-// [diag.undefinedAnnotation][column 1][length 2] Undefined name 'x' used as an annotation.
+// [diag.undefinedUnqualifiedNameReadNotFoundAnnotation][column 2][length 1] Undefined name 'x' used as an annotation.
 ''');
   }
 
@@ -97,7 +97,7 @@ class _AvoidIntRule extends AnalysisRule {
     uniqueName: 'avoid_int',
   );
 
-  _AvoidIntRule() : super(name: 'avoid_int', description: '');
+  new() : super(name: 'avoid_int', description: '');
 
   @override
   DiagnosticCode get diagnosticCode => code;
@@ -115,7 +115,7 @@ class _AvoidIntRule extends AnalysisRule {
 class _AvoidIntVisitor extends SimpleAstVisitor2 {
   final AnalysisRule rule;
 
-  _AvoidIntVisitor(this.rule);
+  new(this.rule);
 
   @override
   void visitNamedType(NamedType node) {

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -69,8 +70,10 @@ main() {
 }
 ''');
     assertType(
-      result.findNode.methodInvocation('f()').typeArgumentTypes!.single,
-      'dynamic',
+      (result.findNode.unqualifiedFunctionInvocation('f()').resolution
+              as StaticInvocationResolution)
+          .invokeType,
+      'dynamic Function()',
     );
   }
 
@@ -126,7 +129,7 @@ f({int xx = 0, int yy = 0, int zz = 0}) {}
 main() {
   f(xx: 1, yy: 2, z);
 //                ^
-// [diag.undefinedIdentifier] Undefined name 'z'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'z'.
 // [diag.extraPositionalArgumentsCouldBeNamed] Too many positional arguments: 0 expected, but 1 found.
 }
 ''');
@@ -158,6 +161,51 @@ class B extends A {
 //                  ^
 // [diag.extraPositionalArguments] Too many positional arguments: 0 expected, but 1 found.
 }
+''');
+  }
+
+  test_constructorInvocation_missingArgument() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class C {}
+void f() {
+  new C(;
+//      ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
+}
+''');
+  }
+
+  test_dotShorthandConstructorInvocation_named() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A.named(int x);
+}
+A f() => .named(1, 2);
+//                 ^
+// [diag.extraPositionalArguments] Too many positional arguments: 1 expected, but 2 found.
+''');
+  }
+
+  test_dotShorthandConstructorInvocation_unnamed() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A(int x);
+}
+A f() => .new(1, 2);
+//               ^
+// [diag.extraPositionalArguments] Too many positional arguments: 1 expected, but 2 found.
+''');
+  }
+
+  test_dotShorthandMethodInvocation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static A make(int x) => throw 0;
+}
+A f() => .make(1, 2);
+//                ^
+// [diag.extraPositionalArguments] Too many positional arguments: 1 expected, but 2 found.
 ''');
   }
 

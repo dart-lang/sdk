@@ -4727,6 +4727,17 @@ DEFINE_EMIT(Simd32x4BinaryOp,
     case SimdOpInstr::kInt32x4Sub:
       __ vsubqi(compiler::kFourBytes, result, left, right);
       break;
+    case SimdOpInstr::kInt32x4Equal:
+      __ vceqqi(compiler::kFourBytes, result, left, right);
+      break;
+    case SimdOpInstr::kInt32x4NotEqual:
+      __ vceqqi(compiler::kFourBytes, result, left, right);
+      // Invert the result.
+      __ vmvnq(result, result);
+      break;
+    case SimdOpInstr::kInt32x4AndNot:
+      __ vbicq(result, left, right);
+      break;
     default:
       UNREACHABLE();
   }
@@ -4853,6 +4864,11 @@ DEFINE_EMIT(Float32x4Zero, (QRegister out)) {
   __ veorq(out, out, out);
 }
 
+DEFINE_EMIT(Int32x4Splat, (QRegister result, Register value)) {
+  __ vmovdr(DTMP, 0, value);
+  __ vdup(compiler::kFourBytes, result, DTMP, 0);
+}
+
 DEFINE_EMIT(Float32x4Splat, (QRegister result, QRegisterView value)) {
   // Convert to Float32.
   __ vcvtsd(STMP, value.d(0));
@@ -4892,43 +4908,6 @@ DEFINE_EMIT(Simd32x4ToSimd32x4Conversion, (SameAsFirstInput, QRegister left)) {
   // TODO(dartbug.com/30949) these operations are essentially nop and should
   // not generate any code. They should be removed from the graph before
   // code generation.
-}
-
-DEFINE_EMIT(
-    Float32x4Clamp,
-    (QRegister result, QRegister left, QRegister lower, QRegister upper)) {
-  __ vminqs(result, left, upper);
-  __ vmaxqs(result, result, lower);
-}
-
-DEFINE_EMIT(Float64x2Clamp,
-            (QRegisterView result,
-             QRegisterView left,
-             QRegisterView lower,
-             QRegisterView upper)) {
-  compiler::Label done0, done1;
-  // result = max(min(left, upper), lower) |
-  //          lower if (upper is NaN || left is NaN) |
-  //          upper if lower is NaN
-  __ vcmpd(left.d(0), upper.d(0));
-  __ vmstat();
-  __ vmovd(result.d(0), upper.d(0), GE);
-  __ vmovd(result.d(0), left.d(0), LT);  // less than or unordered(NaN)
-  __ b(&done0, VS);                      // at least one argument was NaN
-  __ vcmpd(result.d(0), lower.d(0));
-  __ vmstat();
-  __ vmovd(result.d(0), lower.d(0), LE);
-  __ Bind(&done0);
-
-  __ vcmpd(left.d(1), upper.d(1));
-  __ vmstat();
-  __ vmovd(result.d(1), upper.d(1), GE);
-  __ vmovd(result.d(1), left.d(1), LT);  // less than or unordered(NaN)
-  __ b(&done1, VS);                      // at least one argument was NaN
-  __ vcmpd(result.d(1), lower.d(1));
-  __ vmstat();
-  __ vmovd(result.d(1), lower.d(1), LE);
-  __ Bind(&done1);
 }
 
 // Low (< 7) Q registers are needed for the vmovs instruction.
@@ -5050,30 +5029,48 @@ DEFINE_EMIT(Float64x2Binary,
     case SimdOpInstr::kFloat64x2WithY:
       __ vmovd(left.d(1), right.d(0));
       break;
-    case SimdOpInstr::kFloat64x2Min: {
-      // X lane.
-      __ vcmpd(left.d(0), right.d(0));
-      __ vmstat();
-      __ vmovd(left.d(0), right.d(0), GE);
-      // Y lane.
-      __ vcmpd(left.d(1), right.d(1));
-      __ vmstat();
-      __ vmovd(left.d(1), right.d(1), GE);
-      break;
-    }
-    case SimdOpInstr::kFloat64x2Max: {
-      // X lane.
-      __ vcmpd(left.d(0), right.d(0));
-      __ vmstat();
-      __ vmovd(left.d(0), right.d(0), LE);
-      // Y lane.
-      __ vcmpd(left.d(1), right.d(1));
-      __ vmstat();
-      __ vmovd(left.d(1), right.d(1), LE);
-      break;
-    }
     default:
       UNREACHABLE();
+  }
+}
+
+// ARMv7 NEON has no double-precision min/max, so each lane of a Float64x2
+// compares and conditionally moves. A comparison keeps the first operand when
+// the operands are unordered, so it drops NaNs and mishandles the -0.0/+0.0
+// tie. il_x64.cc solves the same problem on x86 by running the comparison both
+// ways and combining them with OR for min and (a | b) - (a ^ b) for max. The
+// subtract flips a disagreeing -0.0 tie to +0.0 and keeps NaNs.
+DEFINE_EMIT(Float64x2MinMax,
+            (SameAsFirstInput,
+             QRegisterView left,
+             QRegisterView right,
+             Temp<QRegister> temp)) {
+  const QRegisterView other(temp);
+  const bool is_min = instr->kind() == SimdOpInstr::kFloat64x2Min;
+  const Condition cond = is_min ? GE : LE;
+  // other = comparison-min/max(right, left), lane by lane.
+  __ vmovq(other, right);
+  __ vcmpd(other.d(0), left.d(0));
+  __ vmstat();
+  __ vmovd(other.d(0), left.d(0), cond);
+  __ vcmpd(other.d(1), left.d(1));
+  __ vmstat();
+  __ vmovd(other.d(1), left.d(1), cond);
+  // left = comparison-min/max(left, right), lane by lane.
+  __ vcmpd(left.d(0), right.d(0));
+  __ vmstat();
+  __ vmovd(left.d(0), right.d(0), cond);
+  __ vcmpd(left.d(1), right.d(1));
+  __ vmstat();
+  __ vmovd(left.d(1), right.d(1), cond);
+  if (is_min) {
+    __ vorrq(left, left, other);
+  } else {
+    const QRegisterView xored(QTMP);
+    __ veorq(xored, left, other);
+    __ vorrq(left, left, other);
+    __ vsubd(left.d(0), left.d(0), xored.d(0));
+    __ vsubd(left.d(1), left.d(1), xored.d(1));
   }
 }
 
@@ -5158,6 +5155,32 @@ DEFINE_EMIT(Int32x4GetFlag, (Register result, FixedQRegisterView<Q6> value)) {
   __ LoadObject(result, Bool::False(), EQ);
 }
 
+DEFINE_EMIT(Int32x4AnyTrue,
+            (Register result,
+             FixedQRegisterView<Q5> value,
+             Temp<QRegister> temp)) {
+  const DRegister dtemp = EvenDRegisterOf(temp);
+  __ vpmaxu(compiler::kFourBytes, dtemp, value.d(0), value.d(1));
+  __ vpmaxu(compiler::kFourBytes, dtemp, dtemp, dtemp);
+  __ vmovrs(result, EvenSRegisterOf(dtemp));
+  __ tst(result, compiler::Operand(result));
+  __ LoadObject(result, Bool::True(), NE);
+  __ LoadObject(result, Bool::False(), EQ);
+}
+
+DEFINE_EMIT(Int32x4AllTrue,
+            (Register result,
+             FixedQRegisterView<Q5> value,
+             Temp<QRegister> temp)) {
+  const DRegister dtemp = EvenDRegisterOf(temp);
+  __ vpminu(compiler::kFourBytes, dtemp, value.d(0), value.d(1));
+  __ vpminu(compiler::kFourBytes, dtemp, dtemp, dtemp);
+  __ vmovrs(result, EvenSRegisterOf(dtemp));
+  __ tst(result, compiler::Operand(result));
+  __ LoadObject(result, Bool::True(), NE);
+  __ LoadObject(result, Bool::False(), EQ);
+}
+
 DEFINE_EMIT(Int32x4Select,
             (QRegister out,
              QRegister mask,
@@ -5173,6 +5196,18 @@ DEFINE_EMIT(Int32x4Select,
   __ vandq(temp2, temp2, falseValue);
   // out = temp1 | temp2.
   __ vorrq(out, temp1, temp2);
+}
+
+DEFINE_EMIT(Int32x4WithLane,
+            (QRegisterView result, QRegister value, Register newLaneValue)) {
+  COMPILE_ASSERT(
+      SimdOpInstr::kInt32x4WithY == (SimdOpInstr::kInt32x4WithX + 1) &&
+      SimdOpInstr::kInt32x4WithZ == (SimdOpInstr::kInt32x4WithX + 2) &&
+      SimdOpInstr::kInt32x4WithW == (SimdOpInstr::kInt32x4WithX + 3));
+  const intptr_t lane_index = instr->kind() - SimdOpInstr::kInt32x4WithX;
+  ASSERT(0 <= lane_index && lane_index < 4);
+  __ vmovq(result, value);
+  __ vmovdr(result.d(lane_index / 2), lane_index % 2, newLaneValue);
 }
 
 DEFINE_EMIT(Int32x4WithFlag,
@@ -5199,6 +5234,25 @@ DEFINE_EMIT(Int32x4WithFlag,
   }
 }
 
+DEFINE_EMIT(Int32x4Shift,
+            (QRegister result,
+             QRegister value,
+             Register shift,
+             Temp<QRegister> shift_vector)) {
+  __ and_(TMP, shift, compiler::Operand(31));
+  if (instr->kind() != SimdOpInstr::kInt32x4Shl) {
+    // vshlqi and vshlqu shift right when the per-lane count is negative.
+    __ rsb(TMP, TMP, compiler::Operand(0));
+  }
+  __ vmovdr(DTMP, 0, TMP);
+  __ vdup(compiler::kFourBytes, shift_vector, DTMP, 0);
+  if (instr->kind() == SimdOpInstr::kInt32x4ShrU) {
+    __ vshlqu(compiler::kFourBytes, result, value, shift_vector);
+  } else {
+    __ vshlqi(compiler::kFourBytes, result, value, shift_vector);
+  }
+}
+
 // Map SimdOpInstr::Kind-s to corresponding emit functions. Uses the following
 // format:
 //
@@ -5206,6 +5260,10 @@ DEFINE_EMIT(Int32x4WithFlag,
 //     SIMPLE(OpA) - Emitter with name OpA is used to emit OpA.
 //
 #define SIMD_OP_VARIANTS(CASE, ____, SIMPLE)                                   \
+  CASE(Int32x4Shl)                                                             \
+  CASE(Int32x4ShrS)                                                            \
+  CASE(Int32x4ShrU)                                                            \
+  ____(Int32x4Shift)                                                           \
   CASE(Float32x4Add)                                                           \
   CASE(Float32x4Sub)                                                           \
   CASE(Float32x4Mul)                                                           \
@@ -5224,6 +5282,9 @@ DEFINE_EMIT(Int32x4WithFlag,
   CASE(Int32x4BitXor)                                                          \
   CASE(Int32x4Add)                                                             \
   CASE(Int32x4Sub)                                                             \
+  CASE(Int32x4Equal)                                                           \
+  CASE(Int32x4NotEqual)                                                        \
+  CASE(Int32x4AndNot)                                                          \
   ____(Simd32x4BinaryOp)                                                       \
   CASE(Float64x2Add)                                                           \
   CASE(Float64x2Sub)                                                           \
@@ -5246,6 +5307,7 @@ DEFINE_EMIT(Int32x4WithFlag,
   SIMPLE(Float32x4FromDoubles)                                                 \
   SIMPLE(Float32x4Zero)                                                        \
   SIMPLE(Float32x4Splat)                                                       \
+  SIMPLE(Int32x4Splat)                                                         \
   SIMPLE(Float32x4Sqrt)                                                        \
   CASE(Int32x4Not)                                                             \
   CASE(Float32x4Negate)                                                        \
@@ -5256,8 +5318,6 @@ DEFINE_EMIT(Int32x4WithFlag,
   CASE(Float32x4ToInt32x4)                                                     \
   CASE(Int32x4ToFloat32x4)                                                     \
   ____(Simd32x4ToSimd32x4Conversion)                                           \
-  SIMPLE(Float32x4Clamp)                                                       \
-  SIMPLE(Float64x2Clamp)                                                       \
   CASE(Float32x4WithX)                                                         \
   CASE(Float32x4WithY)                                                         \
   CASE(Float32x4WithZ)                                                         \
@@ -5279,9 +5339,10 @@ DEFINE_EMIT(Int32x4WithFlag,
   CASE(Float64x2Scale)                                                         \
   CASE(Float64x2WithX)                                                         \
   CASE(Float64x2WithY)                                                         \
+  ____(Float64x2Binary)                                                        \
   CASE(Float64x2Min)                                                           \
   CASE(Float64x2Max)                                                           \
-  ____(Float64x2Binary)                                                        \
+  ____(Float64x2MinMax)                                                        \
   SIMPLE(Int32x4FromInts)                                                      \
   SIMPLE(Int32x4FromBools)                                                     \
   CASE(Int32x4GetX)                                                            \
@@ -5294,7 +5355,14 @@ DEFINE_EMIT(Int32x4WithFlag,
   CASE(Int32x4GetFlagZ)                                                        \
   CASE(Int32x4GetFlagW)                                                        \
   ____(Int32x4GetFlag)                                                         \
+  SIMPLE(Int32x4AnyTrue)                                                       \
+  SIMPLE(Int32x4AllTrue)                                                       \
   SIMPLE(Int32x4Select)                                                        \
+  CASE(Int32x4WithX)                                                           \
+  CASE(Int32x4WithY)                                                           \
+  CASE(Int32x4WithZ)                                                           \
+  CASE(Int32x4WithW)                                                           \
+  ____(Int32x4WithLane)                                                        \
   CASE(Int32x4WithFlagX)                                                       \
   CASE(Int32x4WithFlagY)                                                       \
   CASE(Int32x4WithFlagZ)                                                       \
@@ -5454,6 +5522,9 @@ void UnaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const DRegister result = EvenDRegisterOf(locs()->out(0).fpu_reg());
   const DRegister value = EvenDRegisterOf(locs()->in(0).fpu_reg());
   switch (op_kind()) {
+    case Token::kABS:
+      __ vabsd(result, value);
+      break;
     case Token::kNEGATE:
       __ vnegd(result, value);
       break;
@@ -5619,13 +5690,13 @@ void FloatToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ vcvtds(result, value);
 }
 
-LocationSummary* FloatCompareInstr::MakeLocationSummary(Zone* zone,
-                                                        bool opt) const {
+LocationSummary* CompareAsMaskInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
   UNREACHABLE();
   return NULL;
 }
 
-void FloatCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void CompareAsMaskInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNREACHABLE();
 }
 

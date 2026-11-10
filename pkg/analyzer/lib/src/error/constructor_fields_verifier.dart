@@ -14,12 +14,12 @@ class ConstructorFieldsVerifier {
   final TypeSystemImpl typeSystem;
   final Map<InstanceElement, _Interface> _interfaces = Map.identity();
 
-  ConstructorFieldsVerifier({required this.typeSystem});
+  new({required this.typeSystem});
 
   void addConstructors(
     DiagnosticReporter diagnosticReporter,
     InterfaceElement element,
-    List<ClassMember> members,
+    List<AnnotatedNode> members,
     ClassNamePartImpl primaryConstructor,
   ) {
     var interfaceFields = _forInterface(element);
@@ -30,7 +30,7 @@ class ConstructorFieldsVerifier {
         primaryConstructor: primaryConstructor,
       );
     }
-    var constructors = members.whereType<ConstructorDeclarationImpl>();
+    var constructors = members.whereType<ConstructorDeclaration2Impl>();
     for (var constructor in constructors) {
       _addConstructor(
         diagnosticReporter: diagnosticReporter,
@@ -51,7 +51,7 @@ class ConstructorFieldsVerifier {
   void _addConstructor({
     required DiagnosticReporter diagnosticReporter,
     required _Interface interfaceFields,
-    required ConstructorDeclarationImpl node,
+    required ConstructorDeclaration2Impl node,
   }) {
     var fragment = node.declaredFragment!;
     if (node.factoryKeyword != null ||
@@ -70,7 +70,7 @@ class ConstructorFieldsVerifier {
 
     if (!fragment.isAugmentation) {
       constructorState.updateWithParameters(
-        node.parameters.allFormalParameters,
+        node.formalParameters.allFormalParameters,
       );
     }
 
@@ -98,7 +98,7 @@ class ConstructorFieldsVerifier {
       primaryConstructor.formalParameters.allFormalParameters,
     );
 
-    var body = primaryConstructor.body;
+    var body = primaryConstructor.body2;
     if (body != null) {
       constructorState.updateWithInitializers(
         diagnosticReporter,
@@ -150,12 +150,12 @@ class _Constructor {
   final Set<String> duplicateFieldNames;
   final bool isPrimary;
   final List<PrimaryConstructorDeclarationImpl> primaryConstructors = [];
-  final List<ConstructorDeclarationImpl> secondaryConstructors = [];
+  final List<ConstructorDeclaration2Impl> secondaryConstructors = [];
 
   /// Set to `true` if the constructor redirects.
   bool hasRedirectingConstructorInvocation = false;
 
-  _Constructor({
+  new({
     required this.typeSystem,
     required this.diagnosticReporter,
     required this.errorRange,
@@ -338,7 +338,7 @@ class _Field {
   final FieldElement element;
   final String name;
 
-  _Field(this.element, this.name);
+  new(this.element, this.name);
 }
 
 /// The four states of a field initialization state through a constructor
@@ -373,7 +373,7 @@ class _Interface {
 
   final Map<ConstructorElement, _Constructor> constructors = Map.identity();
 
-  _Interface({
+  new({
     required this.typeSystem,
     required this.element,
     required this.fields,

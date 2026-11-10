@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:io";
+
 import "package:expect/expect.dart";
 import 'package:path/path.dart' as p;
 
@@ -304,7 +305,7 @@ main() {
     "Dart_SetDwarfStackTraceFootnoteCallback",
     "Dart_SetEmbedderInformationCallback",
     "Dart_SetEnabledTimelineCategory",
-    "Dart_SetEnvironmentCallback",
+    "Dart_SetEnvironment",
     "Dart_SetFfiNativeResolver",
     "Dart_SetField",
     "Dart_SetFileModifiedCallback",

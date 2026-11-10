@@ -14,7 +14,7 @@ void main() {
   var c = C(1);
   c.x = 2;
   //^
-  // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_WRITE
   // [cfe] The setter 'x' isn't defined for the type 'C'.
 
   var d = D(1);

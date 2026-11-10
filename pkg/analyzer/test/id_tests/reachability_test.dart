@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualDataMap, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
@@ -34,7 +34,7 @@ enum _ReachabilityAssertion { doesNotComplete, unreachable }
 
 class _ReachabilityDataComputer
     extends DataComputer<Set<_ReachabilityAssertion>> {
-  const _ReachabilityDataComputer();
+  const new();
 
   @override
   DataInterpreter<Set<_ReachabilityAssertion>> get dataValidator =>
@@ -44,7 +44,7 @@ class _ReachabilityDataComputer
   void computeUnitData(
     TestingData testingData,
     CompilationUnit unit,
-    Map<Id, ActualData<Set<_ReachabilityAssertion>>> actualMap,
+    ActualDataMap<Set<_ReachabilityAssertion>> actualMap,
   ) {
     var unitUri = unit.declaredFragment!.source.uri;
     var flowResult = testingData.uriToFlowAnalysisData[unitUri]!;
@@ -56,7 +56,7 @@ class _ReachabilityDataExtractor
     extends AstDataExtractor<Set<_ReachabilityAssertion>> {
   final FlowAnalysisDataForTesting _flowResult;
 
-  _ReachabilityDataExtractor(super.uri, super.actualMap, this._flowResult);
+  new(super.uri, super.actualMap, this._flowResult);
 
   @override
   Set<_ReachabilityAssertion>? computeNodeValue(Id id, AstNode node) {
@@ -73,13 +73,23 @@ class _ReachabilityDataExtractor
     } else if (_flowResult.unreachableNodes.contains(node)) {
       result.add(_ReachabilityAssertion.unreachable);
     }
-    if (node is FunctionDeclaration) {
-      _checkBodyCompletion(node.functionExpression.body, result);
+    if (node is LocalFunctionDeclaration) {
+      _checkBodyCompletion(node.body, result);
+    } else if (node is TopLevelFunctionDeclaration) {
+      _checkBodyCompletion(node.body, result);
     } else if (node is TopLevelGetterDeclaration) {
       _checkBodyCompletion(node.body, result);
-    } else if (node is ConstructorDeclaration) {
+    } else if (node is TopLevelSetterDeclaration) {
       _checkBodyCompletion(node.body, result);
-    } else if (node is MethodDeclaration) {
+    } else if (node is ConstructorDeclaration2) {
+      _checkBodyCompletion(node.body, result);
+    } else if (node is MethodDeclaration2) {
+      _checkBodyCompletion(node.body, result);
+    } else if (node is OperatorDeclaration) {
+      _checkBodyCompletion(node.body, result);
+    } else if (node is GetterDeclaration) {
+      _checkBodyCompletion(node.body, result);
+    } else if (node is SetterDeclaration) {
       _checkBodyCompletion(node.body, result);
     }
     return result.isEmpty ? null : result;
@@ -98,7 +108,7 @@ class _ReachabilityDataExtractor
 
 class _ReachabilityDataInterpreter
     implements DataInterpreter<Set<_ReachabilityAssertion>> {
-  const _ReachabilityDataInterpreter();
+  const new();
 
   @override
   String getText(

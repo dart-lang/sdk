@@ -18,7 +18,7 @@ import 'package:meta/meta.dart';
 class ImmutableVerifier extends SimpleAstVisitor2<void> {
   final DiagnosticReporter _diagnosticReporter;
 
-  ImmutableVerifier(this._diagnosticReporter);
+  new(this._diagnosticReporter);
 
   /// Checks whether [node] violates the rules of [immutable].
   ///
@@ -27,7 +27,7 @@ class ImmutableVerifier extends SimpleAstVisitor2<void> {
   /// its superclasses, reporting a warning if any non-final instance fields are
   /// found.
   void checkDeclaration(
-    CompilationUnitMember node, {
+    FragmentDeclaringNode node, {
     required Token nameToken,
   }) {
     var element = node.declaredFragment!.element as InterfaceElement;

@@ -8,6 +8,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:collection/collection.dart';
 import 'package:expect/expect.dart';
@@ -33,6 +34,14 @@ int workload() {
   });
 }
 
+// Isolate shutdown drains profiler sample blocks into the timeline recorder.
+// The onExit message is sent after that happens.
+Future<void> spawnIsolateAndWaitForExit() async {
+  final onExit = ReceivePort();
+  await Isolate.spawn((_) {}, null, onExit: onExit.sendPort);
+  await onExit.first;
+}
+
 Future<void> testPerfettoRecorder({
   required String tempDir,
   required bool withProfiler,
@@ -49,6 +58,7 @@ Future<void> testPerfettoRecorder({
     enableProfiler: withProfiler,
   );
   workload();
+  await spawnIsolateAndWaitForExit();
   NativeRuntime.stopStreamingTimeline();
 
   Expect.isTrue(
@@ -74,7 +84,11 @@ expected to see a track descriptor for every track:
 
   if (withProfiler) {
     Expect.isTrue(
-      traceData.hasSeenStack(['main', 'workload', 'Timeline.timeSync']),
+      traceData.hasSeenStack([
+        'testPerfettoRecorder',
+        'workload',
+        'Timeline.timeSync',
+      ]),
     );
   } else {
     Expect.isEmpty(traceData.seenStacks);
@@ -104,8 +118,10 @@ Future<void> testChromeRecorder({required String tempDir}) async {
 
 void main() async {
   await withTempDir('stream_timeline_to_test', (tempDir) async {
-    await testPerfettoRecorder(tempDir: tempDir, withProfiler: true);
+    // Must run before the profiler is started for the first time: the sample
+    // buffer is not freed when the profiler is stopped.
     await testPerfettoRecorder(tempDir: tempDir, withProfiler: false);
+    await testPerfettoRecorder(tempDir: tempDir, withProfiler: true);
     await testChromeRecorder(tempDir: tempDir);
 
     // Perfetto and Chrome recorders require file path for output.

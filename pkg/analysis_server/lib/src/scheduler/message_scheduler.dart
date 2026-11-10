@@ -15,6 +15,7 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/scheduler/scheduled_message.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
+import 'package:analysis_server/src/services/refactoring/framework/refactoring_processor.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:language_server_protocol/json_parsing.dart';
 
@@ -122,6 +123,10 @@ final class MessageScheduler {
           //  cancel pending messages of the same kind.
         }
       }
+    } else if (message is LegacyNotificationMessage) {
+      // Notifications have no response and nothing to cancel, so there is no
+      // pre-processing to do for them.
+      listener?.addPendingMessage(message);
     } else if (message is LspMessage) {
       var msg = message.message;
       if (msg is lsp.ResponseMessage) {
@@ -238,6 +243,12 @@ final class MessageScheduler {
               _completer,
               currentMessage.cancellationToken,
             );
+          case LegacyNotificationMessage():
+            var notification = currentMessage.notification;
+            (server as LegacyAnalysisServer).handleNotification(
+              notification,
+              _completer,
+            );
           case DtdMessage():
             server.dtd!.processMessage(
               currentMessage.message,
@@ -274,10 +285,22 @@ final class MessageScheduler {
         );
       }
     } catch (error, stackTrace) {
+      var fatalException = FatalException(
+        'Failed to process message',
+        error,
+        stackTrace,
+      );
+      var attachments = server.crashReportingAttachmentsBuilder.forException(
+        error,
+      );
       server.instrumentationService.logException(
-        FatalException('Failed to process message', error, stackTrace),
+        fatalException,
         null,
-        server.crashReportingAttachmentsBuilder.forException(error),
+        attachments,
+      );
+      server.sessionListener.logException(
+        exception: fatalException,
+        attachments: attachments,
       );
     }
     _processingIsScheduled = false;
@@ -375,7 +398,8 @@ final class MessageScheduler {
     if (message.method == lsp.Method.workspace_executeCommand) {
       lsp.ExecuteCommandParams? params;
       params = _getCommandParams(message);
-      if (params?.command == Commands.performRefactor) {
+      if (params?.command == Commands.performRefactor ||
+          RefactoringProcessor.generators.containsKey(params?.command)) {
         return true;
       }
     }
@@ -435,7 +459,10 @@ final class MessageScheduler {
       if (args.length == 6) {
         path = args[1] as String?;
       } else if (args.length == 1 && args[0] is Map<String, Object?>) {
-        path = (args.single as Map<String, Object?>)['path'] as String?;
+        var argMap = args.single as Map<String, Object?>;
+        // The original legacy refactors used `path`, but the newer
+        // self-describing refactors use `filePath`.
+        path = (argMap['path'] ?? argMap['filePath']) as String?;
       }
 
       return path != null ? Uri.file(path) : null;
@@ -448,7 +475,10 @@ final class MessageScheduler {
       var request = lspMessage.message as lsp.RequestMessage;
       var execParams = _getCommandParams(request);
       if (execParams != null &&
-          execParams.command == Commands.performRefactor) {
+          (execParams.command == Commands.performRefactor ||
+              RefactoringProcessor.generators.containsKey(
+                execParams.command,
+              ))) {
         var args = execParams.arguments ?? [];
         var refactorUri = getRefactorUri(args);
         if (refactorUri == documentChangeUri) {

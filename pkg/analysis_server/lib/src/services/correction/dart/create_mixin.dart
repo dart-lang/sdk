@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -23,6 +24,10 @@ class CreateMixin extends MultiCorrectionProducer {
     Element? prefixElement;
     var withKeyword = false;
     var node = this.node;
+    // An annotation can't reference a mixin.
+    if (node.annotationContainingName != null) {
+      return const [];
+    }
     Expression? expression;
     if (node is NamedType) {
       var importPrefix = node.importPrefix;
@@ -35,6 +40,10 @@ class CreateMixin extends MultiCorrectionProducer {
       withKeyword = node.parent is WithClause;
       mixinName = node.name.lexeme;
     } else if (node is SimpleIdentifier) {
+      // A mixin can't be invoked.
+      if (node.isInvocationName) {
+        return const [];
+      }
       var parent = node.parent;
       switch (parent) {
         // Not the first identifier or the body of a function

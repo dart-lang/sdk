@@ -19,13 +19,10 @@ void main() {
 @reflectiveTest
 class AddDiagnosticPropertyReferenceBulkTest extends BulkFixProcessorTest {
   @override
-  String get lintCode => LintNames.diagnostic_describe_all_properties;
+  bool get addFlutterPackageDep => true;
 
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  String get lintCode => LintNames.diagnostic_describe_all_properties;
 
   Future<void> test_multiple_no_debugFillPropertiesMethod() async {
     createAnalysisOptionsFile(
@@ -100,7 +97,6 @@ class C extends Widget with Diagnosticable {
   }
 
   Future<void> test_singleFile() async {
-    writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
@@ -149,7 +145,11 @@ class D extends Widget with Diagnosticable {
 }
 
 @reflectiveTest
-class AddDiagnosticPropertyReferenceTest extends FixProcessorLintTest {
+class AddDiagnosticPropertyReferenceTest
+    extends FixProcessorForBuiltInLintRuleTest {
+  @override
+  bool get addFlutterPackageDep => true;
+
   @override
   bool get addVectorMathPackageDep => true;
 
@@ -158,12 +158,6 @@ class AddDiagnosticPropertyReferenceTest extends FixProcessorLintTest {
 
   @override
   String get lintCode => LintNames.diagnostic_describe_all_properties;
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
 
   Future<void> test_boolField() async {
     await resolveTestCode('''
@@ -487,7 +481,6 @@ class C extends Widget with Diagnosticable {
   }
 
   Future<void> test_matrix4Field() async {
-    writeTestPackageConfig(flutter: true);
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 import 'package:vector_math/vector_math_64.dart';

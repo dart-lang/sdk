@@ -256,6 +256,68 @@ main() {
     test('UnknownType', () {
       expect(UnknownType().toString(), '_');
     });
+
+    test('InvocationStructuralContextType', () {
+      expect(
+        InvocationStructuralContextType(returnType: Type('int')).toString(),
+        '(...) -> int',
+      );
+
+      expect(
+        InvocationStructuralContextType(
+          returnType: FunctionType(Type('int'), []),
+        ).toString(),
+        '(...) -> (int Function())',
+      );
+
+      expect(
+        InvocationStructuralContextType(
+          returnType: InvocationStructuralContextType(
+            returnType: FunctionType(Type('bool'), []),
+          ),
+        ).toString(),
+        '(...) -> ((...) -> (bool Function()))',
+      );
+    });
+
+    test('LookupStructuralContextType', () {
+      expect(
+        LookupStructuralContextType(
+          lookupName: 'isEmpty',
+          lookupType: Type('bool'),
+        ).toString(),
+        '{isEmpty: bool}',
+      );
+
+      expect(
+        LookupStructuralContextType(
+          lookupName: 'foo',
+          lookupType: FunctionType(Type('bool'), [Type('int')]),
+        ).toString(),
+        '{foo: bool Function(int)}',
+      );
+
+      expect(
+        LookupStructuralContextType(
+          lookupName: 'foo',
+          lookupType: InvocationStructuralContextType(
+            returnType: FunctionType(Type('int'), []),
+          ),
+        ).toString(),
+        '{foo: (...) -> (int Function())}',
+      );
+
+      expect(
+        LookupStructuralContextType(
+          lookupName: 'foo',
+          lookupType: LookupStructuralContextType(
+            lookupName: 'bar',
+            lookupType: Type('num'),
+          ),
+        ).toString(),
+        '{foo: {bar: num}}',
+      );
+    });
   });
 
   group('parse:', () {
@@ -614,6 +676,73 @@ main() {
     test('extra token after type', () {
       expect(() => Type('int)'), throwsParseError);
     });
+
+    group('lookup structural context type:', () {
+      test('simple', () {
+        var type = Type('{foo: int}') as LookupStructuralContextType;
+        expect(type.lookupName, 'foo');
+        expect(type.lookupType, Type('int'));
+      });
+
+      test('with complex lookup type', () {
+        var type = Type('{foo: int Function()}') as LookupStructuralContextType;
+        expect(type.lookupName, 'foo');
+        expect(type.lookupType, Type('int Function()'));
+      });
+    });
+
+    group('invocation structural context type:', () {
+      test('simple without spaces', () {
+        var type = Type('(...)->int') as InvocationStructuralContextType;
+        expect(type.returnType, Type('int'));
+      });
+
+      test('simple with spaces', () {
+        var type = Type('( ... ) -> int') as InvocationStructuralContextType;
+        expect(type.returnType, Type('int'));
+      });
+
+      test('with complex return type', () {
+        var type =
+            Type('(...) -> int Function()') as InvocationStructuralContextType;
+        expect(type.returnType, Type('int Function()'));
+      });
+
+      test('nullability suffix gravity', () {
+        var type =
+            Type('(...) -> int Function()?') as InvocationStructuralContextType;
+        expect(type.isQuestionType, false);
+        expect(type.returnType.isQuestionType, true);
+        expect(type.returnType, Type('int Function()?'));
+      });
+    });
+
+    group('invocation structural context type:', () {
+      test('missing closing `)` after `...`', () {
+        expect(() => Type('(...'), throwsParseError);
+        expect(() => Type('(... foo)'), throwsParseError);
+      });
+      test('missing `->` in invocation', () {
+        expect(() => Type('(...)'), throwsParseError);
+      });
+      test('missing return type', () {
+        expect(() => Type('(...) ->'), throwsParseError);
+      });
+    });
+
+    group('invocation structural context type:', () {
+      test('non-identifier lookup name', () {
+        expect(() => Type('{123: int}'), throwsParseError);
+        expect(() => Type('{}'), throwsParseError);
+      });
+      test('missing colon in lookup', () {
+        expect(() => Type('{foo int}'), throwsParseError);
+      });
+      test('missing closing `}` in lookup', () {
+        expect(() => Type('{foo: int'), throwsParseError);
+        expect(() => Type('{foo: int, bar: String}'), throwsParseError);
+      });
+    });
   });
 
   group('hashCode and equality:', () {
@@ -758,6 +887,63 @@ main() {
     test('UnknownType', () {
       checkEqual(Type('_'), Type('_'));
       checkNotEqual(Type('_?'), Type('_'));
+    });
+
+    test('LookupStructuralContextType', () {
+      checkEqual(
+        LookupStructuralContextType(lookupName: 'foo', lookupType: Type('int')),
+        LookupStructuralContextType(lookupName: 'foo', lookupType: Type('int')),
+      );
+      checkNotEqual(
+        LookupStructuralContextType(lookupName: 'foo', lookupType: Type('num')),
+        LookupStructuralContextType(lookupName: 'bar', lookupType: Type('num')),
+      );
+      checkNotEqual(
+        LookupStructuralContextType(lookupName: 'foo', lookupType: Type('int')),
+        LookupStructuralContextType(lookupName: 'foo', lookupType: Type('num')),
+      );
+      checkNotEqual(
+        LookupStructuralContextType(lookupName: 'foo', lookupType: Type('int')),
+        LookupStructuralContextType(
+          lookupName: 'foo',
+          lookupType: Type('int'),
+          isQuestionType: true,
+        ),
+      );
+      checkNotEqual(
+        LookupStructuralContextType(lookupName: 'foo', lookupType: Type('int')),
+        UnknownType(),
+      );
+      checkNotEqual(
+        UnknownType(),
+        LookupStructuralContextType(lookupName: 'foo', lookupType: Type('int')),
+      );
+    });
+
+    test('InvocationStructuralContextType', () {
+      checkEqual(
+        InvocationStructuralContextType(returnType: Type('int')),
+        InvocationStructuralContextType(returnType: Type('int')),
+      );
+      checkNotEqual(
+        InvocationStructuralContextType(returnType: Type('int')),
+        InvocationStructuralContextType(returnType: Type('num')),
+      );
+      checkNotEqual(
+        InvocationStructuralContextType(returnType: Type('int')),
+        InvocationStructuralContextType(
+          returnType: Type('int'),
+          isQuestionType: true,
+        ),
+      );
+      checkNotEqual(
+        InvocationStructuralContextType(returnType: Type('int')),
+        UnknownType(),
+      );
+      checkNotEqual(
+        UnknownType(),
+        InvocationStructuralContextType(returnType: Type('int')),
+      );
     });
   });
 
@@ -1008,6 +1194,67 @@ main() {
       expect(Type('_').recursivelyDemote(covariant: true), isNull);
       expect(Type('_').recursivelyDemote(covariant: false), isNull);
     });
+
+    test('LookupStructuralContextType:', () {
+      expect(
+        LookupStructuralContextType(
+          lookupName: 'foo',
+          lookupType: Type('int'),
+        ).recursivelyDemote(covariant: true),
+        isNull,
+      );
+      expect(
+        LookupStructuralContextType(
+          lookupName: 'foo',
+          lookupType: Type('int'),
+        ).recursivelyDemote(covariant: false),
+        isNull,
+      );
+      expect(
+        LookupStructuralContextType(
+          lookupName: 'foo',
+          lookupType: Type('T&int'),
+        ).recursivelyDemote(covariant: true),
+        LookupStructuralContextType(lookupName: 'foo', lookupType: Type('T')),
+      );
+      expect(
+        LookupStructuralContextType(
+          lookupName: 'foo',
+          lookupType: Type('T&int'),
+        ).recursivelyDemote(covariant: false),
+        LookupStructuralContextType(
+          lookupName: 'foo',
+          lookupType: Type('Never'),
+        ),
+      );
+    });
+
+    test('InvocationStructuralContextType:', () {
+      expect(
+        InvocationStructuralContextType(
+          returnType: Type('int'),
+        ).recursivelyDemote(covariant: true),
+        isNull,
+      );
+      expect(
+        InvocationStructuralContextType(
+          returnType: Type('int'),
+        ).recursivelyDemote(covariant: false),
+        isNull,
+      );
+      expect(
+        InvocationStructuralContextType(
+          returnType: Type('T&int'),
+        ).recursivelyDemote(covariant: true),
+        InvocationStructuralContextType(returnType: Type('T')),
+      );
+      expect(
+        InvocationStructuralContextType(
+          returnType: Type('T&int'),
+        ).recursivelyDemote(covariant: false),
+        InvocationStructuralContextType(returnType: Type('Never')),
+      );
+    });
   });
 
   group('closureWithRespectToUnknown:', () {
@@ -1018,6 +1265,64 @@ main() {
       );
       expect(
         Type('_').closureWithRespectToUnknown(covariant: false)!.type,
+        'Never',
+      );
+    });
+
+    test('LookupStructuralContextType:', () {
+      expect(
+        LookupStructuralContextType(
+          lookupName: 'foo',
+          lookupType: Type('int'),
+        ).closureWithRespectToUnknown(covariant: true)!.type,
+        'Object?',
+      );
+      expect(
+        LookupStructuralContextType(
+          lookupName: 'foo',
+          lookupType: Type('int'),
+        ).closureWithRespectToUnknown(covariant: false)!.type,
+        'Never',
+      );
+      expect(
+        LookupStructuralContextType(
+          lookupName: 'foo',
+          lookupType: Type('_'),
+        ).closureWithRespectToUnknown(covariant: true)!.type,
+        'Object?',
+      );
+      expect(
+        LookupStructuralContextType(
+          lookupName: 'foo',
+          lookupType: Type('_'),
+        ).closureWithRespectToUnknown(covariant: false)!.type,
+        'Never',
+      );
+    });
+
+    test('InvocationStructuralContextType:', () {
+      expect(
+        InvocationStructuralContextType(
+          returnType: Type('int'),
+        ).closureWithRespectToUnknown(covariant: true)!.type,
+        'Object?',
+      );
+      expect(
+        InvocationStructuralContextType(
+          returnType: Type('int'),
+        ).closureWithRespectToUnknown(covariant: false)!.type,
+        'Never',
+      );
+      expect(
+        InvocationStructuralContextType(
+          returnType: Type('_'),
+        ).closureWithRespectToUnknown(covariant: true)!.type,
+        'Object?',
+      );
+      expect(
+        InvocationStructuralContextType(
+          returnType: Type('_'),
+        ).closureWithRespectToUnknown(covariant: false)!.type,
         'Never',
       );
     });
@@ -1316,6 +1621,27 @@ main() {
     test('UnknownType', () {
       expect(queryUsedIdentifiers(Type('_')), isEmpty);
     });
+
+    test('LookupStructuralContextType', () {
+      expect(
+        queryUsedIdentifiers(
+          LookupStructuralContextType(
+            lookupName: 'foo',
+            lookupType: Type('int'),
+          ),
+        ),
+        unorderedEquals({'int'}),
+      );
+    });
+
+    test('InvocationStructuralContextType', () {
+      expect(
+        queryUsedIdentifiers(
+          InvocationStructuralContextType(returnType: Type('int')),
+        ),
+        unorderedEquals({'int'}),
+      );
+    });
   });
 
   group('substitute:', () {
@@ -1476,6 +1802,28 @@ main() {
 
     test('UnknownType', () {
       expect(Type('_').substitute({t: Type('String')}), isNull);
+    });
+
+    test('LookupStructuralContextType', () {
+      expect(
+        LookupStructuralContextType(
+          lookupName: 'foo',
+          lookupType: Type('Map<int, T>'),
+        ).substitute({t: Type('String')}),
+        LookupStructuralContextType(
+          lookupName: 'foo',
+          lookupType: Type('Map<int, String>'),
+        ),
+      );
+    });
+
+    test('InvocationStructuralContextType', () {
+      expect(
+        InvocationStructuralContextType(
+          returnType: Type('Map<int, T>'),
+        ).substitute({t: Type('String')}),
+        InvocationStructuralContextType(returnType: Type('Map<int, String>')),
+      );
     });
   });
 }

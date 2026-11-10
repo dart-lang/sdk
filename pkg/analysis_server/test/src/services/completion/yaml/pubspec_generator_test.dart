@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/completion/yaml/pubspec_generator.d
 import 'package:analysis_server/src/services/pub/pub_api.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
 import 'package:analysis_server/src/services/pub/pub_package_service.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:http/http.dart';
@@ -40,10 +41,17 @@ class PubspecGeneratorTest extends YamlGeneratorTest {
     processRunner = MockProcessRunner();
     pubPackageService = PubPackageService(
       InstrumentationService.NULL_SERVICE,
+      SessionLogger(),
       resourceProvider,
-      PubApi(InstrumentationService.NULL_SERVICE, httpClient, null),
+      PubApi(
+        InstrumentationService.NULL_SERVICE,
+        SessionLogger(),
+        httpClient,
+        null,
+      ),
       PubCommand(
         InstrumentationService.NULL_SERVICE,
+        SessionLogger(),
         resourceProvider.pathContext,
         processRunner,
       ),
@@ -413,10 +421,71 @@ screenshots:
 screenshots:
   - description: 'One'
     path: /path/to/ss.png
-  - description: 'Two' 
+  - description: 'Two'
     ^
 ''');
     assertSuggestion('path: ');
+  }
+
+  void test_workspace_emptyList() {
+    newFile('/home/test/pkgs/foo/pubspec.yaml', '');
+    newFile('/home/test/pkgs/bar/pubspec.yaml', '');
+    newFile('/home/test/README.md', '');
+    newFile('/home/test/non_pkg/file.txt', '');
+    newFile('/home/test/.dart_tool/hidden/pubspec.yaml', '');
+    getCompletions('''
+workspace:
+  - ^
+''');
+    assertSuggestion('pkgs/bar');
+    assertSuggestion('pkgs/foo');
+    assertNoSuggestion('README.md');
+    assertNoSuggestion('non_pkg');
+    assertNoSuggestion('.dart_tool/hidden');
+  }
+
+  void test_workspace_existingPackage() {
+    newFile('/home/test/pkgs/foo/pubspec.yaml', '');
+    newFile('/home/test/pkgs/bar/pubspec.yaml', '');
+    getCompletions('''
+workspace:
+  - pkgs/foo
+  - ^
+''');
+    assertNoSuggestion('pkgs/foo');
+    assertSuggestion('pkgs/bar');
+  }
+
+  void test_workspace_nestedPackage() {
+    newFile('/home/test/packages/foo/pubspec.yaml', '');
+    newFile('/home/test/packages/foo/example/pubspec.yaml', '');
+    getCompletions('''
+workspace:
+  - ^
+''');
+    assertSuggestion('packages/foo');
+    assertSuggestion('packages/foo/example');
+  }
+
+  void test_workspace_noDash() {
+    newFile('/home/test/pkgs/foo/pubspec.yaml', '');
+    newFile('/home/test/pkgs/bar/pubspec.yaml', '');
+    getCompletions('''
+workspace:
+  ^
+''');
+    assertSuggestion('- pkgs/bar');
+    assertSuggestion('- pkgs/foo');
+  }
+
+  void test_workspace_partialPath() {
+    newFile('/home/test/pkgs/foo/pubspec.yaml', '');
+    newFile('/home/test/pkgs/bar/pubspec.yaml', '');
+    getCompletions('''
+workspace:
+  - pkgs/f^
+''');
+    assertSuggestion('pkgs/foo');
   }
 
   void test_workspace_resolution() {

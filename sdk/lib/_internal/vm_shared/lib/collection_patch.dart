@@ -11,9 +11,9 @@ class HashMap<K, V> {
   @patch
   @pragma("vm:prefer-inline")
   factory HashMap({
-    bool equals(K key1, K key2)?,
-    int hashCode(K key)?,
-    bool isValidKey(potentialKey)?,
+    bool Function(K key1, K key2)? equals,
+    int Function(K key)? hashCode,
+    bool Function(dynamic potentialKey)? isValidKey,
   }) {
     if (isValidKey == null) {
       if (hashCode == null) {
@@ -112,7 +112,7 @@ base class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
     _addEntry(buckets, index, length, key, value, hashCode);
   }
 
-  V putIfAbsent(K key, V ifAbsent()) {
+  V putIfAbsent(K key, V Function() ifAbsent) {
     final hashCode = key.hashCode;
     final buckets = _buckets;
     final length = buckets.length;
@@ -140,7 +140,7 @@ base class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
     });
   }
 
-  void forEach(void action(K key, V value)) {
+  void forEach(void Function(K key, V value) action) {
     final stamp = _modificationCount;
     final buckets = _buckets;
     final length = buckets.length;
@@ -205,6 +205,8 @@ base class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
   }
 
   void clear() {
+    // Nothing to clear, and the buckets already have the initial capacity.
+    if (_elementCount == 0 && _buckets.length == _INITIAL_CAPACITY) return;
     _buckets = List.filled(_INITIAL_CAPACITY, null);
     if (_elementCount > 0) {
       _elementCount = 0;
@@ -262,7 +264,7 @@ base class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
   }
 
   @override
-  V update(K key, V update(V value), {V Function()? ifAbsent}) {
+  V update(K key, V Function(V value) update, {V Function()? ifAbsent}) {
     final hashCode = key.hashCode;
     final buckets = _buckets;
     final length = buckets.length;
@@ -344,7 +346,7 @@ base class _CustomHashMap<K, V> extends _HashMap<K, V> {
     _addEntry(buckets, index, length, key, value, hashCode);
   }
 
-  V putIfAbsent(K key, V ifAbsent()) {
+  V putIfAbsent(K key, V Function() ifAbsent) {
     final hashCode = _hashCode(key);
     final buckets = _buckets;
     final length = buckets.length;
@@ -437,7 +439,7 @@ base class _IdentityHashMap<K, V> extends _HashMap<K, V> {
     _addEntry(buckets, index, length, key, value, hashCode);
   }
 
-  V putIfAbsent(K key, V ifAbsent()) {
+  V putIfAbsent(K key, V Function() ifAbsent) {
     final hashCode = identityHashCode(key);
     final buckets = _buckets;
     final length = buckets.length;
@@ -481,7 +483,7 @@ base class _IdentityHashMap<K, V> extends _HashMap<K, V> {
   }
 
   @override
-  V update(K key, V update(V value), {V Function()? ifAbsent}) {
+  V update(K key, V Function(V value) update, {V Function()? ifAbsent}) {
     final hashCode = identityHashCode(key);
     final buckets = _buckets;
     final length = buckets.length;
@@ -526,7 +528,7 @@ class _HashMapKeyIterable<K, V> extends _HashMapIterable<K, V, K> {
   _HashMapKeyIterable(_HashMap<K, V> map) : super(map);
   Iterator<K> get iterator => _HashMapKeyIterator<K, V>(_map);
   bool contains(Object? key) => _map.containsKey(key);
-  void forEach(void action(K key)) {
+  void forEach(void Function(K key) action) {
     _map.forEach((K key, _) {
       action(key);
     });
@@ -539,7 +541,7 @@ class _HashMapValueIterable<K, V> extends _HashMapIterable<K, V, V> {
   _HashMapValueIterable(_HashMap<K, V> map) : super(map);
   Iterator<V> get iterator => _HashMapValueIterator<K, V>(_map);
   bool contains(Object? value) => _map.containsValue(value);
-  void forEach(void action(V value)) {
+  void forEach(void Function(V value) action) {
     _map.forEach((_, V value) {
       action(value);
     });
@@ -597,9 +599,9 @@ class _HashMapValueIterator<K, V> extends _HashMapIterator<K, V, V> {
 class HashSet<E> {
   @patch
   factory HashSet({
-    bool equals(E e1, E e2)?,
-    int hashCode(E e)?,
-    bool isValidKey(potentialKey)?,
+    bool Function(E e1, E e2)? equals,
+    int Function(E e)? hashCode,
+    bool Function(dynamic potentialKey)? isValidKey,
   }) {
     if (isValidKey == null) {
       if (hashCode == null) {
@@ -744,7 +746,7 @@ base class _HashSet<E> extends _SetBase<E> implements HashSet<E> {
     }
   }
 
-  void _filterWhere(bool test(E element), bool removeMatching) {
+  void _filterWhere(bool Function(E element) test, bool removeMatching) {
     int length = _buckets.length;
     for (int index = 0; index < length; index++) {
       var entry = _buckets[index];
@@ -774,15 +776,17 @@ base class _HashSet<E> extends _SetBase<E> implements HashSet<E> {
     }
   }
 
-  void removeWhere(bool test(E element)) {
+  void removeWhere(bool Function(E element) test) {
     _filterWhere(test, true);
   }
 
-  void retainWhere(bool test(E element)) {
+  void retainWhere(bool Function(E element) test) {
     _filterWhere(test, false);
   }
 
   void clear() {
+    // Nothing to clear, and the buckets already have the initial capacity.
+    if (_elementCount == 0 && _buckets.length == _INITIAL_CAPACITY) return;
     _buckets = List<_HashSetEntry<E>?>.filled(_INITIAL_CAPACITY, null);
     if (_elementCount > 0) {
       _elementCount = 0;

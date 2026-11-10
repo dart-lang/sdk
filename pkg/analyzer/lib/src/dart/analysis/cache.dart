@@ -16,7 +16,7 @@ class Cache<K, V> {
   int _evictedEntryCount = 0;
   int _evictionCount = 0;
 
-  Cache(this._maxSizeBytes, this._meter);
+  new(this._maxSizeBytes, this._meter);
 
   int get currentSizeBytes => _currentSizeBytes;
   int get entryCount => map.length;

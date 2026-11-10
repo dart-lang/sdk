@@ -1,4 +1,223 @@
-## 14.2.0-dev
+## 14.8.0-dev
+
+* A V1 `FunctionExpressionInvocation` or `PostfixExpression` that begins a cascade section, as in `a..b(0)(1)` or
+  `a..b!`, begins at the cascade operator again, as do the nodes that contain it, such as `PropertyAccess` in `a..b!.c`.
+  So its `offset`, `beginToken`, and `toSource()` include `..` or `?..`. This was a regression in 14.2.0 for
+  `PostfixExpression`, and in 14.4.0 for `FunctionExpressionInvocation`, through 14.7.0.
+* `LibraryElement.documentationComment` is read only from the `library` directive, as the Dart documentation comment
+  specification says. Previously, it was read from the first directive of any kind, so a doc comment before the first
+  `import`, `export`, or `part` directive of a library without a `library` directive was returned, and a doc comment
+  before a `library` directive that is not the first directive was ignored.
+  See https://github.com/dart-lang/sdk/issues/64700.
+
+## 14.7.0
+
+* Experiments are enabled for the language version of the host SDK,
+  whether they come from `analyzer: enable-experiment:` in analysis
+  options files, or from `enabledExperiments` of
+  `AnalysisContextCollection`. Files outside of any package also use
+  the language version of the host SDK, so they get the experiments.
+  Libraries in packages get them when their language version is the
+  language version of the host SDK.
+  Previously, experiments from analysis options files were enabled for
+  the analyzer's own latest language version, so when it differed from
+  the host SDK, they were silently ignored, for files outside of any
+  package (a regression in 14.2.0 through 14.6.0), and for libraries in
+  packages.
+  See https://github.com/dart-lang/sdk/issues/64693.
+* The latest language version that a `// @dart = X.Y` comment can
+  specify is the language version of the host SDK, as for the compiler
+  of this SDK. Previously, it was the analyzer's own latest language
+  version, so when the analyzer was newer than the SDK, overrides that
+  the compiler rejects were accepted, and when it was older, overrides
+  that the compiler accepts were reported as
+  `invalid_language_version_override_greater`.
+* `InstanceElement.children` and `TypeAliasElement.children` include the
+  type parameters, as `ExecutableElement.children` already did. So element
+  visitors, such as `GeneralizingElementVisitor2` and
+  `RecursiveElementVisitor2`, visit the type parameters of classes, enums,
+  extensions, extension types, mixins, and type aliases.
+
+## 14.6.0
+
+* Added the `enabledExperiments` parameter to `AnalysisContextCollection`
+  to override experiments from analysis options files.
+* Fixed a regression in 14.2.0 through 14.5.0, where `analyzer: exclude:`
+  patterns from an included options file, such as
+  `include: package:my_lints/options.yaml`, were relative to the included
+  file, so they did not exclude any files of the including package. These
+  patterns are again relative to the folder of the `analysis_options.yaml`
+  file at the start of the `include:` chain.
+  See https://github.com/dart-lang/sdk/issues/64549.
+* Failed name and member lookups are reported by which lookup failed, and
+  whether a read or a write was required, instead of by the kind of
+  declaration guessed from the syntax, as proposed in
+  https://github.com/dart-lang/sdk/issues/64411. Each lookup has two new
+  diagnostics, one for reads, such as `foo`, `foo()`, and the read of
+  `foo += 1`, and one for writes, such as `foo = v` and the write of
+  `foo += 1`:
+  * `undefined_unqualified_name_read` and `undefined_unqualified_name_write`,
+    for names without a qualifier, such as `foo`, `foo<int>`, `@foo`,
+    `for (foo in xs)`, and `(foo) = r`.
+  * `undefined_prefixed_name_read` and `undefined_prefixed_name_write`, for
+    names imported with a prefix, such as `p.foo`.
+  * `undefined_static_member_read` and `undefined_static_member_write`, for
+    static members of a class, enum, mixin, extension type, or extension, such
+    as `C.foo`, and for dot shorthands, such as `.foo` and `.foo()`.
+  * `undefined_instance_member_read` and `undefined_instance_member_write`,
+    for members of the static type of the receiver and its applicable
+    extensions, such as `x.foo`, and for the field `foo` of an object pattern
+    `C(foo: _)`.
+  * `undefined_extension_member_read` and `undefined_extension_member_write`,
+    for extension overrides, such as `E(x).foo`.
+  * `undefined_super_member_read` and `undefined_super_member_write`, for
+    `super.foo`.
+  * `undefined_super_operator`, for `super + v`, `-super`, `super[i]`, and
+    `super[i] = v`, which was a variant of `undefined_super_member`.
+
+  A read fails when there is no method, getter, field, variable, function, or
+  type with the name; a write fails when there is no setter or assignable
+  variable. The message says what was found instead: only a setter, for a
+  read; only a getter, a final or constant variable or field, a function, a
+  method, or a type, for a write; or a private declaration of another
+  library, for every lookup except unqualified names. Undefined names in
+  annotations and constant expressions get corrections that suggest only
+  what is valid there, and a dot shorthand names its context type.
+
+  These diagnostics replace `undefined_identifier`, `undefined_function`,
+  `undefined_prefixed_name`, `undefined_getter`, `undefined_method`,
+  `undefined_setter`, `undefined_enum_constant`,
+  `dot_shorthand_undefined_member`, `undefined_extension_getter`,
+  `undefined_extension_method`, `undefined_extension_setter`,
+  `undefined_super_member`, `assignment_to_const`, `assignment_to_final`,
+  `assignment_to_final_no_setter`, `assignment_to_function`,
+  `assignment_to_method`, `assignment_to_type`, and `private_setter`, which
+  are no longer reported. Replace them with the new names in `// ignore:`
+  comments and in `analysis_options.yaml`, where the old names are still
+  accepted, but have no effect.
+
+  Other behavior changes:
+  * A read-write operation, such as `foo += 1`, `x.foo += 1`,
+    `super.foo ??= v`, `super.foo++`, or `super[i] += 1`, reports only the
+    read when both the read and the write fail.
+  * Members of the interfaces that a class or mixin implements are no longer
+    considered to be in a superclass. For example, `super.foo()` in
+    `mixin M implements A` now reports `undefined_super_member_read` instead
+    of `abstract_super_member_reference`, when only `A` has `foo`.
+  * A private member of an extension declared in another library is no
+    longer found, either through an extension override, such as `E(x)._foo`,
+    or as a static member, such as `E._foo`.
+  * A dot shorthand whose context type has no static members, such as a
+    function type, or is a private class of another library, reports
+    `undefined_static_member_read` instead of `dot_shorthand_missing_context`,
+    which is now reported only when there is no context type.
+  * An assignment to an erroneously constant instance field, or to an
+    instance field declared in an extension, no longer reports anything at
+    the assignment; the declaration already reports `const_instance_field` or
+    `extension_declares_instance_field`.
+* A name in a constant expression whose read is already reported as invalid,
+  such as an undefined name in `const x = foo;`, `const y = [C.foo];`,
+  `const z = 'abc'.lenght;`, or `@A(p.foo)`, no longer also reports that the
+  expression isn't constant, for example
+  `const_initialized_with_non_constant_value`, `non_constant_list_element`,
+  `const_eval_property_access`, or `const_with_non_constant_argument`. The
+  same applies to the initializers of a constant constructor, such as
+  `const A() : f = foo;`, which no longer also reports `invalid_constant`
+  there, or `invalid_constant` at each invocation such as `const A()`.
+  `ElementAnnotation.constantEvaluationErrors` still includes these errors.
+
+## 14.5.0
+
+* Added the `languageVersionOverride` parameter to `AnalysisContextCollection`
+  to override the default language version for non-SDK files.
+* Removed support for the `new` keyword in comment references. Text such as `[new C]` in a documentation comment is no
+  longer a comment reference, so it  isn't resolved, indexed, or renamed. Use `[C.new]` instead.
+* Deprecated `CommentReference.newKeyword`. It now always returns `null`.
+* Removed the `deprecated_new_in_comment_reference` diagnostic, along with its quick fix.
+* The loop variable of a for-in loop, including its metadata, is resolved
+  before the iterable, in source order. As a result, `dead_code` for a loop
+  over an expression of type `Never` starts at the loop body instead of the
+  loop variable.
+* Annotations are resolved like the same expression written without a keyword
+  in a constant context, and an annotation with arguments, `@C(args)`, is the
+  constructor invocation `const C(args)`. Annotations report the same
+  diagnostics as the equivalent constant expressions, usually at the name or
+  the argument instead of the whole annotation:
+  * `undefined_identifier` or `undefined_prefixed_name` for undefined names.
+  * `creation_with_non_type` for `@f()`, where `f` isn't a class.
+  * `const_with_undefined_constructor` for undefined constructors.
+  * `const_with_non_const` for constructors that aren't const.
+  * `const_deferred_class` for constructors of classes from a deferred library.
+    `invalid_annotation_from_deferred_library` is still reported for
+    annotations without arguments.
+  * `wrong_number_of_type_arguments` for the type as written, such as a type
+    alias, instead of the class that it denotes.
+  * `const_constructor_param_type_mismatch` in addition to
+    `argument_type_not_assignable`, as for `const C(...)`.
+  * `invalid_reference_to_generative_enum_constructor` for `@E()`, where `E` is
+    an enum, and `instantiate_abstract_class` for `@C()`, where `C` is
+    abstract. These weren't reported before.
+* Removed the `undefined_annotation` diagnostic. It was reported only when the
+  first name of an annotation was undefined, while an undefined name after a
+  class, as in `@Foo.bar`, was reported as `invalid_annotation`. Annotations
+  that aren't identifiers, such as `@1` or `@'string'`, report only the syntax
+  error.
+* Removed the `non_constant_annotation_constructor` diagnostic. `@C()`, where
+  the constructor isn't const, reports `const_with_non_const`. `@C` and
+  `@C.named` report `no_annotation_constructor_arguments` whether or not the
+  constructor is const.
+* `invalid_annotation` is reported only for an annotation without arguments
+  that references neither a constant variable nor a constructor, such as a
+  getter or a function. It's no longer reported for undefined names, undefined
+  constructors, invocations of things that aren't classes, or in addition to
+  `ambiguous_import` or `annotation_with_type_arguments_uninstantiated`.
+* `missing_required_argument` for an annotation highlights the constructor
+  reference, such as `A.named` or `p.A`, and
+  `inference_failure_on_instance_creation` highlights the class name, instead
+  of the whole annotation.
+* `const_with_non_constant_argument` is no longer reported in addition to
+  `const_with_non_const` for an invocation of a constructor that isn't const in
+  the arguments of an annotation.
+* A non-constant named argument of a const constructor invocation reports
+  `const_with_non_constant_argument`, like a positional argument, instead of
+  `invalid_constant`.
+* `ElementAnnotation.constantEvaluationErrors` reports the same error as the
+  diagnostic for the annotation. For example, for `@A(x)`, where `x` isn't a
+  constant, it is now `const_with_non_constant_argument` instead of
+  `invalid_constant`.
+* Added support for prefixes in doc imports, such as `/// @docImport 'dart:io' as io;`.
+  Documentation comments can reference `[io.File]`, and the prefix itself as `[io]`.
+  The prefix is a `PrefixElement` whose `imports` are the doc imports with this prefix;
+  it isn't included into `LibraryFragment.prefixes`.
+  Removed the `doc_import_cannot_have_prefix` diagnostic.
+* Names in doc imports are now resolved like names in imports: a name exported by
+  multiple doc-imported libraries is ambiguous instead of resolving to the first one,
+  and `show` / `hide` combinators are applied.
+  Removed the `doc_import_cannot_have_combinators` diagnostic.
+* Added `PrefixElement.scopeLibraries`, the libraries that provide the names
+  in `PrefixElement.scope`. Unlike `imports`, it includes the libraries
+  imported with the same prefix in the enclosing files. When a prefix is used
+  alone, such as `[math]` in a documentation comment, it references the
+  library, if there is exactly one.
+* Added the `ambiguous_comment_reference` warning. It is reported for a name in
+  a comment reference that is imported, or doc-imported, from more than one
+  library, and for a prefix used alone, such as `[p]`, when more than one
+  library is imported with this prefix.
+
+## 14.4.0
+
+* Added experimental `CompilationUnit.lookupThisType`, which queries the type of
+  `this` at an arbitrary offset within the compilation unit.
+* Removed experimental `FunctionBody.lookupThisType`. Use
+  `CompilationUnit.lookupThisType` instead; unlike the removed method, it also
+  works at offsets that aren't inside a function body (for example inside the
+  initializer of a `late` instance field).
+
+## 14.3.0
+
+* The version `14.2.0` was retracted because of adding acccidental files.
+
+## 14.2.0
 
 * Added experimental structural formal parameter list APIs: `FormalParameterList.requiredPositionalFormalParameters`, `FormalParameterList.delimitedFormalParameters`, and the `DelimitedFormalParameters` node.
 

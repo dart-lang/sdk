@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class CreateNoSuchMethodTest extends FixProcessorTest {
+class CreateNoSuchMethodTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createNoSuchMethod;
 

@@ -8,6 +8,7 @@ import 'package:expect/expect.dart';
 import 'package:compiler/compiler_api.dart' as api;
 import 'package:dart_style/dart_style.dart' show DartFormatter;
 import 'package:compiler/src/util/memory_compiler.dart';
+
 import '../../../tool/graph_isomorphizer.dart';
 
 /// Only generate goldens from the root sdk directory.
@@ -45,9 +46,8 @@ void verifyGeneratedFile(
   Map<String, String> expectations,
 ) {
   Expect.stringEquals(
-    DartFormatter(
-      languageVersion: DartFormatter.latestLanguageVersion,
-    ).format(contents.toString()),
+    DartFormatter(languageVersion: DartFormatter.latestLanguageVersion)
+        .format(contents.toString()),
     expectations[filename]!,
   );
 }

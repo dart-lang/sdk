@@ -1262,6 +1262,10 @@ int DisassemblerX64::Print660F38Instruction(uint8_t* current) {
     get_modrm(*(current + 1), &mod, &regop, &rm);
     Print("pcmpeqq %s,", NameOfXMMRegister(regop));
     return 1 + PrintRightXMMOperand(current + 1);
+  } else if (*current == 0x17) {
+    get_modrm(*(current + 1), &mod, &regop, &rm);
+    Print("ptest %s,", NameOfXMMRegister(regop));
+    return 1 + PrintRightXMMOperand(current + 1);
   } else {
     UnimplementedInstruction(*current);
     return 1;
@@ -1283,6 +1287,12 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
       int mod, regop, rm;
       get_modrm(*current, &mod, &regop, &rm);
       Print("shufpd %s, ", NameOfXMMRegister(regop));
+      current += PrintRightXMMOperand(current);
+      Print(" [%x]", *current);
+      current++;
+    } else if (opcode == 0x70) {
+      get_modrm(*current, &mod, &regop, &rm);
+      Print("pshufd %s,", NameOfXMMRegister(regop));
       current += PrintRightXMMOperand(current);
       Print(" [%x]", *current);
       current++;
@@ -1378,8 +1388,16 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
           mnemonic = "psubd";
         } else if (opcode == 0xEF) {
           mnemonic = "pxor";
+        } else if (opcode == 0x66) {
+          mnemonic = "pcmpgtd";
         } else if (opcode == 0x76) {
           mnemonic = "pcmpeqd";
+        } else if (opcode == 0xF2) {
+          mnemonic = "pslld";
+        } else if (opcode == 0xE2) {
+          mnemonic = "psrad";
+        } else if (opcode == 0xD2) {
+          mnemonic = "psrld";
         } else {
           UnimplementedInstruction(*data);
           return 1;

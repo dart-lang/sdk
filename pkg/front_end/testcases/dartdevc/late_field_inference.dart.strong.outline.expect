@@ -1,0 +1,34 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension E on core::int {
+  static impl field b2 = self::_#E|b2;
+  static impl field b2 = self::_#E|b2#isSet;
+  static get b2 = get self::E|b2;
+  static field d2 = self::E|d2;
+  static impl field e2 = self::_#E|e2;
+  static impl field e2 = self::_#E|e2#isSet;
+  static get e2 = get self::E|e2;
+  static set e2 = set self::E|e2;
+}
+static final field core::int a1;
+static field core::int? _#a2;
+static field core::bool _#a2#isSet;
+static final field core::int b1;
+static final field () → Null c1;
+static field core::int? _#c2;
+static field core::bool _#c2#isSet;
+static final field core::int d1;
+static final field () → Null e1;
+static field core::int? _#E|b2;
+static field core::bool _#E|b2#isSet;
+static final field core::int E|d2;
+static field core::int? _#E|e2;
+static field core::bool _#E|e2#isSet;
+static get a2() → core::int;
+static get c2() → core::int;
+static set c2(core::int c2#param) → void;
+static extension-member get E|b2() → core::int;
+static extension-member get E|e2() → core::int;
+static extension-member set E|e2(core::int e2#param) → void;

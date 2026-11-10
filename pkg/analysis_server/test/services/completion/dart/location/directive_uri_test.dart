@@ -88,7 +88,7 @@ import '$uriContent';
     var barPackageRoot = getFolder('$packagesRootPath/bar');
     newFile('$packagesRootPath/bar/lib/bar01.dart', '');
 
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'foo', rootFolder: fooPackageRoot)
         ..add(name: 'bar', rootFolder: barPackageRoot),

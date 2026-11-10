@@ -258,7 +258,7 @@ Statement forEachWithVariableDecl(
   return new ForEach._(
     variable,
     iterable.asExpression(location: location),
-    block(body),
+    Block._(body, location: location),
     true,
     location: location,
   );
@@ -703,7 +703,7 @@ class As extends Expression {
   final Expression target;
   final Type type;
 
-  As._(this.target, this.type, {required super.location});
+  new _(this.target, this.type, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {
@@ -724,7 +724,7 @@ class Assert extends Statement {
   final Expression? message;
   int? _syntheticAfterConditionOffset;
 
-  Assert._(this.condition, this.message, {required super.location});
+  new _(this.condition, this.message, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {
@@ -758,7 +758,7 @@ class Assert extends Statement {
 class AwaitExpression extends Expression {
   final Expression operand;
 
-  AwaitExpression._(this.operand, {required super.location});
+  new _(this.operand, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {
@@ -784,7 +784,7 @@ class AwaitExpression extends Expression {
 class Block extends Statement {
   final List<Statement> statements;
 
-  Block._(List<ProtoStatement> statements, {required super.location})
+  new _(List<ProtoStatement> statements, {required super.location})
     : statements = [
         for (var s in statements) s.asStatement(location: location),
       ];
@@ -819,7 +819,7 @@ class BodyContext implements SharedBodyInferenceContext {
 
   final Type yieldContext;
 
-  BodyContext({required this.isAsync, required this.yieldContext});
+  new({required this.isAsync, required this.yieldContext});
 
   @override
   SharedTypeSchemaView get sharedYieldContext =>
@@ -829,7 +829,7 @@ class BodyContext implements SharedBodyInferenceContext {
 class BooleanLiteral extends Expression {
   final bool value;
 
-  BooleanLiteral._(this.value, {required super.location});
+  new _(this.value, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {}
@@ -850,7 +850,7 @@ class BoundLabel extends Label {
 
   Statement? _binding;
 
-  BoundLabel._(this.name) : super._(location: computeLocation());
+  new _(this.name) : super._(location: computeLocation());
 
   @override
   Statement thenStmt(Statement statement) {
@@ -878,7 +878,7 @@ class BoundLabel extends Label {
 class Break extends Statement {
   final Label? target;
 
-  Break(this.target, {required super.location});
+  new(this.target, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {}
@@ -918,7 +918,7 @@ class Cascade extends Expression {
 
   int? _syntheticAfterTargetOffset;
 
-  Cascade._(
+  new _(
     this.target,
     this.sections, {
     required this.isNullAware,
@@ -1013,7 +1013,7 @@ class Cascade extends Expression {
 /// is represented as an [InvokeMethod] expression whose `target` is a
 /// [CascadePlaceholder].
 class CascadePlaceholder extends Expression {
-  CascadePlaceholder._({required super.location});
+  new _({required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {}
@@ -1043,7 +1043,7 @@ class CastPattern extends Pattern {
 
   final Type type;
 
-  CastPattern(this.inner, this.type, {required super.location}) : super._();
+  new(this.inner, this.type, {required super.location}) : super._();
 
   @override
   SharedTypeSchemaView computeSchema(Harness h) =>
@@ -1094,12 +1094,7 @@ class CatchClause {
   final Var? stackTrace;
   int? _syntheticAfterOpenBraceOffset;
 
-  CatchClause._(
-    this.body,
-    this.exceptionType,
-    this.exception,
-    this.stackTrace,
-  ) {
+  new _(this.body, this.exceptionType, this.exception, this.stackTrace) {
     if (exception == null && stackTrace != null) {
       fail(
         'If a stack trace variable is provided, an exception variable must be '
@@ -1144,11 +1139,7 @@ class CheckAssigned extends Expression {
   final Var variable;
   final bool expectedAssignedState;
 
-  CheckAssigned._(
-    this.variable,
-    this.expectedAssignedState, {
-    required super.location,
-  });
+  new _(this.variable, this.expectedAssignedState, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {}
@@ -1177,11 +1168,7 @@ class CheckPromoted extends Expression {
   final Promotable promotable;
   final String? expectedTypeStr;
 
-  CheckPromoted._(
-    this.promotable,
-    this.expectedTypeStr, {
-    required super.location,
-  });
+  new _(this.promotable, this.expectedTypeStr, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {
@@ -1210,7 +1197,7 @@ class CheckPromotionChain extends Expression {
   final Promotable promotable;
   final List<String> expectedPromotionChain;
 
-  CheckPromotionChain._(
+  new _(
     this.promotable,
     this.expectedPromotionChain, {
     required super.location,
@@ -1245,7 +1232,7 @@ class CheckPromotionChain extends Expression {
 class CheckReachable extends Expression {
   final bool expectedReachable;
 
-  CheckReachable(this.expectedReachable, {required super.location});
+  new(this.expectedReachable, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {}
@@ -1267,11 +1254,7 @@ class CheckUnassigned extends Expression {
   final Var variable;
   final bool expectedUnassignedState;
 
-  CheckUnassigned._(
-    this.variable,
-    this.expectedUnassignedState, {
-    required super.location,
-  });
+  new _(this.variable, this.expectedUnassignedState, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {}
@@ -1304,7 +1287,7 @@ abstract class CollectionElement extends Node
   /// element is analyzed.
   String? _expectedIR;
 
-  CollectionElement({required super.location}) : super._();
+  new({required super.location}) : super._();
 
   @override
   CollectionElement asCollectionElement({required String location}) => this;
@@ -1332,13 +1315,13 @@ class CollectionElementContextMapEntry extends CollectionElementContext {
   final Type keyType;
   final Type valueType;
 
-  CollectionElementContextMapEntry._(this.keyType, this.valueType);
+  new _(this.keyType, this.valueType);
 }
 
 class CollectionElementContextType extends CollectionElementContext {
   final SharedTypeSchemaView elementTypeSchema;
 
-  CollectionElementContextType._(this.elementTypeSchema);
+  new _(this.elementTypeSchema);
 }
 
 class Conditional extends Expression {
@@ -1348,12 +1331,7 @@ class Conditional extends Expression {
   int? _syntheticAfterQuestionOffset;
   int? _syntheticAfterColonOffset;
 
-  Conditional._(
-    this.condition,
-    this.ifTrue,
-    this.ifFalse, {
-    required super.location,
-  });
+  new _(this.condition, this.ifTrue, this.ifFalse, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {
@@ -1392,7 +1370,7 @@ class Conditional extends Expression {
 class ConstantPattern extends Pattern {
   final Expression constant;
 
-  ConstantPattern(this.constant, {required super.location}) : super._();
+  new(this.constant, {required super.location}) : super._();
 
   @override
   SharedTypeSchemaView computeSchema(Harness h) =>
@@ -1433,7 +1411,7 @@ class ConstantPattern extends Pattern {
 /// Common interface shared by constructs that represent constant expressions,
 /// in the pseudo-Dart language used for flow analysis testing.
 abstract class ConstExpression extends Expression {
-  ConstExpression._({required super.location});
+  new _({required super.location});
 
   /// Converts this expression into a constant pattern.
   Pattern get pattern => ConstantPattern(this, location: computeLocation());
@@ -1442,7 +1420,7 @@ abstract class ConstExpression extends Expression {
 class Continue extends Statement {
   final Label? target;
 
-  Continue._(this.target, {required super.location});
+  new _(this.target, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {}
@@ -1470,7 +1448,7 @@ class Do extends Statement {
   int? _syntheticBodyBeginOffset;
   int? _syntheticConditionBeginOffset;
 
-  Do._(this.body, this.condition, {required super.location});
+  new _(this.body, this.condition, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {
@@ -1509,7 +1487,7 @@ class Do extends Statement {
 class DotShorthand extends Expression {
   final Expression expr;
 
-  DotShorthand._(this.expr, {required super.location});
+  new _(this.expr, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {
@@ -1530,7 +1508,7 @@ class DotShorthand extends Expression {
 class DotShorthandHead extends Expression {
   final String name;
 
-  DotShorthandHead._(this.name, {required super.location});
+  new _(this.name, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {}
@@ -1550,7 +1528,7 @@ class Equal extends Expression {
   final bool isInverted;
   int? _syntheticAfterOperatorOffset;
 
-  Equal._(this.lhs, this.rhs, this.isInverted, {required super.location});
+  new _(this.lhs, this.rhs, this.isInverted, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {
@@ -1608,7 +1586,7 @@ abstract class Expression extends Node
   /// expression is analyzed.
   String? _expectedType;
 
-  Expression({required super.location}) : super._();
+  new({required super.location}) : super._();
 
   @override
   Expression asExpression({required String location}) => this;
@@ -1633,11 +1611,8 @@ class ExpressionCase extends Node {
   int? _syntheticFinishJoinedPatternVariablesOffset;
   int? _syntheticEndAlternativeOffset;
 
-  ExpressionCase._(
-    this.guardedPattern,
-    this.expression, {
-    required super.location,
-  }) : super._();
+  new _(this.guardedPattern, this.expression, {required super.location})
+    : super._();
 
   @override
   String toString() => '$guardedPattern => $expression';
@@ -1666,7 +1641,7 @@ class ExpressionCase extends Node {
 class ExpressionCollectionElement extends CollectionElement {
   final Expression expression;
 
-  ExpressionCollectionElement(this.expression, {required super.location});
+  new(this.expression, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {
@@ -1696,11 +1671,7 @@ class ExpressionInTypeSchema extends Statement {
 
   final SharedTypeSchemaView typeSchema;
 
-  ExpressionInTypeSchema._(
-    this.expr,
-    this.typeSchema, {
-    required super.location,
-  });
+  new _(this.expr, this.typeSchema, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {
@@ -1726,7 +1697,7 @@ class ExpressionInTypeSchema extends Statement {
 class ExpressionStatement extends Statement {
   final Expression expr;
 
-  ExpressionStatement._(this.expr, {required super.location});
+  new _(this.expr, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {
@@ -1759,7 +1730,7 @@ class For extends Statement {
   int? _syntheticUpdaterBeginOffset;
   int? _syntheticBodyBeginOffset;
 
-  For._(
+  new _(
     this.initializer,
     this.condition,
     this.updater,
@@ -1824,7 +1795,10 @@ class For extends Statement {
       offset: _syntheticBodyBeginOffset!,
     );
     h.typeAnalyzer._visitLoopBody(this, body);
-    h.flow.for_updaterBegin(offset: _syntheticUpdaterBeginOffset!);
+    h.flow.for_updaterBegin(
+      offset: _syntheticUpdaterBeginOffset!,
+      updaterEndOffset: _syntheticBodyBeginOffset!,
+    );
     if (updater != null) {
       h.typeAnalyzer.analyzeExpression(updater!, h.operations.unknownType);
     } else {
@@ -1848,7 +1822,7 @@ class ForEach extends Statement {
   final bool declaresVariable;
   int? _syntheticBodyBeginOffset;
 
-  ForEach._(
+  new _(
     this.variable,
     this.iterable,
     this.body,
@@ -1895,14 +1869,26 @@ class ForEach extends Statement {
     );
     h.flow.forEach_bodyBegin(this, offset: _syntheticBodyBeginOffset!);
     var variable = this.variable;
-    if (variable != null && !declaresVariable) {
-      h.flow.write(
-        this,
-        variable,
-        SharedTypeView(iteratedType),
-        null,
-        offset: _syntheticBodyBeginOffset!,
-      );
+    if (variable != null) {
+      if (declaresVariable) {
+        // As in both front ends, the loop variable is declared after
+        // `forEach_bodyBegin`, since each iteration gets a fresh copy of it.
+        variable._type ??= iteratedType;
+        h.flow.declare(
+          variable,
+          SharedTypeView(variable.type),
+          initialized: true,
+          offset: _syntheticBodyBeginOffset!,
+        );
+      } else {
+        h.flow.write(
+          this,
+          variable,
+          SharedTypeView(iteratedType),
+          null,
+          offset: _syntheticBodyBeginOffset!,
+        );
+      }
     }
     h.typeAnalyzer._visitLoopBody(this, body);
     h.flow.forEach_end(offset: _syntheticEndOffset!);
@@ -1921,11 +1907,8 @@ class GuardedPattern extends Node with PossiblyGuardedPattern {
   late final Map<String, Var> variables;
   final Expression? guard;
 
-  GuardedPattern._({
-    required this.pattern,
-    required this.guard,
-    required super.location,
-  }) : super._();
+  new _({required this.pattern, required this.guard, required super.location})
+    : super._();
 
   @override
   GuardedPattern get _asGuardedPattern => this;
@@ -1960,6 +1943,8 @@ class Harness {
 
   bool? _patternsEnabled;
 
+  bool? _promotionChainIntersectionJoinEnabled;
+
   Type? _thisType;
 
   late final Map<String, _PropertyElement?> _members = {
@@ -1978,8 +1963,9 @@ class Harness {
   );
 
   /// Indicates whether initializers of implicitly typed variables should be
-  /// accounted for by SSA analysis.  (In an ideal world, they always would be,
-  /// but due to https://github.com/dart-lang/language/issues/1785, they weren't
+  /// accounted for by value version tracking.  (In an ideal world, they always
+  /// would be, but due to
+  /// https://github.com/dart-lang/language/issues/1785, they weren't
   /// always, and we need to be able to replicate the old behavior when
   /// analyzing old language versions).
   bool _respectImplicitlyTypedVarInitializers = true;
@@ -1995,6 +1981,9 @@ class Harness {
   MiniIRBuilder get irBuilder => typeAnalyzer._irBuilder;
 
   bool get patternsEnabled => _patternsEnabled ?? true;
+
+  bool get promotionChainIntersectionJoinEnabled =>
+      _promotionChainIntersectionJoinEnabled ?? true;
 
   bool get soundFlowAnalysisEnabled => _soundFlowAnalysisEnabled ?? true;
 
@@ -2088,6 +2077,8 @@ class Harness {
         inferenceUpdate4Enabled: inferenceUpdate4Enabled,
         thisPromotionEnabled: thisPromotionEnabled,
         soundFlowAnalysisEnabled: soundFlowAnalysisEnabled,
+        promotionChainIntersectionJoinEnabled:
+            promotionChainIntersectionJoinEnabled,
       );
 
   void disableFieldPromotion() {
@@ -2108,6 +2099,11 @@ class Harness {
   void disablePatterns() {
     assert(!_started);
     _patternsEnabled = false;
+  }
+
+  void disablePromotionChainIntersectionJoin() {
+    assert(!_started);
+    _promotionChainIntersectionJoinEnabled = false;
   }
 
   void disableRespectImplicitlyTypedVarInitializers() {
@@ -2218,7 +2214,19 @@ class Harness {
       typeAnalyzer.bodyContext =
           bodyContext ??
           BodyContext(isAsync: false, yieldContext: const UnknownType());
+      var thisType = _thisType;
+      var hasThisType = thisType != null;
+      if (hasThisType) {
+        flow.thisBinding_begin(
+          null,
+          thisType: SharedTypeView(thisType),
+          offset: 0,
+        );
+      }
       typeAnalyzer.dispatchStatement(b);
+      if (hasThisType) {
+        flow.thisBinding_end(offset: b._syntheticEndOffset! + 1);
+      }
       typeAnalyzer.finish();
       expect(typeAnalyzer.errors._accumulatedErrors, expectedErrors);
       var assertInErrorRecoveryStack =
@@ -2272,7 +2280,7 @@ class Harness {
       var thisBinding = flowAnalysisLog.getThisBinding(checkpoint.offset);
       expect(
         thisBinding,
-        same(checkpoint.expectedThisBinding),
+        checkpoint.expectedThisBinding,
         reason: checkpoint.location,
       );
     }
@@ -2282,7 +2290,7 @@ class Harness {
 class If extends IfBase {
   final Expression condition;
 
-  If._(this.condition, super.ifTrue, super.ifFalse, {required super.location})
+  new _(this.condition, super.ifTrue, super.ifFalse, {required super.location})
     : super._();
 
   @override
@@ -2320,7 +2328,7 @@ abstract class IfBase extends Statement {
   int? _syntheticThenBeginOffset;
   int? _syntheticElseBeginOffset;
 
-  IfBase._(this.ifTrue, this.ifFalse, {required super.location});
+  new _(this.ifTrue, this.ifFalse, {required super.location});
 
   String get _conditionPartString;
 
@@ -2351,7 +2359,7 @@ class IfCase extends IfBase {
   /// type analysis. So, some of these variables might become unavailable.
   late final Map<String, Var> _candidateVariables;
 
-  IfCase(
+  new(
     this.expression,
     this.pattern,
     this.guard,
@@ -2414,7 +2422,7 @@ class IfCaseElement extends IfElementBase {
   late final Map<String, Var> _variables;
   int? _syntheticAfterExpressionOffset;
 
-  IfCaseElement(
+  new(
     this.expression,
     this.pattern,
     this.guard,
@@ -2474,12 +2482,8 @@ class IfCaseElement extends IfElementBase {
 class IfElement extends IfElementBase {
   final Expression condition;
 
-  IfElement._(
-    this.condition,
-    super.ifTrue,
-    super.ifFalse, {
-    required super.location,
-  }) : super._();
+  new _(this.condition, super.ifTrue, super.ifFalse, {required super.location})
+    : super._();
 
   @override
   String get _conditionPartString => condition.toString();
@@ -2517,7 +2521,7 @@ abstract class IfElementBase extends CollectionElement {
   int? _syntheticThenBeginOffset;
   int? _syntheticElseBeginOffset;
 
-  IfElementBase._(this.ifTrue, this.ifFalse, {required super.location});
+  new _(this.ifTrue, this.ifFalse, {required super.location});
 
   String get _conditionPartString;
 
@@ -2542,7 +2546,7 @@ class IfNull extends Expression {
   final Expression rhs;
   int? _syntheticOperatorOffset;
 
-  IfNull._(this.lhs, this.rhs, {required super.location});
+  new _(this.lhs, this.rhs, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {
@@ -2575,7 +2579,7 @@ class IfNull extends Expression {
 class IntLiteral extends ConstExpression {
   final int value;
 
-  IntLiteral(this.value, {required super.location}) : super._();
+  new(this.value, {required super.location}) : super._();
 
   @override
   void preVisitInternal(PreVisitor visitor) {}
@@ -2620,7 +2624,7 @@ class InvokeAnonymousMethod extends Expression {
 
   int? _syntheticOpenBraceOffset;
 
-  InvokeAnonymousMethod._(
+  new _(
     this.target,
     this.body, {
     required this.returnType,
@@ -2665,7 +2669,11 @@ class InvokeAnonymousMethod extends Expression {
     var targetInfo = targetResult.flowAnalysisInfo;
     var previousThisType = h._thisType;
     if (isParameterless) {
-      h.flow.thisBinding_begin(targetInfo, offset: _syntheticOpenBraceOffset!);
+      h.flow.thisBinding_begin(
+        targetInfo,
+        thisType: targetResult.type,
+        offset: _syntheticOpenBraceOffset!,
+      );
       h._thisType = targetResult.type.unwrapTypeView();
     }
     h.flow.anonymousBlockBody_begin(offset: _syntheticOpenBraceOffset!);
@@ -2729,7 +2737,7 @@ class InvokeMethod extends Expression {
 
   List<int>? _syntheticBetweenArgumentOffsets;
 
-  InvokeMethod._(
+  new _(
     this.target,
     this.methodName,
     this.arguments, {
@@ -2778,7 +2786,7 @@ class Is extends Expression {
   final Type type;
   final bool isInverted;
 
-  Is._(this.target, this.type, this.isInverted, {required super.location});
+  new _(this.target, this.type, this.isInverted, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {
@@ -2800,11 +2808,11 @@ class Is extends Expression {
 }
 
 abstract class Label extends Node {
-  factory Label(String name) = BoundLabel._;
+  factory(String name) = BoundLabel._;
 
-  factory Label.unbound() = UnboundLabel._;
+  factory unbound() = UnboundLabel._;
 
-  Label._({required super.location}) : super._();
+  new _({required super.location}) : super._();
 
   Statement thenStmt(Statement statement);
 
@@ -2818,7 +2826,7 @@ class LabeledStatement extends Statement {
 
   final Statement body;
 
-  LabeledStatement._(this.body, {required super.location});
+  new _(this.body, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {
@@ -2841,7 +2849,7 @@ class ListLiteral extends Expression {
   final List<CollectionElement> elements;
   final Type elementType;
 
-  ListLiteral._(this.elements, this.elementType, {required super.location});
+  new _(this.elements, this.elementType, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {
@@ -2897,8 +2905,7 @@ class ListPattern extends Pattern {
 
   int? _syntheticPromoteForPatternOffset;
 
-  ListPattern._(this.elementType, this.elements, {required super.location})
-    : super._();
+  new _(this.elementType, this.elements, {required super.location}) : super._();
 
   @override
   SharedTypeSchemaView computeSchema(Harness h) =>
@@ -2959,7 +2966,7 @@ class LocalFunction extends Expression {
   final Type type;
   int? _syntheticAfterOpenBraceOffset;
 
-  LocalFunction._(this.body, {String? type, required super.location})
+  new _(this.body, {String? type, required super.location})
     : type = Type(type ?? 'void Function()');
 
   @override
@@ -3000,7 +3007,7 @@ class Logical extends Expression {
   final bool isAnd;
   int? _syntheticAfterOperatorOffset;
 
-  Logical._(this.lhs, this.rhs, {required this.isAnd, required super.location});
+  new _(this.lhs, this.rhs, {required this.isAnd, required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {
@@ -3039,8 +3046,7 @@ class LogicalAndPattern extends Pattern {
 
   final Pattern rhs;
 
-  LogicalAndPattern._(this.lhs, this.rhs, {required super.location})
-    : super._();
+  new _(this.lhs, this.rhs, {required super.location}) : super._();
 
   @override
   SharedTypeSchemaView computeSchema(Harness h) =>
@@ -3091,7 +3097,7 @@ class LogicalOrPattern extends Pattern {
 
   int? _syntheticAfterLhsOffset;
 
-  LogicalOrPattern(this.lhs, this.rhs, {required super.location}) : super._();
+  new(this.lhs, this.rhs, {required super.location}) : super._();
 
   @override
   SharedTypeSchemaView computeSchema(Harness h) =>
@@ -3144,7 +3150,7 @@ class LogicalOrPattern extends Pattern {
 /// assignment (or as the target of `++` or `--`).  Methods in this class may be
 /// used to create more complex expressions based on this one.
 abstract class LValue extends Expression {
-  LValue._({required super.location});
+  new _({required super.location});
 
   @override
   void preVisit(
@@ -3191,7 +3197,7 @@ class MapEntry extends CollectionElement {
   final bool isKeyNullAware;
   int? _syntheticAfterColonOffset;
 
-  MapEntry._(
+  new _(
     this.key,
     this.value, {
     required this.isKeyNullAware,
@@ -3248,12 +3254,7 @@ class MapLiteral extends Expression {
   final Type keyType;
   final Type valueType;
 
-  MapLiteral._(
-    this.elements,
-    this.keyType,
-    this.valueType, {
-    required super.location,
-  });
+  new _(this.elements, this.keyType, this.valueType, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {
@@ -3290,7 +3291,7 @@ class MapPattern extends Pattern {
 
   int? _syntheticPromoteForPatternOffset;
 
-  MapPattern._(this.typeArguments, this.elements, {required super.location})
+  new _(this.typeArguments, this.elements, {required super.location})
     : super._();
 
   @override
@@ -3357,8 +3358,7 @@ class MapPatternEntry extends Node
   final Expression key;
   final Pattern value;
 
-  MapPatternEntry._(this.key, this.value, {required super.location})
-    : super._();
+  new _(this.key, this.value, {required super.location}) : super._();
 
   @override
   void preVisitInternal(
@@ -4214,9 +4214,9 @@ class Node {
 
   int? _syntheticEndOffset;
 
-  factory Node.placeholder() => Node._(location: computeLocation());
+  factory placeholder() => Node._(location: computeLocation());
 
-  Node._({required this.location}) : id = _nextId++;
+  new _({required this.location}) : id = _nextId++;
 
   String get errorId {
     _nodesWithUnusedErrorIds.remove(this);
@@ -4240,7 +4240,7 @@ class Node {
 class NonNullAssert extends Expression {
   final Expression operand;
 
-  NonNullAssert._(this.operand, {required super.location});
+  new _(this.operand, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {
@@ -4259,7 +4259,7 @@ class NonNullAssert extends Expression {
 class Not extends Expression {
   final Expression operand;
 
-  Not._(this.operand, {required super.location});
+  new _(this.operand, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {
@@ -4280,11 +4280,7 @@ class NullCheckOrAssertPattern extends Pattern {
 
   final bool isAssert;
 
-  NullCheckOrAssertPattern._(
-    this.inner,
-    this.isAssert, {
-    required super.location,
-  }) : super._();
+  new _(this.inner, this.isAssert, {required super.location}) : super._();
 
   @override
   SharedTypeSchemaView computeSchema(Harness h) => h.typeAnalyzer
@@ -4325,7 +4321,7 @@ class NullCheckOrAssertPattern extends Pattern {
 }
 
 class NullLiteral extends ConstExpression {
-  NullLiteral._({required super.location}) : super._();
+  new _({required super.location}) : super._();
 
   @override
   void preVisitInternal(PreVisitor visitor) {}
@@ -4346,7 +4342,7 @@ class ObjectPattern extends Pattern {
   final List<RecordPatternField> fields;
   int? _syntheticPromoteForPatternOffset;
 
-  ObjectPattern._({
+  new _({
     required this.requiredType,
     required this.fields,
     required super.location,
@@ -4412,7 +4408,7 @@ class ObjectPattern extends Pattern {
 class ParenthesizedExpression extends Expression {
   final Expression expr;
 
-  ParenthesizedExpression._(this.expr, {required super.location});
+  new _(this.expr, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {
@@ -4431,7 +4427,7 @@ class ParenthesizedExpression extends Expression {
 class ParenthesizedPattern extends Pattern {
   final Pattern inner;
 
-  ParenthesizedPattern._(this.inner, {required super.location}) : super._();
+  new _(this.inner, {required super.location}) : super._();
 
   @override
   SharedTypeSchemaView computeSchema(Harness h) => inner.computeSchema(h);
@@ -4456,7 +4452,7 @@ class ParenthesizedPattern extends Pattern {
 abstract class Pattern extends Node
     with PossiblyGuardedPattern, ListOrMapPatternElement
     implements ListPatternElement {
-  Pattern._({required super.location}) : super._();
+  new _({required super.location}) : super._();
 
   Pattern get nullAssert =>
       NullCheckOrAssertPattern._(this, true, location: computeLocation());
@@ -4520,7 +4516,7 @@ class PatternAssignment extends Expression {
   final Expression rhs;
   int? _syntheticBeforeRhsOffset;
 
-  PatternAssignment._(this.lhs, this.rhs, {required super.location});
+  new _(this.lhs, this.rhs, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {
@@ -4560,7 +4556,7 @@ class PatternForIn extends Statement {
   int? _syntheticBeforeExpressionOffset;
   int? _syntheticBodyBeginOffset;
 
-  PatternForIn(
+  new(
     this.pattern,
     this.expression,
     this.body, {
@@ -4625,7 +4621,7 @@ class PatternForInElement extends CollectionElement {
   int? _syntheticBeforeExpressionOffset;
   int? _syntheticBodyBeginOffset;
 
-  PatternForInElement(
+  new(
     this.pattern,
     this.expression,
     this.body, {
@@ -4682,7 +4678,7 @@ class PatternVariableDeclaration extends Statement {
   int? _syntheticBeforePatternOffset;
   int? _syntheticBeforeInitializerOffset;
 
-  PatternVariableDeclaration._(
+  new _(
     this.pattern,
     this.initializer, {
     required this.isFinal,
@@ -4755,11 +4751,8 @@ class PatternVariableJoin extends Var {
   /// for this variable join yet.
   bool isJoined = false;
 
-  PatternVariableJoin(
-    super.name, {
-    required this.expectedComponents,
-    super.identity,
-  }) : super(location: computeLocation()) {
+  new(super.name, {required this.expectedComponents, super.identity})
+    : super(location: computeLocation()) {
     for (var component in expectedComponents) {
       assert(component._joinedVar == null);
       component._joinedVar = this;
@@ -4810,7 +4803,7 @@ class PatternVariableJoin extends Var {
 class PlaceholderExpression extends ConstExpression {
   final Type type;
 
-  PlaceholderExpression._(this.type, {required super.location}) : super._();
+  new _(this.type, {required super.location}) : super._();
 
   @override
   void preVisitInternal(PreVisitor visitor) {}
@@ -4861,7 +4854,7 @@ mixin PossiblyGuardedPattern on Node implements ProtoSwitchHead {
 class PostIncDec extends Expression {
   final LValue lhs;
 
-  PostIncDec(this.lhs, {required super.location});
+  new(this.lhs, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {
@@ -4895,7 +4888,7 @@ class PostIncDec extends Expression {
 class PreIncDec extends Expression {
   final LValue lhs;
 
-  PreIncDec(this.lhs, {required super.location});
+  new(this.lhs, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {
@@ -4938,7 +4931,7 @@ class PreVisitor {
 
   int _nextSyntheticOffset = 1;
 
-  PreVisitor(this.errors);
+  new(this.errors);
 
   int generateSyntheticOffset() => _nextSyntheticOffset++;
 }
@@ -4969,7 +4962,7 @@ mixin Promotable on Node {
 /// Base class for l-values that, at a given point in flow analysis, might or
 /// might not be promoted.
 abstract class PromotableLValue extends LValue implements Promotable {
-  PromotableLValue._({required super.location}) : super._();
+  new _({required super.location}) : super._();
 }
 
 class Property extends PromotableLValue {
@@ -4981,7 +4974,7 @@ class Property extends PromotableLValue {
 
   int? _syntheticAfterOperatorOffset;
 
-  Property._(
+  new _(
     this.target,
     this.propertyName, {
     required super.location,
@@ -5481,7 +5474,7 @@ abstract class ProtoSwitchHead {
 class RecordPattern extends Pattern {
   final List<RecordPatternField> fields;
 
-  RecordPattern._(this.fields, {required super.location}) : super._();
+  new _(this.fields, {required super.location}) : super._();
 
   @override
   SharedTypeSchemaView computeSchema(Harness h) {
@@ -5543,11 +5536,8 @@ class RecordPatternField extends Node
   @override
   final Pattern pattern;
 
-  RecordPatternField({
-    required this.name,
-    required this.pattern,
-    required super.location,
-  }) : super._();
+  new({required this.name, required this.pattern, required super.location})
+    : super._();
 
   @override
   Node get node => this;
@@ -5557,8 +5547,7 @@ class RelationalPattern extends Pattern {
   final String operator;
   final Expression operand;
 
-  RelationalPattern._(this.operator, this.operand, {required super.location})
-    : super._();
+  new _(this.operator, this.operand, {required super.location}) : super._();
 
   @override
   SharedTypeSchemaView computeSchema(Harness h) =>
@@ -5601,7 +5590,7 @@ class RestPattern extends Node
     implements ListPatternElement, MapPatternElement {
   final Pattern? subPattern;
 
-  RestPattern._(this.subPattern, {required super.location}) : super._();
+  new _(this.subPattern, {required super.location}) : super._();
 
   @override
   void preVisitInternal(
@@ -5628,7 +5617,7 @@ class RestPattern extends Node
 }
 
 class Return extends Statement {
-  Return._({required super.location});
+  new _({required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {}
@@ -5651,7 +5640,7 @@ class Second extends Expression {
   final Expression first;
   final Expression second;
 
-  Second._(this.first, this.second, {required super.location});
+  new _(this.first, this.second, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {
@@ -5688,7 +5677,7 @@ abstract class Statement extends Node with ProtoStatement<Statement> {
   /// is analyzed.
   String? _expectedIR;
 
-  Statement({required super.location}) : super._();
+  new({required super.location}) : super._();
 
   @override
   Statement asStatement({required String location}) => this;
@@ -5717,7 +5706,7 @@ class SwitchExpression extends Expression {
 
   int? _syntheticScrutineeEndOffset;
 
-  SwitchExpression._(this.scrutinee, this.cases, {required super.location});
+  new _(this.scrutinee, this.cases, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {
@@ -5762,7 +5751,7 @@ class SwitchExpression extends Expression {
 abstract class SwitchHead extends Node implements ProtoSwitchHead {
   int? _syntheticBeginAlternativeOffset;
 
-  SwitchHead._({required super.location}) : super._();
+  new _({required super.location}) : super._();
 
   @override
   SwitchHead get asSwitchHead => this;
@@ -5781,11 +5770,11 @@ class SwitchHeadCase extends SwitchHead {
   final GuardedPattern guardedPattern;
   int? _syntheticFinishJoinedPatternVariablesOffset;
 
-  SwitchHeadCase._(this.guardedPattern, {required super.location}) : super._();
+  new _(this.guardedPattern, {required super.location}) : super._();
 }
 
 class SwitchHeadDefault extends SwitchHead {
-  SwitchHeadDefault._({required super.location}) : super._();
+  new _({required super.location}) : super._();
 }
 
 class SwitchStatement extends Statement {
@@ -5807,7 +5796,7 @@ class SwitchStatement extends Statement {
 
   int? _syntheticScrutineeEndOffset;
 
-  SwitchStatement(
+  new(
     this.scrutinee,
     this.cases,
     this.isLegacyExhaustive, {
@@ -5905,7 +5894,7 @@ class SwitchStatementMember extends Node {
   /// type analysis. So, some of these variables might become unavailable.
   late final Map<String, Var> _candidateVariables;
 
-  SwitchStatementMember._(
+  new _(
     this.elements,
     this.body, {
     required super.location,
@@ -5950,7 +5939,7 @@ class SwitchStatementMember extends Node {
 }
 
 class This extends Expression implements Promotable {
-  This._({required super.location});
+  new _({required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {}
@@ -5984,7 +5973,7 @@ class ThisOrSuperProperty extends PromotableLValue {
   final String propertyName;
   final bool isSuperAccess;
 
-  ThisOrSuperProperty._(
+  new _(
     this.propertyName, {
     required super.location,
     required this.isSuperAccess,
@@ -6077,7 +6066,7 @@ class ThisOrSuperProperty extends PromotableLValue {
 class Throw extends Expression {
   final Expression operand;
 
-  Throw._(this.operand, {required super.location});
+  new _(this.operand, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {
@@ -6105,7 +6094,7 @@ abstract class TryBuilder {
 }
 
 abstract class TryStatement extends Statement implements TryBuilder {
-  TryStatement._({required super.location});
+  new _({required super.location});
 }
 
 class TryStatementImpl extends TryStatement {
@@ -6115,12 +6104,8 @@ class TryStatementImpl extends TryStatement {
   int? _syntheticAfterCatchesOffset;
   int? _syntheticAfterFinallyKeywordOffset;
 
-  TryStatementImpl(
-    this.body,
-    this.catches,
-    this.finallyStatement, {
-    required super.location,
-  }) : super._();
+  new(this.body, this.catches, this.finallyStatement, {required super.location})
+    : super._();
 
   @override
   TryStatement catch_({
@@ -6207,7 +6192,7 @@ class TryStatementImpl extends TryStatement {
 /// Variant of [Label] that causes `null` to be passed to `handleBreak` or
 /// `handleContinue`.
 class UnboundLabel extends Label {
-  UnboundLabel._() : super._(location: computeLocation());
+  new _() : super._(location: computeLocation());
 
   @override
   Statement thenStmt(Statement statement) {
@@ -6242,7 +6227,7 @@ class Var extends Node
   /// The [PatternVariableJoin] that this variable is a component of, if any.
   PatternVariableJoin? _joinedVar;
 
-  Var(this.name, {this.isFinal = false, String? identity, String? location})
+  new(this.name, {this.isFinal = false, String? identity, String? location})
     : identity = identity ?? name,
       super._(location: location ?? computeLocation());
 
@@ -6347,7 +6332,7 @@ class VariableDeclaration extends Statement {
   final String? expectInferredType;
   int? _syntheticOperatorOffset;
 
-  VariableDeclaration._({
+  new _({
     required super.location,
     required this.variable,
     required this.isLate,
@@ -6475,7 +6460,7 @@ class VariablePattern extends Pattern {
 
   late bool isAssignedVariable;
 
-  VariablePattern._(
+  new _(
     this.declaredType,
     this.variable,
     this.expectInferredType, {
@@ -6560,8 +6545,7 @@ class VariableReference extends LValue {
 
   final void Function(Type?)? callback;
 
-  VariableReference._(this.variable, this.callback, {required super.location})
-    : super._();
+  new _(this.variable, this.callback, {required super.location}) : super._();
 
   @override
   void preVisitInternal(
@@ -6623,7 +6607,7 @@ class While extends Statement {
   int? _syntheticBodyBeginOffset;
   int? _syntheticConditionBeginOffset;
 
-  While._(this.condition, this.body, {required super.location});
+  new _(this.condition, this.body, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {
@@ -6662,7 +6646,7 @@ class WildcardPattern extends Pattern {
 
   final String? expectInferredType;
 
-  WildcardPattern._({
+  new _({
     required this.declaredType,
     required this.expectInferredType,
     required super.location,
@@ -6718,12 +6702,7 @@ class WrappedExpression extends Expression {
   final Expression expr;
   final Statement? after;
 
-  WrappedExpression._(
-    this.before,
-    this.expr,
-    this.after, {
-    required super.location,
-  });
+  new _(this.before, this.expr, this.after, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {
@@ -6788,7 +6767,7 @@ class Write extends Expression {
   final LValue lhs;
   final Expression rhs;
 
-  Write(this.lhs, this.rhs, {required super.location});
+  new(this.lhs, this.rhs, {required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {
@@ -6825,11 +6804,7 @@ class YieldStatement extends Statement {
   final bool isYieldStar;
   int? _syntheticSuspensionOffset;
 
-  YieldStatement._(
-    this.operand, {
-    required this.isYieldStar,
-    required super.location,
-  });
+  new _(this.operand, {required this.isYieldStar, required super.location});
 
   @override
   void preVisitInternal(PreVisitor visitor) {
@@ -6864,10 +6839,11 @@ class YieldStatement extends Statement {
 class _Checkpoint {
   final int offset;
   final PromotionInfo? expectedPromotionInfo;
-  final PromotionKey? expectedThisBinding;
+  final ({PromotionKey promotionKey, SharedTypeView unpromotedType})?
+  expectedThisBinding;
   final String location;
 
-  _Checkpoint({
+  new({
     required this.offset,
     required this.expectedPromotionInfo,
     required this.expectedThisBinding,
@@ -7201,7 +7177,7 @@ class _MiniAstTypeAnalyzer
   @override
   BodyContext? bodyContext;
 
-  _MiniAstTypeAnalyzer(this._harness, this.typeAnalyzerOptions);
+  new(this._harness, this.typeAnalyzerOptions);
 
   @override
   FlowAnalysis<Node, Statement, Expression, Var> get flow => _harness.flow;
@@ -7510,6 +7486,8 @@ class _MiniAstTypeAnalyzer
   /// `arguments.length + 1`, whose `i`th element is the offset just before the
   /// `i`th argument, and whose last element is the offset just after the last
   /// argument. This determines the offsets that will be passed to
+  /// [FlowAnalysis.argumentVisitOrderException_begin],
+  /// [FlowAnalysis.argumentVisitOrderException_end], and
   /// [FlowAnalysis.recordArgumentVisitOrderException] when [argumentVisitOrder]
   /// indicates that arguments should be visited out of order.
   ///
@@ -7548,10 +7526,23 @@ class _MiniAstTypeAnalyzer
     // Recursively analyze each argument.
     var inputKinds = [Kind.expression];
     var lastVisitedArgument = -1;
+    var maxVisitedArgument = -1;
     for (var i = 0; i < arguments.length; i++) {
       var j = argumentVisitOrder[i];
       inputKinds.add(Kind.expression);
-      if (lastVisitedArgument != j - 1) {
+      // If any argument that follows this one has already been visited, then
+      // this argument is being visited out of order.
+      var isOutOfOrder = maxVisitedArgument > j;
+      if (isOutOfOrder) {
+        flow.argumentVisitOrderException_begin(
+          offset: betweenArgumentOffsets[j],
+        );
+      } else if (lastVisitedArgument != j - 1) {
+        // This argument is being visited in its natural source position, but
+        // the argument that precedes it in the source code wasn't the argument
+        // that was visited most recently, so an argument was visited out of
+        // order in the meantime. Account for the state changes it made before
+        // visiting this argument.
         flow.recordArgumentVisitOrderException(
           offset: betweenArgumentOffsets[j],
         );
@@ -7564,7 +7555,13 @@ class _MiniAstTypeAnalyzer
               )
             : operations.unknownType,
       );
+      if (isOutOfOrder) {
+        flow.argumentVisitOrderException_end(
+          offset: betweenArgumentOffsets[j + 1],
+        );
+      }
       lastVisitedArgument = j;
+      if (j > maxVisitedArgument) maxVisitedArgument = j;
     }
     if (lastVisitedArgument != arguments.length - 1) {
       flow.recordArgumentVisitOrderException(
@@ -7649,12 +7646,14 @@ class _MiniAstTypeAnalyzer
   }
 
   ExpressionTypeAnalysisResult analyzeThis(Expression node) {
-    var promotedTypeOfThis = flow.promotedTypeOfThis?.unwrapTypeView() as Type?;
+    var (
+      promotedType: wrappedPromotedTypeOfThis,
+      expressionInfo: flowAnalysisInfo,
+    ) = flow
+        .thisExpression();
+    var promotedTypeOfThis =
+        wrappedPromotedTypeOfThis?.unwrapTypeView() as Type?;
     var thisType = promotedTypeOfThis ?? this.thisType;
-    var flowAnalysisInfo = flow.thisOrSuper(
-      SharedTypeView(thisType),
-      isSuper: false,
-    );
     return new ExpressionTypeAnalysisResult(
       type: SharedTypeView(thisType),
       flowAnalysisInfo: flowAnalysisInfo,
@@ -7668,7 +7667,10 @@ class _MiniAstTypeAnalyzer
   }) {
     var member = _lookupMember(thisType, propertyName);
     var memberType = member?._type ?? operations.dynamicType.unwrapTypeView();
-    var (wrappedPromotedType, flowAnalysisInfo) = flow.propertyGet(
+    var (
+      promotedType: wrappedPromotedType,
+      expressionInfo: flowAnalysisInfo,
+    ) = flow.propertyGet(
       isSuperAccess
           ? SuperPropertyTarget.singleton
           : ThisPropertyTarget.singleton,
@@ -7781,7 +7783,7 @@ class _MiniAstTypeAnalyzer
     Var variable,
     void Function(Type?)? callback,
   ) {
-    var (promotedType, flowAnalysisInfo) = flow.variableRead(
+    var (:promotedType, expressionInfo: flowAnalysisInfo) = flow.variableRead(
       variable,
       offset: node._syntheticEndOffset!,
     );
@@ -8447,7 +8449,10 @@ class _MiniAstTypeAnalyzer
     var member = _lookupMember(targetType.unwrapTypeView(), propertyName);
     var memberType =
         member?._type ?? operations.dynamicType.unwrapTypeView<Type>();
-    var (wrappedPromotedType, flowAnalysisInfo) = flow.propertyGet(
+    var (
+      promotedType: wrappedPromotedType,
+      expressionInfo: flowAnalysisInfo,
+    ) = flow.propertyGet(
       propertyTarget,
       propertyName,
       member,
@@ -8514,7 +8519,7 @@ class _PropertyElement {
   /// to the test.
   final PropertyNonPromotabilityReason? whyNotPromotable;
 
-  _PropertyElement(
+  new(
     this._type,
     this._name, {
     required this.isPromotable,
@@ -8532,7 +8537,7 @@ class _PropertyElement {
 class _VariableBinder extends VariableBinder<Node, Var> {
   final PreVisitor visitor;
 
-  _VariableBinder(this.visitor) : super(errors: visitor.errors);
+  new(this.visitor) : super(errors: visitor.errors);
 
   @override
   Var joinPatternVariables({

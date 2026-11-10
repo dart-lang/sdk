@@ -9,10 +9,14 @@ part of $LIBRARYNAME;
 // get generated require `this` to be an EventTarget.
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME implements EventTarget {
 
-  void addEventListener(String type, dynamic listener(Event event)$NULLABLE,
-      [bool$NULLABLE useCapture]);
+  void addEventListener(
+      String type,
+      dynamic Function(Event event)$NULLABLE listener, [
+      bool$NULLABLE useCapture]);
   bool dispatchEvent(Event event);
-  void removeEventListener(String type, dynamic listener(Event event)$NULLABLE,
+  void removeEventListener(
+      String type,
+      dynamic Function(Event event)$NULLABLE listener,
       [bool$NULLABLE useCapture]);
   Events get on;
 

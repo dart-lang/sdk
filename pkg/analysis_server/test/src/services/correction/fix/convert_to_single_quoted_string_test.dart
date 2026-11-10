@@ -40,8 +40,10 @@ void f() {
 
 @reflectiveTest
 class ConvertToSingleQuotedStringInFileTest extends FixInFileProcessorTest {
+  @override
+  List<String> get lintCodes => [LintNames.prefer_single_quotes];
+
   Future<void> test_File() async {
-    createAnalysisOptionsFile(lints: [LintNames.prefer_single_quotes]);
     await resolveTestCode(r'''
 void f() {
   print("abc");
@@ -60,7 +62,8 @@ void f() {
 }
 
 @reflectiveTest
-class ConvertToSingleQuotedStringTest extends FixProcessorLintTest {
+class ConvertToSingleQuotedStringTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToSingleQuotedString;
 

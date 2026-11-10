@@ -7,6 +7,7 @@ import 'package:cfg/ir/functions.dart';
 import 'package:cfg/ir/instructions.dart';
 import 'package:cfg/utils/misc.dart';
 import 'package:kernel/ast.dart' as ast;
+import 'package:native_compiler/back_end/code.dart';
 import 'package:native_compiler/runtime/names.dart';
 
 /// Helper class for building object pool accessible from generated code.
@@ -56,7 +57,8 @@ final class NewObjectTags(final ast.Class cls) extends SpecializedEntry {
 /// ICData call object pool entries occupies 2 slots: ICData, dispatcher code.
 sealed class ICDataCallEntry(
   final CFunction owner,
-  final ArgumentsShape argumentsShape, {
+  final ArgumentsShape argumentsShape,
+  final Code dispatcherCode, {
   required final Name selector,
 }) extends PairSpecializedEntry {
   @override
@@ -68,6 +70,7 @@ sealed class ICDataCallEntry(
       other is ICDataCallEntry &&
       this.owner == other.owner &&
       this.argumentsShape == other.argumentsShape &&
+      this.dispatcherCode == other.dispatcherCode &&
       this.selector == other.selector;
 }
 
@@ -77,6 +80,7 @@ final class InterfaceCallEntry extends ICDataCallEntry {
   InterfaceCallEntry(
     super.owner,
     super.argumentsShape,
+    super.dispatcherCode,
     CFunction interfaceTarget,
   ) : super(selector: Name.interfaceCallSelector(interfaceTarget));
 }
@@ -86,6 +90,7 @@ final class DynamicCallEntry extends ICDataCallEntry {
   DynamicCallEntry(
     super.owner,
     super.argumentsShape,
+    super.dispatcherCode,
     DynamicCallKind kind,
     ast.Name selector,
   ) : super(selector: Name.dynamicCallSelector(kind, selector));

@@ -6,7 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
-import 'package:analysis_server/src/lsp/handlers/handler_completion.dart';
+import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/services/snippets/dart/class_declaration.dart';
 import 'package:analysis_server/src/services/snippets/dart/do_statement.dart';
 import 'package:analysis_server/src/services/snippets/dart/flutter_stateful_widget.dart';
@@ -322,6 +322,194 @@ void f() {
 
     var resolved = await resolveCompletion(completion);
     expectDocumentation(resolved, contains('Named Constructor.'));
+  }
+
+  /// Docs are inline because they are short.
+  Future<void> test_dartDoc_inlined_short() async {
+    content = '''
+/// This is MyClass.
+class MyClass {}
+
+void f() {
+  MyClas^
+}
+''';
+
+    await initializeServer();
+
+    var completion = await getCompletionItem('MyClass');
+    expectDocumentation(completion, equals('This is MyClass.'));
+  }
+
+  /// Docs are inline because they are short.
+  Future<void> test_dartDoc_inlined_short_inherited() async {
+    content = '''
+class BaseClass {
+  /// This is BaseClass.
+  void method() {}
+}
+
+class MyClass extends BaseClass {
+  void method() {}
+}
+
+void f(MyClass x) {
+  x.met^
+}
+''';
+
+    await initializeServer();
+
+    var completion = await getCompletionItem('method()');
+    expectDocumentation(
+      completion,
+      equals('This is BaseClass.\n\nCopied from `BaseClass`.'),
+    );
+  }
+
+  /// Docs are lazy despite being short because we are auto-importing and
+  /// therefore already paying the price of the element reference in the resolve
+  /// info.
+  Future<void> test_dartDoc_lazilyResolved_becauseAutoImport() async {
+    newFile(join(projectFolderPath, 'lib', 'my_class.dart'), '''
+/// ${'This is a long dartdoc for MyClass' * 10}
+class MyClass {}
+''');
+    content = '''
+void f() {
+  MyClas^
+}
+''';
+
+    await initializeServer();
+
+    var completion = await getCompletionItem('MyClass');
+    expectDocumentation(completion, isNull);
+
+    var resolved = await resolveCompletion(completion);
+    expectDocumentation(
+      resolved,
+      contains('This is a long dartdoc for MyClass'),
+    );
+  }
+
+  /// Docs are lazy because they are long.
+  Future<void> test_dartDoc_lazilyResolved_long() async {
+    newFile(join(projectFolderPath, 'lib', 'my_class.dart'), '''
+/// ${'This is a long dartdoc for MyClass' * 10}
+class MyClass {}
+''');
+    content = '''
+import 'my_class.dart';
+
+void f() {
+  MyClas^
+}
+''';
+
+    await initializeServer();
+
+    var completion = await getCompletionItem('MyClass');
+    expectDocumentation(completion, isNull);
+
+    var resolved = await resolveCompletion(completion);
+    expectDocumentation(
+      resolved,
+      contains('This is a long dartdoc for MyClass'),
+    );
+  }
+
+  /// Docs are lazy because they are long.
+  Future<void> test_dartDoc_lazilyResolved_long_inherited() async {
+    newFile(join(projectFolderPath, 'lib', 'my_class.dart'), '''
+class BaseClass {
+  /// ${'This is a long dartdoc for BaseClass' * 10}
+    void method() {}
+}
+
+class MyClass extends BaseClass {
+  void method() {}
+}
+''');
+    content = '''
+import 'my_class.dart';
+
+void f(MyClass x) {
+  x.met^
+}
+''';
+
+    await initializeServer();
+
+    var completion = await getCompletionItem('method()');
+    expectDocumentation(completion, isNull);
+
+    var resolved = await resolveCompletion(completion);
+    expectDocumentation(
+      resolved,
+      contains('This is a long dartdoc for BaseClass'),
+    );
+  }
+
+  /// Docs are lazy despite being short because they reference a macro that
+  /// probably expands to something long (we don't compute it for the check).
+  Future<void> test_dartDoc_lazilyResolved_shortButMacro() async {
+    content = '''
+/// {@macro short}
+class MyClass {}
+
+/// {@template short}
+/// Template content
+/// {@endtemplate}
+class X {}
+
+void f() {
+  MyClas^
+}
+''';
+
+    await initializeServer();
+
+    var completion = await getCompletionItem('MyClass');
+    expectDocumentation(completion, isNull);
+
+    var resolved = await resolveCompletion(completion);
+    expectDocumentation(resolved, equals('Template content'));
+  }
+
+  /// Docs are lazy despite being short because they reference a macro that
+  /// probably expands to something long (we don't compute it for the check).
+  Future<void> test_dartDoc_lazilyResolved_shortButMacro_inherited() async {
+    content = '''
+class BaseClass {
+  /// {@macro short}
+  void method() {}
+}
+
+class MyClass extends BaseClass {
+  void method() {}
+}
+
+/// {@template short}
+/// Template content
+/// {@endtemplate}
+class X {}
+
+void f(MyClass x) {
+  x.met^
+}
+''';
+
+    await initializeServer();
+
+    var completion = await getCompletionItem('method()');
+    expectDocumentation(completion, isNull);
+
+    var resolved = await resolveCompletion(completion);
+    expectDocumentation(
+      resolved,
+      equals('Template content\n\nCopied from `BaseClass`.'),
+    );
   }
 
   Future<void> test_dotShorthand_disabledFeature() async {
@@ -1079,6 +1267,40 @@ String m3() {
     );
   }
 
+  Future<void> test_functionType_parameterName() async {
+    content = '''
+void f(void Function(int i) x) {
+  x^
+}
+''';
+
+    await expectLabel(
+      content,
+      label: 'x',
+      labelDetail: ' void Function(int i)',
+      labelDescription: null,
+      filterText: null,
+      detail: 'void Function(int i)',
+    );
+  }
+
+  Future<void> test_functionType_parameterName_returnType() async {
+    content = '''
+void f(void Function(int i) Function() x) {
+  x^
+}
+''';
+
+    await expectLabel(
+      content,
+      label: 'x',
+      labelDetail: ' void Function(int i) Function()',
+      labelDescription: null,
+      filterText: null,
+      detail: 'void Function(int i) Function()',
+    );
+  }
+
   Future<void> test_imported_function_returnType_args() async {
     newFile(fileAPath, '''
 String a(String a, {String b}) {}
@@ -1540,6 +1762,9 @@ void f(int variable) {
 
 @reflectiveTest
 class CompletionTest extends AbstractCompletionTest {
+  @override
+  bool get addFlutterPackageDep => true;
+
   /// Checks whether the correct types of documentation are returned for
   /// completions based on [preference].
   Future<void> assertDocumentation(
@@ -1627,11 +1852,19 @@ void f() {
     String completion, {
     required String? editText,
     InsertTextFormat? insertTextFormat,
+    Map<String, Object?>? config,
+    bool supportSnippets = true,
   }) async {
     this.content = content;
 
-    setCompletionItemSnippetSupport();
-    await provideConfig(initialize, {'completeFunctionCalls': true});
+    if (supportSnippets) {
+      setCompletionItemSnippetSupport();
+    }
+    if (config != null) {
+      await provideConfig(initialize, config);
+    } else {
+      await initialize();
+    }
 
     await openFile(mainFileUri, code.code);
     var res = await getCompletion(mainFileUri, code.position.position);
@@ -1692,12 +1925,6 @@ void f() {
     expect(item.textEditText ?? item.label, text);
     expect(item.insertText, isNull);
     expect(item.textEdit, isNull);
-  }
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
   }
 
   Future<void> test_alreadyImported_noImportUris() async {
@@ -1953,6 +2180,41 @@ void f(int aaa) {
     );
   }
 
+  Future<void> test_completeFunctionCalls_disabled_byConfig() async {
+    content = '''
+void myFunction() {}
+
+void f() {
+  [!myFu^!]
+}
+''';
+
+    await checkCompleteFunctionCallInsertText(
+      config: {'completeFunctionCalls': false},
+      content,
+      'myFunction()',
+      editText: 'myFunction',
+    );
+  }
+
+  Future<void>
+  test_completeFunctionCalls_disabled_byLackOfSnippetSupport() async {
+    content = '''
+void myFunction() {}
+
+void f() {
+  [!myFu^!]
+}
+''';
+
+    await checkCompleteFunctionCallInsertText(
+      supportSnippets: false,
+      content,
+      'myFunction()',
+      editText: 'myFunction',
+    );
+  }
+
   Future<void> test_completeFunctionCalls_escapesDollarArgs() async {
     await checkCompleteFunctionCallInsertText(
       r'''
@@ -2116,7 +2378,7 @@ class _MyWidgetState extends State<MyWidget> {
 ''';
 
     setCompletionItemSnippetSupport();
-    await provideConfig(initialize, {'completeFunctionCalls': true});
+    await initialize();
 
     await openFile(mainFileUri, code.code);
     var res = await getCompletion(mainFileUri, code.position.position);
@@ -2196,7 +2458,7 @@ void f() {
 ''';
 
     setCompletionItemSnippetSupport();
-    await provideConfig(initialize, {'completeFunctionCalls': true});
+    await initialize();
 
     await openFile(mainFileUri, code.code);
     var res = await getCompletion(mainFileUri, code.position.position);
@@ -2223,7 +2485,7 @@ void f() {
 ''';
 
     setCompletionItemSnippetSupport();
-    await provideConfig(initialize, {'completeFunctionCalls': true});
+    await initialize();
 
     await openFile(mainFileUri, code.code);
     await workspaceAnalysisComplete();
@@ -2272,7 +2534,7 @@ final a = Stri^
     }
 
     setCompletionItemSnippetSupport();
-    await provideConfig(initialize, {'completeFunctionCalls': true});
+    await initialize();
 
     await openFile(mainFileUri, code.code);
     await workspaceAnalysisComplete();
@@ -2293,7 +2555,7 @@ import 'dart:math' show mi^
 ''';
 
     setCompletionItemSnippetSupport();
-    await provideConfig(initialize, {'completeFunctionCalls': true});
+    await initialize();
 
     await openFile(mainFileUri, code.code);
     var res = await getCompletion(mainFileUri, code.position.position);
@@ -2551,7 +2813,7 @@ var a = 1 /^
 
     // Use a completer to force the requests to overlap without races.
     var completer = Completer<void>();
-    CompletionHandler.delayAfterResolveForTests = completer.future;
+    LspAnalysisServer.delayAfterResolveForTests = completer.future;
     try {
       var responseFutures = [
         getCompletion(mainFileUri, position),
@@ -2589,7 +2851,7 @@ var a = 1 /^
       completer.complete();
       await Future.wait(expectationFutures);
     } finally {
-      CompletionHandler.delayAfterResolveForTests = null;
+      LspAnalysisServer.delayAfterResolveForTests = null;
     }
   }
 
@@ -2812,6 +3074,77 @@ import '^
     await openFile(mainFileUri, code.code);
     var res = await getCompletion(mainFileUri, code.position.position);
     expect(res.any((c) => c.label == 'dart:async'), isTrue);
+  }
+
+  Future<void> test_import_package_afterSlash() async {
+    newFile(join(projectFolderPath, 'lib', 'foo', 'bar', 'my_file.dart'), '');
+    newFolder(join(projectFolderPath, 'lib', 'foo', 'bar', 'sub'));
+
+    content = '''
+import 'package:test/foo/bar/^';
+''';
+
+    await initialize();
+    await openFile(mainFileUri, code.code);
+    var res = await getCompletion(mainFileUri, code.position.position);
+
+    for (var expected in ['my_file.dart', 'sub/']) {
+      var item = res.singleWhere((c) => c.label == expected);
+
+      var textEdit = toTextEdit(item.textEdit!);
+
+      // The inserted text is still the full URI, we're only changing labels.
+      expect(textEdit.newText, 'package:test/foo/bar/$expected');
+
+      // And applying the edit still produces the expected code.
+      var updated = applyTextEdits(code.code, [toTextEdit(item.textEdit!)]);
+      expect(updated, "import 'package:test/foo/bar/$expected';$eol");
+    }
+  }
+
+  Future<void> test_import_package_afterSlash_withPrefix() async {
+    newFile(join(projectFolderPath, 'lib', 'foo', 'bar', 'my_file.dart'), '');
+
+    content = '''
+import 'package:test/foo/bar/my_^';
+''';
+
+    await initialize();
+    await openFile(mainFileUri, code.code);
+    var res = await getCompletion(mainFileUri, code.position.position);
+
+    // Label should still include `my_`, we only trim up to a slash.
+    var item = res.singleWhere((c) => c.label == 'my_file.dart');
+
+    // The inserted text is still the full URI, we're only changing labels.
+    var textEdit = toTextEdit(item.textEdit!);
+    expect(textEdit.newText, 'package:test/foo/bar/my_file.dart');
+
+    // And applying the edit still produces the expected code.
+    var updated = applyTextEdits(code.code, [toTextEdit(item.textEdit!)]);
+    expect(updated, "import 'package:test/foo/bar/my_file.dart';$eol");
+  }
+
+  Future<void> test_import_package_noSlash() async {
+    newFile(join(projectFolderPath, 'lib', 'my_file.dart'), '');
+
+    content = '''
+import 'package:te^';
+''';
+
+    await initialize();
+    await openFile(mainFileUri, code.code);
+    var res = await getCompletion(mainFileUri, code.position.position);
+
+    for (var expected in ['package:test/', 'package:test/my_file.dart']) {
+      var item = res.singleWhere((c) => c.label == expected);
+
+      var textEdit = toTextEdit(item.textEdit!);
+      expect(textEdit.newText, expected);
+
+      var updated = applyTextEdits(code.code, [toTextEdit(item.textEdit!)]);
+      expect(updated, "import '$expected';$eol");
+    }
   }
 
   Future<void> test_import_partial() async {
@@ -5276,7 +5609,7 @@ void f() {
 
     // Use a Completer to control when the completion handler starts computing.
     var completer = Completer<void>();
-    CompletionHandler.delayAfterResolveForTests = completer.future;
+    LspAnalysisServer.delayAfterResolveForTests = completer.future;
     try {
       // Start the completion request but don't await it yet.
       var completionRequest = getCompletionList(
@@ -5294,7 +5627,7 @@ void f() {
       expect(result.items, isNotEmpty);
     } finally {
       // Ensure we never leave an incomplete future if anything above throws.
-      CompletionHandler.delayAfterResolveForTests = null;
+      LspAnalysisServer.delayAfterResolveForTests = null;
     }
   }
 
@@ -5695,18 +6028,15 @@ void f() {
 
 @reflectiveTest
 class FlutterSnippetCompletionTest extends SnippetCompletionTest {
+  @override
+  bool get addFlutterPackageDep => true;
+
   /// Standard import statements expected for basic Widgets.
   String get expectedImports => '''
 import 'package:flutter/widgets.dart';''';
 
   /// Constructor params expected on Widget classes.
   String get expectedWidgetConstructorParams => '({super.key})';
-
-  @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
 
   Future<void> test_snippets_flutterStateful() async {
     content = '''
@@ -5977,7 +6307,7 @@ abstract class SnippetCompletionTest extends AbstractLspAnalysisServerTest
     required String prefix,
     required String label,
   }) async {
-    var (snippet: snippet, defaults: defaults) = await expectSnippet(
+    var (:snippet, :defaults) = await expectSnippet(
       code,
       prefix: prefix,
       label: label,

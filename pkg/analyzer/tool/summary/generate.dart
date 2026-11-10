@@ -78,7 +78,7 @@ class _BaseGenerator {
   /// Current indentation level.
   String _indentation = '';
 
-  _BaseGenerator(this._idl, this._outBuffer);
+  new(this._idl, this._outBuffer);
 
   /// Generate a Dart expression representing the default value for a field
   /// having the given [type], or `null` if there is no default value.
@@ -197,7 +197,7 @@ class _BuilderGenerator extends _BaseGenerator {
   final idl_model.ClassDeclaration cls;
   List<String> constructorParams = <String>[];
 
-  _BuilderGenerator(super.idl, super.outBuffer, this.cls);
+  new(super.idl, super.outBuffer, this.cls);
 
   String get builderName => '${name}Builder';
 
@@ -268,14 +268,7 @@ class _BuilderGenerator extends _BaseGenerator {
 
   void _generateConstructors() {
     out();
-    out('$builderName({${constructorParams.join(', ')}})');
-    List<idl_model.FieldDeclaration> fields = cls.fields.toList();
-    for (int i = 0; i < fields.length; i++) {
-      idl_model.FieldDeclaration field = fields[i];
-      String prefix = i == 0 ? '  : ' : '    ';
-      String suffix = i == fields.length - 1 ? ';' : ',';
-      out('${prefix}_${field.name} = ${field.name}$suffix');
-    }
+    out('new({${constructorParams.join(', ')}});');
   }
 
   void _generateFields() {
@@ -423,7 +416,7 @@ class _BuilderGenerator extends _BaseGenerator {
         out('$typeStr$nn get $fieldName => _$fieldName$defSuffix;');
         out();
 
-        constructorParams.add('$typeStr? $fieldName');
+        constructorParams.add('this._$fieldName');
 
         outDoc(field.documentation);
 
@@ -515,7 +508,7 @@ class _CodeGenerator {
   /// Semantic model of the "IDL" input file.
   final idl_model.Idl _idl = idl_model.Idl();
 
-  _CodeGenerator(String idlPath) {
+  new(String idlPath) {
     // Parse the input "IDL" file.
     File idlFile = File(idlPath);
     String idlText = idlFile.readAsStringSync().replaceAll(
@@ -840,7 +833,7 @@ class _CodeGenerator {
 class _EnumReaderGenerator extends _BaseGenerator {
   final idl_model.EnumDeclaration enum_;
 
-  _EnumReaderGenerator(super.idl, super.outBuffer, this.enum_);
+  new(super.idl, super.outBuffer, this.enum_);
 
   void generate() {
     String name = enum_.name;
@@ -849,7 +842,7 @@ class _EnumReaderGenerator extends _BaseGenerator {
     String def = '${idlPrefix(name)}.${enum_.values[0].name}';
     out('class $readerName extends fb.Reader<${idlPrefix(name)}> {');
     indent(() {
-      out('const $readerName() : super();');
+      out('const new() : super();');
       out();
       out('@override');
       out('int get size => 1;');
@@ -867,7 +860,7 @@ class _EnumReaderGenerator extends _BaseGenerator {
 }
 
 class _FlatBufferSchemaGenerator extends _BaseGenerator {
-  _FlatBufferSchemaGenerator(super.idl, super.outBuffer);
+  new(super.idl, super.outBuffer);
 
   void generate() {
     for (idl_model.EnumDeclaration enm in _idl.enums.values) {
@@ -955,7 +948,7 @@ class _FlatBufferSchemaGenerator extends _BaseGenerator {
 class _ImplGenerator extends _BaseGenerator {
   final idl_model.ClassDeclaration cls;
 
-  _ImplGenerator(super.idl, super.outBuffer, this.cls);
+  new(super.idl, super.outBuffer, this.cls);
 
   void generate() {
     String name = cls.name;
@@ -969,7 +962,7 @@ class _ImplGenerator extends _BaseGenerator {
       out('final fb.BufferContext _bc;');
       out('final int _bcOffset;');
       out();
-      out('$implName(this._bc, this._bcOffset);');
+      out('new(this._bc, this._bcOffset);');
       out();
       // Write cache fields.
       for (idl_model.FieldDeclaration field in cls.fields) {
@@ -1064,7 +1057,7 @@ class _ImplGenerator extends _BaseGenerator {
 class _MixinGenerator extends _BaseGenerator {
   final idl_model.ClassDeclaration cls;
 
-  _MixinGenerator(super.idl, super.outBuffer, this.cls);
+  new(super.idl, super.outBuffer, this.cls);
 
   void generate() {
     String name = cls.name;
@@ -1157,7 +1150,7 @@ class _MixinGenerator extends _BaseGenerator {
 class _ReaderGenerator extends _BaseGenerator {
   final idl_model.ClassDeclaration cls;
 
-  _ReaderGenerator(super.idl, super.outBuffer, this.cls);
+  new(super.idl, super.outBuffer, this.cls);
 
   void generateReader() {
     String name = cls.name;
@@ -1165,7 +1158,7 @@ class _ReaderGenerator extends _BaseGenerator {
     String implName = '_${name}Impl';
     out('class $readerName extends fb.TableReader<$implName> {');
     indent(() {
-      out('const $readerName();');
+      out('const new();');
       out();
       out('@override');
       out(

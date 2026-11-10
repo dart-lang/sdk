@@ -9,54 +9,48 @@ import 'private_enum_lib.dart';
 
 void main() {
   context(.e1);
-  //      ^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //       ^
+  //       ^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] No type was provided to find the dot shorthand 'e1'.
   contextAlias(.e1);
-  //           ^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //            ^
+  //            ^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] No type was provided to find the dot shorthand 'e1'.
 
   context(.e2);
-  //      ^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //       ^
+  //       ^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] No type was provided to find the dot shorthand 'e2'.
   contextAlias(.e2);
-  //           ^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //            ^
+  //            ^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] No type was provided to find the dot shorthand 'e2'.
 
   context(.getter);
-  //      ^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //       ^
+  //       ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] No type was provided to find the dot shorthand 'getter'.
   contextAlias(.getter);
-  //           ^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //            ^
+  //            ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] No type was provided to find the dot shorthand 'getter'.
 
   context(.method());
   //       ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] No type was provided to find the dot shorthand 'method'.
   contextAlias(.method());
   //            ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] No type was provided to find the dot shorthand 'method'.
 
   context(.fact());
   //       ^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] No type was provided to find the dot shorthand 'fact'.
   contextAlias(.fact());
   //            ^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] No type was provided to find the dot shorthand 'fact'.
 
   context(Public_E.e1); // But this is OK.

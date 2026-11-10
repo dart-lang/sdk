@@ -1,0 +1,16 @@
+main = a::main;
+library from "org-dartlang-test:///a.dart" as a {
+
+  import "org-dartlang-test:///b.dart";
+
+  static method main() → void {
+    b::fromB();
+  }
+  static method fromA() → void {}
+}
+library from "org-dartlang-test:///b.dart" as b {
+
+  static method fromB() → void {
+    dart.core::print("B!");
+  }
+}

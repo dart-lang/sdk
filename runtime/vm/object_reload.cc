@@ -132,15 +132,6 @@ void CallSiteResetter::ResetSwitchableCalls(const Code& code) {
   }
   const Function& function = Function::Cast(object_);
 
-  if (function.kind() == UntaggedFunction::kIrregexpFunction) {
-    // Regex matchers do not support breakpoints or stepping, and they only call
-    // core library functions that cannot change due to reload. As a performance
-    // optimization, avoid this matching of ICData to PCs for these functions'
-    // large number of instance calls.
-    ASSERT(!function.is_debuggable());
-    return;
-  }
-
   ic_data_array_ = function.ic_data_array();
   if (ic_data_array_.IsNull()) {
     // The megamorphic miss stub and some recognized function doesn't populate
@@ -347,6 +338,20 @@ void Class::MigrateImplicitStaticClosures(ProgramReloadContext* irc,
     }
   }
 }
+
+#if defined(DART_DYNAMIC_MODULES)
+void Class::MarkReloadedImplicitClosureFunctions() const {
+  const Array& funcs = Array::Handle(current_functions());
+  Function& func = Function::Handle();
+  for (intptr_t i = 0; i < funcs.Length(); i++) {
+    func ^= funcs.At(i);
+    if (func.HasImplicitClosureFunction()) {
+      func = func.ImplicitClosureFunction();
+      func.SetIsReloadedImplicitClosure(true);
+    }
+  }
+}
+#endif
 
 class EnumClassConflict : public ClassReasonForCancelling {
  public:

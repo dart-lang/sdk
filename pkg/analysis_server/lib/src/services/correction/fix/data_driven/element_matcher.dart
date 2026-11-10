@@ -16,6 +16,7 @@ import 'package:analyzer/dart/element/element.dart'
         PropertyAccessorElement;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 
 /// An object that can be used to determine whether an element is appropriate
 /// for a given reference.
@@ -144,11 +145,7 @@ class ElementMatcher {
   ///
   /// The list will be empty if there are no appropriate matchers for the
   /// [node].
-  static List<ElementMatcher> matchersForNode(
-    AstNode? node,
-    Token? nameToken,
-    LibraryElement libraryElement,
-  ) {
+  static List<ElementMatcher> matchersForNode(AstNode? node, Token? nameToken) {
     if (node == null) {
       return const [];
     }
@@ -156,7 +153,8 @@ class ElementMatcher {
     if (importedUris == null) {
       return const [];
     }
-    var builder = _MatcherBuilder(importedUris, libraryElement);
+    var libraryFragment = (node.root as CompilationUnit).declaredFragment!;
+    var builder = _MatcherBuilder(importedUris, libraryFragment);
     builder.buildMatchersForNode(node, nameToken);
     return builder.matchers.toList();
   }
@@ -196,15 +194,17 @@ class _MatcherBuilder {
 
   final List<Uri> importedUris;
 
-  final LibraryElement libraryElement;
+  final LibraryFragment libraryFragment;
 
-  new(this.importedUris, this.libraryElement);
+  new(this.importedUris, this.libraryFragment);
 
   void buildMatchersForNode(AstNode? node, Token? nameToken) {
     if (node is ArgumentList) {
       _buildFromArgumentList(node);
     } else if (node is BinaryExpression) {
       _buildFromBinaryExpression(node);
+    } else if (node is Comment) {
+      _buildFromComment(node);
     } else if (node is ConstructorName) {
       _buildFromConstructorName(node);
     } else if (node is ExtensionOverride) {
@@ -264,6 +264,41 @@ class _MatcherBuilder {
     );
   }
 
+  /// Adds matchers for a member named [memberName] accessed on [targetType],
+  /// any of its supertypes, or any applicable extension in scope.
+  void _addMatchersForTargetType({
+    required String memberName,
+    required InterfaceType targetType,
+  }) {
+    var names = <String>{
+      ?targetType.element.name,
+      for (var supertype in targetType.allSupertypes) ?supertype.element.name,
+      ..._applicableExtensionNames(targetType),
+    };
+    for (var name in names) {
+      _addMatcher(
+        components: [memberName, name],
+        kinds: const [
+          ElementKind.constantKind,
+          ElementKind.fieldKind,
+          ElementKind.functionKind, // tear-off
+          ElementKind.getterKind,
+          ElementKind.methodKind, // tear-off
+          ElementKind.setterKind,
+        ],
+      );
+    }
+  }
+
+  Iterable<String> _applicableExtensionNames(InterfaceType targetType) {
+    var libraryElement = libraryFragment.element;
+    var nonNullType = libraryElement.typeSystem.promoteToNonNull(targetType);
+    return libraryFragment.accessibleExtensions
+        .applicableTo(targetLibrary: libraryElement, targetType: nonNullType)
+        .map((e) => e.extension.name)
+        .nonNulls;
+  }
+
   /// Build a matcher for the element being invoked.
   void _buildFromArgumentList(ArgumentList node) {
     var parent = node.parent;
@@ -318,6 +353,16 @@ class _MatcherBuilder {
     //  to operators.
   }
 
+  /// Build matchers for the `@docImport` directives in [node].
+  void _buildFromComment(Comment node) {
+    for (var docImport in node.docImports) {
+      _addMatcher(
+        components: [docImport.import.uri.stringValue ?? ''],
+        kinds: const [ElementKind.libraryKind],
+      );
+    }
+  }
+
   /// Build a matcher for the constructor being referenced.
   void _buildFromConstructorName(ConstructorName node) {
     // TODO(brianwilkerson): Use the static element, if there is one, in order to
@@ -349,7 +394,7 @@ class _MatcherBuilder {
   ) {
     var typeElement = computeDotShorthandContextTypeElement(
       node,
-      libraryElement,
+      libraryFragment.element,
     );
     var typeName = typeElement?.displayName;
     if (typeName != null) {
@@ -403,13 +448,14 @@ class _MatcherBuilder {
         components: [methodName.name, targetType.element.name!],
         kinds: const [ElementKind.constructorKind, ElementKind.methodKind],
       );
-      // We can invoke methods of supertypes of the target type.
-      var superElements = targetType.allSupertypes
-          .map((superType) => superType.element)
-          .toList();
-      for (var element in superElements) {
+      // We can invoke methods of supertypes and applicable extensions.
+      var names = <String>{
+        for (var superType in targetType.allSupertypes) superType.element.name!,
+        ..._applicableExtensionNames(targetType),
+      };
+      for (var name in names) {
         _addMatcher(
-          components: [methodName.name, element.name!],
+          components: [methodName.name, name],
           kinds: const [ElementKind.methodKind],
         );
       }
@@ -525,23 +571,10 @@ class _MatcherBuilder {
     // name of the type defining the member.
     var targetType = node.prefix.staticType;
     if (targetType is InterfaceType) {
-      var elements = [
-        targetType.element,
-        ...targetType.allSupertypes.map((t) => t.element),
-      ];
-      for (var element in elements) {
-        _addMatcher(
-          components: [node.identifier.name, element.name!],
-          kinds: const [
-            ElementKind.constantKind,
-            ElementKind.fieldKind,
-            ElementKind.functionKind, // tear-off
-            ElementKind.getterKind,
-            ElementKind.methodKind, // tear-off
-            ElementKind.setterKind,
-          ],
-        );
-      }
+      _addMatchersForTargetType(
+        memberName: node.identifier.name,
+        targetType: targetType,
+      );
     }
     // It looks like we're accessing a member, but we don't know what kind of
     // member, so we include all of the member kinds.
@@ -578,7 +611,16 @@ class _MatcherBuilder {
     // TODO(brianwilkerson): Use the static element, if there is one, in order to
     //  get a more exact matcher.
     var propertyName = node.propertyName;
-    var targetName = _nameOfTarget(node.realTarget);
+    var target = node.realTarget;
+    if (target.staticType case InterfaceType targetType
+        when target is! ExtensionOverride) {
+      _addMatchersForTargetType(
+        memberName: propertyName.name,
+        targetType: targetType,
+      );
+      return;
+    }
+    var targetName = _nameOfTarget(target);
     List<String> components;
     if (targetName != null) {
       components = [propertyName.name, targetName];
@@ -711,18 +753,23 @@ class _MatcherBuilder {
 
   /// Returns the name of the class associated with the given [target].
   static String? _nameOfTarget(Expression? target) {
+    if (target is PrefixedIdentifier && _isPrefix(target.prefix)) {
+      target = target.identifier;
+    }
     if (target is SimpleIdentifier) {
       var type = target.staticType;
       if (type != null) {
         if (type is InterfaceType) {
           return type.element.name;
-        } else if (type is DynamicType) {
+        } else if (type is DynamicType || type is InvalidType) {
           // The name is likely to be undefined.
           return target.name;
         }
         return null;
       }
       return target.name;
+    } else if (target is ExtensionOverride) {
+      return target.name.lexeme;
     } else if (target != null) {
       var type = target.staticType;
       if (type is InterfaceType) {

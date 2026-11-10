@@ -10,10 +10,12 @@ import 'package:test/test.dart';
 
 import 'asset_server/asset_server_client.dart';
 
+export 'package:dartpad/src/worker_client.dart';
 export 'package:dartpad_worker/src/shared.dart';
 export 'package:test/test.dart' show fail, group, printOnFailure;
 
 export 'checks_ext.dart';
+export 'fake_sandboxed_iframe.dart';
 
 /// Function used by [testDartWorker] and [testDartWorkspace] to create a
 /// worker.
@@ -45,6 +47,7 @@ createWorker = (_, _) =>
     throw StateError('createWorker function must be defined!');
 
 AssetServerClient? _serverClient;
+AssetServerClient get serverClient => _serverClient!;
 
 /// Define a test that uses a [WorkerClient].
 void testDartWorker(
@@ -63,7 +66,7 @@ void testDartWorker(
     try {
       await body(worker);
     } finally {
-      await worker.dispose();
+      await worker.close();
     }
   });
 }
@@ -87,7 +90,7 @@ void testDartWorkspace(
     try {
       await body(ws);
     } finally {
-      await ws.dispose();
+      await ws.close();
     }
   });
 }
@@ -118,7 +121,7 @@ void testFlutterWorker(
     try {
       await body(worker);
     } finally {
-      await worker.dispose();
+      await worker.close();
     }
   });
 }
@@ -145,7 +148,7 @@ void testFlutterWorkspace(
     try {
       await body(ws);
     } finally {
-      await ws.dispose();
+      await ws.close();
     }
   });
 }

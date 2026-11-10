@@ -15,15 +15,12 @@ void main() {
 }
 
 @reflectiveTest
-class WrapInTextTest extends FixProcessorTest {
+class WrapInTextTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
-  FixKind get kind => DartFixKind.wrapInText;
+  bool get addFlutterPackageDep => true;
 
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  FixKind get kind => DartFixKind.wrapInText;
 
   Future<void> test_literal() async {
     await resolveTestCode('''

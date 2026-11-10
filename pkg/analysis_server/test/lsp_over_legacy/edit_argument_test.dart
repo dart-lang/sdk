@@ -22,15 +22,11 @@ class EditArgumentTest extends SharedLspOverLegacyTest
         // are shared and run for both LSP and Legacy servers.
         SharedEditArgumentTests {
   @override
+  bool get addFlutterPackageDep => true;
+
+  @override
   Future<void> initializeServer() async {
     await sendClientCapabilities();
     await super.initializeServer();
-  }
-
-  @override
-  Future<void> setUp() async {
-    await super.setUp();
-
-    writeTestPackageConfig(flutter: true);
   }
 }

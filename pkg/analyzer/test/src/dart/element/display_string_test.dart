@@ -723,7 +723,7 @@ void f<T extends num>(T t) {
   }
 }
 ''');
-    var type = result.findNode.simple('t;').staticType!;
+    var type = result.findNode.unqualifiedNameExpression('t;').staticType!;
     expect(type.getDisplayString(), 'T & int');
   }
 

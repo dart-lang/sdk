@@ -21,9 +21,18 @@ void main() {
 }
 
 @reflectiveTest
-class CreateClassLowercaseTest extends FixProcessorTest {
+class CreateClassLowercaseTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createClassLowercase;
+
+  Future<void> test_functionTypeAssignment_noFix() async {
+    await resolveTestCode('''
+void a() {
+  void Function(int i) _ = function;
+}
+''');
+    await assertNoFix();
+  }
 
   Future<void> test_ifNull_notType() async {
     await resolveTestCode('''
@@ -142,7 +151,8 @@ class _newName {
 }
 
 @reflectiveTest
-class CreateClassLowercaseWithTest extends FixProcessorTest {
+class CreateClassLowercaseWithTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createClassLowercaseWith;
 
@@ -278,7 +288,7 @@ class Class with MyMixin {}
 }
 
 @reflectiveTest
-class CreateClassUppercaseTest extends FixProcessorTest {
+class CreateClassUppercaseTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createClassUppercase;
 
@@ -468,7 +478,7 @@ class Test {
 }
 ''',
       filter: (e) {
-        return e.diagnosticCode == diag.undefinedFunction;
+        return e.diagnosticCode == diag.undefinedUnqualifiedNameReadNotFound;
       },
     );
   }
@@ -547,8 +557,7 @@ class MyAnnotation {
 @MyAnnotation(int, const [Test])
 void f() {}
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 class MyAnnotation {
   const MyAnnotation(a, b);
 }
@@ -557,11 +566,7 @@ void f() {}
 
 class Test {
 }
-''',
-      filter: (error) {
-        return error.diagnosticCode == diag.undefinedIdentifier;
-      },
-    );
+''');
     assertLinkedGroup(change.linkedEditGroups[0], ['Test])', 'Test {']);
   }
 
@@ -635,7 +640,8 @@ class Foo {
 }
 
 @reflectiveTest
-class CreateClassUppercaseWithTest extends FixProcessorTest {
+class CreateClassUppercaseWithTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createClassUppercaseWith;
 

@@ -46,11 +46,9 @@ class C {
   }
 
   test_boundToFuture_unawaited() async {
-    // This behavior was not necessarily designed, but this test documents the
-    // current behavior.
     await assertNoDiagnostics(r'''
 void f<T extends Future<void>>(T p) async {
-  p;
+  await p;
 }
 ''');
   }
@@ -254,6 +252,16 @@ class C {
 ''');
   }
 
+  test_futureOr() async {
+    await assertDiagnosticsFromMarkup(r'''
+import 'dart:async';
+FutureOr<void> g() async {}
+void f() async {
+  [!g!]();
+}
+''');
+  }
+
   test_instanceProperty_unawaited() async {
     await assertDiagnosticsFromMarkup(r'''
 void f(C c) async {
@@ -349,6 +357,15 @@ class C {
 ''');
   }
 
+  test_typeDef() async {
+    await assertDiagnosticsFromMarkup(r'''
+typedef T = Future<void>;
+void f(T p) async {
+  [!p!];
+}
+''');
+  }
+
   test_undefinedIdentifier() async {
     await assertDiagnostics(
       r'''
@@ -359,7 +376,7 @@ f() async {
 ''',
       [
         // No lint
-        error(diag.undefinedIdentifier, 59, 3),
+        error(diag.undefinedUnqualifiedNameReadNotFound, 59, 3),
       ],
     );
   }

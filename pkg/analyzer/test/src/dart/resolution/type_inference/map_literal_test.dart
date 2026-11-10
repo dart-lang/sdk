@@ -55,6 +55,19 @@ Map<String, int> a = {f()};
 SetOrMapLiteral
   leftBracket: {
   elements2
+    UnqualifiedFunctionInvocation
+      name: f
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      resolution: ExecutableInvocationResolution
+        element: <testLibrary>::@function::f
+        invokeType: String Function()
+        type: String
+      staticType: String
+      typeArgumentTypes
+        String
+  elements(v1)
     MethodInvocation
       methodName: SimpleIdentifier
         token: f
@@ -87,13 +100,23 @@ Map<E, String> a = {.one};
 SetOrMapLiteral
   leftBracket: {
   elements2
+    DotShorthandNameExpression
+      period: .
+      name: one
+      shorthandContext: ValidDotShorthandContextResolution
+        contextType: E
+        lookupType: E
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@enum::E::@getter::one
+        type: E
+      staticType: E
+  elements(v1)
     DotShorthandPropertyAccess
       period: .
       propertyName: SimpleIdentifier
         token: one
         element: <testLibrary>::@enum::E::@getter::one
         staticType: E
-      isDotShorthand: true
       staticType: E
   rightBracket: }
   isMap: true
@@ -110,7 +133,6 @@ Map<E, String> a = {.};
 // [diag.expressionInMap] Expressions can't be used in a map literal.
 //                   ^
 // [diag.missingIdentifier] Expected an identifier.
-// [diag.dotShorthandUndefinedGetter][column 22][length 0] The static getter '' isn't defined for the context type 'E'.
 ''');
 
     var node = result.findNode.singleSetOrMapLiteral;
@@ -118,13 +140,22 @@ Map<E, String> a = {.};
 SetOrMapLiteral
   leftBracket: {
   elements2
+    DotShorthandNameExpression
+      period: .
+      name: <empty> <synthetic>
+      shorthandContext: ValidDotShorthandContextResolution
+        contextType: E
+        lookupType: E
+      resolution: InvalidNamedReadResolution
+        recoveryElement: <null>
+      staticType: InvalidType
+  elements(v1)
     DotShorthandPropertyAccess
       period: .
       propertyName: SimpleIdentifier
         token: <empty> <synthetic>
         element: <null>
         staticType: InvalidType
-      isDotShorthand: true
       staticType: InvalidType
   rightBracket: }
   isMap: true
@@ -153,7 +184,19 @@ SetOrMapLiteral
         literal: true
         staticType: bool
       rightParenthesis: )
-      thenElement2: MethodInvocation
+      thenElement2: UnqualifiedFunctionInvocation
+        name: f
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: <testLibrary>::@function::f
+          invokeType: String Function()
+          type: String
+        staticType: String
+        typeArgumentTypes
+          String
+      thenElement(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: f
           element: <testLibrary>::@function::f
@@ -245,16 +288,35 @@ main() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('f(null)');
+    var node = result.findNode.unqualifiedFunctionInvocation('f(null)');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: f
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      NullLiteral
+        literal: null
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@function::f::@formalParameter::t
+          substitution: {T: Map<int, double>?}
+        staticType: Null
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::f
+    invokeType: Map<int, double>? Function(Map<int, double>?)
+    type: Map<int, double>?
+  staticType: Map<int, double>?
+  typeArgumentTypes
+    Map<int, double>?
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: f
     element: <testLibrary>::@function::f
     staticType: T Function<T>(T)
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       NullLiteral
         literal: null
         correspondingParameter: SubstitutedFormalParameterElementImpl

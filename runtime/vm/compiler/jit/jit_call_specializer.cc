@@ -167,6 +167,12 @@ void JitCallSpecializer::LowerContextAllocation(
       new AllocateUninitializedContextInstr(
           alloc->source(), context_variables.length(), alloc->deopt_id());
   alloc->ReplaceWith(replacement, current_iterator());
+  if (context_value != nullptr) {
+    // If lazy deopt happens during allocation slow path before context
+    // variables are copied, resume before CloneContext in unoptimized code.
+    ASSERT(alloc->IsCloneContext());
+    replacement->env()->MarkAsLazyDeoptToBeforeDeoptId();
+  }
 
   Instruction* cursor = replacement;
 

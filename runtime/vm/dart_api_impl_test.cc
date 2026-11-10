@@ -11146,6 +11146,7 @@ TEST_CASE(DartAPI_UserTags) {
 
 static void* last_allocation_context = nullptr;
 static const char* last_allocation_cls = nullptr;
+static intptr_t last_allocation_size = 0;
 static intptr_t heap_samples = 0;
 static const char* expected_allocation_cls = nullptr;
 static bool found_allocation = false;
@@ -11155,6 +11156,7 @@ static void* HeapSamplingCreate(Dart_Isolate isolate,
                                 const char* cls_name,
                                 intptr_t heap_size) {
   last_allocation_cls = cls_name;
+  last_allocation_size = heap_size;
   return strdup(cls_name);
 }
 
@@ -11176,6 +11178,7 @@ void ResetHeapSamplingState(const char* expected_cls = nullptr) {
   found_allocation = false;
   last_allocation_context = nullptr;
   last_allocation_cls = nullptr;
+  last_allocation_size = 0;
 }
 
 // Threads won't pick up heap sampling profiler state changes until they
@@ -11368,6 +11371,141 @@ TEST_CASE(DartAPI_HeapSampling_NonTrivialSamplingPeriod) {
                                   /*force_gc=*/true);
   EXPECT(heap_samples > 0);
   EXPECT(heap_samples < kNumAllocations);
+
+  Dart_EnterIsolate(isolate);
+  Dart_DisableHeapSampling();
+}
+
+// Verify that old space allocations smaller than the sampling period report
+// the sampling period as the sample size rather than the raw object size.
+TEST_CASE(DartAPI_HeapSampling_OldSpaceSampleSizeScaling) {
+  DisableBackgroundCompilationScope scope;
+#if !defined(PRODUCT)
+  InitHeapSampling(thread, "String");
+#else
+  InitHeapSampling(thread, "_OneByteString");
+#endif
+
+  const intptr_t kSamplingPeriod = 1 << 10;
+  Dart_SetHeapSamplingPeriod(kSamplingPeriod);
+  HandleInterrupts(thread);
+
+  // Abandon any active TLAB so old-space interval tracking is exercised
+  // independently of TLAB boundary updates.
+  {
+    TransitionNativeToVM transition(thread);
+    thread->heap()->new_space()->AbandonRemainingTLAB(thread);
+  }
+
+  const intptr_t kNumAllocations = 1000;
+  for (intptr_t i = 0; i < kNumAllocations; ++i) {
+    EXPECT_VALID(AllocateOldString("str"));
+  }
+
+  Dart_Isolate isolate = Dart_CurrentIsolate();
+  EXPECT(isolate != nullptr);
+  Dart_ExitIsolate();
+
+  Dart_ReportSurvivingAllocations(HeapSamplingReport, nullptr,
+                                  /*force_gc=*/true);
+  // Only a subset of the 1000 allocations (~16KB total) should be sampled
+  // with a 1KB sampling period.
+  EXPECT(heap_samples > 0);
+  EXPECT(heap_samples < kNumAllocations);
+  EXPECT(found_allocation);
+  // Each 16-byte string is smaller than kSamplingPeriod (1024), so its sample
+  // size must be scaled up to kSamplingPeriod rather than reported as 16.
+  EXPECT_EQ(kSamplingPeriod, last_allocation_size);
+
+  Dart_EnterIsolate(isolate);
+  Dart_DisableHeapSampling();
+}
+
+// Verify that non-sampled old space allocations tighten (rather than widen)
+// the remaining sampling interval when the thread has an active TLAB.
+TEST_CASE(DartAPI_HeapSampling_OldSpaceTightensTLABInterval) {
+  DisableBackgroundCompilationScope scope;
+  InitHeapSampling(thread, "List");
+
+  // Ensure the thread has an active TLAB (non-zero end) so old-space
+  // allocations adjust the TLAB sampling boundary.
+  EXPECT_VALID(Dart_NewList(10));
+  EXPECT(thread->end() != 0);
+
+  const intptr_t kSamplingPeriod = 1 << 10;
+  Dart_SetHeapSamplingPeriod(kSamplingPeriod);
+  HandleInterrupts(thread);
+
+#if !defined(PRODUCT)
+  ResetHeapSamplingState("String");
+#else
+  ResetHeapSamplingState("_OneByteString");
+#endif
+
+  const intptr_t kNumAllocations = 1000;
+  for (intptr_t i = 0; i < kNumAllocations; ++i) {
+    EXPECT_VALID(AllocateOldString("str"));
+  }
+
+  Dart_Isolate isolate = Dart_CurrentIsolate();
+  EXPECT(isolate != nullptr);
+  Dart_ExitIsolate();
+
+  Dart_ReportSurvivingAllocations(HeapSamplingReport, nullptr,
+                                  /*force_gc=*/true);
+  // 1000 allocations of 16 bytes (~16KB total) with a 1KB sampling period
+  // should yield ~16 samples on average; if the TLAB interval were widened
+  // instead of tightened, at most 1 sample would be recorded.
+  EXPECT(heap_samples > 5);
+  EXPECT(heap_samples < kNumAllocations);
+  EXPECT(found_allocation);
+
+  Dart_EnterIsolate(isolate);
+  Dart_DisableHeapSampling();
+}
+
+// Verify that new space sampling continues across TLAB boundaries when the
+// sampling period is larger than Scavenger::kTlabSize (64KB). When a sampling
+// interval spans past the end of the current TLAB, next_tlab_offset_ tracks
+// the remaining distance to the next sample across TLAB transitions; if that
+// state is lost when abandoning a full TLAB and allocating a new one, new
+// space sampling stops after the first TLAB boundary.
+TEST_CASE(DartAPI_HeapSampling_NewSpaceSamplingAcrossTLABs) {
+  DisableBackgroundCompilationScope scope;
+#if !defined(PRODUCT)
+  InitHeapSampling(thread, "List");
+#else
+  InitHeapSampling(thread, "_List");
+#endif
+
+  const intptr_t kSamplingPeriod = 4 * Scavenger::kTlabSize;
+  Dart_SetHeapSamplingPeriod(kSamplingPeriod);
+  HandleInterrupts(thread);
+
+#if !defined(PRODUCT)
+  ResetHeapSamplingState("List");
+#else
+  ResetHeapSamplingState("_List");
+#endif
+
+  const intptr_t kNumAllocations = 50000;
+  for (intptr_t i = 0; i < kNumAllocations; ++i) {
+    EXPECT_VALID(Dart_NewList(14));
+  }
+
+  Dart_Isolate isolate = Dart_CurrentIsolate();
+  EXPECT(isolate != nullptr);
+  Dart_ExitIsolate();
+
+  Dart_ReportSurvivingAllocations(HeapSamplingReport, nullptr,
+                                  /*force_gc=*/true);
+  // 50,000 lists (~4-6MB total across ~64-100 TLABs) with a 256KB sampling
+  // period should yield ~16-25 samples on average; if the remaining sampling
+  // interval were lost across TLAB transitions, sampling would stop as soon as
+  // an interval spanned past the current TLAB.
+  EXPECT(heap_samples > 5);
+  EXPECT(heap_samples < kNumAllocations);
+  EXPECT(found_allocation);
 
   Dart_EnterIsolate(isolate);
   Dart_DisableHeapSampling();

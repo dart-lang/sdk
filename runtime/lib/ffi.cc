@@ -163,6 +163,12 @@ DEFINE_NATIVE_ENTRY(Ffi_createNativeCallableIsolateLocal, 1, 3) {
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_createNativeCallableIsolateGroupBound, 1, 2) {
+  if (!FLAG_experimental_shared_data) {
+    FATAL(
+        "Encountered shared data api when functionality is disabled. "
+        "Pass --experimental-shared-data");
+  }
+
   const auto& trampoline =
       Function::CheckedHandle(zone, arguments->NativeArg0());
   const auto& target = Closure::CheckedHandle(zone, arguments->NativeArgAt(1));
@@ -209,10 +215,10 @@ static ObjectPtr LoadStoreAbiSpecificInt(Zone* zone,
   const auto* native_type =
       compiler::ffi::NativeType::FromAbstractType(zone, type_argument, &error);
   if (error != nullptr) {
-    const auto& language_error = Error::Handle(
+    const auto& language_error = LanguageError::Handle(
         LanguageError::New(String::Handle(String::New(error, Heap::kOld)),
                            Report::kError, Heap::kOld));
-    Report::LongJump(language_error);
+    Exceptions::ThrowCompileTimeError(language_error);
   }
 
   if (at_index) {

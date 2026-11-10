@@ -23,11 +23,11 @@ List<String> getCamelWordCombinations(String name) {
 }
 
 /// Returns possible names for a variable with the given expected type and
-/// expression assigned.
+/// expression assigned, for which [isExcluded] returns `false`.
 List<String> getVariableNameSuggestionsForExpression(
   DartType? expectedType,
   Expression? assignedExpression,
-  Set<String> excluded, {
+  bool Function(String name) isExcluded, {
   bool isMethod = false,
 }) {
   String? prefix;
@@ -52,7 +52,7 @@ List<String> getVariableNameSuggestionsForExpression(
         nameFromExpression = nameFromExpression.substring(1);
       }
       _addAll(
-        excluded,
+        isExcluded,
         res,
         getCamelWordCombinations(nameFromExpression),
         prefix: prefix,
@@ -60,21 +60,21 @@ List<String> getVariableNameSuggestionsForExpression(
     }
     var nameFromParent = _getBaseNameFromLocationInParent(assignedExpression);
     if (nameFromParent != null) {
-      _addAll(excluded, res, getCamelWordCombinations(nameFromParent));
+      _addAll(isExcluded, res, getCamelWordCombinations(nameFromParent));
     }
   }
   // use type
   if (expectedType != null && expectedType is! DynamicType) {
     if (expectedType.isDartCoreInt) {
-      _addSingleCharacterName(excluded, res, 0x69);
+      _addSingleCharacterName(isExcluded, res, 0x69);
     } else if (expectedType.isDartCoreDouble) {
-      _addSingleCharacterName(excluded, res, 0x64);
+      _addSingleCharacterName(isExcluded, res, 0x64);
     } else if (expectedType.isDartCoreString) {
-      _addSingleCharacterName(excluded, res, 0x73);
+      _addSingleCharacterName(isExcluded, res, 0x73);
     } else if (expectedType is InterfaceType) {
       var className = expectedType.element.name;
       if (className != null) {
-        _addAll(excluded, res, getCamelWordCombinations(className));
+        _addAll(isExcluded, res, getCamelWordCombinations(className));
       }
     }
   }
@@ -82,10 +82,11 @@ List<String> getVariableNameSuggestionsForExpression(
   return List.from(res);
 }
 
-/// Returns possible names for a [String] variable with [text] value.
+/// Returns possible names for a [String] variable with [text] value, for
+/// which [isExcluded] returns `false`.
 List<String> getVariableNameSuggestionsForText(
   String text,
-  Set<String> excluded,
+  bool Function(String name) isExcluded,
 ) {
   // filter out everything except of letters and white spaces
   {
@@ -114,13 +115,13 @@ List<String> getVariableNameSuggestionsForText(
   }
   // split camel-case into separate suggested names
   var res = <String>{};
-  _addAll(excluded, res, getCamelWordCombinations(text));
+  _addAll(isExcluded, res, getCamelWordCombinations(text));
   return List.from(res);
 }
 
 /// Adds [toAdd] items which are not excluded.
 void _addAll(
-  Set<String> excluded,
+  bool Function(String name) isExcluded,
   Set<String> result,
   Iterable<String> toAdd, {
   String? prefix,
@@ -134,7 +135,7 @@ void _addAll(
         name += suffix.toString();
       }
       // add once found not excluded
-      if (!excluded.contains(name)) {
+      if (!isExcluded(name)) {
         result.add(prefix == null ? name : '$prefix${capitalize(name)}');
         break;
       }
@@ -143,11 +144,15 @@ void _addAll(
 }
 
 /// Adds to [result] either [c] or the first ASCII character after it.
-void _addSingleCharacterName(Set<String> excluded, Set<String> result, int c) {
+void _addSingleCharacterName(
+  bool Function(String name) isExcluded,
+  Set<String> result,
+  int c,
+) {
   while (c < 0x7A) {
     var name = String.fromCharCode(c);
     // may be done
-    if (!excluded.contains(name)) {
+    if (!isExcluded(name)) {
       result.add(name);
       break;
     }

@@ -3237,7 +3237,7 @@ void Assembler::ExtendValue(Register rd, Register rn, OperandSize sz) {
         return zextw(rd, rn);
       }
       slli(rd, rn, XLEN - 32);
-      return srli(rd, rn, XLEN - 32);
+      return srli(rd, rd, XLEN - 32);
     case kFourBytes:
       return sextw(rd, rn);
 #elif XLEN == 32
@@ -3253,13 +3253,13 @@ void Assembler::ExtendValue(Register rd, Register rn, OperandSize sz) {
         return zexth(rd, rn);
       }
       slli(rd, rn, XLEN - 16);
-      return srli(rd, rn, XLEN - 16);
+      return srli(rd, rd, XLEN - 16);
     case kTwoBytes:
       if (Supports(RV_Zbb)) {
         return sexth(rd, rn);
       }
       slli(rd, rn, XLEN - 16);
-      return srai(rd, rn, XLEN - 16);
+      return srai(rd, rd, XLEN - 16);
     case kUnsignedByte:
       return andi(rd, rn, kMaxUint8);
     case kByte:
@@ -3267,7 +3267,7 @@ void Assembler::ExtendValue(Register rd, Register rn, OperandSize sz) {
         return sextb(rd, rn);
       }
       slli(rd, rn, XLEN - 8);
-      return srai(rd, rn, XLEN - 8);
+      return srai(rd, rd, XLEN - 8);
     default:
       UNIMPLEMENTED();
       break;
@@ -4271,7 +4271,7 @@ void Assembler::LslImmediate(Register rd,
 
     // Clear upper bits in addition to the shift.
     slli(rd, rn, shift + (XLEN / 2));
-    return srli(rd, rn, XLEN / 2);
+    return srli(rd, rd, XLEN / 2);
   }
 #endif
   slli(rd, rn, shift);
@@ -4816,6 +4816,9 @@ void Assembler::ExtractBitField(Register dst,
                                 Register src,
                                 intptr_t low_bit,
                                 intptr_t width) {
+  // The assembler rejects zero-bit shifts, so the field's position
+  // decides how many of the two shifts below are needed.
+  ASSERT(width > 0);
   ASSERT((0 <= low_bit) && (low_bit + width <= XLEN));
   if (width == 1) {
     if (low_bit == 0) {
@@ -4826,10 +4829,16 @@ void Assembler::ExtractBitField(Register dst,
       return;
     }
   }
-  if (low_bit + width < XLEN) {
+  if (width == XLEN) {
+    // The whole register, so no shift at all.
+    MoveRegister(dst, src);
+  } else if (low_bit + width == XLEN) {
+    // The field is already at the top, so there are no high bits to discard.
+    srli(dst, src, low_bit);
+  } else {
     slli(dst, src, XLEN - (low_bit + width));
+    srli(dst, dst, XLEN - width);
   }
-  srli(dst, dst, XLEN - width);
 }
 
 void Assembler::ExtractClassIdFromTags(Register result, Register tags) {
@@ -5297,7 +5306,7 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
   if (FLAG_target_thread_sanitizer && tsan_enter_exit) {
     TsanFuncEntry(/*preserve_registers=*/false);
   }
-  lx(T5, compiler::Address(THR, entry.OffsetFromThread()));
+  LoadFromOffset(T5, THR, entry.OffsetFromThread());
   li(T4, argument_count);
   Comment("Runtime call: %s", entry.name());
   Call(Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
@@ -5481,7 +5490,6 @@ void Assembler::BranchOnMonomorphicCheckedEntryJIT(Label* label) {
 }
 
 void Assembler::CombineHashes(Register hash, Register other) {
-#if XLEN >= 64
   // hash += other_hash
   addw(hash, hash, other);
   // hash += hash << 10
@@ -5490,16 +5498,6 @@ void Assembler::CombineHashes(Register hash, Register other) {
   // hash ^= hash >> 6
   srliw(other, hash, 6);
   xor_(hash, hash, other);
-#else
-  // hash += other_hash
-  add(hash, hash, other);
-  // hash += hash << 10
-  slli(other, hash, 10);
-  add(hash, hash, other);
-  // hash ^= hash >> 6
-  srli(other, hash, 6);
-  xor_(hash, hash, other);
-#endif
 }
 
 void Assembler::FinalizeHashForSize(intptr_t bit_size,
@@ -5510,7 +5508,6 @@ void Assembler::FinalizeHashForSize(intptr_t bit_size,
   // reasonably expect that the returned values fill the entire bit space.
   ASSERT(bit_size <= kBitsPerInt32);
   ASSERT(scratch != kNoRegister);
-#if XLEN >= 64
   // hash += hash << 3;
   slliw(scratch, hash, 3);
   addw(hash, hash, scratch);
@@ -5520,17 +5517,6 @@ void Assembler::FinalizeHashForSize(intptr_t bit_size,
   // hash += hash << 15;
   slliw(scratch, hash, 15);
   addw(hash, hash, scratch);
-#else
-  // hash += hash << 3;
-  slli(scratch, hash, 3);
-  add(hash, hash, scratch);
-  // hash ^= hash >> 11;  // Logical shift, unsigned hash.
-  srli(scratch, hash, 11);
-  xor_(hash, hash, scratch);
-  // hash += hash << 15;
-  slli(scratch, hash, 15);
-  add(hash, hash, scratch);
-#endif
   // Size to fit.
   if (bit_size < kBitsPerInt32) {
     AndImmediate(hash, hash, Utils::NBitMask(bit_size));
@@ -5603,7 +5589,6 @@ void Assembler::TryAllocateObject(intptr_t cid,
     // instance_reg: potential top (next object start).
     // fail if heap end unsigned less than or equal to new heap top.
     bleu(temp_reg, instance_reg, failure, distance);
-    CheckAllocationCanary(instance_reg, temp_reg);
 
     // Successfully allocated the object, now update temp to point to
     // next object start and store the class in the class field of object.
@@ -5642,7 +5627,6 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // end_address: potential next object start.
     lx(temp2, Address(THR, target::Thread::end_offset()));
     bgeu(end_address, temp2, failure);
-    CheckAllocationCanary(instance, temp2);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.

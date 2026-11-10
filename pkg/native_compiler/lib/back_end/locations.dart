@@ -80,6 +80,9 @@ final class SpillSlot extends StackLocation {
   String toString() => 'stack[$stackSlotIndex]';
 }
 
+/// Spill slot holding an unboxed SIMD value.
+final class SimdSpillSlot(super.stackSlotIndex) extends SpillSlot;
+
 /// Constraint and location for the parameter passed on the stack.
 final class ParameterStackLocation extends StackLocation implements Constraint {
   /// Parameter index (0, 1, ..., function.numberOfParameters-1).

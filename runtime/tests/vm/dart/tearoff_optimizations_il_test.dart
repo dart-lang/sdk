@@ -72,12 +72,13 @@ void testLICM2(B b) {
 }
 
 void main() {
+  final b = cond ? B<int>() : B<String>();
   testCSE1(A());
-  testCSE2(B());
-  testCSE3(B());
+  testCSE2(b);
+  testCSE3(b);
 
   testLICM1(A());
-  testLICM2(B());
+  testLICM2(b);
 }
 
 void matchIL$testCSE1(FlowGraph graph) {

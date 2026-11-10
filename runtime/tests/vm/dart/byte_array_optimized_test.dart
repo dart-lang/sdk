@@ -3,9 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--optimization_counter_threshold=10 --no-background-compilation
 
-// Library tag to be able to run in html test framework.
-library byte_array_test;
-
 import "package:expect/expect.dart";
 import 'dart:typed_data';
 

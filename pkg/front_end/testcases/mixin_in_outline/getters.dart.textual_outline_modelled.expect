@@ -1,0 +1,38 @@
+String get topLevelGetter {}
+
+class Class {
+  String get instanceGetter {}
+  static String get staticGetter {}
+}
+
+enum Enum {
+  a;
+
+  String get instanceGetter {
+    return 'instanceGetter';
+  }
+
+  static String get staticGetter {
+    return 'staticGetter';
+  }
+}
+
+extension Extension on int {
+  String get instanceGetter {}
+  static String get staticGetter {}
+}
+
+extension type ExtensionType(int it) {
+  String get instanceGetter {}
+  static String get staticGetter {}
+}
+
+mixin Mixin {
+  String get instanceGetter {}
+  static String get staticGetter {}
+}
+
+mixin class MixinClass {
+  String get instanceGetter {}
+  static String get staticGetter {}
+}

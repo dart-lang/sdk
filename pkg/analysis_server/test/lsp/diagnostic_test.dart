@@ -136,7 +136,8 @@ void f() {
     expect(
       diagnostic.message.asString,
       'Undefined name \'x\'.\n'
-      'Try correcting the name to one that is defined, or defining the name.',
+      "Try importing the library that defines 'x', correcting the name to one "
+      'that is defined, or defining a setter or variable named \'x\'.',
     );
     expect(diagnostic.data, isNull);
   }
@@ -156,7 +157,8 @@ void f() {
     expect(
       diagnostic.message.asString,
       'Undefined name \'x\'.\n'
-      'Try correcting the name to one that is defined, or defining the name.',
+      "Try importing the library that defines 'x', correcting the name to one "
+      'that is defined, or defining a setter or variable named \'x\'.',
     );
     expect(diagnostic.data, isNull);
   }
@@ -189,7 +191,8 @@ void f() => x = 0;
       allOf(
         containsPair(
           'correctionMessage',
-          'Try correcting the name to one that is defined, or defining the name.',
+          "Try importing the library that defines 'x', correcting the name to one "
+              'that is defined, or defining a setter or variable named \'x\'.',
         ),
         containsPair('offset', 12),
         containsPair('length', 1),
@@ -246,7 +249,7 @@ include: package:pedantic/analysis_options.yaml
 
     // // Write a package file that allows resolving the include.
     // final secondDiagnosticsUpdate = waitForDiagnostics(analysisOptionsUri);
-    // writeTestPackageConfig(pedantic: true);
+    // writeTestPackageConfig2(pedantic: true);
     //
     // // Ensure the error disappeared.
     // final updatedDiagnostics = await secondDiagnosticsUpdate;
@@ -336,7 +339,8 @@ void f() {
     expect(
       diagnostic.message.asString,
       'Undefined name \'x\'.\n'
-      'Try correcting the name to one that is defined, or defining the name.',
+      "Try importing the library that defines 'x', correcting the name to one "
+      'that is defined, or defining a setter or variable named \'x\'.',
     );
   }
 
@@ -382,7 +386,7 @@ void f() {
     setDiagnosticTagSupport([DiagnosticTag.Deprecated]);
 
     var onePackagePath = convertPath('/home/one');
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'one', rootFolder: getFolder(onePackagePath)),
     );
@@ -406,7 +410,7 @@ void f() {
 
   Future<void> test_diagnosticTag_notSupported() async {
     var onePackagePath = convertPath('/home/one');
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'one', rootFolder: getFolder(onePackagePath)),
     );
@@ -729,11 +733,11 @@ linter:
   rules:
     - avoid_dynamic_calls
 ''');
-    writePackageConfig(convertPath(lintsPackagePath));
+    writePackageConfig2(convertPath(lintsPackagePath));
 
     // Set up a project that imports the analysis_options and violates the lint.
     var projectPackagePath = '$rootWorkspacePath/my_project';
-    writePackageConfig(
+    writePackageConfig2(
       projectPackagePath,
       config: PackageConfigFileBuilder()
         ..add(name: 'my_lints', rootFolder: getFolder(lintsPackagePath)),
@@ -770,7 +774,7 @@ void f(dynamic a) => a.foo();
       var diagnostic = diagnostics!.first;
       expect(
         diagnostic.message.asString,
-        contains("The function 'Bad' isn't defined"),
+        contains("Undefined name 'Bad'"),
       );
     }
 

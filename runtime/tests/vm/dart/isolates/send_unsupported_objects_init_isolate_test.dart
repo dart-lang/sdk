@@ -14,8 +14,10 @@ import 'send_unsupported_objects_test.dart';
 main() async {
   asyncStart();
 
-  final fu = Fu.unsendable('fu');
+  final spawnBody = (arg) => arg();
+
   try {
+    final fu = Fu.unsendable('fu');
     // Pass a closure that captures [fu]
     await () async {
       final foo1 = Foo();
@@ -23,18 +25,13 @@ main() async {
         final foo2 = Foo();
         await () async {
           final foo3 = Foo();
-          await Isolate.spawn(
-            (arg) {
-              arg();
-            },
-            () {
-              print('${fu.label} $foo1 $foo2 $foo3');
-              Expect.fail(
-                'This closure should fail to be sent, '
-                'shouldn\'t be called',
-              );
-            },
-          );
+          await Isolate.spawn(spawnBody, () {
+            print('${fu.label} $foo1 $foo2 $foo3');
+            Expect.fail(
+              'This closure should fail to be sent, '
+              'shouldn\'t be called',
+            );
+          });
         }();
       }();
     }();
@@ -43,13 +40,17 @@ main() async {
       checkForRetainingPath(e, <String>[
         'Baz',
         'Fu',
-        if (isAOTRuntime) ...[
+        if (isInterpreter) ...[
+          'Context',
+          'Closure',
+        ] else if (isAOTRuntime) ...[
           'Context',
           'main.<anonymous closure>',
         ] else ...[
           'field fu in main.<anonymous closure>',
         ],
       ]),
+      "Path not found in $e",
     );
     asyncEnd();
   }

@@ -29,6 +29,73 @@ doThings() {
 ''');
   }
 
+  test_AsFunctionReturnsHandle_isLeaf_importPrefixedVariable() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const leaf = true;
+''');
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:ffi';
+import 'a.dart' as prefix;
+typedef NativeReturnsHandle = Handle Function();
+typedef ReturnsHandle = Object Function();
+doThings() {
+  Pointer<NativeFunction<NativeReturnsHandle>> p = Pointer.fromAddress(1337);
+  ReturnsHandle f = p.asFunction(isLeaf: prefix.leaf);
+//                    ^^^^^^^^^^
+// [diag.leafCallMustNotReturnHandle] FFI leaf call can't return a 'Handle'.
+  f();
+}
+''');
+  }
+
+  test_AsFunctionReturnsHandle_isLeaf_staticField() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:ffi';
+typedef NativeReturnsHandle = Handle Function();
+typedef ReturnsHandle = Object Function();
+class Options {
+  static const leaf = true;
+}
+doThings() {
+  Pointer<NativeFunction<NativeReturnsHandle>> p = Pointer.fromAddress(1337);
+  ReturnsHandle f = p.asFunction(isLeaf: Options.leaf);
+//                    ^^^^^^^^^^
+// [diag.leafCallMustNotReturnHandle] FFI leaf call can't return a 'Handle'.
+  f();
+}
+''');
+  }
+
+  test_AsFunctionReturnsHandle_isLeaf_topLevelVariable() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:ffi';
+typedef NativeReturnsHandle = Handle Function();
+typedef ReturnsHandle = Object Function();
+const leaf = true;
+doThings() {
+  Pointer<NativeFunction<NativeReturnsHandle>> p = Pointer.fromAddress(1337);
+  ReturnsHandle f = p.asFunction(isLeaf: leaf);
+//                    ^^^^^^^^^^
+// [diag.leafCallMustNotReturnHandle] FFI leaf call can't return a 'Handle'.
+  f();
+}
+''');
+  }
+
+  test_AsFunctionReturnsHandle_isLeaf_topLevelVariable_false() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:ffi';
+typedef NativeReturnsHandle = Handle Function();
+typedef ReturnsHandle = Object Function();
+const leaf = false;
+doThings() {
+  Pointer<NativeFunction<NativeReturnsHandle>> p = Pointer.fromAddress(1337);
+  ReturnsHandle f = p.asFunction(isLeaf: leaf);
+  f();
+}
+''');
+  }
+
   test_AsFunctionTakesHandle() async {
     await resolveTestCodeWithDiagnostics(r'''
 import 'dart:ffi';

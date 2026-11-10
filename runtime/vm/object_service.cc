@@ -5,6 +5,7 @@
 #include "vm/canonical_tables.h"
 #include "vm/closure_functions_cache.h"
 #include "vm/compiler/assembler/disassembler.h"
+#include "vm/compiler/ffi/native_type.h"
 #include "vm/debugger.h"
 #include "vm/object.h"
 #include "vm/object_graph.h"
@@ -88,6 +89,107 @@ void Object::PrintImplementationFields(JSONStream* stream) const {
   }
 }
 
+static const char* FfiTypeDisplayName(Zone* zone,
+                                      const compiler::ffi::NativeType& type) {
+  if (type.IsCompound()) {
+    const char* name = type.AsCompound().name();
+    if (name != nullptr) {
+      return name;
+    }
+  }
+  return type.ToCString(zone, /*multi_line=*/false, /*verbose=*/false);
+}
+
+static void PrintFfiCompoundLayout(
+    Zone* zone,
+    JSONObject* layout,
+    const compiler::ffi::NativeCompoundType& compound,
+    intptr_t base_offset) {
+  // Only structs have a member offset table, the members of a union all start
+  // at the union's own offset.
+  const bool is_struct = compound.IsStruct();
+  layout->AddProperty("kind", is_struct ? "struct" : "union");
+  const auto& members = compound.members();
+
+  {
+    JSONArray fields_arr(layout, "fields");
+    for (intptr_t i = 0; i < members.length(); ++i) {
+      const compiler::ffi::NativeType& field_nt = members[i].type();
+      const intptr_t offset =
+          base_offset +
+          (is_struct ? compound.AsStruct().member_offsets()[i] : 0);
+      const bool is_array = field_nt.IsArray();
+      JSONObject field_obj(&fields_arr);
+      field_obj.AddProperty("name", members[i].name());
+      field_obj.AddProperty(
+          "nativeType",
+          is_array ? "Array" : FfiTypeDisplayName(zone, field_nt));
+      field_obj.AddProperty64("offset", offset);
+      field_obj.AddProperty64("size", field_nt.SizeInBytes());
+      if (is_array) {
+        // Multi-dimensional arrays are flattened into a single one by the FFI
+        // transformer, so the element type is never itself an array.
+        const auto& array = field_nt.AsArray();
+        field_obj.AddProperty64("length", array.length());
+        field_obj.AddProperty("arrayElementType",
+                              FfiTypeDisplayName(zone, array.element_type()));
+        if (array.element_type().IsCompound()) {
+          // The nested layout describes the first element, the remaining
+          // elements repeat it at multiples of the element size.
+          PrintFfiCompoundLayout(zone, &field_obj,
+                                 array.element_type().AsCompound(), offset);
+        }
+      } else if (field_nt.IsCompound()) {
+        PrintFfiCompoundLayout(zone, &field_obj, field_nt.AsCompound(), offset);
+      }
+    }
+  }
+}
+
+static bool IsFfiCompoundSubclass(Zone* zone,
+                                  const Class& cls,
+                                  const Class& base_cls) {
+  if (base_cls.IsNull()) {
+    return false;
+  }
+  Class& super_cls = Class::Handle(zone, cls.SuperClass());
+  while (!super_cls.IsNull() && super_cls.ptr() != base_cls.ptr()) {
+    super_cls = super_cls.SuperClass();
+  }
+  if (super_cls.IsNull()) {
+    return false;
+  }
+  const Type& cls_type = Type::Handle(zone, cls.DeclarationType());
+  const Type& base_type = Type::Handle(zone, base_cls.DeclarationType());
+  return cls_type.IsSubtypeOf(base_type, Heap::kNew);
+}
+
+static void PrintFfiLayout(JSONObject* jsobj, const Class& cls) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  auto* object_store = thread->isolate_group()->object_store();
+  const Class& struct_base_cls =
+      Class::Handle(zone, object_store->ffi_struct_class());
+  const Class& union_base_cls =
+      Class::Handle(zone, object_store->ffi_union_class());
+  if (!IsFfiCompoundSubclass(zone, cls, struct_base_cls) &&
+      !IsFfiCompoundSubclass(zone, cls, union_base_cls)) {
+    return;
+  }
+
+  const Type& cls_type = Type::Handle(zone, cls.DeclarationType());
+  const char* error = nullptr;
+  const compiler::ffi::NativeType* nt =
+      compiler::ffi::NativeType::FromAbstractType(zone, cls_type, &error);
+  if (nt == nullptr || !nt->IsCompound()) {
+    return;
+  }
+  const auto& compound = nt->AsCompound();
+  JSONObject layout(jsobj, "ffiLayout");
+  layout.AddProperty("size", compound.SizeInBytes());
+  PrintFfiCompoundLayout(zone, &layout, compound, /*base_offset=*/0);
+}
+
 void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Isolate* isolate = Isolate::Current();
   JSONObject jsobj(stream);
@@ -136,6 +238,10 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("_implemented", is_implemented());
   jsobj.AddProperty("_patch", false);
   jsobj.AddProperty("traceAllocations", TraceAllocation(isolate->group()));
+
+  if (err.IsNull() && is_finalized() && !IsTopLevel()) {
+    PrintFfiLayout(&jsobj, *this);
+  }
 
   const Class& superClass = Class::Handle(SuperClass());
   if (!superClass.IsNull()) {
@@ -886,6 +992,13 @@ void CompressedStackMaps::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 void CompressedStackMaps::PrintImplementationFieldsImpl(
+    const JSONArray& jsarr_fields) const {}
+
+void LocalVarDescriptor::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Object::PrintJSONImpl(stream, ref);
+}
+
+void LocalVarDescriptor::PrintImplementationFieldsImpl(
     const JSONArray& jsarr_fields) const {}
 
 void LocalVarDescriptors::PrintJSONImpl(JSONStream* stream, bool ref) const {

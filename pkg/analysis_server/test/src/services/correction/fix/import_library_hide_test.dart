@@ -18,7 +18,8 @@ void main() {
 }
 
 @reflectiveTest
-class ImportLibraryHideMultipleTest extends FixProcessorTest {
+class ImportLibraryHideMultipleTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.importLibraryCombinatorMultiple;
 
@@ -89,7 +90,7 @@ void f(String s, lib.C c) {
 }
 ''',
       filter: (error) {
-        return error.diagnosticCode == diag.undefinedMethod;
+        return error.offset == testCode.indexOf('m()');
       },
     );
   }
@@ -123,7 +124,7 @@ void f(String s, C c) {
 }
 ''',
       filter: (error) {
-        return error.diagnosticCode == diag.undefinedMethod;
+        return error.offset == testCode.indexOf('m()');
       },
     );
   }
@@ -252,7 +253,8 @@ void f(A a1) {
 }
 ''',
       filter: (error) {
-        return error.diagnosticCode == diag.undefinedIdentifier &&
+        return error.diagnosticCode ==
+                diag.undefinedUnqualifiedNameReadNotFound &&
             testCode.indexOf('E.') == error.offset;
       },
     );
@@ -264,7 +266,8 @@ void f(A a1) {
 }
 ''',
       filter: (error) {
-        return error.diagnosticCode == diag.undefinedIdentifier &&
+        return error.diagnosticCode ==
+                diag.undefinedUnqualifiedNameReadNotFound &&
             testCode.indexOf("a')") == error.offset;
       },
     );
@@ -274,10 +277,7 @@ void f(A a1) {
 @reflectiveTest
 class ImportLibraryHidePriorityTest extends FixPriorityTest {
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  bool get addFlutterPackageDep => true;
 
   Future<void> test_dartUi() async {
     newFile(join(testPackageLibPath, 'size.dart'), '''
@@ -297,7 +297,7 @@ void f(Size size) {}
 }
 
 @reflectiveTest
-class ImportLibraryHideTest extends FixProcessorTest {
+class ImportLibraryHideTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.importLibraryCombinator;
 
@@ -597,7 +597,7 @@ import 'lib.dart' as lib;
 void f(String s, lib.C c) {
   s.m();
 }
-''', matchFixMessage: "Import 'E' from lib.dart");
+''', fixMessageContains: "Import 'E' from lib.dart");
   }
 
   Future<void> test_static_samePackage() async {

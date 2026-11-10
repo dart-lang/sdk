@@ -35,7 +35,7 @@ class Annotation {
   /// The annotation end text.
   final String suffix;
 
-  Annotation(
+  new(
     this.index,
     this.lineNo,
     this.columnNo,
@@ -79,9 +79,9 @@ class AnnotatedCode {
 
   List<int>? _lineStarts;
 
-  AnnotatedCode(this.annotatedCode, this.sourceCode, this.annotations);
+  new(this.annotatedCode, this.sourceCode, this.annotations);
 
-  AnnotatedCode.internal(
+  new internal(
     this.annotatedCode,
     this.sourceCode,
     this.annotations,
@@ -91,7 +91,7 @@ class AnnotatedCode {
   /// Creates an [AnnotatedCode] by processing [annotatedCode]. Annotation
   /// delimited by [start] and [end] are converted into [Annotation]s and
   /// removed from the [annotatedCode] to produce the source code.
-  factory AnnotatedCode.fromText(
+  factory fromText(
     String annotatedCode, [
     Pattern start = atBraceStart,
     Pattern end = braceEnd,

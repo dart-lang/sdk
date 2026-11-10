@@ -43,7 +43,7 @@ T f<T>(T? result) {
 }
 
 @reflectiveTest
-class ReplaceNullCheckWithCastTest extends FixProcessorLintTest {
+class ReplaceNullCheckWithCastTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.replaceNullCheckWithCast;
 

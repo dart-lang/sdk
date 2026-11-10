@@ -362,6 +362,8 @@ static bool GetAndValidateCurrentThreadStackBounds(uintptr_t fp,
   if ((fp < *stack_lower) || (fp >= *stack_upper)) {
     return false;  // Bad FP.
   }
+  // On Windows, touching more than one page beyond sp will fault.
+  *stack_lower = sp;
   return true;
 }
 
@@ -1333,16 +1335,20 @@ void Profiler::SampleThread(Thread* thread,
 #endif
 
   if (FLAG_profile_vm) {
+    uintptr_t sp = state.csp;
     uintptr_t fp = state.fp;
     uintptr_t pc = state.pc;
     uword stack_lower = os_thread->stack_limit();
     uword stack_upper = os_thread->stack_base();
-    if ((fp < stack_lower) || (fp >= stack_upper)) {
+    if ((fp < stack_lower) || (fp >= stack_upper) || (sp < stack_lower) ||
+        (sp >= stack_upper)) {
       counters_.single_frame_sample_get_and_validate_stack_bounds.fetch_add(1);
       SampleThreadSingleFrame(thread, sample, pc);
       ReleaseToCurrentBlock(isolate);
       return;
     }
+    // On Windows, touching more than one page beyond sp will fault.
+    stack_lower = sp;
 
     counters_.stack_walker_native.fetch_add(1);
     ProfilerNativeStackWalker native_stack_walker(
@@ -1361,7 +1367,7 @@ void Profiler::SampleThread(Thread* thread,
     uintptr_t lr = state.lr;
 #if defined(DART_INCLUDE_SIMULATOR)
     if (FLAG_use_simulator) {
-      Simulator* simulator = isolate->simulator();
+      Simulator* simulator = thread->simulator();
       sp = simulator->get_register(SPREG);
       fp = simulator->get_register(FPREG);
       pc = simulator->get_pc();
@@ -2085,6 +2091,7 @@ void SampleBlockProcessor::Shutdown() {
   processor_thread_id_ = OSThread::kInvalidThreadJoinId;
   ASSERT(!thread_running_);
 }
+#endif  // defined(SUPPORT_TIMELINE) && defined(SUPPORT_PERFETTO)
 
 void Profiler::IsolateShutdown(Isolate* isolate) {
   FlushSampleBlocks(isolate);
@@ -2092,13 +2099,14 @@ void Profiler::IsolateShutdown(Isolate* isolate) {
 }
 
 void Profiler::IsolateGroupShutdown(IsolateGroup* isolate_group) {
-#if defined(SUPPORT_TIMELINE)
+#if defined(SUPPORT_TIMELINE) && defined(SUPPORT_PERFETTO)
   if (config_.enabled && config_.stream_to_timeline) {
     Timeline::NotifyAboutIsolateGroupShutdown(isolate_group);
   }
-#endif  // defined(SUPPORT_TIMELINE)
+#endif  // defined(SUPPORT_TIMELINE) && defined(SUPPORT_PERFETTO)
 }
 
+#if defined(SUPPORT_TIMELINE) && defined(SUPPORT_PERFETTO)
 void SampleBlockProcessor::ThreadMain(uword parameters) {
   ASSERT(initialized_);
   {

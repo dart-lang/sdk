@@ -73,34 +73,34 @@ const trackedIndirectly = _TrackedIndirectly();
 const trackedInternal = _TrackedInternal();
 
 final class _ElementClass {
-  const _ElementClass();
+  const new();
 }
 
 final class _TrackedDirectly extends _TrackedKind {
-  const _TrackedDirectly();
+  const new();
 }
 
 final class _TrackedDirectlyExpensive extends _TrackedDirectly {
-  const _TrackedDirectlyExpensive();
+  const new();
 }
 
 final class _TrackedDirectlyOpaque extends _TrackedDirectly {
-  const _TrackedDirectlyOpaque();
+  const new();
 }
 
 final class _TrackedIncludedInId extends _TrackedKind {
-  const _TrackedIncludedInId();
+  const new();
 }
 
 final class _TrackedIndirectly extends _TrackedKind {
-  const _TrackedIndirectly();
+  const new();
 }
 
 final class _TrackedInternal extends _TrackedKind {
-  const _TrackedInternal();
+  const new();
 }
 
 /// Superclass for all specific kinds of tracking annotations.
 sealed class _TrackedKind {
-  const _TrackedKind();
+  const new();
 }

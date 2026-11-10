@@ -260,9 +260,8 @@ class _DartTypeOrdering extends DartTypeVisitor<int, DartType> {
 
   int compare(DartType a, DartType b) {
     if (a == b) return 0;
-    int r = _DartTypeKindVisitor.kind(
-      a,
-    ).compareTo(_DartTypeKindVisitor.kind(b));
+    int r = _DartTypeKindVisitor.kind(a)
+        .compareTo(_DartTypeKindVisitor.kind(b));
     if (r != 0) return r;
     _root = a;
     r = a.accept(this, b);

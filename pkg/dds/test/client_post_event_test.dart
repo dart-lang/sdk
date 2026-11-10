@@ -2,23 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:io';
 
-import 'package:dds/dds.dart';
-import 'package:dds/src/rpc_error_codes.dart';
+import 'package:dds/dds_launcher.dart';
 import 'package:dds_service_extensions/dds_service_extensions.dart';
 import 'package:test/test.dart';
-// ignore: implementation_imports
-import 'package:vm_service/src/vm_service.dart';
-import 'package:vm_service/vm_service.dart' as vm;
+import 'package:vm_service/vm_service.dart';
 import 'package:vm_service/vm_service_io.dart';
 
 import 'common/test_helper.dart';
 
+const _customStream = 'testStream';
+const _eventKind = 'testKind';
+
 void main() {
-  late final Process process;
-  late final DartDevelopmentService dds;
+  late Process process;
+  late DartDevelopmentServiceLauncher dds;
 
   setUp(() async {
     // We don't care what's actually running in the target process for this
@@ -27,8 +26,8 @@ void main() {
       'get_stream_history_script.dart',
       pauseOnStart: false,
     );
-    dds = await DartDevelopmentService.startDartDevelopmentService(
-      remoteVmServiceUri,
+    dds = await DartDevelopmentServiceLauncher.start(
+      remoteVmServiceUri: remoteVmServiceUri,
     );
   });
 
@@ -38,42 +37,68 @@ void main() {
   });
 
   test('Ensure postEvent behaves as expected', () async {
-    expect(dds.isRunning, true);
-    int caughtCount = 0;
     final service = await vmServiceConnectUri(dds.wsUri.toString());
-    final originalExtensionData = {'some': 'testData'};
+    addTearDown(service.dispose);
+    final originalExtensionData = <String, Object?>{'some': 'testData'};
     // Test if the custom stream doesn't exist yet, we throw an error.
-    try {
-      await service.postEvent('testStream', 'testKind', originalExtensionData);
-    } on vm.RPCError catch (e) {
-      expect(e.code, RpcErrorCodes.kCustomStreamDoesNotExist);
-      caughtCount++;
-    }
-    expect(caughtCount, 1);
+    await expectLater(
+      service.postEvent(_customStream, _eventKind, originalExtensionData),
+      throwsA(
+        isA<RPCError>().having(
+          (e) => e.code,
+          'code',
+          RPCErrorKind.kCustomStreamDoesNotExist.code,
+        ),
+      ),
+    );
     // Test if using a core stream, we throw an error.
-    try {
-      await service.postEvent('Logging', 'testKind', originalExtensionData);
-    } on vm.RPCError catch (e) {
-      expect(e.code, RpcErrorCodes.kCoreStreamNotAllowed);
-      caughtCount++;
-    }
-    expect(caughtCount, 2);
+    await expectLater(
+      service.postEvent(
+        EventStreams.kLogging,
+        _eventKind,
+        originalExtensionData,
+      ),
+      throwsA(
+        isA<RPCError>().having(
+          (e) => e.code,
+          'code',
+          RPCErrorKind.kCoreStreamNotAllowed.code,
+        ),
+      ),
+    );
 
     // Test when the stream exists that the event is propagated.
-    final completer = Completer<void>();
-    ExtensionData? eventExtensionData;
-    Event? finalEvent;
+    final firstEventFuture = service.onEvent(_customStream).first;
+    await service.streamListen(_customStream);
+    await service.postEvent(_customStream, _eventKind, originalExtensionData);
 
-    service.onEvent('testStream').listen((event) {
-      finalEvent = event;
-      eventExtensionData = event.extensionData;
-      completer.complete();
-    });
-    await service.streamListen('testStream');
-    await service.postEvent('testStream', 'testKind', originalExtensionData);
+    final firstEvent = await firstEventFuture;
+    expect(firstEvent.type, equals('Event'));
+    expect(firstEvent.extensionData?.data, equals(originalExtensionData));
 
-    await completer.future;
-    expect(finalEvent?.type, equals('Event'));
-    expect(eventExtensionData?.data, equals(originalExtensionData));
+    // Test canceling the custom stream subscription causes postEvent to throw.
+    await service.streamCancel(_customStream);
+    await expectLater(
+      service.postEvent(_customStream, _eventKind, originalExtensionData),
+      throwsA(
+        isA<RPCError>().having(
+          (e) => e.code,
+          'code',
+          RPCErrorKind.kCustomStreamDoesNotExist.code,
+        ),
+      ),
+    );
+
+    // Test re-subscribing to the custom stream allows posting events again.
+    final resubscribedEventFuture = service.onEvent(_customStream).first;
+    await service.streamListen(_customStream);
+    await service.postEvent(_customStream, _eventKind, originalExtensionData);
+
+    final resubscribedEvent = await resubscribedEventFuture;
+    expect(resubscribedEvent.type, equals('Event'));
+    expect(
+      resubscribedEvent.extensionData?.data,
+      equals(originalExtensionData),
+    );
   });
 }

@@ -502,7 +502,7 @@ class AudioParamMap extends JavaScriptObject with MapMixin<String, dynamic> {
 
   Map? operator [](dynamic key) => _getItem(key);
 
-  void forEach(void f(String key, dynamic value)) {
+  void forEach(void Function(String key, dynamic value) f) {
     var entries = JS('', '#.entries()', this);
     while (true) {
       var entry = JS('', '#.next()', entries);
@@ -536,7 +536,7 @@ class AudioParamMap extends JavaScriptObject with MapMixin<String, dynamic> {
     throw new UnsupportedError("Not supported");
   }
 
-  dynamic putIfAbsent(String key, dynamic ifAbsent()) {
+  dynamic putIfAbsent(String key, dynamic Function() ifAbsent) {
     throw new UnsupportedError("Not supported");
   }
 

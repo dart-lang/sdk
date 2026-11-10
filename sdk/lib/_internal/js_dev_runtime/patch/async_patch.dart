@@ -83,57 +83,33 @@ _async<T>(Function() initGenerator) {
 
   var asyncFuture = _Future<T>();
 
-  // This will be set to true once we've yielded to the event loop.
-  //
-  // Before we've done that, we need to complete the future asynchronously to
-  // match dart2js/VM. See https://github.com/dart-lang/sdk/issues/33330
-  //
-  // Once we've yielded to the event loop we can complete synchronously.
-  // Other implementations call this `isSync` to indicate that.
-  bool isRunningAsEvent = false;
+  bool hasSuspended = false;
   runBody() {
     try {
       iter = JS('', '#[Symbol.iterator]()', initGenerator());
       var iteratorValue = JS('', '#.next(null)', iter);
       var value = JS('', '#.value', iteratorValue);
       if (JS<bool>('!', '#.done', iteratorValue)) {
-        // TODO(jmesserly): this is a workaround for ignored cast failures.
-        // Remove it once we've fixed those. We should be able to call:
-        //
-        //     if (isRunningAsEvent) {
-        //       asyncFuture._complete(value);
-        //     } else {
-        //       asyncFuture._asyncComplete(value);
-        //     }
-        //
-        // But if the user code returns `Future<dynamic>` instead of
-        // `Future<T>`, that function won't recognize it as a future and will
-        // instead treat it as a completed value.
-        if (value is Future) {
-          if (value is _Future) {
-            _Future._chainCoreFuture(value, asyncFuture, isRunningAsEvent);
-          } else {
-            asyncFuture._chainForeignFuture(value);
-          }
-        } else if (isRunningAsEvent) {
-          asyncFuture._completeWithValue(JS('', '#', value));
+        if (value is Future<T>) {
+          asyncFuture._chainFuture(value);
         } else {
-          asyncFuture._asyncComplete(JS('', '#', value));
+          asyncFuture._completeWithValue(JS('', '#', value));
         }
       } else {
-        _Future._chainCoreFuture(onAwait(value), asyncFuture, true);
+        _Future._chainCoreFuture(onAwait(value), asyncFuture, false);
       }
     } catch (e, s) {
-      if (isRunningAsEvent) {
-        _completeWithErrorCallback(asyncFuture, e, s);
+      final error = _interceptCaughtError(e, s);
+      if (hasSuspended) {
+        asyncFuture._completeErrorObject(error);
       } else {
-        asyncFuture._asyncCompleteErrorObject(_interceptCaughtError(e, s));
+        asyncFuture._asyncCompleteErrorObject(error);
       }
     }
   }
 
   runBody();
-  isRunningAsEvent = true;
+  hasSuspended = true;
   return asyncFuture;
 }
 
@@ -197,7 +173,7 @@ class Timer {
   @patch
   static Timer _createPeriodicTimer(
     Duration duration,
-    void callback(Timer timer),
+    void Function(Timer timer) callback,
   ) {
     int milliseconds = duration.inMilliseconds;
     if (milliseconds < 0) milliseconds = 0;
@@ -481,43 +457,46 @@ class _AsyncStarImpl<T> {
   _fatal(String message) => throw StateError(message);
 }
 
-class _AsyncAwaitCompleter<T> implements Completer<T> {
+class _AsyncAwaitCompleter<T> {
   final _future = _Future<T>();
-  bool isSync;
+  bool _hasSuspended = false;
 
-  _AsyncAwaitCompleter() : isSync = false;
+  _AsyncAwaitCompleter();
 
-  void complete([FutureOr<T>? value]) {
-    // All paths require that if value is null, null as T succeeds.
-    value = (value == null) ? value as T : value;
-    if (!isSync) {
-      _future._asyncComplete(value);
-    } else if (value is Future<T>) {
-      assert(!_future._isComplete);
+  void _complete(FutureOr<T> value) {
+    // NOTE: We don't check `_hasSuspended`:
+    //   * if the body completes synchronously, the very next thing we'll
+    //     synchronously do is return the future from the call before running
+    //     any microtasks (so there are no listeners yet). `_chainFuture` will
+    //     not complete with an error synchronously, and completing with a value
+    //     synchronously is safe.
+    //   * if the body completes after a suspend point, we will already be in a
+    //     microtask queue and can run any listener callbacks immediately.
+    if (value is Future<T>) {
       _future._chainFuture(value);
     } else {
       _future._completeWithValue(value);
     }
   }
 
-  void completeError(Object e, [StackTrace? st]) {
-    st ??= AsyncError.defaultStackTrace(e);
-    if (isSync) {
-      _future._completeError(e, st);
+  void _completeError(Object e, StackTrace s) {
+    // If throwing synchronously, delay error completion to a microtask so the
+    // caller can attach an error handler before the error is reported as
+    // uncaught.
+    final error = _interceptCaughtError(e, s);
+    if (_hasSuspended) {
+      _future._completeErrorObject(error);
     } else {
-      _future._asyncCompleteError(e, st);
+      _future._asyncCompleteErrorObject(error);
     }
   }
-
-  Future<T> get future => _future;
-  bool get isCompleted => !_future._mayComplete;
 }
 
 /// Creates a Completer for an `async` function.
 ///
 /// Used as part of the runtime support for the async/await transformation. All
 /// calls to this method are generated by the compiler.
-Completer<T> _makeAsyncAwaitCompleter<T>() {
+_AsyncAwaitCompleter<T> _makeAsyncAwaitCompleter<T>() {
   return _AsyncAwaitCompleter<T>();
 }
 
@@ -535,8 +514,8 @@ Future _asyncStartSync(
   _AsyncAwaitCompleter completer,
 ) {
   bodyFunction(async_status_codes.SUCCESS, null);
-  completer.isSync = true;
-  return completer.future;
+  completer._hasSuspended = true;
+  return completer._future;
 }
 
 /// Performs the `await` operation of an `async` function.
@@ -563,7 +542,7 @@ void _asyncAwait(
 /// This function is used when the `async` function returns (explicitly or
 /// implicitly).
 void _asyncReturn(Object? object, _AsyncAwaitCompleter completer) {
-  completer.complete(object);
+  completer._complete(object);
 }
 
 /// Completes the future of an `async` function with an error.
@@ -574,7 +553,7 @@ void _asyncReturn(Object? object, _AsyncAwaitCompleter completer) {
 /// This function is used when the `async` function re-throws an exception.
 void _asyncRethrow(Object? object, _AsyncAwaitCompleter completer) {
   // The error is a js-error.
-  completer.completeError(dart.getThrown(object)!, dart.stackTrace(object));
+  completer._completeError(dart.getThrown(object)!, dart.stackTrace(object));
 }
 
 /// Awaits on the given [object].
@@ -775,8 +754,44 @@ Stream _streamOfController(_AsyncStarStreamController controller) {
 /// If yielding while the subscription is paused it will become suspended. And
 /// only resume after the subscription is resumed or canceled.
 class _AsyncStarStreamController<T> {
-  late StreamController<T> controller;
-  Stream get stream => controller.stream;
+  final StreamController<T> controller = StreamController<T>();
+  Zone zone = Zone.current; // Set to actual value in listen.
+  _AsyncStarStreamController(_WrappedAsyncBody body) {
+    controller.onListen = () {
+      final zone = Zone.current;
+      void _resumeBody() {
+        zone.scheduleMicrotask(() {
+          body(async_status_codes.SUCCESS, null);
+        });
+      }
+
+      controller
+        ..onResume = () {
+          // Only schedule again if the async* function actually is suspended.
+          // Resume directly instead of scheduling, so that the sequence
+          // `pause-resume-pause` will result in one extra event produced.
+          if (isSuspended) {
+            isSuspended = false;
+            _resumeBody();
+          }
+        }
+        ..onCancel = () {
+          // If the async* is finished we ignore cancel events.
+          if (!controller.isClosed) {
+            cancelationFuture = _Future();
+            if (isSuspended) {
+              // Resume the suspended async* function to run finalizers.
+              isSuspended = false;
+              zone.scheduleMicrotask(() {
+                body(async_status_codes.STREAM_WAS_CANCELED, null);
+              });
+            }
+            return cancelationFuture;
+          }
+        };
+      _resumeBody();
+    };
+  }
 
   /// True when the async* function has yielded while being paused.
   ///
@@ -784,9 +799,10 @@ class _AsyncStarStreamController<T> {
   /// event.
   bool isSuspended = false;
 
-  bool get isPaused => controller.isPaused;
+  _Future<void>? cancelationFuture = null;
 
-  _Future? cancelationFuture = null;
+  bool get isPaused => controller.isPaused;
+  Stream get stream => controller.stream;
 
   /// True after the StreamSubscription has been cancelled.
   ///
@@ -795,52 +811,16 @@ class _AsyncStarStreamController<T> {
   /// returning from the async function should complete [cancelationFuture].
   bool get isCanceled => cancelationFuture != null;
 
-  add(event) => controller.add(event);
+  void add(event) => controller.add(event);
 
   Future addStream(Stream<T> stream) {
     return controller.addStream(stream, cancelOnError: false);
   }
 
-  addError(error, stackTrace) => controller.addError(error, stackTrace);
+  void addError(dynamic error, dynamic stackTrace) =>
+      controller.addError(error, stackTrace);
 
-  close() => controller.close();
-
-  _AsyncStarStreamController(_WrappedAsyncBody body) {
-    _resumeBody() {
-      scheduleMicrotask(() {
-        body(async_status_codes.SUCCESS, null);
-      });
-    }
-
-    controller = StreamController<T>(
-      onListen: () {
-        _resumeBody();
-      },
-      onResume: () {
-        // Only schedule again if the async* function actually is suspended.
-        // Resume directly instead of scheduling, so that the sequence
-        // `pause-resume-pause` will result in one extra event produced.
-        if (isSuspended) {
-          isSuspended = false;
-          _resumeBody();
-        }
-      },
-      onCancel: () {
-        // If the async* is finished we ignore cancel events.
-        if (!controller.isClosed) {
-          cancelationFuture = _Future();
-          if (isSuspended) {
-            // Resume the suspended async* function to run finalizers.
-            isSuspended = false;
-            scheduleMicrotask(() {
-              body(async_status_codes.STREAM_WAS_CANCELED, null);
-            });
-          }
-          return cancelationFuture;
-        }
-      },
-    );
-  }
+  void close() => controller.close();
 }
 
 /// Creates a stream controller for an `async*` function.

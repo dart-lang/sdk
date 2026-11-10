@@ -15,7 +15,8 @@ void main() {
 }
 
 @reflectiveTest
-class ChangeToNearestPreciseValueTest extends FixProcessorTest {
+class ChangeToNearestPreciseValueTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.changeToNearestPreciseValuee;
 

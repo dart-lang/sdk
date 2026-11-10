@@ -20,7 +20,7 @@ class AnnotatedNode {
 
   final List<Annotation> metadata;
 
-  AnnotatedNode(this.documentationComment, List<Annotation>? metadata)
+  new(this.documentationComment, List<Annotation>? metadata)
     : metadata = metadata ?? const [];
 }
 
@@ -32,7 +32,7 @@ class Annotation {
 
   final List<Expression>? arguments;
 
-  Annotation(this.name, this.constructorName, this.arguments);
+  new(this.name, this.constructorName, this.arguments);
 }
 
 /// "Mini AST" representation of a class declaration.
@@ -43,7 +43,7 @@ class ClassDeclaration extends CompilationUnitMember {
 
   final List<ClassMember> members;
 
-  ClassDeclaration(
+  new(
     super.documentationComment,
     super.metadata,
     this.name,
@@ -54,7 +54,7 @@ class ClassDeclaration extends CompilationUnitMember {
 
 /// "Mini AST" representation of a class member.
 class ClassMember extends AnnotatedNode {
-  ClassMember(super.documentationComment, super.metadata);
+  new(super.documentationComment, super.metadata);
 }
 
 /// "Mini AST" representation of a comment.
@@ -63,7 +63,7 @@ class Comment {
 
   final List<Token> tokens;
 
-  factory Comment(Token commentToken) {
+  factory(Token commentToken) {
     var tokens = <Token>[];
     bool isDocumentation = false;
 
@@ -78,7 +78,7 @@ class Comment {
     return Comment._(isDocumentation, tokens);
   }
 
-  Comment._(this.isDocumentation, this.tokens);
+  new _(this.isDocumentation, this.tokens);
 }
 
 /// "Mini AST" representation of a CompilationUnit.
@@ -88,14 +88,14 @@ class CompilationUnit {
 
 /// "Mini AST" representation of a top level member of a compilation unit.
 class CompilationUnitMember extends AnnotatedNode {
-  CompilationUnitMember(super.documentationComment, super.metadata);
+  new(super.documentationComment, super.metadata);
 }
 
 /// "Mini AST" representation of a constructor declaration.
 class ConstructorDeclaration extends ClassMember {
   final String name;
 
-  ConstructorDeclaration(super.documentationComment, super.metadata, this.name);
+  new(super.documentationComment, super.metadata, this.name);
 }
 
 /// "Mini AST" representation of an individual enum constant in an enum
@@ -103,11 +103,7 @@ class ConstructorDeclaration extends ClassMember {
 class EnumConstantDeclaration extends AnnotatedNode {
   final String name;
 
-  EnumConstantDeclaration(
-    super.documentationComment,
-    super.metadata,
-    this.name,
-  );
+  new(super.documentationComment, super.metadata, this.name);
 }
 
 /// "Mini AST" representation of an enum declaration.
@@ -116,12 +112,7 @@ class EnumDeclaration extends CompilationUnitMember {
 
   final List<EnumConstantDeclaration> constants;
 
-  EnumDeclaration(
-    super.documentationComment,
-    super.metadata,
-    this.name,
-    this.constants,
-  );
+  new(super.documentationComment, super.metadata, this.name, this.constants);
 }
 
 /// "Mini AST" representation of an expression.
@@ -135,7 +126,7 @@ class Expression {
 class IntegerLiteral extends Expression {
   final int value;
 
-  IntegerLiteral(this.value);
+  new(this.value);
 }
 
 /// "Mini AST" representation of a list literal.
@@ -144,7 +135,7 @@ class ListLiteral extends Expression {
   final List<Expression> elements;
   final Token rightBracket;
 
-  ListLiteral(this.leftBracket, this.elements, this.rightBracket);
+  new(this.leftBracket, this.elements, this.rightBracket);
 
   @override
   String toCode() {
@@ -160,7 +151,7 @@ class MethodDeclaration extends ClassMember {
 
   final TypeName? returnType;
 
-  MethodDeclaration(
+  new(
     super.documentationComment,
     super.metadata,
     this.isGetter,
@@ -598,6 +589,17 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
+  void handleInvocationWithoutTypeArguments(Token beginToken, Token endToken) {
+    debugEvent("InvocationWithoutTypeArguments");
+
+    var arguments = pop();
+    if (arguments != null) {
+      pop(); // Receiver.
+      push(UnknownExpression());
+    }
+  }
+
+  @override
   void handleLiteralInt(Token token) {
     debugEvent("LiteralInt");
     push(IntegerLiteral(int.parse(token.lexeme)));
@@ -706,6 +708,15 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
+  void handleSendWithoutArguments(
+    Token beginToken,
+    Token endToken,
+    Token nextToken,
+  ) {
+    debugEvent("SendWithoutArguments");
+  }
+
+  @override
   void handleType(Token beginToken, Token? questionMark) {
     debugEvent("Type");
     // reportErrorIfNullableType(questionMark);
@@ -765,7 +776,7 @@ class MiniAstBuilder extends StackListener {
 
 /// Parser intended for use with [MiniAstBuilder].
 class MiniAstParser extends Parser {
-  MiniAstParser(MiniAstBuilder super.listener)
+  new(MiniAstBuilder super.listener)
     : super(experimentalFeatures: const DefaultExperimentalFeatures());
 
   @override
@@ -793,7 +804,7 @@ class NamedExpression extends Expression {
   final Token colon;
   final Expression expression;
 
-  NamedExpression(this.name, this.colon, this.expression);
+  new(this.name, this.colon, this.expression);
 }
 
 /// "Mini AST" representation of a named expression.
@@ -802,7 +813,7 @@ class PrefixedIdentifier extends Expression {
   final Token operator;
   final String identifier;
 
-  PrefixedIdentifier(this.prefix, this.operator, this.identifier);
+  new(this.prefix, this.operator, this.identifier);
 
   @override
   String toCode() {
@@ -814,7 +825,7 @@ class PrefixedIdentifier extends Expression {
 class StringLiteral extends Expression {
   final String stringValue;
 
-  StringLiteral(this.stringValue);
+  new(this.stringValue);
 }
 
 /// "Mini AST" representation of a type name.
@@ -823,7 +834,7 @@ class TypeName {
 
   final List<TypeName>? typeArguments;
 
-  TypeName(this.name, this.typeArguments);
+  new(this.name, this.typeArguments);
 }
 
 /// "Mini AST" representation of an expression which summary code generation

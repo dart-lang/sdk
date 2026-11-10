@@ -40,7 +40,8 @@ void f(Object p) {
 }
 
 @reflectiveTest
-class RemoveUnnecessaryCastMultiTest extends FixProcessorTest {
+class RemoveUnnecessaryCastMultiTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeUnnecessaryCastMulti;
 
@@ -73,7 +74,7 @@ void f(Object p, Object q) {
 }
 
 @reflectiveTest
-class RemoveUnnecessaryCastTest extends FixProcessorTest {
+class RemoveUnnecessaryCastTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeUnnecessaryCast;
 
@@ -92,6 +93,35 @@ void f(Object p) {
     String v = p;
     print(v);
   }
+}
+''');
+  }
+
+  Future<void> test_thisPromotion() async {
+    await resolveTestCode('''
+class A {
+  void a() {
+    if (this is B) {
+      (this as B).b();
+    }
+  }
+}
+
+class B extends A {
+  void b() {}
+}
+''');
+    await assertHasFix('''
+class A {
+  void a() {
+    if (this is B) {
+      this.b();
+    }
+  }
+}
+
+class B extends A {
+  void b() {}
 }
 ''');
   }

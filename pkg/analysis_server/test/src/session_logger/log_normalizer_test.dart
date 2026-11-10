@@ -87,6 +87,24 @@ class LogNormalizerTest {
     );
   }
 
+  void test_denormalize_multipleNamesForSamePath() {
+    normalizer.addReplacementsForPath(inputPath, 'workspaceFolder-0');
+    normalizer.addReplacementsForPath(inputPath, 'rootPath');
+    normalizer.addReplacementsForPath(inputPath, 'rootUri');
+
+    var filePath = path.join(inputPath, 'a', 'b.dart');
+    var fileUri = Uri.file(filePath).toString();
+
+    var input = [
+      '{{rootPath:filePath}}',
+      '{{rootUri}}',
+      '{{workspaceFolder-0}}/a/b.dart',
+    ];
+    var expected = [inputPath, inputUriString, fileUri];
+
+    expect(normalizer.denormalize(jsonEncode(input)), jsonEncode(expected));
+  }
+
   @SkippedTest(reason: 'Manual benchmark for testing performance/changes')
   void test_normalize_benchmark() {
     // Total number of iterations of the test
@@ -363,6 +381,16 @@ class LogNormalizerTest {
     expect(normalizer.normalize(input), jsonEncode(expected));
   }
 
+  /// Adding a path with a trailing separator correctly normalizes subpaths.
+  void test_normalize_path_addedWithTrailingSeparator() {
+    normalizer.addReplacementsForPath('$inputPath/', 'replaced');
+
+    var input = '"$inputPath/foo"';
+    var expected = '"{{replaced:filePath}}/foo"';
+
+    expect(normalizer.normalize(input), jsonEncode(expected));
+  }
+
   /// Paths will be replaced even if they don't have a trailing path separator
   /// if they are the end of the string.
   void test_normalize_path_quoted() {
@@ -401,6 +429,19 @@ class LogNormalizerTest {
 
     var input = List.filled(10, inputPath);
     var expected = List.filled(10, '{{new_value:filePath}}');
+
+    expect(normalizer.normalize(input), jsonEncode(expected));
+  }
+
+  /// Adding a URI with a trailing separator correctly normalizes sub-URIs.
+  void test_normalize_uri_addedWithTrailingSeparator() {
+    normalizer.addReplacementsForUri(
+      Uri.parse('${inputUri.toString()}/'),
+      'replaced',
+    );
+
+    var input = '"${inputUri.toString()}/foo"';
+    var expected = '"{{replaced}}/foo"';
 
     expect(normalizer.normalize(input), jsonEncode(expected));
   }

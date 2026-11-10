@@ -161,7 +161,11 @@ void NativeEntry::BootstrapNativeCallWrapper(Dart_NativeArguments args,
 #endif
       arguments->SetReturnUnsafe(return_value_unsafe);
     }
-    DEOPTIMIZE_ALOT;
+#if defined(TESTING) || defined(DEBUG)
+    if (FLAG_deoptimize_alot) {
+      DeoptimizeFunctionsOnStack();
+    }
+#endif
   }
 }
 
@@ -235,7 +239,12 @@ void NativeEntry::AutoScopeNativeCallWrapper(Dart_NativeArguments args,
     }
     MaybePropagateError(arguments);
     thread->ExitApiScope();
-    DEOPTIMIZE_ALOT;
+#if defined(TESTING) || defined(DEBUG)
+    if (FLAG_deoptimize_alot) {
+      TransitionGeneratedToVM transition(thread);
+      DeoptimizeFunctionsOnStack();
+    }
+#endif
   }
   ASSERT(thread->execution_state() == Thread::kThreadInGenerated);
 }

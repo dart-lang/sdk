@@ -154,7 +154,7 @@ void f({x = (0, const [1])}) {}
     await resolveTestCodeWithDiagnostics(r'''
 void f({int x = X}) {}
 //              ^
-// [diag.undefinedIdentifier] Undefined name 'X'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'X'.
 ''');
   }
 
@@ -171,7 +171,7 @@ f([x = y]) {}
     await resolveTestCodeWithDiagnostics(r'''
 void f([int x = X]) {}
 //              ^
-// [diag.undefinedIdentifier] Undefined name 'X'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'X'.
 ''');
   }
 
@@ -254,6 +254,16 @@ int y = 0;
 class A([int x = y]);
 //               ^
 // [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+''');
+  }
+
+  test_topLevelConstant_declaredLater() async {
+    await resolveTestCode('''
+class A {
+  static void f([Object? value = sentinelValue]) {}
+}
+
+const Object sentinelValue = 0;
 ''');
   }
 }

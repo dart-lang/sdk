@@ -69,6 +69,14 @@ class C {
 ''');
   }
 
+  test_parameter_ofTopLevelGetter() async {
+    await resolveTestCodeWithDiagnostics(r'''
+int get foo([@Deprecated.optional() int? p]) => 0;
+//         ^
+// [diag.getterWithParameters] Getters must be declared without a parameter list.
+''');
+  }
+
   test_parameter_ofTypedef() async {
     await resolveTestCodeWithDiagnostics(r'''
 typedef Cb = void Function([@Deprecated.optional() int? p]);

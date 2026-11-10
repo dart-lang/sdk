@@ -7,7 +7,9 @@ import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:dartdev/dartdev.dart';
+import 'package:dartdev/src/commands/language_server.dart';
 import 'package:dartdev/src/unified_analytics.dart';
+import 'package:dartdev/src/vm_interop_handler.dart';
 import 'package:file/memory.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
@@ -77,7 +79,11 @@ void main() {
       final p = project();
       final analytics = await p.runLocalWithFakeAnalytics(['help']);
       expect(analytics.sentEvents, [
-        Event.dartCliCommandExecuted(name: 'help', enabledExperiments: ''),
+        Event.dartCliCommandExecuted(
+          name: 'help',
+          enabledExperiments: '',
+          exitCode: 0,
+        ),
       ]);
     });
 
@@ -90,7 +96,13 @@ void main() {
         path.join(io.Directory.systemTemp.createTempSync().path, 'name'),
       ]);
       expect(analytics.sentEvents, [
-        Event.dartCliCommandExecuted(name: 'create', enabledExperiments: ''),
+        Event.dartCliCommandExecuted(
+          name: 'create',
+          enabledExperiments: '',
+          exitCode: 0,
+          pubspecHasFlutterSdk: false,
+          pubspecEnvironmentSdk: '^3.0.0',
+        ),
       ]);
     });
 
@@ -111,6 +123,10 @@ void main() {
             Event.dartCliCommandExecuted(
               name: 'pub/get',
               enabledExperiments: '',
+              exitCode: 0,
+              pubspecHasFlutterSdk: false,
+              pubspecDependencies: const {'lints'},
+              pubspecEnvironmentSdk: '^3.0.0',
             ),
           ]);
         },
@@ -128,7 +144,44 @@ void main() {
         '.',
       ]);
       expect(analytics.sentEvents, [
-        Event.dartCliCommandExecuted(name: 'format', enabledExperiments: ''),
+        Event.dartCliCommandExecuted(
+          name: 'format',
+          enabledExperiments: '',
+          exitCode: 0,
+        ),
+      ]);
+    });
+
+    test('format with a non-zero exit code', () async {
+      // dart format also sets the global `exitCode`, which would otherwise
+      // make this test process exit with 1.
+      final previousExitCode = io.exitCode;
+      addTearDown(() => io.exitCode = previousExitCode);
+      final p = project(mainSrc: 'void main( ) {}');
+      final analytics = await p.runLocalWithFakeAnalytics([
+        'format',
+        '--output=none',
+        '--set-exit-if-changed',
+        '.',
+      ]);
+      expect(analytics.sentEvents, [
+        Event.dartCliCommandExecuted(
+          name: 'format',
+          enabledExperiments: '',
+          exitCode: 1,
+        ),
+      ]);
+    });
+
+    test('info', () async {
+      final p = project();
+      final analytics = await p.runLocalWithFakeAnalytics(['info']);
+      expect(analytics.sentEvents, [
+        Event.dartCliCommandExecuted(
+          name: 'info/dump',
+          enabledExperiments: '',
+          exitCode: 0,
+        ),
       ]);
     });
 
@@ -143,7 +196,13 @@ void main() {
           '--argument',
         ]);
         expect(analytics.sentEvents, [
-          Event.dartCliCommandExecuted(name: 'run', enabledExperiments: ''),
+          Event.dartCliCommandExecuted(
+            name: 'run',
+            enabledExperiments: '',
+            exitCode: 0,
+            pubspecHasFlutterSdk: false,
+            pubspecEnvironmentSdk: '^3.0.0',
+          ),
         ]);
       });
     });
@@ -151,9 +210,9 @@ void main() {
     group('run --enable-experiments', () {
       for (final experiment in experiments) {
         test(experiment.name, () async {
-          final p = project(mainSrc: experiment.validation);
           {
             for (final no in ['', 'no-']) {
+              final p = project(mainSrc: experiment.validation);
               await pub.withHttpClient(client: http.Client(), () async {
                 final analytics = await p.runLocalWithFakeAnalytics([
                   'run',
@@ -164,6 +223,9 @@ void main() {
                   Event.dartCliCommandExecuted(
                     name: 'run',
                     enabledExperiments: '$no${experiment.name}',
+                    exitCode: 0,
+                    pubspecHasFlutterSdk: false,
+                    pubspecEnvironmentSdk: '^3.0.0',
                   ),
                 ]);
               });
@@ -188,8 +250,76 @@ void main() {
         Event.dartCliCommandExecuted(
           name: 'compile/kernel',
           enabledExperiments: '',
+          exitCode: 0,
+          pubspecHasFlutterSdk: false,
+          pubspecEnvironmentSdk: '^3.0.0',
         ),
       ]);
+    });
+  });
+
+  group('Tool user properties:', () {
+    /// Runs `dart help` with a consented fake whose environment is
+    /// [environment], and returns the fake.
+    Future<FakeAnalytics> runHelp(Map<String, String> environment) async {
+      final fs = MemoryFileSystem.test(style: FileSystemStyle.posix);
+      FakeAnalytics createFake() => Analytics.fake(
+        tool: DashTool.dartTool,
+        homeDirectory: fs.directory('/'),
+        dartVersion: 'dartVersion',
+        fs: fs,
+        environment: environment,
+      );
+      createFake().clientShowedMessage();
+      final analytics = createFake();
+
+      final runner = DartdevRunner(['help'], analyticsOverride: analytics);
+      await runner.runCommand(runner.parse(['help']));
+      return analytics;
+    }
+
+    Map<String, Object?> toolProperties(FakeAnalytics analytics) {
+      final payload = analytics.userProperty.preparePayload();
+      return {
+        for (final key in ['tool', 'root_tool', 'leaf_tool'])
+          key: payload[key]?['value'],
+      };
+    }
+
+    test('no inherited DASH__TOOL', () async {
+      final analytics = await runHelp(const {});
+      expect(analytics.sentEvents, isNotEmpty);
+      expect(toolProperties(analytics), {
+        'tool': 'dart-tool',
+        'root_tool': 'dart-tool',
+        'leaf_tool': 'dart-tool',
+      });
+    });
+
+    test('inherited DASH__TOOL', () async {
+      // For example, `dart pub outdated` started by the analysis server from
+      // VS Code. See https://github.com/dart-lang/sdk/issues/64576.
+      final analytics = await runHelp({
+        DashEnvVar.tool.name: DashTool.vscodePlugins.label,
+      });
+      expect(analytics.sentEvents, isNotEmpty);
+      expect(toolProperties(analytics), {
+        'tool': 'dart-tool',
+        'root_tool': 'vscode-plugins',
+        'leaf_tool': 'dart-tool',
+      });
+    });
+
+    test('inherited DASH__TOOL naming a shared component', () async {
+      // Shared components can't be the root tool, so dartdev is.
+      final analytics = await runHelp({
+        DashEnvVar.tool.name: DashTool.analysisServer.label,
+      });
+      expect(toolProperties(analytics), {
+        'tool': 'dart-tool',
+        'root_tool': 'dart-tool',
+        'leaf_tool': 'dart-tool',
+      });
     });
   });
 
@@ -223,22 +353,397 @@ void main() {
     });
   });
 
-  group('unified analytics helpers:', () {
-    test('sanitizeStacktrace strips file paths and compresses whitespace', () {
-      const rawStack =
-          '#0  main (file:///Users/username/project/bin/main.dart:10:5)\n'
-          '#1  helper   (file:///home/user/app/lib/helper.dart:2:1)';
-      final sanitized = sanitizeStacktrace(rawStack, shorten: true);
-      expect(sanitized, isNot(contains('/Users/username/project/bin/')));
-      expect(sanitized, contains('main.dart'));
-      expect(sanitized, contains('helper.dart'));
+  group('Sub-tool suppression on first run:', () {
+    const configPath = '/.dart-tool/dart-flutter-telemetry.config';
+    final suppressVar = DashEnvVar.suppressAnalytics.name;
+
+    late MemoryFileSystem fs;
+
+    setUp(() {
+      fs = MemoryFileSystem.test(style: FileSystemStyle.posix);
     });
 
+    FakeAnalytics createFake({bool isExternal = true}) => Analytics.fake(
+      tool: DashTool.dartTool,
+      homeDirectory: fs.directory('/'),
+      dartVersion: 'dartVersion',
+      fs: fs,
+      isExternal: isExternal,
+    );
+
+    /// A fake for a user who has already seen the consent message.
+    FakeAnalytics createConsentedFake() {
+      createFake().clientShowedMessage();
+      return createFake();
+    }
+
+    bool dartToolConsentRecorded() {
+      final config = fs.file(configPath);
+      return config.existsSync() &&
+          RegExp(
+            r'^dart-tool=',
+            multiLine: true,
+          ).hasMatch(config.readAsStringSync());
+    }
+
+    // NOTE: `VmInteropHandler.environmentOverrides` is static, so values set
+    // by one run stay visible to later tests in this isolate (including any
+    // child processes they start through `runProcess`). Each run below unsets
+    // and then sets `DASH__SUPPRESS_ANALYTICS`, so reading it right after a
+    // run is reliable.
+    Future<String?> runAndGetPropagatedValue(
+      Analytics analytics, {
+      required bool hasTerminal,
+      List<String> args = const [],
+      Map<String, String> environment = const {},
+      bool isAnalyticsTest = true,
+    }) async {
+      final runner = DartdevRunner(
+        args,
+        analyticsOverride: analytics,
+        // When true, keeps `isBot()` from affecting whether the message is
+        // printed.
+        isAnalyticsTest: isAnalyticsTest,
+        stdoutHasTerminal: hasTerminal,
+        // Don't inherit analytics variables (or bot / agent variables) from
+        // the test process.
+        environment: environment,
+      );
+      // With no command, `CommandRunner` prints usage; keep test output quiet.
+      final result = await runZoned(
+        () => runner.runCommand(runner.parse(args)),
+        zoneSpecification: ZoneSpecification(print: (_, _, _, _) {}),
+      );
+      expect(result, 0);
+      return VmInteropHandler.environmentOverrides[suppressVar];
+    }
+
+    group('helpers', () {
+      test('shouldPrintConsentMessage', () {
+        const rows = [
+          (pending: true, terminal: true, bot: false, expected: true),
+          (pending: true, terminal: true, bot: true, expected: false),
+          (pending: true, terminal: false, bot: false, expected: false),
+          (pending: true, terminal: false, bot: true, expected: false),
+          (pending: false, terminal: true, bot: false, expected: false),
+          (pending: false, terminal: true, bot: true, expected: false),
+          (pending: false, terminal: false, bot: false, expected: false),
+          (pending: false, terminal: false, bot: true, expected: false),
+        ];
+        for (final (:pending, :terminal, :bot, :expected) in rows) {
+          expect(
+            shouldPrintConsentMessage(
+              consentPending: pending,
+              hasTerminal: terminal,
+              botSuppressed: bot,
+            ),
+            expected,
+            reason: 'pending: $pending, terminal: $terminal, bot: $bot',
+          );
+        }
+      });
+
+      test('shouldSuppressSubtools', () {
+        expect(
+          shouldSuppressSubtools(
+            suppressAnalytics: false,
+            showsConsentMessage: false,
+          ),
+          isFalse,
+        );
+        // Regression case: sub-tools must be suppressed on the run where the
+        // consent message is shown.
+        expect(
+          shouldSuppressSubtools(
+            suppressAnalytics: false,
+            showsConsentMessage: true,
+          ),
+          isTrue,
+        );
+        expect(
+          shouldSuppressSubtools(
+            suppressAnalytics: true,
+            showsConsentMessage: false,
+          ),
+          isTrue,
+        );
+        expect(
+          shouldSuppressSubtools(
+            suppressAnalytics: true,
+            showsConsentMessage: true,
+          ),
+          isTrue,
+        );
+      });
+    });
+
+    test('clientShowedMessage clears shouldShowMessage, not okToSend', () {
+      // dartdev relies on this: it must read `shouldShowMessage` before
+      // calling `clientShowedMessage()`, and it sends nothing itself on the
+      // run where the message is shown.
+      final analytics = createFake();
+      expect(analytics.shouldShowMessage, isTrue);
+      expect(analytics.okToSend, isFalse);
+
+      analytics.clientShowedMessage();
+      expect(analytics.shouldShowMessage, isFalse);
+      expect(analytics.okToSend, isFalse);
+      expect(dartToolConsentRecorded(), isTrue);
+
+      // A sub-tool reporting under the same label, started later in the same
+      // run, would be allowed to send. This is why dartdev suppresses
+      // sub-tools on this run.
+      expect(createFake().okToSend, isTrue);
+    });
+
+    test('first run with a terminal suppresses sub-tools', () async {
+      final analytics = createFake();
+      final value = await runAndGetPropagatedValue(
+        analytics,
+        hasTerminal: true,
+      );
+      expect(value, 'true');
+      // The message was shown and recorded.
+      expect(analytics.shouldShowMessage, isFalse);
+      expect(dartToolConsentRecorded(), isTrue);
+      expect(analytics.sentEvents, isEmpty);
+    });
+
+    test('first run without a terminal does not suppress sub-tools', () async {
+      final analytics = createFake();
+      final value = await runAndGetPropagatedValue(
+        analytics,
+        hasTerminal: false,
+      );
+      expect(value, 'false');
+      // The message was not shown, so consent is still pending and nothing
+      // was recorded; sub-tools using the same label can't send either.
+      expect(analytics.shouldShowMessage, isTrue);
+      expect(dartToolConsentRecorded(), isFalse);
+      expect(createFake().okToSend, isFalse);
+    });
+
+    test('consented user does not suppress sub-tools', () async {
+      final value = await runAndGetPropagatedValue(
+        createConsentedFake(),
+        hasTerminal: true,
+      );
+      expect(value, 'false');
+    });
+
+    test('--suppress-analytics still suppresses sub-tools', () async {
+      final value = await runAndGetPropagatedValue(
+        createConsentedFake(),
+        hasTerminal: true,
+        args: const ['--suppress-analytics'],
+      );
+      expect(value, 'true');
+    });
+
+    test('inherited DASH__SUPPRESS_ANALYTICS=true is propagated', () async {
+      final value = await runAndGetPropagatedValue(
+        createConsentedFake(),
+        hasTerminal: true,
+        environment: {suppressVar: 'true'},
+      );
+      expect(value, 'true');
+    });
+
+    for (final inherited in ['false', '1', '']) {
+      test(
+        'inherited DASH__SUPPRESS_ANALYTICS="$inherited" is ignored',
+        () async {
+          final value = await runAndGetPropagatedValue(
+            createConsentedFake(),
+            hasTerminal: true,
+            environment: {suppressVar: inherited},
+          );
+          expect(value, 'false');
+        },
+      );
+    }
+
+    group('root tool', () {
+      final toolVar = DashEnvVar.tool.name;
+
+      /// A placeholder `DASH__TOOL` override, set before each run, that is
+      /// still there afterwards only if dartdev didn't touch `DASH__TOOL`.
+      const untouched = '<untouched>';
+
+      /// Runs dartdev with [args] and returns the `DASH__TOOL` override it
+      /// leaves for sub-tools: a label, `null` if it unset it, or [untouched].
+      Future<String?> runAndGetPropagatedTool(
+        Analytics analytics, {
+        required List<String> args,
+        Map<String, String> environment = const {},
+      }) async {
+        // `VmInteropHandler.environmentOverrides` is static, so this also
+        // replaces any value left by an earlier test.
+        await VmInteropHandler.setEnvironmentVariable(toolVar, untouched);
+        await runAndGetPropagatedValue(
+          analytics,
+          hasTerminal: true,
+          args: args,
+          environment: environment,
+        );
+        return VmInteropHandler.environmentOverrides[toolVar];
+      }
+
+      test('hasRootTool', () {
+        // Using the command's own name also checks that it matches the name
+        // `hasRootTool` looks for.
+        const ls = LanguageServerCommand.commandName;
+        const rows = [
+          (inherited: null, command: null, expected: true),
+          (inherited: null, command: 'analyze', expected: true),
+          (inherited: null, command: 'run', expected: true),
+          (inherited: null, command: ls, expected: false),
+          (inherited: 'dart-tool', command: ls, expected: true),
+          (inherited: 'vscode-plugins', command: ls, expected: true),
+        ];
+        for (final (:inherited, :command, :expected) in rows) {
+          expect(
+            hasRootTool(inheritedTool: inherited, commandName: command),
+            expected,
+            reason: 'inherited: $inherited, command: $command',
+          );
+        }
+      });
+
+      // `--help` keeps the command from running (and, for `language-server`,
+      // from looking for the analysis server snapshot), but dartdev still
+      // sets up the analytics environment and decides whether to report the
+      // command.
+
+      test('other commands set DASH__TOOL to dart-tool', () async {
+        final analytics = createConsentedFake();
+        final tool = await runAndGetPropagatedTool(
+          analytics,
+          args: const ['analyze', '--help'],
+        );
+        expect(tool, DashTool.dartTool.label);
+        expect(
+          analytics.sentEvents.single.eventName.label,
+          'dart_cli_command_executed',
+        );
+      });
+
+      test('language-server without an inherited root tool sets no root tool '
+          'and reports nothing', () async {
+        final analytics = createConsentedFake();
+        final tool = await runAndGetPropagatedTool(
+          analytics,
+          args: const ['language-server', '--help'],
+        );
+        // Unset, rather than left as is, so a stale value can't leak.
+        expect(tool, isNull);
+        expect(analytics.sentEvents, isEmpty);
+      });
+
+      test('language-server preserves an inherited root tool', () async {
+        final analytics = createConsentedFake();
+        final tool = await runAndGetPropagatedTool(
+          analytics,
+          args: const ['language-server', '--help'],
+          environment: {toolVar: DashTool.vscodePlugins.label},
+        );
+        // dartdev leaves an inherited value alone; sub-tools (such as the
+        // analysis server) read it from the environment.
+        expect(tool, untouched);
+        expect(
+          analytics.sentEvents.single.eventName.label,
+          'dart_cli_command_executed',
+        );
+      });
+    });
+
+    group('internal builds (isExternal: false)', () {
+      test('first run with a terminal does not suppress sub-tools', () async {
+        final analytics = createFake(isExternal: false);
+        expect(analytics.shouldShowMessage, isFalse);
+        expect(analytics.okToSend, isTrue);
+
+        final value = await runAndGetPropagatedValue(
+          analytics,
+          hasTerminal: true,
+        );
+        expect(value, 'false');
+        expect(fs.file(configPath).existsSync(), isFalse);
+      });
+
+      test('clientShowedMessage records nothing', () {
+        createFake(isExternal: false).clientShowedMessage();
+        expect(fs.file(configPath).existsSync(), isFalse);
+      });
+
+      test('--suppress-analytics still suppresses sub-tools', () async {
+        final value = await runAndGetPropagatedValue(
+          createFake(isExternal: false),
+          hasTerminal: true,
+          args: const ['--suppress-analytics'],
+        );
+        expect(value, 'true');
+      });
+    });
+
+    group('bot and AI agent detection', () {
+      // These runs don't set `isAnalyticsTest`, so bot detection applies. It
+      // reads the `environment` override rather than the test process's
+      // environment, so results don't depend on where the tests run.
+      Future<String?> run(Map<String, String> environment) =>
+          runAndGetPropagatedValue(
+            createConsentedFake(),
+            hasTerminal: true,
+            environment: environment,
+            isAnalyticsTest: false,
+          );
+
+      test('not a bot, no agent: not suppressed', () async {
+        expect(await run(const {}), 'false');
+      });
+
+      test('bot, no agent: suppressed', () async {
+        expect(await run(const {'BOT': 'true'}), 'true');
+      });
+
+      test('CI=false, no agent: not suppressed', () async {
+        expect(await run(const {'CI': 'false'}), 'false');
+      });
+
+      test('BOT=false overrides CI variables: not suppressed', () async {
+        expect(await run(const {'BOT': 'false', 'CI': 'true'}), 'false');
+      });
+
+      test('bot with an AI agent: not suppressed', () async {
+        expect(await run(const {'CI': 'true', 'CLAUDECODE': '1'}), 'false');
+      });
+
+      test('bot with a generic AGENT variable: not suppressed', () async {
+        expect(await run(const {'BOT': 'true', 'AGENT': 'my-agent'}), 'false');
+      });
+
+      test('AI agent, not a bot: not suppressed', () async {
+        expect(await run(const {'GEMINI_CLI': '1'}), 'false');
+      });
+
+      test('AI agent with --suppress-analytics: suppressed', () async {
+        final value = await runAndGetPropagatedValue(
+          createConsentedFake(),
+          hasTerminal: true,
+          args: const ['--suppress-analytics'],
+          environment: const {'BOT': 'true', 'CLAUDECODE': '1'},
+          isAnalyticsTest: false,
+        );
+        expect(value, 'true');
+      });
+    });
+  });
+
+  group('unified analytics helpers:', () {
     test('getDartStorageDirectory resolves user .dart directory', () {
       final dir = getDartStorageDirectory();
       expect(dir, isNotNull);
-      // Ensure the directory exists and its basename is '.dart'.
-      expect(dir!.existsSync(), isTrue);
+      expect(dir!.path, path.join(homeDir!.path, '.dart'));
       expect(path.basename(dir.path), '.dart');
     });
   });
@@ -247,6 +752,34 @@ void main() {
     test('isBot function executes without error', () {
       // isBot should execute synchronously without throwing
       expect(() => isBot(), returnsNormally);
+    });
+
+    test('empty environment is not a bot', () {
+      expect(isBot(environment: const {}), isFalse);
+    });
+
+    test('CI variables are detected', () {
+      expect(isBot(environment: const {'BOT': 'true'}), isTrue);
+      expect(isBot(environment: const {'CI': 'true'}), isTrue);
+      expect(isBot(environment: const {'GITHUB_ACTIONS': 'true'}), isTrue);
+      expect(isBot(environment: const {'SWARMING_TASK_ID': 'x'}), isTrue);
+    });
+
+    test('falsy CI and BOT values are not detected as a bot', () {
+      expect(isBot(environment: const {'CI': 'false'}), isFalse);
+      expect(isBot(environment: const {'CI': '0'}), isFalse);
+      expect(isBot(environment: const {'CI': ''}), isFalse);
+      expect(isBot(environment: const {'BOT': 'false'}), isFalse);
+      expect(isBot(environment: const {'BOT': '0'}), isFalse);
+      expect(isBot(environment: const {'BOT': ''}), isFalse);
+    });
+
+    test('explicit non-bot signals take precedence', () {
+      expect(isBot(environment: const {'BOT': 'false', 'CI': 'true'}), isFalse);
+      expect(
+        isBot(environment: const {'FLUTTER_HOST': 'vscode', 'CI': 'true'}),
+        isFalse,
+      );
     });
   });
 }

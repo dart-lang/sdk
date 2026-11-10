@@ -30,6 +30,21 @@
 namespace dart {
 namespace bin {
 
+void DescriptorInfo::Close() {
+  ASSERT(fd_ != STDOUT_FILENO);
+  ASSERT(fd_ != STDERR_FILENO);
+  if (fd_ == STDIN_FILENO) {
+    // If stdin, redirect fd to /dev/null.
+    int null_fd = TEMP_FAILURE_RETRY(open("/dev/null", O_RDONLY));
+    ASSERT(null_fd >= 0);
+    VOID_TEMP_FAILURE_RETRY(dup2(null_fd, STDIN_FILENO));
+    close(null_fd);
+  } else {
+    close(fd_);
+  }
+  fd_ = -1;
+}
+
 bool DescriptorInfo::HasReadEvent() {
   return (Mask() & (1 << kInEvent)) != 0;
 }
@@ -126,8 +141,8 @@ EventHandlerImplementation::EventHandlerImplementation()
   if (status == -1) {
     const int kBufferSize = 1024;
     char error_message[kBufferSize];
-    Utils::StrError(errno, error_message, kBufferSize);
-    FATAL("Failed adding interrupt fd to kqueue: %s\n", error_message);
+    FATAL("Failed adding interrupt fd to kqueue: %s\n",
+          Utils::StrError(errno, error_message, kBufferSize));
   }
 }
 
@@ -383,8 +398,8 @@ void EventHandlerImplementation::HandleEvents(struct kevent* events, int size) {
     if ((events[i].flags & EV_ERROR) != 0) {
       const int kBufferSize = 1024;
       char error_message[kBufferSize];
-      Utils::StrError(events[i].data, error_message, kBufferSize);
-      FATAL("kevent failed %s\n", error_message);
+      FATAL("kevent failed %s\n",
+            Utils::StrError(events[i].data, error_message, kBufferSize));
     }
     if (events[i].udata == nullptr) {
       interrupt_seen = true;
@@ -461,8 +476,8 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
     if (result == -1) {
       const int kBufferSize = 1024;
       char error_message[kBufferSize];
-      Utils::StrError(errno, error_message, kBufferSize);
-      FATAL("kevent failed %s\n", error_message);
+      FATAL("kevent failed %s\n",
+            Utils::StrError(errno, error_message, kBufferSize));
     } else {
       handler_impl->HandleTimeout();
       handler_impl->HandleEvents(events, result);

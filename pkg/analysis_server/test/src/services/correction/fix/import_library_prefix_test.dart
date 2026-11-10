@@ -19,10 +19,7 @@ void main() {
 @reflectiveTest
 class ImportLibraryPrefixPriorityTest extends FixPriorityTest {
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  bool get addFlutterPackageDep => true;
 
   Future<void> test_dartUi() async {
     await resolveTestCode('''
@@ -39,7 +36,7 @@ void f(Size size) {}
 }
 
 @reflectiveTest
-class ImportLibraryPrefixTest extends FixProcessorTest {
+class ImportLibraryPrefixTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.importLibraryPrefix;
 

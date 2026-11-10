@@ -36,6 +36,19 @@ void listPattern(C c, C c2, bool b) {
   }
 }
 
+void listPatternWithSubpattern(C c, C c2, bool b) {
+  switch (c._o) {
+    case [int()] when b:
+      // The type test is performed on the list element, not on `c._o`, so
+      // `c._o` is promoted to `List<Object?>` and no further.
+      c._o.expectStaticType<Exactly<List<Object?>>>();
+    case _ when second(c = c2, b):
+      break;
+    case [int()]:
+      c._o.expectStaticType<Exactly<Object?>>();
+  }
+}
+
 void mapPattern(C c, C c2, bool b) {
   switch (c._o) {
     case {0: _} when b:
@@ -116,6 +129,7 @@ void wildcardPattern(C c, C c2, bool b) {
 main() {
   castPattern(C(0), C(0), false);
   listPattern(C([]), C([]), false);
+  listPatternWithSubpattern(C([0]), C([0]), false);
   mapPattern(C({}), C({}), false);
   nullAssertPattern(C(0), C(0), false);
   nullCheckPattern(C(0), C(0), false);

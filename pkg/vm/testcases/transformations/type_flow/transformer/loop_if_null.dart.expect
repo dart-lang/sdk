@@ -1,0 +1,185 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+class Base extends core::Object {
+  synthetic constructor •() → self::Base
+    : super core::Object::•()
+    ;
+
+  [@vm.unreachable.metadata=]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
+  method foo() → void
+    throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
+}
+class Middle extends self::Base {
+  synthetic constructor •() → self::Middle
+    : super self::Base::•()
+    ;
+}
+class Sub1 extends self::Middle {
+  synthetic constructor •() → self::Sub1
+    : super self::Middle::•()
+    ;
+
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
+  method foo() → void {}
+}
+class Sub2 extends self::Middle {
+  synthetic constructor •() → self::Sub2
+    : super self::Middle::•()
+    ;
+
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
+  method foo() → void {}
+}
+
+[@vm.inferred-return-type.metadata=#lib::Sub1?]
+[@vm.unboxing-info.metadata=(i)->b]
+static method testIfNullAssign([@vm.inferred-arg-type.metadata=int] core::int n) → self::Base? {
+  self::Base? x;
+  for (core::int i = 0; [@vm.direct-call.metadata=dart.core::_IntegerImplementation.<] [@vm.inferred-type.metadata=dart.core::bool (skip check)] i.{core::num::<}(n){(core::num) → core::bool}; i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1){(core::num) → core::int}) {
+    [@vm.direct-call.metadata=#lib::Sub1.foo] [@vm.inferred-type.metadata=? (skip check)](let final self::Base? #t1 = x in #t1 == null ?{self::Base} x = new self::Sub1::•() : #t1{self::Base}).{self::Base::foo}(){() → void};
+  }
+  return x;
+}
+
+[@vm.inferred-return-type.metadata=#lib::Middle (inexact)]
+[@vm.unboxing-info.metadata=(i,b)->b]
+static method testNullBranchUnmodified([@vm.inferred-arg-type.metadata=int] core::int n, [@vm.inferred-arg-type.metadata=dart.core::bool] core::bool cond) → self::Base? {
+  self::Base? x = new self::Sub1::•();
+  for (core::int i = 0; [@vm.direct-call.metadata=dart.core::_IntegerImplementation.<] [@vm.inferred-type.metadata=dart.core::bool (skip check)] i.{core::num::<}(n){(core::num) → core::bool}; i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1){(core::num) → core::int}) {
+    if(cond) {
+      x = new self::Sub2::•();
+    }
+    let final self::Base? #t2 = x in #t2{self::Base}.{self::Base::foo}(){() → void};
+  }
+  return x;
+}
+
+[@vm.inferred-return-type.metadata=#lib::Sub1]
+[@vm.unboxing-info.metadata=(i,b,b)->b]
+static method testIsPromotionAndTypeCast([@vm.inferred-arg-type.metadata=int] core::int n, [@vm.inferred-arg-type.metadata=dart.core::bool] core::bool cond1, [@vm.inferred-arg-type.metadata=dart.core::bool] core::bool cond2) → self::Base {
+  self::Base x = new self::Sub1::•();
+  for (core::int i = 0; [@vm.direct-call.metadata=dart.core::_IntegerImplementation.<] [@vm.inferred-type.metadata=dart.core::bool (skip check)] i.{core::num::<}(n){(core::num) → core::bool}; i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1){(core::num) → core::int}) {
+    {
+      if(cond1) {
+        x = new self::Sub1::•();
+      }
+    }
+    if(cond2) {
+      x = _in::unsafeCast<self::Middle>(x);
+    }
+    [@vm.direct-call.metadata=#lib::Sub1.foo] [@vm.inferred-type.metadata=? (skip check)] x.{self::Base::foo}(){() → void};
+  }
+  return x;
+}
+
+[@vm.inferred-return-type.metadata=#lib::Middle? (inexact)]
+[@vm.unboxing-info.metadata=(i,i)->b]
+static method testMultiBranchAndContinue([@vm.inferred-arg-type.metadata=int] core::int n, [@vm.inferred-arg-type.metadata=int] core::int mode) → self::Base? {
+  self::Base? x;
+  for (core::int i = 0; [@vm.direct-call.metadata=dart.core::_IntegerImplementation.<] [@vm.inferred-type.metadata=dart.core::bool (skip check)] i.{core::num::<}(n){(core::num) → core::bool}; i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1){(core::num) → core::int})
+    #L1:
+    {
+      if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] mode =={core::num::==}{(core::Object) → core::bool} 0) {
+        if(!(x == null))
+          break #L1;
+        x = new self::Sub1::•();
+      }
+      else
+        if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] mode =={core::num::==}{(core::Object) → core::bool} 1) {
+          x = new self::Sub1::•();
+        }
+        else
+          if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] mode =={core::num::==}{(core::Object) → core::bool} 2) {
+            x = new self::Sub2::•();
+          }
+    }
+  return x;
+}
+
+[@vm.inferred-return-type.metadata=#lib::Sub1?]
+[@vm.unboxing-info.metadata=(i)->b]
+static method testNestedLoops([@vm.inferred-arg-type.metadata=int] core::int n) → self::Base? {
+  self::Base? x;
+  for (core::int i = 0; [@vm.direct-call.metadata=dart.core::_IntegerImplementation.<] [@vm.inferred-type.metadata=dart.core::bool (skip check)] i.{core::num::<}(n){(core::num) → core::bool}; i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1){(core::num) → core::int}) {
+    for (core::int j = 0; [@vm.direct-call.metadata=dart.core::_IntegerImplementation.<] [@vm.inferred-type.metadata=dart.core::bool (skip check)] j.{core::num::<}(n){(core::num) → core::bool}; j = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] j.{core::num::+}(1){(core::num) → core::int}) {
+      [@vm.direct-call.metadata=#lib::Sub1.foo] [@vm.inferred-type.metadata=? (skip check)](let final self::Base? #t3 = x in #t3 == null ?{self::Base} x = new self::Sub1::•() : #t3{self::Base}).{self::Base::foo}(){() → void};
+    }
+    let final self::Base? #t4 = x in #t4 == null ?{void} null : [@vm.direct-call.metadata=#lib::Sub1.foo] [@vm.inferred-type.metadata=? (skip check)] #t4{self::Base}.{self::Base::foo}(){() → void};
+  }
+  return x;
+}
+
+[@vm.inferred-return-type.metadata=#lib::Sub1?]
+[@vm.unboxing-info.metadata=(i)->b]
+static method testTryCatchInLoop([@vm.inferred-arg-type.metadata=int] core::int n) → self::Base? {
+  self::Base? x;
+  for (core::int i = 0; [@vm.direct-call.metadata=dart.core::_IntegerImplementation.<] [@vm.inferred-type.metadata=dart.core::bool (skip check)] i.{core::num::<}(n){(core::num) → core::bool}; i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1){(core::num) → core::int}) {
+    try {
+      [@vm.direct-call.metadata=#lib::Sub1.foo] [@vm.inferred-type.metadata=? (skip check)](let final self::Base? #t5 = x in #t5 == null ?{self::Base} x = new self::Sub1::•() : #t5{self::Base}).{self::Base::foo}(){() → void};
+    }
+    on core::Object catch(final wildcard core::Object _#wc0#formal) {
+    }
+  }
+  return x;
+}
+
+[@vm.inferred-return-type.metadata=#lib::Sub1?]
+[@vm.unboxing-info.metadata=(i,i)->b]
+static method testSwitchContinue([@vm.inferred-arg-type.metadata=int] core::int n, [@vm.inferred-arg-type.metadata=int] core::int mode) → self::Base? {
+  self::Base? x;
+  #L2:
+  switch(mode) /* core::int */ {
+    #L3:
+    case #C1:
+      {
+        x = new self::Sub1::•();
+        continue #L4;
+      }
+    #L4:
+    case #C2:
+      {
+        [@vm.direct-call.metadata=#lib::Sub1.foo] [@vm.inferred-type.metadata=? (skip check)](let final self::Base? #t6 = x in #t6 == null ?{self::Base} x = new self::Sub1::•() : #t6{self::Base}).{self::Base::foo}(){() → void};
+        if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.>] [@vm.inferred-type.metadata=dart.core::bool (skip check)] n.{core::num::>}(0){(core::num) → core::bool})
+          continue #L5;
+        break #L2;
+      }
+    #L5:
+    case #C3:
+      {
+        if(!(x == null)) {
+          [@vm.direct-call.metadata=#lib::Sub1.foo] [@vm.inferred-type.metadata=? (skip check)] x{self::Base}.{self::Base::foo}(){() → void};
+        }
+        break #L2;
+      }
+  }
+  return x;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  final core::int n = [@vm.inferred-type.metadata=int] core::int::parse("10");
+  final core::bool cond1 = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] n =={core::num::==}{(core::Object) → core::bool} 1;
+  final core::bool cond2 = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] n =={core::num::==}{(core::Object) → core::bool} 2;
+  core::print(new self::Base::•());
+  core::print(new self::Middle::•());
+  core::print(new self::Sub1::•());
+  core::print(new self::Sub2::•());
+  core::print([@vm.inferred-type.metadata=#lib::Sub1?] self::testIfNullAssign(n));
+  core::print([@vm.inferred-type.metadata=#lib::Middle (inexact)] self::testNullBranchUnmodified(n, cond1));
+  core::print([@vm.inferred-type.metadata=#lib::Sub1] self::testIsPromotionAndTypeCast(n, cond1, cond2));
+  core::print([@vm.inferred-type.metadata=#lib::Middle? (inexact)] self::testMultiBranchAndContinue(n, n));
+  core::print([@vm.inferred-type.metadata=#lib::Sub1?] self::testNestedLoops(n));
+  core::print([@vm.inferred-type.metadata=#lib::Sub1?] self::testTryCatchInLoop(n));
+  core::print([@vm.inferred-type.metadata=#lib::Sub1?] self::testSwitchContinue(n, n));
+}
+constants  {
+  #C1 = 0
+  #C2 = 1
+  #C3 = 2
+}

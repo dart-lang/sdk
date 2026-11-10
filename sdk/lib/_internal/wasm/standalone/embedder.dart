@@ -51,7 +51,7 @@ external WasmVoid queueMicrotask(
 
 /// Cancels a schedule created through [scheduleOnce] or [scheduleRepeated].
 @pragma("wasm:import", "dart.clearSchedule")
-external WasmVoid clearSchedule(WasmExternRef? schedule);
+external WasmVoid clearSchedule(WasmExternRef schedule);
 
 @pragma("wasm:import", "dart.currentTime")
 external WasmI64 currentTimeMicros();
@@ -75,70 +75,70 @@ external WasmExternRef stringFromAsciiBytes(
 );
 
 @pragma("wasm:import", "dart.stringLength")
-external WasmI32 stringLength(WasmExternRef? string);
+external WasmI32 stringLength(WasmExternRef string);
 @pragma("wasm:import", "dart.stringEquals")
-external WasmI32 stringEquals(WasmExternRef? a, WasmExternRef? b);
+external WasmI32 stringEquals(WasmExternRef a, WasmExternRef b);
 @pragma("wasm:import", "dart.stringCompare")
-external WasmI32 stringCompare(WasmExternRef? a, WasmExternRef? b);
+external WasmI32 stringCompare(WasmExternRef a, WasmExternRef b);
 @pragma("wasm:import", "dart.stringCodeUnitAt")
-external WasmI32 stringCodeUnitAt(WasmExternRef? a, WasmI32 index);
+external WasmI32 stringCodeUnitAt(WasmExternRef a, WasmI32 index);
 @pragma("wasm:import", "dart.stringIndexOfString")
 external WasmI32 stringIndexOfString(
-  WasmExternRef? a,
-  WasmExternRef? b,
+  WasmExternRef a,
+  WasmExternRef b,
   WasmI32 start,
 );
 @pragma("wasm:import", "dart.stringLastIndexOfString")
 external WasmI32 stringLastIndexOfString(
-  WasmExternRef? a,
-  WasmExternRef? b,
+  WasmExternRef a,
+  WasmExternRef b,
   WasmI32 start,
 );
 
 /// Specialization for [String.replaceAll] where the pattern is an embedder-
 /// managed string.
 @pragma("wasm:import", "dart.stringReplaceAllString")
-external WasmExternRef? stringReplaceAllString(
-  WasmExternRef? string,
-  WasmExternRef? needle,
-  WasmExternRef? replacement,
+external WasmExternRef stringReplaceAllString(
+  WasmExternRef string,
+  WasmExternRef needle,
+  WasmExternRef replacement,
 );
 
 /// Specialization for [String.replaceAll] where the pattern is an embedder-
 /// managed regular expression.
 @pragma("wasm:import", "dart.stringReplaceAllRegExp")
-external WasmExternRef? stringReplaceAllRegExp(
-  WasmExternRef? string,
-  WasmExternRef? needle,
-  WasmExternRef? replacement,
+external WasmExternRef stringReplaceAllRegExp(
+  WasmExternRef string,
+  WasmExternRef needle,
+  WasmExternRef replacement,
 );
 @pragma("wasm:import", "dart.stringSubstring")
-external WasmExternRef? stringSubstring(
-  WasmExternRef? a,
+external WasmExternRef stringSubstring(
+  WasmExternRef a,
   WasmI32 start,
   WasmI32 end,
 );
 @pragma("wasm:import", "dart.stringToLowerCase")
-external WasmExternRef? stringToLowerCase(WasmExternRef? string);
+external WasmExternRef stringToLowerCase(WasmExternRef string);
 @pragma("wasm:import", "dart.stringToUpperCase")
-external WasmExternRef? stringToUpperCase(WasmExternRef? string);
+external WasmExternRef stringToUpperCase(WasmExternRef string);
 @pragma("wasm:import", "dart.stringConcat")
-external WasmExternRef? stringConcat(WasmExternRef? a, WasmExternRef? b);
+external WasmExternRef stringConcat(WasmExternRef a, WasmExternRef b);
 @pragma("wasm:import", "dart.stringRepeat")
-external WasmExternRef? stringRepeat(WasmExternRef? string, WasmI32 times);
+external WasmExternRef stringRepeat(WasmExternRef string, WasmI32 times);
 @pragma("wasm:import", "dart.stringReplaceRange")
-external WasmExternRef? stringReplaceRange(
-  WasmExternRef? string,
+external WasmExternRef stringReplaceRange(
+  WasmExternRef string,
   WasmI32 start,
   WasmI32 end,
-  WasmExternRef? replacement,
+  WasmExternRef replacement,
 );
 
 /// Writes code units of [string] into [outArray], starting at array position
 /// [startIndex].
 @pragma("wasm:import", "dart.stringToCodeUnits")
 external WasmVoid stringToCodeUnits(
-  WasmExternRef? string,
+  WasmExternRef string,
   WasmArray<WasmI16> outArray,
   WasmI32 startIndex,
 );
@@ -165,7 +165,7 @@ external WasmExternRef weakRefCreate(WasmAnyRef originalValue);
 
 /// Returns the value wrapped in [weakRefCreate], or null.
 @pragma("wasm:import", "dart.weakRefGet")
-external WasmAnyRef? weakRefGet(WasmExternRef? weakReference);
+external WasmAnyRef? weakRefGet(WasmExternRef weakReference);
 
 /// Creates a new [Expando].
 @pragma("wasm:import", "dart.expandoCreate")
@@ -176,7 +176,7 @@ external WasmExternRef expandoCreate();
 /// The SDK verifies that [target] is a valid target before calling this.
 @pragma("wasm:import", "dart.expandoGet")
 external WasmAnyRef? expandoGet(
-  WasmExternRef? expando,
+  WasmExternRef expando,
   WasmAnyRef target,
   WasmI64 targetIdentityHashCode,
 );
@@ -186,7 +186,7 @@ external WasmAnyRef? expandoGet(
 /// The SDK verifies that [target] is a valid target before calling this.
 @pragma("wasm:import", "dart.expandoSet")
 external WasmVoid expandoSet(
-  WasmExternRef? expando,
+  WasmExternRef expando,
   WasmAnyRef target,
   WasmI64 targetIdentityHashCode,
   WasmAnyRef? value,
@@ -210,7 +210,7 @@ external WasmExternRef finalizerCreate(
 /// remove the [object] from the finalizer.
 @pragma("wasm:import", "dart.finalizerAttach")
 external WasmVoid finalizerAttach(
-  WasmExternRef? finalizer,
+  WasmExternRef finalizer,
   WasmAnyRef object,
   WasmAnyRef? token,
   WasmAnyRef? detachToken,
@@ -218,13 +218,13 @@ external WasmVoid finalizerAttach(
 
 @pragma("wasm:import", "dart.finalizerDetach")
 external WasmVoid finalizerDetach(
-  WasmExternRef? finalizer,
+  WasmExternRef finalizer,
   WasmAnyRef detachToken,
 );
 
-/// Returns the string value for [Uri.base], or null if no base URI exists.
+/// Returns the string value for [Uri.base].
 @pragma("wasm:import", "dart.baseUri")
-external WasmExternRef? baseUri();
+external WasmExternRef baseUri();
 
 /// Returns `1` if running on Windows, `0` otherwise.
 @pragma("wasm:import", "dart.isWindows")
@@ -239,7 +239,7 @@ external WasmExternRef stackTraceGetCurrent();
 
 /// Renders a stack trace returned by [stackTraceGetCurrent] as a string.
 @pragma("wasm:import", "dart.stackTraceToString")
-external WasmExternRef stackTraceToString(WasmExternRef? trace);
+external WasmExternRef stackTraceToString(WasmExternRef trace);
 
 /// Attempts to parse a string as a double, following semantics described in
 /// [double.parse].
@@ -248,16 +248,16 @@ external WasmExternRef stackTraceToString(WasmExternRef? trace);
 /// structure that can be used by [tryParseResultGetDouble] to extract the
 /// parsed double.
 @pragma("wasm:import", "dart.doubleTryParse")
-external WasmExternRef? doubleTryParse(WasmExternRef? string);
+external WasmExternRef? doubleTryParse(WasmExternRef string);
 
 /// Extracts the double parsed from [doubleTryParse] returning a non-nullable
 /// value.
 @pragma("wasm:import", "dart.tryParseResultGetDouble")
-external WasmF64 tryParseResultGetDouble(WasmExternRef? parseResult);
+external WasmF64 tryParseResultGetDouble(WasmExternRef parseResult);
 
 /// Parses a double from a string known to contain a a valid double.
 @pragma("wasm:import", "dart.doubleParseInfallible")
-external WasmF64 doubleParseInfallible(WasmExternRef? string);
+external WasmF64 doubleParseInfallible(WasmExternRef string);
 
 /// The implementation of [int.toRadixString].
 ///
@@ -295,29 +295,26 @@ external WasmExternRef stringBufferCreate();
 /// Appends a string to a string buffer.
 @pragma("wasm:import", "dart.stringBufferWriteString")
 external WasmVoid stringBufferWriteString(
-  WasmExternRef? buffer,
-  WasmExternRef? string,
+  WasmExternRef buffer,
+  WasmExternRef string,
 );
 
 /// Appends a string containing the character with the [code] point to a string
 /// buffer.
 @pragma("wasm:import", "dart.stringBufferWriteCharCode")
-external WasmVoid stringBufferWriteCharCode(
-  WasmExternRef? buffer,
-  WasmI32 code,
-);
+external WasmVoid stringBufferWriteCharCode(WasmExternRef buffer, WasmI32 code);
 
 /// Clears the contents of a string buffer.
 @pragma("wasm:import", "dart.stringBufferClear")
-external WasmVoid stringBufferClear(WasmExternRef? buffer);
+external WasmVoid stringBufferClear(WasmExternRef buffer);
 
 /// The current length of a string in a string buffer.
 @pragma("wasm:import", "dart.stringBufferLength")
-external WasmI32 stringBufferLength(WasmExternRef? buffer);
+external WasmI32 stringBufferLength(WasmExternRef buffer);
 
 /// Turn a string buffer into a string.
 @pragma("wasm:import", "dart.stringBufferToString")
-external WasmExternRef stringBufferToString(WasmExternRef? buffer);
+external WasmExternRef stringBufferToString(WasmExternRef buffer);
 
 /// Attempts to parse the `string` as a regular expression with the given
 /// options.
@@ -326,7 +323,7 @@ external WasmExternRef stringBufferToString(WasmExternRef? buffer);
 /// a string otherwise.
 @pragma("wasm:import", "dart.regexpCreateOrFailWithString")
 external WasmExternRef regexpCreateOrFailWithString(
-  WasmExternRef? string,
+  WasmExternRef string,
   WasmI32 multiLine,
   WasmI32 caseSensitive,
   WasmI32 unicode,
@@ -339,11 +336,11 @@ external WasmExternRef regexpCreateOrFailWithString(
 /// If this returns `0`, the return value is interpreted as an error message
 /// string instead.
 @pragma("wasm:import", "dart.regexpIsRegexp")
-external WasmI32 regexpIsRegexp(WasmExternRef? ref);
+external WasmI32 regexpIsRegexp(WasmExternRef ref);
 
 /// Implementation of [RegExp.escape].
 @pragma("wasm:import", "dart.regexpEscape")
-external WasmExternRef regexpEscape(WasmExternRef? string);
+external WasmExternRef regexpEscape(WasmExternRef string);
 
 /// If [asPrefix] is `0`, return the first match of [string] for [regexp] at or
 /// after [start] code units.
@@ -351,43 +348,40 @@ external WasmExternRef regexpEscape(WasmExternRef? string);
 /// If [asPrefix] is `1`, only return the match if it starts exactly at [start].
 @pragma("wasm:import", "dart.regexpMatch")
 external WasmExternRef? regexpMatch(
-  WasmExternRef? regexp,
-  WasmExternRef? string,
+  WasmExternRef regexp,
+  WasmExternRef string,
   WasmI32 start,
   WasmI32 asPrefix,
 );
 
 /// Implementation of [Match.start] for a [regexpMatch].
 @pragma("wasm:import", "dart.regexpMatchGetStart")
-external WasmI32 regexpMatchGetStart(WasmExternRef? match);
+external WasmI32 regexpMatchGetStart(WasmExternRef match);
 
 /// Implementation of [Match.end] for a [regexpMatch].
 @pragma("wasm:import", "dart.regexpMatchGetEnd")
-external WasmI32 regexpMatchGetEnd(WasmExternRef? match);
+external WasmI32 regexpMatchGetEnd(WasmExternRef match);
 
 /// Implementation of [Match.groupCount] for a [regexpMatch].
 @pragma("wasm:import", "dart.regexpMatchGetGroupCount")
-external WasmI32 regexpMatchGetGroupCount(WasmExternRef? match);
+external WasmI32 regexpMatchGetGroupCount(WasmExternRef match);
 
 /// Implementation of [Match.group] for a [regexpMatch].
 ///
 /// This is only called with an index between 0 and [regexpMatchGetGroupCount]
 /// (inclusive).
 @pragma("wasm:import", "dart.regexpMatchGetGroup")
-external WasmExternRef? regexpMatchGetGroup(
-  WasmExternRef? match,
-  WasmI32 index,
-);
+external WasmExternRef? regexpMatchGetGroup(WasmExternRef match, WasmI32 index);
 
 /// The amount of named groups in a regexp match.
 @pragma("wasm:import", "dart.regexpMatchGetNamedGroups")
-external WasmI32 regexpMatchGetNamedGroups(WasmExternRef? match);
+external WasmI32 regexpMatchGetNamedGroups(WasmExternRef match);
 
 /// For an index between 0 and [regexpMatchGetNamedGroups] (exclusive), returns
 /// the name of the regexp group.
 @pragma("wasm:import", "dart.regexpMatchGetGroupName")
 external WasmExternRef regexpMatchGetGroupName(
-  WasmExternRef? match,
+  WasmExternRef match,
   WasmI32 index,
 );
 
@@ -395,7 +389,7 @@ external WasmExternRef regexpMatchGetGroupName(
 /// named `regexpMatchGetGroupName(match, nameIndex)`.
 @pragma("wasm:import", "dart.regexpMatchGetGroupByName")
 external WasmExternRef? regexpMatchGetGroupByName(
-  WasmExternRef? match,
+  WasmExternRef match,
   WasmI32 nameIndex,
 );
 
@@ -434,9 +428,9 @@ external WasmI64 randomInt();
 external WasmI64 randomIntSecure();
 
 @pragma("wasm:import", "dart.print")
-external WasmVoid print(WasmExternRef? line);
+external WasmVoid print(WasmExternRef line);
 @pragma("wasm:import", "dart.jsonEncodeString")
-external WasmExternRef jsonEncodeString(WasmExternRef? line);
+external WasmExternRef jsonEncodeString(WasmExternRef line);
 
 @pragma("wasm:import", "dart.debugger")
 external WasmVoid debugger(WasmExternRef? message);
@@ -453,6 +447,6 @@ external WasmI32 reportTaskEvent(
   WasmI32 taskId,
   WasmI32 flowId,
   WasmI32 type,
-  WasmExternRef? name,
-  WasmExternRef? argumentsAsJson,
+  WasmExternRef name,
+  WasmExternRef argumentsAsJson,
 );

@@ -289,6 +289,15 @@ multipleLibraryDirectives:
     library foo;
     library bar;
 
+multipleCombinators:
+  type: syntacticError
+  parameters: none
+  problemMessage: "At most one 'show' or 'hide' combinator can be used on an import or export directive."
+  correctionMessage: "Try combining all of the combinators into a single combinator."
+  analyzerCode: multipleCombinators
+  hasPublishedDocs: true
+  script: "import 'dart:core' show int show num;"
+
 multipleExtends:
   type: syntacticError
   parameters: none
@@ -1629,7 +1638,7 @@ prefixAfterCombinator:
   hasPublishedDocs: false
   script:
     main.dart: |
-      import "lib.dart" show Foo hide Foo as Foo;
+      import "lib.dart" show Foo as Foo;
     lib.dart: ""
 
 mixinDeclaresConstructor:
@@ -1736,6 +1745,56 @@ extensionAugmentationWithoutName:
     augment extension {}
   comment: No parameters.
 
+extensionTypeWithAbstractMember:
+  type: compileTimeError
+  parameters:
+    String methodName: the name of the abstract method
+    String extensionTypeName: the name of the enclosing extension type
+  problemMessage: "'#methodName' must have a method body because '#extensionTypeName' is an extension type."
+  correctionMessage: "Try adding a body to '#methodName'."
+  script: |
+    extension type ET(int id) {
+      void method();
+    }
+  analyzerCode: extensionTypeWithAbstractMember
+  hasPublishedDocs: true
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when an extension type declares an
+    abstract member. Because extension type member references are resolved
+    statically, an abstract member in an extension type could never be
+    executed.
+
+    #### Example
+
+    The following code produces this diagnostic because the method `m` in the
+    extension type `E` is abstract:
+
+    ```dart
+    %language=3.5
+    extension type E(String s) {
+      [!void m();!]
+    }
+    ```
+
+    #### Common fixes
+
+    If the member is intended to be executable, then provide an implementation
+    of the member:
+
+    ```dart
+    extension type E(String s) {
+      void m() {}
+    }
+    ```
+
+    If the member isn't intended to be executable, then remove it:
+
+    ```dart
+    extension type E(String s) {}
+    ```
+
 extensionTypeAugmentationSpecifiesRepresentationField:
   type: syntacticError
   parameters: none
@@ -1744,6 +1803,7 @@ extensionTypeAugmentationSpecifiesRepresentationField:
   analyzerCode: extensionTypeAugmentationSpecifiesRepresentationField
   hasPublishedDocs: false
   experiments: augmentations
+  exampleAllowOtherCodes: true
   script: |
     augment extension type E(int x) {}
   comment: No parameters.
@@ -2661,7 +2721,7 @@ primaryConstructorBodyWithoutDeclaration:
     a primary constructor body but doesn't declare a primary constructor:
 
     ```dart
-    %ignore=undefined_identifier
+    %ignore=undefined_unqualified_name_read
     class C {
       [!this!] : assert(x > 0);
     }
@@ -2877,3 +2937,28 @@ superInitializingDeclaringParameter:
   script: |
     class S(var x);
     class C(var super.x) extends S;
+
+augmentationExtendsClauseAlreadyPresent:
+  type: compileTimeError
+  parameters: none
+  problemMessage: The augmentation has an 'extends' clause, but an augmentation target already includes an 'extends' clause and it isn't allowed to be repeated or changed.
+  correctionMessage: Try removing the 'extends' clause, either here or in the augmentation target.
+  analyzerCode: augmentationExtendsClauseAlreadyPresent
+  hasPublishedDocs: false
+  experiments: augmentations
+  script: |
+    class A;
+    class B extends A;
+    augment class B extends A;
+
+defaultValueAlreadySpecifiedInAugmentationChain:
+  type: compileTimeError
+  parameters: none
+  experiments: augmentations
+  problemMessage: "The default value for this optional parameter was already specified in the augmentation chain."
+  correctionMessage: "Try removing all but one of the default values."
+  analyzerCode: defaultValueAlreadySpecifiedInAugmentationChain
+  hasPublishedDocs: false
+  script: |
+    void method([int x = 0]);
+    augment void method([int x = 0]) {}

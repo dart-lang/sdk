@@ -8,10 +8,10 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:code_assets/code_assets.dart' show Architecture, OS;
 import 'package:dart2native/generate.dart';
+import 'package:dartdev/src/target.dart';
 import 'package:dartdev/src/unified_analytics.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
-import 'package:hooks_runner/hooks_runner.dart' show Target;
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 import 'package:vm/target_os.dart';
@@ -84,8 +84,7 @@ enum Sanitizer {
 
 bool checkFile(String sourcePath) {
   if (!FileSystemEntity.isFileSync(sourcePath)) {
-    stderr.writeln('"$sourcePath" file not found.');
-    stderr.flush();
+    log.stderr('"$sourcePath" file not found.');
     return false;
   }
   return true;
@@ -349,7 +348,7 @@ class CompileKernelSnapshotCommand extends CompileSubcommandCommand {
         embedSources: args.flag('embed-sources'),
         verbose: verbose,
         verbosity: args.option('verbosity')!,
-        progressUpdatesOnStderr: false,
+        logger: log,
       );
       return 0;
     } catch (e, st) {
@@ -641,8 +640,8 @@ Remove debugging information from the output and save it separately to the speci
     // AOT compilation isn't supported on ia32. Currently, generating an
     // executable only supports AOT runtimes, so these commands are disabled.
     if (Platform.version.contains('ia32')) {
-      stderr.write(
-        "'dart compile $commandName' is not supported on x86 architectures.\n",
+      log.stderr(
+        "'dart compile $commandName' is not supported on x86 architectures.",
       );
       return 64;
     }
@@ -680,17 +679,21 @@ Remove debugging information from the output and save it separately to the speci
     final supportedTargets = CompileSubcommandCommand.supportedTargetPlatforms;
     if (target != null) {
       if (!supportedTargets.contains(target)) {
-        stderr.writeln('Unsupported target platform $target.');
-        stderr.writeln(
+        log.stderr('Unsupported target platform $target.');
+        log.stderr(
           'Supported target platforms: '
           '${supportedTargets.join(', ')}',
         );
         return crossCompileErrorExitCode;
       }
 
-      final targetBinaries = await resolveTargetBinaries(target);
+      final targetBinaries = await resolveTargetBinaries(
+        target,
+        includeDartAotRuntime: format == Kind.exe,
+      );
       genSnapshotBinary = targetBinaries.genSnapshot;
-      dartAotRuntimeBinary = targetBinaries.dartAotRuntime;
+      dartAotRuntimeBinary =
+          targetBinaries.dartAotRuntime ?? dartAotRuntimeBinary;
     }
 
     final sourceUri = File(sourcePath).absolute.uri;
@@ -736,7 +739,7 @@ Remove debugging information from the output and save it separately to the speci
             final packages = (await builder.packagesWithBuildHooks()).join(
               ', ',
             );
-            stderr.writeln(
+            log.stderr(
               "'dart compile' does not support build hooks, use 'dart build' instead.\n"
               'Packages with build hooks: $packages.',
             );
@@ -749,6 +752,7 @@ Remove debugging information from the output and save it separately to the speci
     final tempDir = Directory.systemTemp.createTempSync();
     try {
       final sanitizer = Sanitizer.fromString(args.option('target-sanitizer'))!;
+      final verbosity = args.option('verbosity')!;
       final kernelGenerator = KernelGenerator(
         genSnapshot: genSnapshotBinary,
         targetDartAotRuntime: dartAotRuntimeBinary,
@@ -761,22 +765,25 @@ Remove debugging information from the output and save it separately to the speci
         enableAsserts: args.flag(enableAssertsOption.flag),
         debugFile: args.option('save-debugging-info'),
         verbose: verbose,
-        verbosity: args.option('verbosity')!,
+        verbosity: verbosity,
         targetOS: target?.os ?? OS.current,
         tempDir: tempDir,
         depFile: args.option('depfile'),
-        progressUpdatesOnStderr: false,
+        logger: log,
       );
       final snapshotGenerator = await kernelGenerator.generate(
         recordedUsagesFile: args.option(recordedUsesOption.flag),
         extraOptions: args.multiOption('extra-gen-kernel-options'),
       );
-      await snapshotGenerator.generate(
+      final outputPath = await snapshotGenerator.generate(
         extraOptions: [
           ...sanitizer.genSnapshotFlags,
           ...args.multiOption('extra-gen-snapshot-options'),
         ],
       );
+      if (verbosity != Verbosity.error.name) {
+        log.stdout('Generated: $outputPath');
+      }
       return 0;
     } catch (e, st) {
       log.stderr('Error: AOT compilation failed');
@@ -1112,13 +1119,20 @@ Sets the verbosity level of the compilation.
     flagDefaultsTo: true,
   );
 
+  /// An example invocation of this command with [arguments].
+  ///
+  /// Used in the help text of options shared between subcommands, such as
+  /// [defineOption] and [packagesOption].
+  String exampleInvocation(String arguments) =>
+      'dart compile $name $arguments main.dart';
+
   late final Option defineOption = Option(
     flag: 'define',
     abbr: 'D',
     valueHelp: 'key=value',
     help: '''
 Define an environment declaration. To specify multiple declarations, use multiple options or use commas to separate key-value pairs.
-For example: dart compile $name -Da=1,b=2 main.dart''',
+For example: ${exampleInvocation('-Da=1,b=2')}''',
   );
 
   late final Option packagesOption = Option(
@@ -1128,7 +1142,7 @@ For example: dart compile $name -Da=1,b=2 main.dart''',
     help:
         '''Get package locations from the specified file instead of .dart_tool/package_config.json.
 <path> can be relative or absolute.
-For example: dart compile $name --packages=/tmp/pkgs.json main.dart''',
+For example: ${exampleInvocation('--packages=/tmp/pkgs.json')}''',
   );
 
   final Option enableAssertsOption = Option(
@@ -1205,11 +1219,10 @@ For example: dart compile $name --packages=/tmp/pkgs.json main.dart''',
   }
 
   /// Resolves the target-specific gen_snapshot and dartaotruntime binaries.
-  ///
-  /// Returns a record with `(genSnapshot: String, dartAotRuntime: String)`.
-  Future<({String genSnapshot, String dartAotRuntime})> resolveTargetBinaries(
-    Target target,
-  ) async {
+  Future<({String genSnapshot, String? dartAotRuntime})> resolveTargetBinaries(
+    Target target, {
+    bool includeDartAotRuntime = true,
+  }) async {
     String? localGenSnapshot;
     String? localDartAotRuntime;
 
@@ -1244,7 +1257,8 @@ For example: dart compile $name --packages=/tmp/pkgs.json main.dart''',
       }
     }
 
-    if (localGenSnapshot != null && localDartAotRuntime != null) {
+    if (localGenSnapshot != null &&
+        (!includeDartAotRuntime || localDartAotRuntime != null)) {
       return (
         genSnapshot: localGenSnapshot,
         dartAotRuntime: localDartAotRuntime,
@@ -1283,12 +1297,13 @@ For example: dart compile $name --packages=/tmp/pkgs.json main.dart''',
             archiveFolder: await getArchiveFolder(),
             target: target,
           );
-      final dartAotRuntimeBinary =
-          localDartAotRuntime ??
-          await cache.ensureDartAotRuntime(
-            archiveFolder: await getArchiveFolder(),
-            target: target,
-          );
+      final dartAotRuntimeBinary = !includeDartAotRuntime
+          ? null
+          : localDartAotRuntime ??
+                await cache.ensureDartAotRuntime(
+                  archiveFolder: await getArchiveFolder(),
+                  target: target,
+                );
       return (
         genSnapshot: genSnapshotBinary,
         dartAotRuntime: dartAotRuntimeBinary,

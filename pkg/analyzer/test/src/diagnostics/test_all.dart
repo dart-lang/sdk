@@ -25,16 +25,9 @@ import 'argument_type_not_assignable_to_error_handler_test.dart'
 import 'assert_in_redirecting_constructor_test.dart'
     as assert_in_redirecting_constructor;
 import 'assignment_of_do_not_store_test.dart' as assignment_of_do_not_store;
-import 'assignment_to_const_test.dart' as assignment_to_const;
 import 'assignment_to_final_local_test.dart' as assignment_to_final_local;
-import 'assignment_to_final_no_setter_test.dart'
-    as assignment_to_final_no_setter;
-import 'assignment_to_final_test.dart' as assignment_to_final;
-import 'assignment_to_function_test.dart' as assignment_to_function;
-import 'assignment_to_method_test.dart' as assignment_to_method;
 import 'assignment_to_primary_constructor_parameter_test.dart'
     as assignment_to_primary_constructor_parameter;
-import 'assignment_to_type_test.dart' as assignment_to_type;
 import 'async_for_in_wrong_context_test.dart' as async_for_in_wrong_context;
 import 'async_keyword_used_as_identifier_test.dart'
     as async_keyword_used_as_identifier;
@@ -204,6 +197,7 @@ import 'deprecated_mixin_function_test.dart' as deprecated_mixin_function;
 import 'deprecated_mixin_test.dart' as deprecated_mixin;
 import 'deprecated_optional_test.dart' as deprecated_optional;
 import 'deprecated_subclass_test.dart' as deprecated_subclass;
+import 'deprecated_web_configuration_test.dart' as deprecated_web_configuration;
 import 'different_inherited_getter_and_setter_types_test.dart'
     as different_inherited_getter_and_setter_types;
 import 'doc_directive_argument_wrong_format_test.dart'
@@ -220,12 +214,9 @@ import 'doc_directive_missing_two_arguments_test.dart'
     as doc_directive_missing_two_arguments;
 import 'doc_import_cannot_be_deferred_test.dart'
     as doc_import_cannot_be_deferred;
-import 'doc_import_cannot_have_combinators_test.dart'
-    as doc_import_cannot_have_combinators;
 import 'doc_import_cannot_have_configurations_test.dart'
     as doc_import_cannot_have_configurations;
-import 'doc_import_cannot_have_prefix_test.dart'
-    as doc_import_cannot_have_prefix;
+import 'doc_import_in_part_file_test.dart' as doc_import_in_part_file;
 import 'duplicate_constructor_default_test.dart'
     as duplicate_constructor_default;
 import 'duplicate_constructor_name_test.dart' as duplicate_constructor_name;
@@ -525,6 +516,8 @@ import 'invocation_of_extension_without_call_test.dart'
     as invocation_of_extension_without_call;
 import 'invocation_of_non_function_expression_test.dart'
     as invocation_of_non_function_expression;
+import 'js_interop_extension_constructor_js_annotation_has_no_effect_test.dart'
+    as js_interop_extension_constructor_js_annotation_has_no_effect;
 import 'label_in_outer_scope_test.dart' as label_in_outer_scope;
 import 'label_undefined_test.dart' as label_undefined;
 import 'late_final_local_already_assigned_test.dart'
@@ -596,6 +589,8 @@ import 'mixin_with_non_class_superclass_test.dart'
     as mixin_with_non_class_superclass;
 import 'mixins_super_class_test.dart' as mixins_super_class;
 import 'mock_sdk_test.dart' as mock_sdk;
+import 'multiple_combinators_deprecated_test.dart'
+    as multiple_combinators_deprecated;
 import 'multiple_combinators_test.dart' as multiple_combinators;
 import 'multiple_redirecting_constructor_invocations_test.dart'
     as multiple_redirecting_constructor_invocations;
@@ -632,8 +627,6 @@ import 'non_const_generative_enum_constructor_test.dart'
     as non_const_generative_enum_constructor;
 import 'non_const_map_as_expression_statement_test.dart'
     as non_const_map_as_expression_statement;
-import 'non_constant_annotation_constructor_test.dart'
-    as non_constant_annotation_constructor;
 import 'non_constant_case_expression_from_deferred_library_test.dart'
     as non_constant_case_expression_from_deferred_library;
 import 'non_constant_case_expression_test.dart' as non_constant_case_expression;
@@ -737,7 +730,6 @@ import 'prefix_shadowed_by_local_declaration_test.dart'
 import 'private_collision_in_mixin_application_test.dart'
     as private_collision_in_mixin_application;
 import 'private_optional_parameter_test.dart' as private_optional_parameter;
-import 'private_setter_test.dart' as private_setter;
 import 'receiver_of_type_never_test.dart' as receiver_of_type_never;
 import 'record_literal_one_positional_no_trailing_comma_test.dart'
     as record_literal_one_positional_no_trailing_comma;
@@ -865,37 +857,45 @@ import 'type_test_with_undefined_name_test.dart'
     as type_test_with_undefined_name;
 import 'unawaited_return_in_try_block_test.dart'
     as unawaited_return_in_try_block;
-import 'undefined_annotation_test.dart' as undefined_annotation;
 import 'undefined_class_boolean_test.dart' as undefined_class_boolean;
 import 'undefined_class_test.dart' as undefined_class;
 import 'undefined_constructor_in_initializer_default_test.dart'
     as undefined_constructor_in_initializer_default;
 import 'undefined_constructor_in_initializer_test.dart'
     as undefined_constructor_in_initializer;
-import 'undefined_enum_constant_test.dart' as undefined_enum_constant;
 import 'undefined_enum_constructor_named_test.dart'
     as undefined_enum_constructor_named;
 import 'undefined_enum_constructor_unnamed_test.dart'
     as undefined_enum_constructor_unnamed;
-import 'undefined_extension_getter_test.dart' as undefined_extension_getter;
-import 'undefined_extension_method_test.dart' as undefined_extension_method;
+import 'undefined_extension_member_read_test.dart'
+    as undefined_extension_member_read;
+import 'undefined_extension_member_write_test.dart'
+    as undefined_extension_member_write;
 import 'undefined_extension_operator_test.dart' as undefined_extension_operator;
-import 'undefined_extension_setter_test.dart' as undefined_extension_setter;
-import 'undefined_getter_test.dart' as undefined_getter;
 import 'undefined_hidden_name_test.dart' as undefined_hidden_name;
 import 'undefined_identifier_await_test.dart' as undefined_identifier_await;
-import 'undefined_identifier_test.dart' as undefined_identifier;
-import 'undefined_method_test.dart' as undefined_method;
+import 'undefined_instance_member_read_test.dart'
+    as undefined_instance_member_read;
+import 'undefined_instance_member_write_test.dart'
+    as undefined_instance_member_write;
 import 'undefined_named_parameter_test.dart' as undefined_named_parameter;
 import 'undefined_operator_test.dart' as undefined_operator;
-import 'undefined_prefixed_name_test.dart' as undefined_prefixed_name;
+import 'undefined_prefixed_name_read_test.dart' as undefined_prefixed_name_read;
+import 'undefined_prefixed_name_write_test.dart'
+    as undefined_prefixed_name_write;
 import 'undefined_referenced_parameter_test.dart'
     as undefined_referenced_parameter;
-import 'undefined_setter_test.dart' as undefined_setter;
 import 'undefined_shown_name_test.dart' as undefined_shown_name;
-import 'undefined_super_getter_test.dart' as undefined_super_getter;
+import 'undefined_static_member_read_test.dart' as undefined_static_member_read;
+import 'undefined_static_member_write_test.dart'
+    as undefined_static_member_write;
+import 'undefined_super_member_read_test.dart' as undefined_super_member_read;
+import 'undefined_super_member_write_test.dart' as undefined_super_member_write;
 import 'undefined_super_operator_test.dart' as undefined_super_operator;
-import 'undefined_super_setter_test.dart' as undefined_super_setter;
+import 'undefined_unqualified_name_read_test.dart'
+    as undefined_unqualified_name_read;
+import 'undefined_unqualified_name_write_test.dart'
+    as undefined_unqualified_name_write;
 import 'unignorable_ignore_test.dart' as unignorable_ignore;
 import 'unnecessary_cast_pattern_test.dart' as unnecessary_cast_pattern;
 import 'unnecessary_cast_test.dart' as unnecessary_cast;
@@ -975,14 +975,8 @@ main() {
     argument_type_not_assignable_to_error_handler.main();
     assert_in_redirecting_constructor.main();
     assignment_of_do_not_store.main();
-    assignment_to_const.main();
     assignment_to_final_local.main();
-    assignment_to_final_no_setter.main();
-    assignment_to_final.main();
-    assignment_to_function.main();
-    assignment_to_method.main();
     assignment_to_primary_constructor_parameter.main();
-    assignment_to_type.main();
     async_for_in_wrong_context.main();
     async_keyword_used_as_identifier.main();
     augmentation_extends_clause_already_present.main();
@@ -1093,6 +1087,7 @@ main() {
     deprecated_mixin.main();
     deprecated_optional.main();
     deprecated_subclass.main();
+    deprecated_web_configuration.main();
     different_inherited_getter_and_setter_types.main();
     doc_directive_argument_wrong_format.main();
     doc_directive_has_extra_arguments.main();
@@ -1101,9 +1096,8 @@ main() {
     doc_directive_missing_three_arguments.main();
     doc_directive_missing_two_arguments.main();
     doc_import_cannot_be_deferred.main();
-    doc_import_cannot_have_combinators.main();
     doc_import_cannot_have_configurations.main();
-    doc_import_cannot_have_prefix.main();
+    doc_import_in_part_file.main();
     duplicate_constructor_default.main();
     duplicate_constructor_name.main();
     duplicate_definition.main();
@@ -1292,6 +1286,7 @@ main() {
     invalid_widget_preview_private_argument.main();
     invocation_of_extension_without_call.main();
     invocation_of_non_function_expression.main();
+    js_interop_extension_constructor_js_annotation_has_no_effect.main();
     label_in_outer_scope.main();
     label_undefined.main();
     late_final_local_already_assigned.main();
@@ -1337,6 +1332,7 @@ main() {
     mixin_with_non_class_superclass.main();
     mixins_super_class.main();
     mock_sdk.main();
+    multiple_combinators_deprecated.main();
     multiple_combinators.main();
     multiple_redirecting_constructor_invocations.main();
     multiple_super_initializers.main();
@@ -1361,7 +1357,6 @@ main() {
     non_const_call_to_literal_constructor.main();
     non_const_generative_enum_constructor.main();
     non_const_map_as_expression_statement.main();
-    non_constant_annotation_constructor.main();
     non_constant_case_expression_from_deferred_library.main();
     non_constant_case_expression.main();
     non_constant_default_value_from_deferred_library.main();
@@ -1431,7 +1426,6 @@ main() {
     prefix_shadowed_by_local_declaration.main();
     private_collision_in_mixin_application.main();
     private_optional_parameter.main();
-    private_setter.main();
     receiver_of_type_never.main();
     record_literal_one_positional_no_trailing_comma.main();
     recursive_compile_time_constant.main();
@@ -1511,32 +1505,32 @@ main() {
     type_test_with_non_type.main();
     type_test_with_undefined_name.main();
     unawaited_return_in_try_block.main();
-    undefined_annotation.main();
     undefined_class_boolean.main();
     undefined_class.main();
     undefined_constructor_in_initializer_default.main();
     undefined_constructor_in_initializer.main();
-    undefined_enum_constant.main();
     undefined_enum_constructor_named.main();
     undefined_enum_constructor_unnamed.main();
-    undefined_extension_getter.main();
-    undefined_extension_method.main();
+    undefined_extension_member_read.main();
+    undefined_extension_member_write.main();
     undefined_extension_operator.main();
-    undefined_extension_setter.main();
-    undefined_getter.main();
     undefined_hidden_name.main();
     undefined_identifier_await.main();
-    undefined_identifier.main();
-    undefined_method.main();
+    undefined_instance_member_read.main();
+    undefined_instance_member_write.main();
     undefined_named_parameter.main();
     undefined_operator.main();
-    undefined_prefixed_name.main();
+    undefined_prefixed_name_read.main();
+    undefined_prefixed_name_write.main();
     undefined_referenced_parameter.main();
-    undefined_setter.main();
     undefined_shown_name.main();
-    undefined_super_getter.main();
+    undefined_static_member_read.main();
+    undefined_static_member_write.main();
+    undefined_super_member_read.main();
+    undefined_super_member_write.main();
     undefined_super_operator.main();
-    undefined_super_setter.main();
+    undefined_unqualified_name_read.main();
+    undefined_unqualified_name_write.main();
     unignorable_ignore.main();
     unnecessary_import.main();
     unnecessary_cast_pattern.main();

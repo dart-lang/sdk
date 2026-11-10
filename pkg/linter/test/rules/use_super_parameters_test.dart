@@ -78,6 +78,7 @@ class B extends A {
           57,
           1,
           messageContainsAll: ["Parameter 'y' could be a super parameter."],
+          correctionContains: "Try converting 'y' to a super parameter.",
         ),
       ],
     );

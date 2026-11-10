@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor2.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/not_serializable_nodes.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -64,11 +66,7 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
 
   @override
   void visitElement(Element element) {
-    for (var annotation in element.metadata.annotations) {
-      var ast = (annotation as ElementAnnotationImpl).annotationAst;
-      _detachNode(ast);
-      _sanitizeArguments(ast.arguments?.arguments2);
-    }
+    _detachMetadata(element.metadata);
     super.visitElement(element);
   }
 
@@ -79,9 +77,39 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
   }
 
   @override
+  void visitExecutableElement(covariant ExecutableElementImpl element) {
+    // A formal parameter that only an augmenting fragment declares is not in
+    // `formalParameters`, so `children` does not reach it. The other formal
+    // parameters are in `children`, and `super` visits them.
+    for (var formalParameter in element.formalParametersIncludingRecovery) {
+      if (formalParameter.firstFragment.isOriginOtherFragmentOfEnclosing) {
+        formalParameter.accept(this);
+      }
+    }
+    super.visitExecutableElement(element);
+  }
+
+  @override
   void visitFormalParameterElement(FormalParameterElement element) {
     _detachConstVariable(element);
     super.visitFormalParameterElement(element);
+  }
+
+  @override
+  void visitLibraryElement(covariant LibraryElementImpl element) {
+    // Directives are not elements, so `children` does not include them.
+    for (var fragment in element.fragments) {
+      for (var import in fragment.libraryImports) {
+        _detachMetadata(import.metadata);
+      }
+      for (var export in fragment.libraryExports) {
+        _detachMetadata(export.metadata);
+      }
+      for (var partInclude in fragment.parts) {
+        _detachMetadata(partInclude.metadata);
+      }
+    }
+    super.visitLibraryElement(element);
   }
 
   @override
@@ -112,7 +140,16 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
           ConstantContextForExpressionImpl(fragment, initializer);
         }
       }
-      element.resetConstantInitializer();
+    }
+  }
+
+  void _detachMetadata(Metadata metadata) {
+    for (var annotation in metadata.annotations) {
+      var ast = (annotation as ElementAnnotationImpl).annotationAst;
+      _detachNode(ast);
+      if (ast.expression case ConstructorInvocationImpl(:var argumentList)) {
+        _sanitizeArguments(argumentList.arguments2);
+      }
     }
   }
 
@@ -122,6 +159,11 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
       // Also detach from the token stream.
       node.beginToken.previous = null;
       node.endToken.next = null;
+      for (Token? token = node.beginToken; token != null; token = token.next) {
+        if (token is SimpleToken) {
+          token.precedingComments = null;
+        }
+      }
     }
   }
 

@@ -585,14 +585,13 @@ ForInElement createForInElement({
 /// Return a representation of a for statement.
 InternalLoopStatement createForStatement(
   int fileOffset,
-  List<InternalVariableDeclaration>? variables,
+  List<InternalVariableDeclaration> variables,
   InternalExpression? condition,
   List<InternalExpression> updaters,
   InternalStatement body,
 ) {
   return new InternalForStatement(
-    variables ?? // Coverage-ignore(suite): Not run.
-        [],
+    variables,
     condition,
     updaters,
     body,
@@ -1756,12 +1755,14 @@ InternalExpression createSuperIndexSet({
   required Member setter,
   required InternalExpression index,
   required InternalExpression value,
+  required bool forEffect,
   required int fileOffset,
 }) {
   return new SuperIndexSet(
     setter: setter,
     index: index,
     value: value,
+    forEffect: forEffect,
     fileOffset: fileOffset,
   );
 }

@@ -16,27 +16,24 @@ class DeprecatedFunctionalityVerifier {
 
   final LibraryElement _currentLibrary;
 
-  DeprecatedFunctionalityVerifier(
-    this._diagnosticReporter,
-    this._currentLibrary,
-  );
+  new(this._diagnosticReporter, this._currentLibrary);
 
-  void classDeclaration(ClassDeclaration node) {
+  void classDeclaration(ClassDeclaration2 node) {
     _checkForDeprecatedExtend(node.extendsClause?.superclass);
     _checkForDeprecatedImplement(node.implementsClause?.interfaces);
     _checkForDeprecatedMixin(node.withClause);
     _checkForDeprecatedSubclass(node.withClause?.mixinTypes);
   }
 
-  void classTypeAlias(ClassTypeAlias node) {
+  void classTypeAlias(ClassTypeAlias2 node) {
     _checkForDeprecatedExtend(node.superclass);
     _checkForDeprecatedImplement(node.implementsClause?.interfaces);
     _checkForDeprecatedMixin(node.withClause);
   }
 
-  void constructorDeclaration(ConstructorDeclaration node) {
+  void constructorDeclaration(ConstructorDeclaration2 node) {
     _checkForDeprecatedOptionalSuperParameters(
-      parameters: node.parameters,
+      parameters: node.formalParameters,
       initializers: node.initializers,
       superConstructor: node.declaredFragment?.element.superConstructor,
       errorRange: node.errorRange,
@@ -83,59 +80,51 @@ class DeprecatedFunctionalityVerifier {
     _checkForDeprecatedInstantiate(element: interfaceElement, errorNode: node);
   }
 
-  void dotShorthandConstructorInvocation(
-    DotShorthandConstructorInvocation node,
+  void dotShorthandConstructorInvocation2(
+    DotShorthandConstructorInvocation2Impl node,
   ) {
     var element = node.element;
-    if (element is! ConstructorElement) return;
+    if (element == null) return;
     _checkForDeprecatedOptional(
       element: element,
       argumentList: node.argumentList,
-      errorEntity: node.constructorName,
+      errorEntity: node.name,
     );
     _checkForDeprecatedInstantiate(
       element: element.enclosingElement,
-      errorNode: node.constructorName,
+      errorNode: node.name,
     );
   }
 
-  void dotShorthandInvocation(DotShorthandInvocation node) {
-    var element = node.memberName.element;
-    if (element is! ExecutableElement) return;
-    _checkForDeprecatedOptional(
-      element: element,
-      argumentList: node.argumentList,
-      errorEntity: node.memberName,
-    );
-  }
-
-  void enumDeclaration(EnumDeclaration node) {
+  void enumDeclaration(EnumDeclaration2 node) {
     _checkForDeprecatedImplement(node.implementsClause?.interfaces);
     _checkForDeprecatedMixin(node.withClause);
   }
 
-  void methodInvocation(MethodInvocation node) {
-    var method = node.methodName.element;
-    if (method is! ExecutableElement) return;
-    if (method is LocalFunctionElement) return;
-    _checkForDeprecatedOptional(
-      element: method,
-      argumentList: node.argumentList,
-      errorEntity: node.methodName,
-    );
-  }
-
-  void mixinDeclaration(MixinDeclaration node) {
+  void mixinDeclaration(MixinDeclaration2 node) {
     _checkForDeprecatedImplement(node.implementsClause?.interfaces);
     // Not technically "implementing," but is similar enough for
     // `@Deprecated.implement` and `@Deprecated.subclass`.
     _checkForDeprecatedImplement(node.onClause?.superclassConstraints);
   }
 
+  void namedFunctionInvocation(NamedFunctionInvocation node) {
+    var method = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element,
+      _ => null,
+    };
+    if (method is! ExecutableElement || method is LocalFunctionElement) return;
+    _checkForDeprecatedOptional(
+      element: method,
+      argumentList: node.argumentList,
+      errorEntity: node.name,
+    );
+  }
+
   void primaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
     _checkForDeprecatedOptionalSuperParameters(
       parameters: node.formalParameters,
-      initializers: node.body?.initializers ?? const [],
+      initializers: node.body2?.initializers ?? const [],
       superConstructor: node.declaredFragment?.element.superConstructor,
       errorRange: node.errorRange,
     );
@@ -187,7 +176,7 @@ class DeprecatedFunctionalityVerifier {
 
   void _checkForDeprecatedInstantiate({
     required InterfaceElement element,
-    required AstNode errorNode,
+    required SyntacticEntity errorNode,
   }) {
     if (element.isDeprecatedWithKind('instantiate')) {
       _diagnosticReporter.report(
@@ -235,16 +224,16 @@ class DeprecatedFunctionalityVerifier {
   }
 
   void _checkForDeprecatedOptionalRedirectedParameters(
-    ConstructorDeclaration node,
+    ConstructorDeclaration2 node,
   ) {
     if (node.factoryRedirectionTarget?.element
         case var redirectedConstructor?) {
       var SourceRange(offset: errorOffset, length: errorLength) =
           node.errorRange;
-      var positionalArgumentCount = node.parameters.parameters
+      var positionalArgumentCount = node.formalParameters.allFormalParameters
           .where((p) => p.isPositional)
           .length;
-      var namedArgumentNames = node.parameters.parameters
+      var namedArgumentNames = node.formalParameters.allFormalParameters
           .where((p) => p.isNamed)
           .map((p) => p.name?.lexeme)
           .nonNulls

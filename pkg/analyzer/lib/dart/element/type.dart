@@ -176,6 +176,7 @@ abstract class DartType {
   String getDisplayString({
     @Deprecated('Only non-nullable by default mode is supported')
     bool withNullability = true,
+    bool includePositionalParameterNames = false,
   });
 }
 
@@ -433,7 +434,7 @@ abstract class ParameterizedType implements DartType {
 /// Clients may not extend, implement or mix-in this class.
 abstract class RecordType implements DartType {
   /// Creates a record type from of [positional] and [named] fields.
-  factory RecordType({
+  factory({
     required List<DartType> positional,
     required Map<String, DartType> named,
     required NullabilitySuffix nullabilitySuffix,

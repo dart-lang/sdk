@@ -49,6 +49,9 @@ class PackageConfigFileBuilder {
     return copy;
   }
 
+  /// Whether a package with [name] has already been added.
+  bool hasPackage(String name) => _packages.any((e) => e.name == name);
+
   /// Returns the contents of the built package config file.
   String toContent() {
     var buffer = StringBuffer();
@@ -98,7 +101,7 @@ class _PackageDescription {
   final String packageUriStr;
   final String? languageVersion;
 
-  _PackageDescription({
+  new({
     required this.name,
     required this.rootFolder,
     required this.packageUriStr,

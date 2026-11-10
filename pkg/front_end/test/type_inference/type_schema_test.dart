@@ -33,31 +33,55 @@ class UnknownTypeTest {
     var typedefF = new Typedef('F', A, fileUri: dummyUri);
     expect(isKnown(A), isTrue);
     expect(
-      isKnown(new InterfaceType(classA, Nullability.nonNullable, [A])),
+      isKnown(
+        new InterfaceType(classA, Nullability.nonNullable, new DartTypeList(A)),
+      ),
       isTrue,
     );
     expect(
       isKnown(
-        new InterfaceType(classA, Nullability.nonNullable, [unknownType]),
+        new InterfaceType(
+          classA,
+          Nullability.nonNullable,
+          new DartTypeList(unknownType),
+        ),
       ),
       isFalse,
     );
     expect(
-      isKnown(new FunctionType([], const VoidType(), Nullability.nonNullable)),
-      isTrue,
-    );
-    expect(
-      isKnown(new FunctionType([], unknownType, Nullability.nonNullable)),
-      isFalse,
-    );
-    expect(
-      isKnown(new FunctionType([A], const VoidType(), Nullability.nonNullable)),
+      isKnown(
+        new FunctionType(
+          DartTypeList.empty,
+          const VoidType(),
+          Nullability.nonNullable,
+        ),
+      ),
       isTrue,
     );
     expect(
       isKnown(
         new FunctionType(
-          [unknownType],
+          DartTypeList.empty,
+          unknownType,
+          Nullability.nonNullable,
+        ),
+      ),
+      isFalse,
+    );
+    expect(
+      isKnown(
+        new FunctionType(
+          new DartTypeList(A),
+          const VoidType(),
+          Nullability.nonNullable,
+        ),
+      ),
+      isTrue,
+    );
+    expect(
+      isKnown(
+        new FunctionType(
+          new DartTypeList(unknownType),
           const VoidType(),
           Nullability.nonNullable,
         ),
@@ -67,10 +91,10 @@ class UnknownTypeTest {
     expect(
       isKnown(
         new FunctionType(
-          [],
+          DartTypeList.empty,
           const VoidType(),
           Nullability.nonNullable,
-          namedParameters: [new NamedType('x', A)],
+          namedParameters: new NamedDartTypeList(new NamedType('x', A)),
         ),
       ),
       isTrue,
@@ -78,22 +102,30 @@ class UnknownTypeTest {
     expect(
       isKnown(
         new FunctionType(
-          [],
+          DartTypeList.empty,
           const VoidType(),
           Nullability.nonNullable,
-          namedParameters: [new NamedType('x', unknownType)],
+          namedParameters: new NamedDartTypeList(
+            new NamedType('x', unknownType),
+          ),
         ),
       ),
       isFalse,
     );
     expect(isKnown(new TypedefType(typedefF, Nullability.nonNullable)), isTrue);
     expect(
-      isKnown(new TypedefType(typedefF, Nullability.nonNullable, [A])),
+      isKnown(
+        new TypedefType(typedefF, Nullability.nonNullable, new DartTypeList(A)),
+      ),
       isTrue,
     );
     expect(
       isKnown(
-        new TypedefType(typedefF, Nullability.nonNullable, [unknownType]),
+        new TypedefType(
+          typedefF,
+          Nullability.nonNullable,
+          new DartTypeList(unknownType),
+        ),
       ),
       isFalse,
     );
@@ -155,7 +187,7 @@ class UnknownTypeTest {
     expect(
       typeSchemaToString(
         new FunctionType(
-          [unknownType, unknownType],
+          new DartTypeList(unknownType, unknownType),
           unknownType,
           Nullability.nonNullable,
         ),

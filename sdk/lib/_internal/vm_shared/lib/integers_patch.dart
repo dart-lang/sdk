@@ -66,7 +66,11 @@ class int {
   }
 
   @patch
-  static int parse(String source, {int? radix, int onError(String source)?}) {
+  static int parse(
+    String source, {
+    int? radix,
+    int Function(String source)? onError,
+  }) {
     if (source.isEmpty) {
       return _handleFormatError(onError, source, 0, radix, null) as int;
     }

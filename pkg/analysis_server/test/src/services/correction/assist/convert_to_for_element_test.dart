@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertToForElementTest extends AssistProcessorTest {
+class ConvertToForElementTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertToForElement;
 

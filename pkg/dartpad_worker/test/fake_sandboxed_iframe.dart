@@ -1,0 +1,312 @@
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+/// @docImport 'package:dartpad/src/worker_client.dart';
+library;
+
+import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:dartpad/src/exceptions.dart' show rethrowAsDartPadException;
+import 'package:dartpad/src/message_port/message_port.dart';
+import 'package:dartpad_worker/src/shared.dart';
+import 'package:json_rpc_2/json_rpc_2.dart';
+import 'package:test/test.dart';
+
+import 'checks_ext.dart';
+
+sealed class SandboxEvent {}
+
+/// An event carrying DDC library bundles.
+sealed class ModulesEvent extends SandboxEvent {
+  final List<CompiledModule> modules;
+  ModulesEvent._(this.modules);
+
+  /// The names of the bundles, in the order they were sent.
+  List<String> get moduleNames => [
+    for (final module in modules) module.moduleName,
+  ];
+}
+
+/// Triggered by [Sandbox.run].
+final class LoadModulesEvent extends ModulesEvent {
+  LoadModulesEvent._(super.modules) : super._();
+}
+
+/// Triggered by [Sandbox.run].
+final class RunEvent extends SandboxEvent {
+  final String libraryUri;
+  final String mode;
+  final String packageRoot;
+  RunEvent._({
+    required this.libraryUri,
+    required this.mode,
+    required this.packageRoot,
+  });
+}
+
+/// Triggered by [Sandbox.hotReload].
+final class HotReloadEvent extends ModulesEvent {
+  HotReloadEvent._(super.modules) : super._();
+}
+
+/// Triggered by [Sandbox.hotRestart].
+final class HotRestartEvent extends ModulesEvent {
+  HotRestartEvent._(super.modules) : super._();
+}
+
+/// Triggered when a service extension is invoked in the sandbox.
+final class InvokeExtensionEvent extends SandboxEvent {
+  final String method;
+  final Map<String, dynamic> parameters;
+  InvokeExtensionEvent._({required this.method, required this.parameters});
+}
+
+/// A fake implementation of a sandboxed iframe for testing.
+final class FakeSandboxedIframe {
+  late final MessagePort port;
+  late final Peer _peer;
+
+  final List<SandboxEvent> events = [];
+  final _eventStreamController = StreamController<SandboxEvent>.broadcast();
+
+  int _hotReloadGeneration = 0;
+  int _hotRestartGeneration = 0;
+  String? _libraryUri;
+  String? _mode;
+
+  FakeSandboxedIframe() {
+    final (localPort, foreignPort) = MessagePortExt.createChannel();
+    port = localPort;
+
+    _peer = Peer.withoutJson(foreignPort.jsonRpcChannel());
+
+    _peer.registerMethod('loadModules', (Parameters params) {
+      _addEvent(LoadModulesEvent._(_decodeModules(params)));
+      return <String, dynamic>{};
+    });
+
+    _peer.registerMethod('run', (Parameters params) {
+      final mode = _mode = params['mode'].asString;
+      final libraryUri = _libraryUri = params['libraryUri'].asString;
+      final packageRoot = params['packageRoot'].asString;
+
+      emitIsolateStart(libraryUri, mode);
+      _addEvent(
+        RunEvent._(
+          libraryUri: libraryUri,
+          mode: mode,
+          packageRoot: packageRoot,
+        ),
+      );
+      return <String, dynamic>{};
+    });
+
+    _peer.registerMethod('hotReload', (Parameters params) {
+      if (_libraryUri == null) {
+        throw InvalidSandboxStateException('No application is running.');
+      }
+      _addEvent(HotReloadEvent._(_decodeModules(params)));
+      _hotReloadGeneration++;
+      _peer.sendNotification('isolateReload', {});
+      return {'generation': _hotReloadGeneration, 'success': true};
+    });
+
+    _peer.registerMethod('hotRestart', (Parameters params) {
+      final (libraryUri, mode) = (_libraryUri, _mode);
+      if (libraryUri == null || mode == null) {
+        throw InvalidSandboxStateException('No application is running.');
+      }
+      _peer.sendNotification('isolateExit', {});
+      _addEvent(HotRestartEvent._(_decodeModules(params)));
+      _hotRestartGeneration++;
+      emitIsolateStart(libraryUri, mode);
+      return {'generation': _hotRestartGeneration, 'success': true};
+    });
+
+    _peer.registerMethod('getHotRestartGeneration', (Parameters params) {
+      return {'generation': _hotRestartGeneration};
+    });
+
+    _peer.registerMethod('getHotReloadGeneration', (Parameters params) {
+      return {'generation': _hotReloadGeneration};
+    });
+
+    _peer.registerMethod('appMetrics', (Parameters params) {
+      return <String, dynamic>{
+        'dartSize': 0,
+        'jsSize': 0,
+        'sourceMapSize': 0,
+        'evaluatedModules': 0,
+        'loadTimeMs': 0,
+      };
+    });
+
+    _peer.registerMethod('invokeExtension', (Parameters params) {
+      final event = InvokeExtensionEvent._(
+        method: params['method'].asString,
+        parameters: params['args'].asMap.cast<String, dynamic>(),
+      );
+      _addEvent(event);
+      return jsonEncode({'result': 'success'});
+    });
+
+    unawaited(_peer.listen());
+  }
+
+  void _addEvent(SandboxEvent event) {
+    events.add(event);
+    _eventStreamController.add(event);
+  }
+
+  /// Check that an event satisfying [condition] has occurred or will occur.
+  Future<void> checkEvent(
+    Condition<SandboxEvent> condition, {
+    Duration timeLimit = const Duration(seconds: 5),
+  }) async {
+    if (events.any((e) => condition.softCheckSync(e) == null)) {
+      return;
+    }
+    await _eventStreamController.stream
+        .firstWhere((e) => condition.softCheckSync(e) == null)
+        .timeout(
+          timeLimit,
+          onTimeout: () => throw TestFailure(
+            'Expected SandboxEvent within $timeLimit that '
+            '${condition.describeSync().join('\n')}',
+          ),
+        );
+  }
+
+  void emitConsole(String level, String message) {
+    _peer.sendNotification('console', {'level': level, 'message': message});
+  }
+
+  void emitIsolateStart(String entrypointUri, String mode) {
+    _peer.sendNotification('isolateStart', {
+      'entrypointUri': entrypointUri,
+      'mode': mode,
+    });
+  }
+
+  void emitRegisterExtension(String method) {
+    _peer.sendNotification('registerExtension', {'method': method});
+  }
+
+  void emitExtensionEvent(String kind, Map<String, dynamic> data) {
+    _peer.sendNotification('extensionEvent', {
+      'kind': kind,
+      'data': jsonEncode(data),
+    });
+  }
+
+  Future<T> _sendRequest<T>(
+    String method, [
+    Map<String, Object?> params = const {},
+  ]) async {
+    try {
+      return await _peer.sendRequest(method, params) as T;
+    } on RpcException catch (e) {
+      rethrowAsDartPadException(e);
+    }
+  }
+
+  Future<String> readFileAsText(String path) async {
+    final result = await _sendRequest<Map>('readFileAsText', {'path': path});
+    return result['text'] as String;
+  }
+
+  Future<Uint8List> readFileAsBytes(String path) async {
+    final result = await _sendRequest<Map>('readFileAsBytes', {'path': path});
+    return result['bytes'] as Uint8List;
+  }
+
+  Future<Map<String, Object?>> stat(String path) async {
+    final result = await _sendRequest<Map>('stat', {'path': path});
+    return result.cast<String, Object?>();
+  }
+
+  Future<List<Map<String, Object?>>> listDirectory(
+    String path, {
+    bool recursive = false,
+    bool ignoreHidden = false,
+  }) async {
+    final result = await _sendRequest<Map>('listDirectory', {
+      'path': path,
+      'recursive': recursive,
+      'ignoreHidden': ignoreHidden,
+    });
+    return (result['entries'] as List)
+        .map((e) => (e as Map).cast<String, Object?>())
+        .toList();
+  }
+
+  Future<
+    ({
+      String name,
+      String rootPath,
+      String packagePath,
+      String languageVersion,
+    })?
+  >
+  resolvePackage(String package) async {
+    final result = await _sendRequest<Map>('resolvePackage', {
+      'package': package,
+    });
+    final pkg = result['package'] as Map?;
+    if (pkg == null) {
+      return null;
+    }
+    return (
+      name: pkg['name'] as String,
+      rootPath: pkg['rootPath'] as String,
+      packagePath: pkg['packagePath'] as String,
+      languageVersion: pkg['languageVersion'] as String,
+    );
+  }
+
+  Future<void> close() async {
+    await _peer.close();
+    await _eventStreamController.close();
+  }
+}
+
+List<CompiledModule> _decodeModules(Parameters params) => [
+  for (final module in params['modules'].asList)
+    (
+      moduleName: (module as Map)['moduleName'] as String,
+      code: module['code'] as String,
+      libraries: [
+        for (final lib in (module['libraries'] as List?) ?? const [])
+          lib as String,
+      ],
+    ),
+];
+
+extension ModulesEventChecks on Subject<ModulesEvent> {
+  Subject<List<CompiledModule>> get modules =>
+      has2('modules', (e) => e.modules);
+  Subject<List<String>> get moduleNames =>
+      has2('moduleNames', (e) => e.moduleNames);
+
+  /// Some bundle contains [pattern].
+  ///
+  /// Bundles are per strongly connected component of the import graph, so
+  /// which bundle a given library lands in is an implementation detail.
+  void anyModuleContains(Pattern pattern) =>
+      modules.any(.it()..code.contains(pattern));
+}
+
+extension RunMainEventChecks on Subject<RunEvent> {
+  Subject<String> get libraryUri => has2('libraryUri', (e) => e.libraryUri);
+  Subject<String> get mode => has2('mode', (e) => e.mode);
+  Subject<String> get packageRoot => has2('packageRoot', (e) => e.packageRoot);
+}
+
+extension InvokeExtensionEventChecks on Subject<InvokeExtensionEvent> {
+  Subject<String> get method => has2('method', (e) => e.method);
+  Subject<Map<String, dynamic>> get parameters =>
+      has2('parameters', (e) => e.parameters);
+}

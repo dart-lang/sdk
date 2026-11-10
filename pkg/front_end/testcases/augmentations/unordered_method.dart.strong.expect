@@ -1,0 +1,66 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+part unordered_method_part1.dart;
+part unordered_method_part2.dart;
+abstract class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  @/* from org-dartlang-testcase:///unordered_method_part1.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_method_part2.dart */ #C2
+  method instanceMethod1() → void {
+    core::print("instanceMethod1");
+  }
+  @/* from org-dartlang-testcase:///unordered_method_part1.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_method_part2.dart */ #C2
+  abstract method instanceMethod4() → void;
+  @/* from org-dartlang-testcase:///unordered_method_part1.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_method_part2.dart */ #C2
+  static method staticMethod1() → void {
+    core::print("staticMethod1");
+  }
+  @/* from org-dartlang-testcase:///unordered_method.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_method_part2.dart */ #C2
+  method /* from org-dartlang-testcase:///unordered_method_part1.dart */ instanceMethod2() → void {
+    core::print("instanceMethod2");
+  }
+  @/* from org-dartlang-testcase:///unordered_method.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_method_part2.dart */ #C2
+  static method /* from org-dartlang-testcase:///unordered_method_part1.dart */ staticMethod2() → void {
+    core::print("staticMethod2");
+  }
+  @/* from org-dartlang-testcase:///unordered_method.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_method_part1.dart */ #C2
+  method /* from org-dartlang-testcase:///unordered_method_part2.dart */ instanceMethod3() → void {
+    core::print("instanceMethod3");
+  }
+  @/* from org-dartlang-testcase:///unordered_method.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_method_part1.dart */ #C2
+  static method /* from org-dartlang-testcase:///unordered_method_part2.dart */ staticMethod3() → void {
+    core::print("staticMethod3");
+  }
+}
+static const field core::int annotation1 = #C1;
+static const field core::int annotation2 = #C2;
+@/* from org-dartlang-testcase:///unordered_method_part1.dart */ #C1
+@/* from org-dartlang-testcase:///unordered_method_part2.dart */ #C2
+static method topLevelMethod1() → void {
+  core::print("topLevelMethod1");
+}
+@/* from org-dartlang-testcase:///unordered_method.dart */ #C1
+@/* from org-dartlang-testcase:///unordered_method_part2.dart */ #C2
+static method /* from org-dartlang-testcase:///unordered_method_part1.dart */ topLevelMethod2() → void {
+  core::print("topLevelMethod2");
+}
+@/* from org-dartlang-testcase:///unordered_method.dart */ #C1
+@/* from org-dartlang-testcase:///unordered_method_part1.dart */ #C2
+static method /* from org-dartlang-testcase:///unordered_method_part2.dart */ topLevelMethod3() → void {
+  core::print("topLevelMethod3");
+}
+
+constants  {
+  #C1 = 1
+  #C2 = 2
+}

@@ -15,6 +15,7 @@ import 'package:native_stack_traces/src/macho.dart' show MachO;
 import 'package:path/path.dart' as path;
 
 final isAOTRuntime = isVmAotConfiguration;
+final isInterpreter = isVmDynConfiguration;
 final buildDir = path.dirname(Platform.executable);
 final sdkDir = path.dirname(path.dirname(buildDir));
 late final platformDill = () {
@@ -158,6 +159,37 @@ Future<void> assembleSnapshot(
     '-o',
     snapshotPath,
     assemblyPath,
+  ]);
+}
+
+// Links a PE/COFF object produced by gen_snapshot into a DLL, using the same
+// flags as the test runner when running tests with COFF snapshots. The PDB is
+// written to [pdbPath].
+Future<void> linkCoffSnapshot(
+  String objectPath,
+  String snapshotPath,
+  String pdbPath,
+) async {
+  if (!Platform.isWindows) {
+    throw "Unsupported platform ${Platform.operatingSystem} for linking COFF";
+  }
+
+  final clangBuildTools = clangBuildToolsDir;
+  if (clangBuildTools == null) {
+    throw 'Cannot link COFF objects for ${path.basename(buildDir)} '
+        'without //buildtools on ${Platform.operatingSystem}';
+  }
+
+  await run(path.join(clangBuildTools, 'clang$exeSuffix'), <String>[
+    '--target=x86_64-windows',
+    '-nostdlib',
+    '-Wl,/NOENTRY',
+    '-Wl,/DEBUG',
+    '-Wl,/PDB:$pdbPath',
+    '-shared',
+    '-o',
+    snapshotPath,
+    objectPath,
   ]);
 }
 

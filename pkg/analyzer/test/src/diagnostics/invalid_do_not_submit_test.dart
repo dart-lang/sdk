@@ -43,7 +43,7 @@ import 'a.dart';
 void b() {
   A();
 //^
-// [diag.invalidUseOfDoNotSubmitMember] Uses of 'A' should not be submitted to source control.
+// [diag.invalidUseOfDoNotSubmitMember] Uses of 'A.new' should not be submitted to source control.
 }
 ''');
   }
@@ -65,7 +65,22 @@ import 'a.dart';
 
 var a = A();
 //      ^
-// [diag.invalidUseOfDoNotSubmitMember] Uses of 'A' should not be submitted to source control.
+// [diag.invalidUseOfDoNotSubmitMember] Uses of 'A.new' should not be submitted to source control.
+''');
+  }
+
+  test_constructor_redirecting() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @doNotSubmit
+  A.named(int x);
+
+  A() : this.named(0);
+//      ^^^^^^^^^^
+// [diag.invalidUseOfDoNotSubmitMember] Uses of 'A.named' should not be submitted to source control.
+}
 ''');
   }
 
@@ -88,7 +103,7 @@ import 'a.dart';
 void b() {
   A();
 //^
-// [diag.invalidUseOfDoNotSubmitMember] Uses of 'A' should not be submitted to source control.
+// [diag.invalidUseOfDoNotSubmitMember] Uses of 'A.new' should not be submitted to source control.
 }
 ''');
   }

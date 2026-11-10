@@ -27,7 +27,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '4.22.0';
+const String vmServiceVersion = '4.23.0';
 
 /// @optional
 const String optional = 'optional';
@@ -136,6 +136,8 @@ final _typeFactories = <String, Function>{
   'Error': Error.parse,
   'Event': Event.parse,
   'ExtensionData': ExtensionData.parse,
+  'FfiStructField': FfiStructField.parse,
+  'FfiStructLayout': FfiStructLayout.parse,
   '@Field': FieldRef.parse,
   'Field': Field.parse,
   'Flag': Flag.parse,
@@ -2043,19 +2045,34 @@ class VmService {
     final request = _outstandingRequests.remove(json['id']);
     if (request == null) {
       _log.severe('unmatched request response: ${jsonEncode(json)}');
-    } else if (json['error'] case Map error) {
-      request.completeError(RPCError.parse(request.method, error));
-    } else {
-      final result = json['result'] as Map<String, dynamic>;
-      final type = result['type'];
-      if (type == 'Sentinel') {
-        request.completeError(SentinelException.parse(request.method, result));
-      } else if (_typeFactories[type] == null) {
-        request.complete(Response.parse(result));
+      return;
+    }
+    try {
+      if (json['error'] case Map error) {
+        request.completeError(RPCError.parse(request.method, error));
       } else {
-        final returnTypes = _methodReturnTypes[request.method] ?? <String>[];
-        request.complete(createServiceObject(result, returnTypes));
+        final result = json['result'] as Map<String, dynamic>;
+        final type = result['type'];
+        if (type == 'Sentinel') {
+          request.completeError(
+            SentinelException.parse(request.method, result),
+          );
+        } else if (_typeFactories[type] == null) {
+          request.complete(Response.parse(result));
+        } else {
+          // Methods without known return types (e.g., private RPCs or service
+          // extensions invoked via `callMethod`) may return a `null` instance
+          // (an `@Instance` with kind `Null`). Expect an `InstanceRef` so that
+          // `null` instances aren't replaced with `null`, which would cause
+          // completing the request to throw and the response to be dropped.
+          final returnTypes = _methodReturnTypes[request.method] ??
+              const <String>['InstanceRef'];
+          request.complete(createServiceObject(result, returnTypes));
+        }
       }
+    } catch (e, st) {
+      _log.severe('Failed to process response: $json, $e\n$st');
+      request.completeError(e);
     }
   }
 
@@ -2774,6 +2791,9 @@ class BoundVariable extends Response {
   /// [value] can be one of [InstanceRef], [TypeArgumentsRef] or [Sentinel].
   dynamic value;
 
+  /// The static type of this variable, as declared in source.
+  InstanceRef? staticType;
+
   /// The token position where this variable was declared.
   int? declarationTokenPos;
 
@@ -2786,6 +2806,7 @@ class BoundVariable extends Response {
   BoundVariable({
     this.name,
     this.value,
+    this.staticType,
     this.declarationTokenPos,
     this.scopeStartTokenPos,
     this.scopeEndTokenPos,
@@ -2795,6 +2816,9 @@ class BoundVariable extends Response {
       : name = json['name'] ?? '',
         value = createServiceObject(json['value'],
             const ['InstanceRef', 'TypeArgumentsRef', 'Sentinel']),
+        staticType =
+            createServiceObject(json['staticType'], const ['InstanceRef'])
+                as InstanceRef?,
         declarationTokenPos = json['declarationTokenPos'] ?? -1,
         scopeStartTokenPos = json['scopeStartTokenPos'] ?? -1,
         scopeEndTokenPos = json['scopeEndTokenPos'] ?? -1,
@@ -2808,6 +2832,7 @@ class BoundVariable extends Response {
         'type': type,
         'name': name ?? '',
         'value': value?.toJson(),
+        'staticType': staticType?.toJson(),
         'declarationTokenPos': declarationTokenPos ?? -1,
         'scopeStartTokenPos': scopeStartTokenPos ?? -1,
         'scopeEndTokenPos': scopeEndTokenPos ?? -1,
@@ -2815,7 +2840,7 @@ class BoundVariable extends Response {
 
   @override
   String toString() => '[BoundVariable ' //
-      'name: $name, value: $value, declarationTokenPos: $declarationTokenPos, ' //
+      'name: $name, value: $value, staticType: $staticType, declarationTokenPos: $declarationTokenPos, ' //
       'scopeStartTokenPos: $scopeStartTokenPos, scopeEndTokenPos: $scopeEndTokenPos]';
 }
 
@@ -3044,6 +3069,14 @@ class Class extends Obj implements ClassRef {
   /// A list of subclasses of this class.
   List<ClassRef>? subclasses;
 
+  /// The native memory layout of this class.
+  ///
+  /// Provided if this class is a subclass of `dart:ffi`'s `Struct` and its
+  /// layout could be computed. It is emitted on the compound class itself. A
+  /// `Pointer<MyStruct>` object has no `ffiLayout`
+  @optional
+  FfiStructLayout? ffiLayout;
+
   Class({
     this.name,
     this.library,
@@ -3066,6 +3099,7 @@ class Class extends Obj implements ClassRef {
     this.superClass,
     this.superType,
     this.mixin,
+    this.ffiLayout,
   });
 
   Class._fromJson(super.json)
@@ -3106,6 +3140,9 @@ class Class extends Obj implements ClassRef {
         subclasses = _createServiceObjectListOrNull<ClassRef>(
                 json['subclasses'], const ['ClassRef']) ??
             [],
+        ffiLayout =
+            createServiceObject(json['ffiLayout'], const ['FfiStructLayout'])
+                as FfiStructLayout?,
         super._fromJson();
 
   @override
@@ -3139,6 +3176,8 @@ class Class extends Obj implements ClassRef {
         if (superType?.toJson() case final superTypeValue?)
           'superType': superTypeValue,
         if (mixin?.toJson() case final mixinValue?) 'mixin': mixinValue,
+        if (ffiLayout?.toJson() case final ffiLayoutValue?)
+          'ffiLayout': ffiLayoutValue,
       };
 
   @override
@@ -4200,6 +4239,130 @@ class Event extends Response {
 
   @override
   String toString() => '[Event kind: $kind, timestamp: $timestamp]';
+}
+
+/// An `FfiStructField` describes a single member of an [FfiStructLayout].
+class FfiStructField {
+  static FfiStructField? parse(Map<String, dynamic>? json) =>
+      json == null ? null : FfiStructField._fromJson(json);
+
+  /// The declared name of the struct field.
+  String? name;
+
+  /// Human-readable native (C-semantics) type name (e.g. "int32", a compound's
+  /// class name, or "Array").
+  String? nativeType;
+
+  /// The byte offset of this field from the start of the struct, not from the
+  /// start of the backing storage.
+  int? offset;
+
+  /// The size of this field in bytes.
+  int? size;
+
+  /// The number of elements if this field is an inline Array.
+  @optional
+  int? length;
+
+  /// The element type name if this field is an inline Array (e.g. "uint8",
+  /// "InnerStruct").
+  @optional
+  String? arrayElementType;
+
+  /// Whether the nested compound described by `fields` is a struct or a union.
+  ///
+  /// Provided if `fields` is provided. Either "struct" or "union".
+  @optional
+  String? kind;
+
+  /// The layout of the nested compound in this field.
+  ///
+  /// Provided if this field is itself a compound, or if this field is an inline
+  /// Array whose element type is a compound.
+  @optional
+  List<FfiStructField>? fields;
+
+  FfiStructField({
+    this.name,
+    this.nativeType,
+    this.offset,
+    this.size,
+    this.length,
+    this.arrayElementType,
+    this.kind,
+    this.fields,
+  });
+
+  FfiStructField._fromJson(Map<String, dynamic> json)
+      : name = json['name'] ?? '',
+        nativeType = json['nativeType'] ?? '',
+        offset = json['offset'] ?? -1,
+        size = json['size'] ?? -1,
+        length = json['length'],
+        arrayElementType = json['arrayElementType'],
+        kind = json['kind'],
+        fields = _createServiceObjectListOrNull<FfiStructField>(
+            json['fields'], const ['FfiStructField']);
+
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'name': name ?? '',
+        'nativeType': nativeType ?? '',
+        'offset': offset ?? -1,
+        'size': size ?? -1,
+        if (length case final lengthValue?) 'length': lengthValue,
+        if (arrayElementType case final arrayElementTypeValue?)
+          'arrayElementType': arrayElementTypeValue,
+        if (kind case final kindValue?) 'kind': kindValue,
+        if (fields?.map((f) => f.toJson()).toList() case final fieldsValue?)
+          'fields': fieldsValue,
+      };
+
+  @override
+  String toString() => '[FfiStructField ' //
+      'name: $name, nativeType: $nativeType, offset: $offset, size: $size]';
+}
+
+/// An `FfiStructLayout` describes the native memory layout of a `dart:ffi`
+/// compound.
+///
+/// See [Class].
+class FfiStructLayout {
+  static FfiStructLayout? parse(Map<String, dynamic>? json) =>
+      json == null ? null : FfiStructLayout._fromJson(json);
+
+  /// The total size of the compound in bytes, including padding.
+  int? size;
+
+  /// Whether this compound is a struct or a union. Either "struct" or "union".
+  ///
+  /// The members of a union all have the same offset.
+  String? kind;
+
+  /// The ordered list of fields in the compound layout.
+  List<FfiStructField>? fields;
+
+  FfiStructLayout({
+    this.size,
+    this.kind,
+    this.fields,
+  });
+
+  FfiStructLayout._fromJson(Map<String, dynamic> json)
+      : size = json['size'] ?? -1,
+        kind = json['kind'] ?? '',
+        fields = _createServiceObjectListOrNull<FfiStructField>(
+                json['fields'], const ['FfiStructField']) ??
+            [];
+
+  Map<String, dynamic> toJson() => <String, Object?>{
+        'size': size ?? -1,
+        'kind': kind ?? '',
+        'fields': fields?.map((f) => f.toJson()).toList(),
+      };
+
+  @override
+  String toString() =>
+      '[FfiStructLayout size: $size, kind: $kind, fields: $fields]';
 }
 
 /// An `FieldRef` is a reference to a `Field`.

@@ -11,10 +11,12 @@ namespace dart {
 
 // Forward declarations.
 class FreeList;
+class FreeListElement;
 class Heap;
 class Page;
 class IsolateGroup;
 class PageSpace;
+class Scavenger;
 
 // The class GCSweeper is used to visit the heap after marking to reclaim unused
 // memory.
@@ -34,10 +36,16 @@ class GCSweeper {
   // last marked object.
   intptr_t SweepLargePage(Page* page);
 
-  intptr_t SweepNewPage(Page* page);
+  void SweepNewPage(Page* page);
+  void FinalizeNewSweep(Scavenger* new_space);
 
   // Sweep the large and regular sized data pages.
   static void SweepConcurrent(IsolateGroup* isolate_group);
+
+ private:
+  intptr_t new_free_ = 0;
+  FreeListElement* new_free_head_ = nullptr;
+  FreeListElement* new_free_tail_ = nullptr;
 };
 
 }  // namespace dart

@@ -13,6 +13,7 @@ import 'package:compiler/src/universe/record_shape.dart';
 import 'package:compiler/src/universe/selector.dart';
 import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
+
 import '../helpers/type_test_helper.dart';
 
 main() {
@@ -154,28 +155,30 @@ main() {
         RecordTypeMask.createRecord(domain, [aMask], shape1) as RecordTypeMask;
     final recordBMask =
         RecordTypeMask.createRecord(domain, [bMask], shape1) as RecordTypeMask;
-    final recordStringMask =
-        RecordTypeMask.createRecord(domain, [stringMask], shape1)
-            as RecordTypeMask;
-    final recordAStringMask =
-        RecordTypeMask.createRecord(domain, [aMask, stringMask], shape2)
-            as RecordTypeMask;
-    final recordStringBMask =
-        RecordTypeMask.createRecord(domain, [stringMask, bMask], shape2)
-            as RecordTypeMask;
-    final recordAFooStringMask =
-        RecordTypeMask.createRecord(domain, [aMask, stringMask], shape1Foo)
-            as RecordTypeMask;
-    final recordBStringMask =
-        RecordTypeMask.createRecord(domain, [bMask, stringMask], shape2)
-            as RecordTypeMask;
-    final uninstantiatedRecordMask =
-        RecordTypeMask.createRecord(domain, [
-              aMask,
-              aMask,
-              aMask,
-            ], uninstantiatedShape)
-            as RecordTypeMask;
+    final recordStringMask = RecordTypeMask.createRecord(domain, [
+      stringMask,
+    ], shape1) as RecordTypeMask;
+    final recordAStringMask = RecordTypeMask.createRecord(domain, [
+      aMask,
+      stringMask,
+    ], shape2) as RecordTypeMask;
+    final recordStringBMask = RecordTypeMask.createRecord(domain, [
+      stringMask,
+      bMask,
+    ], shape2) as RecordTypeMask;
+    final recordAFooStringMask = RecordTypeMask.createRecord(domain, [
+      aMask,
+      stringMask,
+    ], shape1Foo) as RecordTypeMask;
+    final recordBStringMask = RecordTypeMask.createRecord(domain, [
+      bMask,
+      stringMask,
+    ], shape2) as RecordTypeMask;
+    final uninstantiatedRecordMask = RecordTypeMask.createRecord(domain, [
+      aMask,
+      aMask,
+      aMask,
+    ], uninstantiatedShape) as RecordTypeMask;
 
     // Record member names
     final position1GetterName = Name('\$1', null);
@@ -252,6 +255,23 @@ main() {
       shape2Mask,
       shape1FooMask,
     ]);
+    // (A, string) | [subclass=_Record_2] => [subclass=_Record_2]
+    expectFlatRecordMask(
+      recordAStringMask.union(shape2Mask, domain),
+      shape2Class,
+    );
+    // (A, string) | [subclass=_Record_2|null] => [subclass=_Record_2|null]
+    expectFlatRecordMask(
+      recordAStringMask.union(shape2Mask.nullable(domain), domain),
+      shape2Class,
+      expectNullable: true,
+    );
+    // (A, string) | [subclass=_Record_2|late] => [subclass=_Record_2|late]
+    expectFlatRecordMask(
+      recordAStringMask.union(shape2Mask.withLateSentinel(domain), domain),
+      shape2Class,
+      expectHasLateSentinel: true,
+    );
     // (A, string) | [subclass=_Record2] => [subclass=_Record2]
     expectFlatRecordMask(
       recordAStringMask.union(record2ArityMask, domain),
@@ -1031,8 +1051,37 @@ main() {
     Expect.isFalse(recordAMask.nullable(domain).isNull);
   }
 
+  runNoRecordsInstantiatedTest() async {
+    TypeEnvironment env = await TypeEnvironment.create(r"""
+      class A {}
+      main() {
+        print(A());
+      }
+      """, testBackendWorld: true);
+    JClosedWorld world = env.jClosedWorld;
+    final domain = world.abstractValueDomain as CommonMasks;
+    final aMask = FlatTypeMask.nonNullExact(env.getClass('A'), domain);
+    final shape3 = RecordShape(2, ["bar"]);
+    final uninstantiatedRecordMask = RecordTypeMask.createRecord(domain, [
+      aMask,
+      aMask,
+      aMask,
+    ], shape3) as RecordTypeMask;
+    Expect.equals(
+      domain.emptyType,
+      uninstantiatedRecordMask.toFlatTypeMask(domain),
+    );
+    Expect.equals(
+      domain.nullType,
+      (uninstantiatedRecordMask.nullable(domain) as RecordTypeMask)
+          .toFlatTypeMask(domain),
+    );
+    Expect.equals(aMask, uninstantiatedRecordMask.union(aMask, domain));
+  }
+
   asyncTest(() async {
     print('--test from kernel------------------------------------------------');
     await runTest();
+    await runNoRecordsInstantiatedTest();
   });
 }

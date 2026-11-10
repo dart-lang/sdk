@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
+
 import 'js/util.dart' show JsInteropMemberData;
 import 'translator.dart' show TranslatorOptions;
 import 'util.dart';

@@ -104,7 +104,6 @@ class FeatureSetProviderTest with ResourceProviderMixin {
           feature_a,
           expected,
           contextFeatures: ExperimentStatus(),
-          nonPackageFeatureSet: ExperimentStatus(),
         );
       }
 
@@ -166,7 +165,6 @@ class FeatureSetProviderTest with ResourceProviderMixin {
             sdkLanguageVersion: Version.parse('2.12.0'),
             flags: [feature_a.enableString],
           ),
-          nonPackageFeatureSet: latestLanguageVersionFeatures,
         );
       }
 
@@ -223,7 +221,6 @@ class FeatureSetProviderTest with ResourceProviderMixin {
           feature_a,
           expected,
           contextFeatures: ExperimentStatus(),
-          nonPackageFeatureSet: ExperimentStatus(),
         );
       }
 
@@ -259,6 +256,9 @@ class FeatureSetProviderTest with ResourceProviderMixin {
       ),
     });
 
+    sdkRoot.getFile('version').writeAsStringSync('3.13.0');
+    _createSourceFactory();
+
     provider = FeatureSetProvider.build(
       sourceFactory: sourceFactory,
       resourceProvider: resourceProvider,
@@ -273,11 +273,13 @@ class FeatureSetProviderTest with ResourceProviderMixin {
       var uri = Uri.parse(uriStr);
       var path = convertPath(posixPath);
       expect(
-        provider.getLanguageVersion(
-          path,
-          uri,
-          nonPackageLanguageVersion: ExperimentStatus.currentVersion,
-        ),
+        provider
+            .getFeatureSetAndLanguageVersion(
+              path,
+              uri,
+              contextFeatures: latestLanguageVersionFeatures,
+            )
+            .$2,
         expected,
       );
     }
@@ -309,7 +311,7 @@ class FeatureSetProviderTest with ResourceProviderMixin {
     check(
       uriStr: 'package:ddd/a.dart',
       posixPath: '/packages/ddd/d.dart',
-      expected: ExperimentStatus.currentVersion,
+      expected: Version.parse('3.13.0'),
     );
   }
 
@@ -348,14 +350,12 @@ class FeatureSetProviderTest with ResourceProviderMixin {
       var core_featureSet = _getSdkFeatureSet(
         'dart:core',
         contextFeatures: latestLanguageVersionFeatures,
-        nonPackageFeatureSet: latestLanguageVersionFeatures,
       );
       expect(core_featureSet.isEnabled(feature_a), isTrue);
 
       var math_featureSet = _getSdkFeatureSet(
         'dart:math',
         contextFeatures: latestLanguageVersionFeatures,
-        nonPackageFeatureSet: latestLanguageVersionFeatures,
       );
       expect(math_featureSet.isEnabled(feature_a), isTrue);
     });
@@ -402,14 +402,12 @@ class FeatureSetProviderTest with ResourceProviderMixin {
       var core_featureSet = _getSdkFeatureSet(
         'dart:core',
         contextFeatures: latestLanguageVersionFeatures,
-        nonPackageFeatureSet: latestLanguageVersionFeatures,
       );
       expect(core_featureSet.isEnabled(feature_a), isFalse);
 
       var math_featureSet = _getSdkFeatureSet(
         'dart:math',
         contextFeatures: latestLanguageVersionFeatures,
-        nonPackageFeatureSet: latestLanguageVersionFeatures,
       );
       expect(math_featureSet.isEnabled(feature_a), isTrue);
     });
@@ -425,7 +423,6 @@ class FeatureSetProviderTest with ResourceProviderMixin {
     var featureSet = _getSdkFeatureSet(
       'dart:math',
       contextFeatures: latestLanguageVersionFeatures,
-      nonPackageFeatureSet: latestLanguageVersionFeatures,
     );
     expect(featureSet.isEnabled(Feature.non_nullable), isTrue);
   }
@@ -435,13 +432,8 @@ class FeatureSetProviderTest with ResourceProviderMixin {
     Feature feature,
     bool expected, {
     required FeatureSet contextFeatures,
-    required FeatureSet nonPackageFeatureSet,
   }) {
-    var featureSet = _getPathFeatureSet(
-      path,
-      contextFeatures: contextFeatures,
-      nonPackageFeatureSet: nonPackageFeatureSet,
-    );
+    var featureSet = _getPathFeatureSet(path, contextFeatures: contextFeatures);
     expect(featureSet.isEnabled(feature), expected);
   }
 
@@ -468,31 +460,31 @@ class FeatureSetProviderTest with ResourceProviderMixin {
   FeatureSet _getPathFeatureSet(
     String path, {
     required FeatureSet contextFeatures,
-    required FeatureSet nonPackageFeatureSet,
   }) {
     path = convertPath(path);
     var uri = sourceFactory.pathToUri(path)!;
-    return provider.getFeatureSet(
-      path,
-      uri,
-      contextFeatures: contextFeatures,
-      nonPackageFeatureSet: nonPackageFeatureSet,
-    );
+    return provider
+        .getFeatureSetAndLanguageVersion(
+          path,
+          uri,
+          contextFeatures: contextFeatures,
+        )
+        .$1;
   }
 
   FeatureSet _getSdkFeatureSet(
     String uriStr, {
     required FeatureSet contextFeatures,
-    required FeatureSet nonPackageFeatureSet,
   }) {
     var uri = Uri.parse(uriStr);
     var path = sourceFactory.forUri2(uri)!.fullName;
-    return provider.getFeatureSet(
-      path,
-      uri,
-      contextFeatures: contextFeatures,
-      nonPackageFeatureSet: nonPackageFeatureSet,
-    );
+    return provider
+        .getFeatureSetAndLanguageVersion(
+          path,
+          uri,
+          contextFeatures: contextFeatures,
+        )
+        .$1;
   }
 
   void _newSdkExperimentsFile(String content) {

@@ -98,7 +98,7 @@ class C<T> {
 }
 
 @C()
-// [diag.inferenceFailureOnInstanceCreation][column 1][length 4] The type argument(s) of the constructor 'C' can't be inferred.
+// [diag.inferenceFailureOnInstanceCreation][column 2][length 1] The type argument(s) of the constructor 'C' can't be inferred.
 void f() {}
 ''');
   }

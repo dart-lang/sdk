@@ -5,6 +5,10 @@
 // This benchmark suite measures the overhead of looking up elements of
 // SubtypeTestCaches, which are used when a type testing stub cannot determine
 // whether a given type is assignable.
+//
+// The Record lanes cover the case where there is no cache to look up: a record
+// has no class or type arguments to key an entry on, so those checks enter the
+// runtime every time. See dart-lang/sdk#61970.
 
 import 'package:benchmark_harness/benchmark_harness.dart';
 
@@ -21,6 +25,10 @@ void main() {
   const STC750().report();
   const STC1000().report();
   const STCSame1000().report();
+  const Record1().report();
+  const Record2().report();
+  const Record3().report();
+  const Record4().report();
 }
 
 class STCBenchmarkBase extends BenchmarkBase {
@@ -31,6 +39,9 @@ class STCBenchmarkBase extends BenchmarkBase {
   @override
   void report() => emitter.emit(name, measure() / count);
 }
+
+// The record lanes loop rather than unroll: every check costs the same.
+const int checksPerRun = 1000;
 
 class STC1 extends STCBenchmarkBase {
   const STC1() : super('SubtypeTestCache.STC1', 1);
@@ -3893,6 +3904,50 @@ class STCSame1000 extends STCBenchmarkBase {
     check<int>(instances[999]);
     check<int>(instances[999]);
     check<int>(instances[999]);
+  }
+}
+
+class Record1 extends STCBenchmarkBase {
+  const Record1() : super('SubtypeTestCache.Record1', checksPerRun);
+
+  @override
+  void run() {
+    for (int i = 0; i < checksPerRun; i++) {
+      checkRecord1<int>(record1);
+    }
+  }
+}
+
+class Record2 extends STCBenchmarkBase {
+  const Record2() : super('SubtypeTestCache.Record2', checksPerRun);
+
+  @override
+  void run() {
+    for (int i = 0; i < checksPerRun; i++) {
+      checkRecord2<int>(record2);
+    }
+  }
+}
+
+class Record3 extends STCBenchmarkBase {
+  const Record3() : super('SubtypeTestCache.Record3', checksPerRun);
+
+  @override
+  void run() {
+    for (int i = 0; i < checksPerRun; i++) {
+      checkRecord3<int>(record3);
+    }
+  }
+}
+
+class Record4 extends STCBenchmarkBase {
+  const Record4() : super('SubtypeTestCache.Record4', checksPerRun);
+
+  @override
+  void run() {
+    for (int i = 0; i < checksPerRun; i++) {
+      checkRecord4<int>(record4);
+    }
   }
 }
 
@@ -8905,3 +8960,31 @@ const instances = <dynamic>[
   closure998<int>,
   closure999<int>,
 ];
+
+@pragma('vm:never-inline')
+@pragma('wasm:never-inline')
+@pragma('dart2js:never-inline')
+void checkRecord1<S>(dynamic s) => s as (S,);
+
+final dynamic record1 = (1,);
+
+@pragma('vm:never-inline')
+@pragma('wasm:never-inline')
+@pragma('dart2js:never-inline')
+void checkRecord2<S>(dynamic s) => s as (S, S);
+
+final dynamic record2 = (1, 2);
+
+@pragma('vm:never-inline')
+@pragma('wasm:never-inline')
+@pragma('dart2js:never-inline')
+void checkRecord3<S>(dynamic s) => s as (S, S, S);
+
+final dynamic record3 = (1, 2, 3);
+
+@pragma('vm:never-inline')
+@pragma('wasm:never-inline')
+@pragma('dart2js:never-inline')
+void checkRecord4<S>(dynamic s) => s as (S, S, S, S);
+
+final dynamic record4 = (1, 2, 3, 4);

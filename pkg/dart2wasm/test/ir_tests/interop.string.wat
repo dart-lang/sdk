@@ -1,9 +1,9 @@
 (module $M
   (type $#Top (struct
-    (field $field0 i32)))
+    (field $#classId i32)))
   (type $JSExternWrapper (sub $#Top (struct
-    (field $field0 i32)
-    (field $_externRef externref))))
+    (field $#classId i32)
+    (field $_externRef (ref extern)))))
   (func $"dart2wasm.M (import)" (import "dart2wasm" "M") (param externref) (result externref))
   (func $"dart2wasm.P (import)" (import "dart2wasm" "P") (param externref) (result externref))
   (global $.a (import "" "a") (ref extern))
@@ -40,7 +40,6 @@
   (@binaryen.inline 0)
   (func $testStringValueNullable
     (local $var0 (ref null $JSExternWrapper))
-    (local $var1 (ref null $JSExternWrapper))
     global.get $"stringValueNullable initialized"
     if (result (ref null $JSExternWrapper))
       global.get $stringValueNullable
@@ -57,12 +56,12 @@
       global.set $"stringValueNullable initialized"
       local.get $var0
     end
-    local.tee $var1
+    local.tee $var0
     ref.is_null
     if (result externref)
       ref.null noextern
     else
-      local.get $var1
+      local.get $var0
       struct.get $JSExternWrapper $_externRef
     end
     call $"dart2wasm.M (import)"

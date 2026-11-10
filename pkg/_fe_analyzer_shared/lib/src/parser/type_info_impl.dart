@@ -93,7 +93,7 @@ const TypeParamOrArgInfo simpleTypeArgument1GtGt =
 
 /// See documentation on the [noType] const.
 class NoType implements TypeInfo {
-  const NoType();
+  const new();
 
   @override
   TypeInfo get asNonNullable => this;
@@ -145,7 +145,7 @@ class NoType implements TypeInfo {
 
 /// See documentation on the [prefixedType] const.
 class PrefixedType implements TypeInfo {
-  const PrefixedType();
+  const new();
 
   @override
   TypeInfo get asNonNullable => this;
@@ -213,7 +213,7 @@ class PrefixedType implements TypeInfo {
 
 /// See documentation on the [simpleNullableTypeWith1Argument] const.
 class SimpleNullableTypeWith1Argument extends SimpleTypeWith1Argument {
-  const SimpleNullableTypeWith1Argument() : super(simpleTypeArgument1);
+  const new() : super(simpleTypeArgument1);
 
   @override
   TypeInfo get asNonNullable => simpleTypeWith1Argument;
@@ -252,7 +252,7 @@ class SimpleNullableTypeWith1Argument extends SimpleTypeWith1Argument {
 class SimpleTypeWith1Argument implements TypeInfo {
   final TypeParamOrArgInfo typeArg;
 
-  const SimpleTypeWith1Argument(this.typeArg);
+  const new(this.typeArg);
 
   @override
   TypeInfo get asNonNullable => this;
@@ -313,7 +313,7 @@ class SimpleTypeWith1Argument implements TypeInfo {
 
 /// See documentation on the [simpleNullableType] const.
 class SimpleNullableType extends SimpleType {
-  const SimpleNullableType();
+  const new();
 
   @override
   TypeInfo get asNonNullable => simpleType;
@@ -348,7 +348,7 @@ class SimpleNullableType extends SimpleType {
 
 /// See documentation on the [simpleType] const.
 class SimpleType implements TypeInfo {
-  const SimpleType();
+  const new();
 
   @override
   TypeInfo get asNonNullable => this;
@@ -407,7 +407,7 @@ class SimpleType implements TypeInfo {
 
 /// See documentation on the [voidType] const.
 class VoidType implements TypeInfo {
-  const VoidType();
+  const new();
 
   @override
   TypeInfo get asNonNullable => this;
@@ -430,7 +430,10 @@ class VoidType implements TypeInfo {
   @override
   Token ensureTypeNotVoid(Token token, Parser parser) {
     // Report an error, then parse `void` as if it were a type name.
-    parser.reportRecoverableError(token.next!, diag.invalidVoid);
+    parser.reportRecoverableError(
+      token.next!,
+      token.isA(Keyword.AS) ? diag.invalidVoidAfterAs : diag.invalidVoid,
+    );
     return simpleType.parseTypeNotVoid(token, parser);
   }
 
@@ -556,11 +559,11 @@ class ComplexTypeInfo implements TypeInfo {
   @override
   bool recovered;
 
-  ComplexTypeInfo(Token beforeStart, this.typeArguments)
+  new(Token beforeStart, this.typeArguments)
     : this.start = beforeStart.next!,
       recovered = typeArguments.recovered;
 
-  ComplexTypeInfo._nonNullable(
+  new _nonNullable(
     this.start,
     this.typeArguments,
     this.end,
@@ -1149,7 +1152,7 @@ class ComplexTypeInfo implements TypeInfo {
 
 /// See [noTypeParamOrArg].
 class NoTypeParamOrArg extends TypeParamOrArgInfo {
-  const NoTypeParamOrArg();
+  const new();
 
   @override
   int get typeArgumentCount => 0;
@@ -1176,7 +1179,7 @@ class NoTypeParamOrArg extends TypeParamOrArgInfo {
 }
 
 class SimpleTypeArgument1 extends TypeParamOrArgInfo {
-  const SimpleTypeArgument1();
+  const new();
 
   @override
   bool get isSimpleTypeArgument => true;
@@ -1251,7 +1254,7 @@ class SimpleTypeArgument1 extends TypeParamOrArgInfo {
 }
 
 class SimpleTypeArgument1GtEq extends SimpleTypeArgument1 {
-  const SimpleTypeArgument1GtEq();
+  const new();
 
   @override
   TypeInfo get typeInfo => simpleTypeWith1ArgumentGtEq;
@@ -1281,7 +1284,7 @@ class SimpleTypeArgument1GtEq extends SimpleTypeArgument1 {
 }
 
 class SimpleTypeArgument1GtGt extends SimpleTypeArgument1 {
-  const SimpleTypeArgument1GtGt();
+  const new();
 
   @override
   TypeInfo get typeInfo => simpleTypeWith1ArgumentGtGt;
@@ -1335,11 +1338,8 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
   @override
   bool recovered = false;
 
-  ComplexTypeParamOrArgInfo(
-    Token token,
-    this.inDeclaration,
-    this.allowsVariance,
-  ) : assert(token.next!.isA(TokenType.LT)),
+  new(Token token, this.inDeclaration, this.allowsVariance)
+    : assert(token.next!.isA(TokenType.LT)),
       start = token.next!;
 
   /// Parse the tokens and return the receiver or [noTypeParamOrArg] if there
@@ -1440,7 +1440,13 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
         // Recovery
         while (typeInfo == noType && next.next!.isA(TokenType.AT)) {
           Token atToken = next.next!;
-          next = skipMetadata(next);
+          // Parsing continues after the annotation, so the token stream must
+          // be properly modified, but ensure that parser events are ignored
+          // by replacing the listener.
+          final Listener originalListener = parser.listener;
+          parser.listener = new ForwardingListener();
+          next = skipMetadata(next, parser: parser);
+          parser.listener = originalListener;
           parser.reportRecoverableErrorWithEnd(
             atToken,
             next,
@@ -1717,6 +1723,19 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
         token = token.next!;
       }
     } else {
+      // The scanner pairs `<` only with `>`, `>>`, and `>>>`, so `endGroup` is
+      // `null` if the closer is `>=`, `>>=`, or `>>>=`. [skipEnd] is a split
+      // copy that is not in the token stream, and [compute] ran before any
+      // rewriting, so use its offset to find the closer, and recover `<a b>=`
+      // the same way as `<a b> =`.
+      Token beforeCloser = token;
+      while (!beforeCloser.next!.isEof &&
+          beforeCloser.next!.charOffset < skipEnd!.charOffset) {
+        beforeCloser = beforeCloser.next!;
+      }
+      if (parseCloser(beforeCloser)) {
+        return beforeCloser;
+      }
       endGroup = syntheticGt(next);
       endGroup.setNext(next);
       token.setNext(endGroup);

@@ -11,7 +11,7 @@ import 'package:analyzer/src/summary2/link.dart';
 class SuperConstructorResolver {
   final Linker _linker;
 
-  SuperConstructorResolver(this._linker);
+  new(this._linker);
 
   void perform() {
     for (var builder in _linker.builders.values) {
@@ -58,10 +58,10 @@ class SuperConstructorResolver {
 
     for (var fragment in element.fragments) {
       var node = _linker.getLinkingNode(fragment);
-      if (node is ConstructorDeclaration) {
+      if (node is ConstructorDeclaration2) {
         handleInitializers(node.initializers);
       } else if (node is PrimaryConstructorDeclaration) {
-        if (node.body case var body?) {
+        if (node.body2 case var body?) {
           handleInitializers(body.initializers);
         }
       }

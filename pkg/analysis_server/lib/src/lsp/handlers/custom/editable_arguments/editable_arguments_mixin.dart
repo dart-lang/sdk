@@ -30,7 +30,11 @@ mixin EditableArgumentsMixin {
   String? getDocumentation(ResolvedUnitResult result, Element element) {
     var dartDocInfo = getDartdocDirectiveInfoFor(result);
     var dartDocComputer = DartDocumentationComputer(dartDocInfo);
-    var dartDoc = dartDocComputer.compute(element);
+    var dartDoc = dartDocComputer.compute(
+      element,
+      includeFull: true,
+      includeSummary: false,
+    );
 
     return dartDoc?.full;
   }
@@ -102,10 +106,10 @@ mixin EditableArgumentsMixin {
         invocation.constructorName.element?.formalParameters,
         invocation.argumentList,
       ),
-      MethodInvocation(
-        methodName: Identifier(element: ExecutableElement element),
-      ) =>
-        (element.formalParameters, invocation.argumentList),
+      MethodInvocation(methodName: Identifier(:ExecutableElement element)) => (
+        element.formalParameters,
+        invocation.argumentList,
+      ),
       _ => (null, null),
     };
 

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -38,14 +39,16 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    var node = result.findNode.implicitCallReference('c;');
+    var node = result.findNode.implicitCallTearOff('c;');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: DirectAssignment
-    target: IndexAssignmentTarget
-      receiver: SimpleIdentifier
-        token: map
-        element: map@83
+ImplicitCallTearOff
+  operand: DirectAssignment
+    target: ReceiverIndexAssignmentTarget
+      receiver: UnqualifiedNameExpression
+        name: map
+        resolution: VariableReadResolution
+          element: map@83
+          type: Map<int, C>
         staticType: Map<int, C>
       leftBracket: [
       index: IntegerLiteral
@@ -60,18 +63,22 @@ ImplicitCallReference
         element: SubstitutedMethodElementImpl
           baseElement: dart:core::@class::Map::@method::[]=
           substitution: {K: int, V: C}
-        invokeType: void Function(int, C)
         acceptedType: C
     operator: =
-    value: SimpleIdentifier
-      token: c
+    value: UnqualifiedNameExpression
+      name: c
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::foo::@formalParameter::c
+        type: C
       correspondingParameter: SubstitutedFormalParameterElementImpl
         baseElement: dart:core::@class::Map::@method::[]=::@formalParameter::value
         substitution: {K: int, V: C}
-      element: <testLibrary>::@function::foo::@formalParameter::c
       staticType: C
     staticType: C
-  expression(v1): AssignmentExpression
+  element: <testLibrary>::@class::C::@method::call
+  staticType: void Function(int)
+V1: ImplicitCallReference
+  expression: AssignmentExpression
     leftHandSide: IndexExpression
       target: SimpleIdentifier
         token: map
@@ -122,17 +129,35 @@ void Function() f(A a, bool b, C c, dynamic d) => b ? d : (b ? a : c);
     var node = result.findNode.conditionalExpression('b ? a : c');
     assertResolvedNodeText(node, r'''
 ConditionalExpression
-  condition2: SimpleIdentifier
+  condition2: UnqualifiedNameExpression
+    name: b
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::b
+      type: bool
+    staticType: bool
+  condition(v1): SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   question: ?
-  thenExpression2: SimpleIdentifier
+  thenExpression2: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A
+    staticType: A
+  thenExpression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A
   colon: :
-  elseExpression2: SimpleIdentifier
+  elseExpression2: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    staticType: C
+  elseExpression(v1): SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
@@ -154,17 +179,35 @@ void Function() f(A a, bool b, C c, dynamic d) => b ? d : (b ? c : a);
     var node = result.findNode.conditionalExpression('b ? c : a');
     assertResolvedNodeText(node, r'''
 ConditionalExpression
-  condition2: SimpleIdentifier
+  condition2: UnqualifiedNameExpression
+    name: b
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::b
+      type: bool
+    staticType: bool
+  condition(v1): SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   question: ?
-  thenExpression2: SimpleIdentifier
+  thenExpression2: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    staticType: C
+  thenExpression(v1): SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
   colon: :
-  elseExpression2: SimpleIdentifier
+  elseExpression2: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A
+    staticType: A
+  elseExpression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A
@@ -184,10 +227,31 @@ void foo() {
 }
 ''');
 
-    var node = result.findNode.implicitCallReference('c<int>');
+    var node = result.findNode.functionInstantiation('c<int>');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: SimpleIdentifier
+FunctionInstantiation
+  operand: ImplicitCallTearOff
+    operand: UnqualifiedNameExpression
+      name: c
+      resolution: VariableReadResolution
+        element: c@55
+        type: C
+      staticType: C
+    element: <testLibrary>::@class::C::@method::call
+    staticType: T Function<T>(T)
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: int Function(int)
+  typeArgumentTypes
+    int
+V1: ImplicitCallReference
+  expression: SimpleIdentifier
     token: c
     element: c@55
     staticType: C
@@ -225,14 +289,18 @@ void Function() f(A a, bool b, C c, dynamic d) => b ? d : c ?? a;
     var node = result.findNode.ifNull('c ?? a');
     assertResolvedNodeText(node, r'''
 IfNull
-  leftOperand: SimpleIdentifier
-    token: c
-    element: <testLibrary>::@function::f::@formalParameter::c
+  leftOperand: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
     staticType: C
   operator: ??
-  rightOperand: SimpleIdentifier
-    token: a
-    element: <testLibrary>::@function::f::@formalParameter::a
+  rightOperand: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A
     staticType: A
   staticType: A
 V1: BinaryExpression
@@ -263,21 +331,28 @@ void Function(int) foo(C? c1, C c2) {
 }
 ''');
 
-    var node = result.findNode.implicitCallReference('c1 ?? c2');
+    var node = result.findNode.implicitCallTearOff('c1 ?? c2');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: IfNull
-    leftOperand: SimpleIdentifier
-      token: c1
-      element: <testLibrary>::@function::foo::@formalParameter::c1
+ImplicitCallTearOff
+  operand: IfNull
+    leftOperand: UnqualifiedNameExpression
+      name: c1
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::foo::@formalParameter::c1
+        type: C?
       staticType: C?
     operator: ??
-    rightOperand: SimpleIdentifier
-      token: c2
-      element: <testLibrary>::@function::foo::@formalParameter::c2
+    rightOperand: UnqualifiedNameExpression
+      name: c2
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::foo::@formalParameter::c2
+        type: C
       staticType: C
     staticType: C
-  expression(v1): BinaryExpression
+  element: <testLibrary>::@class::C::@method::call
+  staticType: void Function(int)
+V1: ImplicitCallReference
+  expression: BinaryExpression
     leftOperand: SimpleIdentifier
       token: c1
       element: <testLibrary>::@function::foo::@formalParameter::c1
@@ -307,10 +382,19 @@ List<void Function(int)> foo(C c) {
 }
 ''');
 
-    var node = result.findNode.implicitCallReference('c]');
+    var node = result.findNode.implicitCallTearOff('c]');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: SimpleIdentifier
+ImplicitCallTearOff
+  operand: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::foo::@formalParameter::c
+      type: C
+    staticType: C
+  element: <testLibrary>::@class::C::@method::call
+  staticType: void Function(int)
+V1: ImplicitCallReference
+  expression: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::foo::@formalParameter::c
     staticType: C
@@ -332,10 +416,19 @@ List<void Function(int)> foo(C c) {
 }
 ''');
 
-    var node = result.findNode.implicitCallReference('c,');
+    var node = result.findNode.implicitCallTearOff('c,');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: SimpleIdentifier
+ImplicitCallTearOff
+  operand: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::foo::@formalParameter::c
+      type: C
+    staticType: C
+  element: <testLibrary>::@class::C::@method::call
+  staticType: void Function(int)
+V1: ImplicitCallReference
+  expression: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::foo::@formalParameter::c
     staticType: C
@@ -357,10 +450,19 @@ List<void Function(int)> foo(C c) {
 }
 ''');
 
-    var node = result.findNode.implicitCallReference('c,');
+    var node = result.findNode.implicitCallTearOff('c,');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: SimpleIdentifier
+ImplicitCallTearOff
+  operand: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::foo::@formalParameter::c
+      type: C
+    staticType: C
+  element: <testLibrary>::@class::C::@method::call
+  staticType: void Function(int)
+V1: ImplicitCallReference
+  expression: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::foo::@formalParameter::c
     staticType: C
@@ -383,10 +485,19 @@ List<void Function(int)> foo(C c1, C c2) {
 }
 ''');
 
-    var node = result.findNode.implicitCallReference('c2,');
+    var node = result.findNode.implicitCallTearOff('c2,');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: SimpleIdentifier
+ImplicitCallTearOff
+  operand: UnqualifiedNameExpression
+    name: c2
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::foo::@formalParameter::c2
+      type: C
+    staticType: C
+  element: <testLibrary>::@class::C::@method::call
+  staticType: void Function(int)
+V1: ImplicitCallReference
+  expression: SimpleIdentifier
     token: c2
     element: <testLibrary>::@function::foo::@formalParameter::c2
     staticType: C
@@ -404,31 +515,46 @@ abstract class C {
 void Function() f(C c) => (c)..m();
 ''');
 
-    var node = result.findNode.implicitCallReference('(c)');
+    var node = result.findNode.implicitCallTearOff('(c)');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: CascadeExpression
+ImplicitCallTearOff
+  operand: CascadeExpression
     target2: ParenthesizedExpression
       leftParenthesis: (
-      expression2: SimpleIdentifier
-        token: c
-        element: <testLibrary>::@function::f::@formalParameter::c
+      expression2: UnqualifiedNameExpression
+        name: c
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::c
+          type: C
         staticType: C
       rightParenthesis: )
       staticType: C
     sections
       CascadeSection
-        body: MethodInvocation
-          operator: ..
-          methodName: SimpleIdentifier
-            token: m
-            element: <testLibrary>::@class::C::@method::m
-            staticType: void Function()
+        operator: ..
+        body: CascadeMethodInvocation
+          name: m
           argumentList: ArgumentList
             leftParenthesis: (
             rightParenthesis: )
-          staticInvokeType: void Function()
+          resolution: ExecutableInvocationResolution
+            element: <testLibrary>::@class::C::@method::m
+            invokeType: void Function()
+            type: void
           staticType: void
+    staticType: C
+  element: <testLibrary>::@class::C::@method::call
+  staticType: void Function()
+V1: ImplicitCallReference
+  expression: CascadeExpression
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
+        token: c
+        element: <testLibrary>::@function::f::@formalParameter::c
+        staticType: C
+      rightParenthesis: )
+      staticType: C
     cascadeSections
       MethodInvocation
         operator: ..
@@ -459,10 +585,26 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    var node = result.findNode.implicitCallReference('c.c;');
+    var node = result.findNode.implicitCallTearOff('c.c;');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: PrefixedIdentifier
+ImplicitCallTearOff
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: c
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::foo::@formalParameter::c
+        type: C
+      staticType: C
+    operator: .
+    name: c
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::C::@getter::c
+      type: C
+    staticType: C
+  element: <testLibrary>::@class::C::@method::call
+  staticType: void Function(int)
+V1: ImplicitCallReference
+  expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: c
       element: <testLibrary>::@function::foo::@formalParameter::c
@@ -491,11 +633,34 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    var node = result.findNode.implicitCallReference('c.c.c');
+    var node = result.findNode.implicitCallTearOff('c.c.c');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: PropertyAccess
-    target2: PrefixedIdentifier
+ImplicitCallTearOff
+  operand: ReceiverPropertyExtraction
+    receiver: ReceiverPropertyExtraction
+      receiver: UnqualifiedNameExpression
+        name: c
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::foo::@formalParameter::c
+          type: C
+        staticType: C
+      operator: .
+      name: c
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@class::C::@getter::c
+        type: C
+      staticType: C
+    operator: .
+    name: c
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::C::@getter::c
+      type: C
+    staticType: C
+  element: <testLibrary>::@class::C::@method::call
+  staticType: void Function(int)
+V1: ImplicitCallReference
+  expression: PropertyAccess
+    target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: c
         element: <testLibrary>::@function::foo::@formalParameter::c
@@ -529,10 +694,19 @@ Set<void Function(int)> foo(C c) {
 }
 ''');
 
-    var node = result.findNode.implicitCallReference('c}');
+    var node = result.findNode.implicitCallTearOff('c}');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: SimpleIdentifier
+ImplicitCallTearOff
+  operand: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::foo::@formalParameter::c
+      type: C
+    staticType: C
+  element: <testLibrary>::@class::C::@method::call
+  staticType: void Function(int)
+V1: ImplicitCallReference
+  expression: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::foo::@formalParameter::c
     staticType: C
@@ -552,10 +726,19 @@ Map<void Function(int), int> foo(C c) {
 }
 ''');
 
-    var node = result.findNode.implicitCallReference('c:');
+    var node = result.findNode.implicitCallTearOff('c:');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: SimpleIdentifier
+ImplicitCallTearOff
+  operand: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::foo::@formalParameter::c
+      type: C
+    staticType: C
+  element: <testLibrary>::@class::C::@method::call
+  staticType: void Function(int)
+V1: ImplicitCallReference
+  expression: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::foo::@formalParameter::c
     staticType: C
@@ -575,10 +758,19 @@ Map<int, void Function(int)> foo(C c) {
 }
 ''');
 
-    var node = result.findNode.implicitCallReference('c}');
+    var node = result.findNode.implicitCallTearOff('c}');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: SimpleIdentifier
+ImplicitCallTearOff
+  operand: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::foo::@formalParameter::c
+      type: C
+    staticType: C
+  element: <testLibrary>::@class::C::@method::call
+  staticType: void Function(int)
+V1: ImplicitCallReference
+  expression: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::foo::@formalParameter::c
     staticType: C
@@ -598,10 +790,19 @@ void Function(int) foo(C c) {
 }
 ''');
 
-    var node = result.findNode.implicitCallReference('c;');
+    var node = result.findNode.implicitCallTearOff('c;');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: SimpleIdentifier
+ImplicitCallTearOff
+  operand: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::foo::@formalParameter::c
+      type: C
+    staticType: C
+  element: <testLibrary>::@class::C::@method::call
+  staticType: void Function(int)
+V1: ImplicitCallReference
+  expression: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::foo::@formalParameter::c
     staticType: C
@@ -619,10 +820,21 @@ typedef B = A;
 Function f(B b) => b;
 ''');
 
-    var node = result.findNode.implicitCallReference('b;');
+    var node = result.findNode.implicitCallTearOff('b;');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: SimpleIdentifier
+ImplicitCallTearOff
+  operand: UnqualifiedNameExpression
+    name: b
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::b
+      type: A
+        alias: <testLibrary>::@typeAlias::B
+    staticType: A
+      alias: <testLibrary>::@typeAlias::B
+  element: <testLibrary>::@class::A::@method::call
+  staticType: void Function()
+V1: ImplicitCallReference
+  expression: SimpleIdentifier
     token: b
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: A
@@ -640,10 +852,19 @@ class A {
 Function f<X extends A>(X x) => x;
 ''');
 
-    var node = result.findNode.implicitCallReference('x;');
+    var node = result.findNode.implicitCallTearOff('x;');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: SimpleIdentifier
+ImplicitCallTearOff
+  operand: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: X
+    staticType: X
+  element: <testLibrary>::@class::A::@method::call
+  staticType: void Function()
+V1: ImplicitCallReference
+  expression: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: X
@@ -660,10 +881,19 @@ class A {
 Function f<X extends A, Y extends X>(Y y) => y;
 ''');
 
-    var node = result.findNode.implicitCallReference('y;');
+    var node = result.findNode.implicitCallTearOff('y;');
     assertResolvedNodeText(node, r'''
-ImplicitCallReference
-  expression2: SimpleIdentifier
+ImplicitCallTearOff
+  operand: UnqualifiedNameExpression
+    name: y
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::y
+      type: Y
+    staticType: Y
+  element: <testLibrary>::@class::A::@method::call
+  staticType: void Function()
+V1: ImplicitCallReference
+  expression: SimpleIdentifier
     token: y
     element: <testLibrary>::@function::f::@formalParameter::y
     staticType: Y
@@ -685,7 +915,13 @@ Function f<X extends A, Y extends X?>(Y y) => y;
     // Verify that no ImplicitCallReference was inserted.
     var node = result.findNode.expressionFunctionBody('y;').expression2;
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: y
+  resolution: VariableReadResolution
+    element: <testLibrary>::@function::f::@formalParameter::y
+    type: Y
+  staticType: Y
+V1: SimpleIdentifier
   token: y
   element: <testLibrary>::@function::f::@formalParameter::y
   staticType: Y
@@ -705,7 +941,13 @@ Function f<X extends A>(X? x) => x;
     // Verify that no ImplicitCallReference was inserted.
     var node = result.findNode.expressionFunctionBody('x;').expression2;
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: x
+  resolution: VariableReadResolution
+    element: <testLibrary>::@function::f::@formalParameter::x
+    type: X?
+  staticType: X?
+V1: SimpleIdentifier
   token: x
   element: <testLibrary>::@function::f::@formalParameter::x
   staticType: X?
@@ -729,9 +971,19 @@ f(A a) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('foo();');
+    var node = result.findNode.cascadeMethodInvocation('foo();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
+CascadeMethodInvocation
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::A::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
   operator: ..
   methodName: SimpleIdentifier
     token: foo
@@ -837,9 +1089,9 @@ f(A a) {
   E<int>(a).foo();
 }
 ''');
-    var node = result.findNode.extensionOverride('E<int>(a)');
+    var node = result.findNode.extensionOverride2('E<int>(a)');
     assertResolvedNodeText(node, r'''
-ExtensionOverride
+ExtensionOverride2
   name: E
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -852,6 +1104,14 @@ ExtensionOverride
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      UnqualifiedNameExpression
+        name: a
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::a
+          type: A
+        correspondingParameter: <null>
+        staticType: A
+    arguments(v1)
       SimpleIdentifier
         token: a
         correspondingParameter: <null>
@@ -860,7 +1120,6 @@ ExtensionOverride
     rightParenthesis: )
   element: <testLibrary>::@extension::E
   extendedType: A
-  staticType: null
   typeArgumentTypes
     int
 ''');
@@ -874,9 +1133,43 @@ f() {
   A<int, String>(0);
 }
 ''');
-    var node = result.findNode.methodInvocation('A<int, String>(0);');
+    var node = result.findNode.unqualifiedFunctionInvocation(
+      'A<int, String>(0);',
+    );
     assertResolvedNodeText(node, r'''
-MethodInvocation
+UnqualifiedFunctionInvocation
+  name: A
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+      NamedType
+        name: String
+        element: dart:core::@class::String
+        type: String
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: <testLibrary>::@function::A::@formalParameter::a
+          substitution: {T: int, U: String}
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@function::A
+    invokeType: void Function(int)
+    type: void
+  staticType: void
+  typeArgumentTypes
+    int
+    String
+V1: MethodInvocation
   methodName: SimpleIdentifier
     token: A
     element: <testLibrary>::@function::A
@@ -895,7 +1188,7 @@ MethodInvocation
     rightBracket: >
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1002,8 +1295,7 @@ void f() {
 // [diag.invocationOfNonFunction] 'X' isn't a function.
 }
 ''');
-    // Not rewritten.
-    result.findNode.methodInvocation('X(0)');
+    result.findNode.unqualifiedFunctionInvocation('X(0)');
   }
 
   test_targetPrefixedIdentifier_prefix_class_constructor() async {
@@ -1109,22 +1401,22 @@ ConstructorInvocation
         period: .
         element: <testLibraryFragment>::@prefix::prefix
       name: A
-      typeArguments: TypeArgumentList
-        leftBracket: <
-        arguments
-          NamedType
-            name: int
-            element: dart:core::@class::int
-            type: int
-        rightBracket: >
       element: package:test/a.dart::@class::A
-      type: A<int>
+      type: A<dynamic>
     selector: ConstructorSelector
       period: .
       name2: named
     element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::A::@constructor::named
-      substitution: {T: int}
+      substitution: {T: dynamic}
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -1132,10 +1424,10 @@ ConstructorInvocation
         literal: 0
         correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: package:test/a.dart::@class::A::@constructor::named::@formalParameter::a
-          substitution: {T: int}
+          substitution: {T: dynamic}
         staticType: int
     rightParenthesis: )
-  staticType: A<int>
+  staticType: A<dynamic>
 V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
@@ -1144,26 +1436,26 @@ V1: InstanceCreationExpression
         period: .
         element: <testLibraryFragment>::@prefix::prefix
       name: A
-      typeArguments: TypeArgumentList
-        leftBracket: <
-        arguments
-          NamedType
-            name: int
-            element: dart:core::@class::int
-            type: int
-        rightBracket: >
       element: package:test/a.dart::@class::A
-      type: A<int>
+      type: A<dynamic>
     period: .
     name: SimpleIdentifier
       token: named
       element: SubstitutedConstructorElementImpl
         baseElement: package:test/a.dart::@class::A::@constructor::named
-        substitution: {T: int}
+        substitution: {T: dynamic}
       staticType: null
     element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::A::@constructor::named
-      substitution: {T: int}
+      substitution: {T: dynamic}
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -1171,10 +1463,10 @@ V1: InstanceCreationExpression
         literal: 0
         correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: package:test/a.dart::@class::A::@constructor::named::@formalParameter::a
-          substitution: {T: int}
+          substitution: {T: dynamic}
         staticType: int
     rightParenthesis: )
-  staticType: A<int>
+  staticType: A<dynamic>
 ''');
   }
 
@@ -1204,22 +1496,22 @@ ConstructorInvocation
         period: .
         element: <testLibraryFragment>::@prefix::prefix
       name: A
-      typeArguments: TypeArgumentList
-        leftBracket: <
-        arguments
-          NamedType
-            name: int
-            element: dart:core::@class::int
-            type: int
-        rightBracket: >
       element: package:test/a.dart::@class::A
-      type: A<int>
+      type: A<dynamic>
     selector: ConstructorSelector
       period: .
       name2: new
     element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::A::@constructor::new
-      substitution: {T: int}
+      substitution: {T: dynamic}
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
@@ -1227,10 +1519,10 @@ ConstructorInvocation
         literal: 0
         correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: package:test/a.dart::@class::A::@constructor::new::@formalParameter::a
-          substitution: {T: int}
+          substitution: {T: dynamic}
         staticType: int
     rightParenthesis: )
-  staticType: A<int>
+  staticType: A<dynamic>
 V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
@@ -1239,26 +1531,26 @@ V1: InstanceCreationExpression
         period: .
         element: <testLibraryFragment>::@prefix::prefix
       name: A
-      typeArguments: TypeArgumentList
-        leftBracket: <
-        arguments
-          NamedType
-            name: int
-            element: dart:core::@class::int
-            type: int
-        rightBracket: >
       element: package:test/a.dart::@class::A
-      type: A<int>
+      type: A<dynamic>
     period: .
     name: SimpleIdentifier
       token: new
       element: SubstitutedConstructorElementImpl
         baseElement: package:test/a.dart::@class::A::@constructor::new
-        substitution: {T: int}
+        substitution: {T: dynamic}
       staticType: null
     element: SubstitutedConstructorElementImpl
       baseElement: package:test/a.dart::@class::A::@constructor::new
-      substitution: {T: int}
+      substitution: {T: dynamic}
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
@@ -1266,59 +1558,10 @@ V1: InstanceCreationExpression
         literal: 0
         correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: package:test/a.dart::@class::A::@constructor::new::@formalParameter::a
-          substitution: {T: int}
+          substitution: {T: dynamic}
         staticType: int
     rightParenthesis: )
-  staticType: A<int>
-''');
-  }
-
-  test_targetPrefixedIdentifier_prefix_getter_method() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-A get foo => A();
-
-class A {
-  void bar(int a) {}
-}
-''');
-
-    var result = await resolveTestCodeWithDiagnostics(r'''
-import 'a.dart' as prefix;
-
-f() {
-  prefix.foo.bar(0);
-}
-''');
-    var node = result.findNode.methodInvocation('bar(0);');
-    assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: prefix
-      element: <testLibraryFragment>::@prefix::prefix
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: package:test/a.dart::@getter::foo
-      staticType: A
-    element: package:test/a.dart::@getter::foo
-    staticType: A
-  operator: .
-  methodName: SimpleIdentifier
-    token: bar
-    element: package:test/a.dart::@class::A::@method::bar
-    staticType: void Function(int)
-  argumentList: ArgumentList
-    leftParenthesis: (
-    arguments2
-      IntegerLiteral
-        literal: 0
-        correspondingParameter: package:test/a.dart::@class::A::@method::bar::@formalParameter::a
-        staticType: int
-    rightParenthesis: )
-  staticInvokeType: void Function(int)
-  staticType: void
+  staticType: A<dynamic>
 ''');
   }
 
@@ -1480,7 +1723,6 @@ f() {
 }
 ''');
 
-    // TODO(scheglov): Move type arguments
     var node = result.findNode.constructorInvocation('named<int, String>(0);');
     assertResolvedNodeText(node, r'''
 ConstructorInvocation
@@ -1573,7 +1815,6 @@ f() {
 }
 ''');
 
-    // TODO(scheglov): Move type arguments
     var node = result.findNode.constructorInvocation('new<int, String>(0);');
     assertResolvedNodeText(node, r'''
 ConstructorInvocation
@@ -1650,41 +1891,6 @@ V1: InstanceCreationExpression
         staticType: int
     rightParenthesis: )
   staticType: A<dynamic, dynamic>
-''');
-  }
-
-  test_targetSimpleIdentifier_class_staticMethod() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-class A {
-  static void foo(int a) {}
-}
-
-f() {
-  A.foo(0);
-}
-''');
-    var node = result.findNode.methodInvocation('foo(0);');
-    assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
-    token: A
-    element: <testLibrary>::@class::A
-    staticType: null
-  operator: .
-  methodName: SimpleIdentifier
-    token: foo
-    element: <testLibrary>::@class::A::@method::foo
-    staticType: void Function(int)
-  argumentList: ArgumentList
-    leftParenthesis: (
-    arguments2
-      IntegerLiteral
-        literal: 0
-        correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::a
-        staticType: int
-    rightParenthesis: )
-  staticInvokeType: void Function(int)
-  staticType: void
 ''');
   }
 
@@ -1795,9 +2001,9 @@ f(prefix.A a) {
   prefix.E<int>(a).foo();
 }
 ''');
-    var node = result.findNode.extensionOverride('E<int>(a)');
+    var node = result.findNode.extensionOverride2('E<int>(a)');
     assertResolvedNodeText(node, r'''
-ExtensionOverride
+ExtensionOverride2
   importPrefix: ImportPrefixReference
     name: prefix
     period: .
@@ -1814,6 +2020,14 @@ ExtensionOverride
   argumentList: ArgumentList
     leftParenthesis: (
     arguments2
+      UnqualifiedNameExpression
+        name: a
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::a
+          type: A
+        correspondingParameter: <null>
+        staticType: A
+    arguments(v1)
       SimpleIdentifier
         token: a
         correspondingParameter: <null>
@@ -1822,7 +2036,6 @@ ExtensionOverride
     rightParenthesis: )
   element: package:test/a.dart::@extension::E
   extendedType: A
-  staticType: null
   typeArgumentTypes
     int
 ''');
@@ -1841,10 +2054,48 @@ f() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('A<int, String>(0);');
+    var node = result.findNode.importPrefixedFunctionInvocation(
+      'A<int, String>(0);',
+    );
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ImportPrefixedFunctionInvocation
+  importPrefix: ImportPrefixReference
+    name: prefix
+    period: .
+    element: <testLibraryFragment>::@prefix::prefix
+  name: A
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+      NamedType
+        name: String
+        element: dart:core::@class::String
+        type: String
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: SubstitutedFormalParameterElementImpl
+          baseElement: package:test/a.dart::@function::A::@formalParameter::a
+          substitution: {T: int, U: String}
+        staticType: int
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: package:test/a.dart::@function::A
+    invokeType: void Function(int)
+    type: void
+  staticType: void
+  typeArgumentTypes
+    int
+    String
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: prefix
     element: <testLibraryFragment>::@prefix::prefix
     staticType: null
@@ -1867,7 +2118,7 @@ MethodInvocation
     rightBracket: >
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1961,17 +2212,13 @@ class C {}
 void f() {
   C.new = 1;
 //  ^^^
-// [diag.undefinedSetter] The setter 'new' isn't defined for the type 'C'.
+// [diag.undefinedStaticMemberWriteNotFound] The class 'C' doesn't have a static setter named 'new'.
 }
 ''');
 
-    var identifier = result.findNode.prefixed('C.new');
-    // The left side of the assignment is resolved by
-    // [PropertyElementResolver._resolveTargetClassElement], which looks for
-    // getters and setters on `C`, and does not recover with other elements
-    // (methods, constructors). This prefixed identifier can have a real
-    // `staticElement` if we add such recovery.
-    expect(identifier.element, isNull);
+    var target = result.findNode.singleDirectAssignment.target;
+    // A constructor name in a write position is not a constructor tear-off.
+    expect(target.write!.elementOrRecovery, isNull);
   }
 
   test_constructorTearOff_inAssignment_onRightSide() async {
@@ -2009,6 +2256,7 @@ V1: ConstructorReference
       element: <testLibrary>::@class::C::@constructor::new
       staticType: null
     element: <testLibrary>::@class::C::@constructor::new
+  correspondingParameter: <testLibrary>::@setter::f::@formalParameter::value
   staticType: C Function()
 ''');
   }

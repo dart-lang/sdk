@@ -150,5 +150,23 @@ void main() {
       final latest = body['latest'] as Map<String, Object?>;
       expect(latest['version'], '2.0.1-alpha');
     });
+
+    test(
+      'rejects requests with headers that would trigger a CORS preflight',
+      () async {
+        for (final headers in [
+          {'User-Agent': 'Dart pub 3.12.0'},
+          {'Accept': 'application/vnd.pub.v2+json'},
+          {'If-None-Match': '"abc123"'},
+        ]) {
+          final response = await http.get(
+            server.baseUrl.resolve('api/packages/foo'),
+            headers: headers,
+          );
+          expect(response.statusCode, 400);
+          expect(response.body, contains('CORS preflight'));
+        }
+      },
+    );
   });
 }

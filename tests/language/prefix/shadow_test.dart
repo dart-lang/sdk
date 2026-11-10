@@ -28,7 +28,7 @@ main() {
     var result = 0;
     result = lib10.Library10.static_fld;
     //             ^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The getter 'Library10' isn't defined for the type 'int'.
     Expect.equals(4, result);
   }

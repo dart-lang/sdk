@@ -140,7 +140,7 @@ class HtmlElement extends Element implements NoncedElement {
  * Emitted for any setlike IDL entry needs a callback signature.
  * Today there is only one.
  */
-typedef void FontFaceSetForEachCallback(
+typedef FontFaceSetForEachCallback = void Function(
     FontFace fontFace, FontFace fontFaceAgain, FontFaceSet set);
 
 WorkerGlobalScope get _workerSelf => JS('WorkerGlobalScope', 'self');

@@ -25,7 +25,7 @@ import 'package:analyzer/src/utilities/extensions/object.dart';
 
 /// Methods useful in detecting errors.  This mixin exists to allow code to be
 /// more easily shared between the two visitors that do the majority of error
-/// reporting (ResolverVisitor and ErrorVerifier).
+/// reporting (TypeAnalyzer and ErrorVerifier).
 mixin ErrorDetectionHelpers {
   DiagnosticReporter get diagnosticReporter;
 
@@ -75,9 +75,7 @@ mixin ErrorDetectionHelpers {
       correspondingParameterType = parameter.type;
     } else if (argument.parent2
         case ArgumentListImpl(
-          parent2: FunctionExpressionInvocationImpl(
-            function2: Expression(:var staticType),
-          ),
+          parent2: CallInvocationImpl(receiver: Expression(:var staticType)),
         )
         when identical(staticType, DynamicTypeImpl.instance) ||
             identical(staticType, NeverTypeImpl.instance) ||
@@ -247,9 +245,8 @@ mixin ErrorDetectionHelpers {
       return false;
     }
 
-    if (expression is MethodInvocation) {
-      SimpleIdentifier methodName = expression.methodName;
-      diagnosticReporter.report(diag.useOfVoidResult.at(methodName));
+    if (expression is NamedFunctionInvocation) {
+      diagnosticReporter.report(diag.useOfVoidResult.at(expression.name));
     } else {
       diagnosticReporter.report(diag.useOfVoidResult.at(expression));
     }
@@ -317,20 +314,24 @@ mixin ErrorDetectionHelpers {
     DartType context,
     SyntacticEntity errorNode,
   ) {
-    var visitedTypes = {type};
+    if (!typeSystem.acceptsFunctionType(context)) {
+      return null;
+    }
+
+    Set<DartType>? visitedTypes;
     while (type is TypeParameterType) {
       if (type.nullabilitySuffix != NullabilitySuffix.none) {
         // The value might be `null`, so implicit `.call` tearoff is invalid.
         return null;
       }
+      visitedTypes ??= {type};
       type = type.bound;
       if (!visitedTypes.add(type)) {
         // A cycle!
         return null;
       }
     }
-    if (typeSystem.acceptsFunctionType(context) &&
-        type is InterfaceType &&
+    if (type is InterfaceType &&
         type.nullabilitySuffix != NullabilitySuffix.question) {
       return inheritance
           .getMember3(
@@ -344,18 +345,6 @@ mixin ErrorDetectionHelpers {
     } else {
       return null;
     }
-  }
-
-  /// Return the variable element represented by the given [expression], or
-  /// `null` if there is no such element.
-  VariableElement? getVariableElement(Expression? expression) {
-    if (expression is Identifier) {
-      var element = expression.element;
-      if (element is VariableElement) {
-        return element;
-      }
-    }
-    return null;
   }
 
   void _checkForArgumentTypeNotAssignableForArgument({
@@ -382,7 +371,7 @@ mixin ErrorDetectionHelpers {
 /// Concrete derived classes exist for handling the different varieties of
 /// non-assignability errors.
 abstract class NonAssignabilityReporter {
-  const NonAssignabilityReporter();
+  const new();
 
   /// Creates the appropriate [LocatableDiagnostic] to report that the user has
   /// tried to assign [actualStaticType] to [expectedStaticType].
@@ -394,7 +383,7 @@ abstract class NonAssignabilityReporter {
 
 /// Helper class for reporting the error [diag.argumentTypeNotAssignable].
 class NonAssignabilityReporterForArgument extends NonAssignabilityReporter {
-  const NonAssignabilityReporterForArgument();
+  const new();
 
   @override
   LocatableDiagnostic createDiagnostic({
@@ -444,7 +433,7 @@ class NonAssignabilityReporterForArgument extends NonAssignabilityReporter {
 
 /// Helper class for reporting the error [diag.invalidAssignment].
 class NonAssignabilityReporterForAssignment extends NonAssignabilityReporter {
-  const NonAssignabilityReporterForAssignment();
+  const new();
 
   @override
   LocatableDiagnostic createDiagnostic({

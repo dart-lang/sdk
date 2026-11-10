@@ -20,7 +20,7 @@ class DuplicateDefinitionVerifier {
   final DiagnosticFactory _diagnosticFactory = DiagnosticFactory();
   final Set<Token> _reportedTokens = Set.identity();
 
-  DuplicateDefinitionVerifier(this._currentLibrary, this._diagnosticReporter);
+  new(this._currentLibrary, this._diagnosticReporter);
 
   /// Check that the exception and stack trace parameters have different names.
   void checkCatchClause(CatchClause node) {
@@ -43,9 +43,9 @@ class DuplicateDefinitionVerifier {
     }
   }
 
-  /// Check that the given list of variable declarations does not define
+  /// Check that the given local variable declaration does not define
   /// multiple variables of the same name.
-  void checkForVariables(VariableDeclarationListImpl node) {
+  void checkForVariables(LocalVariablesDeclarationImpl node) {
     var scope = _DuplicateIdentifierScope(this);
     for (var variable in node.variables) {
       scope.add(variable.name, node: variable);
@@ -85,16 +85,13 @@ class DuplicateDefinitionVerifier {
   void checkStatements(List<StatementImpl> statements) {
     var scope = _DuplicateIdentifierScope(this);
     for (var statement in statements) {
-      if (statement is VariableDeclarationStatementImpl) {
-        for (var variable in statement.variables.variables) {
+      if (statement is LocalVariablesDeclarationStatementImpl) {
+        for (var variable in statement.declaration.variables) {
           scope.add(variable.name, node: variable);
         }
-      } else if (statement is FunctionDeclarationStatementImpl) {
+      } else if (statement is LocalFunctionDeclarationImpl) {
         if (!_isWildCardFunction(statement)) {
-          scope.add(
-            statement.functionDeclaration.name,
-            node: statement.functionDeclaration,
-          );
+          scope.add(statement.name, node: statement);
         }
       } else if (statement is PatternVariableDeclarationStatementImpl) {
         for (var variable in statement.declaration.elements) {
@@ -202,7 +199,7 @@ class DuplicateDefinitionVerifier {
 
     for (var member in node.declarations2) {
       switch (member) {
-        case ClassDeclarationImpl():
+        case ClassDeclaration2Impl():
           var declaredFragment = member.declaredFragment!;
           if (!declaredFragment.isAugmentation) {
             _checkDuplicateFragmentIdentifier(
@@ -211,7 +208,7 @@ class DuplicateDefinitionVerifier {
               fragment: declaredFragment,
             );
           }
-        case EnumDeclarationImpl():
+        case EnumDeclaration2Impl():
           var declaredFragment = member.declaredFragment!;
           if (!declaredFragment.isAugmentation) {
             _checkDuplicateFragmentIdentifier(
@@ -220,7 +217,7 @@ class DuplicateDefinitionVerifier {
               fragment: declaredFragment,
             );
           }
-        case ExtensionDeclarationImpl():
+        case ExtensionDeclaration2Impl():
           var identifier = member.name;
           if (identifier != null) {
             var declaredFragment = member.declaredFragment!;
@@ -232,7 +229,7 @@ class DuplicateDefinitionVerifier {
               );
             }
           }
-        case ExtensionTypeDeclarationImpl():
+        case ExtensionTypeDeclaration2Impl():
           var declaredFragment = member.declaredFragment!;
           if (!declaredFragment.isAugmentation) {
             _checkDuplicateFragmentIdentifier(
@@ -241,22 +238,14 @@ class DuplicateDefinitionVerifier {
               fragment: declaredFragment,
             );
           }
-        case FunctionDeclarationImpl():
+        case TopLevelFunctionDeclarationImpl():
           var declaredFragment = member.declaredFragment!;
           if (!declaredFragment.isAugmentation) {
-            if (declaredFragment is SetterFragment) {
-              _checkDuplicateFragmentIdentifier(
-                definedSetters,
-                member.name,
-                fragment: declaredFragment,
-              );
-            } else {
-              _checkDuplicateFragmentIdentifier(
-                definedGetters,
-                member.name,
-                fragment: declaredFragment,
-              );
-            }
+            _checkDuplicateFragmentIdentifier(
+              definedGetters,
+              member.name,
+              fragment: declaredFragment,
+            );
           }
         case TopLevelGetterDeclarationImpl():
           var declaredFragment = member.declaredFragment!;
@@ -267,7 +256,16 @@ class DuplicateDefinitionVerifier {
               fragment: declaredFragment,
             );
           }
-        case MixinDeclarationImpl():
+        case TopLevelSetterDeclarationImpl():
+          var declaredFragment = member.declaredFragment!;
+          if (!declaredFragment.isAugmentation) {
+            _checkDuplicateFragmentIdentifier(
+              definedSetters,
+              member.name,
+              fragment: declaredFragment,
+            );
+          }
+        case MixinDeclaration2Impl():
           var declaredFragment = member.declaredFragment!;
           if (!declaredFragment.isAugmentation) {
             _checkDuplicateFragmentIdentifier(
@@ -276,10 +274,9 @@ class DuplicateDefinitionVerifier {
               fragment: declaredFragment,
             );
           }
-        case TopLevelVariableDeclarationImpl():
-          for (var variable in member.variables.variables) {
-            var declaredFragment = variable.declaredFragment;
-            declaredFragment as TopLevelVariableFragmentImpl;
+        case TopLevelVariablesDeclarationImpl():
+          for (var variable in member.variables) {
+            var declaredFragment = variable.declaredFragment!;
             if (!declaredFragment.isAugmentation) {
               var declaredElement = declaredFragment.element;
               if (declaredElement.getter?.firstFragment case var getter?) {
@@ -302,7 +299,25 @@ class DuplicateDefinitionVerifier {
               }
             }
           }
-        case TypeAliasImpl():
+        case ClassTypeAlias2Impl():
+          var declaredFragment = member.declaredFragment!;
+          if (!declaredFragment.isAugmentation) {
+            _checkDuplicateFragmentIdentifier(
+              definedGetters,
+              member.name,
+              fragment: declaredFragment,
+            );
+          }
+        case FunctionTypeAlias2Impl():
+          var declaredFragment = member.declaredFragment!;
+          if (!declaredFragment.isAugmentation) {
+            _checkDuplicateFragmentIdentifier(
+              definedGetters,
+              member.name,
+              fragment: declaredFragment,
+            );
+          }
+        case GenericTypeAlias2Impl():
           var declaredFragment = member.declaredFragment!;
           if (!declaredFragment.isAugmentation) {
             _checkDuplicateFragmentIdentifier(
@@ -350,8 +365,8 @@ class DuplicateDefinitionVerifier {
     }
   }
 
-  bool _isWildCardFunction(FunctionDeclarationStatement statement) =>
-      statement.functionDeclaration.name.lexeme == '_' &&
+  bool _isWildCardFunction(LocalFunctionDeclaration statement) =>
+      statement.name.lexeme == '_' &&
       _currentLibrary.hasWildcardVariablesFeatureEnabled;
 }
 
@@ -361,7 +376,7 @@ class _DuplicateIdentifierScope<T extends AstNode> {
 
   final Map<String, (T, Token)> _scope = {};
 
-  _DuplicateIdentifierScope(this._verifier);
+  new(this._verifier);
 
   /// Reports an error if there is already a node in this scope with the given
   /// [identifier] name.
@@ -416,7 +431,7 @@ class _DuplicateIdentifierScope<T extends AstNode> {
 /// Handles private named parameters and initializing formals.
 class _FormalParameterDuplicateIdentifierScope
     extends _DuplicateIdentifierScope<FormalParameter> {
-  _FormalParameterDuplicateIdentifierScope(super.verifier);
+  new(super.verifier);
 
   /// Given a private named parameter with [privateName] and corresponding
   /// [publicName], checks that the public name doesn't collide with any other

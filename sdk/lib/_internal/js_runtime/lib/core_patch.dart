@@ -26,7 +26,7 @@ import 'dart:_js_helper'
         wrapZoneUnaryCallback,
         TrustedGetRuntimeType;
 
-import 'dart:_foreign_helper' show JS;
+import 'dart:_foreign_helper' show JS, JS_GET_FLAG;
 import 'dart:_native_typed_data' show NativeUint8List;
 import 'dart:_rti' show getRuntimeTypeOfDartObject;
 
@@ -239,7 +239,7 @@ class int {
   static int parse(
     String source, {
     int? radix,
-    @deprecated int onError(String source)?,
+    @deprecated int Function(String source)? onError,
   }) {
     int? value = tryParse(source, radix: radix);
     if (value != null) return value;
@@ -258,7 +258,7 @@ class double {
   @patch
   static double parse(
     String source, [
-    @deprecated double onError(String source)?,
+    @deprecated double Function(String source)? onError,
   ]) {
     double? value = tryParse(source);
     if (value != null) return value;
@@ -387,7 +387,7 @@ class List<E> {
   @patch
   factory List.generate(
     int length,
-    E generator(int index), {
+    E Function(int index) generator, {
     bool growable = true,
   }) {
     final result = growable
@@ -718,7 +718,7 @@ class _Uri {
   // Consider the possibility of using Windows behavior if app is
   // compiled with `--server-mode` and running on Node or a similar platform.
   static final bool _isWindowsCached =
-      !const bool.fromEnvironment('dart.library.html') &&
+      JS_GET_FLAG('SERVER_MODE') &&
       JS<bool>(
         'bool',
         'typeof process != "undefined" && '

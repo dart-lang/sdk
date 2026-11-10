@@ -7,6 +7,7 @@ library;
 
 import 'package:_fe_analyzer_shared/src/deferred_function_literal_heuristic.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -20,17 +21,18 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/resolver/inference_failure_reporter.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/dart/type_instantiation_target.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/inference_log.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 
 Set<Object> _computeExplicitlyTypedParameterSet(
   FunctionExpression functionExpression,
 ) {
   List<FormalParameter> parameters =
-      functionExpression.parameters?.parameters ?? const [];
+      functionExpression.parameters?.allFormalParameters ?? const [];
   Set<Object> result = {};
   int unnamedParameterIndex = 0;
   for (var formalParameter in parameters) {
@@ -58,54 +60,46 @@ Map<Object, InternalFormalParameterElement> _computeParameterMap(
   };
 }
 
-/// Specialization of [InvocationInferrer] for performing type inference on AST
-/// nodes of type [Annotation] that resolve to a constructor invocation.
-class AnnotationInferrer extends FullInvocationInferrer<AnnotationImpl> {
-  /// The identifier pointing to the constructor that's being invoked, or `null`
-  /// if a constructor name couldn't be found (should only happen when
-  /// recovering from errors).  If the constructor is generic, this identifier's
-  /// static element will be updated to point to a
-  /// [SubstitutedConstructorElementImpl] with type arguments filled in.
-  final SimpleIdentifierImpl? constructorName;
-
-  AnnotationInferrer({
-    required super.resolver,
+/// Specialization of [InvocationInferrer] for applying an argument list to a
+/// value or implicit `call` receiver.
+class CallInvocationInferrer
+    extends FullInvocationInferrer<CallInvocationImpl> {
+  new({
+    required super.typeAnalyzer,
     required super.node,
     required super.argumentList,
     required super.contextType,
     required super.whyNotPromotedArguments,
     required super.target,
-    required this.constructorName,
   }) : super._();
 
   @override
-  bool get _isConst => true;
-
-  @override
-  bool get _isGenericInferenceDisabled => !resolver.genericMetadataIsEnabled;
-
-  @override
-  bool get _needsTypeArgumentBoundsCheck => true;
+  SyntacticEntity get _errorEntity => node.receiver;
 
   @override
   TypeArgumentListImpl? get _typeArguments => node.typeArguments;
 
   @override
-  List<FormalParameterElement>? _storeResult(
-    List<DartType>? typeArgumentTypes,
-    FunctionType? invokeType,
-  ) {
-    if (invokeType != null) {
-      var elementOrMember = node.element as InternalConstructorElement;
-      var constructorElement = SubstitutedConstructorElementImpl.from2(
-        elementOrMember.baseElement,
-        invokeType.returnType as InterfaceType,
-      );
-      constructorName?.element = constructorElement;
-      node.element = constructorElement;
-      return constructorElement.formalParameters;
+  void _reportInferenceFailure() {
+    if (node.parent2 is AsExpression) {
+      return;
     }
-    return null;
+    if (node.receiver case ExpressionImpl receiver) {
+      reportExpressionInferenceFailure(
+        typeAnalyzer.diagnosticReporter,
+        receiver,
+      );
+    }
+  }
+
+  @override
+  List<FormalParameterElement>? _storeResult(
+    List<TypeImpl>? typeArgumentTypes,
+    FunctionTypeImpl? invokeType,
+  ) {
+    node.typeArgumentTypes = typeArgumentTypes;
+    node.staticInvokeType = invokeType ?? DynamicTypeImpl.instance;
+    return super._storeResult(typeArgumentTypes, invokeType);
   }
 }
 
@@ -113,8 +107,8 @@ class AnnotationInferrer extends FullInvocationInferrer<AnnotationImpl> {
 /// nodes of type [ConstructorInvocation].
 class ConstructorInvocationInferrer
     extends FullInvocationInferrer<ConstructorInvocationImpl> {
-  ConstructorInvocationInferrer({
-    required super.resolver,
+  new({
+    required super.typeAnalyzer,
     required super.node,
     required super.argumentList,
     required super.contextType,
@@ -128,6 +122,14 @@ class ConstructorInvocationInferrer
   @override
   bool get _isConst => node.isConst;
 
+  /// Without generic metadata, the type arguments of a constructor invoked by
+  /// an annotation are not inferred.
+  @override
+  bool get _isGenericInferenceDisabled {
+    return node.parent2 is AnnotationImpl &&
+        !typeAnalyzer.genericMetadataIsEnabled;
+  }
+
   @override
   bool get _needsTypeArgumentBoundsCheck => true;
 
@@ -136,6 +138,28 @@ class ConstructorInvocationInferrer
     // For a constructor invocation the type arguments are on the constructor
     // reference.
     return node.constructorReference.typeReference.typeArguments;
+  }
+
+  @override
+  void _reportInferenceFailure() {
+    var constructorReference = node.constructorReference;
+    var typeReference = constructorReference.typeReference;
+    var type = typeReference.type;
+    if (type is InterfaceTypeImpl &&
+        !type.element.metadata.hasOptionalTypeArgs) {
+      var constructorName = [
+        if (typeReference.importPrefix case var importPrefix?)
+          '${importPrefix.name.lexeme}.',
+        typeReference.name.lexeme,
+        if (constructorReference.selector case var selector?)
+          '.${selector.name2.lexeme}',
+      ].join();
+      typeAnalyzer.diagnosticReporter.report(
+        diag.inferenceFailureOnInstanceCreation
+            .withArguments(function: constructorName)
+            .at(constructorReference),
+      );
+    }
   }
 
   @override
@@ -166,11 +190,11 @@ class ConstructorInvocationInferrer
 }
 
 /// Specialization of [InvocationInferrer] for performing type inference on AST
-/// nodes of type [DotShorthandConstructorInvocation].
+/// nodes of type [DotShorthandConstructorInvocation2].
 class DotShorthandConstructorInvocationInferrer
-    extends FullInvocationInferrer<DotShorthandConstructorInvocationImpl> {
-  DotShorthandConstructorInvocationInferrer({
-    required super.resolver,
+    extends FullInvocationInferrer<DotShorthandConstructorInvocation2Impl> {
+  new({
+    required super.typeAnalyzer,
     required super.node,
     required super.argumentList,
     required super.contextType,
@@ -179,7 +203,7 @@ class DotShorthandConstructorInvocationInferrer
   }) : super._();
 
   @override
-  SimpleIdentifierImpl get _errorEntity => node.constructorName;
+  Token get _errorEntity => node.name;
 
   @override
   bool get _isConst => node.isConst;
@@ -210,7 +234,7 @@ class DotShorthandConstructorInvocationInferrer
         node.element!.baseElement,
         constructedType as InterfaceType,
       );
-      node.constructorName.element = constructorElement;
+      node.element = constructorElement;
       return constructorElement.formalParameters;
     }
     return null;
@@ -218,25 +242,11 @@ class DotShorthandConstructorInvocationInferrer
 }
 
 /// Specialization of [InvocationInferrer] for performing type inference on AST
-/// nodes of type [DotShorthandInvocation].
-class DotShorthandInvocationInferrer
-    extends InvocationExpressionInferrer<DotShorthandInvocationImpl> {
-  DotShorthandInvocationInferrer({
-    required super.resolver,
-    required super.node,
-    required super.argumentList,
-    required super.contextType,
-    required super.whyNotPromotedArguments,
-    required super.target,
-  }) : super._();
-}
-
-/// Specialization of [InvocationInferrer] for performing type inference on AST
 /// nodes that require full downward and upward inference.
 abstract class FullInvocationInferrer<Node extends AstNodeImpl>
     extends InvocationInferrer<Node> {
-  FullInvocationInferrer._({
-    required super.resolver,
+  new _({
+    required super.typeAnalyzer,
     required super.node,
     required super.argumentList,
     required super.contextType,
@@ -288,7 +298,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
       } else {
         typeArgumentTypes = typeArgumentList.arguments
             .map((typeArgument) => typeArgument.typeOrThrow)
-            .toList(growable: true);
+            .toList();
         if (rawType != null && _needsTypeArgumentBoundsCheck) {
           var typeParameters = rawType.typeParameters;
           var substitution = Substitution.fromPairs2(
@@ -301,8 +311,8 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
             if (bound != null) {
               bound = substitution.substituteType(bound);
               var typeArgument = typeArgumentTypes[i];
-              if (!resolver.typeSystem.isSubtypeOf(typeArgument, bound)) {
-                resolver.diagnosticReporter.report(
+              if (!typeAnalyzer.typeSystem.isSubtypeOf(typeArgument, bound)) {
+                typeAnalyzer.diagnosticReporter.report(
                   diag.typeArgumentNotMatchingBounds
                       .withArguments(
                         nonConformingType: typeArgument,
@@ -327,27 +337,26 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
       typeArgumentTypes = const <TypeImpl>[];
     } else {
       var typeParameters = rawType.typeParameters;
-      rawType = getFreshTypeParameters(
-        typeParameters,
-      ).applyToFunctionType(rawType);
+      rawType = getFreshTypeParameters(typeParameters)
+          .applyToFunctionType(rawType);
       inferenceLogWriter?.enterGenericInference(
         rawType.typeParameters,
         rawType,
       );
 
-      inferrer = resolver.typeSystem.setupGenericTypeInference(
+      inferrer = typeAnalyzer.typeSystem.setupGenericTypeInference(
         typeParameters: rawType.typeParameters,
         declaredReturnType: rawType.returnType,
         contextReturnType: contextType,
         isConst: _isConst,
-        diagnosticReporter: resolver.diagnosticReporter,
+        diagnosticReporter: typeAnalyzer.diagnosticReporter,
         errorEntity: _errorEntity,
-        genericMetadataIsEnabled: resolver.genericMetadataIsEnabled,
-        inferenceUsingBoundsIsEnabled: resolver.inferenceUsingBoundsIsEnabled,
-        strictInference: resolver.analysisOptions.strictInference,
-        strictCasts: resolver.analysisOptions.strictCasts,
-        typeSystemOperations: resolver.flowAnalysis.typeOperations,
-        dataForTesting: resolver.inferenceHelper.dataForTesting,
+        genericMetadataIsEnabled: typeAnalyzer.genericMetadataIsEnabled,
+        inferenceUsingBoundsIsEnabled:
+            typeAnalyzer.inferenceUsingBoundsIsEnabled,
+        strictCasts: typeAnalyzer.analysisOptions.strictCasts,
+        typeSystemOperations: typeAnalyzer.flowAnalysis.typeOperations,
+        dataForTesting: typeAnalyzer.inferenceHelper.dataForTesting,
         nodeForTesting: node,
       );
 
@@ -372,7 +381,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
     if (deferredFunctionLiterals != null) {
       bool isFirstStage = true;
       for (var stage in _FunctionLiteralDependencies(
-        resolver.typeSystem,
+        typeAnalyzer.typeSystem,
         deferredFunctionLiterals,
         rawType?.typeParameters.toSet() ?? const {},
         _computeUndeferredParamInfo(
@@ -395,10 +404,15 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
         );
         isFirstStage = false;
       }
+      _finishDeferredFunctionLiterals();
     }
 
     if (inferrer != null) {
       typeArgumentTypes = inferrer.chooseFinalTypes();
+      if (inferrer.hasUnknownTypeArguments &&
+          typeAnalyzer.analysisOptions.strictInference) {
+        _reportInferenceFailure();
+      }
     }
     FunctionTypeImpl? invokeType = typeArgumentTypes != null
         ? originalType?.instantiate(typeArgumentTypes)
@@ -407,10 +421,10 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
     var parameters = _storeResult(typeArgumentTypes, invokeType);
     if (parameters != null) {
       argumentList.correspondingStaticParameters =
-          ResolverVisitor.resolveArgumentsToParameters(
+          TypeAnalyzer.resolveArgumentsToParameters(
             argumentList: argumentList,
             formalParameters: parameters,
-            diagnosticReporter: resolver.diagnosticReporter,
+            diagnosticReporter: typeAnalyzer.diagnosticReporter,
           );
     }
     var returnType = _refineReturnType(
@@ -441,11 +455,18 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
 
   TypeImpl _refineReturnType(TypeImpl returnType) => returnType;
 
+  /// Reports, under `strict-inference`, that some type arguments of the
+  /// invocation can't be inferred.
+  ///
+  /// Casts via `as` do not play a part in downward inference, so invocations
+  /// whose result is immediately cast are allowed to fail.
+  void _reportInferenceFailure() {}
+
   void _reportWrongNumberOfTypeArguments(
     TypeArgumentList typeArgumentList,
     List<TypeParameterElement> typeParameters,
   ) {
-    resolver.diagnosticReporter.report(
+    typeAnalyzer.diagnosticReporter.report(
       target!
           .wrongNumberOfTypeArgumentsError(
             typeParameterCount: typeParameters.length,
@@ -464,30 +485,13 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
 }
 
 /// Specialization of [InvocationInferrer] for performing type inference on AST
-/// nodes of type [FunctionExpressionInvocation].
-class FunctionExpressionInvocationInferrer
-    extends InvocationExpressionInferrer<FunctionExpressionInvocationImpl> {
-  FunctionExpressionInvocationInferrer({
-    required super.resolver,
-    required super.node,
-    required super.argumentList,
-    required super.contextType,
-    required super.whyNotPromotedArguments,
-    required super.target,
-  }) : super._();
-
-  @override
-  ExpressionImpl get _errorEntity => node.function2;
-}
-
-/// Specialization of [InvocationInferrer] for performing type inference on AST
 /// nodes derived from [InvocationExpression].
 abstract class InvocationExpressionInferrer<
   Node extends InvocationExpressionImpl
 >
     extends FullInvocationInferrer<Node> {
-  InvocationExpressionInferrer._({
-    required super.resolver,
+  new _({
+    required super.typeAnalyzer,
     required super.node,
     required super.argumentList,
     required super.contextType,
@@ -500,6 +504,17 @@ abstract class InvocationExpressionInferrer<
 
   @override
   TypeArgumentListImpl? get _typeArguments => node.typeArguments;
+
+  @override
+  void _reportInferenceFailure() {
+    if (node.parent2 is AsExpression) {
+      return;
+    }
+    reportExpressionInferenceFailure(
+      typeAnalyzer.diagnosticReporter,
+      node.function,
+    );
+  }
 
   @override
   List<FormalParameterElement>? _storeResult(
@@ -515,10 +530,10 @@ abstract class InvocationExpressionInferrer<
 /// Base class containing functionality for performing type inference on AST
 /// nodes that invoke a method, function, or constructor.
 ///
-/// This class may be used directly for inference of [ExtensionOverride],
+/// This class may be used directly for inference of [ExtensionOverride2],
 /// [RedirectingConstructorInvocation], or [SuperConstructorInvocation].
 class InvocationInferrer<Node extends AstNodeImpl> {
-  final ResolverVisitor resolver;
+  final TypeAnalyzer typeAnalyzer;
   final Node node;
   final ArgumentListImpl argumentList;
   final TypeImpl contextType;
@@ -530,10 +545,25 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   /// arguments supplied is incorrect.
   final InvocationTarget? target;
 
+  /// The zero-based index of the last argument visited, or -1 if no argument
+  /// has been visited yet.
+  ///
+  /// This is used to detect whether the flow analysis state changes made by an
+  /// argument that was visited out of order still need to be accounted for (see
+  /// [FlowAnalysis.recordArgumentVisitOrderException]).
+  int lastArgumentVisited = -1;
+
+  /// The greatest zero-based index of any argument visited so far, or -1 if no
+  /// argument has been visited yet.
+  ///
+  /// This is used to detect when an argument is being visited out of order, so
+  /// that [FlowAnalysis.argumentVisitOrderException_begin] needs to be called.
+  int maxArgumentVisited = -1;
+
   /// Prepares to perform type inference on an invocation expression of type
   /// [Node].
-  InvocationInferrer({
-    required this.resolver,
+  new({
+    required this.typeAnalyzer,
     required this.node,
     required this.argumentList,
     required this.contextType,
@@ -555,6 +585,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
       _resolveDeferredFunctionLiterals(
         deferredFunctionLiterals: deferredFunctionLiterals,
       );
+      _finishDeferredFunctionLiterals();
     }
   }
 
@@ -564,16 +595,30 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   /// numeric operations.
   TypeImpl _computeContextForArgument(TypeImpl parameterType) => parameterType;
 
+  /// Performs any final actions that need to be done after inferring all
+  /// deferred function literals.
+  ///
+  /// This method should be called once after all arguments have been inferred.
+  /// If none of the arguments are function literals, it needn't be called at
+  /// all.
+  void _finishDeferredFunctionLiterals() {
+    if (lastArgumentVisited != argumentList.arguments2.length - 1) {
+      typeAnalyzer.flowAnalysis.flow?.recordArgumentVisitOrderException(
+        offset: argumentList.rightParenthesis.offset,
+      );
+    }
+  }
+
   /// If the invocation being processed is a call to `identical`, informs flow
   /// analysis about it, so that it can do appropriate promotions.
   void _recordIdenticalArgumentInfo(
     List<_IdenticalArgumentInfo?>? identicalArgumentInfo,
   ) {
-    var flow = resolver.flowAnalysis.flow;
+    var flow = typeAnalyzer.flowAnalysis.flow;
     if (identicalArgumentInfo != null) {
       var leftOperandInfo = identicalArgumentInfo[0]!;
       var rightOperandInfo = identicalArgumentInfo[1]!;
-      resolver.flowAnalysis.storeExpressionInfo(
+      typeAnalyzer.flowAnalysis.storeExpressionInfo(
         argumentList.parent2 as ExpressionImpl,
         flow?.equalityOperation_end(
           leftOperandInfo.expressionInfo,
@@ -592,9 +637,23 @@ class InvocationInferrer<Node extends AstNodeImpl> {
     Substitution? substitution,
     GenericInferrer? inferrer,
   }) {
-    var flow = resolver.flowAnalysis.flow;
+    var flow = typeAnalyzer.flowAnalysis.flow;
     var arguments = argumentList.arguments2;
     for (var deferredArgument in deferredFunctionLiterals) {
+      var argument = arguments[deferredArgument.index];
+      // If any argument that follows this one in the source code has already
+      // been visited, then this argument is being visited out of order.
+      bool isOutOfOrder = maxArgumentVisited > deferredArgument.index;
+      if (isOutOfOrder) {
+        flow?.argumentVisitOrderException_begin(offset: argument.offset);
+      } else if (lastArgumentVisited != deferredArgument.index - 1) {
+        // This argument is being visited in its natural source position, but
+        // the argument that precedes it in the source code wasn't the argument
+        // that was visited most recently, so an argument was visited out of
+        // order in the meantime. Account for the state changes it made before
+        // visiting this argument.
+        flow?.recordArgumentVisitOrderException(offset: argument.offset);
+      }
       var parameter = deferredArgument.parameter;
       TypeImpl parameterContextType;
       if (parameter != null) {
@@ -606,13 +665,19 @@ class InvocationInferrer<Node extends AstNodeImpl> {
       } else {
         parameterContextType = UnknownInferredType.instance;
       }
-      var argument = arguments[deferredArgument.index];
       var expression = argument.argumentExpression2;
-      resolver.analyzeExpression(
+      typeAnalyzer.analyzeExpression(
         expression,
         SharedTypeSchemaView(parameterContextType),
       );
-      expression = resolver.popRewrite()!;
+      expression = typeAnalyzer.popRewrite()!;
+      if (isOutOfOrder) {
+        flow?.argumentVisitOrderException_end(offset: argument.end);
+      }
+      lastArgumentVisited = deferredArgument.index;
+      if (deferredArgument.index > maxArgumentVisited) {
+        maxArgumentVisited = deferredArgument.index;
+      }
       if (argument is NamedArgumentImpl) {
         argument.argumentExpression2 = expression;
       } else {
@@ -620,7 +685,9 @@ class InvocationInferrer<Node extends AstNodeImpl> {
       }
       if (flow != null) {
         identicalArgumentInfo?[deferredArgument.index] = _IdenticalArgumentInfo(
-          expressionInfo: resolver.flowAnalysis.getExpressionInfo(expression),
+          expressionInfo: typeAnalyzer.flowAnalysis.getExpressionInfo(
+            expression,
+          ),
           staticType: expression.typeOrThrow,
         );
       }
@@ -646,8 +713,8 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   }) {
     assert(whyNotPromotedArguments.isEmpty);
     List<_DeferredParamInfo>? deferredFunctionLiterals;
-    resolver.checkUnreachableNode(argumentList);
-    var flow = resolver.flowAnalysis.flow;
+    typeAnalyzer.checkUnreachableNode(argumentList);
+    var flow = typeAnalyzer.flowAnalysis.flow;
     var unnamedArgumentIndex = 0;
     var arguments = argumentList.arguments2;
     for (int i = 0; i < arguments.length; i++) {
@@ -664,7 +731,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
       }
       value = value.unParenthesized2;
       parameter = parameterMap[parameterKey];
-      if (resolver.isInferenceUpdate1Enabled &&
+      if (typeAnalyzer.isInferenceUpdate1Enabled &&
           value is FunctionExpressionImpl) {
         (deferredFunctionLiterals ??= []).add(
           _DeferredParamInfo(parameter, value, i, parameterKey),
@@ -685,11 +752,13 @@ class InvocationInferrer<Node extends AstNodeImpl> {
         } else {
           parameterContextType = UnknownInferredType.instance;
         }
-        resolver.analyzeExpression(
+        typeAnalyzer.analyzeExpression(
           argument.argumentExpression2,
           SharedTypeSchemaView(parameterContextType),
         );
-        var rewritten = resolver.popRewrite()!;
+        var rewritten = typeAnalyzer.popRewrite()!;
+        lastArgumentVisited = i;
+        maxArgumentVisited = i;
         if (argument is NamedArgumentImpl) {
           argument.argumentExpression2 = rewritten;
         } else {
@@ -698,7 +767,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
         if (flow != null) {
           identicalArgumentInfo?.add(
             _IdenticalArgumentInfo(
-              expressionInfo: resolver.flowAnalysis.getExpressionInfo(
+              expressionInfo: typeAnalyzer.flowAnalysis.getExpressionInfo(
                 rewritten,
               ),
               staticType: rewritten.typeOrThrow,
@@ -706,7 +775,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
           );
           whyNotPromotedArguments.add(
             flow.whyNotPromoted(
-              resolver.flowAnalysis.getExpressionInfo(rewritten),
+              typeAnalyzer.flowAnalysis.getExpressionInfo(rewritten),
             ),
           );
         }
@@ -734,12 +803,12 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   }
 }
 
-/// Specialization of [InvocationInferrer] for performing type inference on AST
-/// nodes of type [MethodInvocation].
-class MethodInvocationInferrer
-    extends InvocationExpressionInferrer<MethodInvocationImpl> {
-  MethodInvocationInferrer({
-    required super.resolver,
+/// Performs invocation inference for a canonical direct named function
+/// invocation, including repeated resolution of top-level initializers.
+class NamedFunctionInvocationInferrer<Node extends NamedFunctionInvocationImpl>
+    extends FullInvocationInferrer<Node> {
+  new({
+    required super.typeAnalyzer,
     required super.node,
     required super.argumentList,
     required super.contextType,
@@ -748,39 +817,102 @@ class MethodInvocationInferrer
   }) : super._();
 
   @override
+  Token get _errorEntity => node.name;
+
+  Element? get _invokedElement => switch (target) {
+    InvocationTargetExecutableElement(:var element) => element,
+    _ => null,
+  };
+
+  @override
   bool get _isIdentical {
-    var invokedMethod = node.methodName.element;
-    return invokedMethod is TopLevelFunctionElement &&
-        invokedMethod.isDartCoreIdentical &&
+    var invokedFunction = _invokedElement;
+    return invokedFunction is TopLevelFunctionElementImpl &&
+        invokedFunction.isDartCoreIdentical &&
         node.argumentList.arguments2.length == 2;
   }
 
+  TypeImpl? get _receiverType {
+    if (node case ReceiverMethodInvocationImpl(
+      receiver: ExpressionImpl(:var staticType),
+    )) {
+      return staticType;
+    }
+    if (node is CascadeMethodInvocationImpl) {
+      return typeAnalyzer.instanceReceiverType(
+        node.thisOrAncestorOfType2<CascadeExpressionImpl>()!.target2,
+      );
+    }
+    return null;
+  }
+
+  @override
+  TypeArgumentListImpl? get _typeArguments => node.typeArguments;
+
   @override
   TypeImpl _computeContextForArgument(TypeImpl parameterType) {
-    var argumentContextType = super._computeContextForArgument(parameterType);
-    var targetType = node.realTarget2?.staticType;
-    if (targetType != null) {
-      argumentContextType = resolver.typeSystem.refineNumericInvocationContext(
-        targetType,
-        node.methodName.element,
+    if (_receiverType case var receiverType?) {
+      return typeAnalyzer.typeSystem.refineNumericInvocationContext(
+        receiverType,
+        _invokedElement,
         contextType,
         parameterType,
       );
     }
-    return argumentContextType;
+    return super._computeContextForArgument(parameterType);
   }
 
   @override
   TypeImpl _refineReturnType(TypeImpl returnType) {
-    var targetType = node.realTarget2?.staticType;
-    if (targetType != null) {
-      returnType = resolver.typeSystem
-          .refineNumericInvocationType(targetType, node.methodName.element, [
-            for (var argument in node.argumentList.arguments2)
-              argument.argumentExpression2.typeOrThrow,
-          ], returnType);
+    if (_receiverType case var receiverType?) {
+      return typeAnalyzer.typeSystem.refineNumericInvocationType(
+        receiverType,
+        _invokedElement,
+        [
+          for (var argument in node.argumentList.arguments2)
+            argument.argumentExpression2.typeOrThrow,
+        ],
+        returnType,
+      );
     }
     return returnType;
+  }
+
+  @override
+  void _reportInferenceFailure() {
+    if (node.parent2 is AsExpression) {
+      return;
+    }
+    var name = node.name;
+    switch (target) {
+      case InvocationTargetExecutableElement(:var element, :var rawType):
+        reportFunctionInvocationInferenceFailure(
+          typeAnalyzer.diagnosticReporter,
+          entity: name,
+          name: name.lexeme,
+          invokedElement: element,
+          invokedType: rawType,
+        );
+      case InvocationTargetFunctionTypedExpression(:var type):
+        reportFunctionInvocationInferenceFailure(
+          typeAnalyzer.diagnosticReporter,
+          entity: name,
+          name: name.lexeme,
+          invokedElement: null,
+          invokedType: type,
+        );
+      default:
+    }
+  }
+
+  @override
+  List<FormalParameterElement>? _storeResult(
+    List<TypeImpl>? typeArgumentTypes,
+    FunctionTypeImpl? invokeType,
+  ) {
+    node.typeArgumentTypes = typeArgumentTypes;
+    node.staticInvokeType = invokeType ?? DynamicTypeImpl.instance;
+    return super._storeResult(typeArgumentTypes, invokeType);
   }
 }
 
@@ -796,12 +928,7 @@ class _DeferredParamInfo extends _ParamInfo {
 
   final Object parameterKey;
 
-  _DeferredParamInfo(
-    super.parameter,
-    this.value,
-    this.index,
-    this.parameterKey,
-  );
+  new(super.parameter, this.value, this.index, this.parameterKey);
 }
 
 class _FunctionLiteralDependencies
@@ -815,7 +942,7 @@ class _FunctionLiteralDependencies
 
   final Set<TypeParameterElement> _typeVariables;
 
-  _FunctionLiteralDependencies(
+  new(
     this._typeSystem,
     Iterable<_DeferredParamInfo> deferredParamInfo,
     this._typeVariables,
@@ -879,10 +1006,7 @@ class _IdenticalArgumentInfo {
   /// The static type of the argument.
   final TypeImpl staticType;
 
-  _IdenticalArgumentInfo({
-    required this.expressionInfo,
-    required this.staticType,
-  });
+  new({required this.expressionInfo, required this.staticType});
 }
 
 /// Information about an invocation argument that may or may not have already
@@ -893,5 +1017,5 @@ class _ParamInfo {
   /// resolving a dynamic invocation.
   final InternalFormalParameterElement? parameter;
 
-  _ParamInfo(this.parameter);
+  new(this.parameter);
 }

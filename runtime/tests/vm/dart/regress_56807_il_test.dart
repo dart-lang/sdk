@@ -80,20 +80,15 @@ void matchIL$useList2(FlowGraph graph) {
     'B10' <<
         match.block('Target', [
           // No bounds check here.
-          'a.data' <<
-              match.LoadField(
-                'a',
-                slot: 'GrowableObjectArray.data',
-                skipUntilMatched: false,
-              ),
-          if (is32BitConfiguration)
-            'i_boxed' << match.BoxInt32('i', skipUntilMatched: false),
-          'value' <<
-              match.LoadIndexed(
-                'a.data',
-                is32BitConfiguration ? 'i_boxed' : 'i',
-                skipUntilMatched: false,
-              ),
+          match.tight([
+            'a.data' << match.LoadField('a', slot: 'GrowableObjectArray.data'),
+            if (is32BitConfiguration) 'i_boxed' << match.BoxInt32('i'),
+            'value' <<
+                match.LoadIndexed(
+                  'a.data',
+                  is32BitConfiguration ? 'i_boxed' : 'i',
+                ),
+          ]),
           if (is32BitConfiguration)
             'i+1' << match.BinaryInt32Op('i', 'c_one', op_kind: '+')
           else

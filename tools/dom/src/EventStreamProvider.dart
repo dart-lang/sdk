@@ -119,7 +119,7 @@ abstract class ElementStream<T extends Event> implements Stream<T> {
    * * [Event Capture](http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-capture)
    *   from the W3C DOM Events specification.
    */
-  StreamSubscription<T> capture(void onData(T event));
+  StreamSubscription<T> capture(void Function(T event) onData);
 }
 
 /**
@@ -134,16 +134,16 @@ class _EventStream<T extends Event> extends Stream<T> {
 
   // DOM events are inherently multi-subscribers.
   Stream<T> asBroadcastStream(
-          {void onListen(StreamSubscription<T> subscription)?,
-          void onCancel(StreamSubscription<T> subscription)?}) =>
+          {void Function(StreamSubscription<T> subscription)? onListen,
+          void Function(StreamSubscription<T> subscription)? onCancel}) =>
       this;
   bool get isBroadcast => true;
 
   // TODO(9757): Inlining should be smart and inline only when inlining would
   // enable scalar replacement of an immediately allocated receiver.
   @pragma('dart2js:tryInline')
-  StreamSubscription<T> listen(void onData(T event)?,
-      {Function? onError, void onDone()?, bool? cancelOnError}) {
+  StreamSubscription<T> listen(void Function(T event)? onData,
+      {Function? onError, void Function()? onDone, bool? cancelOnError}) {
     return new _EventStreamSubscription<T>(
         this._target, this._eventType, onData, this._useCapture);
   }
@@ -169,7 +169,7 @@ class _ElementEventStreamImpl<T extends Event> extends _EventStream<T>
         return e;
       });
 
-  StreamSubscription<T> capture(void onData(T event)) =>
+  StreamSubscription<T> capture(void Function(T event) onData) =>
       new _EventStreamSubscription<T>(
           this._target, this._eventType, onData, true);
 }
@@ -194,8 +194,8 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
       });
 
   // Delegate all regular Stream behavior to a wrapped Stream.
-  StreamSubscription<T> listen(void onData(T event)?,
-      {Function? onError, void onDone()?, bool? cancelOnError}) {
+  StreamSubscription<T> listen(void Function(T event)? onData,
+      {Function? onError, void Function()? onDone, bool? cancelOnError}) {
     var pool = new _StreamPool<T>.broadcast();
     for (var target in _targetList) {
       pool.add(new _EventStream<T>(target, _eventType, _useCapture));
@@ -204,7 +204,7 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
         onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 
-  StreamSubscription<T> capture(void onData(T event)) {
+  StreamSubscription<T> capture(void Function(T event) onData) {
     var pool = new _StreamPool<T>.broadcast();
     for (var target in _targetList) {
       pool.add(new _EventStream<T>(target, _eventType, true));
@@ -213,8 +213,8 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
   }
 
   Stream<T> asBroadcastStream(
-          {void onListen(StreamSubscription<T> subscription)?,
-          void onCancel(StreamSubscription<T> subscription)?}) =>
+          {void Function(StreamSubscription<T> subscription)? onListen,
+          void Function(StreamSubscription<T> subscription)? onCancel}) =>
       this;
   bool get isBroadcast => true;
 }
@@ -227,8 +227,8 @@ class _EventStreamSubscription<T extends Event>
   EventListener? _onData;
   final bool _useCapture;
 
-  _EventStreamSubscription(
-      this._target, this._eventType, void onData(T event)?, this._useCapture)
+  _EventStreamSubscription(this._target, this._eventType,
+      void Function(T event)? onData, this._useCapture)
       : _onData = onData == null
             ? null
             // If removed, we would need an `is` check on a function type which
@@ -250,7 +250,7 @@ class _EventStreamSubscription<T extends Event>
 
   bool get _canceled => _target == null;
 
-  void onData(void handleData(T event)?) {
+  void onData(void Function(T event)? handleData) {
     if (_canceled) {
       throw new StateError("Subscription has been canceled.");
     }
@@ -269,7 +269,7 @@ class _EventStreamSubscription<T extends Event>
   void onError(Function? handleError) {}
 
   /// Has no effect.
-  void onDone(void handleDone()?) {}
+  void onDone(void Function()? handleDone) {}
 
   void pause([Future? resumeSignal]) {
     if (_canceled) return;
@@ -331,15 +331,15 @@ class _CustomEventStreamImpl<T extends Event> extends Stream<T>
         _streamController = new StreamController.broadcast(sync: true);
 
   // Delegate all regular Stream behavior to our wrapped Stream.
-  StreamSubscription<T> listen(void onData(T event)?,
-      {Function? onError, void onDone()?, bool? cancelOnError}) {
+  StreamSubscription<T> listen(void Function(T event)? onData,
+      {Function? onError, void Function()? onDone, bool? cancelOnError}) {
     return _streamController.stream.listen(onData,
         onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 
   Stream<T> asBroadcastStream(
-          {void onListen(StreamSubscription<T> subscription)?,
-          void onCancel(StreamSubscription<T> subscription)?}) =>
+          {void Function(StreamSubscription<T> subscription)? onListen,
+          void Function(StreamSubscription<T> subscription)? onCancel}) =>
       _streamController.stream;
 
   bool get isBroadcast => true;

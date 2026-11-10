@@ -95,6 +95,23 @@ void migrate() {
         ),
       );
     });
+
+    test('request rejected by the server', () async {
+      p = project(mainSrc: 'class Foo {}\n');
+
+      final result = await p.runMigrate([
+        '--dry-run',
+        '--step=prepare,cleanup',
+        p.dirPath,
+      ]);
+
+      expect(result.exitCode, isNot(0));
+      expect(
+        result.stderr,
+        "The 'prepare' and 'cleanup' steps cannot be run together without "
+        "also running 'bump'.\n",
+      );
+    });
   });
 
   group('perform', () {
@@ -205,6 +222,50 @@ void migrate() {
         path.join(p.dirPath, 'pubspec.yaml'),
       ).readAsStringSync();
       expect(pubspec, contains('^3.12.0'));
+    });
+
+    test('--dry-run with --target-sdk prints apply tip', () async {
+      p = project(
+        mainSrc: 'class Foo {}\n',
+        sdkConstraint: VersionConstraint.parse('^3.11.0'),
+      );
+
+      var result = await p.runMigrate([
+        '--dry-run',
+        '--target-sdk=3.13.0',
+        p.dirPath,
+      ]);
+
+      expect(result.exitCode, 0);
+      expect(result.stderr, isEmpty);
+      expect(
+        result.stdout,
+        contains(
+          'To apply the proposed changes, run:\n'
+          '  dart migrate --apply --target-sdk=3.13.0 ${p.dirPath}',
+        ),
+      );
+    });
+
+    test('--apply --target-sdk', () async {
+      p = project(
+        mainSrc: 'class Foo {}\n',
+        sdkConstraint: VersionConstraint.parse('^3.11.0'),
+      );
+
+      final result = await p.runMigrate([
+        '--apply',
+        '--target-sdk=3.13.0',
+        p.dirPath,
+      ]);
+
+      expect(result.exitCode, 0);
+      expect(result.stderr, isEmpty);
+
+      final pubspec = File(
+        path.join(p.dirPath, 'pubspec.yaml'),
+      ).readAsStringSync();
+      expect(pubspec, contains('^3.13.0'));
     });
   });
 }

@@ -678,7 +678,37 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
           redirects,
         );
       }
-      url = Uri.parse(location);
+      // The Location header comes from the server. Report a URL that cannot
+      // be parsed or has an invalid scheme, host, or port as a
+      // RedirectException, not as a FormatException or ArgumentError.
+      var parsed = Uri.tryParse(location);
+      var resolved = parsed == null
+          ? null
+          : _httpRequest.uri.resolveUri(parsed);
+      var validPort = false;
+      if (resolved != null) {
+        try {
+          var port = resolved.port;
+          validPort = port >= 0 && port <= 0xFFFF;
+        } on FormatException {
+          validPort = false;
+        }
+      }
+      if (parsed == null ||
+          resolved == null ||
+          !validPort ||
+          (method != "CONNECT" &&
+              (resolved.host.isEmpty ||
+                  (_httpClient._connectionFactory == null &&
+                      !resolved.isScheme("http") &&
+                      !resolved.isScheme("https"))))) {
+        throw RedirectException(
+          "Server response has an invalid Location header for redirect: "
+          "$location",
+          redirects,
+        );
+      }
+      url = parsed;
     }
     if (followLoops != true) {
       for (var redirect in redirects) {
@@ -1158,6 +1188,7 @@ abstract class _HttpOutboundMessage<T> extends _IOSinkImpl {
     _HttpOutgoing outgoing,
     _HttpProfileData? profileData, {
     _HttpHeaders? initialHeaders,
+    bool bodylessRequest = false,
   }) : _uri = uri,
        headers = _HttpHeaders(
          protocolVersion,
@@ -1165,6 +1196,7 @@ abstract class _HttpOutboundMessage<T> extends _IOSinkImpl {
              ? HttpClient.defaultHttpsPort
              : HttpClient.defaultHttpPort,
          initialHeaders: initialHeaders,
+         bodylessRequest: bodylessRequest,
        ),
        _outgoing = outgoing,
        super(outgoing, latin1, profileData) {
@@ -1504,7 +1536,13 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
     this._httpClient,
     this._httpClientConnection,
     _HttpProfileData? _profileData,
-  ) : super(uri, "1.1", outgoing, _profileData) {
+  ) : super(
+        uri,
+        "1.1",
+        outgoing,
+        _profileData,
+        bodylessRequest: method == "GET" || method == "HEAD",
+      ) {
     _profileData?.requestEvent('Request sent');
     // GET and HEAD have 'content-length: 0' by default.
     if (method == "GET" || method == "HEAD") {
@@ -1864,6 +1902,13 @@ class _HttpOutgoing implements StreamConsumer<List<int>> {
     void onData(List<int> data) {
       if (_socketError) return;
       if (data.isEmpty) return;
+      if (!headersWritten) {
+        if (outbound?.headers.contentLength == -1) {
+          chunked = true;
+          outbound?.headers.chunkedTransferEncoding = true;
+        }
+        writeHeaders();
+      }
       if (chunked) {
         if (_gzip) {
           _gzipAdd = controller.add;
@@ -1904,11 +1949,22 @@ class _HttpOutgoing implements StreamConsumer<List<int>> {
     controller.onResume = sub.resume;
     // Write headers now that we are listening to the stream.
     if (!headersWritten) {
-      var future = writeHeaders();
-      if (future != null) {
-        // While incoming is being drained, the pauseFuture is non-null. Pause
-        // output until it's drained.
-        sub.pause(future);
+      // We allow (for some reason) developers to attach bodies to GET and HEAD
+      // requests. For those methods, if the developer hasn't forced chunked
+      // transfer encoding on or set a specific content length, we need to
+      // defer writing the headers until we know whether we have a body and
+      // therefore need to add a transfer encoding header.
+      var deferHeaders =
+          outbound?.headers._bodylessRequest == true &&
+          outbound?.headers.contentLength == -1 &&
+          !outbound!.headers.chunkedTransferEncoding;
+      if (!deferHeaders) {
+        var future = writeHeaders();
+        if (future != null) {
+          // While incoming is being drained, the pauseFuture is non-null. Pause
+          // output until it's drained.
+          sub.pause(future);
+        }
       }
     }
     return socket
@@ -3934,6 +3990,10 @@ class _SiteCredentials extends _Credentials {
 
   bool applies(Uri uri, _AuthenticationScheme? scheme) {
     if (scheme != null && credentials.scheme != scheme) return false;
+    // The scheme is part of the protection space, so credentials registered
+    // for an https URL must not be sent over cleartext http
+    // (RFC 7617 section 2.2).
+    if (!uri.isScheme(this.uri.scheme)) return false;
     if (uri.host != this.uri.host) return false;
     int thisPort = this.uri.port == 0
         ? HttpClient.defaultHttpPort

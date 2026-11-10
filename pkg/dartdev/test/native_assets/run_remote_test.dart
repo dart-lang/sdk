@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:meta/meta.dart';
 import 'package:pub_formats/pub_formats.dart';
 import 'package:test/test.dart';
 
@@ -19,17 +20,20 @@ final _package2Dir = Directory.fromUri(
   _sdkUri.resolveUri(_package2RelativePath),
 );
 
+final _installPathResolutionDir = Directory.fromUri(
+  _sdkUri.resolve('pkg/dartdev/test/data/install_path_resolution/'),
+);
+
 final _pathEnvVarSeparator = Platform.isWindows ? ';' : ':';
 
 const String _dartDirectoryEnvKey = 'DART_DATA_HOME';
 
-// Set to true for debugging dartdev from the test.
-const fromDartdevSource = false;
-
-void main() async {
+void main([List<String> args = const []]) async {
   if (!nativeAssetsExperimentAvailableOnCurrentChannel) {
     return;
   }
+
+  final bool fromDartdevSource = args.contains('--source');
 
   final errorExitCode = fromDartdevSource
       ? /* Dartdev doesn't exit the process, it sends a message to the VM.*/ 0
@@ -37,8 +41,24 @@ void main() async {
   final usageExitCode = fromDartdevSource
       ? /* Dartdev doesn't exit the process, it sends a message to the VM.*/ 0
       : 64;
+  final argsFiltered = args.where((e) => e != '--source').toList();
+  final filterTestName = argsFiltered.isEmpty ? null : argsFiltered.join(' ');
 
-  test('dart run --help', timeout: longTimeout, () async {
+  @isTest
+  void skippableTest(
+    String description,
+    dynamic Function() body, {
+    Timeout? timeout,
+  }) {
+    test(
+      description,
+      skip: !(filterTestName == null || description.contains(filterTestName)),
+      timeout: timeout,
+      body,
+    );
+  }
+
+  skippableTest('dart run --help', timeout: longTimeout, () async {
     final result = await _runDartdev(
       fromDartdevSource,
       'run',
@@ -94,7 +114,7 @@ See https://dart.dev/to/package-descriptors for more details.'''),
     'vm_snapshot_analysis:snapshot_analysis@', // Resolves to latest stable version.
     'vm_snapshot_analysis:snapshot_analysis@{hosted: https://pub.dev}',
   ]) {
-    test('dart run  $argument', timeout: longTimeout, () async {
+    skippableTest('dart run  $argument', timeout: longTimeout, () async {
       await inTempDir((tempUri) async {
         final dartDataHome = tempUri.resolve('dart_home/');
         await Directory.fromUri(dartDataHome).create();
@@ -129,7 +149,7 @@ See https://dart.dev/to/package-descriptors for more details.'''),
     });
   }
 
-  test('dart run remote from git', timeout: longTimeout, () async {
+  skippableTest('dart run remote from git', timeout: longTimeout, () async {
     await inTempDir((tempUri) async {
       final (gitUri, gitRef) = await _setupSimpleGitRepo(tempUri);
       for (final (argument, expectedResult) in [
@@ -171,6 +191,47 @@ See https://dart.dev/to/package-descriptors for more details.'''),
     });
   });
 
+  skippableTest('dart run remote from path', timeout: longTimeout, () async {
+    await inTempDir((tempUri) async {
+      final fixturesUri = tempUri.resolve('fixtures/');
+      await copyDirectory(
+        _installPathResolutionDir,
+        Directory.fromUri(fixturesUri),
+      );
+      final appUri = fixturesUri.resolve('app_with_overrides/');
+      final appPath = appUri.toFilePath();
+      final jsonDescriptor = jsonEncode({'path': appPath});
+
+      final dartDataHome = tempUri.resolve('dart_home/');
+      await Directory.fromUri(dartDataHome).create();
+      final binDir = Directory.fromUri(dartDataHome.resolve('install/bin'));
+      final environment = {
+        _dartDirectoryEnvKey: dartDataHome.toFilePath(),
+        'PATH':
+            '${binDir.path}$_pathEnvVarSeparator${Platform.environment['PATH']!}',
+      };
+
+      for (final (argument, expectedResult) in [
+        ('test_app@{path: $appPath}', 'from_dep_v2 Alice and Bob'),
+        (
+          'test_app:other_app@$jsonDescriptor',
+          'other:from_dep_v2 Alice and Bob',
+        ),
+      ]) {
+        final runResult = await _runDartdev(
+          fromDartdevSource,
+          'run',
+          [argument, 'Alice', 'and', 'Bob'],
+          null,
+          environment,
+        );
+
+        expect(runResult.stdout.trim(), equals(expectedResult));
+        expect(runResult.exitCode, 0);
+      }
+    });
+  });
+
   final errorArgumentss = [
     (
       ['this_package_does_not_exist_12345@'],
@@ -185,32 +246,36 @@ See https://dart.dev/to/package-descriptors for more details.'''),
     (['my_package@{,bad,descriptor,}'], '{,bad,descriptor,}', usageExitCode),
   ];
   for (final (errorArguments, error, exitCode) in errorArgumentss) {
-    test('dart run ${errorArguments.join(' ')}', timeout: longTimeout, () async {
-      await inTempDir((tempUri) async {
-        final dartDataHome = tempUri.resolve('dart_home/');
-        await Directory.fromUri(dartDataHome).create();
-        final binDir = Directory.fromUri(dartDataHome.resolve('install/bin'));
+    skippableTest(
+      'dart run ${errorArguments.join(' ')}',
+      timeout: longTimeout,
+      () async {
+        await inTempDir((tempUri) async {
+          final dartDataHome = tempUri.resolve('dart_home/');
+          await Directory.fromUri(dartDataHome).create();
+          final binDir = Directory.fromUri(dartDataHome.resolve('install/bin'));
 
-        final environment = <String, String>{
-          _dartDirectoryEnvKey: dartDataHome.toFilePath(),
-          'PATH':
-              '${binDir.path}$_pathEnvVarSeparator${Platform.environment['PATH']!}',
-        };
+          final environment = <String, String>{
+            _dartDirectoryEnvKey: dartDataHome.toFilePath(),
+            'PATH':
+                '${binDir.path}$_pathEnvVarSeparator${Platform.environment['PATH']!}',
+          };
 
-        final runResult = await _runDartdev(
-          fromDartdevSource,
-          'run',
-          errorArguments,
-          null,
-          environment,
-          expectedExitCode: exitCode,
-        );
-        expect(runResult.stderr, contains(error));
-      });
-    });
+          final runResult = await _runDartdev(
+            fromDartdevSource,
+            'run',
+            errorArguments,
+            null,
+            environment,
+            expectedExitCode: exitCode,
+          );
+          expect(runResult.stderr, contains(error));
+        });
+      },
+    );
   }
 
-  test(
+  skippableTest(
     'dart run error from git with build hook failure',
     timeout: longTimeout,
     () async {
@@ -273,7 +338,7 @@ void main(List<String> args) async {
     },
   );
 
-  test('dart run caches git package', timeout: longTimeout, () async {
+  skippableTest('dart run caches git package', timeout: longTimeout, () async {
     await inTempDir((tempUri) async {
       final (gitUri, gitRef) = await _setupSimpleGitRepo(tempUri);
 
@@ -300,7 +365,7 @@ void main(List<String> args) async {
 
       expect(firstRunResult.stdout, contains('Hello World'));
       expect(firstRunResult.exitCode, 0);
-      expect(firstRunResult.stderr, contains('Generated: '));
+      expect(firstRunResult.stderr, isNot(contains('Generated: ')));
       // No hooks.
       expect(firstRunResult.stderr, isNot(contains('Running build hooks')));
       expect(firstRunResult.stderr, isNot(contains('Running link hooks')));
@@ -320,9 +385,9 @@ void main(List<String> args) async {
     });
   });
 
-  for (final verbosityError in [true, false]) {
-    final testName = verbosityError ? ' --verbosity=error' : '';
-    test(
+  for (final flag in ['', '--verbosity=error', '--verbose']) {
+    final testName = flag.isEmpty ? '' : ' $flag';
+    skippableTest(
       'dart run from git with build hook$testName',
       timeout: longTimeout,
       () async {
@@ -334,7 +399,7 @@ void main(List<String> args) async {
           );
 
           final arguments = [
-            if (verbosityError) '--verbosity=error',
+            if (flag.isNotEmpty) flag,
             'test_app_with_hook@{git: {url: ${gitUri.toFilePath()}, ref: $gitRef}}',
             'ignored',
             'arguments',
@@ -360,17 +425,15 @@ void main(List<String> args) async {
 
           expect(runResult.stdout, contains('Hello World'));
           expect(runResult.exitCode, 0);
-          if (verbosityError) {
+          if (flag == '--verbose') {
+            expect(runResult.stderr, contains('Generated: '));
+          } else {
             expect(runResult.stderr, isNot(contains('Running build hooks')));
             expect(runResult.stderr, isNot(contains('Running link hooks')));
             expect(runResult.stderr, isNot(contains('Generated: ')));
-            // Should have no other output than the program.
-            expect(runResult.stdout.trim(), equals('Hello World'));
-          } else {
-            expect(runResult.stderr, contains('Running build hooks'));
-            expect(runResult.stderr, contains('Running link hooks'));
-            expect(runResult.stderr, contains('Generated: '));
           }
+          // Should have no other output than the program on stdout.
+          expect(runResult.stdout.trim(), equals('Hello World'));
         });
       },
     );

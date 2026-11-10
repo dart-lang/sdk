@@ -207,6 +207,21 @@ class A {
     return _test_prepare(content, 'aaaa');
   }
 
+  /// https://github.com/dart-lang/sdk/issues/53947
+  Future<void> test_prepare_namedArgument_functionTypedField() {
+    const content = '''
+class A {
+  final void Function({int test}) f;
+  A(this.f);
+  void m() {
+    f(te^st: 3);
+  }
+}
+''';
+
+    return _test_prepare(content, null);
+  }
+
   Future<void> test_prepare_sdkClass() async {
     const content = '''
 final a = new [!Ob^ject!]();
@@ -563,6 +578,48 @@ class MyClass {
   new newName();
 }
 final a = new MyClass.newName();
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'newName',
+      expectedContent,
+    );
+  }
+
+  /// Potential references (members with the same name on dynamic or
+  /// unrelated receivers) should not be renamed.
+  ///
+  /// https://github.com/dart-lang/sdk/issues/50343
+  Future<void> test_rename_doesNotRenamePotentialReferences() {
+    const content = '''
+class A {
+  int get origi^nalName => 0;
+}
+
+class B {
+  int get originalName => 0;
+}
+
+void f(A a, B b, dynamic d) {
+  a.originalName;
+  b.originalName;
+  d.originalName;
+}
+''';
+    const expectedContent = '''
+class A {
+  int get newName => 0;
+}
+
+class B {
+  int get originalName => 0;
+}
+
+void f(A a, B b, dynamic d) {
+  a.newName;
+  b.originalName;
+  d.originalName;
+}
 ''';
     return _test_rename_withDocumentChanges(
       content,

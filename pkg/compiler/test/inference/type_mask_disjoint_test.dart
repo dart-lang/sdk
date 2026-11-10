@@ -97,12 +97,10 @@ main() {
           Expect.isTrue(isExact || isSubclass || isSubtype);
           var element = _elementCache.putIfAbsent(type, () {
             if (type == " ") return null;
-            final cls =
-                elementEnvironment.lookupClass(
-                      elementEnvironment.mainLibrary!,
-                      type,
-                    )
-                    as ClassEntity;
+            final cls = elementEnvironment.lookupClass(
+              elementEnvironment.mainLibrary!,
+              type,
+            ) as ClassEntity;
             Expect.isNotNull(cls, "No class '$type' found.");
             return cls;
           });

@@ -148,7 +148,7 @@ class DocumentationValidator {
     // yield_each_in_non_generator (analyzer)
     // - No error range in example
     // - Expected no errors but found 2 (example 0):
-    //   - undefined_identifier (29, 5) Undefined name 'yield'.
+    //   - undefined_unqualified_name_read (29, 5) Undefined name 'yield'.
     //   - body_might_complete_normally (18, 6) The body might complete
     //     normally, causing 'null' to be returned, but the return type,
     //     'Iterable<int>', is a potentially non-nullable type.
@@ -191,6 +191,14 @@ class DocumentationValidator {
     //
     // The example doesn't generate the documented diagnostic.
     'depend_on_referenced_packages',
+
+    // eol_at_end_of_file_missing (linter)
+    //
+    // Since trailing newlines aren't visible in a code block,
+    // the examples use a comment to mark where the file ends.
+    // As a result, every snippet for this rule reports the lint on itself,
+    // and the reported range is past the end of the content.
+    'eol_at_end_of_file_missing',
 
     // file_names (linter)
     // - No example.
@@ -278,7 +286,7 @@ class DocumentationValidator {
   bool hasWrittenVariableName = false;
 
   /// Initialize a newly created documentation validator.
-  DocumentationValidator();
+  new();
 
   /// Validate the documentation.
   Future<void> validate() async {
@@ -304,6 +312,7 @@ class DocumentationValidator {
     required List<String> experiments,
     required List<String> ignores,
     required String? languageVersion,
+    required List<String> messageExperiments,
   }) {
     // TODO(brianwilkerson): This doesn't check to ensure that there are no
     //  ranges specified in fixes (when `errorRequired` is `false`), but it
@@ -322,6 +331,19 @@ class DocumentationValidator {
         experimentalFeatures.add(feature);
       } else if (!onlyValidateFormatting) {
         _reportProblem("Unknown experiment '$experiment' in $section $index");
+      }
+    }
+    // Experiments listed in the message's `experiments` entry apply to every
+    // snippet. These names have already been validated by the message decoder.
+    // Unlike `%experiments=` directives, these aren't reported if they're
+    // enabled by default (doing so would make it harder to flip an experiment
+    // to on-by-default); they're simply skipped.
+    for (var experiment in messageExperiments) {
+      var feature = ExperimentStatus.knownFeatures[experiment];
+      if (feature != null &&
+          !feature.isEnabledByDefault &&
+          !experimentalFeatures.contains(feature)) {
+        experimentalFeatures.add(feature);
       }
     }
 
@@ -382,11 +404,15 @@ class DocumentationValidator {
 
   /// Extract the snippets of Dart code from [documentationParts] that are
   /// tagged as belonging to the given [blockSection].
+  ///
+  /// The experiments in [messageExperiments] (taken from the message's
+  /// `experiments` entry) are enabled for every snippet.
   List<_SnippetData> _extractSnippets(
     List<ErrorCodeDocumentationPart> documentationParts,
     BlockSection blockSection,
-    bool onlyValidateFormatting,
-  ) {
+    bool onlyValidateFormatting, {
+    required List<String> messageExperiments,
+  }) {
     var snippets = <_SnippetData>[];
     var auxiliaryFiles = <String, String>{};
     for (var documentationPart in documentationParts) {
@@ -409,6 +435,7 @@ class DocumentationValidator {
                 experiments: documentationPart.experiments,
                 ignores: documentationPart.ignores,
                 languageVersion: documentationPart.languageVersion,
+                messageExperiments: messageExperiments,
               ),
             );
           }
@@ -450,7 +477,13 @@ class DocumentationValidator {
     var ignoreFormatting = snippet.ignores.contains('formatting');
     String? formattedContent;
     try {
-      var formatter = DartFormatter(languageVersion: Version(3, 13, 0));
+      var formatter = DartFormatter(
+        languageVersion: Version(3, 13, 0),
+        experimentFlags: [
+          for (var feature in snippet.experimentalFeatures)
+            ?feature.experimentalFlag,
+        ],
+      );
       formattedContent = formatter.format(snippet.content).trimRight();
       if (formattedContent != snippet.content) {
         if (!ignoreFormatting) {
@@ -509,6 +542,7 @@ Formatted content is:
           docs,
           BlockSection.examples,
           onlyValidateFormatting,
+          messageExperiments: message.experiments,
         );
         _SnippetData? firstExample;
         if (exampleSnippets.isEmpty) {
@@ -533,6 +567,7 @@ Formatted content is:
           docs,
           BlockSection.commonFixes,
           onlyValidateFormatting,
+          messageExperiments: message.experiments,
         );
         for (int i = 0; i < fixesSnippets.length; i++) {
           _SnippetData snippet = fixesSnippets[i];
@@ -691,7 +726,7 @@ class _SnippetData {
   final String? languageVersion;
   String? lintCode;
 
-  _SnippetData(
+  new(
     this.content,
     this.offset,
     this.length,
@@ -862,7 +897,7 @@ class _SnippetTest extends PubPackageResolutionTest {
   final _SnippetData snippet;
 
   /// Initialize a newly created test to test the given [snippet].
-  _SnippetTest(this.snippet) {
+  new(this.snippet) {
     writeTestPackageAnalysisOptionsFile(
       analysisOptionsContent(
         experimentalFeatures: snippet.experimentalFeatures,

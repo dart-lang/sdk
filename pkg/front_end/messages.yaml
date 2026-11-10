@@ -1289,6 +1289,16 @@ invalidVoid:
     - "class Foo extends void {}"
   exampleAllowOtherCodes: true
 
+invalidVoidAfterAs:
+  pseudoSharedCode: EXPECTED_TYPE_NAME
+  parameters: none
+  problemMessage: "The type 'void' can't be used after 'as'."
+  correctionMessage: "Try removing the cast or using a different type."
+  script:
+    - "main() { 0 as void; }"
+    - "main() { if (0 case _ as void) {} }"
+  exampleAllowOtherCodes: true
+
 finalFieldNotInitialized:
   parameters:
     Name fieldName: The name of the uninitialized field.
@@ -2056,7 +2066,7 @@ fastaUsageLong:
         Read the SDK platform from <file>, which should be in Dill/Kernel IR format
         and contain the Dart SDK.
 
-      --target=dart2js|dart2js_server|dart2wasm|dart2wasm_js_compatibility|dart2wasm_standalone|dart_runner|dartdevc|flutter|flutter_runner|none|vm
+      --target=dart2js|dart2js_server|dart2wasm|dart2wasm_dev|dart2wasm_js_compatibility|dart2wasm_standalone|dart_runner|dartdevc|flutter|flutter_runner|none|vm
         Specify the target configuration.
 
       --enable-asserts
@@ -2415,16 +2425,6 @@ illegalMixinDueToConstructorsCause:
     Name className: The name of the class that can't be used as a mixin.
   problemMessage: "This constructor prevents using '#className' as a mixin."
   severity: CONTEXT
-
-extensionTypeDeclaresAbstractMember:
-  pseudoSharedCode: EXTENSION_TYPE_WITH_ABSTRACT_MEMBER
-  parameters: none
-  problemMessage: "Extension types can't declare abstract members."
-  correctionMessage: "Try providing an implementation for the member."
-  script: |
-    extension type ET(int id) {
-      void method();
-    }
 
 extensionDeclaresInstanceField:
   pseudoSharedCode: EXTENSION_DECLARES_INSTANCE_FIELD
@@ -3118,8 +3118,9 @@ partTwice:
     main.dart: "part 'part.dart'; part 'part.dart';"
 
 partOfTwoLibraries:
-  parameters: none
-  problemMessage: "A file can't be part of more than one library."
+  parameters:
+    Uri uri: The URI that is used as a part in more than one library.
+  problemMessage: "Can't use '#uri' as a part of more than one library."
   correctionMessage: "Try moving the shared declarations into the libraries, or into a new library."
   script:
     main.dart: "library lib; import 'lib.dart'; part 'part.dart';"
@@ -4559,6 +4560,15 @@ unavailableDartLibrary:
   script: |
     import "dart:non_existing_library";
 
+deprecatedJsInteropLibraryImport:
+  parameters:
+    Uri uri: The URI of the deprecated JS interop library.
+  problemMessage: |
+    Import of deprecated JS interop library '#uri' is not allowed.
+    Deprecated JS interop libraries are planned for removal in Dart 4.0.
+    Migrate to 'package:web' and 'dart:js_interop' (see https://dart.dev/interop/js-interop/past-js-interop), or temporarily enable the 'deprecated-js-interop' option.
+  external: test/deprecated_js_interop_library_import_test.dart
+
 unsupportedPlatformDartLibraryImport:
   parameters:
     Uri uri: The URI of the library that is unsupported.
@@ -5790,6 +5800,7 @@ thisNotPromoted:
   problemMessage: "'this' can't be promoted."
   correctionMessage: "See #documentationUrl"
   script: |
+    // @dart=3.14
     extension on int? {
       bool extension_explicit_this() {
         if (this == null) return false;
@@ -7238,6 +7249,11 @@ wasmExternMemoryMissingAnnotation:
   problemMessage: "This external getter returns a memory instance, but no annotation describing it was found"
   correctionMessage: "Try adding a `@MemoryType()` or `@Import.memory()` annotation."
 
+wasmSharedMemoryMissingMaximum:
+  parameters: none
+  problemMessage: "A shared WebAssembly memory must specify a maximum size."
+  correctionMessage: "Try specifying a maximum size."
+
 wasmConstantLaneOutOfRange:
   parameters:
     String name: The lane name.
@@ -7261,6 +7277,36 @@ wasmExternInvalidTarget:
 wasmIntrinsicTearOff:
   parameters: none
   problemMessage: This intrinsic extension member may not be torn off.
+
+wasmImportInvalidPragma:
+  parameters: none
+  problemMessage: "The 'wasm:import' pragma is only allowed on external static functions or memory getters, and must specify a '<module>.<name>' argument."
+
+wasmExportInvalidPragma:
+  parameters: none
+  problemMessage: "The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions, and 'wasm:export' is also allowed on external memory getters."
+
+wasmImportOrExportInvalidSignature:
+  parameters: none
+  problemMessage: "Functions annotated with 'wasm:import', 'wasm:export', or 'wasm:weak-export' cannot have type parameters, optional parameters, or named parameters."
+
+wasmImportOrExportInvalidParameterType:
+  parameters:
+    Type type: The invalid parameter type.
+  problemMessage: "Type '#type' is not a valid Wasm parameter type for imported or exported functions."
+
+wasmImportOrExportInvalidReturnType:
+  parameters:
+    Type type: The invalid return type.
+  problemMessage: "Type '#type' is not a valid Wasm return type for imported or exported functions (use 'WasmVoid' instead of 'void')."
+
+wasmImportOrExportTearOff:
+  parameters: none
+  problemMessage: "Functions annotated with 'wasm:import', 'wasm:export', or 'wasm:weak-export' may not be torn off."
+
+wasmFunctionFromFunctionInvalidArgument:
+  parameters: none
+  problemMessage: "The argument to 'WasmFunction.fromFunction' must be a tear-off of a static function with a valid Wasm signature."
 
 weakReferenceNotStatic:
   parameters: none
@@ -7826,3 +7872,13 @@ dartExternalEffectMalformedPragma:
     const bar = 'external-effect';
     @pragma(bar)
     external void foo(Object? x);
+
+augmentationExtendsClassAlreadyPresentCause:
+  parameters: none
+  problemMessage: "The previous 'extends' clause."
+  severity: CONTEXT
+
+defaultValueAlreadySpecifiedInAugmentationChainCause:
+  parameters: none
+  problemMessage: "The previous parameter with a default value."
+  severity: CONTEXT

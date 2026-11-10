@@ -14,8 +14,8 @@ import 'type_builder.dart';
 class NeverTypeDeclarationBuilder extends BuiltinTypeDeclarationBuilder {
   final LibraryBuilder coreLibrary;
 
-  new(DartType type, this.coreLibrary, int charOffset)
-    : super("Never", type, coreLibrary, charOffset) {
+  new(DartType type, this.coreLibrary)
+    : super("Never", type, coreLibrary, dartCoreUriOffset) {
     assert(coreLibrary.importUri == dartCore);
   }
 

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -11,6 +10,7 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ImportLibrarySdkDocTest);
     defineReflectiveTests(ImportLibrarySdkPrefixedTest);
     defineReflectiveTests(ImportLibrarySdkPrefixedWithShowTest);
     defineReflectiveTests(ImportLibrarySdkPriorityTest);
@@ -20,7 +20,86 @@ void main() {
 }
 
 @reflectiveTest
-class ImportLibrarySdkPrefixedTest extends FixProcessorTest {
+class ImportLibrarySdkDocTest extends FixProcessorForBuiltInDiagnosticTest {
+  @override
+  FixKind get kind => DartFixKind.importLibrarySdkDoc;
+
+  Future<void> test_withClass_commentReference() async {
+    createAnalysisOptionsFile(lints: [LintNames.comment_references]);
+    await resolveTestCode('''
+/// [Completer]
+void f() {}
+''');
+    await assertHasFix('''
+/// @docImport 'dart:async';
+library;
+
+/// [Completer]
+void f() {}
+''');
+  }
+
+  Future<void>
+  test_withClass_commentReference_existingLibraryDirective_docImports_directivesOrdering() async {
+    createAnalysisOptionsFile(
+      lints: [LintNames.comment_references, LintNames.directives_ordering],
+    );
+    newFile('$testPackageLibPath/lib.dart', '''
+class Test {
+  const Test(int p);
+}
+''');
+    await resolveTestCode('''
+/// @docImport 'dart:math';
+/// @docImport 'package:test/lib.dart';
+library;
+
+/// [FutureOr]
+void f() {}
+''');
+    await assertHasFix('''
+/// @docImport 'dart:async';
+/// @docImport 'dart:math';
+/// @docImport 'package:test/lib.dart';
+library;
+
+/// [FutureOr]
+void f() {}
+''');
+  }
+
+  Future<void>
+  test_withClass_commentReference_existingLibraryDirective_docImports_directivesOrdering2() async {
+    createAnalysisOptionsFile(
+      lints: [LintNames.comment_references, LintNames.directives_ordering],
+    );
+    newFile('$testPackageLibPath/lib.dart', '''
+class Test {
+  const Test(int p);
+}
+''');
+    await resolveTestCode('''
+/// @docImport 'package:test/lib.dart';
+library;
+
+/// [FutureOr]
+void f() {}
+''');
+    await assertHasFix('''
+/// @docImport 'dart:async';
+///
+/// @docImport 'package:test/lib.dart';
+library;
+
+/// [FutureOr]
+void f() {}
+''');
+  }
+}
+
+@reflectiveTest
+class ImportLibrarySdkPrefixedTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.importLibrarySdkPrefixed;
 
@@ -43,7 +122,8 @@ void f() {
 }
 
 @reflectiveTest
-class ImportLibrarySdkPrefixedWithShowTest extends FixProcessorTest {
+class ImportLibrarySdkPrefixedWithShowTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.importLibrarySdkPrefixedShow;
 
@@ -100,10 +180,27 @@ void f() {
       DartFixKind.importLibraryProject1,
     ]);
   }
+
+  Future<void> test_sdksFirst_project1Doc() async {
+    createAnalysisOptionsFile(lints: [LintNames.comment_references]);
+    newFile('$testPackageLibPath/lib.dart', '''
+class Completer {}
+''');
+    await resolveTestCode('''
+/// [Completer]
+void f() {}
+''');
+    await assertFixPriorityOrder([
+      DartFixKind.importLibrarySdkDoc,
+      DartFixKind.importLibrarySdk,
+      DartFixKind.importLibraryProject1Doc,
+      DartFixKind.importLibraryProject1,
+    ]);
+  }
 }
 
 @reflectiveTest
-class ImportLibrarySdkTest extends FixProcessorTest {
+class ImportLibrarySdkTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.importLibrarySdk;
 
@@ -296,8 +393,7 @@ class MyAnnotation {
 @MyAnnotation(int, const [Completer])
 void f() {}
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 import 'dart:async';
 
 class MyAnnotation {
@@ -305,11 +401,7 @@ class MyAnnotation {
 }
 @MyAnnotation(int, const [Completer])
 void f() {}
-''',
-      filter: (error) {
-        return error.diagnosticCode == diag.undefinedIdentifier;
-      },
-    );
+''');
   }
 
   Future<void> test_withClass_typeAnnotation() async {
@@ -390,21 +482,49 @@ void f() {
   Future<void> test_withTopLevelVariable_annotation() async {
     await resolveTestCode('''
 @pi
-void f() {
-}
+void f() {}
 ''');
     await assertHasFix('''
 import 'dart:math';
 
 @pi
+void f() {}
+''');
+  }
+
+  Future<void> test_withTopLevelVariable_constant() async {
+    await resolveTestCode('''
+const x = pi;
+''');
+    await assertHasFix('''
+import 'dart:math';
+
+const x = pi;
+''');
+  }
+
+  Future<void> test_withTopLevelVariable_inPart() async {
+    var libFile = newFile('$testPackageLibPath/a.dart', '''
+part 'test.dart';
+''');
+    await resolveTestCode('''
+part of 'a.dart';
+
 void f() {
+  print(pi);
 }
 ''');
+    await assertHasFix('''
+import 'dart:math';
+
+part 'test.dart';
+''', target: libFile.path);
   }
 }
 
 @reflectiveTest
-class ImportLibrarySdkWithShowTest extends FixProcessorTest {
+class ImportLibrarySdkWithShowTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.importLibrarySdkShow;
 

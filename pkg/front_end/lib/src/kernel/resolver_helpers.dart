@@ -200,18 +200,13 @@ class _InitializerBuilder {
   bool _needsImplicitSuperInitializer;
 
   new({
-    required CompilerContext compilerContext,
-    required ProblemReporting problemReporting,
-    required BodyBuilderContext bodyBuilderContext,
-    required TypeInferrer typeInferrer,
+    required this._compilerContext,
+    required this._problemReporting,
+    required this._bodyBuilderContext,
+    required this._typeInferrer,
     required CoreTypes coreTypes,
-    required Uri fileUri,
-  }) : this._compilerContext = compilerContext,
-       this._problemReporting = problemReporting,
-       this._bodyBuilderContext = bodyBuilderContext,
-       this._typeInferrer = typeInferrer,
-       this._fileUri = fileUri,
-       this._needsImplicitSuperInitializer = bodyBuilderContext
+    required this._fileUri,
+  }) : this._needsImplicitSuperInitializer = _bodyBuilderContext
            .needsImplicitSuperInitializer(coreTypes);
 
   void _inferInitializers(

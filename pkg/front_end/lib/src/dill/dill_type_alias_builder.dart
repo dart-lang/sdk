@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
+import '../base/uri_offset.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/type_builder.dart';
@@ -47,10 +48,15 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
       _typeParameters = computeTypeParameterBuilders(
         typedef.typeParameters,
         libraryBuilder.loader,
+        fileUri: fileUri,
       );
     }
     return _typeParameters;
   }
+
+  @override
+  UriOffsetLength get uriOffset =>
+      new UriOffsetLength(fileUri, fileOffset, name.length);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -61,7 +67,10 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
 
   @override
   TypeBuilder get type {
-    return _type ??= libraryBuilder.loader.computeTypeBuilder(typedef.type!);
+    return _type ??= libraryBuilder.loader.computeTypeBuilder(
+      type: typedef.type!,
+      uriOffset: uriOffset,
+    );
   }
 
   @override
@@ -70,7 +79,7 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
   }
 
   @override
-  List<DartType> buildAliasedTypeArguments(
+  DartTypeList buildAliasedTypeArguments(
     LibraryBuilder library,
     List<TypeBuilder>? arguments,
     ClassHierarchyBase? hierarchy,
@@ -80,26 +89,13 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
     // [cls.typeParameters].
     if (arguments == null) {
       // TODO(johnniwinther): Use i2b here when needed.
-      List<DartType> result = new List<DartType>.generate(
-        typedef.typeParameters.length,
-        (int i) {
-          return typedef.typeParameters[i].defaultType;
-        },
-        growable: true,
-      );
-      return result;
+      return DartTypeList.mapped(typedef.typeParameters, (t) => t.defaultType);
     }
 
     // [arguments] != null
-    List<DartType> result = new List<DartType>.generate(arguments.length, (
-      int i,
-    ) {
-      return arguments[i].buildAliased(
-        library,
-        TypeUse.typeArgument,
-        hierarchy,
-      );
-    }, growable: true);
-    return result;
+    return DartTypeList.mapped(
+      arguments,
+      (a) => a.buildAliased(library, TypeUse.typeArgument, hierarchy),
+    );
   }
 }

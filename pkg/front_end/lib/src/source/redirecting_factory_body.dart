@@ -6,7 +6,7 @@ import 'package:kernel/ast.dart';
 
 ReturnStatement createRedirectingFactoryBody(
   Member target,
-  List<DartType> typeArguments,
+  DartTypeList typeArguments,
   FunctionNode function,
 ) {
   return new ReturnStatement(
@@ -20,20 +20,20 @@ ReturnStatement createRedirectingFactoryErrorBody(String errorMessage) {
 
 Expression _makeForwardingCall(
   Member target,
-  List<DartType> typeArguments,
+  DartTypeList typeArguments,
   FunctionNode function,
 ) {
-  final List<Expression> positional = function.positionalParameters
-      .map<Expression>((v) => new VariableGet(v)..fileOffset = v.fileOffset)
-      .toList();
-  final List<NamedExpression> named = function.namedParameters
-      .map(
-        (v) => new NamedExpression(
-          v.parameterName,
-          new VariableGet(v)..fileOffset = v.fileOffset,
-        )..fileOffset = v.fileOffset,
-      )
-      .toList();
+  final ExpressionList positional = ExpressionList.mapped(
+    function.positionalParameters,
+    (PositionalParameter v) => new VariableGet(v)..fileOffset = v.fileOffset,
+  );
+  final NamedExpressionList named = NamedExpressionList.mapped(
+    function.namedParameters,
+    (NamedParameter v) => new NamedExpression(
+      v.parameterName,
+      new VariableGet(v)..fileOffset = v.fileOffset,
+    )..fileOffset = v.fileOffset,
+  );
   final Arguments args = new Arguments(
     positional,
     named: named,

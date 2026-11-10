@@ -69,7 +69,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   final ExhaustivenessDataForTesting? exhaustivenessDataForTesting;
 
   /// Initialize a newly created constant verifier.
-  ConstantVerifier(
+  new(
     DiagnosticReporter diagnosticReporter,
     LibraryElementImpl currentLibrary,
     DeclaredVariables declaredVariables, {
@@ -83,7 +83,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
          retainDataForTesting: retainDataForTesting,
        );
 
-  ConstantVerifier._(
+  new _(
     this._diagnosticReporter,
     this._currentLibrary,
     this._typeSystem,
@@ -99,28 +99,23 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
            : null;
 
   @override
-  void visitAnnotation(Annotation node) {
+  void visitAnnotation(covariant AnnotationImpl node) {
     super.visitAnnotation(node);
-    // check annotation creation
-    var element = node.element;
-    if (element is ConstructorElement) {
-      // should be 'const' constructor
-      if (!element.isConst) {
-        _diagnosticReporter.report(
-          diag.nonConstantAnnotationConstructor.at(node),
-        );
-        return;
-      }
-      // should have arguments
-      var argumentList = node.arguments;
-      if (argumentList == null) {
+    // A type literal `@C` and a constructor tear-off `@C.named` are valid
+    // constant expressions, but not valid annotations, which must invoke a
+    // constant constructor. The intent was almost certainly to invoke the
+    // constructor, so report that the arguments are missing. Whether the
+    // constructor is const is checked once it is invoked.
+    switch (node.expression) {
+      case ConstructorTearOffImpl(element: _?):
+      case TypeLiteralImpl(
+        type: NamedTypeImpl(element: InterfaceElement(unnamedConstructor: _?)),
+      ):
         _diagnosticReporter.report(
           diag.noAnnotationConstructorArguments.at(node),
         );
-        return;
-      }
-      // arguments should be constants
-      _validateConstantArguments(argumentList);
+      default:
+        break;
     }
   }
 
@@ -170,7 +165,9 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
+  void visitConstructorDeclaration2(
+    covariant ConstructorDeclaration2Impl node,
+  ) {
     var constKeyword = node.constKeyword;
     if (constKeyword != null) {
       // Check and report cycles.
@@ -189,14 +186,14 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
       if (node.factoryKeyword == null &&
           element.enclosingElement.primaryConstructor == null) {
         _validateFieldInitializers(
-          node.parent2.classMembers,
+          node.parent2.classMembers2,
           constKeyword,
           isEnumDeclaration: element.enclosingElement is EnumElementImpl,
         );
       }
     }
-    _validateDefaultValues(node.parameters);
-    super.visitConstructorDeclaration(node);
+    _validateDefaultValues(node.formalParameters);
+    super.visitConstructorDeclaration2(node);
   }
 
   @override
@@ -248,22 +245,22 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitDotShorthandConstructorInvocation(
-    DotShorthandConstructorInvocation node,
+  void visitDotShorthandConstructorInvocation2(
+    covariant DotShorthandConstructorInvocation2Impl node,
   ) {
     if (node.isConst) {
-      var constructor = node.constructorName.element;
-      if (constructor is InternalConstructorElement) {
+      var constructor = node.element;
+      if (constructor != null) {
         _validateConstructorInvocation(node, constructor, node.argumentList);
       }
     } else {
-      super.visitDotShorthandConstructorInvocation(node);
+      super.visitDotShorthandConstructorInvocation2(node);
     }
   }
 
   @override
-  visitEnumConstantDeclaration(covariant EnumConstantDeclarationImpl node) {
-    super.visitEnumConstantDeclaration(node);
+  visitEnumConstantDeclaration2(covariant EnumConstantDeclaration2Impl node) {
+    super.visitEnumConstantDeclaration2(node);
 
     var argumentList = node.arguments?.argumentList;
     if (argumentList != null) {
@@ -278,20 +275,22 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitField2(covariant Field2Impl node) {
+    super.visitField2(node);
+    _checkVariableInitializer(node);
+  }
+
+  @override
   void visitFunctionExpression(covariant FunctionExpressionImpl node) {
     super.visitFunctionExpression(node);
     _validateDefaultValues(node.parameters);
   }
 
   @override
-  void visitFunctionReference(FunctionReference node) {
-    super.visitFunctionReference(node);
+  void visitFunctionInstantiation(FunctionInstantiation node) {
+    super.visitFunctionInstantiation(node);
     if (node.inConstantContext || node.inConstantExpression) {
-      var typeArguments = node.typeArguments;
-      if (typeArguments == null) {
-        return;
-      }
-      for (var typeArgument in typeArguments.arguments) {
+      for (var typeArgument in node.typeArguments.arguments) {
         _checkForConstWithTypeParameters(
           typeArgument,
           diag.constWithTypeParametersFunctionTearoff,
@@ -312,6 +311,11 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitGetterDeclaration(covariant GetterDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitGetterDeclaration(node));
+  }
+
+  @override
   void visitListLiteral(ListLiteral node) {
     super.visitListLiteral(node);
     if (node.isConst) {
@@ -326,6 +330,20 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
         verifier.verify(element);
       }
     }
+  }
+
+  @override
+  void visitLocalFunctionDeclaration(
+    covariant LocalFunctionDeclarationImpl node,
+  ) {
+    super.visitLocalFunctionDeclaration(node);
+    _validateDefaultValues(node.formalParameters);
+  }
+
+  @override
+  void visitLocalVariable(covariant LocalVariableImpl node) {
+    super.visitLocalVariable(node);
+    _checkVariableInitializer(node);
   }
 
   @override
@@ -379,18 +397,24 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
-    super.visitMethodDeclaration(node);
-    _validateDefaultValues(node.parameters);
+  void visitMethodDeclaration2(covariant MethodDeclaration2Impl node) {
+    _visitMethodDeclaration(node, () => super.visitMethodDeclaration2(node));
   }
 
   @override
-  void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
+  void visitOperatorDeclaration(covariant OperatorDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitOperatorDeclaration(node));
+  }
+
+  @override
+  void visitPrimaryConstructorBody2(
+    covariant PrimaryConstructorBody2Impl node,
+  ) {
     var element = node.declaration?.declaredFragment?.element;
     if (element is ConstructorElementImpl && element.isConst) {
       _validateConstructorInitializers(node.initializers);
     }
-    super.visitPrimaryConstructorBody(node);
+    super.visitPrimaryConstructorBody2(node);
   }
 
   @override
@@ -402,7 +426,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
     var element = node.declaredFragment!.element;
     if (element.isConst) {
       _validatePrimaryFieldInitializers(
-        members: node.parent2.classMembers,
+        members: node.parent2.classMembers2,
         errorToken: node.constKeyword ?? node.typeName,
         isEnumDeclaration: element.enclosingElement is EnumElementImpl,
       );
@@ -489,6 +513,11 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitSetterDeclaration(covariant SetterDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitSetterDeclaration(node));
+  }
+
+  @override
   void visitSwitchExpression(SwitchExpression node) {
     _withConstantPatternValues((mapPatternKeyValues, constantPatternValues) {
       super.visitSwitchExpression(node);
@@ -529,41 +558,17 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
-    super.visitVariableDeclaration(node);
-    var initializer = node.initializer2;
-    if (initializer != null && (node.isConst || node.isFinal)) {
-      var element = node.declaredFragment!.element;
-      if (element is FieldElementImpl && !element.isStatic) {
-        var enclosingElement = element.enclosingElement;
-        if (enclosingElement is ClassElementImpl &&
-            !enclosingElement.hasGenerativeConstConstructor) {
-          // TODO(kallentu): Evaluate if we need to do this check for inline
-          // classes.
-          //
-          // We report errors in the class fields only if there's a generative
-          // const constructor in the class.
-          return;
-        }
-      }
+  void visitTopLevelFunctionDeclaration(
+    covariant TopLevelFunctionDeclarationImpl node,
+  ) {
+    super.visitTopLevelFunctionDeclaration(node);
+    _validateDefaultValues(node.formalParameters);
+  }
 
-      var result = element.evaluationResult;
-      if (result == null) {
-        // Variables marked "const" should have had their values computed by
-        // ConstantValueComputer.  Other variables will only have had their
-        // values computed if the value was needed (e.g. final variables in a
-        // class containing const constructors).
-        assert(!node.isConst);
-        return;
-      }
-      if (result is InvalidConstant) {
-        if (node.isConst) {
-          _reportError(result, diag.constInitializedWithNonConstantValue);
-        } else {
-          _reportError(result, null);
-        }
-      }
-    }
+  @override
+  void visitTopLevelVariable2(covariant TopLevelVariable2Impl node) {
+    super.visitTopLevelVariable2(node);
+    _checkVariableInitializer(node);
   }
 
   /// Returns `false` if we can prove that `constant == value` always returns
@@ -662,7 +667,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
           allowedTypeParameters: allowedTypeParameters,
         );
       }
-      for (var parameter in type.parameters.parameters) {
+      for (var parameter in type.parameters.allFormalParameters) {
         // In a generic function type, [parameter] can only be a non
         // function-typed regular formal parameter.
         if (parameter is RegularFormalParameter &&
@@ -688,6 +693,45 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
     }
   }
 
+  /// Reports the constant evaluation errors of the initializer of the const or
+  /// final variable [node].
+  void _checkVariableInitializer(VariableBindingImpl node) {
+    var initializer = node.initializer2;
+    var fragment = node.declaredFragment!;
+    if (initializer != null && (fragment.isConst || fragment.isFinal)) {
+      var element = fragment.element;
+      if (element is FieldElementImpl && !element.isStatic) {
+        var enclosingElement = element.enclosingElement;
+        if (enclosingElement is ClassElementImpl &&
+            !enclosingElement.hasGenerativeConstConstructor) {
+          // TODO(kallentu): Evaluate if we need to do this check for inline
+          // classes.
+          //
+          // We report errors in the class fields only if there's a generative
+          // const constructor in the class.
+          return;
+        }
+      }
+
+      var result = element.evaluationResult;
+      if (result == null) {
+        // Variables marked "const" should have had their values computed by
+        // ConstantValueComputer.  Other variables will only have had their
+        // values computed if the value was needed (e.g. final variables in a
+        // class containing const constructors).
+        assert(!fragment.isConst);
+        return;
+      }
+      if (result is InvalidConstant) {
+        if (fragment.isConst) {
+          _reportError(result, diag.constInitializedWithNonConstantValue);
+        } else {
+          _reportError(result, null);
+        }
+      }
+    }
+  }
+
   /// Evaluates [expression] and reports any evaluation error.
   ///
   /// Returns the compile time constant of [expression], or an [InvalidConstant]
@@ -696,8 +740,9 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   /// error code to be reported.
   Constant _evaluateAndReportError(
     Expression expression,
-    DiagnosticCode diagnosticCode,
-  ) {
+    DiagnosticCode diagnosticCode, {
+    TypeImpl? implicitCastType,
+  }) {
     var diagnosticListener = RecordingDiagnosticListener();
     var subDiagnosticReporter = DiagnosticReporter(
       diagnosticListener,
@@ -708,11 +753,23 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
       _currentLibrary,
       subDiagnosticReporter,
     );
-    var result = constantVisitor.evaluateConstant(expression);
+    var result = constantVisitor.evaluateConstant(
+      expression,
+      implicitCastType: implicitCastType,
+    );
     if (result is InvalidConstant) {
       _reportError(result, diagnosticCode);
     }
     return result;
+  }
+
+  /// Returns the nodes in [node] that aren't potentially constant, except
+  /// invalid named reads, which resolution has already reported.
+  List<AstNode> _notPotentiallyConstants(AstNode node) {
+    return getReportableNotPotentiallyConstants(
+      node,
+      featureSet: _currentLibrary.featureSet,
+    ).reportable;
   }
 
   /// Reports an error to the [_diagnosticReporter].
@@ -723,7 +780,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
     InvalidConstant error,
     DiagnosticCode? defaultDiagnosticCode,
   ) {
-    if (error.avoidReporting) {
+    if (error.avoidReporting || error.isInvalidNamedRead) {
       return;
     }
 
@@ -819,10 +876,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   }
 
   void _reportNotPotentialConstants(AstNode node) {
-    var notPotentiallyConstants = getNotPotentiallyConstants(
-      node,
-      featureSet: _currentLibrary.featureSet,
-    );
+    var notPotentiallyConstants = _notPotentiallyConstants(node);
     if (notPotentiallyConstants.isEmpty) return;
 
     for (var notConst in notPotentiallyConstants) {
@@ -884,6 +938,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
       _evaluationEngine,
       _currentLibrary,
       _diagnosticReporter,
+      reportsInvalidNamedReads: false,
     );
     var result = _evaluationEngine.evaluateAndFormatErrorsInConstructorCall(
       _currentLibrary,
@@ -895,7 +950,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
     );
     switch (result) {
       case InvalidConstant():
-        if (!result.avoidReporting) {
+        if (!result.avoidReporting && !result.isInvalidNamedRead) {
           _diagnosticReporter.report(
             result.locatableDiagnostic.atOffset(
               offset: result.offset,
@@ -918,6 +973,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
     for (var formalParameter in parameters.allFormalParameters) {
       if (formalParameter.defaultClause case var defaultClause?) {
         var defaultValue = defaultClause.value2;
+        var element = formalParameter.declaredFragment!.element;
         Constant? result;
         if (defaultValue.typeOrThrow is InvalidType) {
           // We have already reported an error.
@@ -925,9 +981,9 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
           result = _evaluateAndReportError(
             defaultValue,
             diag.nonConstantDefaultValue,
+            implicitCastType: element.type,
           );
         }
-        var element = formalParameter.declaredFragment!.element;
         element.evaluationResult = result;
       }
     }
@@ -938,19 +994,18 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   /// required if the class has a constant constructor, the error is reported at
   /// [constKeyword], the const keyword on such a constant constructor.
   void _validateFieldInitializers(
-    List<ClassMember> members,
+    List<AnnotatedNode> members,
     Token constKeyword, {
     required bool isEnumDeclaration,
   }) {
-    for (ClassMember member in members) {
-      if (member is FieldDeclaration && !member.isStatic) {
-        for (VariableDeclaration variableDeclaration
-            in member.fields.variables) {
+    for (var member in members) {
+      if (member is FieldsDeclaration && member.staticKeyword == null) {
+        for (var variableDeclaration in member.fields) {
           if (isEnumDeclaration &&
               variableDeclaration.name.lexeme == 'values') {
             continue;
           }
-          var initializer = variableDeclaration.initializer2;
+          var initializer = variableDeclaration.initializer;
           if (initializer != null) {
             // Ignore any diagnostics produced during validation--if the
             // constant can't be evaluated we'll just report a single error.
@@ -967,7 +1022,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
             );
             // TODO(kallentu): Report the specific error we got from the
             // evaluator to make it clear to the user what's wrong.
-            if (result is! DartObjectImpl) {
+            if (result case InvalidConstant(isInvalidNamedRead: false)) {
               _diagnosticReporter.report(
                 diag.constConstructorWithFieldInitializedByNonConst
                     .withArguments(fieldName: variableDeclaration.name.lexeme)
@@ -985,27 +1040,24 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   /// [_validateFieldInitializers], this allows references to primary
   /// constructor parameters.
   void _validatePrimaryFieldInitializers({
-    required List<ClassMember> members,
+    required List<AnnotatedNode> members,
     required Token errorToken,
     required bool isEnumDeclaration,
   }) {
-    for (ClassMember member in members) {
-      if (member is FieldDeclaration && !member.isStatic) {
-        for (var variableDeclaration in member.fields.variables) {
+    for (var member in members) {
+      if (member is FieldsDeclaration && member.staticKeyword == null) {
+        for (var variableDeclaration in member.fields) {
           if (isEnumDeclaration &&
               variableDeclaration.name.lexeme == 'values') {
             continue;
           }
 
-          var initializer = variableDeclaration.initializer2;
+          var initializer = variableDeclaration.initializer;
           if (initializer == null) {
             continue;
           }
 
-          var notPotentiallyConstants = getNotPotentiallyConstants(
-            initializer,
-            featureSet: _currentLibrary.featureSet,
-          );
+          var notPotentiallyConstants = _notPotentiallyConstants(initializer);
           if (notPotentiallyConstants.isNotEmpty) {
             _diagnosticReporter.report(
               diag.constConstructorWithFieldInitializedByNonConst
@@ -1029,7 +1081,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
     required bool isSwitchExpression,
   }) {
     var scrutineeType = scrutinee.typeOrThrow;
-    var scrutineeTypeEx = _exhaustivenessCache.getStaticType(scrutineeType);
+    var scrutineeShape = _exhaustivenessCache.getShapeForType(scrutineeType);
 
     var caseNodesWithSpace = <CaseNodeImpl>[];
     var caseIsGuarded = <bool>[];
@@ -1053,7 +1105,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
         defaultNode = caseNode;
       } else if (caseNode is CaseNodeImpl) {
         Space space = patternConverter.createRootSpace(
-          scrutineeTypeEx,
+          scrutineeShape,
           caseNode.guardedPattern.pattern,
         );
         caseNodesWithSpace.add(caseNode);
@@ -1074,7 +1126,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
     if (!patternConverter.hasInvalidType) {
       nonExhaustiveness = computeExhaustiveness(
         _exhaustivenessCache,
-        scrutineeTypeEx,
+        scrutineeShape,
         caseIsGuarded,
         caseSpaces,
         caseUnreachabilities: caseUnreachabilities,
@@ -1100,20 +1152,16 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
             forCorrection: true,
           );
 
-          var correctionData = <List<MissingPatternPart>>[];
-          for (var witness in nonExhaustiveness.witnesses) {
-            var correctionDataBuffer = AnalyzerDartTemplateBuffer();
-            witness.toDart(correctionDataBuffer, forCorrection: true);
-            if (correctionDataBuffer.isComplete) {
-              correctionData.add(correctionDataBuffer.parts);
-            }
-          }
+          var missingPatterns = Witnesses(
+            caseSpaces,
+            nonExhaustiveness.witnesses,
+          );
 
           Diagnostic diagnostic;
           _currentLibrary;
-          if (nonExhaustiveness.valueType.isEnumSubtype &&
-              nonExhaustiveness.valueType.libraryUri != _currentLibrary.uri &&
-              (nonExhaustiveness.valueType.isPrivate ||
+          if (nonExhaustiveness.valueShape.isEnumSubshape &&
+              nonExhaustiveness.valueShape.libraryUri != _currentLibrary.uri &&
+              (nonExhaustiveness.valueShape.isPrivate ||
                   nonExhaustiveness.witnesses.every(
                     (witness) => witness.asWitness.contains('._'),
                   ))) {
@@ -1137,9 +1185,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
                   .at(switchKeyword),
             );
           }
-          if (correctionData.isNotEmpty) {
-            MissingPatternPart.byDiagnostic[diagnostic] = correctionData;
-          }
+          MissingPatternPart.byDiagnostic[diagnostic] = missingPatterns;
         }
       } else {
         if (defaultNode != null && mustBeExhaustive) {
@@ -1157,7 +1203,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
         var caseNode = caseNodesWithSpace[i];
         exhaustivenessDataForTesting.caseSpaces[caseNode] = caseSpaces[i];
       }
-      exhaustivenessDataForTesting.switchScrutineeType[node] = scrutineeTypeEx;
+      exhaustivenessDataForTesting.switchScrutineeShape[node] = scrutineeShape;
       exhaustivenessDataForTesting.switchCases[node] = caseSpaces;
       for (var caseUnreachability in caseUnreachabilities) {
         exhaustivenessDataForTesting
@@ -1211,6 +1257,14 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
     }
   }
 
+  void _visitMethodDeclaration(
+    MethodDeclarationV1OriginImpl node,
+    void Function() visitSuper,
+  ) {
+    visitSuper();
+    _validateDefaultValues(node.writtenFormalParameters);
+  }
+
   /// Runs [f] with new [_constantPatternValues].
   void _withConstantPatternValues(
     void Function(
@@ -1236,7 +1290,7 @@ class _ConstLiteralVerifier {
   final _SetVerifierConfig? setConfig;
   final _MapVerifierConfig? mapConfig;
 
-  _ConstLiteralVerifier(
+  new(
     this.verifier, {
     required this.diagnosticCode,
     this.listElementType,
@@ -1357,10 +1411,7 @@ class _ConstLiteralVerifier {
 
   /// Returns whether the [node] is a potential constant.
   bool _reportNotPotentialConstants(AstNode node) {
-    var notPotentiallyConstants = getNotPotentiallyConstants(
-      node,
-      featureSet: verifier._currentLibrary.featureSet,
-    );
+    var notPotentiallyConstants = verifier._notPotentiallyConstants(node);
     if (notPotentiallyConstants.isEmpty) return true;
 
     for (var notConst in notPotentiallyConstants) {
@@ -1676,7 +1727,7 @@ class _MapVerifierConfig {
   final Map<DartObject, Expression> uniqueKeys = {};
   final Map<Expression, Expression> duplicateKeys = {};
 
-  _MapVerifierConfig({required this.keyType, required this.valueType});
+  new({required this.keyType, required this.valueType});
 }
 
 class _SetVerifierConfig {
@@ -1684,7 +1735,7 @@ class _SetVerifierConfig {
   final Map<DartObject, Expression> uniqueValues = {};
   final Map<Expression, Expression> duplicateElements = {};
 
-  _SetVerifierConfig({required this.elementType});
+  new({required this.elementType});
 }
 
 extension on Expression {
@@ -1699,24 +1750,19 @@ extension on Expression {
         // A parameter default value does not constitute a constant context, but
         // must be a constant expression.
         return true;
-      } else if (parent is VariableDeclaration &&
-          child == parent.initializer2) {
-        var declarationList = parent.parent2;
-        if (declarationList is VariableDeclarationList) {
-          var declarationListParent = declarationList.parent2;
-          if (declarationListParent is FieldDeclaration &&
-              !declarationListParent.isStatic) {
-            var body = declarationListParent.parent2;
-            if (body is BlockClassBody) {
-              var container = body.parent2;
-              if (container is ClassDeclaration) {
-                var enclosingClass = container.declaredFragment!.element;
-                if (enclosingClass is ClassElementImpl) {
-                  // A field initializer of a class with at least one generative
-                  // const constructor does not constitute a constant context, but
-                  // must be a constant expression.
-                  return enclosingClass.hasGenerativeConstConstructor;
-                }
+      } else if (parent is Field2 && child == parent.initializer) {
+        var declaration = parent.parent2;
+        if (declaration.staticKeyword == null) {
+          var body = declaration.parent2;
+          if (body is BlockInstanceDeclarationBody) {
+            var container = body.parent2;
+            if (container is ClassDeclaration2) {
+              var enclosingClass = container.declaredFragment!.element;
+              if (enclosingClass is ClassElementImpl) {
+                // A field initializer of a class with at least one generative
+                // const constructor does not constitute a constant context, but
+                // must be a constant expression.
+                return enclosingClass.hasGenerativeConstConstructor;
               }
             }
           }

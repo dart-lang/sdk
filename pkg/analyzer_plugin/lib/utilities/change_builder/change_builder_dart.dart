@@ -17,6 +17,45 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 @Deprecated('This type is no longer used or necessary')
 typedef ImportPrefixGenerator = String Function(Uri);
 
+enum AfterCommentWrite {
+  /// Represents only writing a new line if it ends in a
+  /// [TokenType.SINGLE_LINE_COMMENT].
+  ///
+  /// The new line is merely a convenience so that callers don't have to know
+  /// when to write a new line after a comment.
+  nothing,
+
+  /// Represents writing a space if it ends in a
+  /// [TokenType.MULTI_LINE_COMMENT], otherwise a new line (if it ends in a
+  /// [TokenType.SINGLE_LINE_COMMENT]).
+  ///
+  /// The new line is merely a convenience so that callers don't have to know
+  /// when to write a new line after a comment.
+  space,
+
+  /// Represents always writing a new line.
+  newLine;
+
+  bool get isNewLine => this == AfterCommentWrite.newLine;
+  bool get isNothing => this == AfterCommentWrite.nothing;
+  bool get isSpace => this == AfterCommentWrite.space;
+}
+
+enum BeforeCommentWrite {
+  /// Represents nothing.
+  nothing,
+
+  /// Represents writing a space.
+  space,
+
+  /// Represents writing a new line and indent.
+  newLine;
+
+  bool get isNewLine => this == BeforeCommentWrite.newLine;
+  bool get isNothing => this == BeforeCommentWrite.nothing;
+  bool get isSpace => this == BeforeCommentWrite.space;
+}
+
 /// An [EditBuilder] used to build edits in Dart files.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -64,6 +103,32 @@ abstract class DartEditBuilder implements EditBuilder {
     String? nameGroupName,
     DartType? superclass,
     String? superclassGroupName,
+  });
+
+  /// Writes the given [comment], if it is not `null`.
+  ///
+  /// Continues to iterate to the next comment token until there are no more
+  /// comment tokens or a non-comment token is reached.
+  ///
+  /// The [prefix] is usually a string of whitespace that represents one level
+  /// of indentation before the comment.
+  ///
+  /// If [indentTrailingNewLine] is `true`, then the trailing new line will be
+  /// indented to match the prefix plus one level of indentation. Otherwise, the
+  /// trailing new line will be written with just the prefix.
+  ///
+  /// The [before] and [after] parameters control what is written before and
+  /// after the comment. The [after] parameter is special in that even with
+  /// [AfterCommentWrite.nothing], a new line will be written if the last
+  /// comment token is a [TokenType.SINGLE_LINE_COMMENT]. It mostly controls
+  /// what will be done if the last comment token is a
+  /// [TokenType.MULTI_LINE_COMMENT].
+  void writeComment(
+    CommentToken? comment, {
+    String? prefix,
+    BeforeCommentWrite before = BeforeCommentWrite.nothing,
+    AfterCommentWrite after = AfterCommentWrite.nothing,
+    bool indentTrailingNewLine = true,
   });
 
   /// Writes the code for a constructor declaration in the class with the given
@@ -148,6 +213,9 @@ abstract class DartEditBuilder implements EditBuilder {
   /// {@template isRequiredType}
   /// If [isRequiredType] is `true` then the type is always written.
   /// {@endtemplate}
+  ///
+  /// If [onClosure] is `false`, we will write the type as stated above.
+  /// Otherwise, only if `always_specify_types` is on, the type will be written.
   void writeFormalParameter(
     String name, {
     bool isCovariant,
@@ -157,6 +225,7 @@ abstract class DartEditBuilder implements EditBuilder {
     DartType? type,
     String? typeGroupName,
     bool isRequiredType,
+    bool onClosure,
   });
 
   /// Writes the code for a list of [parameters], including the surrounding

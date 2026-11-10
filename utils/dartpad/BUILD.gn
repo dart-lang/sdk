@@ -2,20 +2,53 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("../../build/dart/copy_tree.gni")
 import("../../build/dart/dart_action.gni")
 import("compile_wasm.gni")
 
 compile_dart2wasm("worker") {
   main_dart = "../../pkg/dartpad_worker/bin/worker.dart"
-  output = "$root_out_dir/dartpad/worker.wasm"
+  output = "$target_gen_dir/worker.wasm"
 }
 
-# Action to build the sdk.tar file
+copy("copy_worker_wasm") {
+  deps = [ ":worker" ]
+  sources = [
+    "$target_gen_dir/worker.wasm",
+    "$target_gen_dir/worker.wasm.map",
+  ]
+  outputs = [ "$root_out_dir/dartpad/{{source_file_part}}" ]
+}
+
+action("build_worker_js") {
+  deps = [ ":worker" ]
+  script = "concat_files.py"
+
+  inputs = [
+    "../../pkg/dartpad_worker/lib/src/asset/worker.js",
+    "$target_gen_dir/worker.mjs",
+  ]
+  output = "$root_out_dir/dartpad/worker.js"
+  outputs = [ output ]
+
+  args = [ "--output=" + rebase_path(output, root_build_dir) ] +
+         rebase_path(inputs, root_build_dir)
+}
+
+# Action to build the sdk.tar and version.json files
 prebuilt_dart_action("build_sdk_tar") {
   script = "../../pkg/dartpad_worker/tool/build_dart_sdk_tar.dart"
 
-  output = "$root_out_dir/dartpad/sdk.tar"
-  outputs = [ output ]
+  inputs = [
+    "../../pkg/dartpad/lib/src/dartpad_config.dart",
+    "../../pkg/dartpad/lib/src/version_info.dart",
+    "../../pkg/dartpad_worker/lib/src/worker_protocol_version.dart",
+  ]
+
+  outputs = [
+    "$root_out_dir/dartpad/sdk.tar",
+    "$root_out_dir/dartpad/version.json",
+  ]
 
   # This script reads most of the SDK lib directory.
   # We don't list every file in 'inputs' to avoid GN churn,
@@ -23,7 +56,7 @@ prebuilt_dart_action("build_sdk_tar") {
   deps = [ "../../sdk:create_sdk" ]
 
   args = [
-    "--output=" + rebase_path(output, root_build_dir),
+    "--output=" + rebase_path("$root_out_dir/dartpad", root_build_dir),
     "--sdk-root=" + rebase_path("$root_out_dir/dart-sdk", root_build_dir),
   ]
 }
@@ -34,9 +67,24 @@ copy("copy_sandbox_js") {
   outputs = [ "$root_out_dir/dartpad/sandbox.js" ]
 }
 
-copy("copy_worker_js") {
-  sources = [ "../../pkg/dartpad_worker/lib/src/asset/worker.js" ]
-  outputs = [ "$root_out_dir/dartpad/worker.js" ]
+# Copy devtools.html to the dartpad layout
+copy("copy_devtools_html") {
+  sources = [ "../../pkg/dartpad_worker/lib/src/asset/devtools.html" ]
+  outputs = [ "$root_out_dir/dartpad/devtools.html" ]
+}
+
+# Copy prebuilt DevTools web bundle to the dartpad/devtools layout
+copy_tree("copy_devtools") {
+  source = "../../third_party/devtools/web"
+  dest = "$root_out_dir/dartpad/devtools"
+  exclude = "{}"
+}
+
+# Copy devtools.js to the dartpad/devtools layout
+copy("copy_devtools_js") {
+  deps = [ ":copy_devtools" ]
+  sources = [ "../../pkg/dartpad_worker/lib/src/asset/devtools.js" ]
+  outputs = [ "$root_out_dir/dartpad/devtools/devtools.js" ]
 }
 
 copy("copy_dart_sdk_js") {
@@ -51,19 +99,34 @@ copy("copy_dart_sdk_js_map") {
   outputs = [ "$root_out_dir/dartpad/dart_sdk.js.map" ]
 }
 
-copy("copy_ddc_module_loader") {
-  sources = [ "../../pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js" ]
-  outputs = [ "$root_out_dir/dartpad/ddc_module_loader.js" ]
+action("build_sandbox_runtime") {
+  deps = [ "../../utils/ddc:stack_trace_mapper" ]
+  script = "concat_files.py"
+
+  dart_out =
+      get_label_info("../../utils/ddc:stack_trace_mapper", "root_out_dir")
+  inputs = [
+    "../../pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js",
+    "$dart_out/dev_compiler/build/web/dart_stack_trace_mapper.js",
+  ]
+  output = "$root_out_dir/dartpad/sandbox_runtime.js"
+  outputs = [ output ]
+
+  args = [ "--output=" + rebase_path(output, root_build_dir) ] +
+         rebase_path(inputs, root_build_dir)
 }
 
 group("dartpad") {
   deps = [
+    ":build_sandbox_runtime",
     ":build_sdk_tar",
+    ":build_worker_js",
     ":copy_dart_sdk_js",
     ":copy_dart_sdk_js_map",
-    ":copy_ddc_module_loader",
+    ":copy_devtools",
+    ":copy_devtools_html",
+    ":copy_devtools_js",
     ":copy_sandbox_js",
-    ":copy_worker_js",
-    ":worker",
+    ":copy_worker_wasm",
   ]
 }

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'annotated_code_helper.dart';
 
 enum IdKind {
@@ -65,7 +67,7 @@ class IdValue {
   final Annotation annotation;
   final String value;
 
-  const IdValue(this.id, this.annotation, this.value);
+  const new(this.id, this.annotation, this.value);
 
   @override
   int get hashCode => id.hashCode * 13 + value.hashCode * 17;
@@ -207,7 +209,7 @@ class MemberId implements Id {
   @override
   final bool isGlobal;
 
-  factory MemberId(String text, {bool isGlobal = false}) {
+  factory(String text, {bool isGlobal = false}) {
     int dotPos = text.indexOf('.');
     if (dotPos != -1) {
       return new MemberId.internal(
@@ -220,7 +222,7 @@ class MemberId implements Id {
     }
   }
 
-  MemberId.internal(this.memberName, {this.className, this.isGlobal = false});
+  new internal(this.memberName, {this.className, this.isGlobal = false});
 
   @override
   int get hashCode => className.hashCode * 13 + memberName.hashCode * 17;
@@ -250,7 +252,7 @@ class ClassId implements Id {
   @override
   final bool isGlobal;
 
-  ClassId(this.className, {this.isGlobal = false});
+  new(this.className, {this.isGlobal = false});
 
   @override
   int get hashCode => className.hashCode * 13;
@@ -278,7 +280,7 @@ class ClassId implements Id {
 class LibraryId implements Id {
   final Uri uri;
 
-  LibraryId(this.uri);
+  new(this.uri);
 
   // TODO(johnniwinther): Support global library annotations.
   @override
@@ -312,7 +314,7 @@ class NodeId implements Id {
   @override
   final IdKind kind;
 
-  const NodeId(this.value, this.kind) : assert(value >= 0);
+  const new(this.value, this.kind) : assert(value >= 0);
 
   @override
   bool get isGlobal => false;
@@ -341,7 +343,7 @@ class ActualData<T> {
   final int _offset;
   final Object object;
 
-  ActualData(this.id, this.value, this.uri, this._offset, this.object);
+  new(this.id, this.value, this.uri, this._offset, this.object);
 
   int get offset {
     if (id is NodeId) {
@@ -362,8 +364,37 @@ class ActualData<T> {
       'offset=$offset,object=$objectText)';
 }
 
+class ActualDataMap<T> {
+  final Map<Id, ActualData<T>> _data = {};
+
+  final List<Future<void>> _futures = [];
+
+  bool containsKey(Id id) => _data.containsKey(id);
+
+  ActualData<T>? operator [](Id id) => _data[id];
+
+  void operator []=(Id id, ActualData<T> value) {
+    _data[id] = value;
+  }
+
+  Future<Map<Id, ActualData<T>>> getData() async {
+    await Future.wait(_futures);
+    _futures.clear();
+    return _data;
+  }
+}
+
+extension ActualDataMapExtension<U, T> on Map<U, ActualDataMap<T>> {
+  Future<Map<U, Map<Id, ActualData<T>>>> getData() async {
+    return {
+      for (MapEntry<U, ActualDataMap<T>> entry in entries)
+        entry.key: await entry.value.getData(),
+    };
+  }
+}
+
 mixin DataRegistry<T> {
-  Map<Id, ActualData<T>> get actualMap;
+  ActualDataMap<T> get actualMap;
 
   /// Registers [value] with [id] in [actualMap].
   ///
@@ -395,6 +426,25 @@ mixin DataRegistry<T> {
       } else {
         actualMap[id] = newData;
       }
+    }
+  }
+
+  /// Registers [value] with [id] in [actualMap].
+  ///
+  /// Checks for duplicate data for [id].
+  void asyncRegisterValue(
+    Uri uri,
+    int offset,
+    Id id,
+    FutureOr<T?> value,
+    Object object,
+  ) {
+    if (value is Future<T?>) {
+      actualMap._futures.add(
+        value.then((v) => registerValue(uri, offset, id, v, object)),
+      );
+    } else {
+      registerValue(uri, offset, id, value, object);
     }
   }
 

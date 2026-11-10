@@ -723,12 +723,6 @@ void Precompiler::AddRoots() {
 
   const String& name = Symbols::main();
   Function& main = Function::Handle(lib.LookupFunctionAllowPrivate(name));
-  if (main.IsNull()) {
-    const Object& obj = Object::Handle(lib.LookupReExport(name));
-    if (obj.IsFunction()) {
-      main ^= obj.ptr();
-    }
-  }
   if (!main.IsNull()) {
     AddApiUse(main);
     if (lib.LookupFunctionAllowPrivate(name) == Function::null()) {
@@ -1221,6 +1215,10 @@ void Precompiler::AddConstObject(const class Instance& instance) {
         Z, Closure::Cast(instance).function_type_arguments()));
     AddTypeArguments(TypeArguments::Handle(
         Z, Closure::Cast(instance).delayed_type_arguments()));
+
+    if (!consts_to_retain_.HasKey(&instance)) {
+      consts_to_retain_.Insert(&Instance::ZoneHandle(Z, instance.ptr()));
+    }
     return;
   }
 
@@ -2327,6 +2325,22 @@ void Precompiler::DropFunctions() {
 
   // Only needed during compilation.
   IG->object_store()->set_closure_functions_table(Object::null_array());
+
+  if (IG->object_store()->ffi_callback_functions() != Array::null()) {
+    FfiCallbackFunctionSet set(Z, IG->object_store()->ffi_callback_functions());
+    FfiCallbackFunctionSet::Iterator it(&set);
+    while (it.MoveNext()) {
+      const intptr_t entry = it.Current();
+      function ^= set.GetKey(entry);
+      if (functions_to_retain_.ContainsKey(function)) {
+        trim_function(function);
+      } else {
+        drop_function(function);
+      }
+    }
+    set.Release();
+    IG->object_store()->set_ffi_callback_functions(Object::null_array());
+  }
 }
 
 void Precompiler::DropFields() {
@@ -3431,6 +3445,7 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
       Code::FinalizeCodeAndNotify(function, graph_compiler, assembler,
                                   pool_attachment, /*optimized=*/true, stats));
   code.set_is_optimized(true);
+  code.set_can_be_deoptimized(false);
   code.set_owner(function);
 
   graph_compiler->FinalizePcDescriptors(code);
@@ -3592,7 +3607,6 @@ bool PrecompileParsedFunctionHelper::Compile() {
 
   FlowGraph* flow_graph = nullptr;
   const Function& function = parsed_function()->function();
-  ASSERT(!function.IsIrregexpFunction());
   ASSERT(function.IsOptimizable());
 
   CompilerState compiler_state(thread(), /*is_aot=*/true,

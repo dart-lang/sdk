@@ -1,3 +1,173 @@
+## 3.15.0
+
+**Released on:** Unreleased
+
+### Language
+
+Dart 3.15 allows [`this` to be type promoted][this-promotion-issue], just like
+a local variable, and [preserves more type promotions][#4757] at control flow
+join points. To use these features, set your package's
+[SDK constraint][language version] lower bound to 3.15 or greater
+(`sdk: '^3.15.0'`).
+
+#### Type promotion of `this`
+
+Previously, a type test or null check on `this` had no effect on its static
+type, so code that wanted to take advantage of one had to copy `this` into a
+local variable first:
+
+```dart
+class Shape {
+  void describe() {
+    var self = this;
+    if (self is Circle) print('radius ${self.radius}');
+  }
+}
+
+class Circle extends Shape {
+  final double radius;
+  Circle(this.radius);
+}
+
+extension on int? {
+  bool get isEvenOrNull {
+    var self = this;
+    if (self == null) return true;
+    return self.isEven;
+  }
+}
+```
+
+Now `this` is promoted directly, and so is an implicit `this` in a member
+access:
+
+```dart
+class Shape {
+  void describe() {
+    if (this is Circle) print('radius $radius');
+  }
+}
+
+extension on int? {
+  bool get isEvenOrNull {
+    if (this == null) return true;
+    return isEven;
+  }
+}
+```
+
+The new [`unnecessary_this_alias`][unnecessary_this_alias] lint flags local
+variables that only exist to work around the old behavior, and `dart fix` can
+remove them.
+
+#### Improved type promotion at join points
+
+Previously, if two branches of the control flow promoted a variable to the same
+type, but did so by way of different intermediate types, all promotions were
+discarded after the branches joined:
+
+```dart
+class B {}
+class C {}
+class D implements B, C {
+  void f() {}
+}
+
+void test(Object o, bool condition) {
+  if (condition) {
+    o as B;
+    o as D;
+  } else {
+    o as C;
+    o as D;
+  }
+  o.f(); // Previously an error: `o` was demoted to `Object`.
+}
+```
+
+Now, the promotions that are common to both branches are preserved, so after
+the `if` statement above, `o` has type `D`.
+
+#### Restriction on `show` and `hide` clauses per import/export
+
+Import and export directives now only allow at most one `show` or `hide`
+combinator per directive. Specifying multiple combinators was previously
+deprecated and is now a compile-time error in libraries with a language version
+of 3.15 or greater. For more details, see
+[issue #2824][single-combinators-issue].
+
+[single-combinators-issue]: https://github.com/dart-lang/language/issues/2824
+[this-promotion-issue]: https://github.com/dart-lang/language/issues/1397
+[#4757]: https://github.com/dart-lang/language/issues/4757
+[language version]: https://dart.dev/to/language-version
+[unnecessary_this_alias]: https://dart.dev/lints/unnecessary_this_alias
+
+### Libraries
+
+#### `dart:core`
+
+- Added `double.maxSafeInteger` (`9007199254740991`, `2^53 - 1`) and
+  `double.minSafeInteger` (`-9007199254740991`, `-(2^53 - 1)`).
+  For more details, see SDK issue [#64491][].
+
+#### `dart:math`
+
+- Added `imul32(int a, int b)` for 32-bit signed wrapping multiplication.
+  For more details, see SDK issue [#64491][].
+
+[#64491]: https://github.com/dart-lang/sdk/issues/64491
+
+#### `dart:js_interop`
+
+- Added `leftShift`, `rightShift`, `bitwiseAnd`, `bitwiseOr`, `bitwiseXor`, and
+  `bitwiseNot` to `JSAnyOperatorExtension` for the JavaScript `<<`, `>>`, `&`,
+  `|`, `^`, and `~` operators. These support both JavaScript numbers and
+  bigints.
+  For more details, see SDK issue [#64558][].
+
+[#64558]: https://github.com/dart-lang/sdk/issues/64558
+
+### Tools
+
+#### Analyzer
+
+- When the value assigned through `operator []=` (in `a[i] = v`, `a[i] op= v`,
+  `a[i] ??= v`, `a[i]++`, and so on) isn't assignable to the parameter type,
+  the analyzer now reports `argument_type_not_assignable` instead of
+  `invalid_assignment`, consistent with how it reports a non-assignable index.
+  For more details, see SDK issue [#64561][].
+
+[#64561]: https://github.com/dart-lang/sdk/issues/64561
+
+#### Dart CLI
+
+- `dart build cli` now supports a `--define` option. Run
+  `dart build cli --help` for more details.
+
+#### Dart Development Compiler (dartdevc)
+
+- Fixed a bug where a type parameter from an enclosing scope could be
+  incorrectly captured by a generic function type with a type parameter of the
+  same name, producing the wrong runtime type.
+  For more details, see SDK issue [#64517][].
+
+[#64517]: https://github.com/dart-lang/sdk/issues/64517
+
+#### Pub
+
+- `dart pub publish` now creates reproducible `.tar.gz` package archives with
+  deterministic entry ordering, zeroed modification timestamps, and normalized
+  permissions ([dart-lang/pub#4885][]).
+- On Windows, `dart pub` now requires `git.exe` on `PATH` and no longer invokes
+  `git.cmd` or `git.bat` batch wrappers ([dart-lang/pub#4941][]).
+- Deprecated the `--[no-]precompile` flag on `dart pub get`, `upgrade`, `add`,
+  and `remove` ([dart-lang/pub#4910][]). `dart run` and `dart test` now cache
+  precompiled executables directly in `.dart_tool/dartdev/bin/`.
+
+[dart-lang/pub#4885]: https://github.com/dart-lang/pub/pull/4885
+[dart-lang/pub#4910]: https://github.com/dart-lang/pub/pull/4910
+[dart-lang/pub#4941]: https://github.com/dart-lang/pub/pull/4941
+
 ## 3.14.0
 
 **Released on:** Unreleased
@@ -5,16 +175,88 @@
 ### Libraries
 
 #### `dart:ffi`
+
 - Added `NativeFinalizer.callback`, which returns the finalization callback the
   finalizer was created with.
   For more details, see SDK issue [#63811][]
+- Added `Abi.iosArm64e` and `Abi.macosArm64e` for the `arm64e` architecture
+  with pointer authentication on iOS and macOS.
+  For more details, see SDK issue [#63420][].
 
+[#63420]: https://github.com/dart-lang/sdk/issues/63420
 [#63811]: https://github.com/dart-lang/sdk/issues/63811
+
+#### `dart:io`
+
+- Process spawning on Mac switched from `fork`-and-`exec` to `posix_spawn`.
+  `PATH` resolution will now happen with the parent's `PATH` instead of the
+  child's `PATH`. Using an absolute path for the `executable` argument to
+  `Process.start` etc is recommended to avoid platform-specific differences.
+
+#### `dart:isolate`
+
+- **Breaking change:** Unshipped the experimental synchronous execution and
+  event loop control APIs (`Isolate.runSync`, `Isolate.create`,
+  `Isolate.shutdownSync`, `Isolate.pinToCurrentThread`,
+  `Isolate.isPinnedToCurrentThread`, `Isolate.runEventLoopSync`,
+  `Isolate.onEvent`, and `Isolate.handleEvent`) that were accidentally exposed
+  in Dart 3.13, and gated `NativeCallable.isolateGroupBound` behind the
+  `--experimental-shared-data` VM flag.
+  For more details, see SDK issue [#64285][].
+
+[#64285]: https://github.com/dart-lang/sdk/issues/64285
 
 #### `dart:typed_data`
 
+- **Breaking change:** `toString()` on the SIMD value types `Float32x4`,
+  `Int32x4` and `Float64x2` now returns `'V128'` instead of a list of the lane
+  values. The old per-lane output was inconsistent across platforms and was
+  never specified. On the VM this also covers `Error.safeToString` and the
+  values shown by the debugger and the VM service.
+  For more details, see SDK issue [#63847][]
+- **Breaking change:** `Float32x4.min`, `Float32x4.max`, `Float64x2.min`, and
+  `Float64x2.max` now follow IEEE 754 semantics across all platforms: if either
+  lane is `NaN`, the result lane is `NaN`, and `-0.0` is ordered below `+0.0`.
+  For more details, see SDK issue [#63962][].
+- Added `rangeEquals` extension methods on all integer typed data lists
+  (`Uint8List`, `Int8List`, `Uint8ClampedList`, `Uint16List`, `Int16List`,
+  `Uint32List`, `Int32List`, `Uint64List`, `Int64List`) and `ByteData` for
+  efficient range equality comparisons.
+  For more details, see SDK issue [#64095][]
+
+[#64095]: https://github.com/dart-lang/sdk/issues/64095
 - Added the bit-wise negation operator `~` to `Int32x4`, which inverts every bit
   of every lane.
+- Added `Int32x4.splat`, which creates an `Int32x4` with the same 32-bit integer
+  value in all four lanes, matching `Float32x4.splat` and `Float64x2.splat`.
+- Added `Int32x4.equal`, a lane-wise equality comparison that returns `-1` in
+  each lane where the operands are equal and `0` elsewhere, and the
+  `Int32x4.anyTrue` getter, which is `true` when any lane is non-zero.
+- Added `Int32x4.notEqual`, a lane-wise inequality comparison that returns `-1`
+  in each lane where the operands differ and `0` elsewhere.
+- Added the `Int32x4.allTrue` getter, which is `true` only when every lane is
+  non-zero.
+- Added the signed lane-wise ordered comparisons `Int32x4.lessThan`,
+  `Int32x4.lessThanOrEqual`, `Int32x4.greaterThan` and
+  `Int32x4.greaterThanOrEqual`, each returning `-1` in lanes where the signed
+  comparison holds and `0` elsewhere.
+- Added the `Int32x4.zero()` constructor, which creates an `Int32x4` with all
+  four lanes set to zero.
+- Added the unary negation operator `-` to `Int32x4`, which arithmetically
+  negates each lane using two's complement.
+- Added `Int32x4.abs`, which replaces each lane with its absolute value using
+  two's complement, so the absolute value of the minimum 32-bit integer yields
+  itself.
+- Added the lane-wise shift operators `<<` (left), `>>` (arithmetic right) and
+  `>>>` (logical right) to `Int32x4`.
+- Added `Int32x4.andNot`, a lane-wise bit-wise and-not (`this & ~other`).
+- Added `Int32x4.min`, which selects the smaller of each pair of lanes,
+  compared as signed 32-bit integers.
+- Added `Int32x4.max`, which selects the larger of each pair of lanes,
+  compared as signed 32-bit integers.
+
+[#63847]: https://github.com/dart-lang/sdk/issues/63847
+[#63962]: https://github.com/dart-lang/sdk/issues/63962
 
 #### `dart:js_interop`
 
@@ -49,12 +291,289 @@
   (`ListOfNullableBoolToJSArray`). These make it easier and more efficient to
   convert between JS and Dart arrays of primitives.
 
+- Added `JSFunction.length` and `.name` getters.
+
+- Added the `JSArray.fromAsync` static method to create an array from an
+  asynchronous generator or a synchronous list of asynchronous values.
+
+- Added `JSPromise.resolve` and `JSPromise.reject` static methods.
+
+- Added extension methods `FutureOr<JSAny>.toJSPromiseOrValue`
+  (`FutureOrToJSAny`), `FutureOr<JSAny?>.toJSPromiseOrValue`
+  (`FutureOrToNullableJSAny`), `JSAny.toDartFutureOr` (`JSAnyToFutureOr`), and
+  `JSAny?.toDartFutureOr` (`NullableJSAnyToFutureOr`). These make it easier and
+  more efficient to convert between possibly-synchronous values at the Dart/JS
+  boundary.
+
+- Added extension methods `R Function(JSArray<E>).toJSVarArgs` and `R
+  Function(T, JSArray<E>).toJSCaptureThisVarArgs` which capture JS function
+  arguments as an array rather than as separate arguments to the Dart function.
+
+- Added the `JSError` type to represent the JavaScript `Error` class.
+
+- `Function.toJS` and `Function.toJSCaptureThis` now support functions without
+  optional positional parameters that return `Future<T>` (where `T` is `void` or
+  a subtype of `JSAny?`), automatically converting the returned `Future` to a
+  `JSPromise`.
+  For more details, see SDK issue [#63496][].
+
+- `external` extension members can now be declared on generic type parameters
+  bounded by a JS interop type (for example,
+  `extension <T extends JSObject> on T`).
+  For more details, see SDK issue [#61248][].
+
+#### `dart:mirrors`
+
+- The `dart:mirrors` library is now marked `@deprecated`, and will be removed
+  in a future release. For details, see issue [#44489].
+
+[#44489]: https://github.com/dart-lang/sdk/issues/44489
+[#61248]: https://github.com/dart-lang/sdk/issues/61248
 [#61353]: https://github.com/dart-lang/sdk/issues/61353
 [#62699]: https://github.com/dart-lang/sdk/issues/62699
+[#63496]: https://github.com/dart-lang/sdk/issues/63496
+
+### Tools
+
+#### Analyzer
+
+- Report an error (`js_interop_extension_constructor_js_annotation_has_no_effect`)
+  when an `@JS` annotation is placed on an `external` constructor or factory of a
+  `dart:js_interop` extension type, matching the CFE. Move the `@JS` annotation to
+  the extension type declaration itself to rename non-object literal constructors.
+  For more details, see SDK issue [#54366][].
+
+[#54366]: https://github.com/dart-lang/sdk/issues/54366
+
+#### Linter
+
+- Added the `future_sync_value` lint rule, which recommends using
+  `Future.syncValue` instead of `Future.sync` when the callback returns a
+  synchronous (non-`Future`) value.
+  For more details, see SDK issue [#61740][].
+
+[#61740]: https://github.com/dart-lang/sdk/issues/61740
+
+#### Dart CLI
+
+- `dart run <package>:<command>` and `dart test` now cache the precompiled
+  executable in `.dart_tool/dartdev/bin/` instead of `.dart_tool/pub/bin/`, and
+  recompile it when any of its source files change. Previously the snapshot was
+  rebuilt on every run for packages depended on by path, and could be stale for
+  hosted packages with a path `dependency_override`.
+
+- When `dart run <package>:<command>` and `dart test` run a precompiled
+  executable, `Platform.script` now points at the Dart source file instead of
+  the kernel snapshot. Resolving paths relative to `Platform.script` now works
+  as it does when running from source.
+
+- `dart run --enable-experiment=<experiment>` and
+  `dart test --enable-experiment=<experiment>` now run from a snapshot compiled
+  with those experiments, instead of falling back to running from source. The
+  requested experiments still take effect, but startup is no longer slower than
+  without them.
+
+- Added a `dart migrate` command, which updates packages to a newer Dart SDK
+  version. It raises the lower bound of each package's SDK constraint one minor
+  version at a time. For each version, it applies preparatory fixes and raises
+  the constraint. Optional cleanup fixes that adopt new language features only
+  run with `--step=cleanup` or `--step=all`. Migrates the current directory by
+  default, or specific package directories if provided. Packages must already
+  require Dart 3.0 or later.
+  - `--dry-run` previews the proposed changes.
+  - `--apply` applies the changes.
+  - `--target-sdk` migrates across multiple versions in one run.
+  - `--step` runs specific steps: `prepare`, `bump`, `cleanup`, or `all`.
+  - Dependent packages migrate together in lockstep, keeping dependency
+    constraints solvable at every version. A package is skipped if a dependency
+    does not support the new version.
+
+  For more details, see SDK issue [#63240][].
+
+- Added `-e` / `--eval` to `dart run` to evaluate inline Dart code snippets
+  without creating a script file. Package imports are resolved from the current
+  package configuration if present, or ephemerally on demand using `-P` /
+  `--package-constraint` (for example, `dart run -P http:^1.0.0 -e '...'`) and
+  `--offline`.
+  For more details, see SDK issue [#64298][].
+
+[#63240]: https://github.com/dart-lang/sdk/issues/63240
+[#64298]: https://github.com/dart-lang/sdk/issues/64298
+
+#### Formatter
+
+- Enable experiments specified by surrounding `analysis_options.yaml` file when
+  parsing code ([#1886][dart_style #1886]).
+
+- Fix crash when formatting an enum with a primary constructor when trailing
+  commas are preserved ([#1885][dart_style #1885]).
+
+- Fix missing trailing comma on enum values when an enum has a primary
+  constructor ([#1888][dart_style #1888]). Note that this style change is *not*
+  language-versioned and also applies when formatting Dart 3.13 code.
+
+- Fix crash when attempting to write a line with exactly 128 spaces of
+  indentation.
+
+[dart_style #1885]: https://github.com/dart-lang/dart_style/issues/1885
+[dart_style #1886]: https://github.com/dart-lang/dart_style/issues/1886
+[dart_style #1888]: https://github.com/dart-lang/dart_style/issues/1888
+
+#### Pub
+
+- `dart pub upgrade` now accepts `<package>@<constraint>`, `<package>@latest`,
+  and `<package>@resolvable` targets to upgrade specific dependencies within a
+  version constraint or inspect why a newer version cannot be selected
+  (issue [dart-lang/pub#4569][]).
+
+[dart-lang/pub#4569]: https://github.com/dart-lang/pub/issues/4569
+
+#### dart2js
+
+- Added the `--[no-]deprecated-js-interop` flag (`dart compile js` and
+  `dart2js`). Passing `--no-deprecated-js-interop` disallows importing the
+  deprecated JS interop libraries (`dart:html`, `dart:html_common`,
+  `dart:indexed_db`, `dart:js`, `dart:js_util`, `dart:svg`, `dart:web_audio`,
+  and `dart:web_gl`) and sets their `dart.library.*` environment conditions to
+  `false` in conditional imports and `bool.fromEnvironment`.
+  For more details, see SDK issue [#63919][].
+
+#### Dart Development Compiler (dartdevc)
+
+- Added the `--[no-]deprecated-js-interop` flag. Passing
+  `--no-deprecated-js-interop` disallows importing the deprecated JS interop
+  libraries (`dart:html`, `dart:html_common`, `dart:indexed_db`, `dart:js`,
+  `dart:js_util`, `dart:svg`, `dart:web_audio`, and `dart:web_gl`) and sets
+  their `dart.library.*` environment conditions to `false` in conditional
+  imports and `bool.fromEnvironment`.
+  For more details, see SDK issue [#63919][].
+
+#### dart2wasm
+
+- `dart2wasm` now emits standardized WebAssembly `try_table` exception handling
+  instructions by default ([#54394][]).
+- `dart2wasm` now requires native `wasm:js-string` built-in support and works
+  around `WebAssembly.compileStreaming` bugs in Safari 26.5 and earlier
+  ([#63543][]).
+- `dart.library.isolate` now evaluates to `false` in conditional imports
+  (`if (dart.library.isolate)`) when compiling with `dart2wasm` ([#64328][]).
+- `dart compile wasm --standalone` no longer supports `dart:js_interop`.
+- `Int32x4`, `Float32x4`, `Float64x2`, and their typed-data list views
+  (`Int32x4List`, `Float32x4List`, `Float64x2List`) now compile to hardware
+  128-bit WebAssembly SIMD (`v128`) instructions ([#64170][]).
+
+[#54394]: https://github.com/dart-lang/sdk/issues/54394
+[#63543]: https://github.com/dart-lang/sdk/issues/63543
+[#63919]: https://github.com/dart-lang/sdk/issues/63919
+[#64170]: https://github.com/dart-lang/sdk/issues/64170
+[#64328]: https://github.com/dart-lang/sdk/issues/64328
+
+## 3.13.7
+
+**Released on:** 2026-10-22
+
+This is a patch release that:
+
+- Uses the updatable Conscrypt APEX root certificate store on Android 14+ in
+  `dart:io`, so that root CA additions and distrusts delivered via Google Play
+  system updates are honored. (issue [#64696])
+- Updates BoringSSL to pick up upstream security fixes, including blocking a
+  number of compromised intermediate certificates and X.509 path validation
+  fixes. (issue [#568000])
+
+[#64696]: https://github.com/dart-lang/sdk/pull/64696
+[#568000]: https://dart-review.googlesource.com/c/sdk/+/568000
+
+## 3.13.6
+
+**Released on:** 2026-10-20
+
+This is a patch release that:
+
+- Fixes an issue in dart2js codegen where a single Dart call was generating
+  multiple calls in the compiled JS code. (issue [#64410])
+
+## 3.13.5
+
+**Released on:** 2026-09-29
+
+This is a patch release that:
+
+- Fixes an issue in dart2wasm where tree-shaking (TFA) erroneously removed
+  reachable methods containing static JS interop calls (issue [#64153]).
+
+[#64153]: https://github.com/dart-lang/sdk/issues/64153
+
+## 3.13.4
+
+**Released on:** 2026-09-15
+
+This is a patch release that:
+
+- Fixes crash during dart2js compilation when using --merge-fragments-threshold
+  and --minify flags. (issue [#64150])
+
+## 3.13.3
+
+**Released on:** 2026-09-01
+
+This is a patch release that:
+
+- Fixes an issue where Windows to Linux cross compilation
+  produced incorrect executables if the applicatios used
+  build hooks to link native code. (issue [#63953][])
+
+[#63953]: https://github.com/dart-lang/sdk/issues/63953
+
+## 3.13.2
+
+**Released on:** 2026-08-25
+
+This is a patch release that:
+
+- Fixes incorrect dart2wasm compilation of constructor invocations when
+  the class was determined to be not allocatable. (issue [#63809][])
+- Deprecates the legacy analyzer plugin system. (issue [#62164][])
+- Fixes dart2js compiler crash when compiling code with
+  nested constants in `record_use`. (issue [#64070][])
+- Fixes a `dart format` crash and incorrect formatting with
+  enums that use primary constructors.
+  (issues [dart-lang/dart_style#1885][], [dart-lang/dart_style#1888][])
+
+[#63809]: https://github.com/dart-lang/sdk/issues/63809
+[#62164]: https://github.com/dart-lang/sdk/issues/62164
+[#64070]: https://github.com/dart-lang/sdk/issues/64070
+
+[dart-lang/dart_style#1885]: https://github.com/dart-lang/dart_style/issues/1885
+[dart-lang/dart_style#1888]: https://github.com/dart-lang/dart_style/issues/1888
+
+## 3.13.1
+
+**Released on:** 2026-08-18
+
+This is a patch release that:
+
+- Fixes `dart fix --apply --code=migrate_design_widgets` to
+  replace URIs in both import and export statements. (issue [#63968][])
+- Fixes dart2wasm compiler crash in no-such-method forwarders.
+  (issue [#63904][])
+- Fixes dart2wasm compilation error if 3rd party `Type` implementations exist.
+  (issue [#63843][])
+- Fixes dart2wasm compiler crash if dynamic getter calls are used that
+  target a getter implementation that was inferred to never return.
+- Fixes dart2wasm compiler crash if named parameters in hierarchy have
+  mixed "required"-ness. (issue [#60583][])
+- Fixes `closure.hashCode` sometimes returning `null`. (issue [#64035][])
+
+[#63968]: https://github.com/dart-lang/sdk/issues/63968
+[#63904]: https://github.com/dart-lang/sdk/issues/63904
+[#63843]: https://github.com/dart-lang/sdk/issues/63843
+[#60583]: https://github.com/dart-lang/sdk/issues/60583
+[#64035]: https://github.com/dart-lang/sdk/issues/64035
 
 ## 3.13.0
 
-**Released on:** Unreleased
+**Released on:** 2026-08-12
 
 ### Language
 
@@ -119,14 +638,22 @@ class Point {
 To learn more about the feature, check out the
 [feature specification][primary-constructor-spec].
 
-[primary-constructor-spec]: https://github.com/dart-lang/language/blob/main/accepted/future-releases/primary-constructors/feature-specification.md
+[primary-constructor-spec]: https://github.com/dart-lang/language/blob/main/accepted/3.13/primary-constructors/feature-specification.md
 
 #### Other changes
 
+- **Breaking change**: You can no longer use `final` or `var` on non-declaring
+  parameters. Dart now reserves both for
+  [declaring parameters in primary constructors][declaring-parameters].
+  Remove `final` or `var` from affected parameter declarations. If you still
+  want to prevent parameter reassignment, you can use the
+  [`parameter_assignments`][] lint rule.
 - **Breaking change**: A minor change has been made to type promotion to avoid
   unsound behavior. See SDK issue [#62889][] for details.
 
 [#62889]: https://github.com/dart-lang/sdk/issues/62889
+[declaring-parameters]: https://dart.dev/language/primary-constructors#field-declarations-in-parameters
+[`parameter_assignments`]: https://dart.dev/tools/linter-rules/parameter_assignments
 
 ### Libraries
 

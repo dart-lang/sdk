@@ -13,10 +13,11 @@ import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/ast/ast.dart' show Identifier;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 /// Checks if creating a top-level function with the given [name] in [library]
@@ -216,17 +217,20 @@ class _BaseUnitMemberValidator {
     if (library == atLibrary) {
       return true;
     }
-    // check imports
-    // TODO(enhanced-parts): This needs to look at the set of imports for the
-    //  library fragment in which the reference occurs.
-    for (var libraryImport in atLibrary.firstFragment.libraryImports) {
-      // ignore if imported with prefix
-      if (libraryImport.prefix != null) {
-        continue;
-      }
-      // check imported elements
-      if (libraryImport.namespace.definedNames2.containsValue(element)) {
-        return true;
+    // Find the fragment containing the reference, then check its imports and
+    // those of its enclosing fragments. A part can inherit imports from its
+    // parent parts, but not from siblings.
+    var atFragment = at.element.firstFragment.libraryFragment!;
+
+    for (var fragment in atFragment.withEnclosing2) {
+      for (var libraryImport in fragment.libraryImports) {
+        // Ignore names imported with a prefix.
+        if (libraryImport.prefix != null) {
+          continue;
+        }
+        if (libraryImport.namespace.definedNames2.containsValue(element)) {
+          return true;
+        }
       }
     }
     // no, it is not visible
@@ -316,7 +320,7 @@ class _RenameUnitMemberValidator extends _BaseUnitMemberValidator {
 
   /// Validates if any usage of [element] renamed to [name] will be invisible.
   void _validateWillBeInvisible() {
-    if (!Identifier.isPrivateName(name)) {
+    if (!name.isPrivateName) {
       return;
     }
     for (var reference in references) {
@@ -335,6 +339,10 @@ class _RenameUnitMemberValidator extends _BaseUnitMemberValidator {
   /// Validates if any usage of [element] renamed to [name] will be shadowed.
   void _validateWillBeShadowed() {
     for (var reference in references) {
+      // cannot be shadowed if qualified
+      if (reference.isQualified) {
+        continue;
+      }
       var refElement = reference.element;
       var refClass = refElement.thisOrAncestorOfType<InterfaceElement>();
       if (refClass != null) {

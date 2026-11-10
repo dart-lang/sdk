@@ -27,7 +27,7 @@ class Glob {
   /// The parsed [_pattern].
   final Either2<String, RegExp> _matcher;
 
-  Glob(this._separator, this._pattern) : _matcher = _parse(_pattern);
+  new(this._separator, this._pattern) : _matcher = _parse(_pattern);
 
   @override
   int get hashCode => _pattern.hashCode;

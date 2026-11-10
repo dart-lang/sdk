@@ -10,7 +10,7 @@ class Covariant<out T> {}
 
 class Upper {}
 class Middle extends Upper {}
-class Lower {}
+class Lower extends Middle {}
 
 class A {
   Covariant<Middle> method1() {

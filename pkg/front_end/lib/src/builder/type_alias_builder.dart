@@ -35,7 +35,7 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
 
   DartType buildThisType();
 
-  List<DartType> buildAliasedTypeArguments(
+  DartTypeList buildAliasedTypeArguments(
     LibraryBuilder library,
     List<TypeBuilder>? arguments,
     ClassHierarchyBase? hierarchy,
@@ -154,7 +154,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
   DartType buildAliasedTypeWithBuiltArguments(
     LibraryBuilder library,
     Nullability nullability,
-    List<DartType>? arguments,
+    DartTypeList? arguments,
     TypeUse typeUse,
     Uri fileUri,
     int charOffset, {
@@ -373,11 +373,9 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
       if (builders.contains(current)) {
         // Coverage-ignore-block(suite): Not run.
         // Cyclic type alias.
-        currentAliasBuilder.libraryBuilder.addProblem(
+        currentAliasBuilder.libraryBuilder.addProblem2(
           diag.cyclicTypedef.withArguments(name: this.name),
-          fileOffset,
-          noLength,
-          fileUri,
+          uriOffset,
         );
         // Ensure that it is not reported again.
         thisType = const InvalidType();
@@ -400,8 +398,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
                   typeParameter,
                   const NullabilityBuilder.omitted(),
                   arguments: const [],
-                  fileUri: fileUri,
-                  charOffset: fileOffset,
+                  uriOffset: typeParameter.uriOffset,
                   instanceTypeParameterAccess:
                       InstanceTypeParameterAccessState.Unexpected,
                 ),
@@ -488,13 +485,11 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
           currentTypeArguments.length) {
         // Coverage-ignore-block(suite): Not run.
         if (previousAliasBuilder != null) {
-          previousAliasBuilder.libraryBuilder.addProblem(
+          previousAliasBuilder.libraryBuilder.addProblem2(
             diag.typeArgumentMismatch.withArguments(
               expectedCount: currentAliasBuilder.typeParameters?.length ?? 0,
             ),
-            previousAliasBuilder.fileOffset,
-            noLength,
-            previousAliasBuilder.fileUri,
+            previousAliasBuilder.uriOffset,
           );
           previousAliasBuilder.thisType = const InvalidType();
           return this;

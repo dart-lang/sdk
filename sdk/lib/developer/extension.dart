@@ -89,7 +89,7 @@ final class ServiceExtensionResponse {
 /// parameters to the service protocol request.
 ///
 /// *NOTE*: all parameter names and values are encoded as strings.
-typedef Future<ServiceExtensionResponse> ServiceExtensionHandler(
+typedef ServiceExtensionHandler = Future<ServiceExtensionResponse> Function(
   String method,
   Map<String, String> parameters,
 );

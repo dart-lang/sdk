@@ -31,6 +31,8 @@ SocketAddress::SocketAddress(const RawAddr& addr) : addr_(addr) {
     as_string_[0] = 0;
   } else if (addr.ss.ss_family == AF_UNIX) {
     memmove(as_string_, addr.un.sun_path, sizeof(addr.un.sun_path));
+    // sun_path is not necessarily NUL-terminated if it fills the whole field.
+    as_string_[sizeof(addr.un.sun_path)] = '\0';
   } else {
     if (!SocketBase::FormatNumericAddress(addr, as_string_,
                                           kMaxAddressStringLength)) {
@@ -426,7 +428,7 @@ bool SocketBase::GetNoDelay(intptr_t fd, bool* enabled) {
   int err = NO_RETRY_EXPECTED(getsockopt(fd, IPPROTO_TCP, TCP_NODELAY,
                                          reinterpret_cast<void*>(&on), &len));
   if (err == 0) {
-    *enabled = (on == 1);
+    *enabled = (on != 0);
   }
   return (err == 0);
 }
@@ -448,7 +450,7 @@ bool SocketBase::GetMulticastLoop(intptr_t fd,
                                                      : IPV6_MULTICAST_LOOP;
   if (NO_RETRY_EXPECTED(getsockopt(fd, level, optname,
                                    reinterpret_cast<char*>(&on), &len)) == 0) {
-    *enabled = (on == 1);
+    *enabled = (on != 0);
     return true;
   }
   return false;
@@ -483,7 +485,7 @@ bool SocketBase::GetBroadcast(intptr_t fd, bool* enabled) {
   int err = NO_RETRY_EXPECTED(getsockopt(fd, SOL_SOCKET, SO_BROADCAST,
                                          reinterpret_cast<char*>(&on), &len));
   if (err == 0) {
-    *enabled = (on == 1);
+    *enabled = (on != 0);
   }
   return (err == 0);
 }

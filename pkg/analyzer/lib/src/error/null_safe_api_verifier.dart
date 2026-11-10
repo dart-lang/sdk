@@ -22,7 +22,7 @@ class NullSafeApiVerifier {
   final DiagnosticReporter _diagnosticReporter;
   final TypeSystemImpl _typeSystem;
 
-  NullSafeApiVerifier(this._diagnosticReporter, this._typeSystem);
+  new(this._diagnosticReporter, this._typeSystem);
 
   /// Reports an error if the expression creates a `Future<T>.value` with a non-
   /// nullable value `T` and an argument that is effectively `null`.
@@ -43,22 +43,36 @@ class NullSafeApiVerifier {
     }
   }
 
-  /// Reports an error if `Completer<T>.complete` is invoked with a non-nullable
-  /// `T` and an argument that is effectively `null`.
-  void methodInvocation(MethodInvocationImpl node) {
-    var targetType = node.realTarget2?.staticType;
+  void namedFunctionInvocation(
+    NamedFunctionInvocationImpl node,
+    ExpressionImpl target,
+  ) {
+    _checkMethodInvocation(
+      node,
+      targetType: target.staticType,
+      methodName: node.name.lexeme,
+      argumentList: node.argumentList,
+    );
+  }
+
+  void _checkMethodInvocation(
+    ExpressionImpl node, {
+    required DartType? targetType,
+    required String methodName,
+    required ArgumentListImpl argumentList,
+  }) {
     if (targetType is! InterfaceTypeImpl) return;
 
     var targetClass = targetType.element;
 
     if (targetClass.library.isDartAsync &&
         targetClass.name == 'Completer' &&
-        node.methodName.name == 'complete') {
+        methodName == 'complete') {
       _checkTypes(
         node,
         'Completer.complete',
         targetType.typeArguments.single,
-        node.argumentList,
+        argumentList,
       );
     }
   }

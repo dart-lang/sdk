@@ -41,7 +41,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS
 
   void operator []=(String key, String value) { _setItem(key, value); }
 
-  String putIfAbsent(String key, String ifAbsent()) {
+  String putIfAbsent(String key, String Function() ifAbsent) {
     if (!containsKey(key)) this[key] = ifAbsent();
     return this[key] $#NULLSAFECAST(as String);
   }
@@ -54,7 +54,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS
 
   void clear() => _clear();
 
-  void forEach(void f(String key, String value)) {
+  void forEach(void Function(String key, String value) f) {
     for (var i = 0; true; i++) {
       final key = _key(i);
       if (key == null) return;

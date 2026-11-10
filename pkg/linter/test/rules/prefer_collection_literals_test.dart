@@ -515,7 +515,7 @@ void f() {
 ''',
       [
         // No lints.
-        error(diag.undefinedFunction, 40, 15),
+        error(diag.undefinedUnqualifiedNameReadNotFound, 40, 15),
       ],
     );
   }

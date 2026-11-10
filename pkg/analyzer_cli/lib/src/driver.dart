@@ -24,7 +24,6 @@ import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/manifest/manifest_validator.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
-import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/batch_mode.dart';
@@ -43,12 +42,6 @@ StringSink errorSink = io.stderr;
 
 /// Shared IO sink for standard out reporting.
 StringSink outSink = io.stdout;
-
-/// Test this option map to see if it specifies lint rules.
-bool containsLintRuleEntry(YamlMap options) {
-  var linterNode = options.valueAt('linter');
-  return linterNode is YamlMap && linterNode.valueAt('rules') != null;
-}
 
 class Driver implements CommandLineStarter {
   static final ByteStore analysisDriverMemoryByteStore = MemoryByteStore();

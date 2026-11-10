@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 
 class _SuperVisitor extends RecursiveAstVisitor2<void> {
   final String name;
@@ -12,26 +12,14 @@ class _SuperVisitor extends RecursiveAstVisitor2<void> {
   /// Set to `true` if a super invocation with the [name] is found.
   bool hasSuperInvocation = false;
 
-  _SuperVisitor(this.name, this._usage);
-
-  @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    if (_usage == _Usage.writing) {
-      var left = node.leftHandSide2;
-      if (left is PropertyAccess) {
-        if (left.target2 is SuperExpression && left.propertyName.name == name) {
-          hasSuperInvocation = true;
-          return;
-        }
-      }
-    }
-    super.visitAssignmentExpression(node);
-  }
+  new(this.name, this._usage);
 
   @override
   void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
     if (_usage == _Usage.reading) {
-      if (node.leftOperand is SuperExpression && node.operator.lexeme == name) {
+      if (node.leftOperand is SuperReference &&
+          node.binaryOperator != null &&
+          node.operator.lexeme == name) {
         hasSuperInvocation = true;
         return;
       }
@@ -40,40 +28,59 @@ class _SuperVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitMethodInvocation(MethodInvocation node) {
-    if (_usage == _Usage.reading) {
-      if (node.target2 is SuperExpression && node.methodName.name == name) {
-        hasSuperInvocation = true;
-        return;
-      }
+  void visitParsedNameAccess(ParsedNameAccess node) {
+    if (_usage == _Usage.reading &&
+        node.operand is SuperReference &&
+        node.name.lexeme == name) {
+      hasSuperInvocation = true;
+      return;
     }
-    super.visitMethodInvocation(node);
+    super.visitParsedNameAccess(node);
   }
 
   @override
-  void visitPropertyAccess(PropertyAccess node) {
-    if (_usage == _Usage.reading) {
-      var parent = node.parent2;
-      if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
-        // Not reading, skip.
-      } else {
-        if (node.target2 is SuperExpression && node.propertyName.name == name) {
-          hasSuperInvocation = true;
-          return;
-        }
-      }
+  void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
+    if (_usage == _Usage.reading &&
+        node.receiver is SuperReference &&
+        node.name.lexeme == name) {
+      hasSuperInvocation = true;
+      return;
     }
-    super.visitPropertyAccess(node);
+    super.visitReceiverMethodInvocation(node);
+  }
+
+  @override
+  void visitReceiverPropertyAssignmentTarget(
+    ReceiverPropertyAssignmentTarget node,
+  ) {
+    if (node.receiver is SuperReference &&
+        node.name.lexeme == name &&
+        (_usage == _Usage.writing || node.hasRead)) {
+      hasSuperInvocation = true;
+      return;
+    }
+    super.visitReceiverPropertyAssignmentTarget(node);
+  }
+
+  @override
+  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
+    if (_usage == _Usage.reading &&
+        node.receiver is SuperReference &&
+        node.name.lexeme == name) {
+      hasSuperInvocation = true;
+      return;
+    }
+    super.visitReceiverPropertyExtraction(node);
   }
 }
 
 enum _Usage { writing, reading }
 
-extension MethodDeclarationExtension on MethodDeclaration {
+extension MethodDeclarationExtension on MethodDeclarationV1OriginImpl {
   bool get invokesSuperSelf {
     var visitor = _SuperVisitor(
-      name.lexeme,
-      isSetter ? _Usage.writing : _Usage.reading,
+      nameToken.lexeme,
+      this is SetterDeclarationImpl ? _Usage.writing : _Usage.reading,
     );
     body.accept2(visitor);
     return visitor.hasSuperInvocation;

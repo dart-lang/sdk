@@ -9,10 +9,17 @@ class CompilerOptions {
   final bool canaryFeatures;
   final List<String> experiments;
 
+  /// Whether the compiler allows the deprecated JS interop libraries, such as
+  /// `dart:html`.
+  ///
+  /// If `null`, no flag is passed and the compiler default is used.
+  final bool? deprecatedJsInterop;
+
   CompilerOptions({
     required this.moduleFormat,
     required this.canaryFeatures,
     required this.experiments,
+    this.deprecatedJsInterop,
   });
 }
 

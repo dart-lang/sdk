@@ -50,7 +50,7 @@ class BaseVariable {
   int foo() {
     mixin var x = 2;
 //  ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ';' after this.
 // [cfe] The getter 'mixin' isn't defined for the type 'BaseVariable'.

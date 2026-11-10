@@ -6,8 +6,6 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:typed_data';
 
-import '../../source_map.dart';
-
 abstract class Serializable {
   void serialize(Serializer s);
 }
@@ -28,7 +26,7 @@ class Serializer {
   /// Get the current offset in the serialized data.
   int get offset => _index;
 
-  final SourceMapSerializer sourceMapSerializer = SourceMapSerializer();
+  Serializer();
 
   void _ensure(int size) {
     // Ensure space for at least `size` additional bytes.

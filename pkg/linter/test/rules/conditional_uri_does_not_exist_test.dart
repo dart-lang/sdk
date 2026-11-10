@@ -32,7 +32,7 @@ part of 'a.dart';
 
 import ''
     if (dart.library.io) 'dart:missing_1'
-    if (dart.library.html) 'dart:async'
+    if (dart.library.js_interop) 'dart:async'
     if (dart.library.async) 'dart:missing_2';
 ''',
       [
@@ -40,7 +40,7 @@ import ''
         // but that's OK for the purposes of verifying the lint.
         error(diag.importOfNonLibrary, 26, 2),
         lint(54, 16),
-        lint(139, 16),
+        lint(145, 16),
       ],
     );
   }
@@ -48,15 +48,15 @@ import ''
   test_missingDartLibraries() async {
     await assertDiagnostics(
       r'''
+// ignore: unused_import
 import ''
     if (dart.library.io) 'dart:missing_1'
-    if (dart.library.html) 'dart:async'
+    if (dart.library.js_interop) 'dart:async'
     if (dart.library.async) 'dart:missing_2';
 ''',
       [
-        error(diag.unusedImport, 7, 2),
-        lint(35, 16, messageContainsAll: ['dart:missing_1']),
-        lint(120, 16, messageContainsAll: ['dart:missing_2']),
+        lint(60, 16, messageContainsAll: ['dart:missing_1']),
+        lint(151, 16, messageContainsAll: ['dart:missing_2']),
       ],
     );
   }
@@ -66,15 +66,15 @@ import ''
 
     await assertDiagnostics(
       r'''
+// ignore: unused_import
 import ''
     if (dart.library.io) 'missing_1.dart'
-    if (dart.library.html) 'exists.dart'
+    if (dart.library.js_interop) 'exists.dart'
     if (dart.library.async) 'missing_2.dart';
 ''',
       [
-        error(diag.unusedImport, 7, 2),
-        lint(35, 16, messageContainsAll: ['missing_1.dart']),
-        lint(121, 16, messageContainsAll: ['missing_2.dart']),
+        lint(60, 16, messageContainsAll: ['missing_1.dart']),
+        lint(152, 16, messageContainsAll: ['missing_2.dart']),
       ],
     );
   }
@@ -82,15 +82,15 @@ import ''
   test_missingPackages() async {
     await assertDiagnostics(
       r'''
+// ignore: unused_import
 import ''
     if (dart.library.io) 'package:meta/missing_1.dart'
-    if (dart.library.html) 'package:meta/meta.dart'
+    if (dart.library.js_interop) 'package:meta/meta.dart'
     if (dart.library.io) 'package:foo/missing_2.dart';
 ''',
       [
-        error(diag.unusedImport, 7, 2),
-        lint(35, 29, messageContainsAll: ['missing_1.dart']),
-        lint(142, 28, messageContainsAll: ['missing_2.dart']),
+        lint(60, 29, messageContainsAll: ['missing_1.dart']),
+        lint(173, 28, messageContainsAll: ['missing_2.dart']),
       ],
     );
   }
@@ -102,14 +102,15 @@ part of 'test.dart';
 
     await assertDiagnostics(
       r'''
+// ignore: unused_import
 import ''
     if (dart.library.io) 'dart:missing_1'
-    if (dart.library.html) 'dart:async'
+    if (dart.library.js_interop) 'dart:async'
     if (dart.library.async) 'dart:missing_2';
 
 part 'a.dart';
 ''',
-      [error(diag.unusedImport, 7, 2), lint(35, 16), lint(120, 16)],
+      [lint(60, 16), lint(151, 16)],
     );
   }
 }

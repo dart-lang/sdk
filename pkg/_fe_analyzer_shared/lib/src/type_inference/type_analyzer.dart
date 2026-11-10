@@ -26,10 +26,7 @@ class CaseDefaultInfo<
   @override
   final int endAlternativeOffset;
 
-  CaseDefaultInfo({
-    this.beginAlternativeOffset = 0,
-    this.endAlternativeOffset = 0,
-  });
+  new({this.beginAlternativeOffset = 0, this.endAlternativeOffset = 0});
 
   @override
   Null get guard => null;
@@ -70,7 +67,7 @@ class CaseHeadInfo<
   @override
   final int endAlternativeOffset;
 
-  CaseHeadInfo({
+  new({
     required this.pattern,
     required this.variables,
     this.guard,
@@ -130,7 +127,7 @@ enum JoinedPatternVariableInconsistency {
 
   final int _severity;
 
-  const JoinedPatternVariableInconsistency(this._severity);
+  new(this._severity);
 
   /// Returns the most serious inconsistency for `this` or [other].
   JoinedPatternVariableInconsistency maxWith(
@@ -164,7 +161,7 @@ class MapPatternEntry<Expression extends Object, Pattern extends Object> {
   final Expression key;
   final Pattern value;
 
-  MapPatternEntry({required this.key, required this.value});
+  new({required this.key, required this.value});
 }
 
 /// Information supplied by the client to [TypeAnalyzer.analyzeObjectPattern],
@@ -182,11 +179,7 @@ class RecordPatternField<Node extends Object, Pattern extends Object> {
   final String? name;
   final Pattern pattern;
 
-  RecordPatternField({
-    required this.node,
-    required this.name,
-    required this.pattern,
-  });
+  new({required this.node, required this.name, required this.pattern});
 }
 
 /// Kinds of relational pattern operators that shared analysis needs to
@@ -208,7 +201,7 @@ class RelationalOperatorResolution {
   final SharedTypeView parameterType;
   final SharedTypeView returnType;
 
-  RelationalOperatorResolution({
+  new({
     required this.kind,
     required this.parameterType,
     required this.returnType,
@@ -239,7 +232,7 @@ class SwitchExpressionMemberInfo<
   /// best choice.
   final int endAlternativeOffset;
 
-  SwitchExpressionMemberInfo({
+  new({
     required this.head,
     required this.expression,
     this.beginAlternativeOffset = 0,
@@ -286,7 +279,7 @@ class SwitchStatementMemberInfo<
   /// if there are no more branches).
   final int endOffset;
 
-  SwitchStatementMemberInfo({
+  new({
     required this.heads,
     required this.body,
     required this.variables,
@@ -438,13 +431,15 @@ mixin TypeAnalyzer<
 
     SharedTypeView variableDeclaredType = operations.variableType(variable);
     Node? irrefutableContext = context.irrefutableContext;
-    assert(
-      irrefutableContext != null,
-      'Assigned variables must only appear in irrefutable pattern contexts',
-    );
     Error? patternTypeMismatchInIrrefutableContextError;
-    if (irrefutableContext != null &&
-        matchedValueType is! SharedDynamicType &&
+    if (irrefutableContext == null) {
+      // Assigned variables only appear in pattern assignments, which are
+      // irrefutable contexts. But if a refutable pattern (such as a logical-or
+      // pattern) appears in a pattern assignment, an error is reported and the
+      // context is made refutable (see [MatchContext.makeRefutable]), to avoid
+      // cascading errors.
+      errors.assertInErrorRecovery();
+    } else if (matchedValueType is! SharedDynamicType &&
         matchedValueType is! SharedInvalidType &&
         !operations.isSubtypeOf(matchedValueType, variableDeclaredType)) {
       patternTypeMismatchInIrrefutableContextError = errors
@@ -914,6 +909,7 @@ mixin TypeAnalyzer<
       location: JoinedPatternVariableLocation.singlePattern,
       offset: patternEndOffset(pattern),
     );
+    handle_ifCaseElement_afterPattern(node);
     Error? nonBooleanGuardError;
     SharedTypeView? guardType;
     ExpressionInfo? guardInfo;
@@ -1900,10 +1896,12 @@ mixin TypeAnalyzer<
   /// `for (<keyword> <pattern> in <expression>) <body>`
   ///
   /// [beforePatternOffset] is the last source offset that should be considered
-  /// to be prior to entry into the `for`. The offset of any character in the
-  /// `for` keyword (or `await` keyword, if present) should work, since no
-  /// expressions can appear in this range, but the first such character is
-  /// probably the best choice.
+  /// to be prior to entry into the pattern. The offset of any character in
+  /// `<keyword>` should work, since no expressions can appear in this range,
+  /// but the first character of the keyword is probably the best choice.
+  /// An offset in the metadata preceding `<keyword>` doesn't work, because the
+  /// metadata may contain expressions, which are visited in source order,
+  /// before the iterable.
   ///
   /// [beforeExpressionOffset] is the last source offset that should be
   /// considered to be part of the pattern. The offset of the `in` token is
@@ -1981,7 +1979,7 @@ mixin TypeAnalyzer<
     );
     // Stack: (Expression, Pattern)
 
-    flow.forEach_bodyBegin(node, offset: bodyBeginOffset);
+    flow.patternForIn_bodyBegin(node, offset: bodyBeginOffset);
     dispatchBody();
     flow.forEach_end(offset: endOffset);
     flow.patternForIn_end(offset: endOffset);
@@ -2914,6 +2912,9 @@ mixin TypeAnalyzer<
   SwitchStatementMemberInfo<Node, Statement, Expression, Variable>
   getSwitchStatementMemberInfo(Statement node, int caseIndex);
 
+  /// Called after visiting the pattern in `if-case` element.
+  void handle_ifCaseElement_afterPattern(Node node) {}
+
   /// Called after visiting the pattern in `if-case` statement.
   void handle_ifCaseStatement_afterPattern({required Statement node}) {}
 
@@ -3123,6 +3124,10 @@ mixin TypeAnalyzer<
   void setVariableType(Variable variable, SharedTypeView type);
 
   /// Gets the offset of the end of a statement.
+  ///
+  /// Typically, this is the offset of the statement's terminating token (e.g.
+  /// `;` or `}`), so that positions immediately following the statement are
+  /// considered to be outside of it.
   int statementEndOffset(Statement statement);
 
   /// Computes the type that should be inferred for an implicitly typed variable
@@ -3546,8 +3551,9 @@ class TypeAnalyzerOptions {
   final bool inferenceUpdate3Enabled;
 
   /// Indicates whether initializers of implicitly typed variables should be
-  /// accounted for by SSA analysis.  (In an ideal world, they always would be,
-  /// but due to https://github.com/dart-lang/language/issues/1785, they weren't
+  /// accounted for by value version tracking.  (In an ideal world, they always
+  /// would be, but due to
+  /// https://github.com/dart-lang/language/issues/1785, they weren't
   /// always, and we need to be able to replicate the old behavior when
   /// analyzing old language versions).
   final bool respectImplicitlyTypedVarInitializers;
@@ -3560,7 +3566,9 @@ class TypeAnalyzerOptions {
 
   final bool soundFlowAnalysisEnabled;
 
-  TypeAnalyzerOptions({
+  final bool promotionChainIntersectionJoinEnabled;
+
+  new({
     required this.patternsEnabled,
     required this.inferenceUpdate3Enabled,
     required this.respectImplicitlyTypedVarInitializers,
@@ -3568,5 +3576,6 @@ class TypeAnalyzerOptions {
     required this.inferenceUpdate4Enabled,
     required this.thisPromotionEnabled,
     required this.soundFlowAnalysisEnabled,
+    required this.promotionChainIntersectionJoinEnabled,
   });
 }

@@ -22,8 +22,8 @@ export 'package:analyzer/src/dart/analysis/experiments_impl.dart'
         IllegalUseOfExpiredFlag,
         UnnecessaryUseOfExpiredFlag,
         UnrecognizedFlag,
-        validateFlags,
-        ValidationResult;
+        ValidationResult,
+        validateFlags;
 
 part 'experiments.g.dart';
 
@@ -42,7 +42,7 @@ Version getSdkLanguageVersion_forTesting(ExperimentStatus status) =>
 class ExperimentalFeaturesStatus implements parser.ExperimentalFeatures {
   final FeatureSet _featureSet;
 
-  ExperimentalFeaturesStatus(this._featureSet);
+  new(this._featureSet);
 
   @override
   bool isExperimentEnabled(shared.ExperimentalFlag flag) {
@@ -64,11 +64,11 @@ class ExperimentStatus with _CurrentState implements FeatureSet {
   final List<bool> _explicitDisabledFlags;
   final List<bool> _flags;
 
-  factory ExperimentStatus() {
+  factory() {
     return ExperimentStatus.latestLanguageVersion();
   }
 
-  factory ExperimentStatus.fromStorage(Uint8List encoded) {
+  factory fromStorage(Uint8List encoded) {
     var byteIndex = 0;
 
     int getByte() {
@@ -107,7 +107,7 @@ class ExperimentStatus with _CurrentState implements FeatureSet {
   /// Always succeeds, even if the input flags are invalid.  Expired and
   /// unrecognized flags are ignored, conflicting flags are resolved in favor of
   /// the flag appearing last.
-  factory ExperimentStatus.fromStrings2({
+  factory fromStrings2({
     required Version sdkLanguageVersion,
     required List<String> flags,
   }) {
@@ -128,16 +128,14 @@ class ExperimentStatus with _CurrentState implements FeatureSet {
     );
   }
 
-  factory ExperimentStatus.latestLanguageVersion({
-    List<String> flags = const [],
-  }) {
+  factory latestLanguageVersion({List<String> flags = const []}) {
     return ExperimentStatus.fromStrings2(
       sdkLanguageVersion: currentVersion,
       flags: flags,
     );
   }
 
-  ExperimentStatus._(
+  new _(
     this._sdkLanguageVersion,
     this._explicitEnabledFlags,
     this._explicitDisabledFlags,

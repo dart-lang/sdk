@@ -22,6 +22,7 @@ import '../base/messages.dart'
         Template;
 import '../base/problems.dart' show internalProblem;
 import '../base/ticker.dart' show Ticker;
+import '../base/uri_offset.dart';
 import '../base/uris.dart';
 import '../builder/compilation_unit.dart';
 import '../builder/declaration_builders.dart';
@@ -145,7 +146,7 @@ class DillLoader extends Loader {
             uri,
           )) {
         // Coverage-ignore-block(suite): Not run.
-        accessor.addProblem(
+        accessor.problemReporting.addProblem(
           diag.platformPrivateLibraryAccess,
           charOffset,
           noLength,
@@ -208,7 +209,7 @@ class DillLoader extends Loader {
   // and only those of the [SourceLoader] are used elsewhere. Use
   // [currentSourceLoader] to forward messages to the [SourceLoader] instead.
   @override
-  FormattedMessage? addProblem(
+  FormattedMessage? addLibraryProblem(
     Message message,
     int charOffset,
     int length,
@@ -216,7 +217,6 @@ class DillLoader extends Loader {
     bool wasHandled = false,
     List<LocatedMessage>? context,
     CfeSeverity? severity,
-    bool problemOnLibrary = false,
     List<Uri>? involvedFiles,
   }) {
     return _addMessage(
@@ -227,7 +227,6 @@ class DillLoader extends Loader {
       severity,
       wasHandled: wasHandled,
       context: context,
-      problemOnLibrary: problemOnLibrary,
       involvedFiles: involvedFiles,
     );
   }
@@ -251,7 +250,6 @@ class DillLoader extends Loader {
     CfeSeverity? severity, {
     bool wasHandled = false,
     List<LocatedMessage>? context,
-    bool problemOnLibrary = false,
     List<Uri>? involvedFiles,
   }) {
     assert(
@@ -420,8 +418,11 @@ severity: $severity
   late TypeBuilderComputer _typeBuilderComputer = new TypeBuilderComputer(this);
 
   @override
-  TypeBuilder computeTypeBuilder(DartType type) {
-    return _typeBuilderComputer.visit(type);
+  TypeBuilder computeTypeBuilder({
+    required DartType type,
+    required UriOffsetLength uriOffset,
+  }) {
+    return _typeBuilderComputer.visit(type: type, uriOffset: uriOffset);
   }
 
   // Coverage-ignore(suite): Not run.

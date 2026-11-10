@@ -29,67 +29,61 @@ class FlutterWidgetPreviewsHandler
     TextDocumentIdentifier params,
     MessageInfo message,
     CancellationToken token,
-  ) async {
-    var path = pathOfDoc(params);
-    if (path.isError) {
-      return failure(path);
-    }
+  ) {
+    return withResolvedUnit(textDocument: params, token, (result, _, _) async {
+      var graph = <Uri, LibraryPreviewNode>{};
+      var processed = <Uri>{};
+      var flutterWidgetPreviewDetector = FlutterWidgetPreviewDetector();
 
-    var pathResult = path.resultOrNull!;
-    var result = await server.getResolvedUnit(pathResult);
-    if (result == null) {
-      return success(null);
-    }
+      // Build a graph starting from this library to track dependencies and errors.
+      Future<void> buildGraph(ResolvedUnitResult unit) async {
+        var fileUri = unit.uri;
+        if (processed.contains(fileUri)) return;
+        processed.add(fileUri);
 
-    var graph = <Uri, LibraryPreviewNode>{};
-    var processed = <Uri>{};
-    var flutterWidgetPreviewDetector = FlutterWidgetPreviewDetector();
+        // Scan all units in the library.
+        var libraryElement = unit.libraryElement;
+        for (var unitPath in libraryElement.fragments.map(
+          (f) => f.source.fullName,
+        )) {
+          var resolvedUnit = await server.getResolvedUnit(unitPath);
+          if (resolvedUnit != null) {
+            flutterWidgetPreviewDetector.findPreviews(
+              resolvedUnit,
+              graph: graph,
+            );
+          }
+        }
 
-    // Build a graph starting from this library to track dependencies and errors.
-    Future<void> buildGraph(ResolvedUnitResult unit) async {
-      var fileUri = unit.uri;
-      if (processed.contains(fileUri)) return;
-      processed.add(fileUri);
+        var node = graph[libraryElement.uri]!;
+        for (var dependency in node.dependsOn) {
+          if (processed.contains(dependency.uri)) continue;
 
-      // Scan all units in the library.
-      var libraryElement = unit.libraryElement;
-      for (var unitPath in libraryElement.fragments.map(
-        (f) => f.source.fullName,
-      )) {
-        var resolvedUnit = await server.getResolvedUnit(unitPath);
-        if (resolvedUnit != null) {
-          flutterWidgetPreviewDetector.findPreviews(resolvedUnit, graph: graph);
+          var depPath = dependency.path;
+          var driver = server.getAnalysisDriver(depPath);
+          if (driver == null || !driver.addedFiles.contains(depPath)) {
+            continue;
+          }
+
+          var depResult = await server.getResolvedUnit(depPath);
+          if (depResult != null) {
+            await buildGraph(depResult);
+          }
         }
       }
 
-      var node = graph[libraryElement.uri]!;
-      for (var dependency in node.dependsOn) {
-        if (processed.contains(dependency.uri)) continue;
+      await buildGraph(result);
+      flutterWidgetPreviewDetector.propagateErrors(graph);
 
-        var depPath = dependency.path;
-        var driver = server.getAnalysisDriver(depPath);
-        if (driver == null || !driver.addedFiles.contains(depPath)) {
-          continue;
-        }
-
-        var depResult = await server.getResolvedUnit(depPath);
-        if (depResult != null) {
-          await buildGraph(depResult);
-        }
-      }
-    }
-
-    await buildGraph(result);
-    flutterWidgetPreviewDetector.propagateErrors(graph);
-
-    var node = graph[result.libraryElement.uri]!;
-    return success(
-      FlutterWidgetPreviews(
-        scriptUris: node.previews.map((e) => e.scriptUri).toSet().toList(),
-        previews: node.previews,
-        namespaces: flutterWidgetPreviewDetector.namespaces,
-      ),
-    );
+      var node = graph[result.libraryElement.uri]!;
+      return success(
+        FlutterWidgetPreviews(
+          scriptUris: node.previews.map((e) => e.scriptUri).toSet().toList(),
+          previews: node.previews,
+          namespaces: flutterWidgetPreviewDetector.namespaces,
+        ),
+      );
+    });
   }
 }
 
@@ -111,44 +105,50 @@ class WorkspaceFlutterWidgetPreviewsHandler
     void _,
     MessageInfo message,
     CancellationToken token,
-  ) async {
-    var graph = <Uri, LibraryPreviewNode>{};
-    var processedLibraries = <Uri>{};
-    var flutterWidgetPreviewDetector = FlutterWidgetPreviewDetector();
+  ) {
+    return server.pauseSchedulerWhile(() async {
+      var graph = <Uri, LibraryPreviewNode>{};
+      var processedLibraries = <Uri>{};
+      var flutterWidgetPreviewDetector = FlutterWidgetPreviewDetector();
 
-    for (var driver in server.driverMap.values) {
-      for (var file in driver.addedFiles) {
-        var libraryResult = await server.getResolvedLibrary(file);
-        if (libraryResult != null) {
-          var uri = libraryResult.element.uri;
-          if (processedLibraries.contains(uri)) continue;
-          processedLibraries.add(uri);
+      for (var driver in server.driverMap.values.toList()) {
+        for (var file in driver.addedFiles.toList()) {
+          if (token.isCancellationRequested) {
+            return cancelled(token);
+          }
 
-          for (var unit in libraryResult.units) {
-            flutterWidgetPreviewDetector.findPreviews(unit, graph: graph);
+          var libraryResult = await server.getResolvedLibrary(file);
+          if (libraryResult != null) {
+            var uri = libraryResult.element.uri;
+            if (processedLibraries.contains(uri)) continue;
+            processedLibraries.add(uri);
+
+            for (var unit in libraryResult.units) {
+              flutterWidgetPreviewDetector.findPreviews(unit, graph: graph);
+            }
           }
         }
       }
-    }
 
-    flutterWidgetPreviewDetector.propagateErrors(graph);
+      flutterWidgetPreviewDetector.propagateErrors(graph);
 
-    var allPreviews = <FlutterWidgetPreviewDetails>[];
-    var allScriptUris = <Uri>{};
+      var allPreviews = <FlutterWidgetPreviewDetails>[];
+      var allScriptUris = <Uri>{};
 
-    for (var node in graph.values) {
-      allPreviews.addAll(node.previews);
-      for (var preview in node.previews) {
-        allScriptUris.add(preview.scriptUri);
+      for (var node in graph.values) {
+        allPreviews.addAll(node.previews);
+        for (var preview in node.previews) {
+          allScriptUris.add(preview.scriptUri);
+        }
       }
-    }
 
-    return success(
-      FlutterWidgetPreviews(
-        namespaces: flutterWidgetPreviewDetector.namespaces,
-        previews: allPreviews,
-        scriptUris: allScriptUris.toList(),
-      ),
-    );
+      return success(
+        FlutterWidgetPreviews(
+          namespaces: flutterWidgetPreviewDetector.namespaces,
+          previews: allPreviews,
+          scriptUris: allScriptUris.toList(),
+        ),
+      );
+    });
   }
 }

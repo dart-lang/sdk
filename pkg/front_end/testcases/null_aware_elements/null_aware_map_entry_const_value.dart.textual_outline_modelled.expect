@@ -1,0 +1,11 @@
+class C {
+  const C();
+}
+
+class Holder {
+  late final fieldMap = <int, C>{?nullableKey(): const C()};
+}
+
+int? nullableKey() => 1;
+
+void main() {}

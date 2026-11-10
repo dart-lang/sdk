@@ -95,7 +95,7 @@ class FooListener extends StackListener {
   @override
   final Uri uri;
 
-  FooListener(this.uri);
+  new(this.uri);
 
   @override
   void addProblem(
@@ -118,4 +118,14 @@ class FooListener extends StackListener {
 
   @override
   bool get isDartLibrary => false;
+
+  @override
+  void handleSendWithoutArguments(
+    Token beginToken,
+    Token endToken,
+    Token nextToken,
+  ) {}
+
+  @override
+  void handleInvocationWithoutTypeArguments(Token beginToken, Token endToken) {}
 }

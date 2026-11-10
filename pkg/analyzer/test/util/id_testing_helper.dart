@@ -126,9 +126,8 @@ Future<TestResult<T>> runTestForConfig<T>(
   var testFiles = <_TestFile>[];
   for (var entry in testData.memorySourceFiles.entries) {
     var uri = _toTestUri(entry.key);
-    var path = ResourceProviderExtension(
-      resourceProvider,
-    ).convertPath(uri.path);
+    var path = ResourceProviderExtension(resourceProvider)
+        .convertPath(uri.path);
     var file = resourceProvider.getFile(path);
     testFiles.add(_TestFile(uri: uri, file: file));
     file.writeAsStringSync(entry.value);
@@ -153,11 +152,11 @@ Future<TestResult<T>> runTestForConfig<T>(
   var analysisSession = analysisContext.currentSession;
   var driver = analysisContext.driver;
 
-  Map<Uri, Map<Id, ActualData<T>>> actualMaps = <Uri, Map<Id, ActualData<T>>>{};
-  Map<Id, ActualData<T>> globalData = <Id, ActualData<T>>{};
+  Map<Uri, ActualDataMap<T>> actualMaps = <Uri, ActualDataMap<T>>{};
+  ActualDataMap<T> globalData = ActualDataMap();
 
-  Map<Id, ActualData<T>> actualMapFor(Uri uri) {
-    return actualMaps.putIfAbsent(uri, () => <Id, ActualData<T>>{});
+  ActualDataMap<T> actualMapFor(Uri uri) {
+    return actualMaps.putIfAbsent(uri, () => ActualDataMap());
   }
 
   var results = <Uri, ResolvedUnitResult>{};
@@ -186,7 +185,7 @@ Future<TestResult<T>> runTestForConfig<T>(
             errors,
           );
           if (data != null) {
-            Map<Id, ActualData<T>> actualMap = actualMapFor(testUri);
+            ActualDataMap<T> actualMap = actualMapFor(testUri);
             actualMap[id] = ActualData<T>(id, data, testUri, offset, errors);
           }
         });
@@ -213,8 +212,8 @@ Future<TestResult<T>> runTestForConfig<T>(
   var compiledData = AnalyzerCompiledData<T>(
     testData.code,
     testData.entryPoint,
-    actualMaps,
-    globalData,
+    await actualMaps.getData(),
+    await globalData.getData(),
   );
   return checkCode(
     markerOptions,
@@ -238,7 +237,7 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
   // TODO(paulberry): Maybe this should have access to the [ResolvedUnitResult] instead.
   final Map<Uri, AnnotatedCode> code;
 
-  AnalyzerCompiledData(
+  new(
     this.code,
     Uri mainUri,
     Map<Uri, Map<Id, ActualData<T>>> actualMaps,
@@ -257,23 +256,27 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
         throwIfDiagnostics: false,
       ).unit;
       if (className != null) {
-        for (var declaration in unit.declarations) {
-          if (declaration is ClassDeclaration &&
+        for (var declaration in unit.declarations2) {
+          if (declaration is ClassDeclaration2 &&
               declaration.namePart.typeName.lexeme == className) {
-            if (declaration.body case BlockClassBody body) {
+            if (declaration.body case BlockInstanceDeclarationBody body) {
               for (var member in body.members) {
-                if (member is ConstructorDeclaration) {
+                if (member is ConstructorDeclaration2) {
                   if (member.name!.lexeme == name) {
                     return member.offset;
                   }
-                } else if (member is FieldDeclaration) {
-                  for (var variable in member.fields.variables) {
+                } else if (member is FieldsDeclaration) {
+                  for (var variable in member.fields) {
                     if (variable.name.lexeme == name) {
                       return variable.offset;
                     }
                   }
-                } else if (member is MethodDeclaration) {
-                  if (member.name.lexeme == name) {
+                } else if (member
+                    case MethodDeclaration2(name: var memberName) ||
+                        OperatorDeclaration(operator: var memberName) ||
+                        GetterDeclaration(name: var memberName) ||
+                        SetterDeclaration(name: var memberName)) {
+                  if (memberName.lexeme == name) {
                     return member.offset;
                   }
                 }
@@ -285,13 +288,21 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
         }
         return 0;
       }
-      for (var declaration in unit.declarations) {
-        if (declaration is FunctionDeclaration) {
+      for (var declaration in unit.declarations2) {
+        if (declaration is TopLevelFunctionDeclaration) {
           if (declaration.name.lexeme == name) {
             return declaration.offset;
           }
-        } else if (declaration is TopLevelVariableDeclaration) {
-          for (var variable in declaration.variables.variables) {
+        } else if (declaration is TopLevelGetterDeclaration) {
+          if (declaration.name.lexeme == name) {
+            return declaration.offset;
+          }
+        } else if (declaration is TopLevelSetterDeclaration) {
+          if (declaration.name.lexeme == name) {
+            return declaration.offset;
+          }
+        } else if (declaration is TopLevelVariablesDeclaration) {
+          for (var variable in declaration.variables) {
             if (variable.name.lexeme == name) {
               return variable.offset;
             }
@@ -305,8 +316,8 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
         content: code[uri]!.sourceCode,
         throwIfDiagnostics: false,
       ).unit;
-      for (var declaration in unit.declarations) {
-        if (declaration is ClassDeclaration &&
+      for (var declaration in unit.declarations2) {
+        if (declaration is ClassDeclaration2 &&
             declaration.namePart.typeName.lexeme == className) {
           return declaration.offset;
         }
@@ -329,7 +340,7 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
 }
 
 abstract class DataComputer<T> {
-  const DataComputer();
+  const new();
 
   DataInterpreter<T> get dataValidator;
 
@@ -354,7 +365,7 @@ abstract class DataComputer<T> {
   void computeUnitData(
     TestingData testingData,
     CompilationUnit unit,
-    Map<Id, ActualData<T>> actualMap,
+    ActualDataMap<T> actualMap,
   );
 }
 
@@ -363,7 +374,7 @@ class TestConfig {
   final String name;
   final FeatureSet featureSet;
 
-  TestConfig(this.marker, this.name, {FeatureSet? featureSet})
+  new(this.marker, this.name, {FeatureSet? featureSet})
     : featureSet = featureSet ?? FeatureSet.latestLanguageVersion();
 }
 
@@ -371,7 +382,7 @@ class _TestFile {
   final Uri uri;
   final File file;
 
-  _TestFile({required this.uri, required this.file});
+  new({required this.uri, required this.file});
 
   String get path => file.path;
 }

@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:dart_runtime_service/dart_runtime_service.dart';
+import 'package:dart_runtime_service/dart_runtime_service_io.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -20,6 +20,33 @@ void main() {
       final snapshotDir = getDTDSnapshotDir();
       expect(snapshotDir, isNotEmpty);
       expect(Directory(snapshotDir).existsSync(), isTrue);
+    });
+
+    test('startDtd launches DTD without locking current directory', () async {
+      final tempDir = Directory.systemTemp.createTempSync('dtd_test_');
+      addTearDown(() {
+        if (tempDir.existsSync()) {
+          tempDir.deleteSync(recursive: true);
+        }
+      });
+      final origDir = Directory.current;
+      try {
+        Directory.current = tempDir;
+        final dtdInfo = await startDtd(machineMode: false, printDtdUri: false);
+        addTearDown(() async {
+          await dtdInfo?.shutdown();
+        });
+        expect(dtdInfo, isNotNull);
+        expect(dtdInfo!.localUri.scheme, 'ws');
+        expect(dtdInfo.secret, isNotNull);
+        expect(dtdInfo.secret, isNotEmpty);
+      } finally {
+        Directory.current = origDir;
+      }
+      // On Windows, throws PathAccessException (errno = 32) if a DTD process
+      // inherited tempDir as its working directory. The in-process AOT isolate
+      // path is exercised by pkg/dartdev TestProject tests on Windows.
+      tempDir.deleteSync(recursive: true);
     });
   });
 }

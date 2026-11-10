@@ -13,6 +13,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer_testing/configuration_files_mixin.dart';
 import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:meta/meta.dart';
@@ -20,7 +21,6 @@ import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import '../../test/constants.dart';
-import '../../test/support/configuration_files.dart';
 import '../../test/support/sdk_paths.dart';
 import 'integration_test_methods.dart';
 import 'protocol_matchers.dart';
@@ -251,7 +251,7 @@ abstract class AbstractAnalysisServerIntegrationTest extends IntegrationTest
     packagesDirectory = Directory(
       pathContext.join(tempDirectoryPath, 'packages'),
     )..createSync();
-    writeTestPackageConfig();
+    writeTestPackageConfig2();
 
     writeTestPackageAnalysisOptionsFile(
       analysisOptionsContent(experimentalFeatures: [Feature.macros]),

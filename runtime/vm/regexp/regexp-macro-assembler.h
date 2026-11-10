@@ -241,8 +241,8 @@ class RegExpMacroAssembler {
   virtual void PushBacktrack(V8Label* label) = 0;
   virtual void PushCurrentPosition() = 0;
   enum class StackCheckFlag : uint8_t {
-    kNoStackLimitCheck = false,
-    kCheckStackLimit = true
+    kNoStackLimitCheck = 0,
+    kCheckStackLimit = 1
   };
   virtual void PushRegister(int register_index,
                             StackCheckFlag check_stack_limit) = 0;

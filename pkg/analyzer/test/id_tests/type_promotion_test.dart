@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualDataMap, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -33,7 +33,7 @@ main(List<String> args) {
 }
 
 class _TypePromotionDataComputer extends DataComputer<DartType> {
-  const _TypePromotionDataComputer();
+  const new();
 
   @override
   DataInterpreter<DartType> get dataValidator =>
@@ -46,7 +46,7 @@ class _TypePromotionDataComputer extends DataComputer<DartType> {
   void computeUnitData(
     TestingData testingData,
     CompilationUnit unit,
-    Map<Id, ActualData<DartType>> actualMap,
+    ActualDataMap<DartType> actualMap,
   ) {
     var unitUri = unit.declaredFragment!.source.uri;
     _TypePromotionDataExtractor(unitUri, actualMap).run(unit);
@@ -54,18 +54,17 @@ class _TypePromotionDataComputer extends DataComputer<DartType> {
 }
 
 class _TypePromotionDataExtractor extends AstDataExtractor<DartType> {
-  _TypePromotionDataExtractor(super.uri, super.actualMap);
+  new(super.uri, super.actualMap);
 
   @override
   DartType? computeNodeValue(Id id, AstNode node) {
     Element? element;
     DartType? promotedType;
-    if (node is SimpleIdentifier && node.inGetterContext()) {
-      element = _readElement(node);
-      if (element is LocalVariableElement ||
-          element is FormalParameterElement) {
-        promotedType = _readType(node);
-      }
+    if (node case UnqualifiedNameExpression(
+      resolution: VariableReadResolution(element: var readElement, :var type),
+    )) {
+      element = readElement;
+      promotedType = type;
     } else if (node is IfNullAssignment || node is CompoundAssignment) {
       var target = (node as AssignmentExpression2).target;
       if (target is UnqualifiedNameAssignmentTarget) {
@@ -103,32 +102,10 @@ class _TypePromotionDataExtractor extends AstDataExtractor<DartType> {
     }
     super.visitUnqualifiedNameAssignmentTarget(node);
   }
-
-  static Element? _readElement(SimpleIdentifier node) {
-    var parent = node.parent2;
-    if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
-      return parent.readElement;
-    } else if (parent is PrefixExpression) {
-      return parent.readElement;
-    } else {
-      return node.element;
-    }
-  }
-
-  static DartType? _readType(SimpleIdentifier node) {
-    var parent = node.parent2;
-    if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
-      return parent.readType;
-    } else if (parent is PrefixExpression) {
-      return parent.readType;
-    } else {
-      return node.staticType;
-    }
-  }
 }
 
 class _TypePromotionDataInterpreter implements DataInterpreter<DartType> {
-  const _TypePromotionDataInterpreter();
+  const new();
 
   @override
   String getText(DartType actualData, [String? indentation]) {

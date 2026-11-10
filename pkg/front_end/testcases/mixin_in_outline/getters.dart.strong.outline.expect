@@ -1,0 +1,72 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    ;
+  get instanceGetter() → core::String
+    ;
+  static get staticGetter() → core::String
+    ;
+}
+mixin class MixinClass extends core::Object {
+  synthetic constructor •() → self::MixinClass
+    ;
+  get instanceGetter() → core::String {
+    return "instanceGetter";
+  }
+  static get staticGetter() → core::String
+    ;
+}
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
+  get instanceGetter() → core::String {
+    return "instanceGetter";
+  }
+  static get staticGetter() → core::String
+    ;
+}
+class Enum extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::Enum a = const self::Enum::•(0, "a");
+  static const field core::List<self::Enum> values = const <self::Enum>[self::Enum::a];
+  const synthetic constructor •(core::int #index, core::String #name) → self::Enum
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "Enum.${this.{core::_Enum::_name}{core::String}}";
+  get instanceGetter() → core::String
+    ;
+  static get staticGetter() → core::String
+    ;
+}
+extension Extension on core::int {
+  get instanceGetter = self::Extension|get#instanceGetter;
+  static get staticGetter = get self::Extension|staticGetter;
+}
+extension type ExtensionType(core::int it) {
+  abstract extension-type-member representation-field get it() → core::int;
+  get instanceGetter = self::ExtensionType|get#instanceGetter;
+  static get staticGetter = get self::ExtensionType|staticGetter;
+  constructor • = self::ExtensionType|constructor#;
+  constructor tearoff • = self::ExtensionType|constructor#_#new#tearOff;
+}
+static get topLevelGetter() → core::String
+  ;
+static extension-member method Extension|get#instanceGetter(lowered final core::int #this) → core::String
+  ;
+static extension-member get Extension|staticGetter() → core::String
+  ;
+static extension-type-member method ExtensionType|constructor#(initializing-formal core::int it) → self::ExtensionType% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ExtensionType|constructor#_#new#tearOff(core::int it) → self::ExtensionType% /* erasure=core::int, declared=! */
+  return self::ExtensionType|constructor#(it);
+static extension-type-member method ExtensionType|get#instanceGetter(lowered final self::ExtensionType% /* erasure=core::int, declared=! */ #this) → core::String
+  ;
+static extension-type-member get ExtensionType|staticGetter() → core::String
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///getters.dart:40:3 -> InstanceConstant(const Enum{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///getters.dart:39:6 -> ListConstant(const <Enum>[const Enum{_Enum.index: 0, _Enum._name: "a"}])
+Extra constant evaluation: evaluated: 9, effectively constant: 2

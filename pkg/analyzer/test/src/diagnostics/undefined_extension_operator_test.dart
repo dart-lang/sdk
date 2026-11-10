@@ -40,7 +40,7 @@ f() {
     var node = result.findNode.binaryOperatorInvocation('+ 1');
     assertResolvedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ExtensionOverride
+  leftOperand: ExtensionOverride2
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -50,7 +50,6 @@ BinaryOperatorInvocation
       rightParenthesis: )
     element: <testLibrary>::@extension::E
     extendedType: String
-    staticType: null
   operator: +
   rightOperand: IntegerLiteral
     literal: 1
@@ -167,7 +166,6 @@ f(A a) {
   E(a)[0] += 1;
 //    ^^^
 // [diag.undefinedExtensionOperator] The operator '[]' isn't defined for the extension 'E'.
-// [diag.undefinedExtensionOperator] The operator '[]=' isn't defined for the extension 'E'.
 }
 ''');
   }

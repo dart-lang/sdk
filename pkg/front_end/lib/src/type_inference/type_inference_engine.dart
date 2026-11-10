@@ -227,11 +227,23 @@ abstract class TypeInferenceEngine {
     Member? member,
     ClassHierarchyBase hierarchy,
   ) {
-    // TODO(johnniwinther): Can we remove this now?
+    // TODO(johnniwinther): Use [toBeInferred] for this.
     if (member is Field) {
       DartType type = member.type;
       if (type is InferredType) {
         type.inferType(hierarchy);
+      }
+    } else if (member is Procedure) {
+      if (member.kind == ProcedureKind.Getter) {
+        DartType type = member.getterType;
+        if (type is InferredType) {
+          type.inferType(hierarchy);
+        }
+      } else if (member.kind == ProcedureKind.Setter) {
+        DartType type = member.setterType;
+        if (type is InferredType) {
+          type.inferType(hierarchy);
+        }
       }
     }
     return member;
@@ -687,7 +699,7 @@ class OperationsCfe
     // When late variables get lowered, their type is changed, but the
     // original type is stored in `VariableDeclarationImpl.lateType`, so we
     // use that if it exists.
-    return new SharedTypeView(variable.lateType ?? variable.type);
+    return new SharedTypeView(variable.type);
   }
 
   @override
@@ -781,7 +793,7 @@ class OperationsCfe
       new InterfaceType(
         typeEnvironment.coreTypes.iterableClass,
         Nullability.nonNullable,
-        <DartType>[elementTypeSchema.unwrapTypeSchemaView()],
+        new DartTypeList(elementTypeSchema.unwrapTypeSchemaView()),
       ),
     );
   }
@@ -791,7 +803,7 @@ class OperationsCfe
     return new InterfaceType(
       typeEnvironment.coreTypes.listClass,
       Nullability.nonNullable,
-      <DartType>[elementType],
+      new DartTypeList(elementType),
     );
   }
 
@@ -828,7 +840,7 @@ class OperationsCfe
     return new InterfaceType(
       typeEnvironment.coreTypes.mapClass,
       Nullability.nonNullable,
-      <DartType>[keyType, valueType],
+      new DartTypeList(keyType, valueType),
     );
   }
 
@@ -924,13 +936,12 @@ class OperationsCfe
     required List<SharedType> positional,
     required List<(String, SharedType)> named,
   }) {
-    List<NamedType> namedFields = [];
-    for (var (name, type) in named) {
-      namedFields.add(new NamedType(name, type as DartType));
-    }
-    namedFields.sort((f1, f2) => f1.name.compareTo(f2.name));
+    NamedDartTypeList namedFields = NamedDartTypeList.mapped(
+      named,
+      (r) => new NamedType(r.$1, r.$2 as DartType),
+    )..sort((f1, f2) => f1.name.compareTo(f2.name));
     return new RecordType(
-      positional.cast<DartType>(),
+      DartTypeList.mapped(positional, (t) => t as DartType),
       namedFields,
       Nullability.nonNullable,
     );
@@ -944,7 +955,7 @@ class OperationsCfe
       new InterfaceType(
         typeEnvironment.coreTypes.streamClass,
         Nullability.nonNullable,
-        <DartType>[elementTypeSchema.unwrapTypeSchemaView()],
+        new DartTypeList(elementTypeSchema.unwrapTypeSchemaView()),
       ),
     );
   }
@@ -995,7 +1006,7 @@ class OperationsCfe
     return new InterfaceType(
       typeEnvironment.coreTypes.futureClass,
       Nullability.nonNullable,
-      <DartType>[argumentType],
+      new DartTypeList(argumentType),
     );
   }
 

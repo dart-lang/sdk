@@ -324,8 +324,9 @@ OS::BuildId OS::GetAppBuildId(const uint8_t* snapshot_instructions) {
   // First return the build ID information from the instructions image if
   // available.
   const TextImage instructions_image(snapshot_instructions);
-  if (auto* const image_build_id = instructions_image.build_id()) {
-    return {instructions_image.build_id_length(), image_build_id};
+  const auto build_id = instructions_image.build_id();
+  if (build_id.data != nullptr) {
+    return build_id;
   }
   const uint8_t* dso_base = GetAppDSOBase(snapshot_instructions);
   const auto& macho_header =
@@ -347,7 +348,7 @@ OS::BuildId OS::GetAppBuildId(const uint8_t* snapshot_instructions) {
       const auto& uuid_cmd = *reinterpret_cast<const struct uuid_command*>(it);
       return {
           static_cast<intptr_t>(uuid_cmd.cmdsize - sizeof(struct load_command)),
-          uuid_cmd.uuid};
+          uuid_cmd.uuid, BuildId::Format::kMachoUUID};
     }
     it += current_cmd.cmdsize;
   }

@@ -20,7 +20,7 @@ class InlineExpander {
   /// external stub method that imports the JS function.
   Expression expand(StaticInvocation node) {
     Arguments arguments = node.arguments;
-    List<Expression> originalArguments = arguments.positional.sublist(1);
+    ExpressionList originalArguments = arguments.positional.skip(1);
     List<PositionalParameter> dartPositionalParameters = [];
     for (int j = 0; j < originalArguments.length; j++) {
       Expression originalArgument = originalArguments[j];
@@ -29,7 +29,7 @@ class InlineExpander {
       dartPositionalParameters.add(
         PositionalParameter(
           parameterName: parameterString,
-          type: _toExternalType(type),
+          type: type,
           isSynthesized: true,
         ),
       );
@@ -56,16 +56,15 @@ class InlineExpander {
     Procedure dartProcedure;
     Expression result;
     DartType resultType = arguments.types.single;
-    if (resultType is VoidType) {
-      resultType = InterfaceType(_util.wasmVoidClass, Nullability.nonNullable);
-    }
     dartProcedure = makeInteropProcedure(
       _staticTypeContext.enclosingLibrary,
       '_JS_Inline_${_counter++}',
       node.location!.file,
       FunctionNode(
         null,
-        positionalParameters: dartPositionalParameters,
+        positionalParameters: PositionalParameterList.from(
+          dartPositionalParameters,
+        ),
         returnType: resultType,
       ),
       isExternal: true,
@@ -77,19 +76,5 @@ class InlineExpander {
       resultType,
       onlyHandleNull: true,
     );
-  }
-
-  // The `JS<foo>("...some js code ...", arg0, arg1)` expressions will produce
-  // wasm imports. We want to only use types in those wasm imports that binaryen
-  // allows under closed world assumptions (and not blindly use `arg<N>`s static
-  // type).
-  //
-  // For now we special case `WasmArray<>` which we turn into a generic `array`
-  // type (super type of all wasm arrays).
-  DartType _toExternalType(DartType type) {
-    if (type is InterfaceType && type.classNode == _util.wasmArrayClass) {
-      return InterfaceType(_util.wasmArrayRefClass, type.declaredNullability);
-    }
-    return type;
   }
 }

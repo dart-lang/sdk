@@ -94,7 +94,7 @@ include: package:lints/lints.yaml
       '$lintsRootPath/lib/lints.yaml',
       '# Used for testing diagnostics for imports in analysis options files.',
     );
-    writeTestPackageConfig(
+    writeTestPackageConfig2(
       config: PackageConfigFileBuilder()
         ..add(name: 'lints', rootFolder: getFolder(lintsRootPath)),
     );

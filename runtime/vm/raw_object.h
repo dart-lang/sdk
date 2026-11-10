@@ -48,18 +48,22 @@ class StackFrame;
 
 namespace module_snapshot {
 class CatchEntryMovesDeserializationCluster;
+class ClassDeserializationCluster;
 class ClosureDataDeserializationCluster;
+class ClosureDeserializationCluster;
 class CodeDeserializationCluster;
 class CodeSourceMapDeserializationCluster;
 class CompressedStackMapsDeserializationCluster;
 class Deserializer;
 class DoubleDeserializationCluster;
 class ExceptionHandlersDeserializationCluster;
+class FieldDeserializationCluster;
 class FunctionDeserializationCluster;
 class FunctionTypeDeserializationCluster;
 class ICDataDeserializationCluster;
 class IntDeserializationCluster;
 class InterfaceTypeDeserializationCluster;
+class LibraryDeserializationCluster;
 class ListDeserializationCluster;
 class MapDeserializationCluster;
 class ObjectPoolDeserializationCluster;
@@ -67,6 +71,7 @@ class PcDescriptorsDeserializationCluster;
 class RecordDeserializationCluster;
 class RecordTypeDeserializationCluster;
 class SetDeserializationCluster;
+class ScriptDeserializationCluster;
 class SubtypeTestCacheDeserializationCluster;
 class TypeArgumentsDeserializationCluster;
 class TypeParameterTypeDeserializationCluster;
@@ -1345,6 +1350,7 @@ class UntaggedClass : public UntaggedObject {
   friend class TypeSerializationCluster;
   friend class CidRewriteVisitor;
   friend class Api;
+  friend class module_snapshot::ClassDeserializationCluster;
   friend class module_snapshot::ObjectPoolDeserializationCluster;
 };
 
@@ -1422,8 +1428,6 @@ class UntaggedFunction : public UntaggedObject {
   V(NoSuchMethodDispatcher)                                                    \
   /* invokes a field as a closure (i.e., call-through-getter) */               \
   V(InvokeFieldDispatcher)                                                     \
-  /* a generated irregexp matcher function. */                                 \
-  V(IrregexpFunction)                                                          \
   /* a forwarder which performs type checks for arguments of a dynamic call */ \
   /* (i.e., those checks omitted by the caller for interface calls). */        \
   V(DynamicInvocationForwarder)                                                \
@@ -1675,7 +1679,17 @@ class UntaggedClosureData : public UntaggedObject {
   using CapturesOnlySharedFields = BitField<decltype(packed_fields_),
                                             bool,
                                             PackedAwaiterLinkIndex::kNextBit>;
+  // Used by the interpreter to detect that a tearoff was affected by reload
+  // and so the tearoff function should be re-resolved.
+  //
+  // Unused in compiled code, since clearing the code of the tearoff forces
+  // re-resolution there.
+  using ReloadedImplicitClosure = BitField<decltype(packed_fields_),
+                                           bool,
+                                           CapturesOnlySharedFields::kNextBit>;
+
   friend class Function;
+  friend class Interpreter;
   friend class UnitDeserializationRoots;
   friend class module_snapshot::ClosureDataDeserializationCluster;
 };
@@ -1728,7 +1742,7 @@ class UntaggedField : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(SmiPtr, host_offset_or_field_id)
   COMPRESSED_POINTER_FIELD(SmiPtr, guarded_list_length)
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  COMPRESSED_POINTER_FIELD(AbstractTypePtr, exact_type)
+  COMPRESSED_POINTER_FIELD(AbstractTypePtr, inferred_type)
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   COMPRESSED_POINTER_FIELD(WeakArrayPtr, dependent_code)
   VISIT_TO(dependent_code);
@@ -1779,6 +1793,7 @@ class UntaggedField : public UntaggedObject {
   friend class GuardFieldClassInstr;  // For sizeof(guarded_cid_/...)
   friend class LoadFieldInstr;        // For sizeof(guarded_cid_/...)
   friend class StoreFieldInstr;       // For sizeof(guarded_cid_/...)
+  friend class module_snapshot::FieldDeserializationCluster;
 };
 
 class alignas(8) UntaggedScript : public UntaggedObject {
@@ -1838,6 +1853,8 @@ class alignas(8) UntaggedScript : public UntaggedObject {
 
  private:
 #endif
+
+  friend class module_snapshot::ScriptDeserializationCluster;
 };
 
 class UntaggedLibrary : public UntaggedObject {
@@ -1913,6 +1930,8 @@ class UntaggedLibrary : public UntaggedObject {
 
   friend class Class;
   friend class Isolate;
+  friend class module_snapshot::LibraryDeserializationCluster;
+  friend class module_snapshot::FunctionDeserializationCluster;
 };
 
 class UntaggedNamespace : public UntaggedObject {
@@ -2525,6 +2544,18 @@ class UntaggedInstructionsTable : public UntaggedObject {
   friend class Deserializer;
 };
 
+class UntaggedLocalVarDescriptor : public UntaggedObject {
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(LocalVarDescriptor);
+
+  COMPRESSED_POINTER_FIELD(StringPtr, name)
+  VISIT_FROM(name)
+  COMPRESSED_POINTER_FIELD(AbstractTypePtr, static_type)
+  VISIT_TO(static_type)
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+  friend class Object;
+};
+
 class UntaggedLocalVarDescriptors : public UntaggedObject {
  public:
   enum VarInfoKind {
@@ -2574,14 +2605,16 @@ class UntaggedLocalVarDescriptors : public UntaggedObject {
   // platforms.
   uword num_entries_;
 
-  VISIT_FROM_PAYLOAD_START(CompressedStringPtr)
-  COMPRESSED_VARIABLE_POINTER_FIELDS(StringPtr, name, names, num_entries)
-
-  CompressedStringPtr* nameAddrAt(intptr_t i) { return &(names()[i]); }
-
-  // Variable info with [num_entries_] entries.
+  VISIT_FROM_PAYLOAD_START(CompressedLocalVarDescriptorPtr)
+  COMPRESSED_VARIABLE_POINTER_FIELDS(LocalVarDescriptorPtr,
+                                     descriptor,
+                                     descriptors,
+                                     num_entries)
+  CompressedLocalVarDescriptorPtr* descriptorAddrAt(intptr_t i) {
+    return &(descriptors()[i]);
+  }
   VarInfo* data() {
-    return reinterpret_cast<VarInfo*>(nameAddrAt(num_entries_));
+    return reinterpret_cast<VarInfo*>(descriptorAddrAt(num_entries_));
   }
 
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind, intptr_t num_entries) {
@@ -2647,8 +2680,10 @@ class UntaggedContext : public UntaggedObject {
 
 #define CONTEXT_SCOPE_VARIABLE_DESC_FLAG_LIST(V)                               \
   V(Final)                                                                     \
+  V(EffectivelyFinal)                                                          \
   V(Late)                                                                      \
   V(Nullable)                                                                  \
+  V(ExactType)                                                                 \
   V(Invisible)                                                                 \
   V(AwaiterLink)                                                               \
   V(Shared)
@@ -3071,28 +3106,54 @@ class UntaggedFunctionType : public UntaggedAbstractType {
   // For packed_type_parameter_counts_.
   using PackedNumParentTypeArguments =
       BitField<decltype(packed_type_parameter_counts_), uint8_t>;
+  static constexpr intptr_t kPackedNumParentTypeArgumentsPos =
+      PackedNumParentTypeArguments::shift();
+  static constexpr intptr_t kPackedNumParentTypeArgumentsSize =
+      PackedNumParentTypeArguments::bitsize();
+
   using PackedNumTypeParameters =
       BitField<decltype(packed_type_parameter_counts_),
                uint8_t,
                PackedNumParentTypeArguments::kNextBit>;
+  static constexpr intptr_t kPackedNumTypeParametersPos =
+      PackedNumTypeParameters::shift();
+  static constexpr intptr_t kPackedNumTypeParametersSize =
+      PackedNumTypeParameters::bitsize();
 
   // For packed_parameter_counts_.
   using PackedNumImplicitParameters =
       BitField<decltype(packed_parameter_counts_), uint8_t, 0, 1>;
+  static constexpr intptr_t kPackedNumImplicitParametersPos =
+      PackedNumImplicitParameters::shift();
+  static constexpr intptr_t kPackedNumImplicitParametersSize =
+      PackedNumImplicitParameters::bitsize();
+
   using PackedHasNamedOptionalParameters =
       BitField<decltype(packed_parameter_counts_),
                bool,
                PackedNumImplicitParameters::kNextBit>;
+  static constexpr intptr_t kPackedHasNamedOptionalParametersPos =
+      PackedHasNamedOptionalParameters::shift();
+
   using PackedNumFixedParameters =
       BitField<decltype(packed_parameter_counts_),
                uint16_t,
                PackedHasNamedOptionalParameters::kNextBit,
                14>;
+  static constexpr intptr_t kPackedNumFixedParametersPos =
+      PackedNumFixedParameters::shift();
+  static constexpr intptr_t kPackedNumFixedParametersSize =
+      PackedNumFixedParameters::bitsize();
+
   using PackedNumOptionalParameters =
       BitField<decltype(packed_parameter_counts_),
                uint16_t,
                PackedNumFixedParameters::kNextBit,
                14>;
+  static constexpr intptr_t kPackedNumOptionalParametersPos =
+      PackedNumOptionalParameters::shift();
+  static constexpr intptr_t kPackedNumOptionalParametersSize =
+      PackedNumOptionalParameters::bitsize();
   static_assert(PackedNumOptionalParameters::kNextBit <=
                     compiler::target::kSmiBits,
                 "In-place mask for number of optional parameters cannot fit in "
@@ -3161,6 +3222,10 @@ class UntaggedClosure : public UntaggedInstance {
                uint8_t,
                HasDelayedTypeArgumentsBit::shift(),
                HasDelayedTypeArgumentsBit::bitsize()>;
+  static constexpr intptr_t kInstantiatorTypeArgumentsIndexBitsPos =
+      InstantiatorTypeArgumentsIndexBits::shift();
+  static constexpr intptr_t kInstantiatorTypeArgumentsIndexBitsSize =
+      InstantiatorTypeArgumentsIndexBits::bitsize();
 
   using FunctionTypeArgumentsIndexBits =
       BitField<intptr_t, uint8_t, HasFunctionTypeArgumentsBit::kNextBit, 2>;
@@ -3252,6 +3317,7 @@ class UntaggedClosure : public UntaggedInstance {
 
   friend class Interpreter;
   friend class UnitDeserializationRoots;
+  friend class module_snapshot::ClosureDeserializationCluster;
 };
 
 class UntaggedNumber : public UntaggedInstance {
@@ -3631,6 +3697,8 @@ class UntaggedInt32x4 : public UntaggedInstance {
 
   ALIGN8 int32_t value_[4];
 
+  friend class Class;
+  friend class Interpreter;
   friend class Simd128DeserializationCluster;
   friend class Simd128MessageDeserializationCluster;
   friend class Simd128MessageSerializationCluster;

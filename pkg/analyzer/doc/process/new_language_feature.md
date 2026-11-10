@@ -39,9 +39,8 @@ The features are listed roughly in dependency order.
 - [ ] Type system updates
 - [ ] Summary support
 - [ ] Resolution
-  - [ ] `ResolutionVisitor` (resolve types)
-  - [ ] `ScopeResolverVisitor` (resolve simple identifiers by scope)
-  - [ ] `ResolverVisitor` (type-based resolution)
+  - [ ] `ScopeAnalyzer` (build scopes, resolve names and type annotations)
+  - [ ] `TypeAnalyzer` (flow analysis, type inference, member lookup)
 - [ ] Constant evaluation
 - [ ] Index and search
 - [ ] Warnings (annotation-based, unused\*, strict-mode-based, a few others)
@@ -58,5 +57,4 @@ The features are listed roughly in dependency order.
   - [ ] `strict-casts: true` warnings
   - [ ] `strict-inference: true` warnings
   - [ ] `strict-raw-types: true` warnings
-- [ ] ExitDetector
 - [ ] NodeLintRegistry

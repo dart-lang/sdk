@@ -12,12 +12,12 @@ class DeclaredVariables {
 
   /// Initialize a newly created set of declared variables in which there are no
   /// variables.
-  DeclaredVariables();
+  new();
 
   /// Initialize a newly created set of declared variables to define variables
   /// whose names are the keys in the give [variableMap] and whose values are
   /// the corresponding values from the map.
-  DeclaredVariables.fromMap(Map<String, String> variableMap) {
+  new fromMap(Map<String, String> variableMap) {
     _declaredVariables.addAll(variableMap);
   }
 

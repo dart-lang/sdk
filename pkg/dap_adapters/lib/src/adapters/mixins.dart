@@ -10,6 +10,7 @@ import 'package:dap/dap.dart';
 import 'package:path/path.dart' as path;
 
 import '../logging.dart';
+import 'dart.dart';
 
 /// A mixin providing some utility functions for locating/working with
 /// package_config.json files.
@@ -54,7 +55,7 @@ mixin PidTracker {
 /// A mixin providing some utility functions for adapters that run tests and
 /// provides some basic test reporting since otherwise nothing is printed when
 /// using the JSON test reporter.
-mixin TestAdapter {
+mixin TestAdapter on ColorUtils {
   static const _passSymbol = '✓';
   static const _failSymbol = '✖';
   static const _skippedSymbol = '!';
@@ -90,11 +91,15 @@ mixin TestAdapter {
     }
   }
 
+  int _testPassCount = 0, _testSkipCount = 0, _testFailCount = 0;
+  int _lastTimeMs = 0;
+
   /// Sends textual output for tests, including pass/fail and test output.
   ///
   /// This is sent so that clients that do not handle the package:test JSON
   /// events still get some useful textual output in their Debug Consoles.
   void sendTestTextOutput(Map<String, Object?> testNotification) {
+    _lastTimeMs = testNotification['time'] as int? ?? _lastTimeMs;
     switch (testNotification['type']) {
       case 'testStart':
         // When a test starts, capture its name by ID so we can get it back when
@@ -117,12 +122,18 @@ mixin TestAdapter {
         if (testID != null) {
           final testName = _testNames[testID];
           if (testName != null) {
-            final symbol = testNotification['skipped'] == true
-                ? _skippedSymbol
-                : testNotification['result'] == 'success'
-                ? _passSymbol
-                : _failSymbol;
-            sendOutput('console', '$symbol $testName\n');
+            String symbol;
+            if (testNotification['skipped'] == true) {
+              symbol = yellow(_skippedSymbol);
+              _testSkipCount++;
+            } else if (testNotification['result'] == 'success') {
+              symbol = green(_passSymbol);
+              _testPassCount++;
+            } else {
+              symbol = red(_failSymbol);
+              _testFailCount++;
+            }
+            sendOutput('console', _addSummary('$symbol $testName\n'));
           }
         }
 
@@ -155,7 +166,62 @@ mixin TestAdapter {
         if (stack != null) {
           sendOutput('stderr', '${stack.trimRight()}\n');
         }
+
+      // When done, send a summary.
+      case 'done':
+        if (_testSkipCount > 0) {
+          final skipSummary = _testSkipCount == 1
+              ? '$_testSkipCount skipped test.'
+              : '$_testSkipCount skipped tests.';
+          _sendTestOutputLine(yellow(skipSummary));
+        }
+        if (_testFailCount > 0) {
+          _sendTestOutputLine(red('Some tests failed.'));
+        } else if (_testSkipCount > 0) {
+          _sendTestOutputLine('All other tests passed!');
+        } else {
+          _sendTestOutputLine('All tests passed!');
+        }
     }
+  }
+
+  /// Sends a line of output with the test summary prefix, followed by a
+  /// newline.
+  void _sendTestOutputLine(String message) {
+    sendOutput('console', _addSummary('$message\n'));
+  }
+
+  /// Adds a test summary to the start of [message] in the format matching the
+  /// default `pkg:test` output:
+  ///
+  ///     mm:ss +a ~b -c: message
+  ///
+  /// Pass and skip counts (`~b -c`) are skipped if zero.
+  String _addSummary(String message) {
+    final output = StringBuffer();
+    output
+      ..write(_lastTimeString)
+      ..write(' ')
+      ..write(green('+$_testPassCount'));
+    if (_testSkipCount > 0) {
+      output
+        ..write(' ')
+        ..write(yellow('~$_testSkipCount'));
+    }
+    if (_testFailCount > 0) {
+      output
+        ..write(' ')
+        ..write(red('-$_testFailCount'));
+    }
+    output.write(': $message');
+    return output.toString();
+  }
+
+  /// Returns a representation of the last event time as `MM:SS`.
+  String get _lastTimeString {
+    final duration = Duration(milliseconds: _lastTimeMs);
+    return "${duration.inMinutes.toString().padLeft(2, '0')}:"
+        "${(duration.inSeconds % 60).toString().padLeft(2, '0')}";
   }
 }
 
@@ -247,6 +313,29 @@ mixin VmServiceInfoFileUtils on FileUtils {
       return null;
     }
   }
+}
+
+mixin ColorUtils {
+  DartCommonLaunchAttachRequestArguments get args;
+
+  /// Wraps [input] in ANSI escape and reset codes for [code], if supported.
+  String _wrapWithAnsiCode(String input, int code) {
+    return args.allowAnsiColorOutput ?? false
+        ? '\u001B[${code}m$input\u001B[0m'
+        : input;
+  }
+
+  /// Dims [input] when the client supports ANSI-colored output.
+  String dim(String input) => _wrapWithAnsiCode(input, 2);
+
+  /// Colors [input] red when the client supports ANSI-colored output.
+  String red(String input) => _wrapWithAnsiCode(input, 31);
+
+  /// Colors [input] green when the client supports ANSI-colored output.
+  String green(String input) => _wrapWithAnsiCode(input, 32);
+
+  /// Colors [input] yellow when the client supports ANSI-colored output.
+  String yellow(String input) => _wrapWithAnsiCode(input, 33);
 }
 
 mixin FileUtils {

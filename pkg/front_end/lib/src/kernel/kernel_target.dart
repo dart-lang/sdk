@@ -6,7 +6,7 @@ import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
     show CfeSeverity;
-import 'package:front_end/src/codes/diagnostic.dart' as diag;
+import 'package:front_end/src/base/uris.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
@@ -45,9 +45,11 @@ import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
+import '../codes/diagnostic.dart' as diag;
 import '../dill/dill_target.dart' show DillTarget;
 import '../fragment/constructor/declaration.dart';
 import '../source/name_scheme.dart';
+import '../source/parameters.dart';
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 import '../source/source_constructor_builder.dart';
 import '../source/source_declaration_builder.dart';
@@ -95,24 +97,28 @@ class KernelTarget {
     const PredefinedTypeName("dynamic"),
     const NullabilityBuilder.inherent(),
     instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected,
+    uriOffset: dartCoreUriOffset,
   );
 
   final NamedTypeBuilder intType = new NamedTypeBuilderImpl(
     const PredefinedTypeName("int"),
     const NullabilityBuilder.omitted(),
     instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected,
+    uriOffset: dartCoreUriOffset,
   );
 
   final NamedTypeBuilder stringType = new NamedTypeBuilderImpl(
     const PredefinedTypeName("String"),
     const NullabilityBuilder.omitted(),
     instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected,
+    uriOffset: dartCoreUriOffset,
   );
 
   final NamedTypeBuilder objectType = new NamedTypeBuilderImpl(
     const PredefinedTypeName("Object"),
     const NullabilityBuilder.omitted(),
     instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected,
+    uriOffset: dartCoreUriOffset,
   );
 
   // Null is always nullable.
@@ -122,6 +128,7 @@ class KernelTarget {
     const PredefinedTypeName("Null"),
     const NullabilityBuilder.inherent(),
     instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected,
+    uriOffset: dartCoreUriOffset,
   );
 
   // TODO(johnniwinther): Why isn't this using a FixedTypeBuilder?
@@ -129,18 +136,21 @@ class KernelTarget {
     const PredefinedTypeName("Never"),
     const NullabilityBuilder.omitted(),
     instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected,
+    uriOffset: dartCoreUriOffset,
   );
 
   final NamedTypeBuilder enumType = new NamedTypeBuilderImpl(
     const PredefinedTypeName("Enum"),
     const NullabilityBuilder.omitted(),
     instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected,
+    uriOffset: dartCoreUriOffset,
   );
 
   final NamedTypeBuilder underscoreEnumType = new NamedTypeBuilderImpl(
     const PredefinedTypeName("_Enum"),
     const NullabilityBuilder.omitted(),
     instanceTypeParameterAccess: InstanceTypeParameterAccessState.Unexpected,
+    uriOffset: dartCoreUriOffset,
   );
 
   bool get excludeSource => !context.options.embedSourceText;
@@ -151,7 +161,14 @@ class KernelTarget {
   bool get errorOnUnevaluatedConstant =>
       context.options.errorOnUnevaluatedConstant;
 
-  final Map<Member, DelayedDefaultValueCloner> _delayedDefaultValueCloners = {};
+  /// Map from [Member] or [FunctionNode] to the [DelayedDefaultValueCloner]
+  /// responsible for cloning its parameter default values.
+  ///
+  /// This is used for synthesized functions and constructors with super
+  /// parameters where the parameter default values are copied from another
+  /// parameters.
+  final Map<TreeNode, DelayedDefaultValueCloner> _delayedDefaultValueCloners =
+      {};
 
   final UriTranslator uriTranslator;
 
@@ -557,12 +574,7 @@ class KernelTarget {
         benchmarker
         // Coverage-ignore(suite): Not run.
         ?.enterPhase(BenchmarkPhases.outline_installTypedefTearOffs);
-        List<DelayedDefaultValueCloner>?
-        typedefTearOffsDelayedDefaultValueCloners = loader
-            .installTypedefTearOffs();
-        typedefTearOffsDelayedDefaultValueCloners?.forEach(
-          registerDelayedDefaultValueCloner,
-        );
+        loader.installTypedefTearOffs();
 
         benchmarker
         // Coverage-ignore(suite): Not run.
@@ -1071,10 +1083,7 @@ class KernelTarget {
     bool hasTypeDependency = false;
     Substitution substitution = Substitution.fromMap(substitutionMap);
 
-    PositionalParameter copyPositionalParameter(
-      PositionalParameter formal, {
-      required bool isPositional,
-    }) {
+    PositionalParameter copyPositionalParameter(PositionalParameter formal) {
       PositionalParameter copy = extern.createPositionalParameter(
         parameterName: formal.parameterName,
         type: const UnknownType(),
@@ -1091,10 +1100,7 @@ class KernelTarget {
       return copy;
     }
 
-    NamedParameter copyNamedParameter(
-      NamedParameter formal, {
-      required bool isPositional,
-    }) {
+    NamedParameter copyNamedParameter(NamedParameter formal) {
       NamedParameter copy = extern.createNamedParameter(
         parameterName: formal.parameterName,
         type: const UnknownType(),
@@ -1121,28 +1127,29 @@ class KernelTarget {
         }
       }
     }
-    List<PositionalParameter> positionalParameters = [];
-    List<NamedParameter> namedParameters = [];
-    List<Expression> positional = <Expression>[];
-    List<NamedExpression> named = <NamedExpression>[];
-
-    for (PositionalParameter formal
-        in superConstructor.function.positionalParameters) {
-      positionalParameters.add(
-        copyPositionalParameter(formal, isPositional: true),
-      );
-      positional.add(new VariableGet(positionalParameters.last));
-    }
-    for (NamedParameter formal in superConstructor.function.namedParameters) {
-      NamedParameter clone = copyNamedParameter(formal, isPositional: false);
-      namedParameters.add(clone);
-      named.add(
-        new NamedExpression(
-          formal.parameterName,
-          new VariableGet(namedParameters.last),
-        ),
-      );
-    }
+    List<PositionalParameter> superPositional =
+        superConstructor.function.positionalParameters;
+    List<NamedParameter> superNamed = superConstructor.function.namedParameters;
+    PositionalParameterList positionalParameters =
+        PositionalParameterList.mapped(
+          superPositional,
+          copyPositionalParameter,
+        );
+    NamedParameterList namedParameters = NamedParameterList.mapped(
+      superNamed,
+      copyNamedParameter,
+    );
+    ExpressionList positional = ExpressionList.mapped(
+      positionalParameters,
+      VariableGet.new,
+    );
+    NamedExpressionList named = NamedExpressionList.mapped(
+      namedParameters,
+      (NamedParameter parameter) => new NamedExpression(
+        parameter.parameterName,
+        new VariableGet(parameter),
+      ),
+    );
     FunctionNode function = new FunctionNode(
       new EmptyStatement(),
       positionalParameters: positionalParameters,
@@ -1169,8 +1176,9 @@ class KernelTarget {
     ;
     DelayedDefaultValueCloner delayedDefaultValueCloner =
         new DelayedDefaultValueCloner(
-          superConstructor,
-          constructor,
+          source: superConstructor,
+          target: constructor,
+          parameterMapping: const DirectParameterMapping(),
           libraryBuilder: libraryBuilder,
         );
 
@@ -1226,7 +1234,9 @@ class KernelTarget {
       fileUri: classBuilder.fileUri,
       constructorReferences: constructorReferences,
       nameScheme: nameScheme,
-      introductory: declaration,
+      declarations: [declaration],
+      implementation: declaration,
+      parameters: new Parameters(hasAugmentations: false),
       isConst: isConst,
     );
 
@@ -1237,10 +1247,8 @@ class KernelTarget {
   }
 
   void registerDelayedDefaultValueCloner(DelayedDefaultValueCloner cloner) {
-    // TODO(cstefantsova): Investigate the reason for the assumption breakage
-    // and uncomment the following line.
-    // assert(!_delayedDefaultValueCloners.containsKey(cloner.synthesized));
-    _delayedDefaultValueCloners[cloner.synthesized] ??= cloner;
+    assert(!_delayedDefaultValueCloners.containsKey(cloner.target));
+    _delayedDefaultValueCloners[cloner.target] = cloner;
   }
 
   void finishSynthesizedParameters({bool forOutline = false}) {
@@ -1248,7 +1256,7 @@ class KernelTarget {
       DelayedDefaultValueCloner delayedDefaultValueCloner,
     ) {
       DelayedDefaultValueCloner? originalCloner =
-          _delayedDefaultValueCloners[delayedDefaultValueCloner.original];
+          _delayedDefaultValueCloners[delayedDefaultValueCloner.source];
       if (originalCloner != null) {
         cloneDefaultValues(originalCloner);
       }
@@ -1344,23 +1352,21 @@ class KernelTarget {
       fileUri: classBuilder.fileUri,
       constructorReferences: constructorReferences,
       nameScheme: nameScheme,
-      introductory: declaration,
+      declarations: [declaration],
+      implementation: declaration,
+      parameters: new Parameters(hasAugmentations: false),
       isConst: false,
     );
   }
 
   DartType makeConstructorReturnType(Class enclosingClass) {
-    List<DartType> typeParameterTypes = <DartType>[];
-    for (int i = 0; i < enclosingClass.typeParameters.length; i++) {
-      TypeParameter typeParameter = enclosingClass.typeParameters[i];
-      typeParameterTypes.add(
-        new TypeParameterType.withDefaultNullability(typeParameter),
-      );
-    }
     return new InterfaceType(
       enclosingClass,
       enclosingClass.enclosingLibrary.nonNullable,
-      typeParameterTypes,
+      getAsTypeArguments(
+        enclosingClass.typeParameters,
+        enclosingClass.enclosingLibrary,
+      ),
     );
   }
 
@@ -1996,7 +2002,7 @@ class KernelTarget {
     List<Uri>? patches = uriTranslator.getDartPatches(originImportUri.path);
     if (patches != null) {
       for (Uri patch in patches) {
-        compilationUnit.registerAugmentation(
+        compilationUnit.registerPatch(
           loader.read(
             patch,
             -1,
@@ -2051,7 +2057,13 @@ class KernelDiagnosticReporter
     Uri? fileUri, {
     List<LocatedMessage>? context,
   }) {
-    loader.addProblem(message, charOffset, noLength, fileUri, context: context);
+    loader.addComponentProblem(
+      message,
+      charOffset,
+      noLength,
+      fileUri,
+      context: context,
+    );
   }
 }
 

@@ -82,7 +82,7 @@ int _combinedBmhAndKmp(
 
 class DartdocDirectiveSearchHelper {
   // Don't instantiate.
-  DartdocDirectiveSearchHelper._();
+  new _();
 
   @_GeneratedSearchData('{@endtemplate}', addNeedleLength: true)
   static int nextAtEndtemplate(String haystack, int offset) {
@@ -165,5 +165,5 @@ class _GeneratedSearchData {
   final String needle;
   final bool addNeedleLength;
 
-  const _GeneratedSearchData(this.needle, {this.addNeedleLength = false});
+  const new(this.needle, {this.addNeedleLength = false});
 }

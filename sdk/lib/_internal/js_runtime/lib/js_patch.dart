@@ -4,6 +4,7 @@
 
 // Patch file for dart:js library.
 import 'dart:collection' show HashMap, ListMixin;
+import 'dart:js_interop' show JSObject;
 import 'dart:typed_data' show TypedData;
 
 import 'dart:_foreign_helper' show JS, DART_CLOSURE_TO_JS;
@@ -258,6 +259,9 @@ class JsObject {
   }
 
   String? _safeToStringAttributes() => safeDescribeJavaScriptObject(_jsObject);
+
+  @patch
+  JSObject get rawJSObject => JSObject.fromInteropObject(_jsObject);
 }
 
 class _SafeToStringHook extends SafeToStringHook {
@@ -272,7 +276,7 @@ class _SafeToStringHook extends SafeToStringHook {
 final bool _installSafeToStringHook = addSafeToStringHook(_SafeToStringHook());
 
 @patch
-class JsFunction extends JsObject {
+class JsFunction {
   @patch
   factory JsFunction.withThis(Function f) {
     var jsFunc = _convertDartFunction(f, captureThis: true);
@@ -418,7 +422,7 @@ class JsArray<E> /*extends JsObject with ListMixin<E>*/ {
   }
 
   @patch
-  void sort([int compare(E a, E b)?]) {
+  void sort([int Function(E a, E b)? compare]) {
     // Note: arr.sort(null) is a type error in FF
     callMethod('sort', compare == null ? [] : [compare]);
   }
@@ -509,7 +513,7 @@ Object? _convertToJS(Object? o) {
   );
 }
 
-Object? _getJsProxy(o, String propertyName, createProxy(o)) {
+Object? _getJsProxy(o, String propertyName, Function(dynamic o) createProxy) {
   var jsProxy = _getOwnProperty(o, propertyName);
   if (jsProxy == null) {
     jsProxy = createProxy(o);
@@ -562,7 +566,11 @@ Object _wrapToDart(o) {
   );
 }
 
-Object _getDartProxy(o, String propertyName, JsObject createProxy(o)) {
+Object _getDartProxy(
+  o,
+  String propertyName,
+  JsObject Function(dynamic o) createProxy,
+) {
   var dartProxy = _getOwnProperty(o, propertyName);
   // Temporary fix for dartbug.com/15193
   // In some cases it's possible to see a JavaScript object that

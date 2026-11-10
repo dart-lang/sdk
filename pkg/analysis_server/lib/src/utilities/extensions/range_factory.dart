@@ -7,6 +7,7 @@ import 'package:analysis_server/src/utilities/index_range.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class TokenWithOptionalComma {
@@ -213,7 +214,7 @@ extension RangeFactoryExtensions on RangeFactory {
   Token _leadingComment(LineInfo lineInfo, Token token) {
     var previous = token.previous;
     if (previous == null || previous.isEof) {
-      return token.precedingComments ?? token;
+      return token.precedingCommentOrThis;
     }
     Token? comment = token.precedingComments;
     if (_areDifferentLines(lineInfo, token, previous)) {

@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertFieldFormalToNormalTest extends AssistProcessorTest {
+class ConvertFieldFormalToNormalTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertFieldFormalToNormal;
 

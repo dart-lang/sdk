@@ -117,8 +117,6 @@ const Function& CompilerState::StringBaseInterpolate() {
     return *typed_list_set_##Lower##_;                                         \
   }
 
-DEFINE_TYPED_LIST_NATIVE_FUNCTION_GETTER(Float32, float32)
-DEFINE_TYPED_LIST_NATIVE_FUNCTION_GETTER(Float64, float64)
 DEFINE_TYPED_LIST_NATIVE_FUNCTION_GETTER(Float32x4, float32x4)
 DEFINE_TYPED_LIST_NATIVE_FUNCTION_GETTER(Int32x4, int32x4)
 DEFINE_TYPED_LIST_NATIVE_FUNCTION_GETTER(Float64x2, float64x2)
@@ -141,7 +139,20 @@ DEFINE_TYPED_LIST_NATIVE_FUNCTION_GETTER(Float64x2, float64x2)
     return *Lower##_class_;                                                    \
   }
 
+DEFINE_CLASS_GETTER(Core, _Array, array_base, _Array)
+DEFINE_CLASS_GETTER(Internal, FinalizerBase, finalizer_base, FinalizerBase)
 DEFINE_CLASS_GETTER(TypedData, TypedList, typed_list, _TypedList)
+DEFINE_CLASS_GETTER(TypedData, TypedListBase, typed_list_base, _TypedListBase)
+DEFINE_CLASS_GETTER(TypedData, TypedListView, typed_list_view, _TypedListView)
+DEFINE_CLASS_GETTER(Core, StringBase, string_base, StringBase)
+DEFINE_CLASS_GETTER(CompactHash,
+                    LinkedHashBase,
+                    linked_hash_base,
+                    _LinkedHashBase)
+DEFINE_CLASS_GETTER(NativeWrappers,
+                    NativeFieldWrapperClass1,
+                    native_field_wrapper_class1,
+                    NativeFieldWrapperClass1)
 
 #undef DEFINE_CLASS_GETTER
 

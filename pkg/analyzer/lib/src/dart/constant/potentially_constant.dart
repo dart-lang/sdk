@@ -6,7 +6,11 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart'
+    show DotShorthandNameExpressionImpl, VariableBindingImpl;
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/element.dart'
+    show FieldElementImpl, PrefixElementImpl;
 import 'package:analyzer/src/dart/element/type.dart';
 
 /// Some [ConstructorElement]s can be temporary marked as "const" to check
@@ -25,6 +29,34 @@ List<AstNode> getNotPotentiallyConstants(
   return collector.nodes;
 }
 
+/// Returns the nodes in [node] that aren't potentially constant, see
+/// [getNotPotentiallyConstants], with invalid named reads set apart.
+///
+/// An invalid named read, such as an undefined name, isn't potentially
+/// constant either, but resolution has already reported it. So, it is not in
+/// `reportable`, and only the first one is returned as
+/// `firstInvalidNamedRead`, for clients that need an error even when
+/// `reportable` is empty.
+({List<AstNode> reportable, Expression? firstInvalidNamedRead})
+getReportableNotPotentiallyConstants(
+  AstNode node, {
+  required FeatureSet featureSet,
+}) {
+  var reportable = <AstNode>[];
+  Expression? firstInvalidNamedRead;
+  for (var notConstant in getNotPotentiallyConstants(
+    node,
+    featureSet: featureSet,
+  )) {
+    if (notConstant is Expression && notConstant.isInvalidNamedRead) {
+      firstInvalidNamedRead ??= notConstant;
+    } else {
+      reportable.add(notConstant);
+    }
+  }
+  return (reportable: reportable, firstInvalidNamedRead: firstInvalidNamedRead);
+}
+
 /// Return `true` if the [node] is a constant type expression.
 bool isConstantTypeExpression(TypeAnnotation node) {
   return _ConstantTypeChecker(potentially: false).check(node);
@@ -35,24 +67,11 @@ bool isPotentiallyConstantTypeExpression(TypeAnnotation node) {
   return _ConstantTypeChecker(potentially: true).check(node);
 }
 
-bool _isConstantTypeName(Identifier name) {
-  var element = name.element;
-  if (element is InterfaceElement || element is TypeAliasElement) {
-    if (name is PrefixedIdentifier) {
-      if (name.isDeferred) {
-        return false;
-      }
-    }
-    return true;
-  }
-  return false;
-}
-
 class _Collector {
   final FeatureSet featureSet;
   final List<AstNode> nodes = [];
 
-  _Collector({required this.featureSet});
+  new({required this.featureSet});
 
   void collect(AstNode node) {
     if (node is BooleanLiteral ||
@@ -71,11 +90,32 @@ class _Collector {
       return;
     }
 
-    if (node is DotShorthandPropertyAccess) {
-      return _identifier(node.propertyName);
+    if (node is DotShorthandNameExpressionImpl) {
+      switch (node.resolution) {
+        case GetterInvocationResolution(:var element)
+            when element.variable.isConst:
+        case ExecutableTearOffResolution():
+          return;
+        default:
+          nodes.add(node);
+          return;
+      }
     }
 
-    if (node is DotShorthandConstructorInvocation) {
+    if (node is ImportPrefixedNameExpression) {
+      var prefixElement = node.importPrefix.element;
+      if (prefixElement is PrefixElementImpl && prefixElement.isDeferred) {
+        nodes.add(node);
+        return;
+      }
+      return _nameExpression(node, node.resolution);
+    }
+
+    if (node is UnqualifiedNameExpression) {
+      return _nameExpression(node, node.resolution);
+    }
+
+    if (node is DotShorthandConstructorInvocation2) {
       if (!node.isConst) {
         nodes.add(node);
       }
@@ -89,10 +129,6 @@ class _Collector {
         }
       }
       return;
-    }
-
-    if (node is Identifier) {
-      return _identifier(node);
     }
 
     if (node is ConstructorInvocation) {
@@ -115,8 +151,8 @@ class _Collector {
       return _recordLiteral(node);
     }
 
-    if (node is MethodInvocation) {
-      return _methodInvocation(node);
+    if (node is NamedFunctionInvocation) {
+      return _namedFunctionInvocation(node);
     }
 
     if (node is NamedArgument) {
@@ -157,7 +193,7 @@ class _Collector {
     }
 
     if (node is UnaryOperatorInvocation) {
-      collect(node.operand as Expression);
+      collect(node.operand);
       return;
     }
 
@@ -171,10 +207,6 @@ class _Collector {
       collect(node.thenExpression2);
       collect(node.elseExpression2);
       return;
-    }
-
-    if (node is PropertyAccess) {
-      return _propertyAccess(node);
     }
 
     if (node is ReceiverPropertyExtraction) {
@@ -234,9 +266,14 @@ class _Collector {
       return;
     }
 
-    if (node is FunctionReference) {
+    if (node is FunctionInstantiation) {
       _typeArgumentList(node.typeArguments);
-      collect(node.function2);
+      collect(node.operand);
+      return;
+    }
+
+    if (node is ImplicitFunctionInstantiation) {
+      collect(node.operand);
       return;
     }
 
@@ -254,25 +291,23 @@ class _Collector {
     nodes.add(node);
   }
 
-  void _identifier(Identifier node) {
-    var element = node.element;
-
-    if (node is PrefixedIdentifier) {
-      if (node.isDeferred) {
-        nodes.add(node);
-        return;
-      }
-      if (node.identifier.name == 'length') {
-        collect(node.prefix);
-        return;
-      }
-      if (element is MethodElement && element.isStatic) {
-        if (!_isConstantTypeName(node.prefix)) {
-          nodes.add(node);
+  void _namedFunctionInvocation(NamedFunctionInvocation node) {
+    var arguments = node.argumentList.arguments2;
+    if (arguments.length == 2) {
+      if (node.resolution case ExecutableInvocationResolution(:var element)) {
+        if (element is TopLevelFunctionElement && element.isDartCoreIdentical) {
+          collect(arguments[0]);
+          collect(arguments[1]);
+          return;
         }
-        return;
       }
     }
+    // TODO(srawlins): collect type arguments.
+    nodes.add(node);
+  }
+
+  void _nameExpression(AstNode node, NamedReadResolution? resolution) {
+    var element = resolution?.elementOrRecovery;
 
     if (element is FormalParameterElement) {
       var enclosing = element.enclosingElement;
@@ -282,10 +317,10 @@ class _Collector {
           return;
         }
         var fieldElement = node
-            .thisOrAncestorOfType2<VariableDeclaration>()
+            .thisOrAncestorOfType2<VariableBindingImpl>()
             ?.declaredFragment
             ?.element;
-        if (fieldElement is FieldElement &&
+        if (fieldElement is FieldElementImpl &&
             !fieldElement.isStatic &&
             !fieldElement.isLate) {
           return;
@@ -302,77 +337,33 @@ class _Collector {
       return;
     }
     if (element is GetterElement) {
-      var variable = element.variable;
-      if (!variable.isConst) {
+      if (!element.variable.isConst) {
         nodes.add(node);
       }
       return;
     }
-    if (_isConstantTypeName(node)) {
+    if (element is TopLevelFunctionElement ||
+        element is MethodElement && element.isStatic) {
       return;
     }
-    if (element is TopLevelFunctionElement) {
-      return;
-    }
-    if (element is MethodElement && element.isStatic) {
-      return;
-    }
-    if (element is TypeParameterElement &&
-        featureSet.isEnabled(Feature.constructor_tearoffs)) {
-      return;
-    }
-    nodes.add(node);
-  }
-
-  void _methodInvocation(MethodInvocation node) {
-    var arguments = node.argumentList.arguments2;
-    if (arguments.length == 2) {
-      var element = node.methodName.element;
-      if (element is TopLevelFunctionElement && element.isDartCoreIdentical) {
-        collect(arguments[0]);
-        collect(arguments[1]);
-        return;
-      }
-    }
-    // TODO(srawlins): collect type arguments.
-    nodes.add(node);
-  }
-
-  void _propertyAccess(PropertyAccess node) {
-    // CascadeExpression is not a constant, so the target is never null.
-    var target = node.target2!;
-
-    if (node.propertyName.name == 'length') {
-      collect(target);
-      return;
-    }
-
-    if (target is PrefixedIdentifier) {
-      if (target.isDeferred) {
-        nodes.add(node);
-        return;
-      }
-
-      var element = node.propertyName.element;
-      if (element is GetterElement) {
-        var variable = element.variable;
-        if (!variable.isConst) {
-          nodes.add(node.propertyName);
-        }
-        return;
-      } else if (element is MethodElement) {
-        if (!element.isStatic) {
-          nodes.add(node.propertyName);
-        }
-        return;
-      }
-    }
-
     nodes.add(node);
   }
 
   void _receiverPropertyExtraction(ReceiverPropertyExtraction node) {
-    if (node.propertyName.lexeme == 'length') {
+    if (node.receiver case StaticQualifier(:var importPrefix)) {
+      if (importPrefix?.element case PrefixElementImpl(isDeferred: true)) {
+        nodes.add(node);
+        return;
+      }
+      switch (node.resolution?.element) {
+        case GetterElement(variable: VariableElement(isConst: true)):
+        case MethodElement(isStatic: true):
+          return;
+      }
+      nodes.add(node);
+      return;
+    }
+    if (node.name.lexeme == 'length') {
       collect(node.receiver);
       return;
     }
@@ -453,7 +444,7 @@ class _Collector {
 class _ConstantTypeChecker {
   final bool potentially;
 
-  _ConstantTypeChecker({required this.potentially});
+  new({required this.potentially});
 
   /// Returns whether the [node] is a (potentially) constant type expression.
   bool check(TypeAnnotation? node) {
@@ -491,7 +482,7 @@ class _ConstantTypeChecker {
       }
     }
 
-    var formalParameters = node.parameters.parameters;
+    var formalParameters = node.parameters.allFormalParameters;
     for (var formalParameter in formalParameters) {
       if (formalParameter is RegularFormalParameter &&
           formalParameter.functionTypedSuffix == null) {

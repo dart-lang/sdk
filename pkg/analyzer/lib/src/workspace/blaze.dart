@@ -27,7 +27,7 @@ import 'package:pub_semver/pub_semver.dart';
 class BlazeFileUriResolver extends ResourceUriResolver {
   final BlazeWorkspace workspace;
 
-  BlazeFileUriResolver(this.workspace) : super(workspace.provider);
+  new(this.workspace) : super(workspace.provider);
 
   @override
   Uri pathToUri(String path) {
@@ -64,7 +64,7 @@ class BlazePackageUriResolver extends UriResolver {
   /// The cache of absolute [Uri]s to [Source]s mappings.
   final Map<Uri, Source?> _sourceCache = HashMap();
 
-  BlazePackageUriResolver(BlazeWorkspace workspace)
+  new(BlazeWorkspace workspace)
     : _workspace = workspace,
       _context = workspace.provider.pathContext;
 
@@ -226,15 +226,14 @@ class BlazeWorkspace extends Workspace
 
   final _blazeCandidateFiles = StreamController<BlazeSearchInfo>.broadcast();
 
-  BlazeWorkspace._(
+  new _(
     this.provider,
     this.root,
     this.binPaths,
     this.genfiles, {
-    required bool lookForBuildFileSubstitutes,
+    required this._lookForBuildFileSubstitutes,
     required bool provideLanguageVersion,
-  }) : _lookForBuildFileSubstitutes = lookForBuildFileSubstitutes,
-       _provideLanguageVersion = provideLanguageVersion,
+  }) : _provideLanguageVersion = provideLanguageVersion,
        _languageVersion = provideLanguageVersion
            ? _readLanguageVersion(provider, root)
            : null;
@@ -605,7 +604,7 @@ class BlazeWorkspacePackage extends WorkspacePackageImpl {
   List<String>? _enabledExperiments;
   Version? _languageVersion;
 
-  BlazeWorkspacePackage(String packageName, this.root, this.workspace)
+  new(String packageName, this.root, this.workspace)
     : _uriPrefix = 'package:$packageName/';
 
   @override

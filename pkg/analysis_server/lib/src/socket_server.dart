@@ -89,10 +89,12 @@ class SocketServer implements AbstractSocketServer {
         'Server already started',
       );
       serverChannel.sendResponse(Response('', error: error));
-      serverChannel.requests.listen((RequestOrResponse requestOrResponse) {
-        serverChannel.sendResponse(
-          Response(requestOrResponse.id, error: error),
-        );
+      serverChannel.requests.listen((ClientMessage message) {
+        // A notification has no id and expects no response, so there is
+        // nothing to report the error against.
+        if (message is RequestOrResponse) {
+          serverChannel.sendResponse(Response(message.id, error: error));
+        }
       });
       return;
     }

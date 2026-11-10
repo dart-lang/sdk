@@ -13,7 +13,6 @@ import 'package:analysis_server/src/lsp/constants.dart' as lsp;
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/dartdoc.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart' as lsp;
 import 'package:analysis_server/src/lsp/snippets.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analysis_server/src/protocol_server.dart'
@@ -1020,7 +1019,7 @@ lsp.SnippetTextEdit snippetTextEditWithSelection(
 }
 
 lsp.CompletionItem snippetToCompletionItem(
-  lsp.LspAnalysisServer server,
+  AnalysisServer server,
   LspClientCapabilities capabilities,
   String file,
   LineInfo lineInfo,

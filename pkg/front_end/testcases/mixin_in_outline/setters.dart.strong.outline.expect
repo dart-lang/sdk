@@ -1,0 +1,72 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    ;
+  set instanceSetter(core::int value) → void
+    ;
+  static set staticSetter(core::int value) → void
+    ;
+}
+mixin class MixinClass extends core::Object {
+  synthetic constructor •() → self::MixinClass
+    ;
+  set instanceSetter(core::int value) → void {
+    core::print("instanceSetter");
+  }
+  static set staticSetter(core::int value) → void
+    ;
+}
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
+  set instanceSetter(core::int value) → void {
+    core::print("instanceSetter");
+  }
+  static set staticSetter(core::int value) → void
+    ;
+}
+class Enum extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::Enum a = const self::Enum::•(0, "a");
+  static const field core::List<self::Enum> values = const <self::Enum>[self::Enum::a];
+  const synthetic constructor •(core::int #index, core::String #name) → self::Enum
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "Enum.${this.{core::_Enum::_name}{core::String}}";
+  set instanceSetter(core::int value) → void
+    ;
+  static set staticSetter(core::int value) → void
+    ;
+}
+extension Extension on core::int {
+  set instanceSetter = self::Extension|set#instanceSetter;
+  static set staticSetter = set self::Extension|staticSetter;
+}
+extension type ExtensionType(core::int it) {
+  abstract extension-type-member representation-field get it() → core::int;
+  set instanceSetter = self::ExtensionType|set#instanceSetter;
+  static set staticSetter = set self::ExtensionType|staticSetter;
+  constructor • = self::ExtensionType|constructor#;
+  constructor tearoff • = self::ExtensionType|constructor#_#new#tearOff;
+}
+static set topLevelSetter(core::int value) → void
+  ;
+static extension-member method Extension|set#instanceSetter(lowered final core::int #this, core::int value) → void
+  ;
+static extension-member set Extension|staticSetter(core::int value) → void
+  ;
+static extension-type-member method ExtensionType|constructor#(initializing-formal core::int it) → self::ExtensionType% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ExtensionType|constructor#_#new#tearOff(core::int it) → self::ExtensionType% /* erasure=core::int, declared=! */
+  return self::ExtensionType|constructor#(it);
+static extension-type-member method ExtensionType|set#instanceSetter(lowered final self::ExtensionType% /* erasure=core::int, declared=! */ #this, core::int value) → void
+  ;
+static extension-type-member set ExtensionType|staticSetter(core::int value) → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///setters.dart:40:3 -> InstanceConstant(const Enum{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///setters.dart:39:6 -> ListConstant(const <Enum>[const Enum{_Enum.index: 0, _Enum._name: "a"}])
+Extra constant evaluation: evaluated: 11, effectively constant: 2

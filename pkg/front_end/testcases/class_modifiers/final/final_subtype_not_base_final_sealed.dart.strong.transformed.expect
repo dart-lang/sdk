@@ -5,37 +5,37 @@ library;
 // pkg/front_end/testcases/class_modifiers/final/final_subtype_not_base_final_sealed.dart:13:7: Error: The type 'Extends' must be 'base', 'final' or 'sealed' because the supertype 'FinalClass' is 'final'.
 // Try adding 'base', 'final', or 'sealed' to the type.
 // class Extends extends FinalClass {} /* Error */
-//       ^
+//       ^^^^^^^
 //
 // pkg/front_end/testcases/class_modifiers/final/final_subtype_not_base_final_sealed.dart:15:7: Error: The type 'Implements' must be 'base', 'final' or 'sealed' because the supertype 'FinalClass' is 'final'.
 // Try adding 'base', 'final', or 'sealed' to the type.
 // class Implements implements FinalClass {} /* Error */
-//       ^
+//       ^^^^^^^^^^
 //
 // pkg/front_end/testcases/class_modifiers/final/final_subtype_not_base_final_sealed.dart:17:7: Error: The mixin 'MixinImplements' must be 'base' because the supertype 'FinalClass' is 'final'.
 // Try adding 'base' to the mixin.
 // mixin MixinImplements implements FinalClass {} /* Error */
-//       ^
+//       ^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/class_modifiers/final/final_subtype_not_base_final_sealed.dart:19:7: Error: The mixin 'MixinImplementsIndirect' must be 'base' because the supertype 'FinalClass' is 'final'.
 // Try adding 'base' to the mixin.
 // mixin MixinImplementsIndirect implements SubtypeOfFinal {} /* Error */
-//       ^
+//       ^^^^^^^^^^^^^^^^^^^^^^^
 //
 // pkg/front_end/testcases/class_modifiers/final/final_subtype_not_base_final_sealed.dart:21:7: Error: The mixin 'On' must be 'base' because the supertype 'FinalClass' is 'final'.
 // Try adding 'base' to the mixin.
 // mixin On on FinalClass {} /* Error */
-//       ^
+//       ^^
 //
 // pkg/front_end/testcases/class_modifiers/final/final_subtype_not_base_final_sealed.dart:26:7: Error: The type 'Multiple' must be 'base', 'final' or 'sealed' because the supertype 'FinalClass' is 'final'.
 // Try adding 'base', 'final', or 'sealed' to the type.
 // class Multiple extends RegularClass implements FinalClass {} /* Error */
-//       ^
+//       ^^^^^^^^
 //
 // pkg/front_end/testcases/class_modifiers/final/final_subtype_not_base_final_sealed.dart:28:7: Error: The type 'IndirectSubtype' must be 'base', 'final' or 'sealed' because the supertype 'FinalClass' is 'final'.
 // Try adding 'base', 'final', or 'sealed' to the type.
 // class IndirectSubtype extends SubtypeOfFinal {} /* Error */
-//       ^
+//       ^^^^^^^^^^^^^^^
 //
 import self as self;
 import "dart:core" as core;

@@ -195,6 +195,19 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
       return _noLocalVariableStatus();
     }
 
+    // Only a variable declared with an initializer in a declaration statement
+    // can be inlined (not, for example, a for-in loop or pattern variable).
+    var nameOffset = element.firstFragment.nameOffset;
+    if (nameOffset == null) {
+      return _noLocalVariableStatus();
+    }
+    var declaration = resolveResult.unit.nodeCovering(offset: nameOffset);
+    if (declaration is! VariableDeclaration ||
+        declaration.initializer == null ||
+        _declarationStatement(declaration) == null) {
+      return _noLocalVariableStatus();
+    }
+
     return RefactoringStatus();
   }
 

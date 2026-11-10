@@ -51,7 +51,7 @@ void f<T>(T a, T b) {
 }
 ''');
 
-    assertType(result.findNode.simple('o; // ref'), 'T');
+    assertType(result.findNode.unqualifiedNameExpression('o; // ref'), 'T');
   }
 
   test_element_block() async {
@@ -144,9 +144,15 @@ void f(bool c) {
 }
 ''');
 
-    var node = result.findNode.simple('a; // ref');
+    var node = result.findNode.unqualifiedNameExpression('a; // ref');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: a
+  resolution: VariableReadResolution
+    element: a@71
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: a
   element: a@71
   staticType: int
@@ -161,7 +167,7 @@ f() {
 // [diag.deadCode] Dead code.
   _();
 //^
-// [diag.undefinedFunction] The function '_' isn't defined.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name '_'.
 }
 ''');
   }
@@ -176,12 +182,28 @@ f() {
 }
 ''');
 
-    var node = result.findNode.simple('_();');
+    var node = result.findNode.unqualifiedFunctionInvocation('_();');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
-  token: _
-  element: _@24
-  staticType: Null Function()
+UnqualifiedFunctionInvocation
+  name: _
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: _@24
+    invokeType: Null Function()
+    type: Null
+  staticType: Null
+V1: MethodInvocation
+  methodName: SimpleIdentifier
+    token: _
+    element: _@24
+    staticType: Null Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: Null Function()
+  staticType: Null
 ''');
   }
 
@@ -196,9 +218,15 @@ class C {
 }
 ''');
 
-    var node = result.findNode.simple('_;');
+    var node = result.findNode.unqualifiedNameExpression('_;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: _
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::_
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: _
   element: <testLibrary>::@class::C::@getter::_
   staticType: int
@@ -215,9 +243,15 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.simple('_;');
+    var node = result.findNode.unqualifiedNameExpression('_;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: _
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::_
+    type: int
+  staticType: int
+V1: SimpleIdentifier
   token: _
   element: <testLibrary>::@getter::_
   staticType: int

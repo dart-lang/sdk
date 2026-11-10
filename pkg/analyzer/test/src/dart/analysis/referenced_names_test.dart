@@ -35,6 +35,26 @@ void f() {
     expect(names, unorderedEquals(['foo', 'void']));
   }
 
+  test_cascadeName_lexicalShadowing() {
+    var names = _computeReferencedNames('''
+f(A a, m, p) {
+  a..m(m)..p;
+}
+''');
+    expect(names, unorderedEquals(['A', 'm', 'p']));
+  }
+
+  test_cascadePropertyAssignmentTarget() {
+    var names = _computeReferencedNames('''
+f(A a) {
+  a..foo = 0;
+  a..bar += 1;
+  a..baz ??= 2;
+}
+''');
+    expect(names, unorderedEquals(['A', 'foo', 'bar', '+', 'baz']));
+  }
+
   test_class_constructor() {
     var names = _computeReferencedNames('''
 class U {
@@ -245,6 +265,18 @@ class U<T> {
     expect(names, unorderedEquals(['A']));
   }
 
+  test_combinatorName() {
+    var names = _computeReferencedNames('''
+import 'a.dart' show A hide B;
+//                     ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
+export 'b.dart' show C hide D;
+//                     ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
+''');
+    expect(names, unorderedEquals(['A', 'B', 'C', 'D']));
+  }
+
   test_extensionType_typeParameters() {
     var names = _computeReferencedNames('''
 extension type Z<T>(int it) {
@@ -296,6 +328,26 @@ f(A a) {
     expect(names, unorderedEquals(['A', 'B']));
   }
 
+  test_operator_binary() {
+    var names = _computeReferencedNames('''
+f(A a, A b) {
+  a + b;
+  a < b;
+  a >>> b;
+}
+''');
+    expect(names, unorderedEquals(['A', '+', '<', '>>>']));
+  }
+
+  test_operator_binary_equality() {
+    var names = _computeReferencedNames('''
+f(A a, A b) {
+  a != b;
+}
+''');
+    expect(names, unorderedEquals(['A', '==']));
+  }
+
   test_operator_compoundAssignment_property() {
     var names = _computeReferencedNames('''
 f(A a) {
@@ -328,6 +380,91 @@ f(A a) {
 }
 ''');
     expect(names, unorderedEquals(['A', '+', '-', 'foo']));
+  }
+
+  test_operator_index_assignmentTarget() {
+    var names = _computeReferencedNames('''
+f(A a) {
+  a[0] = 1;
+}
+''');
+    expect(names, unorderedEquals(['A', '[]=']));
+  }
+
+  test_operator_index_assignmentTarget_cascade() {
+    var names = _computeReferencedNames('''
+f(A a) {
+  a..[0] = 1;
+}
+''');
+    expect(names, unorderedEquals(['A', '[]=']));
+  }
+
+  test_operator_index_assignmentTarget_cascade_hasRead() {
+    var names = _computeReferencedNames('''
+f(A a) {
+  a..[0] ??= 1;
+}
+''');
+    expect(names, unorderedEquals(['A', '[]', '[]=']));
+  }
+
+  test_operator_index_assignmentTarget_hasRead() {
+    var names = _computeReferencedNames('''
+f(A a) {
+  a[0] += 1;
+  a[1]++;
+}
+''');
+    expect(names, unorderedEquals(['A', '+', '[]', '[]=']));
+  }
+
+  test_operator_index_read() {
+    var names = _computeReferencedNames('''
+f(A a) {
+  a[0];
+}
+''');
+    expect(names, unorderedEquals(['A', '[]']));
+  }
+
+  test_operator_index_read_cascade() {
+    var names = _computeReferencedNames('''
+f(A a) {
+  a..[0];
+}
+''');
+    expect(names, unorderedEquals(['A', '[]']));
+  }
+
+  test_operator_relationalPattern() {
+    var names = _computeReferencedNames('''
+f(A a) {
+  if (a case < 0) {}
+  if (a case >= 0) {}
+  if (a case == 0) {}
+}
+''');
+    expect(names, unorderedEquals(['A', '<', '>=', '==']));
+  }
+
+  test_operator_relationalPattern_equality() {
+    var names = _computeReferencedNames('''
+f(A a) {
+  if (a case != 0) {}
+}
+''');
+    expect(names, unorderedEquals(['A', '==']));
+  }
+
+  test_operator_unary() {
+    var names = _computeReferencedNames('''
+f(A a) {
+  -a;
+  ~a;
+}
+''');
+    expect(names, unorderedEquals(['A', '-', '~']));
   }
 
   test_patternField_objectPattern_explicitName() {
@@ -427,6 +564,15 @@ A f(B b) {
 /**
  * Documentation [C.d] reference.
  */
+A f(B b) {}
+''');
+    expect(names, unorderedEquals(['A', 'B', 'C', 'd']));
+  }
+
+  test_unit_function_doc_prefixed() {
+    var names = _computeReferencedNames('''
+import 'a.dart' as p;
+/// [p.C.d]
 A f(B b) {}
 ''');
     expect(names, unorderedEquals(['A', 'B', 'C', 'd']));
@@ -574,6 +720,15 @@ A get aaa {
     expect(names, unorderedEquals(['A', 'B']));
   }
 
+  test_unit_getter_recoveryFormalParameters() {
+    var names = _computeReferencedNames('''
+A get aaa(B b) => b;
+//       ^
+// [diag.getterWithParameters] Getters must be declared without a parameter list.
+''');
+    expect(names, unorderedEquals(['A', 'B']));
+  }
+
   test_unit_setter() {
     var names = _computeReferencedNames('''
 set aaa(A a) {
@@ -581,6 +736,15 @@ set aaa(A a) {
 }
 ''');
     expect(names, unorderedEquals(['A', 'B']));
+  }
+
+  test_unit_setter_parameter() {
+    var names = _computeReferencedNames('''
+set aaa(A a) {
+  a;
+}
+''');
+    expect(names, unorderedEquals(['A']));
   }
 
   test_unit_topLevelDeclarations() {

@@ -10,8 +10,11 @@ import 'builder.dart';
 /// The interface for building data segments in a module.
 class DataSegmentsBuilder with Builder<ir.DataSegments> {
   final _dataSegmentBuilders = <DataSegmentBuilder>[];
+  final _definedDataSegments = <ir.DataSegment>[];
 
   static const int memoryBlockSize = 0x10000;
+
+  List<ir.DataSegment> get defined => _definedDataSegments;
 
   /// Defines a new data segment in this module.
   ///
@@ -34,17 +37,22 @@ class DataSegmentsBuilder with Builder<ir.DataSegments> {
               offset + initialContent.length <=
                   memory.minSize * memoryBlockSize,
     );
-    final builder = DataSegmentBuilder(
-      _dataSegmentBuilders.length,
-      initialContent,
+    final dataSegment = ir.DataSegment.withoutContent(
+      _definedDataSegments.length,
       memory,
       offset,
     );
+    _definedDataSegments.add(dataSegment);
+    final builder = DataSegmentBuilder(dataSegment, initialContent);
     _dataSegmentBuilders.add(builder);
     return builder;
   }
 
   @override
-  ir.DataSegments forceBuild() =>
-      ir.DataSegments(_dataSegmentBuilders.map((b) => b.build()).toList());
+  ir.DataSegments forceBuild() {
+    for (final b in _dataSegmentBuilders) {
+      b.build();
+    }
+    return ir.DataSegments(_definedDataSegments);
+  }
 }

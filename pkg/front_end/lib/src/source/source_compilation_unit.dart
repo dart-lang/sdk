@@ -345,6 +345,9 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   }
 
   @override
+  ProblemReporting get problemReporting => _problemReporting;
+
+  @override
   LibraryFeatures get libraryFeatures =>
       _libraryFeatures ??= new LibraryFeatures(
         loader.target.globalFeatures,
@@ -379,11 +382,11 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     return _libraryBuilder!;
   }
 
-  List<CompilationUnit>? _augmentations;
+  List<CompilationUnit>? _patches;
 
   @override
-  void registerAugmentation(CompilationUnit augmentation) {
-    (_augmentations ??= []).add(augmentation);
+  void registerPatch(CompilationUnit patch) {
+    (_patches ??= []).add(patch);
   }
 
   @override
@@ -396,29 +399,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     int charOffset,
   ) {
     exporters.add(new Export(exporter, this, combinators, charOffset));
-  }
-
-  @override
-  void addProblem(
-    Message message,
-    int charOffset,
-    int length,
-    Uri? fileUri, {
-    bool wasHandled = false,
-    List<LocatedMessage>? context,
-    CfeSeverity? severity,
-    bool problemOnLibrary = false,
-  }) {
-    _problemReporting.addProblem(
-      message,
-      charOffset,
-      length,
-      fileUri,
-      wasHandled: wasHandled,
-      context: context,
-      severity: severity,
-      problemOnLibrary: problemOnLibrary,
-    );
   }
 
   @override
@@ -436,11 +416,11 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         // Coverage-ignore-block(suite): Not run.
         // This is the entry point library, and nobody access it directly. So
         // we need to report a problem.
-        loader.addProblem(message, -1, 1, null);
+        loader.addComponentProblem(message, -1, 1, null);
       }
       for (int i = 0; i < accessors.length; i++) {
         LibraryAccess access = accessors[i];
-        access.accessor.addProblem(
+        access.accessor.problemReporting.addProblem(
           message,
           access.charOffset,
           access.length,
@@ -545,7 +525,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   ) {
     if (_postponedProblemsIssued) {
       // Coverage-ignore-block(suite): Not run.
-      addProblem(message, charOffset, length, fileUri);
+      _problemReporting.addProblem(message, charOffset, length, fileUri);
     } else {
       _postponedProblems ??= <PostponedProblem>[];
       _postponedProblems!.add(
@@ -560,7 +540,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     if (_postponedProblems == null) return;
     for (int i = 0; i < _postponedProblems!.length; ++i) {
       PostponedProblem postponedProblem = _postponedProblems![i];
-      addProblem(
+      _problemReporting.addProblem(
         postponedProblem.message,
         postponedProblem.charOffset,
         postponedProblem.length,
@@ -602,7 +582,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     accessors.add(new LibraryAccess(accessor, fileUri, charOffset, length));
     if (accessProblem != null) {
       // Coverage-ignore-block(suite): Not run.
-      addProblem(accessProblem!, charOffset, length, fileUri);
+      _problemReporting.addProblem(accessProblem!, charOffset, length, fileUri);
     }
   }
 
@@ -678,7 +658,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     _problemReporting.registerLibrary(libraryBuilder.library);
     if (isPart) {
       // This is a part with no enclosing library.
-      addProblem(diag.partOrphan, 0, 1, fileUri);
+      _problemReporting.addProblem(diag.partOrphan, 0, 1, fileUri);
       _compilationUnitData.parts.clear();
       _reportExporters();
     }
@@ -690,9 +670,9 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
 
   void _addNativeDependency(Library library, String nativeImportPath) {
     MemberBuilder constructor = loader.getNativeAnnotation();
-    Arguments arguments = new Arguments(<Expression>[
-      new StringLiteral(nativeImportPath),
-    ]);
+    Arguments arguments = new Arguments(
+      new ExpressionList(new StringLiteral(nativeImportPath)),
+    );
     Expression annotation;
     if (constructor is ConstructorBuilder) {
       annotation = new ConstructorInvocation(
@@ -823,6 +803,64 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     );
   }
 
+  void _tryIncludePart({
+    required SourceLibraryBuilder libraryBuilder,
+    required LibraryNameSpaceBuilder libraryNameSpaceBuilder,
+    required List<SourceCompilationUnit> includedParts,
+    required Set<Uri> usedParts,
+    required Set<Uri> seenParts,
+    required Uri partFileUri,
+    required int partFileOffset,
+    required CompilationUnit compilationUnit,
+    required bool forPatch,
+  }) {
+    if (compilationUnit == this) {
+      _problemReporting.addProblem(
+        diag.partOfSelf,
+        partFileOffset,
+        noLength,
+        partFileUri,
+      );
+    } else if (seenParts.add(compilationUnit.fileUri)) {
+      if (compilationUnit.partOfLibrary != null) {
+        _problemReporting.addProblem(
+          diag.partOfTwoLibraries.withArguments(uri: compilationUnit.fileUri),
+          partFileOffset,
+          noLength,
+          partFileUri,
+          context: [
+            diag.partOfTwoLibrariesContext.withLocation(
+              compilationUnit.partOfLibrary!.fileUri,
+              -1,
+              noLength,
+            ),
+            diag.partOfTwoLibrariesContext.withLocation(fileUri, -1, noLength),
+          ],
+        );
+      } else {
+        usedParts.add(compilationUnit.importUri);
+        _includePartIfValid(
+          libraryBuilder: libraryBuilder,
+          libraryNameSpaceBuilder: libraryNameSpaceBuilder,
+          parentCompilationUnit: this,
+          includedParts: includedParts,
+          part: compilationUnit,
+          usedParts: usedParts,
+          partOffset: partFileOffset,
+          partUri: fileUri,
+          forPatch: forPatch,
+        );
+      }
+    } else {
+      _problemReporting.addProblem(
+        diag.partTwice.withArguments(uri: compilationUnit.fileUri),
+        partFileOffset,
+        noLength,
+        partFileUri,
+      );
+    }
+  }
+
   void _includeParts({
     required SourceLibraryBuilder libraryBuilder,
     required LibraryNameSpaceBuilder libraryNameSpaceBuilder,
@@ -831,70 +869,31 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   }) {
     Set<Uri> seenParts = new Set<Uri>();
     for (Part part in _compilationUnitData.parts) {
-      if (part.compilationUnit == this) {
-        addProblem(diag.partOfSelf, part.fileOffset, noLength, part.fileUri);
-      } else if (seenParts.add(part.compilationUnit.fileUri)) {
-        if (part.compilationUnit.partOfLibrary != null) {
-          addProblem(
-            diag.partOfTwoLibraries,
-            part.fileOffset,
-            noLength,
-            part.fileUri,
-            context: [
-              diag.partOfTwoLibrariesContext.withLocation(
-                part.compilationUnit.partOfLibrary!.fileUri,
-                -1,
-                noLength,
-              ),
-              diag.partOfTwoLibrariesContext.withLocation(
-                fileUri,
-                -1,
-                noLength,
-              ),
-            ],
-          );
-        } else {
-          usedParts.add(part.compilationUnit.importUri);
-          _includePartIfValid(
-            libraryBuilder: libraryBuilder,
-            libraryNameSpaceBuilder: libraryNameSpaceBuilder,
-            parentCompilationUnit: this,
-            includedParts: includedParts,
-            part: part.compilationUnit,
-            usedParts: usedParts,
-            partOffset: part.fileOffset,
-            partUri: fileUri,
-          );
-        }
-      } else {
-        addProblem(
-          diag.partTwice.withArguments(uri: part.compilationUnit.fileUri),
-          part.fileOffset,
-          noLength,
-          part.fileUri,
-        );
-      }
+      _tryIncludePart(
+        libraryBuilder: libraryBuilder,
+        libraryNameSpaceBuilder: libraryNameSpaceBuilder,
+        includedParts: includedParts,
+        usedParts: usedParts,
+        seenParts: seenParts,
+        partFileUri: part.fileUri,
+        partFileOffset: part.fileOffset,
+        compilationUnit: part.compilationUnit,
+        forPatch: false,
+      );
     }
-    if (_augmentations != null) {
-      for (CompilationUnit augmentation in _augmentations!) {
-        switch (augmentation) {
-          case SourceCompilationUnit():
-            _includePart(
-              libraryBuilder,
-              libraryNameSpaceBuilder,
-              this,
-              includedParts,
-              augmentation,
-              usedParts,
-              partOffset: -1,
-              partUri: augmentation.fileUri,
-              allowPartInParts: true,
-            );
-          // Coverage-ignore(suite): Not run.
-          case DillCompilationUnit():
-            // TODO(johnniwinther): Report an error here.
-            throw new UnsupportedError("Unexpected augmentation $augmentation");
-        }
+    if (_patches != null) {
+      for (CompilationUnit augmentation in _patches!) {
+        _tryIncludePart(
+          libraryBuilder: libraryBuilder,
+          libraryNameSpaceBuilder: libraryNameSpaceBuilder,
+          includedParts: includedParts,
+          usedParts: usedParts,
+          seenParts: seenParts,
+          partFileUri: fileUri,
+          partFileOffset: TreeNode.noOffset,
+          compilationUnit: augmentation,
+          forPatch: true,
+        );
       }
     }
   }
@@ -908,37 +907,23 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     required Set<Uri> usedParts,
     required Uri partUri,
     required int partOffset,
+    required bool forPatch,
   }) {
     switch (part) {
       case SourceCompilationUnit():
-        PartOf? partOf = part.partOfDirective;
-        if (partOf != null) {
-          Uri? partOfUri = partOf.parentUri;
-          if (partOfUri != null) {
-            if (isNotMalformedUriScheme(partOfUri) &&
-                partOfUri != parentCompilationUnit.importUri) {
-              parentCompilationUnit.addProblem(
-                diag.partOfUriMismatch.withArguments(
-                  partUri: part.fileUri,
-                  libraryUri: parentCompilationUnit.importUri,
-                  partOfUri: partOfUri,
-                ),
-                partOffset,
-                noLength,
-                parentCompilationUnit.fileUri,
-              );
-              return;
-            }
-          } else {
-            String partOfName = partOf.name!;
-            String? libraryName = parentCompilationUnit.libraryDirective?.name;
-            if (libraryName != null) {
-              if (partOfName != libraryName) {
-                parentCompilationUnit.addProblem(
-                  diag.partOfLibraryNameMismatch.withArguments(
-                    uri: part.fileUri,
-                    libraryName: libraryName,
-                    partOfName: partOfName,
+        // TODO(johnniwinther): Add part of directives to patch parts.
+        if (!forPatch) {
+          PartOf? partOf = part.partOfDirective;
+          if (partOf != null) {
+            Uri? partOfUri = partOf.parentUri;
+            if (partOfUri != null) {
+              if (isNotMalformedUriScheme(partOfUri) &&
+                  partOfUri != parentCompilationUnit.importUri) {
+                parentCompilationUnit.problemReporting.addProblem(
+                  diag.partOfUriMismatch.withArguments(
+                    partUri: part.fileUri,
+                    libraryUri: parentCompilationUnit.importUri,
+                    partOfUri: partOfUri,
                   ),
                   partOffset,
                   noLength,
@@ -947,39 +932,58 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
                 return;
               }
             } else {
-              parentCompilationUnit.addProblem(
-                diag.partOfUseUri.withArguments(
-                  partFileUri: part.fileUri,
-                  libraryUri: parentCompilationUnit.fileUri,
-                  partOfName: partOfName,
-                ),
+              String partOfName = partOf.name!;
+              String? libraryName =
+                  parentCompilationUnit.libraryDirective?.name;
+              if (libraryName != null) {
+                if (partOfName != libraryName) {
+                  parentCompilationUnit.problemReporting.addProblem(
+                    diag.partOfLibraryNameMismatch.withArguments(
+                      uri: part.fileUri,
+                      libraryName: libraryName,
+                      partOfName: partOfName,
+                    ),
+                    partOffset,
+                    noLength,
+                    parentCompilationUnit.fileUri,
+                  );
+                  return;
+                }
+              } else {
+                parentCompilationUnit.problemReporting.addProblem(
+                  diag.partOfUseUri.withArguments(
+                    partFileUri: part.fileUri,
+                    libraryUri: parentCompilationUnit.fileUri,
+                    partOfName: partOfName,
+                  ),
+                  partOffset,
+                  noLength,
+                  parentCompilationUnit.fileUri,
+                );
+                return;
+              }
+            }
+            LibraryDirective? libraryDirective = part.libraryDirective;
+            if (libraryDirective != null) {
+              part.problemReporting.addProblem(
+                diag.partWithLibraryDirective,
+                libraryDirective.fileOffset,
+                noLength,
+                libraryDirective.fileUri,
+              );
+            }
+          } else {
+            assert(!part.isPart);
+            if (isNotMalformedUriScheme(part.fileUri)) {
+              parentCompilationUnit.problemReporting.addProblem(
+                diag.missingPartOf.withArguments(uri: part.fileUri),
                 partOffset,
                 noLength,
                 parentCompilationUnit.fileUri,
               );
-              return;
             }
+            return;
           }
-          LibraryDirective? libraryDirective = part.libraryDirective;
-          if (libraryDirective != null) {
-            part.addProblem(
-              diag.partWithLibraryDirective,
-              libraryDirective.fileOffset,
-              noLength,
-              libraryDirective.fileUri,
-            );
-          }
-        } else {
-          assert(!part.isPart);
-          if (isNotMalformedUriScheme(part.fileUri)) {
-            parentCompilationUnit.addProblem(
-              diag.missingPartOf.withArguments(uri: part.fileUri),
-              partOffset,
-              noLength,
-              parentCompilationUnit.fileUri,
-            );
-          }
-          return;
         }
         _includePart(
           libraryBuilder,
@@ -991,6 +995,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           partOffset: partOffset,
           partUri: partUri,
           allowPartInParts:
+              forPatch ||
               parentCompilationUnit.libraryFeatures.enhancedParts.isEnabled,
         );
       case DillCompilationUnit():
@@ -1002,7 +1007,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         // declaration (i.e. as it was a SourceLibraryBuilder without a
         // "part of" declaration).
         if (isNotMalformedUriScheme(part.fileUri)) {
-          parentCompilationUnit.addProblem(
+          parentCompilationUnit.problemReporting.addProblem(
             diag.missingPartOf.withArguments(uri: part.fileUri),
             partOffset,
             noLength,
@@ -1056,7 +1061,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
             ),
           );
         }
-        parentCompilationUnit.addProblem(
+        parentCompilationUnit.problemReporting.addProblem(
           diag.languageVersionMismatchInPatch,
           partOffset,
           noLength,
@@ -1073,7 +1078,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
             ),
           );
         }
-        parentCompilationUnit.addProblem(
+        parentCompilationUnit.problemReporting.addProblem(
           diag.languageVersionMismatchInPart,
           partOffset,
           noLength,
@@ -1130,7 +1135,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         diag.partExportContext.withLocation(fileUri, -1, 1),
       ];
       for (Export export in exporters) {
-        export.exporter.addProblem(
+        export.exporter.problemReporting.addProblem(
           diag.partExport,
           export.charOffset,
           "export".length,
@@ -1168,7 +1173,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           ),
         ];
         for (Part part in _compilationUnitData.parts) {
-          addProblem(
+          _problemReporting.addProblem(
             diag.partInPart,
             part.fileOffset,
             noLength,
@@ -1239,12 +1244,12 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       importer: this,
       importedCompilationUnit: compilationUnit,
       deferred: deferred,
-      prefix: prefix,
       combinators: combinators,
       configurations: null,
-      fileUri: fileUri,
-      importOffset: -1,
-      prefixOffset: -1,
+      importUriOffset: new UriOffset(fileUri, TreeNode.noOffset),
+      prefixUriOffsetName: prefix != null
+          ? new SyntheticUriOffsetName(fileUri, prefix)
+          : null,
       nativeImportPath: null,
     );
     _compilationUnitData.registerImport(import);
@@ -1260,7 +1265,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
         !forPatchLibrary;
     for (Import import in _compilationUnitData.imports) {
       if (import.importedCompilationUnit?.isPart ?? false) {
-        addProblem(
+        _problemReporting.addProblem(
           diag.partOfInLibrary.withArguments(
             uri: import.importedCompilationUnit!.fileUri,
           ),
@@ -1456,7 +1461,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           featureName: feature.flag.name,
           enabledVersion: enabledVersionText,
         );
-        addProblem(
+        _problemReporting.addProblem(
           message,
           charOffset,
           length,
@@ -1476,7 +1481,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           featureName: feature.flag.name,
           enabledVersion: enabledVersionText,
         );
-        addProblem(message, charOffset, length, fileUri);
+        _problemReporting.addProblem(message, charOffset, length, fileUri);
       }
     } else {
       if (feature.flag.isEnabledByDefault) {
@@ -1486,18 +1491,18 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
             featureName: feature.flag.name,
             requiredLanguageVersion: feature.enabledVersion.toText(),
           );
-          addProblem(message, charOffset, length, fileUri);
+          _problemReporting.addProblem(message, charOffset, length, fileUri);
         } else {
           message = diag.experimentDisabled.withArguments(
             featureName: feature.flag.name,
           );
-          addProblem(message, charOffset, length, fileUri);
+          _problemReporting.addProblem(message, charOffset, length, fileUri);
         }
       } else {
         message = diag.experimentNotEnabledOffByDefault.withArguments(
           featureName: feature.flag.name,
         );
-        addProblem(message, charOffset, length, fileUri);
+        _problemReporting.addProblem(message, charOffset, length, fileUri);
       }
     }
     return message;

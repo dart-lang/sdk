@@ -248,18 +248,14 @@ class AstPrinter {
       case NamedParameter(parameterName: var name):
       case PositionalParameter(parameterName: var name):
       case TypeVariable(cosmeticName: var name?):
-      case LocalVariable(cosmeticName: var name?):
-      case LateVariable(cosmeticName: var name?):
-      case ConstVariable(cosmeticName: var name?):
-      case LocalFunctionVariable(cosmeticName: var name?):
+      case LocalVariable(name: var name):
+      case LateVariable(name: var name):
+      case ConstVariable(name: var name):
+      case LocalFunctionVariable(name: var name):
         return name;
       case ThisVariable():
         return 'this';
       case TypeVariable(cosmeticName: null):
-      case LocalVariable(cosmeticName: null):
-      case LateVariable(cosmeticName: null):
-      case ConstVariable(cosmeticName: null):
-      case LocalFunctionVariable(cosmeticName: null):
       case SyntheticVariable():
         return _variableNames[node] ??= '#${_variableNames.length}';
       case CatchVariable(catchVariableName: var name):

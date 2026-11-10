@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/package_config_file_builder.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -13,12 +16,95 @@ import 'node_text_expectations.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MetadataResolutionTest);
+    defineReflectiveTests(MetadataResolutionTest_AnonymousMethodsExperiment);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class MetadataResolutionTest extends PubPackageResolutionTest {
+  test_annotationOnTypeArgument_sharedCloser_inAnnotation() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+@a<@b<int>>
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant][column 2][length 1] Undefined name 'a'.
+// ^^^^^^^
+// [diag.annotationOnTypeArgument] Type arguments can't have annotations because they aren't declarations.
+//        ^
+// [diag.expectedTypeName] Expected a type name.
+// [diag.annotationWithTypeArgumentsUninstantiated] An annotation with type arguments must be followed by an argument list.
+class C {}
+''');
+
+    var node = result.findNode.singleAnnotation;
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  expression: FunctionInstantiation
+    operand: UnqualifiedNameExpression
+      name: a
+      resolution: InvalidNamedReadResolution
+        recoveryElement: <null>
+      staticType: InvalidType
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: <empty> <synthetic>
+          element: <null>
+          type: InvalidType
+      rightBracket: >
+    staticType: InvalidType
+  name: SimpleIdentifier
+    token: a
+    element: <null>
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: <empty> <synthetic>
+        element: <null>
+        type: InvalidType
+    rightBracket: >
+  element: <null>
+''');
+  }
+
+  test_annotationOnTypeArgument_sharedCloser_inConstantInitializer() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const x = null as List<@a<int>>;
+//        ^^^^^^^^^^^^^^^^^^^^^
+// [diag.constEvalThrowsException] Evaluation of this constant expression throws an exception.
+// [diag.castFromNullAlwaysFails] This cast always throws an exception because the expression always evaluates to 'null'.
+//                     ^^^^^^^
+// [diag.annotationOnTypeArgument] Type arguments can't have annotations because they aren't declarations.
+//                            ^
+// [diag.expectedTypeName] Expected a type name.
+''');
+
+    var node = result.findNode.singleAsExpression;
+    assertResolvedNodeText(node, r'''
+AsExpression
+  expression2: NullLiteral
+    literal: null
+    staticType: Null
+  asOperator: as
+  type: NamedType
+    name: List
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: <empty> <synthetic>
+          element: <null>
+          type: InvalidType
+      rightBracket: >
+    element: dart:core::@class::List
+    type: List<InvalidType>
+  staticType: List<InvalidType>
+''');
+  }
+
   test_at_genericFunctionType_formalParameter() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 const a = 42;
@@ -29,6 +115,12 @@ List<void Function(@a int b)> f() => [];
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      type: int
+    staticType: int
   name: SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a
@@ -102,6 +194,12 @@ enum E {
     assertResolvedNodeText(node, '''
 Annotation
   atSign: @
+  expression: UnqualifiedNameExpression
+    name: v
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@enum::E::@getter::v
+      type: E
+    staticType: E
   name: SimpleIdentifier
     token: v
     element: <testLibrary>::@enum::E::@getter::v
@@ -145,31 +243,60 @@ class B {
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@class::A
+        type: A
+      element: <testLibrary>::@class::A::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        ConstructorInvocation
+          constructorReference: ConstructorReference2
+            typeReference: ConstructorTypeReference
+              name: A
+              element: <testLibrary>::@class::A
+              type: A
+            element: <testLibrary>::@class::A::@constructor::new
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              IntegerLiteral
+                literal: 0
+                correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
+                staticType: int
+            rightParenthesis: )
+          correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
+          staticType: A
+      arguments(v1)
+        InstanceCreationExpression
+          constructorName: ConstructorName
+            type: NamedType
+              name: A
+              element: <testLibrary>::@class::A
+              type: A
+            element: <testLibrary>::@class::A::@constructor::new
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments
+              IntegerLiteral
+                literal: 0
+                correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
+                staticType: int
+            rightParenthesis: )
+          correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
+          staticType: A
+      rightParenthesis: )
+    staticType: A
   name: SimpleIdentifier
     token: A
     element: <testLibrary>::@class::A
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
-      ConstructorInvocation
-        constructorReference: ConstructorReference2
-          typeReference: ConstructorTypeReference
-            name: A
-            element: <testLibrary>::@class::A
-            type: A
-          element: <testLibrary>::@class::A::@constructor::new
-        argumentList: ArgumentList
-          leftParenthesis: (
-          arguments2
-            IntegerLiteral
-              literal: 0
-              correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
-              staticType: int
-          rightParenthesis: )
-        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
-        staticType: A
-    arguments(v1)
+    arguments
       InstanceCreationExpression
         constructorName: ConstructorName
           type: NamedType
@@ -289,13 +416,29 @@ void f() {
     assertResolvedNodeText(node, '''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@class::A
+        type: A
+      element: <testLibrary>::@class::A::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 3
+          correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+          staticType: int
+      rightParenthesis: )
+    staticType: A
   name: SimpleIdentifier
     token: A
     element: <testLibrary>::@class::A
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 3
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
@@ -398,13 +541,29 @@ class A {
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@class::A
+        type: A
+      element: <testLibrary>::@class::A::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 0
+          correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
+          staticType: int
+      rightParenthesis: )
+    staticType: A
   name: SimpleIdentifier
     token: A
     element: <testLibrary>::@class::A
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
@@ -435,13 +594,29 @@ class A {
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@class::A
+        type: A
+      element: <testLibrary>::@class::A::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 0
+          correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
+          staticType: int
+      rightParenthesis: )
+    staticType: A
   name: SimpleIdentifier
     token: A
     element: <testLibrary>::@class::A
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 0
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
@@ -496,6 +671,25 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@class::A
+        type: A
+      selector: ConstructorSelector
+        period: .
+        name2: named
+      element: <testLibrary>::@class::A::@constructor::named
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 42
+          correspondingParameter: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
+          staticType: int
+      rightParenthesis: )
+    staticType: A
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
@@ -510,7 +704,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
@@ -543,6 +737,25 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@class::A
+        type: A
+      selector: ConstructorSelector
+        period: .
+        name2: named
+      element: <testLibrary>::@class::A::@constructor::named
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 42
+          correspondingParameter: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
+          staticType: int
+      rightParenthesis: )
+    staticType: A
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
@@ -557,7 +770,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
@@ -584,8 +797,8 @@ class A {
 
 void f(int named) {
   @A.named(42)
-//^^^^^^^^^^^^
-// [diag.invalidAnnotation] Annotation must be either a const variable reference or const constructor invocation.
+//   ^^^^^
+// [diag.constWithUndefinedConstructor] The class 'A' doesn't have a constant constructor 'named'.
   int x = 0;
 //    ^
 // [diag.unusedLocalVariable] The value of the local variable 'x' isn't used.
@@ -596,6 +809,25 @@ void f(int named) {
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@class::A
+        type: A
+      selector: ConstructorSelector
+        period: .
+        name2: named
+      element: <null>
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 42
+          correspondingParameter: <null>
+          staticType: int
+      rightParenthesis: )
+    staticType: A
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
@@ -610,7 +842,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: <null>
@@ -634,6 +866,16 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ReceiverPropertyExtraction
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@class::A
+    operator: .
+    name: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::foo
+      type: int
+    staticType: int
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
@@ -669,13 +911,29 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@class::A
+        type: A
+      element: <testLibrary>::@class::A::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 42
+          correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
+          staticType: int
+      rightParenthesis: )
+    staticType: A
   name: SimpleIdentifier
     token: A
     element: <testLibrary>::@class::A
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
@@ -692,6 +950,260 @@ A
     positionalArguments
       0: int 42
 ''');
+  }
+
+  test_value_class_unnamedConstructor_nonConstantArgument() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+var x = 0;
+
+class A {
+  const A(Object? a);
+}
+
+@A(x)
+// ^
+// [diag.constWithNonConstantArgument] Arguments of a constant creation must be constant expressions.
+void f() {}
+''');
+
+    var node = result.findNode.singleAnnotation;
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@class::A
+        type: A
+      element: <testLibrary>::@class::A::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        UnqualifiedNameExpression
+          name: x
+          resolution: GetterInvocationResolution
+            element: <testLibrary>::@getter::x
+            type: int
+          correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+          staticType: int
+      arguments(v1)
+        SimpleIdentifier
+          token: x
+          correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+          element: <testLibrary>::@getter::x
+          staticType: int
+      rightParenthesis: )
+    staticType: A
+  name: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::A
+    staticType: null
+  arguments: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: x
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+        element: <testLibrary>::@getter::x
+        staticType: int
+    rightParenthesis: )
+  element: <testLibrary>::@class::A::@constructor::new
+''');
+
+    _assertAnnotationValueText(node, r'''
+<null>
+''');
+    expect(
+      node.elementAnnotation!.constantEvaluationErrors!.map(
+        (e) => e.diagnosticCode,
+      ),
+      [diag.constWithNonConstantArgument],
+    );
+  }
+
+  test_value_class_unnamedConstructor_undefinedNameArgument() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  final int a;
+  final int b;
+  const A(this.a, this.b);
+}
+
+@A(undefined, 0)
+// ^^^^^^^^^
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'undefined'.
+void f() {}
+''');
+
+    var node = result.findNode.singleAnnotation;
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@class::A
+        type: A
+      element: <testLibrary>::@class::A::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        UnqualifiedNameExpression
+          name: undefined
+          resolution: InvalidNamedReadResolution
+            recoveryElement: <null>
+          correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+          staticType: InvalidType
+        IntegerLiteral
+          literal: 0
+          correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::b
+          staticType: int
+      arguments(v1)
+        SimpleIdentifier
+          token: undefined
+          correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+          element: <null>
+          staticType: InvalidType
+        IntegerLiteral
+          literal: 0
+          correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::b
+          staticType: int
+      rightParenthesis: )
+    staticType: A
+  name: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::A
+    staticType: null
+  arguments: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleIdentifier
+        token: undefined
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+        element: <null>
+        staticType: InvalidType
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::b
+        staticType: int
+    rightParenthesis: )
+  element: <testLibrary>::@class::A::@constructor::new
+''');
+
+    // The value and the evaluation error are both available to clients,
+    // although the constant verifier doesn't report the error.
+    _assertAnnotationValueText(node, r'''
+A
+  a: int null
+  b: int 0
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    positionalArguments
+      0: int null
+      1: int 0
+''');
+    expect(
+      node.elementAnnotation!.constantEvaluationErrors!.map(
+        (e) => e.diagnosticCode,
+      ),
+      [diag.constWithNonConstantArgument],
+    );
+  }
+
+  test_value_class_unnamedConstructor_undefinedNameArgument_deadBranch() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  final int a;
+  const A(this.a);
+}
+
+@A(true ? 0 : undefined)
+//            ^^^^^^^^^
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'undefined'.
+// [diag.deadCode] Dead code.
+void f() {}
+''');
+
+    var node = result.findNode.singleAnnotation;
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@class::A
+        type: A
+      element: <testLibrary>::@class::A::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        ConditionalExpression
+          condition2: BooleanLiteral
+            literal: true
+            staticType: bool
+          question: ?
+          thenExpression2: IntegerLiteral
+            literal: 0
+            staticType: int
+          colon: :
+          elseExpression2: UnqualifiedNameExpression
+            name: undefined
+            resolution: InvalidNamedReadResolution
+              recoveryElement: <null>
+            staticType: InvalidType
+          elseExpression(v1): SimpleIdentifier
+            token: undefined
+            element: <null>
+            staticType: InvalidType
+          correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+          staticType: InvalidType
+      rightParenthesis: )
+    staticType: A
+  name: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::A
+    staticType: null
+  arguments: ArgumentList
+    leftParenthesis: (
+    arguments
+      ConditionalExpression
+        condition: BooleanLiteral
+          literal: true
+          staticType: bool
+        question: ?
+        thenExpression: IntegerLiteral
+          literal: 0
+          staticType: int
+        colon: :
+        elseExpression: SimpleIdentifier
+          token: undefined
+          element: <null>
+          staticType: InvalidType
+        correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
+        staticType: InvalidType
+    rightParenthesis: )
+  element: <testLibrary>::@class::A::@constructor::new
+''');
+
+    // The evaluation error is available to clients, although the constant
+    // verifier doesn't report it.
+    _assertAnnotationValueText(node, r'''
+A
+  a: int null
+  constructorInvocation
+    constructor: <testLibrary>::@class::A::@constructor::new
+    positionalArguments
+      0: int null
+''');
+    expect(
+      node.elementAnnotation!.constantEvaluationErrors!.map(
+        (e) => e.diagnosticCode,
+      ),
+      [diag.invalidConstant],
+    );
   }
 
   test_value_class_unnamedConstructor_withNestedConstructorInvocation() async {
@@ -713,27 +1225,52 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: D
+        element: <testLibrary>::@class::D
+        type: D
+      element: <testLibrary>::@class::D::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        ConstructorInvocation
+          keyword: const
+          constructorReference: ConstructorReference2
+            typeReference: ConstructorTypeReference
+              name: C
+              element: <testLibrary>::@class::C
+              type: C
+            element: <testLibrary>::@class::C::@constructor::new
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+          correspondingParameter: <testLibrary>::@class::D::@constructor::new::@formalParameter::c
+          staticType: C
+      arguments(v1)
+        InstanceCreationExpression
+          keyword: const
+          constructorName: ConstructorName
+            type: NamedType
+              name: C
+              element: <testLibrary>::@class::C
+              type: C
+            element: <testLibrary>::@class::C::@constructor::new
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+          correspondingParameter: <testLibrary>::@class::D::@constructor::new::@formalParameter::c
+          staticType: C
+      rightParenthesis: )
+    staticType: D
   name: SimpleIdentifier
     token: D
     element: <testLibrary>::@class::D
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
-      ConstructorInvocation
-        keyword: const
-        constructorReference: ConstructorReference2
-          typeReference: ConstructorTypeReference
-            name: C
-            element: <testLibrary>::@class::C
-            type: C
-          element: <testLibrary>::@class::C::@constructor::new
-        argumentList: ArgumentList
-          leftParenthesis: (
-          rightParenthesis: )
-        correspondingParameter: <testLibrary>::@class::D::@constructor::new::@formalParameter::c
-        staticType: C
-    arguments(v1)
+    arguments
       InstanceCreationExpression
         keyword: const
         constructorName: ConstructorName
@@ -777,6 +1314,25 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@extensionType::A
+        type: A
+      selector: ConstructorSelector
+        period: .
+        name2: named
+      element: <testLibrary>::@extensionType::A::@constructor::named
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 42
+          correspondingParameter: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
+          staticType: int
+      rightParenthesis: )
+    staticType: A
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
@@ -791,7 +1347,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
@@ -818,13 +1374,29 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@extensionType::A
+        type: A
+      element: <testLibrary>::@extensionType::A::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 42
+          correspondingParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+          staticType: int
+      rightParenthesis: )
+    staticType: A
   name: SimpleIdentifier
     token: A
     element: <testLibrary>::@extensionType::A
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -854,6 +1426,30 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@class::A
+        type: A<Object?>
+      selector: ConstructorSelector
+        period: .
+        name2: named
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::A::@constructor::named
+        substitution: {T: Object?}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        ListLiteral
+          leftBracket: [
+          rightBracket: ]
+          correspondingParameter: SubstitutedFieldFormalParameterElementImpl
+            baseElement: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
+            substitution: {T: Object?}
+          staticType: List<List<Object?>>
+      rightParenthesis: )
+    staticType: A<Object?>
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
@@ -872,7 +1468,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       ListLiteral
         leftBracket: [
         rightBracket: ]
@@ -912,13 +1508,34 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@class::A
+        type: A<Object?>
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::A::@constructor::new
+        substitution: {T: Object?}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        ListLiteral
+          leftBracket: [
+          rightBracket: ]
+          correspondingParameter: SubstitutedFieldFormalParameterElementImpl
+            baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
+            substitution: {T: Object?}
+          staticType: List<List<Object?>>
+      rightParenthesis: )
+    staticType: A<Object?>
   name: SimpleIdentifier
     token: A
     element: <testLibrary>::@class::A
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       ListLiteral
         leftBracket: [
         rightBracket: ]
@@ -958,6 +1575,29 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@class::A
+        type: A<int>
+      selector: ConstructorSelector
+        period: .
+        name2: named
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::A::@constructor::named
+        substitution: {T: int}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 42
+          correspondingParameter: SubstitutedFieldFormalParameterElementImpl
+            baseElement: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
+            substitution: {T: int}
+          staticType: int
+      rightParenthesis: )
+    staticType: A<int>
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
@@ -976,7 +1616,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -1015,13 +1655,33 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@class::A
+        type: A<int>
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::A::@constructor::new
+        substitution: {T: int}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 42
+          correspondingParameter: SubstitutedFieldFormalParameterElementImpl
+            baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
+            substitution: {T: int}
+          staticType: int
+      rightParenthesis: )
+    staticType: A<int>
   name: SimpleIdentifier
     token: A
     element: <testLibrary>::@class::A
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -1054,7 +1714,8 @@ class A<T> {
 }
 
 @A.foo
-// [diag.invalidAnnotation][column 1][length 6] Annotation must be either a const variable reference or const constructor invocation.
+// ^^^
+// [diag.staticAccessToInstanceMember] Instance member 'foo' can't be accessed using static access.
 void f() {}
 ''');
 
@@ -1062,6 +1723,15 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ReceiverPropertyExtraction
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@class::A
+    operator: .
+    name: foo
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <testLibrary>::@class::A::@getter::foo
+    staticType: InvalidType
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
@@ -1093,6 +1763,29 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@class::A
+        type: A<dynamic>
+      selector: ConstructorSelector
+        period: .
+        name2: named
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::A::@constructor::named
+        substitution: {T: dynamic}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 42
+          correspondingParameter: SubstitutedFieldFormalParameterElementImpl
+            baseElement: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
+            substitution: {T: dynamic}
+          staticType: int
+      rightParenthesis: )
+    staticType: A<dynamic>
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
@@ -1111,7 +1804,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -1152,6 +1845,16 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ReceiverPropertyExtraction
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@class::A
+    operator: .
+    name: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::foo
+      type: InvalidType
+    staticType: InvalidType
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
@@ -1186,6 +1889,37 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@class::A
+        type: A<int>
+      selector: ConstructorSelector
+        period: .
+        name2: named
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::A::@constructor::named
+        substitution: {T: int}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 42
+          correspondingParameter: SubstitutedFieldFormalParameterElementImpl
+            baseElement: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
+            substitution: {T: int}
+          staticType: int
+      rightParenthesis: )
+    staticType: A<int>
   name: SimpleIdentifier
     token: A
     element: <testLibrary>::@class::A
@@ -1207,7 +1941,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -1246,6 +1980,34 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@class::A
+        type: A<int>
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::A::@constructor::new
+        substitution: {T: int}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 42
+          correspondingParameter: SubstitutedFieldFormalParameterElementImpl
+            baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
+            substitution: {T: int}
+          staticType: int
+      rightParenthesis: )
+    staticType: A<int>
   name: SimpleIdentifier
     token: A
     element: <testLibrary>::@class::A
@@ -1260,7 +2022,7 @@ Annotation
     rightBracket: >
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -1300,13 +2062,33 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@class::A
+        type: A<dynamic>
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::A::@constructor::new
+        substitution: {T: dynamic}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 42
+          correspondingParameter: SubstitutedFieldFormalParameterElementImpl
+            baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
+            substitution: {T: dynamic}
+          staticType: int
+      rightParenthesis: )
+    staticType: A<dynamic>
   name: SimpleIdentifier
     token: A
     element: <testLibrary>::@class::A
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -1349,13 +2131,33 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: B
+        element: <testLibrary>::@class::B
+        type: B<int>
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::B::@constructor::new
+        substitution: {T: int}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 42
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@class::B::@constructor::new::@formalParameter::f
+            substitution: {T: int}
+          staticType: int
+      rightParenthesis: )
+    staticType: B<int>
   name: SimpleIdentifier
     token: B
     element: <testLibrary>::@class::B
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1408,13 +2210,33 @@ mixin E {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: B
+        element: <testLibrary>::@class::B
+        type: B<int>
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::B::@constructor::new
+        substitution: {T: int}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 42
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@class::B::@constructor::new::@formalParameter::f
+            substitution: {T: int}
+          staticType: int
+      rightParenthesis: )
+    staticType: B<int>
   name: SimpleIdentifier
     token: B
     element: <testLibrary>::@class::B
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1464,13 +2286,33 @@ typedef T F<T>();
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: B
+        element: <testLibrary>::@class::B
+        type: B<int>
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::B::@constructor::new
+        substitution: {T: int}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 42
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@class::B::@constructor::new::@formalParameter::f
+            substitution: {T: int}
+          staticType: int
+      rightParenthesis: )
+    staticType: B<int>
   name: SimpleIdentifier
     token: B
     element: <testLibrary>::@class::B
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1519,13 +2361,33 @@ f(@B(42) g()) {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: B
+        element: <testLibrary>::@class::B
+        type: B<int>
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::B::@constructor::new
+        substitution: {T: int}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 42
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@class::B::@constructor::new::@formalParameter::f
+            substitution: {T: int}
+          staticType: int
+      rightParenthesis: )
+    staticType: B<int>
   name: SimpleIdentifier
     token: B
     element: <testLibrary>::@class::B
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1575,13 +2437,33 @@ typedef F = void Function();
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: B
+        element: <testLibrary>::@class::B
+        type: B<int>
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::B::@constructor::new
+        substitution: {T: int}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 42
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@class::B::@constructor::new::@formalParameter::f
+            substitution: {T: int}
+          staticType: int
+      rightParenthesis: )
+    staticType: B<int>
   name: SimpleIdentifier
     token: B
     element: <testLibrary>::@class::B
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1633,13 +2515,33 @@ class C {
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: B
+        element: <testLibrary>::@class::B
+        type: B<int>
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::B::@constructor::new
+        substitution: {T: int}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 42
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@class::B::@constructor::new::@formalParameter::f
+            substitution: {T: int}
+          staticType: int
+      rightParenthesis: )
+    staticType: B<int>
   name: SimpleIdentifier
     token: B
     element: <testLibrary>::@class::B
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1689,6 +2591,34 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: B
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@class::B
+        type: B<int>
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::B::@constructor::new
+        substitution: {T: int}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 42
+          correspondingParameter: SubstitutedFormalParameterElementImpl
+            baseElement: <testLibrary>::@class::B::@constructor::new::@formalParameter::f
+            substitution: {T: int}
+          staticType: int
+      rightParenthesis: )
+    staticType: B<int>
   name: SimpleIdentifier
     token: B
     element: <testLibrary>::@class::B
@@ -1703,7 +2633,7 @@ Annotation
     rightBracket: >
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFormalParameterElementImpl
@@ -1732,6 +2662,415 @@ B<int>
     positionalArguments
       0: int 42
 ''');
+  }
+
+  test_value_invalid_class_staticMethod_typeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static void foo<T>() {}
+}
+
+@A.foo<int>
+//        ^
+// [diag.annotationWithTypeArgumentsUninstantiated] An annotation with type arguments must be followed by an argument list.
+void f() {}
+''');
+
+    var node = result.findNode.singleAnnotation;
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  expression: FunctionInstantiation
+    operand: ReceiverPropertyExtraction
+      receiver: StaticQualifier
+        name: A
+        element: <testLibrary>::@class::A
+      operator: .
+      name: foo
+      resolution: ExecutableTearOffResolution
+        element: <testLibrary>::@class::A::@method::foo
+        type: void Function<T>()
+      staticType: void Function<T>()
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    staticType: void Function()
+    typeArgumentTypes
+      int
+  name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::A::@method::foo
+      staticType: null
+    element: <testLibrary>::@class::A::@method::foo
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  element: <testLibrary>::@class::A::@method::foo
+''');
+
+    _assertAnnotationValueText(node, r'''
+<null>
+''');
+  }
+
+  test_value_invalid_constructorWithoutArguments() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A();
+}
+
+@A
+// [diag.noAnnotationConstructorArguments][column 1][length 2] Annotation creation must have arguments.
+void f() {}
+''');
+
+    var node = result.findNode.singleAnnotation;
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  expression: TypeLiteral
+    type: NamedType
+      name: A
+      element: <testLibrary>::@class::A
+      type: A
+    staticType: Type
+  name: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::A
+    staticType: null
+  element: <testLibrary>::@class::A::@constructor::new
+''');
+
+    _assertAnnotationValueText(node, r'''
+<null>
+''');
+    expect(node.elementAnnotation!.constantEvaluationErrors, isEmpty);
+  }
+
+  test_value_invalid_function() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void g() {}
+
+@g
+// [diag.invalidAnnotation][column 1][length 2] Annotation must be either a const variable reference or const constructor invocation.
+void f() {}
+''');
+
+    var node = result.findNode.singleAnnotation;
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  expression: UnqualifiedNameExpression
+    name: g
+    resolution: ExecutableTearOffResolution
+      element: <testLibrary>::@function::g
+      type: void Function()
+    staticType: void Function()
+  name: SimpleIdentifier
+    token: g
+    element: <testLibrary>::@function::g
+    staticType: null
+  element: <testLibrary>::@function::g
+''');
+
+    _assertAnnotationValueText(node, r'''
+<null>
+''');
+    expect(node.elementAnnotation!.constantEvaluationErrors, isEmpty);
+  }
+
+  test_value_invalid_function_typeArguments() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void foo<T>() {}
+
+@foo<int>
+//      ^
+// [diag.annotationWithTypeArgumentsUninstantiated] An annotation with type arguments must be followed by an argument list.
+void f() {}
+''');
+
+    var node = result.findNode.singleAnnotation;
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  expression: FunctionInstantiation
+    operand: UnqualifiedNameExpression
+      name: foo
+      resolution: ExecutableTearOffResolution
+        element: <testLibrary>::@function::foo
+        type: void Function<T>()
+      staticType: void Function<T>()
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    staticType: void Function()
+    typeArgumentTypes
+      int
+  name: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@function::foo
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  element: <testLibrary>::@function::foo
+''');
+
+    _assertAnnotationValueText(node, r'''
+<null>
+''');
+  }
+
+  test_value_invalid_nonConstConstructor() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A();
+}
+
+@A()
+// [diag.constWithNonConst][column 2][length 3] The constructor being called isn't a const constructor.
+void f() {}
+''');
+
+    var node = result.findNode.singleAnnotation;
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@class::A
+        type: A
+      element: <testLibrary>::@class::A::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: A
+  name: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::A
+    staticType: null
+  arguments: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  element: <testLibrary>::@class::A::@constructor::new
+''');
+
+    _assertAnnotationValueText(node, r'''
+<null>
+''');
+    expect(node.elementAnnotation!.constantEvaluationErrors, isEmpty);
+  }
+
+  test_value_invalid_nonConstVariable() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+var x = 0;
+
+@x
+// [diag.invalidAnnotation][column 1][length 2] Annotation must be either a const variable reference or const constructor invocation.
+void f() {}
+''');
+
+    var node = result.findNode.singleAnnotation;
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  expression: UnqualifiedNameExpression
+    name: x
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::x
+      type: int
+    staticType: int
+  name: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@getter::x
+    staticType: null
+  element: <testLibrary>::@getter::x
+''');
+
+    _assertAnnotationValueText(node, r'''
+<null>
+''');
+    expect(node.elementAnnotation!.constantEvaluationErrors, isEmpty);
+  }
+
+  test_value_invalid_prefix_function_typeArguments() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo<T>() {}
+''');
+
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart' as prefix;
+
+@prefix.foo<int>
+//             ^
+// [diag.annotationWithTypeArgumentsUninstantiated] An annotation with type arguments must be followed by an argument list.
+void f() {}
+''');
+
+    var node = result.findNode.singleAnnotation;
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  expression: FunctionInstantiation
+    operand: ImportPrefixedNameExpression
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
+        element: <testLibraryFragment>::@prefix::prefix
+      name: foo
+      resolution: ExecutableTearOffResolution
+        element: package:test/a.dart::@function::foo
+        type: void Function<T>()
+      staticType: void Function<T>()
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    staticType: void Function()
+    typeArgumentTypes
+      int
+  name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: prefix
+      element: <testLibraryFragment>::@prefix::prefix
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: package:test/a.dart::@function::foo
+      staticType: null
+    element: package:test/a.dart::@function::foo
+    staticType: null
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  element: package:test/a.dart::@function::foo
+''');
+
+    _assertAnnotationValueText(node, r'''
+<null>
+''');
+  }
+
+  test_value_invalid_undefinedConstructor() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A();
+}
+
+@A.named()
+// ^^^^^
+// [diag.constWithUndefinedConstructor] The class 'A' doesn't have a constant constructor 'named'.
+void f() {}
+''');
+
+    var node = result.findNode.singleAnnotation;
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+        element: <testLibrary>::@class::A
+        type: A
+      selector: ConstructorSelector
+        period: .
+        name2: named
+      element: <null>
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: A
+  name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: named
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  arguments: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  element: <null>
+''');
+
+    _assertAnnotationValueText(node, r'''
+<null>
+''');
+    expect(node.elementAnnotation!.constantEvaluationErrors, isEmpty);
+  }
+
+  test_value_invalid_undefinedName() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+@undefined
+// [diag.undefinedUnqualifiedNameReadNotFoundAnnotation][column 2][length 9] Undefined name 'undefined' used as an annotation.
+void f() {}
+''');
+
+    var node = result.findNode.singleAnnotation;
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  expression: UnqualifiedNameExpression
+    name: undefined
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
+    staticType: InvalidType
+  name: SimpleIdentifier
+    token: undefined
+    element: <null>
+    staticType: null
+  element: <null>
+''');
+
+    _assertAnnotationValueText(node, r'''
+<null>
+''');
+    expect(node.elementAnnotation!.constantEvaluationErrors, isEmpty);
   }
 
   test_value_otherLibrary_implicitConst() async {
@@ -1863,6 +3202,29 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        importPrefix: ImportPrefixReference
+          name: prefix
+          period: .
+          element: <testLibraryFragment>::@prefix::prefix
+        name: A
+        element: package:test/a.dart::@class::A
+        type: A
+      selector: ConstructorSelector
+        period: .
+        name2: named
+      element: package:test/a.dart::@class::A::@constructor::named
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 42
+          correspondingParameter: package:test/a.dart::@class::A::@constructor::named::@formalParameter::f
+          staticType: int
+      rightParenthesis: )
+    staticType: A
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
@@ -1882,7 +3244,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: package:test/a.dart::@class::A::@constructor::named::@formalParameter::f
@@ -1918,6 +3280,20 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ReceiverPropertyExtraction
+    receiver: StaticQualifier
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
+        element: <testLibraryFragment>::@prefix::prefix
+      name: A
+      element: package:test/a.dart::@class::A
+    operator: .
+    name: foo
+    resolution: GetterInvocationResolution
+      element: package:test/a.dart::@class::A::@getter::foo
+      type: int
+    staticType: int
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
@@ -1963,6 +3339,26 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        importPrefix: ImportPrefixReference
+          name: prefix
+          period: .
+          element: <testLibraryFragment>::@prefix::prefix
+        name: A
+        element: package:test/a.dart::@class::A
+        type: A
+      element: package:test/a.dart::@class::A::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 42
+          correspondingParameter: package:test/a.dart::@class::A::@constructor::new::@formalParameter::f
+          staticType: int
+      rightParenthesis: )
+    staticType: A
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
@@ -1977,7 +3373,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: package:test/a.dart::@class::A::@constructor::new::@formalParameter::f
@@ -2012,6 +3408,16 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ImportPrefixedNameExpression
+    importPrefix: ImportPrefixReference
+      name: prefix
+      period: .
+      element: <testLibraryFragment>::@prefix::prefix
+    name: foo
+    resolution: GetterInvocationResolution
+      element: package:test/a.dart::@getter::foo
+      type: int
+    staticType: int
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
@@ -2052,6 +3458,20 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ReceiverPropertyExtraction
+    receiver: StaticQualifier
+      importPrefix: ImportPrefixReference
+        name: prefix
+        period: .
+        element: <testLibraryFragment>::@prefix::prefix
+      name: B
+      element: package:test/a.dart::@typeAlias::B
+    operator: .
+    name: foo
+    resolution: GetterInvocationResolution
+      element: package:test/a.dart::@class::A::@getter::foo
+      type: int
+    staticType: int
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
@@ -2097,6 +3517,33 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        importPrefix: ImportPrefixReference
+          name: prefix
+          period: .
+          element: <testLibraryFragment>::@prefix::prefix
+        name: B
+        element: package:test/a.dart::@typeAlias::B
+        type: A<int>
+      selector: ConstructorSelector
+        period: .
+        name2: named
+      element: SubstitutedConstructorElementImpl
+        baseElement: package:test/a.dart::@class::A::@constructor::named
+        substitution: {T: int}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 42
+          correspondingParameter: SubstitutedFieldFormalParameterElementImpl
+            baseElement: package:test/a.dart::@class::A::@constructor::named::@formalParameter::f
+            substitution: {T: int}
+          staticType: int
+      rightParenthesis: )
+    staticType: A<int>
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
@@ -2118,7 +3565,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -2162,6 +3609,30 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        importPrefix: ImportPrefixReference
+          name: prefix
+          period: .
+          element: <testLibraryFragment>::@prefix::prefix
+        name: B
+        element: package:test/a.dart::@typeAlias::B
+        type: A<int>
+      element: SubstitutedConstructorElementImpl
+        baseElement: package:test/a.dart::@class::A::@constructor::new
+        substitution: {T: int}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 42
+          correspondingParameter: SubstitutedFieldFormalParameterElementImpl
+            baseElement: package:test/a.dart::@class::A::@constructor::new::@formalParameter::f
+            substitution: {T: int}
+          staticType: int
+      rightParenthesis: )
+    staticType: A<int>
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
@@ -2176,7 +3647,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -2220,6 +3691,41 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        importPrefix: ImportPrefixReference
+          name: prefix
+          period: .
+          element: <testLibraryFragment>::@prefix::prefix
+        name: B
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: package:test/a.dart::@typeAlias::B
+        type: A<int>
+      selector: ConstructorSelector
+        period: .
+        name2: named
+      element: SubstitutedConstructorElementImpl
+        baseElement: package:test/a.dart::@class::A::@constructor::named
+        substitution: {T: int}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 42
+          correspondingParameter: SubstitutedFieldFormalParameterElementImpl
+            baseElement: package:test/a.dart::@class::A::@constructor::named::@formalParameter::f
+            substitution: {T: int}
+          staticType: int
+      rightParenthesis: )
+    staticType: A<int>
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
@@ -2249,7 +3755,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -2293,6 +3799,38 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        importPrefix: ImportPrefixReference
+          name: prefix
+          period: .
+          element: <testLibraryFragment>::@prefix::prefix
+        name: B
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: package:test/a.dart::@typeAlias::B
+        type: A<int>
+      element: SubstitutedConstructorElementImpl
+        baseElement: package:test/a.dart::@class::A::@constructor::new
+        substitution: {T: int}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 42
+          correspondingParameter: SubstitutedFieldFormalParameterElementImpl
+            baseElement: package:test/a.dart::@class::A::@constructor::new::@formalParameter::f
+            substitution: {T: int}
+          staticType: int
+      rightParenthesis: )
+    staticType: A<int>
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
@@ -2315,7 +3853,7 @@ Annotation
     rightBracket: >
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -2366,6 +3904,16 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ReceiverPropertyExtraction
+    receiver: StaticQualifier
+      name: B
+      element: <testLibrary>::@typeAlias::B
+    operator: .
+    name: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::foo
+      type: int
+    staticType: int
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: B
@@ -2404,6 +3952,43 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: B
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@typeAlias::B
+        type: A<int, double>
+      selector: ConstructorSelector
+        period: .
+        name2: named
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::A::@constructor::named
+        substitution: {T: int, U: double}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 42
+          correspondingParameter: SubstitutedFieldFormalParameterElementImpl
+            baseElement: <testLibrary>::@class::A::@constructor::named::@formalParameter::t
+            substitution: {T: int, U: double}
+          staticType: int
+        DoubleLiteral
+          literal: 1.2
+          correspondingParameter: SubstitutedFieldFormalParameterElementImpl
+            baseElement: <testLibrary>::@class::A::@constructor::named::@formalParameter::u
+            substitution: {T: int, U: double}
+          staticType: double
+      rightParenthesis: )
+    staticType: A<int, double>
   name: SimpleIdentifier
     token: B
     element: <testLibrary>::@typeAlias::B
@@ -2425,7 +4010,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -2475,6 +4060,40 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: B
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@typeAlias::B
+        type: A<int, double>
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::A::@constructor::new
+        substitution: {T: int, U: double}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 42
+          correspondingParameter: SubstitutedFieldFormalParameterElementImpl
+            baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::t
+            substitution: {T: int, U: double}
+          staticType: int
+        DoubleLiteral
+          literal: 1.2
+          correspondingParameter: SubstitutedFieldFormalParameterElementImpl
+            baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::u
+            substitution: {T: int, U: double}
+          staticType: double
+      rightParenthesis: )
+    staticType: A<int, double>
   name: SimpleIdentifier
     token: B
     element: <testLibrary>::@typeAlias::B
@@ -2489,7 +4108,7 @@ Annotation
     rightBracket: >
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -2538,6 +4157,29 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: B
+        element: <testLibrary>::@typeAlias::B
+        type: A<int>
+      selector: ConstructorSelector
+        period: .
+        name2: named
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::A::@constructor::named
+        substitution: {T: int}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 42
+          correspondingParameter: SubstitutedFieldFormalParameterElementImpl
+            baseElement: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
+            substitution: {T: int}
+          staticType: int
+      rightParenthesis: )
+    staticType: A<int>
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: B
@@ -2556,7 +4198,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -2597,13 +4239,33 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: B
+        element: <testLibrary>::@typeAlias::B
+        type: A<int>
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::A::@constructor::new
+        substitution: {T: int}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 42
+          correspondingParameter: SubstitutedFieldFormalParameterElementImpl
+            baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
+            substitution: {T: int}
+          staticType: int
+      rightParenthesis: )
+    staticType: A<int>
   name: SimpleIdentifier
     token: B
     element: <testLibrary>::@typeAlias::B
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -2644,6 +4306,37 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: B
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@typeAlias::B
+        type: A<int>
+      selector: ConstructorSelector
+        period: .
+        name2: named
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::A::@constructor::named
+        substitution: {T: int}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 42
+          correspondingParameter: SubstitutedFieldFormalParameterElementImpl
+            baseElement: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
+            substitution: {T: int}
+          staticType: int
+      rightParenthesis: )
+    staticType: A<int>
   name: SimpleIdentifier
     token: B
     element: <testLibrary>::@typeAlias::B
@@ -2665,7 +4358,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -2706,6 +4399,34 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: B
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@typeAlias::B
+        type: A<int>
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::A::@constructor::new
+        substitution: {T: int}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 42
+          correspondingParameter: SubstitutedFieldFormalParameterElementImpl
+            baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
+            substitution: {T: int}
+          staticType: int
+      rightParenthesis: )
+    staticType: A<int>
   name: SimpleIdentifier
     token: B
     element: <testLibrary>::@typeAlias::B
@@ -2720,7 +4441,7 @@ Annotation
     rightBracket: >
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -2761,6 +4482,29 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: B
+        element: <testLibrary>::@typeAlias::B
+        type: A<int>
+      selector: ConstructorSelector
+        period: .
+        name2: named
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::A::@constructor::named
+        substitution: {T: int}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 42
+          correspondingParameter: SubstitutedFieldFormalParameterElementImpl
+            baseElement: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
+            substitution: {T: int}
+          staticType: int
+      rightParenthesis: )
+    staticType: A<int>
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: B
@@ -2779,7 +4523,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -2820,13 +4564,33 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: B
+        element: <testLibrary>::@typeAlias::B
+        type: A<int>
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::A::@constructor::new
+        substitution: {T: int}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 42
+          correspondingParameter: SubstitutedFieldFormalParameterElementImpl
+            baseElement: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
+            substitution: {T: int}
+          staticType: int
+      rightParenthesis: )
+    staticType: A<int>
   name: SimpleIdentifier
     token: B
     element: <testLibrary>::@typeAlias::B
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: SubstitutedFieldFormalParameterElementImpl
@@ -2867,6 +4631,25 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: B
+        element: <testLibrary>::@typeAlias::B
+        type: A
+      selector: ConstructorSelector
+        period: .
+        name2: named
+      element: <testLibrary>::@class::A::@constructor::named
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 42
+          correspondingParameter: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
+          staticType: int
+      rightParenthesis: )
+    staticType: A
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: B
@@ -2881,7 +4664,7 @@ Annotation
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: <testLibrary>::@class::A::@constructor::named::@formalParameter::f
@@ -2916,13 +4699,29 @@ void f() {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: B
+        element: <testLibrary>::@typeAlias::B
+        type: A
+      element: <testLibrary>::@class::A::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 42
+          correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
+          staticType: int
+      rightParenthesis: )
+    staticType: A
   name: SimpleIdentifier
     token: B
     element: <testLibrary>::@typeAlias::B
     staticType: null
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
+    arguments
       IntegerLiteral
         literal: 42
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::f
@@ -2950,6 +4749,12 @@ A
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: UnqualifiedNameExpression
+    name: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::foo
+      type: int
+    staticType: int
   name: SimpleIdentifier
     token: foo
     element: <testLibrary>::@getter::foo
@@ -2970,5 +4775,39 @@ int 42
   ) {
     var value = annotation.computeConstantValue();
     assertDartObjectText(value, expected);
+  }
+}
+
+@reflectiveTest
+class MetadataResolutionTest_AnonymousMethodsExperiment
+    extends PubPackageResolutionTest {
+  @override
+  List<Feature> get experimentalFeatures => [Feature.anonymous_methods];
+
+  test_location_anonymousMethod_formalParameter() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const foo = 42;
+
+void f() {
+  0.(@foo p) => p;
+}
+''');
+
+    var node = result.findNode.singleAnnotation;
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  expression: UnqualifiedNameExpression
+    name: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::foo
+      type: int
+    staticType: int
+  name: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@getter::foo
+    staticType: null
+  element: <testLibrary>::@getter::foo
+''');
   }
 }

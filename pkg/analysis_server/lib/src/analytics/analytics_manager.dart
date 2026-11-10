@@ -313,7 +313,7 @@ class AnalyticsManager {
 
   /// The server is shutting down. Report any accumulated analytics data.
   Future<void> shutdown() async {
-    await _sendPeriodicData();
+    await _sendPeriodicData(shutdownTime: DateTime.now());
     await _sendPluginData();
 
     periodicTimer?.cancel();
@@ -673,12 +673,25 @@ class AnalyticsManager {
   }
 
   /// Send the information that is sent periodically.
-  Future<void> _sendPeriodicData() async {
+  ///
+  /// If [shutdownTime] is provided, the server is shutting down and the session
+  /// data is sent with the actual duration of the session.
+  Future<void> _sendPeriodicData({DateTime? shutdownTime}) async {
     var sessionData = _sessionData;
     if (sessionData != null && _contextStructure != null) {
+      if (shutdownTime != null) {
+        await _sendSessionData(
+          sessionData,
+          duration: shutdownTime
+              .difference(sessionData.startTime)
+              .inMilliseconds,
+        );
+      } else if (!_hasSentStartupData) {
+        // The session hasn't ended yet, so the duration is reported as 0.
+        await _sendSessionData(sessionData, duration: 0);
+      }
       if (!_hasSentStartupData) {
         _hasSentStartupData = true;
-        await _sendSessionData(sessionData);
         await _sendAnalysisData();
       }
     }
@@ -775,8 +788,12 @@ class AnalyticsManager {
     }
   }
 
-  /// Sends information about the session, after the session has ended.
-  Future<void> _sendSessionData(SessionData sessionData) async {
+  /// Sends information about the session, reporting [duration] (in
+  /// milliseconds) as the length of the session.
+  Future<void> _sendSessionData(
+    SessionData sessionData, {
+    required int duration,
+  }) async {
     var ideName = platform.environment['DASH__IDE_NAME'] ?? '';
     var ideVersion = platform.environment['DASH__IDE_VERSION'] ?? '';
     var pluginName = platform.environment['DASH__PLUGIN_NAME'] ?? '';
@@ -788,8 +805,7 @@ class AnalyticsManager {
         parameters: sessionData.initializeParams,
         clientId: sessionData.clientId,
         clientVersion: sessionData.clientVersion,
-        // Send 0 as duration because the session is not ended yet.
-        duration: 0,
+        duration: duration,
         ideName: ideName,
         ideVersion: ideVersion,
         pluginName: pluginName,

@@ -4,6 +4,7 @@
 
 import 'package:source_maps/source_maps.dart' hide Printer;
 import 'package:source_span/source_span.dart' show SourceLocation;
+
 import 'js_ast.dart';
 
 /// A source map marker signaling that there is no new source information from

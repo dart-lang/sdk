@@ -18,7 +18,7 @@ void main() {
 }
 
 @reflectiveTest
-class CreateFieldEnumTest extends FixProcessorTest {
+class CreateFieldEnumTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createField;
 
@@ -44,7 +44,8 @@ int f(E e) {
 ''',
       filter: (diagnostic) {
         // Filter to ignore enum_without_constants
-        return diagnostic.diagnosticCode == diag.undefinedGetter;
+        return diagnostic.diagnosticCode ==
+            diag.undefinedInstanceMemberReadNotFound;
       },
     );
   }
@@ -259,7 +260,7 @@ void f(E e) {
 }
 
 @reflectiveTest
-class CreateFieldMixinTest extends FixProcessorTest {
+class CreateFieldMixinTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createField;
 
@@ -388,9 +389,57 @@ void f() {
 }
 
 @reflectiveTest
-class CreateFieldTest extends FixProcessorTest {
+class CreateFieldTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createField;
+
+  Future<void> test_annotation() async {
+    await resolveTestCode('''
+class A {
+  @foo
+  void m() {}
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_annotation_staticMember() async {
+    await resolveTestCode('''
+class A {
+  const A();
+}
+
+@A.foo
+void f() {}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_annotation_staticMember_importPrefixed() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A {
+  const A();
+}
+''');
+    await resolveTestCode('''
+import 'a.dart' as p;
+
+class C {
+  @p.A.foo
+  void m() {}
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_constant() async {
+    await resolveTestCode('''
+class A {
+  static const x = foo;
+}
+''');
+    await assertNoFix();
+  }
 
   Future<void> test_dotShorthand_class() async {
     await resolveTestCode('''
@@ -409,6 +458,14 @@ void f() {
   print(v);
 }
 ''');
+  }
+
+  Future<void> test_dotShorthand_constant() async {
+    await resolveTestCode('''
+class A {}
+const A v = .test;
+''');
+    await assertNoFix();
   }
 
   Future<void> test_dotShorthand_enum() async {
@@ -451,7 +508,8 @@ A f() {
 }
 ''',
       filter: (diagnostic) {
-        return diagnostic.diagnosticCode == diag.dotShorthandUndefinedGetter;
+        return diagnostic.diagnosticCode ==
+            diag.undefinedStaticMemberReadNotFoundDotShorthand;
       },
     );
   }
@@ -474,7 +532,8 @@ A f() {
 }
 ''',
       filter: (diagnostic) {
-        return diagnostic.diagnosticCode == diag.dotShorthandUndefinedGetter;
+        return diagnostic.diagnosticCode ==
+            diag.undefinedStaticMemberReadNotFoundDotShorthand;
       },
     );
   }
@@ -776,6 +835,28 @@ class A {
   }
 }
 f(String s) {}
+''');
+  }
+
+  Future<void>
+  test_getter_unqualified_instance_asNamedInvocationArgument() async {
+    await resolveTestCode('''
+class A {
+  void m() {
+    f(name: test);
+  }
+}
+f({String? name}) {}
+''');
+    await assertHasFix('''
+class A {
+  String? test;
+
+  void m() {
+    f(name: test);
+  }
+}
+f({String? name}) {}
 ''');
   }
 

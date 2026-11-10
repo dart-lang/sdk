@@ -9,7 +9,7 @@ import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
-import '../rules/prefer_single_quotes.dart';
+import 'prefer_single_quotes.dart';
 
 const _desc =
     r"Prefer double quotes where they won't require escape sequences.";

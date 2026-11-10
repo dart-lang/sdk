@@ -8,26 +8,24 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/listener.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for checking potentially nullable dereferences.
 class NullableDereferenceVerifier {
   final TypeSystemImpl _typeSystem;
   final DiagnosticReporter _diagnosticReporter;
 
-  /// The resolver driving this participant.
-  final ResolverVisitor _resolver;
+  /// The type analyzer driving this participant.
+  final TypeAnalyzer _typeAnalyzer;
 
-  NullableDereferenceVerifier({
-    required TypeSystemImpl typeSystem,
-    required DiagnosticReporter diagnosticReporter,
-    required ResolverVisitor resolver,
-  }) : _typeSystem = typeSystem,
-       _diagnosticReporter = diagnosticReporter,
-       _resolver = resolver;
+  new({
+    required this._typeSystem,
+    required this._diagnosticReporter,
+    required this._typeAnalyzer,
+  });
 
   bool expression(
     LocatableDiagnostic locatableDiagnostic,
@@ -71,10 +69,10 @@ class NullableDereferenceVerifier {
 
     List<DiagnosticMessage> messages = const [];
     if (errorNode is ExpressionImpl) {
-      messages = _resolver.computeWhyNotPromotedMessages(
+      messages = _typeAnalyzer.computeWhyNotPromotedMessages(
         errorNode,
-        _resolver.flowAnalysis.flow?.whyNotPromoted(
-          _resolver.flowAnalysis.getExpressionInfo(errorNode),
+        _typeAnalyzer.flowAnalysis.flow?.whyNotPromoted(
+          _typeAnalyzer.flowAnalysis.getExpressionInfo(errorNode),
         )(),
       );
     }

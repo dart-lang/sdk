@@ -27,13 +27,34 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
-      expression2: FunctionExpressionInvocation
-        function2: FunctionExpressionInvocation
-          function2: ParenthesizedExpression
+      expression2: CallInvocation
+        receiver: CallInvocation
+          receiver: ParenthesizedExpression
             leftParenthesis: (
-            expression2: SimpleIdentifier
+            expression2: ParsedUnqualifiedName
+              name: f
+            expression(v1): SimpleIdentifier
+              token: f
+            rightParenthesis: )
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+          rightBracket: >
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+      expression(v1): FunctionExpressionInvocation
+        function: FunctionExpressionInvocation
+          function: ParenthesizedExpression
+            leftParenthesis: (
+            expression: SimpleIdentifier
               token: f
             rightParenthesis: )
           argumentList: ArgumentList
@@ -67,6 +88,33 @@ foo Future<List<int>> bar() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      returnType: NamedType
+        name: foo
+      name: Future
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: List
+        rightBracket: >
+      formalParameters: FormalParameterList
+        leftParenthesis: ( <synthetic>
+        rightParenthesis: ) <synthetic>
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: { <synthetic>
+          rightBracket: } <synthetic>
+    TopLevelFunctionDeclaration
+      name: bar
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       returnType: NamedType
         name: foo
@@ -108,6 +156,46 @@ main() { C<@Foo T> v; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: main
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                type: NamedType
+                  name: C
+                  typeArguments: TypeArgumentList
+                    leftBracket: <
+                    arguments
+                      NamedType
+                        name: T
+                    rightBracket: >
+                variables
+                  LocalVariable
+                    name: v
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                type: NamedType
+                  name: C
+                  typeArguments: TypeArgumentList
+                    leftBracket: <
+                    arguments
+                      NamedType
+                        name: T
+                    rightBracket: >
+                variables
+                  VariableDeclaration
+                    name: v
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: main
       functionExpression: FunctionExpression
@@ -146,6 +234,46 @@ main() { C<@Foo.bar(1) T> v; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: main
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                type: NamedType
+                  name: C
+                  typeArguments: TypeArgumentList
+                    leftBracket: <
+                    arguments
+                      NamedType
+                        name: T
+                    rightBracket: >
+                variables
+                  LocalVariable
+                    name: v
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                type: NamedType
+                  name: C
+                  typeArguments: TypeArgumentList
+                    leftBracket: <
+                    arguments
+                      NamedType
+                        name: T
+                    rightBracket: >
+                variables
+                  VariableDeclaration
+                    name: v
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: main
       functionExpression: FunctionExpression
@@ -191,6 +319,253 @@ main() {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: main
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                type: NamedType
+                  name: C
+                  typeArguments: TypeArgumentList
+                    leftBracket: <
+                    arguments
+                      NamedType
+                        name: T
+                      GenericFunctionType
+                        returnType: NamedType
+                          name: F
+                        functionKeyword: Function
+                        typeParameters: TypeParameterList
+                          leftBracket: <
+                          typeParameters
+                            TypeParameter
+                              name: G
+                          rightBracket: >
+                        parameters: FormalParameterList
+                          leftParenthesis: (
+                          requiredPositionalFormalParameters
+                            RegularFormalParameter
+                              type: NamedType
+                                name: int
+                            RegularFormalParameter
+                              type: NamedType
+                                name: String
+                          delimitedFormalParameters: DelimitedFormalParameters
+                            leftDelimiter: {
+                            formalParameters
+                              RegularFormalParameter
+                                type: NamedType
+                                  name: Bar
+                                name: b
+                            rightDelimiter: }
+                          rightParenthesis: )
+                        parameters(v1): FormalParameterList
+                          leftParenthesis: (
+                          parameter: RegularFormalParameter
+                            type: NamedType
+                              name: int
+                          parameter: RegularFormalParameter
+                            type: NamedType
+                              name: String
+                          leftDelimiter: {
+                          parameter: RegularFormalParameter
+                            type: NamedType
+                              name: Bar
+                            name: b
+                          rightDelimiter: }
+                          rightParenthesis: )
+                      GenericFunctionType
+                        returnType: NamedType
+                          name: void
+                        functionKeyword: Function
+                        typeParameters: TypeParameterList
+                          leftBracket: <
+                          typeParameters
+                            TypeParameter
+                              name: H
+                          rightBracket: >
+                        parameters: FormalParameterList
+                          leftParenthesis: (
+                          requiredPositionalFormalParameters
+                            RegularFormalParameter
+                              type: NamedType
+                                name: int
+                              name: i
+                          delimitedFormalParameters: DelimitedFormalParameters
+                            leftDelimiter: [
+                            formalParameters
+                              RegularFormalParameter
+                                type: NamedType
+                                  name: String
+                                name: j
+                              RegularFormalParameter
+                                type: NamedType
+                                  name: K
+                            rightDelimiter: ]
+                          rightParenthesis: )
+                        parameters(v1): FormalParameterList
+                          leftParenthesis: (
+                          parameter: RegularFormalParameter
+                            type: NamedType
+                              name: int
+                            name: i
+                          leftDelimiter: [
+                          parameter: RegularFormalParameter
+                            type: NamedType
+                              name: String
+                            name: j
+                          parameter: RegularFormalParameter
+                            type: NamedType
+                              name: K
+                          rightDelimiter: ]
+                          rightParenthesis: )
+                      NamedType
+                        name: A
+                        typeArguments: TypeArgumentList
+                          leftBracket: <
+                          arguments
+                            NamedType
+                              name: B
+                              typeArguments: TypeArgumentList
+                                leftBracket: <
+                                arguments
+                                  NamedType
+                                    name: C
+                                rightBracket: >
+                          rightBracket: >
+                      NamedType
+                        name: W
+                        typeArguments: TypeArgumentList
+                          leftBracket: <
+                          arguments
+                            NamedType
+                              name: X
+                              typeArguments: TypeArgumentList
+                                leftBracket: <
+                                arguments
+                                  NamedType
+                                    name: Y
+                                    typeArguments: TypeArgumentList
+                                      leftBracket: <
+                                      arguments
+                                        NamedType
+                                          name: Z
+                                      rightBracket: >
+                                rightBracket: >
+                          rightBracket: >
+                    rightBracket: >
+                variables
+                  LocalVariable
+                    name: v
+              semicolon: ;
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                type: NamedType
+                  name: C
+                  typeArguments: TypeArgumentList
+                    leftBracket: <
+                    arguments
+                      NamedType
+                        name: T
+                      GenericFunctionType
+                        returnType: NamedType
+                          name: F
+                        functionKeyword: Function
+                        typeParameters: TypeParameterList
+                          leftBracket: <
+                          typeParameters
+                            TypeParameter
+                              name: G
+                          rightBracket: >
+                        parameters: FormalParameterList
+                          leftParenthesis: (
+                          parameter: RegularFormalParameter
+                            type: NamedType
+                              name: int
+                          parameter: RegularFormalParameter
+                            type: NamedType
+                              name: String
+                          leftDelimiter: {
+                          parameter: RegularFormalParameter
+                            type: NamedType
+                              name: Bar
+                            name: b
+                          rightDelimiter: }
+                          rightParenthesis: )
+                      GenericFunctionType
+                        returnType: NamedType
+                          name: void
+                        functionKeyword: Function
+                        typeParameters: TypeParameterList
+                          leftBracket: <
+                          typeParameters
+                            TypeParameter
+                              name: H
+                          rightBracket: >
+                        parameters: FormalParameterList
+                          leftParenthesis: (
+                          parameter: RegularFormalParameter
+                            type: NamedType
+                              name: int
+                            name: i
+                          leftDelimiter: [
+                          parameter: RegularFormalParameter
+                            type: NamedType
+                              name: String
+                            name: j
+                          parameter: RegularFormalParameter
+                            type: NamedType
+                              name: K
+                          rightDelimiter: ]
+                          rightParenthesis: )
+                      NamedType
+                        name: A
+                        typeArguments: TypeArgumentList
+                          leftBracket: <
+                          arguments
+                            NamedType
+                              name: B
+                              typeArguments: TypeArgumentList
+                                leftBracket: <
+                                arguments
+                                  NamedType
+                                    name: C
+                                rightBracket: >
+                          rightBracket: >
+                      NamedType
+                        name: W
+                        typeArguments: TypeArgumentList
+                          leftBracket: <
+                          arguments
+                            NamedType
+                              name: X
+                              typeArguments: TypeArgumentList
+                                leftBracket: <
+                                arguments
+                                  NamedType
+                                    name: Y
+                                    typeArguments: TypeArgumentList
+                                      leftBracket: <
+                                      arguments
+                                        NamedType
+                                          name: Z
+                                      rightBracket: >
+                                rightBracket: >
+                          rightBracket: >
+                    rightBracket: >
+                variables
+                  VariableDeclaration
+                    name: v
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: main
       functionExpression: FunctionExpression
@@ -222,24 +597,6 @@ CompilationUnit
                             rightBracket: >
                           parameters: FormalParameterList
                             leftParenthesis: (
-                            requiredPositionalFormalParameters
-                              RegularFormalParameter
-                                type: NamedType
-                                  name: int
-                              RegularFormalParameter
-                                type: NamedType
-                                  name: String
-                            delimitedFormalParameters: DelimitedFormalParameters
-                              leftDelimiter: {
-                              formalParameters
-                                RegularFormalParameter
-                                  type: NamedType
-                                    name: Bar
-                                  name: b
-                              rightDelimiter: }
-                            rightParenthesis: )
-                          parameters(v1): FormalParameterList
-                            leftParenthesis: (
                             parameter: RegularFormalParameter
                               type: NamedType
                                 name: int
@@ -264,25 +621,6 @@ CompilationUnit
                                 name: H
                             rightBracket: >
                           parameters: FormalParameterList
-                            leftParenthesis: (
-                            requiredPositionalFormalParameters
-                              RegularFormalParameter
-                                type: NamedType
-                                  name: int
-                                name: i
-                            delimitedFormalParameters: DelimitedFormalParameters
-                              leftDelimiter: [
-                              formalParameters
-                                RegularFormalParameter
-                                  type: NamedType
-                                    name: String
-                                  name: j
-                                RegularFormalParameter
-                                  type: NamedType
-                                    name: K
-                              rightDelimiter: ]
-                            rightParenthesis: )
-                          parameters(v1): FormalParameterList
                             leftParenthesis: (
                             parameter: RegularFormalParameter
                               type: NamedType
@@ -351,11 +689,13 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     AssertStatement
       assertKeyword: assert
       leftParenthesis: (
-      condition2: SimpleIdentifier
+      condition2: ParsedUnqualifiedName
+        name: x
+      condition(v1): SimpleIdentifier
         token: x
       rightParenthesis: )
       semicolon: ;
@@ -373,11 +713,13 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     AssertStatement
       assertKeyword: assert
       leftParenthesis: (
-      condition2: SimpleIdentifier
+      condition2: ParsedUnqualifiedName
+        name: x
+      condition(v1): SimpleIdentifier
         token: x
       comma: ,
       message2: ThrowExpression
@@ -400,11 +742,13 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     AssertStatement
       assertKeyword: assert
       leftParenthesis: (
-      condition2: SimpleIdentifier
+      condition2: ParsedUnqualifiedName
+        name: x
+      condition(v1): SimpleIdentifier
         token: x
       comma: ,
       message2: SimpleStringLiteral
@@ -425,11 +769,13 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     AssertStatement
       assertKeyword: assert
       leftParenthesis: (
-      condition2: SimpleIdentifier
+      condition2: ParsedUnqualifiedName
+        name: x
+      condition(v1): SimpleIdentifier
         token: x
       comma: ,
       message2: SimpleStringLiteral
@@ -450,11 +796,13 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     AssertStatement
       assertKeyword: assert
       leftParenthesis: (
-      condition2: SimpleIdentifier
+      condition2: ParsedUnqualifiedName
+        name: x
+      condition(v1): SimpleIdentifier
         token: x
       rightParenthesis: )
       semicolon: ;
@@ -472,7 +820,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     Block
       leftBracket: {
       rightBracket: }
@@ -492,10 +840,10 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     Block
       leftBracket: {
-      statements
+      statements2
         EmptyStatement
           semicolon: ;
       rightBracket: }
@@ -516,21 +864,21 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     LabeledStatement
       labels
         Label
           name: foo
           colon: :
-      statement: WhileStatement
+      statement2: WhileStatement
         whileKeyword: while
         leftParenthesis: (
         condition2: BooleanLiteral
           literal: true
         rightParenthesis: )
-        body: Block
+        body2: Block
           leftBracket: {
-          statements
+          statements2
             BreakStatement
               breakKeyword: break
               label: LabelReference
@@ -553,16 +901,16 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     WhileStatement
       whileKeyword: while
       leftParenthesis: (
       condition2: BooleanLiteral
         literal: true
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
-        statements
+        statements2
           BreakStatement
             breakKeyword: break
             semicolon: ;
@@ -584,21 +932,21 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     LabeledStatement
       labels
         Label
           name: foo
           colon: :
-      statement: WhileStatement
+      statement2: WhileStatement
         whileKeyword: while
         leftParenthesis: (
         condition2: BooleanLiteral
           literal: true
         rightParenthesis: )
-        body: Block
+        body2: Block
           leftBracket: {
-          statements
+          statements2
             ContinueStatement
               continueKeyword: continue
               label: LabelReference
@@ -621,16 +969,16 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     WhileStatement
       whileKeyword: while
       leftParenthesis: (
       condition2: BooleanLiteral
         literal: true
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
-        statements
+        statements2
           ContinueStatement
             continueKeyword: continue
             semicolon: ;
@@ -649,15 +997,17 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     DoStatement
       doKeyword: do
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
       whileKeyword: while
       leftParenthesis: (
-      condition2: SimpleIdentifier
+      condition2: ParsedUnqualifiedName
+        name: x
+      condition(v1): SimpleIdentifier
         token: x
       rightParenthesis: )
       semicolon: ;
@@ -678,6 +1028,28 @@ main() { else return 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: main
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: main
       functionExpression: FunctionExpression
@@ -689,12 +1061,12 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               ReturnStatement
                 returnKeyword: return
-                expression2: IntegerLiteral
+                expression: IntegerLiteral
                   literal: 0
                 semicolon: ;
             rightBracket: }
@@ -711,7 +1083,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     EmptyStatement
       semicolon: ;
   rightBracket: }
@@ -730,9 +1102,11 @@ void f() async {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
-      expression2: SimpleIdentifier
+      expression2: ParsedUnqualifiedName
+        name: $code
+      expression(v1): SimpleIdentifier
         token: $code
       semicolon: ; <synthetic>
   rightBracket: }
@@ -749,20 +1123,23 @@ void f() async {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       awaitKeyword: await
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForEachPartsWithIdentifier
-        identifier2: element
-        identifier(v1): SimpleIdentifier
-          token: element
+        target: UnqualifiedNameAssignmentTarget
+          name: element
         inKeyword: in
-        iterable2: SimpleIdentifier
+        iterable2: ParsedUnqualifiedName
+          name: list
+        iterable(v1): SimpleIdentifier
           token: list
+        identifier: SimpleIdentifier
+          token: element
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -779,7 +1156,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
@@ -788,10 +1165,12 @@ Block
           keyword: final
           name: external
         inKeyword: in
-        iterable2: SimpleIdentifier
+        iterable2: ParsedUnqualifiedName
+          name: list
+        iterable(v1): SimpleIdentifier
           token: list
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -808,7 +1187,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
@@ -817,10 +1196,12 @@ Block
           keyword: final
           name: required
         inKeyword: in
-        iterable2: SimpleIdentifier
+        iterable2: ParsedUnqualifiedName
+          name: list
+        iterable(v1): SimpleIdentifier
           token: list
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -837,7 +1218,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
@@ -868,10 +1249,12 @@ Block
               rightParenthesis: )
           name: element
         inKeyword: in
-        iterable2: SimpleIdentifier
+        iterable2: ParsedUnqualifiedName
+          name: list
+        iterable(v1): SimpleIdentifier
           token: list
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -888,7 +1271,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
@@ -919,10 +1302,12 @@ Block
               rightParenthesis: )
           name: element
         inKeyword: in
-        iterable2: SimpleIdentifier
+        iterable2: ParsedUnqualifiedName
+          name: list
+        iterable(v1): SimpleIdentifier
           token: list
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -939,19 +1324,22 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForEachPartsWithIdentifier
-        identifier2: element
-        identifier(v1): SimpleIdentifier
-          token: element
+        target: UnqualifiedNameAssignmentTarget
+          name: element
         inKeyword: in
-        iterable2: SimpleIdentifier
+        iterable2: ParsedUnqualifiedName
+          name: list
+        iterable(v1): SimpleIdentifier
           token: list
+        identifier: SimpleIdentifier
+          token: element
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -968,19 +1356,22 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForEachPartsWithIdentifier
-        identifier2: element
-        identifier(v1): SimpleIdentifier
-          token: element
+        target: UnqualifiedNameAssignmentTarget
+          name: element
         inKeyword: in
-        iterable2: SimpleIdentifier
+        iterable2: ParsedUnqualifiedName
+          name: list
+        iterable(v1): SimpleIdentifier
           token: list
+        identifier: SimpleIdentifier
+          token: element
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -997,7 +1388,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
@@ -1006,15 +1397,19 @@ Block
           metadata
             Annotation
               atSign: @
+              expression: ParsedUnqualifiedName
+                name: A
               name: SimpleIdentifier
                 token: A
           keyword: var
           name: element
         inKeyword: in
-        iterable2: SimpleIdentifier
+        iterable2: ParsedUnqualifiedName
+          name: list
+        iterable(v1): SimpleIdentifier
           token: list
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -1031,7 +1426,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
@@ -1040,15 +1435,19 @@ Block
           metadata
             Annotation
               atSign: @
+              expression: ParsedUnqualifiedName
+                name: A
               name: SimpleIdentifier
                 token: A
           keyword: var
           name: element
         inKeyword: in
-        iterable2: SimpleIdentifier
+        iterable2: ParsedUnqualifiedName
+          name: list
+        iterable(v1): SimpleIdentifier
           token: list
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -1065,7 +1464,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
@@ -1075,10 +1474,12 @@ Block
             name: A
           name: element
         inKeyword: in
-        iterable2: SimpleIdentifier
+        iterable2: ParsedUnqualifiedName
+          name: list
+        iterable(v1): SimpleIdentifier
           token: list
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -1095,7 +1496,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
@@ -1105,10 +1506,12 @@ Block
             name: A
           name: element
         inKeyword: in
-        iterable2: SimpleIdentifier
+        iterable2: ParsedUnqualifiedName
+          name: list
+        iterable(v1): SimpleIdentifier
           token: list
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -1125,7 +1528,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
@@ -1134,10 +1537,12 @@ Block
           keyword: var
           name: element
         inKeyword: in
-        iterable2: SimpleIdentifier
+        iterable2: ParsedUnqualifiedName
+          name: list
+        iterable(v1): SimpleIdentifier
           token: list
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -1154,7 +1559,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
@@ -1163,10 +1568,12 @@ Block
           keyword: var
           name: element
         inKeyword: in
-        iterable2: SimpleIdentifier
+        iterable2: ParsedUnqualifiedName
+          name: list
+        iterable(v1): SimpleIdentifier
           token: list
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -1183,18 +1590,18 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: i
+          leftOperand: ParsedUnqualifiedName
+            name: i
           operator: <
-          rightOperand: SimpleIdentifier
-            token: count
+          rightOperand: ParsedUnqualifiedName
+            name: count
           binaryOperator: lessThan
         condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
@@ -1204,7 +1611,7 @@ Block
             token: count
         rightSeparator: ;
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -1221,18 +1628,18 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: i
+          leftOperand: ParsedUnqualifiedName
+            name: i
           operator: <
-          rightOperand: SimpleIdentifier
-            token: count
+          rightOperand: ParsedUnqualifiedName
+            name: count
           binaryOperator: lessThan
         condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
@@ -1242,7 +1649,7 @@ Block
             token: count
         rightSeparator: ;
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -1259,18 +1666,18 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: i
+          leftOperand: ParsedUnqualifiedName
+            name: i
           operator: <
-          rightOperand: SimpleIdentifier
-            token: count
+          rightOperand: ParsedUnqualifiedName
+            name: count
           binaryOperator: lessThan
         condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
@@ -1280,17 +1687,19 @@ Block
             token: count
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
               token: i
             operator: ++
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -1307,18 +1716,18 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: i
+          leftOperand: ParsedUnqualifiedName
+            name: i
           operator: <
-          rightOperand: SimpleIdentifier
-            token: count
+          rightOperand: ParsedUnqualifiedName
+            name: count
           binaryOperator: lessThan
         condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
@@ -1328,17 +1737,19 @@ Block
             token: count
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
               token: i
             operator: ++
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -1355,26 +1766,28 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
-        initialization2: PostfixDecrement
+        initialization2: IncrementOrDecrementExpression
           target: UnqualifiedNameAssignmentTarget
             name: i
           operator: --
+          operation: decrement
+          position: postfix
         initialization(v1): PostfixExpression
           operand: SimpleIdentifier
             token: i
           operator: --
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: i
+          leftOperand: ParsedUnqualifiedName
+            name: i
           operator: <
-          rightOperand: SimpleIdentifier
-            token: count
+          rightOperand: ParsedUnqualifiedName
+            name: count
           binaryOperator: lessThan
         condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
@@ -1384,17 +1797,19 @@ Block
             token: count
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
               token: i
             operator: ++
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -1411,26 +1826,28 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
-        initialization2: PostfixDecrement
+        initialization2: IncrementOrDecrementExpression
           target: UnqualifiedNameAssignmentTarget
             name: i
           operator: --
+          operation: decrement
+          position: postfix
         initialization(v1): PostfixExpression
           operand: SimpleIdentifier
             token: i
           operator: --
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: i
+          leftOperand: ParsedUnqualifiedName
+            name: i
           operator: <
-          rightOperand: SimpleIdentifier
-            token: count
+          rightOperand: ParsedUnqualifiedName
+            name: count
           binaryOperator: lessThan
         condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
@@ -1440,17 +1857,19 @@ Block
             token: count
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
               token: i
             operator: ++
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -1467,23 +1886,31 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithDeclarations
-        variables: VariableDeclarationList
+        variables2: LocalVariablesDeclaration
+          constFinalOrVarKeyword: var
+          variables
+            LocalVariable
+              name: i
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        variables(v1): VariableDeclarationList
           keyword: var
           variables
             VariableDeclaration
               name: i
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         leftSeparator: ;
         rightSeparator: ;
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -1500,23 +1927,31 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithDeclarations
-        variables: VariableDeclarationList
+        variables2: LocalVariablesDeclaration
+          constFinalOrVarKeyword: var
+          variables
+            LocalVariable
+              name: i
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        variables(v1): VariableDeclarationList
           keyword: var
           variables
             VariableDeclaration
               name: i
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         leftSeparator: ;
         rightSeparator: ;
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -1533,12 +1968,27 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithDeclarations
-        variables: VariableDeclarationList
+        variables2: LocalVariablesDeclaration
+          metadata
+            Annotation
+              atSign: @
+              expression: ParsedUnqualifiedName
+                name: A
+              name: SimpleIdentifier
+                token: A
+          constFinalOrVarKeyword: var
+          variables
+            LocalVariable
+              name: i
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        variables(v1): VariableDeclarationList
           metadata
             Annotation
               atSign: @
@@ -1549,12 +1999,12 @@ Block
             VariableDeclaration
               name: i
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         leftSeparator: ;
         rightSeparator: ;
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -1571,12 +2021,27 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithDeclarations
-        variables: VariableDeclarationList
+        variables2: LocalVariablesDeclaration
+          metadata
+            Annotation
+              atSign: @
+              expression: ParsedUnqualifiedName
+                name: A
+              name: SimpleIdentifier
+                token: A
+          constFinalOrVarKeyword: var
+          variables
+            LocalVariable
+              name: i
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        variables(v1): VariableDeclarationList
           metadata
             Annotation
               atSign: @
@@ -1587,12 +2052,12 @@ Block
             VariableDeclaration
               name: i
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         leftSeparator: ;
         rightSeparator: ;
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -1609,26 +2074,34 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithDeclarations
-        variables: VariableDeclarationList
+        variables2: LocalVariablesDeclaration
+          constFinalOrVarKeyword: var
+          variables
+            LocalVariable
+              name: i
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        variables(v1): VariableDeclarationList
           keyword: var
           variables
             VariableDeclaration
               name: i
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: i
+          leftOperand: ParsedUnqualifiedName
+            name: i
           operator: <
-          rightOperand: SimpleIdentifier
-            token: count
+          rightOperand: ParsedUnqualifiedName
+            name: count
           binaryOperator: lessThan
         condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
@@ -1638,7 +2111,7 @@ Block
             token: count
         rightSeparator: ;
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -1655,26 +2128,34 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithDeclarations
-        variables: VariableDeclarationList
+        variables2: LocalVariablesDeclaration
+          constFinalOrVarKeyword: var
+          variables
+            LocalVariable
+              name: i
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        variables(v1): VariableDeclarationList
           keyword: var
           variables
             VariableDeclaration
               name: i
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: i
+          leftOperand: ParsedUnqualifiedName
+            name: i
           operator: <
-          rightOperand: SimpleIdentifier
-            token: count
+          rightOperand: ParsedUnqualifiedName
+            name: count
           binaryOperator: lessThan
         condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
@@ -1684,7 +2165,7 @@ Block
             token: count
         rightSeparator: ;
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -1701,26 +2182,34 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithDeclarations
-        variables: VariableDeclarationList
+        variables2: LocalVariablesDeclaration
+          constFinalOrVarKeyword: var
+          variables
+            LocalVariable
+              name: i
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        variables(v1): VariableDeclarationList
           keyword: var
           variables
             VariableDeclaration
               name: i
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: i
+          leftOperand: ParsedUnqualifiedName
+            name: i
           operator: <
-          rightOperand: SimpleIdentifier
-            token: count
+          rightOperand: ParsedUnqualifiedName
+            name: count
           binaryOperator: lessThan
         condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
@@ -1730,17 +2219,19 @@ Block
             token: count
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
               token: i
             operator: ++
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -1757,26 +2248,34 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithDeclarations
-        variables: VariableDeclarationList
+        variables2: LocalVariablesDeclaration
+          constFinalOrVarKeyword: var
+          variables
+            LocalVariable
+              name: i
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        variables(v1): VariableDeclarationList
           keyword: var
           variables
             VariableDeclaration
               name: i
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: i
+          leftOperand: ParsedUnqualifiedName
+            name: i
           operator: <
-          rightOperand: SimpleIdentifier
-            token: count
+          rightOperand: ParsedUnqualifiedName
+            name: count
           binaryOperator: lessThan
         condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
@@ -1786,17 +2285,19 @@ Block
             token: count
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
               token: i
             operator: ++
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -1813,32 +2314,46 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithDeclarations
-        variables: VariableDeclarationList
+        variables2: LocalVariablesDeclaration
+          type: NamedType
+            name: int
+          variables
+            LocalVariable
+              name: i
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+            LocalVariable
+              name: j
+              equals: =
+              initializer: ParsedUnqualifiedName
+                name: count
+        variables(v1): VariableDeclarationList
           type: NamedType
             name: int
           variables
             VariableDeclaration
               name: i
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
             VariableDeclaration
               name: j
               equals: =
-              initializer2: SimpleIdentifier
+              initializer: SimpleIdentifier
                 token: count
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: i
+          leftOperand: ParsedUnqualifiedName
+            name: i
           operator: <
-          rightOperand: SimpleIdentifier
-            token: j
+          rightOperand: ParsedUnqualifiedName
+            name: j
           binaryOperator: lessThan
         condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
@@ -1848,14 +2363,18 @@ Block
             token: j
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
-          PostfixDecrement
+            operation: increment
+            position: postfix
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: j
             operator: --
+            operation: decrement
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -1866,7 +2385,7 @@ Block
               token: j
             operator: --
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -1883,32 +2402,46 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithDeclarations
-        variables: VariableDeclarationList
+        variables2: LocalVariablesDeclaration
+          type: NamedType
+            name: int
+          variables
+            LocalVariable
+              name: i
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+            LocalVariable
+              name: j
+              equals: =
+              initializer: ParsedUnqualifiedName
+                name: count
+        variables(v1): VariableDeclarationList
           type: NamedType
             name: int
           variables
             VariableDeclaration
               name: i
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
             VariableDeclaration
               name: j
               equals: =
-              initializer2: SimpleIdentifier
+              initializer: SimpleIdentifier
                 token: count
         leftSeparator: ;
         condition2: BinaryOperatorInvocation
-          leftOperand: SimpleIdentifier
-            token: i
+          leftOperand: ParsedUnqualifiedName
+            name: i
           operator: <
-          rightOperand: SimpleIdentifier
-            token: j
+          rightOperand: ParsedUnqualifiedName
+            name: j
           binaryOperator: lessThan
         condition(v1): BinaryExpression
           leftOperand: SimpleIdentifier
@@ -1918,14 +2451,18 @@ Block
             token: j
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
-          PostfixDecrement
+            operation: increment
+            position: postfix
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: j
             operator: --
+            operation: decrement
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
@@ -1936,7 +2473,7 @@ Block
               token: j
             operator: --
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -1953,33 +2490,43 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithDeclarations
-        variables: VariableDeclarationList
+        variables2: LocalVariablesDeclaration
+          constFinalOrVarKeyword: var
+          variables
+            LocalVariable
+              name: i
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        variables(v1): VariableDeclarationList
           keyword: var
           variables
             VariableDeclaration
               name: i
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         leftSeparator: ;
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
               token: i
             operator: ++
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -1996,33 +2543,43 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForPartsWithDeclarations
-        variables: VariableDeclarationList
+        variables2: LocalVariablesDeclaration
+          constFinalOrVarKeyword: var
+          variables
+            LocalVariable
+              name: i
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+        variables(v1): VariableDeclarationList
           keyword: var
           variables
             VariableDeclaration
               name: i
               equals: =
-              initializer2: IntegerLiteral
+              initializer: IntegerLiteral
                 literal: 0
         leftSeparator: ;
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
               token: i
             operator: ++
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -2039,7 +2596,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
@@ -2047,17 +2604,19 @@ Block
         leftSeparator: ;
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
               token: i
             operator: ++
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -2074,7 +2633,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
@@ -2082,17 +2641,19 @@ Block
         leftSeparator: ;
         rightSeparator: ;
         updaters2
-          PostfixIncrement
+          IncrementOrDecrementExpression
             target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
+            operation: increment
+            position: postfix
         updaters(v1)
           PostfixExpression
             operand: SimpleIdentifier
               token: i
             operator: ++
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -2109,7 +2670,36 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
+    LocalFunctionDeclaration
+      returnType: NamedType
+        name: void
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+            name: p
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: BinaryOperatorInvocation
+          leftOperand: ParsedUnqualifiedName
+            name: p
+          operator: *
+          rightOperand: IntegerLiteral
+            literal: 2
+          binaryOperator: multiply
+        expression(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: p
+          operator: *
+          rightOperand: IntegerLiteral
+            literal: 2
+        semicolon: ;
+  statements(v1)
     FunctionDeclarationStatement
       functionDeclaration: FunctionDeclaration
         returnType: NamedType
@@ -2118,14 +2708,6 @@ Block
         functionExpression: FunctionExpression
           parameters: FormalParameterList
             leftParenthesis: (
-            requiredPositionalFormalParameters
-              RegularFormalParameter
-                type: NamedType
-                  name: int
-                name: p
-            rightParenthesis: )
-          parameters(v1): FormalParameterList
-            leftParenthesis: (
             parameter: RegularFormalParameter
               type: NamedType
                 name: int
@@ -2133,14 +2715,7 @@ Block
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression2: BinaryOperatorInvocation
-              leftOperand: SimpleIdentifier
-                token: p
-              operator: *
-              rightOperand: IntegerLiteral
-                literal: 2
-              binaryOperator: multiply
-            expression(v1): BinaryExpression
+            expression: BinaryExpression
               leftOperand: SimpleIdentifier
                 token: p
               operator: *
@@ -2161,7 +2736,42 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
+    LocalFunctionDeclaration
+      returnType: NamedType
+        name: E
+      name: f
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: E
+        rightBracket: >
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: E
+            name: p
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: BinaryOperatorInvocation
+          leftOperand: ParsedUnqualifiedName
+            name: p
+          operator: *
+          rightOperand: IntegerLiteral
+            literal: 2
+          binaryOperator: multiply
+        expression(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: p
+          operator: *
+          rightOperand: IntegerLiteral
+            literal: 2
+        semicolon: ;
+  statements(v1)
     FunctionDeclarationStatement
       functionDeclaration: FunctionDeclaration
         returnType: NamedType
@@ -2176,14 +2786,6 @@ Block
             rightBracket: >
           parameters: FormalParameterList
             leftParenthesis: (
-            requiredPositionalFormalParameters
-              RegularFormalParameter
-                type: NamedType
-                  name: E
-                name: p
-            rightParenthesis: )
-          parameters(v1): FormalParameterList
-            leftParenthesis: (
             parameter: RegularFormalParameter
               type: NamedType
                 name: E
@@ -2191,14 +2793,7 @@ Block
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression2: BinaryOperatorInvocation
-              leftOperand: SimpleIdentifier
-                token: p
-              operator: *
-              rightOperand: IntegerLiteral
-                literal: 2
-              binaryOperator: multiply
-            expression(v1): BinaryExpression
+            expression: BinaryExpression
               leftOperand: SimpleIdentifier
                 token: p
               operator: *
@@ -2219,7 +2814,40 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
+    LocalFunctionDeclaration
+      name: f
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: E
+        rightBracket: >
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: E
+            name: p
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: BinaryOperatorInvocation
+          leftOperand: ParsedUnqualifiedName
+            name: p
+          operator: *
+          rightOperand: IntegerLiteral
+            literal: 2
+          binaryOperator: multiply
+        expression(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: p
+          operator: *
+          rightOperand: IntegerLiteral
+            literal: 2
+        semicolon: ;
+  statements(v1)
     FunctionDeclarationStatement
       functionDeclaration: FunctionDeclaration
         name: f
@@ -2232,14 +2860,6 @@ Block
             rightBracket: >
           parameters: FormalParameterList
             leftParenthesis: (
-            requiredPositionalFormalParameters
-              RegularFormalParameter
-                type: NamedType
-                  name: E
-                name: p
-            rightParenthesis: )
-          parameters(v1): FormalParameterList
-            leftParenthesis: (
             parameter: RegularFormalParameter
               type: NamedType
                 name: E
@@ -2247,14 +2867,7 @@ Block
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression2: BinaryOperatorInvocation
-              leftOperand: SimpleIdentifier
-                token: p
-              operator: *
-              rightOperand: IntegerLiteral
-                literal: 2
-              binaryOperator: multiply
-            expression(v1): BinaryExpression
+            expression: BinaryExpression
               leftOperand: SimpleIdentifier
                 token: p
               operator: *
@@ -2276,18 +2889,20 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     IfStatement
       ifKeyword: if
       leftParenthesis: (
-      expression2: SimpleIdentifier
+      expression2: ParsedUnqualifiedName
+        name: x
+      expression(v1): SimpleIdentifier
         token: x
       rightParenthesis: )
-      thenStatement: Block
+      thenStatement2: Block
         leftBracket: {
         rightBracket: }
       elseKeyword: else
-      elseStatement: Block
+      elseStatement2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -2307,17 +2922,17 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     IfStatement
       ifKeyword: if
       leftParenthesis: (
       expression2: BooleanLiteral
         literal: true
       rightParenthesis: )
-      thenStatement: EmptyStatement
+      thenStatement2: EmptyStatement
         semicolon: ;
       elseKeyword: else
-      elseStatement: EmptyStatement
+      elseStatement2: EmptyStatement
         semicolon: ;
   rightBracket: }
 ''');
@@ -2336,32 +2951,58 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     IfStatement
       ifKeyword: if
       leftParenthesis: (
-      expression2: SimpleIdentifier
+      expression2: ParsedUnqualifiedName
+        name: x
+      expression(v1): SimpleIdentifier
         token: x
       rightParenthesis: )
-      thenStatement: ExpressionStatement
-        expression2: MethodInvocation
+      thenStatement2: ExpressionStatement
+        expression2: ParsedValueArguments
+          operand: ParsedUnqualifiedName
+            name: f
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              ParsedUnqualifiedName
+                name: x
+            arguments(v1)
+              SimpleIdentifier
+                token: x
+            rightParenthesis: )
+        expression(v1): MethodInvocation
           methodName: SimpleIdentifier
             token: f
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments2
+            arguments
               SimpleIdentifier
                 token: x
             rightParenthesis: )
         semicolon: ;
       elseKeyword: else
-      elseStatement: ExpressionStatement
-        expression2: MethodInvocation
+      elseStatement2: ExpressionStatement
+        expression2: ParsedValueArguments
+          operand: ParsedUnqualifiedName
+            name: f
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              ParsedUnqualifiedName
+                name: y
+            arguments(v1)
+              SimpleIdentifier
+                token: y
+            rightParenthesis: )
+        expression(v1): MethodInvocation
           methodName: SimpleIdentifier
             token: f
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments2
+            arguments
               SimpleIdentifier
                 token: y
             rightParenthesis: )
@@ -2380,14 +3021,16 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     IfStatement
       ifKeyword: if
       leftParenthesis: (
-      expression2: SimpleIdentifier
+      expression2: ParsedUnqualifiedName
+        name: x
+      expression(v1): SimpleIdentifier
         token: x
       rightParenthesis: )
-      thenStatement: Block
+      thenStatement2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -2404,20 +3047,34 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     IfStatement
       ifKeyword: if
       leftParenthesis: (
-      expression2: SimpleIdentifier
+      expression2: ParsedUnqualifiedName
+        name: x
+      expression(v1): SimpleIdentifier
         token: x
       rightParenthesis: )
-      thenStatement: ExpressionStatement
-        expression2: MethodInvocation
+      thenStatement2: ExpressionStatement
+        expression2: ParsedValueArguments
+          operand: ParsedUnqualifiedName
+            name: f
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              ParsedUnqualifiedName
+                name: x
+            arguments(v1)
+              SimpleIdentifier
+                token: x
+            rightParenthesis: )
+        expression(v1): MethodInvocation
           methodName: SimpleIdentifier
             token: f
           argumentList: ArgumentList
             leftParenthesis: (
-            arguments2
+            arguments
               SimpleIdentifier
                 token: x
             rightParenthesis: )
@@ -2438,7 +3095,16 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        type: NamedType
+          name: int
+        variables
+          LocalVariable
+            name: i
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: NamedType
@@ -2461,7 +3127,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ListLiteral
         constKeyword: const
@@ -2482,7 +3148,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ListLiteral
         constKeyword: const
@@ -2508,7 +3174,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: SetOrMapLiteral
         constKeyword: const
@@ -2530,7 +3196,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: SetOrMapLiteral
         constKeyword: const
@@ -2559,7 +3225,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ConstructorInvocation
         keyword: const
@@ -2592,7 +3258,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ConstructorInvocation
         keyword: const
@@ -2645,7 +3311,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ConstructorInvocation
         keyword: const
@@ -2708,18 +3374,25 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
-      expression2: MethodInvocation
-        target2: ConstructorInvocation
-          keyword: new
-          constructorReference: ConstructorReference2
-            typeReference: ConstructorTypeReference
-              name: C
-          argumentList: ArgumentList
-            leftParenthesis: (
-            rightParenthesis: )
-        target(v1): InstanceCreationExpression
+      expression2: ParsedValueArguments
+        operand: ParsedNameAccess
+          operand: ConstructorInvocation
+            keyword: new
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: C
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+          operator: .
+          name: m
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+      expression(v1): MethodInvocation
+        target: InstanceCreationExpression
           keyword: new
           constructorName: ConstructorName
             type: NamedType
@@ -2748,7 +3421,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: BooleanLiteral
         literal: false
@@ -2767,7 +3440,17 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
+    LocalFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  statements(v1)
     FunctionDeclarationStatement
       functionDeclaration: FunctionDeclaration
         name: f
@@ -2793,24 +3476,31 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
+    LocalFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: void
+            name: g
+            functionTypedSuffix: FunctionTypedFormalParameterSuffix
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  statements(v1)
     FunctionDeclarationStatement
       functionDeclaration: FunctionDeclaration
         name: f
         functionExpression: FunctionExpression
           parameters: FormalParameterList
-            leftParenthesis: (
-            requiredPositionalFormalParameters
-              RegularFormalParameter
-                type: NamedType
-                  name: void
-                name: g
-                functionTypedSuffix: FunctionTypedFormalParameterSuffix
-                  formalParameters: FormalParameterList
-                    leftParenthesis: (
-                    rightParenthesis: )
-            rightParenthesis: )
-          parameters(v1): FormalParameterList
             leftParenthesis: (
             parameter: RegularFormalParameter
               type: NamedType
@@ -2839,10 +3529,10 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: DirectAssignment
-        target: IndexAssignmentTarget
+        target: ReceiverIndexAssignmentTarget
           receiver: FunctionExpression
             parameters: FormalParameterList
               leftParenthesis: (
@@ -2890,9 +3580,15 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
-      expression2: MethodInvocation
+      expression2: ParsedValueArguments
+        operand: ParsedUnqualifiedName
+          name: f
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+      expression(v1): MethodInvocation
         methodName: SimpleIdentifier
           token: f
         argumentList: ArgumentList
@@ -2915,10 +3611,10 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
-      expression2: FunctionExpressionInvocation
-        function2: FunctionExpression
+      expression2: CallInvocation
+        receiver: FunctionExpression
           parameters: FormalParameterList
             leftParenthesis: (
             requiredPositionalFormalParameters
@@ -2933,15 +3629,15 @@ Block
           body: BlockFunctionBody
             block: Block
               leftBracket: {
-              statements
+              statements2
                 ReturnStatement
                   returnKeyword: return
                   expression2: BinaryOperatorInvocation
-                    leftOperand: SimpleIdentifier
-                      token: a
+                    leftOperand: ParsedUnqualifiedName
+                      name: a
                     operator: +
-                    rightOperand: SimpleIdentifier
-                      token: a
+                    rightOperand: ParsedUnqualifiedName
+                      name: a
                     binaryOperator: add
                   expression(v1): BinaryExpression
                     leftOperand: SimpleIdentifier
@@ -2954,6 +3650,33 @@ Block
         argumentList: ArgumentList
           leftParenthesis: (
           arguments2
+            IntegerLiteral
+              literal: 3
+          rightParenthesis: )
+      expression(v1): FunctionExpressionInvocation
+        function: FunctionExpression
+          parameters: FormalParameterList
+            leftParenthesis: (
+            parameter: RegularFormalParameter
+              name: a
+            rightParenthesis: )
+          body: BlockFunctionBody
+            block: Block
+              leftBracket: {
+              statements
+                ReturnStatement
+                  returnKeyword: return
+                  expression: BinaryExpression
+                    leftOperand: SimpleIdentifier
+                      token: a
+                    operator: +
+                    rightOperand: SimpleIdentifier
+                      token: a
+                  semicolon: ;
+              rightBracket: }
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments
             IntegerLiteral
               literal: 3
           rightParenthesis: )
@@ -2972,7 +3695,40 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
+    LocalFunctionDeclaration
+      returnType: GenericFunctionType
+        returnType: NamedType
+          name: int
+        functionKeyword: Function
+        parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: int
+          rightParenthesis: )
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: String
+            name: s
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: NullLiteral
+          literal: null
+        semicolon: ;
+  statements(v1)
     FunctionDeclarationStatement
       functionDeclaration: FunctionDeclaration
         returnType: GenericFunctionType
@@ -2980,13 +3736,6 @@ Block
             name: int
           functionKeyword: Function
           parameters: FormalParameterList
-            leftParenthesis: (
-            requiredPositionalFormalParameters
-              RegularFormalParameter
-                type: NamedType
-                  name: int
-            rightParenthesis: )
-          parameters(v1): FormalParameterList
             leftParenthesis: (
             parameter: RegularFormalParameter
               type: NamedType
@@ -2996,14 +3745,6 @@ Block
         functionExpression: FunctionExpression
           parameters: FormalParameterList
             leftParenthesis: (
-            requiredPositionalFormalParameters
-              RegularFormalParameter
-                type: NamedType
-                  name: String
-                name: s
-            rightParenthesis: )
-          parameters(v1): FormalParameterList
-            leftParenthesis: (
             parameter: RegularFormalParameter
               type: NamedType
                 name: String
@@ -3011,7 +3752,7 @@ Block
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression2: NullLiteral
+            expression: NullLiteral
               literal: null
             semicolon: ;
   rightBracket: }
@@ -3028,7 +3769,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: NullLiteral
         literal: null
@@ -3047,10 +3788,19 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
-      expression2: MethodInvocation
-        target2: SimpleIdentifier
+      expression2: ParsedValueArguments
+        operand: ParsedNameAccess
+          operand: ParsedUnqualifiedName
+            name: library
+          operator: .
+          name: getName
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+      expression(v1): MethodInvocation
+        target: SimpleIdentifier
           token: library
         operator: .
         methodName: SimpleIdentifier
@@ -3073,7 +3823,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: BooleanLiteral
         literal: true
@@ -3092,10 +3842,15 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: AsExpression
-        expression2: PrefixedIdentifier
+        expression2: ParsedNameAccess
+          operand: ParsedUnqualifiedName
+            name: double
+          operator: .
+          name: nan
+        expression(v1): PrefixedIdentifier
           prefix: SimpleIdentifier
             token: double
           period: .
@@ -3119,7 +3874,20 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: final
+        type: NamedType
+          name: int
+        variables
+          LocalVariable
+            name: Function
+            equals: =
+            initializer: IntegerLiteral
+              literal: 0
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: final
@@ -3129,7 +3897,7 @@ Block
           VariableDeclaration
             name: Function
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
   rightBracket: }
@@ -3146,9 +3914,9 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
         type: GenericFunctionType
           returnType: NamedType
             name: int
@@ -3161,6 +3929,23 @@ Block
                   name: int
             rightParenthesis: )
           parameters(v1): FormalParameterList
+            leftParenthesis: (
+            parameter: RegularFormalParameter
+              type: NamedType
+                name: int
+            rightParenthesis: )
+        variables
+          LocalVariable
+            name: v
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        type: GenericFunctionType
+          returnType: NamedType
+            name: int
+          functionKeyword: Function
+          parameters: FormalParameterList
             leftParenthesis: (
             parameter: RegularFormalParameter
               type: NamedType
@@ -3185,9 +3970,9 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
         type: GenericFunctionType
           returnType: GenericFunctionType
             returnType: NamedType
@@ -3251,6 +4036,51 @@ Block
               name: x
             rightParenthesis: )
         variables
+          LocalVariable
+            name: v
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        type: GenericFunctionType
+          returnType: GenericFunctionType
+            returnType: NamedType
+              name: Function
+            functionKeyword: Function
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                type: NamedType
+                  name: int
+                name: x1
+              leftDelimiter: {
+              parameter: RegularFormalParameter
+                type: NamedType
+                  name: Function
+                name: x
+              rightDelimiter: }
+              rightParenthesis: )
+          functionKeyword: Function
+          typeParameters: TypeParameterList
+            leftBracket: <
+            typeParameters
+              TypeParameter
+                name: B
+                extendsKeyword: extends
+                bound: NamedType
+                  importPrefix: ImportPrefixReference
+                    name: core
+                    period: .
+                  name: int
+            rightBracket: >
+          parameters: FormalParameterList
+            leftParenthesis: (
+            parameter: RegularFormalParameter
+              type: NamedType
+                name: int
+              name: x
+            rightParenthesis: )
+        variables
           VariableDeclaration
             name: v
       semicolon: ;
@@ -3269,9 +4099,9 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
         type: GenericFunctionType
           returnType: GenericFunctionType
             functionKeyword: Function
@@ -3303,6 +4133,29 @@ Block
                 name: int
             rightParenthesis: )
         variables
+          LocalVariable
+            name: v
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        type: GenericFunctionType
+          returnType: GenericFunctionType
+            functionKeyword: Function
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                type: NamedType
+                  name: int
+              rightParenthesis: )
+          functionKeyword: Function
+          parameters: FormalParameterList
+            leftParenthesis: (
+            parameter: RegularFormalParameter
+              type: NamedType
+                name: int
+            rightParenthesis: )
+        variables
           VariableDeclaration
             name: v
       semicolon: ;
@@ -3321,9 +4174,9 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
         type: GenericFunctionType
           returnType: GenericFunctionType
             returnType: NamedType
@@ -3357,6 +4210,31 @@ Block
                 name: int
             rightParenthesis: )
         variables
+          LocalVariable
+            name: v
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        type: GenericFunctionType
+          returnType: GenericFunctionType
+            returnType: NamedType
+              name: int
+            functionKeyword: Function
+            parameters: FormalParameterList
+              leftParenthesis: (
+              parameter: RegularFormalParameter
+                type: NamedType
+                  name: int
+              rightParenthesis: )
+          functionKeyword: Function
+          parameters: FormalParameterList
+            leftParenthesis: (
+            parameter: RegularFormalParameter
+              type: NamedType
+                name: int
+            rightParenthesis: )
+        variables
           VariableDeclaration
             name: v
       semicolon: ;
@@ -3375,9 +4253,9 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
         type: GenericFunctionType
           functionKeyword: Function
           parameters: FormalParameterList
@@ -3388,6 +4266,21 @@ Block
                   name: int
             rightParenthesis: )
           parameters(v1): FormalParameterList
+            leftParenthesis: (
+            parameter: RegularFormalParameter
+              type: NamedType
+                name: int
+            rightParenthesis: )
+        variables
+          LocalVariable
+            name: v
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        type: GenericFunctionType
+          functionKeyword: Function
+          parameters: FormalParameterList
             leftParenthesis: (
             parameter: RegularFormalParameter
               type: NamedType
@@ -3411,7 +4304,27 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        type: GenericFunctionType
+          returnType: NamedType
+            name: int
+          functionKeyword: Function
+          typeParameters: TypeParameterList
+            leftBracket: <
+            typeParameters
+              TypeParameter
+                name: T
+            rightBracket: >
+          parameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
+        variables
+          LocalVariable
+            name: v
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: GenericFunctionType
@@ -3446,7 +4359,21 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        type: GenericFunctionType
+          returnType: NamedType
+            name: void
+          functionKeyword: Function
+          parameters: FormalParameterList
+            leftParenthesis: (
+            rightParenthesis: )
+        variables
+          LocalVariable
+            name: v
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: GenericFunctionType
@@ -3474,7 +4401,22 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        type: NamedType
+          name: C
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: T
+            rightBracket: >
+        variables
+          LocalVariable
+            name: v
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: NamedType
@@ -3503,7 +4445,22 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        type: NamedType
+          name: C
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: T
+            rightBracket: >
+        variables
+          LocalVariable
+            name: v
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: NamedType
@@ -3532,9 +4489,9 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
-    VariableDeclarationStatement
-      variables: VariableDeclarationList
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
         type: NamedType
           name: C
           typeArguments: TypeArgumentList
@@ -3553,6 +4510,30 @@ Block
                       name: s
                   rightParenthesis: )
                 parameters(v1): FormalParameterList
+                  leftParenthesis: (
+                  parameter: RegularFormalParameter
+                    type: NamedType
+                      name: String
+                    name: s
+                  rightParenthesis: )
+            rightBracket: >
+        variables
+          LocalVariable
+            name: v
+      semicolon: ;
+  statements(v1)
+    VariableDeclarationStatement
+      variables: VariableDeclarationList
+        type: NamedType
+          name: C
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              GenericFunctionType
+                returnType: NamedType
+                  name: T
+                functionKeyword: Function
+                parameters: FormalParameterList
                   leftParenthesis: (
                   parameter: RegularFormalParameter
                     type: NamedType
@@ -3580,7 +4561,22 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        type: NamedType
+          name: C
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: <empty> <synthetic>
+            rightBracket: >
+        variables
+          LocalVariable
+            name: c
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: NamedType
@@ -3609,7 +4605,67 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
+    LocalFunctionDeclaration
+      returnType: GenericFunctionType
+        returnType: NamedType
+          name: void
+        functionKeyword: Function
+        typeParameters: TypeParameterList
+          leftBracket: <
+          typeParameters
+            TypeParameter
+              name: A
+          rightBracket: >
+        parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                importPrefix: ImportPrefixReference
+                  name: core
+                  period: .
+                name: List
+                typeArguments: TypeArgumentList
+                  leftBracket: <
+                  arguments
+                    NamedType
+                      importPrefix: ImportPrefixReference
+                        name: core
+                        period: .
+                      name: int
+                  rightBracket: >
+              name: x
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              importPrefix: ImportPrefixReference
+                name: core
+                period: .
+              name: List
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    importPrefix: ImportPrefixReference
+                      name: core
+                      period: .
+                    name: int
+                rightBracket: >
+            name: x
+          rightParenthesis: )
+      name: m
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: NullLiteral
+          literal: null
+        semicolon: ;
+  statements(v1)
     FunctionDeclarationStatement
       functionDeclaration: FunctionDeclaration
         returnType: GenericFunctionType
@@ -3623,26 +4679,6 @@ Block
                 name: A
             rightBracket: >
           parameters: FormalParameterList
-            leftParenthesis: (
-            requiredPositionalFormalParameters
-              RegularFormalParameter
-                type: NamedType
-                  importPrefix: ImportPrefixReference
-                    name: core
-                    period: .
-                  name: List
-                  typeArguments: TypeArgumentList
-                    leftBracket: <
-                    arguments
-                      NamedType
-                        importPrefix: ImportPrefixReference
-                          name: core
-                          period: .
-                        name: int
-                    rightBracket: >
-                name: x
-            rightParenthesis: )
-          parameters(v1): FormalParameterList
             leftParenthesis: (
             parameter: RegularFormalParameter
               type: NamedType
@@ -3668,7 +4704,7 @@ Block
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression2: NullLiteral
+            expression: NullLiteral
               literal: null
             semicolon: ;
   rightBracket: }
@@ -3685,7 +4721,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: BooleanLiteral
         literal: true
@@ -3704,7 +4740,28 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
+    LocalFunctionDeclaration
+      name: f
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: E
+        rightBracket: >
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: a
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  statements(v1)
     FunctionDeclarationStatement
       functionDeclaration: FunctionDeclaration
         name: f
@@ -3716,14 +4773,6 @@ Block
                 name: E
             rightBracket: >
           parameters: FormalParameterList
-            leftParenthesis: (
-            requiredPositionalFormalParameters
-              RegularFormalParameter
-                name: a
-              RegularFormalParameter
-                name: b
-            rightParenthesis: )
-          parameters(v1): FormalParameterList
             leftParenthesis: (
             parameter: RegularFormalParameter
               name: a
@@ -3748,7 +4797,24 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
+    LocalFunctionDeclaration
+      returnType: NamedType
+        name: int
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: a
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  statements(v1)
     FunctionDeclarationStatement
       functionDeclaration: FunctionDeclaration
         returnType: NamedType
@@ -3756,14 +4822,6 @@ Block
         name: f
         functionExpression: FunctionExpression
           parameters: FormalParameterList
-            leftParenthesis: (
-            requiredPositionalFormalParameters
-              RegularFormalParameter
-                name: a
-              RegularFormalParameter
-                name: b
-            rightParenthesis: )
-          parameters(v1): FormalParameterList
             leftParenthesis: (
             parameter: RegularFormalParameter
               name: a
@@ -3788,7 +4846,30 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
+    LocalFunctionDeclaration
+      returnType: NamedType
+        name: int
+      name: f
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: E
+        rightBracket: >
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: a
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  statements(v1)
     FunctionDeclarationStatement
       functionDeclaration: FunctionDeclaration
         returnType: NamedType
@@ -3802,14 +4883,6 @@ Block
                 name: E
             rightBracket: >
           parameters: FormalParameterList
-            leftParenthesis: (
-            requiredPositionalFormalParameters
-              RegularFormalParameter
-                name: a
-              RegularFormalParameter
-                name: b
-            rightParenthesis: )
-          parameters(v1): FormalParameterList
             leftParenthesis: (
             parameter: RegularFormalParameter
               name: a
@@ -3836,7 +4909,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     LabeledStatement
       labels
         Label
@@ -3845,9 +4918,11 @@ Block
         Label
           name: m
           colon: :
-      statement: ReturnStatement
+      statement2: ReturnStatement
         returnKeyword: return
-        expression2: SimpleIdentifier
+        expression2: ParsedUnqualifiedName
+          name: x
+        expression(v1): SimpleIdentifier
           token: x
         semicolon: ;
   rightBracket: }
@@ -3864,10 +4939,12 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ReturnStatement
       returnKeyword: return
-      expression2: SimpleIdentifier
+      expression2: ParsedUnqualifiedName
+        name: x
+      expression(v1): SimpleIdentifier
         token: x
       semicolon: ;
   rightBracket: }
@@ -3885,15 +4962,17 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     LabeledStatement
       labels
         Label
           name: l
           colon: :
-      statement: ReturnStatement
+      statement2: ReturnStatement
         returnKeyword: return
-        expression2: SimpleIdentifier
+        expression2: ParsedUnqualifiedName
+          name: x
+        expression(v1): SimpleIdentifier
           token: x
         semicolon: ;
   rightBracket: }
@@ -3913,11 +4992,13 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     SwitchStatement
       switchKeyword: switch
       leftParenthesis: (
-      expression2: SimpleIdentifier
+      expression2: ParsedUnqualifiedName
+        name: a
+      expression(v1): SimpleIdentifier
         token: a
       rightParenthesis: )
       leftBracket: {
@@ -3929,7 +5010,7 @@ Block
               expression2: IntegerLiteral
                 literal: 1
           colon: :
-          statements
+          statements2
             ReturnStatement
               returnKeyword: return
               expression2: SimpleStringLiteral
@@ -3950,11 +5031,13 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     SwitchStatement
       switchKeyword: switch
       leftParenthesis: (
-      expression2: SimpleIdentifier
+      expression2: ParsedUnqualifiedName
+        name: a
+      expression(v1): SimpleIdentifier
         token: a
       rightParenthesis: )
       leftBracket: {
@@ -3978,11 +5061,13 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     SwitchStatement
       switchKeyword: switch
       leftParenthesis: (
-      expression2: SimpleIdentifier
+      expression2: ParsedUnqualifiedName
+        name: a
+      expression(v1): SimpleIdentifier
         token: a
       rightParenthesis: )
       leftBracket: {
@@ -4028,11 +5113,13 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     SwitchStatement
       switchKeyword: switch
       leftParenthesis: (
-      expression2: SimpleIdentifier
+      expression2: ParsedUnqualifiedName
+        name: a
+      expression(v1): SimpleIdentifier
         token: a
       rightParenthesis: )
       leftBracket: {
@@ -4059,7 +5146,7 @@ Block
               expression2: IntegerLiteral
                 literal: 1
           colon: :
-          statements
+          statements2
             ReturnStatement
               returnKeyword: return
               semicolon: ;
@@ -4083,11 +5170,13 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     SwitchStatement
       switchKeyword: switch
       leftParenthesis: (
-      expression2: SimpleIdentifier
+      expression2: ParsedUnqualifiedName
+        name: a
+      expression(v1): SimpleIdentifier
         token: a
       rightParenthesis: )
       leftBracket: {
@@ -4126,11 +5215,13 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     SwitchStatement
       switchKeyword: switch
       leftParenthesis: (
-      expression2: SimpleIdentifier
+      expression2: ParsedUnqualifiedName
+        name: a
+      expression(v1): SimpleIdentifier
         token: a
       rightParenthesis: )
       leftBracket: {
@@ -4153,7 +5244,7 @@ Block
               colon: :
           keyword: default
           colon: :
-          statements
+          statements2
             ReturnStatement
               returnKeyword: return
               semicolon: ;
@@ -4178,11 +5269,13 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     SwitchStatement
       switchKeyword: switch
       leftParenthesis: (
-      expression2: SimpleIdentifier
+      expression2: ParsedUnqualifiedName
+        name: a
+      expression(v1): SimpleIdentifier
         token: a
       rightParenthesis: )
       leftBracket: {
@@ -4194,9 +5287,15 @@ Block
               expression2: IntegerLiteral
                 literal: 0
           colon: :
-          statements
+          statements2
             ExpressionStatement
-              expression2: MethodInvocation
+              expression2: ParsedValueArguments
+                operand: ParsedUnqualifiedName
+                  name: f
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+              expression(v1): MethodInvocation
                 methodName: SimpleIdentifier
                   token: f
                 argumentList: ArgumentList
@@ -4208,8 +5307,14 @@ Block
                 Label
                   name: l1
                   colon: :
-              statement: ExpressionStatement
-                expression2: MethodInvocation
+              statement2: ExpressionStatement
+                expression2: ParsedValueArguments
+                  operand: ParsedUnqualifiedName
+                    name: g
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                expression(v1): MethodInvocation
                   methodName: SimpleIdentifier
                     token: g
                   argumentList: ArgumentList
@@ -4234,7 +5339,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     TryStatement
       tryKeyword: try
       body: Block
@@ -4264,6 +5369,35 @@ main() { try {} catch (int e) { } }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: main
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: int
+                  comma: , <synthetic>
+                  stackTraceParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: {
+                    rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: main
       functionExpression: FunctionExpression
@@ -4308,7 +5442,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     TryStatement
       tryKeyword: try
       body: Block
@@ -4340,7 +5474,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     TryStatement
       tryKeyword: try
       body: Block
@@ -4372,7 +5506,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     TryStatement
       tryKeyword: try
       body: Block
@@ -4406,7 +5540,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     TryStatement
       tryKeyword: try
       body: Block
@@ -4443,7 +5577,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     TryStatement
       tryKeyword: try
       body: Block
@@ -4469,7 +5603,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     TryStatement
       tryKeyword: try
       body: Block
@@ -4518,7 +5652,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     TryStatement
       tryKeyword: try
       body: Block
@@ -4546,7 +5680,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     TryStatement
       tryKeyword: try
       body: Block
@@ -4583,7 +5717,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     TryStatement
       tryKeyword: try
       body: Block
@@ -4623,7 +5757,19 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        type: NamedType
+          name: int
+        variables
+          LocalVariable
+            name: set
+            equals: =
+            initializer: IntegerLiteral
+              literal: 0
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: NamedType
@@ -4632,7 +5778,7 @@ Block
           VariableDeclaration
             name: set
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
   rightBracket: }
@@ -4645,18 +5791,28 @@ var x = null;
 const a = 0;
 ''');
     var node =
-        (parseResult.findNode.unit.declarations.last
-                as TopLevelVariableDeclaration)
-            .variables;
+        parseResult.findNode.unit.declarations2.last
+            as TopLevelVariablesDeclaration;
     assertParsedNodeText(node, r'''
-VariableDeclarationList
-  keyword: const
+TopLevelVariablesDeclaration
+  constFinalOrVarKeyword: const
   variables
-    VariableDeclaration
+    TopLevelVariable
       name: a
       equals: =
-      initializer2: IntegerLiteral
+      initializer: IntegerLiteral
         literal: 0
+  semicolon: ;
+V1: TopLevelVariableDeclaration
+  variables: VariableDeclarationList
+    keyword: const
+    variables
+      VariableDeclaration
+        name: a
+        equals: =
+        initializer: IntegerLiteral
+          literal: 0
+  semicolon: ;
 ''');
   }
 
@@ -4666,17 +5822,26 @@ var x = null;
 const A a;
 ''');
     var node =
-        (parseResult.findNode.unit.declarations.last
-                as TopLevelVariableDeclaration)
-            .variables;
+        parseResult.findNode.unit.declarations2.last
+            as TopLevelVariablesDeclaration;
     assertParsedNodeText(node, r'''
-VariableDeclarationList
-  keyword: const
+TopLevelVariablesDeclaration
+  constFinalOrVarKeyword: const
   type: NamedType
     name: A
   variables
-    VariableDeclaration
+    TopLevelVariable
       name: a
+  semicolon: ;
+V1: TopLevelVariableDeclaration
+  variables: VariableDeclarationList
+    keyword: const
+    type: NamedType
+      name: A
+    variables
+      VariableDeclaration
+        name: a
+  semicolon: ;
 ''');
   }
 
@@ -4686,15 +5851,22 @@ var x = null;
 final a;
 ''');
     var node =
-        (parseResult.findNode.unit.declarations.last
-                as TopLevelVariableDeclaration)
-            .variables;
+        parseResult.findNode.unit.declarations2.last
+            as TopLevelVariablesDeclaration;
     assertParsedNodeText(node, r'''
-VariableDeclarationList
-  keyword: final
+TopLevelVariablesDeclaration
+  constFinalOrVarKeyword: final
   variables
-    VariableDeclaration
+    TopLevelVariable
       name: a
+  semicolon: ;
+V1: TopLevelVariableDeclaration
+  variables: VariableDeclarationList
+    keyword: final
+    variables
+      VariableDeclaration
+        name: a
+  semicolon: ;
 ''');
   }
 
@@ -4704,17 +5876,26 @@ var x = null;
 final A a;
 ''');
     var node =
-        (parseResult.findNode.unit.declarations.last
-                as TopLevelVariableDeclaration)
-            .variables;
+        parseResult.findNode.unit.declarations2.last
+            as TopLevelVariablesDeclaration;
     assertParsedNodeText(node, r'''
-VariableDeclarationList
-  keyword: final
+TopLevelVariablesDeclaration
+  constFinalOrVarKeyword: final
   type: NamedType
     name: A
   variables
-    VariableDeclaration
+    TopLevelVariable
       name: a
+  semicolon: ;
+V1: TopLevelVariableDeclaration
+  variables: VariableDeclarationList
+    keyword: final
+    type: NamedType
+      name: A
+    variables
+      VariableDeclaration
+        name: a
+  semicolon: ;
 ''');
   }
 
@@ -4724,20 +5905,32 @@ var x = null;
 A a, b, c;
 ''');
     var node =
-        (parseResult.findNode.unit.declarations.last
-                as TopLevelVariableDeclaration)
-            .variables;
+        parseResult.findNode.unit.declarations2.last
+            as TopLevelVariablesDeclaration;
     assertParsedNodeText(node, r'''
-VariableDeclarationList
+TopLevelVariablesDeclaration
   type: NamedType
     name: A
   variables
-    VariableDeclaration
+    TopLevelVariable
       name: a
-    VariableDeclaration
+    TopLevelVariable
       name: b
-    VariableDeclaration
+    TopLevelVariable
       name: c
+  semicolon: ;
+V1: TopLevelVariableDeclaration
+  variables: VariableDeclarationList
+    type: NamedType
+      name: A
+    variables
+      VariableDeclaration
+        name: a
+      VariableDeclaration
+        name: b
+      VariableDeclaration
+        name: c
+  semicolon: ;
 ''');
   }
 
@@ -4747,16 +5940,24 @@ var x = null;
 A a;
 ''');
     var node =
-        (parseResult.findNode.unit.declarations.last
-                as TopLevelVariableDeclaration)
-            .variables;
+        parseResult.findNode.unit.declarations2.last
+            as TopLevelVariablesDeclaration;
     assertParsedNodeText(node, r'''
-VariableDeclarationList
+TopLevelVariablesDeclaration
   type: NamedType
     name: A
   variables
-    VariableDeclaration
+    TopLevelVariable
       name: a
+  semicolon: ;
+V1: TopLevelVariableDeclaration
+  variables: VariableDeclarationList
+    type: NamedType
+      name: A
+    variables
+      VariableDeclaration
+        name: a
+  semicolon: ;
 ''');
   }
 
@@ -4766,19 +5967,30 @@ var x = null;
 var a, b, c;
 ''');
     var node =
-        (parseResult.findNode.unit.declarations.last
-                as TopLevelVariableDeclaration)
-            .variables;
+        parseResult.findNode.unit.declarations2.last
+            as TopLevelVariablesDeclaration;
     assertParsedNodeText(node, r'''
-VariableDeclarationList
-  keyword: var
+TopLevelVariablesDeclaration
+  constFinalOrVarKeyword: var
   variables
-    VariableDeclaration
+    TopLevelVariable
       name: a
-    VariableDeclaration
+    TopLevelVariable
       name: b
-    VariableDeclaration
+    TopLevelVariable
       name: c
+  semicolon: ;
+V1: TopLevelVariableDeclaration
+  variables: VariableDeclarationList
+    keyword: var
+    variables
+      VariableDeclaration
+        name: a
+      VariableDeclaration
+        name: b
+      VariableDeclaration
+        name: c
+  semicolon: ;
 ''');
   }
 
@@ -4788,15 +6000,22 @@ var x = null;
 var a;
 ''');
     var node =
-        (parseResult.findNode.unit.declarations.last
-                as TopLevelVariableDeclaration)
-            .variables;
+        parseResult.findNode.unit.declarations2.last
+            as TopLevelVariablesDeclaration;
     assertParsedNodeText(node, r'''
-VariableDeclarationList
-  keyword: var
+TopLevelVariablesDeclaration
+  constFinalOrVarKeyword: var
   variables
-    VariableDeclaration
+    TopLevelVariable
       name: a
+  semicolon: ;
+V1: TopLevelVariableDeclaration
+  variables: VariableDeclarationList
+    keyword: var
+    variables
+      VariableDeclaration
+        name: a
+  semicolon: ;
 ''');
   }
 
@@ -4810,7 +6029,19 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
+        variables
+          LocalVariable
+            name: x
+          LocalVariable
+            name: y
+          LocalVariable
+            name: z
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -4836,7 +6067,15 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
+    LocalVariablesDeclarationStatement
+      declaration: LocalVariablesDeclaration
+        constFinalOrVarKeyword: var
+        variables
+          LocalVariable
+            name: x
+      semicolon: ;
+  statements(v1)
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -4858,14 +6097,16 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     WhileStatement
       whileKeyword: while
       leftParenthesis: (
-      condition2: SimpleIdentifier
+      condition2: ParsedUnqualifiedName
+        name: x
+      condition(v1): SimpleIdentifier
         token: x
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -4882,11 +6123,13 @@ void f() async* {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     YieldStatement
       yieldKeyword: yield
       star: *
-      expression2: SimpleIdentifier
+      expression2: ParsedUnqualifiedName
+        name: x
+      expression(v1): SimpleIdentifier
         token: x
       semicolon: ;
   rightBracket: }
@@ -4903,10 +6146,12 @@ void f() async* {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     YieldStatement
       yieldKeyword: yield
-      expression2: SimpleIdentifier
+      expression2: ParsedUnqualifiedName
+        name: x
+      expression(v1): SimpleIdentifier
         token: x
       semicolon: ;
   rightBracket: }
@@ -4927,6 +6172,20 @@ Block
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: bar
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: <empty> <synthetic>
+          rightBracket: > <synthetic>
+      variables
+        TopLevelVariable
+          name: <empty> <synthetic>
+      semicolon: ; <synthetic>
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -4957,6 +6216,26 @@ foo <bar<
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: foo
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: bar
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: <empty> <synthetic>
+                rightBracket: > <synthetic>
+          rightBracket: > <synthetic>
+      variables
+        TopLevelVariable
+          name: <empty> <synthetic>
+      semicolon: ; <synthetic>
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType

@@ -6,6 +6,9 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/yaml/producer.dart';
 import 'package:analysis_server/src/services/completion/yaml/yaml_completion_generator.dart';
 import 'package:analysis_server/src/services/pub/pub_package_service.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:path/path.dart' as path;
 
 /// An object that represents the location of a package name.
 class PubPackageNameProducer extends KeyValueProducer {
@@ -78,7 +81,7 @@ class PubspecGenerator extends YamlCompletionGenerator {
       'flutter': EmptyProducer(),
       'sdk': EmptyProducer(),
     }),
-    'workspace': ListProducer(FilePathProducer()),
+    'workspace': ListProducer(WorkspacePackageProducer()),
     'resolution': EnumProducer(['external', 'local', 'workspace']),
     'dependencies': PubPackageNameProducer(),
     'dev_dependencies': PubPackageNameProducer(),
@@ -153,4 +156,53 @@ class PubspecGenerator extends YamlCompletionGenerator {
 
   @override
   Producer get topLevelProducer => pubspecProducer;
+}
+
+/// An object that represents the location of a workspace package path.
+class WorkspacePackageProducer extends Producer {
+  /// Initialize a producer whose valid values are package paths that can be
+  /// included in the workspace.
+  const new();
+
+  @override
+  List<CompletionSuggestion> suggestions(YamlCompletionRequest request) {
+    var provider = request.resourceProvider;
+    var pathContext = provider.pathContext;
+    var rootFolderPath = pathContext.dirname(request.filePath);
+    var rootFolder = provider.getFolder(rootFolderPath);
+
+    var packagePaths = <String>[];
+    var visitedFolders = <String>{};
+
+    void findPackages(Folder folder) {
+      try {
+        for (var child in folder.getChildren()) {
+          if (child is Folder) {
+            var name = child.shortName;
+            if (name.startsWith('.')) continue;
+            if (!visitedFolders.add(child.path)) continue;
+
+            var pubspec = child.getFile(file_paths.pubspecYaml);
+            if (pubspec.exists) {
+              var relativePath = pathContext.relative(
+                child.path,
+                from: rootFolderPath,
+              );
+              var posixPath = path.posix.joinAll(
+                pathContext.split(relativePath),
+              );
+              packagePaths.add(posixPath);
+            }
+            findPackages(child);
+          }
+        }
+      } on FileSystemException {
+        // Guard against I/O exceptions.
+      }
+    }
+
+    findPackages(rootFolder);
+    packagePaths.sort();
+    return [for (var packagePath in packagePaths) identifier(packagePath)];
+  }
 }

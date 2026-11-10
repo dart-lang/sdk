@@ -34,7 +34,7 @@ main() {
           astNodeForTesting: Node.placeholder(),
         ),
       ).equals(true);
-      check(tcg.constraints).isEmpty();
+      check(tcg.constraints).isEmpty;
     });
 
     group('Matching functions with positional parameters:', () {
@@ -75,8 +75,8 @@ main() {
             leftSchema: false,
             astNodeForTesting: Node.placeholder(),
           ),
-        ).isFalse();
-        check(tcg.constraints).isEmpty();
+        ).isFalse;
+        check(tcg.constraints).isEmpty;
       });
 
       test('Non-matching due to parameter types', () {
@@ -88,8 +88,8 @@ main() {
             leftSchema: false,
             astNodeForTesting: Node.placeholder(),
           ),
-        ).isFalse();
-        check(tcg.constraints).isEmpty();
+        ).isFalse;
+        check(tcg.constraints).isEmpty;
       });
 
       test('Non-matching due to optional parameters on RHS', () {
@@ -101,8 +101,8 @@ main() {
             leftSchema: false,
             astNodeForTesting: Node.placeholder(),
           ),
-        ).isFalse();
-        check(tcg.constraints).isEmpty();
+        ).isFalse;
+        check(tcg.constraints).isEmpty;
       });
 
       test('Non-matching due to more parameters being required on LHS', () {
@@ -114,8 +114,8 @@ main() {
             leftSchema: false,
             astNodeForTesting: Node.placeholder(),
           ),
-        ).isFalse();
-        check(tcg.constraints).isEmpty();
+        ).isFalse;
+        check(tcg.constraints).isEmpty;
       });
     });
 
@@ -183,8 +183,8 @@ main() {
             leftSchema: false,
             astNodeForTesting: Node.placeholder(),
           ),
-        ).isFalse();
-        check(tcg.constraints).isEmpty();
+        ).isFalse;
+        check(tcg.constraints).isEmpty;
       });
 
       test('Non-matching due to named parameter types', () {
@@ -196,8 +196,8 @@ main() {
             leftSchema: false,
             astNodeForTesting: Node.placeholder(),
           ),
-        ).isFalse();
-        check(tcg.constraints).isEmpty();
+        ).isFalse;
+        check(tcg.constraints).isEmpty;
       });
 
       test('Non-matching due to required named parameter on LHS', () {
@@ -209,8 +209,8 @@ main() {
             leftSchema: false,
             astNodeForTesting: Node.placeholder(),
           ),
-        ).isFalse();
-        check(tcg.constraints).isEmpty();
+        ).isFalse;
+        check(tcg.constraints).isEmpty;
       });
 
       test('Non-matching due to optional named parameter on RHS', () {
@@ -222,8 +222,8 @@ main() {
             leftSchema: false,
             astNodeForTesting: Node.placeholder(),
           ),
-        ).isFalse();
-        check(tcg.constraints).isEmpty();
+        ).isFalse;
+        check(tcg.constraints).isEmpty;
       });
 
       test(
@@ -237,8 +237,8 @@ main() {
               leftSchema: false,
               astNodeForTesting: Node.placeholder(),
             ),
-          ).isFalse();
-          check(tcg.constraints).isEmpty();
+          ).isFalse;
+          check(tcg.constraints).isEmpty;
         },
       );
     });
@@ -268,8 +268,8 @@ main() {
               leftSchema: false,
               astNodeForTesting: Node.placeholder(),
             ),
-          ).isFalse();
-          check(tcg.constraints).isEmpty();
+          ).isFalse;
+          check(tcg.constraints).isEmpty;
         },
       );
 
@@ -282,8 +282,8 @@ main() {
             leftSchema: false,
             astNodeForTesting: Node.placeholder(),
           ),
-        ).isFalse();
-        check(tcg.constraints).isEmpty();
+        ).isFalse;
+        check(tcg.constraints).isEmpty;
       });
     });
   });
@@ -299,7 +299,7 @@ main() {
           astNodeForTesting: Node.placeholder(),
         ),
       ).equals(true);
-      check(tcg.constraints).isEmpty();
+      check(tcg.constraints).isEmpty;
     });
 
     group('Matching records:', () {
@@ -340,8 +340,8 @@ main() {
             leftSchema: false,
             astNodeForTesting: Node.placeholder(),
           ),
-        ).isFalse();
-        check(tcg.constraints).isEmpty();
+        ).isFalse;
+        check(tcg.constraints).isEmpty;
       });
 
       test('Non-matching due to parameter numbers', () {
@@ -353,8 +353,8 @@ main() {
             leftSchema: false,
             astNodeForTesting: Node.placeholder(),
           ),
-        ).isFalse();
-        check(tcg.constraints).isEmpty();
+        ).isFalse;
+        check(tcg.constraints).isEmpty;
       });
 
       test('Non-matching due to more parameters on LHS', () {
@@ -366,8 +366,8 @@ main() {
             leftSchema: false,
             astNodeForTesting: Node.placeholder(),
           ),
-        ).isFalse();
-        check(tcg.constraints).isEmpty();
+        ).isFalse;
+        check(tcg.constraints).isEmpty;
       });
     });
 
@@ -381,7 +381,7 @@ main() {
             leftSchema: false,
             astNodeForTesting: Node.placeholder(),
           ),
-        ).isTrue();
+        ).isTrue;
         check(tcg.constraints).unorderedEquals([]);
       });
 
@@ -394,7 +394,7 @@ main() {
             leftSchema: false,
             astNodeForTesting: Node.placeholder(),
           ),
-        ).isTrue();
+        ).isTrue;
         check(tcg.constraints).unorderedEquals(['int <: T', 'String <: U']);
       });
 
@@ -407,7 +407,7 @@ main() {
             leftSchema: false,
             astNodeForTesting: Node.placeholder(),
           ),
-        ).isTrue();
+        ).isTrue;
         check(tcg.constraints).unorderedEquals(['T <: int', 'U <: String']);
       });
     });
@@ -422,7 +422,7 @@ main() {
             leftSchema: false,
             astNodeForTesting: Node.placeholder(),
           ),
-        ).isTrue();
+        ).isTrue;
         check(tcg.constraints).unorderedEquals([]);
       });
 
@@ -435,7 +435,7 @@ main() {
             leftSchema: false,
             astNodeForTesting: Node.placeholder(),
           ),
-        ).isTrue();
+        ).isTrue;
         check(tcg.constraints).unorderedEquals(['int <: T', 'String <: U']);
       });
 
@@ -448,7 +448,7 @@ main() {
             leftSchema: false,
             astNodeForTesting: Node.placeholder(),
           ),
-        ).isTrue();
+        ).isTrue;
         check(tcg.constraints).unorderedEquals(['T <: int', 'U <: String']);
       });
     });
@@ -463,8 +463,8 @@ main() {
             leftSchema: false,
             astNodeForTesting: Node.placeholder(),
           ),
-        ).isFalse();
-        check(tcg.constraints).isEmpty();
+        ).isFalse;
+        check(tcg.constraints).isEmpty;
       });
 
       test('Non-matching due to named parameter numbers', () {
@@ -476,8 +476,8 @@ main() {
             leftSchema: false,
             astNodeForTesting: Node.placeholder(),
           ),
-        ).isFalse();
-        check(tcg.constraints).isEmpty();
+        ).isFalse;
+        check(tcg.constraints).isEmpty;
       });
 
       test('Non-matching due to named parameter names', () {
@@ -489,8 +489,8 @@ main() {
             leftSchema: false,
             astNodeForTesting: Node.placeholder(),
           ),
-        ).isFalse();
-        check(tcg.constraints).isEmpty();
+        ).isFalse;
+        check(tcg.constraints).isEmpty;
       });
     });
   });
@@ -506,7 +506,7 @@ main() {
           leftSchema: false,
           astNodeForTesting: Node.placeholder(),
         ),
-      ).isTrue();
+      ).isTrue;
       check(tcg.constraints).deepEquals(['T <: int']);
     });
 
@@ -522,8 +522,8 @@ main() {
             leftSchema: false,
             astNodeForTesting: Node.placeholder(),
           ),
-        ).isFalse();
-        check(tcg.constraints).isEmpty();
+        ).isFalse;
+        check(tcg.constraints).isEmpty;
       },
     );
 
@@ -543,7 +543,7 @@ main() {
           leftSchema: false,
           astNodeForTesting: Node.placeholder(),
         ),
-      ).isTrue();
+      ).isTrue;
       check(tcg.constraints).deepEquals(['int <: T']);
     });
 
@@ -563,7 +563,7 @@ main() {
           leftSchema: true,
           astNodeForTesting: Node.placeholder(),
         ),
-      ).isTrue();
+      ).isTrue;
       check(tcg.constraints).deepEquals(['Future<_> <: T']);
     });
 
@@ -583,7 +583,7 @@ main() {
           leftSchema: false,
           astNodeForTesting: Node.placeholder(),
         ),
-      ).isTrue();
+      ).isTrue;
       check(tcg.constraints).deepEquals(['T <: Future<int>']);
     });
 
@@ -596,7 +596,7 @@ main() {
           leftSchema: false,
           astNodeForTesting: Node.placeholder(),
         ),
-      ).isTrue();
+      ).isTrue;
       check(tcg.constraints).deepEquals(['T <: dynamic']);
     });
 
@@ -612,8 +612,8 @@ main() {
           leftSchema: false,
           astNodeForTesting: Node.placeholder(),
         ),
-      ).isFalse();
-      check(tcg.constraints).isEmpty();
+      ).isFalse;
+      check(tcg.constraints).isEmpty;
     });
 
     test('Testing nested FutureOr as the lower bound of the constraint', () {
@@ -625,7 +625,7 @@ main() {
           leftSchema: false,
           astNodeForTesting: Node.placeholder(),
         ),
-      ).isTrue();
+      ).isTrue;
       check(tcg.constraints).deepEquals(['T <: dynamic', 'T <: dynamic']);
     });
 
@@ -640,8 +640,8 @@ main() {
           leftSchema: false,
           astNodeForTesting: Node.placeholder(),
         ),
-      ).isTrue();
-      check(tcg.constraints).isEmpty();
+      ).isTrue;
+      check(tcg.constraints).isEmpty;
     });
 
     test('Type matches FutureOr favoring the branch that matches', () {
@@ -656,7 +656,7 @@ main() {
           leftSchema: false,
           astNodeForTesting: Node.placeholder(),
         ),
-      ).isTrue();
+      ).isTrue;
       check(tcg.constraints).deepEquals(['T <: int']);
     });
 
@@ -670,8 +670,8 @@ main() {
             leftSchema: false,
             astNodeForTesting: Node.placeholder(),
           ),
-        ).isFalse();
-        check(tcg.constraints).isEmpty();
+        ).isFalse;
+        check(tcg.constraints).isEmpty;
       });
 
       test('Matches, according to CFE discrepancy', () {
@@ -685,7 +685,7 @@ main() {
             leftSchema: false,
             astNodeForTesting: Node.placeholder(),
           ),
-        ).isTrue();
+        ).isTrue;
         check(tcg.constraints).deepEquals(['T <: int']);
       });
     });
@@ -700,8 +700,8 @@ main() {
             leftSchema: false,
             astNodeForTesting: Node.placeholder(),
           ),
-        ).isFalse();
-        check(tcg.constraints).isEmpty();
+        ).isFalse;
+        check(tcg.constraints).isEmpty;
       });
 
       test('Matches, according to CFE discrepancy', () {
@@ -715,7 +715,7 @@ main() {
             leftSchema: false,
             astNodeForTesting: Node.placeholder(),
           ),
-        ).isTrue();
+        ).isTrue;
         check(tcg.constraints).deepEquals(['T <: int']);
       });
     });
@@ -732,7 +732,7 @@ main() {
           leftSchema: false,
           astNodeForTesting: Node.placeholder(),
         ),
-      ).isTrue();
+      ).isTrue;
       check(tcg.constraints).deepEquals(['T <: Null']);
     });
 
@@ -748,8 +748,8 @@ main() {
             leftSchema: false,
             astNodeForTesting: Node.placeholder(),
           ),
-        ).isFalse();
-        check(tcg.constraints).isEmpty();
+        ).isFalse;
+        check(tcg.constraints).isEmpty;
       },
     );
 
@@ -763,8 +763,8 @@ main() {
           leftSchema: false,
           astNodeForTesting: Node.placeholder(),
         ),
-      ).isFalse();
-      check(tcg.constraints).isEmpty();
+      ).isFalse;
+      check(tcg.constraints).isEmpty;
     });
 
     test('Both LHS and RHS nullable, matching', () {
@@ -776,7 +776,7 @@ main() {
           leftSchema: false,
           astNodeForTesting: Node.placeholder(),
         ),
-      ).isTrue();
+      ).isTrue;
       check(tcg.constraints).deepEquals(['T <: int']);
     });
 
@@ -789,8 +789,8 @@ main() {
           leftSchema: false,
           astNodeForTesting: Node.placeholder(),
         ),
-      ).isFalse();
-      check(tcg.constraints).isEmpty();
+      ).isFalse;
+      check(tcg.constraints).isEmpty;
     });
   });
 
@@ -811,7 +811,7 @@ main() {
           leftSchema: false,
           astNodeForTesting: Node.placeholder(),
         ),
-      ).isTrue();
+      ).isTrue;
       check(tcg.constraints).deepEquals(['Null <: T']);
     });
 
@@ -831,7 +831,7 @@ main() {
           leftSchema: false,
           astNodeForTesting: Node.placeholder(),
         ),
-      ).isTrue();
+      ).isTrue;
       check(tcg.constraints).deepEquals(['T <: int']);
     });
 
@@ -846,8 +846,8 @@ main() {
           leftSchema: false,
           astNodeForTesting: Node.placeholder(),
         ),
-      ).isTrue();
-      check(tcg.constraints).isEmpty();
+      ).isTrue;
+      check(tcg.constraints).isEmpty;
     });
 
     test('Dynamic matches Object?', () {
@@ -859,8 +859,8 @@ main() {
           leftSchema: false,
           astNodeForTesting: Node.placeholder(),
         ),
-      ).isTrue();
-      check(tcg.constraints).isEmpty();
+      ).isTrue;
+      check(tcg.constraints).isEmpty;
     });
 
     test('void matches Object?', () {
@@ -872,8 +872,8 @@ main() {
           leftSchema: false,
           astNodeForTesting: Node.placeholder(),
         ),
-      ).isTrue();
-      check(tcg.constraints).isEmpty();
+      ).isTrue;
+      check(tcg.constraints).isEmpty;
     });
 
     test('LHS not nullable, matches with no constraints', () {
@@ -885,8 +885,8 @@ main() {
           leftSchema: false,
           astNodeForTesting: Node.placeholder(),
         ),
-      ).isTrue();
-      check(tcg.constraints).isEmpty();
+      ).isTrue;
+      check(tcg.constraints).isEmpty;
     });
   });
 
@@ -915,7 +915,7 @@ main() {
             astNodeForTesting: Node.placeholder(),
           ),
         ).equals(false);
-        check(tcg.constraints).isEmpty();
+        check(tcg.constraints).isEmpty;
       });
 
       test('Contravariant, matching', () {
@@ -949,7 +949,7 @@ main() {
             astNodeForTesting: Node.placeholder(),
           ),
         ).equals(false);
-        check(tcg.constraints).isEmpty();
+        check(tcg.constraints).isEmpty;
       });
 
       test('Invariant, matching', () {
@@ -988,7 +988,7 @@ main() {
             astNodeForTesting: Node.placeholder(),
           ),
         ).equals(false);
-        check(tcg.constraints).isEmpty();
+        check(tcg.constraints).isEmpty;
       });
 
       test('Unrelated, matchable', () {
@@ -1007,7 +1007,7 @@ main() {
             astNodeForTesting: Node.placeholder(),
           ),
         ).equals(true);
-        check(tcg.constraints).isEmpty();
+        check(tcg.constraints).isEmpty;
       });
 
       test('Unrelated, not matchable', () {
@@ -1026,7 +1026,7 @@ main() {
             astNodeForTesting: Node.placeholder(),
           ),
         ).equals(true);
-        check(tcg.constraints).isEmpty();
+        check(tcg.constraints).isEmpty;
       });
     });
 
@@ -1071,7 +1071,7 @@ main() {
             astNodeForTesting: Node.placeholder(),
           ),
         ).equals(false);
-        check(tcg.constraints).isEmpty();
+        check(tcg.constraints).isEmpty;
       });
 
       test('RHS nullable', () {
@@ -1088,7 +1088,7 @@ main() {
             astNodeForTesting: Node.placeholder(),
           ),
         ).equals(false);
-        check(tcg.constraints).isEmpty();
+        check(tcg.constraints).isEmpty;
       });
     });
 
@@ -1101,8 +1101,8 @@ main() {
           leftSchema: false,
           astNodeForTesting: Node.placeholder(),
         ),
-      ).isNull();
-      check(tcg.constraints).isEmpty();
+      ).isNull;
+      check(tcg.constraints).isEmpty;
     });
 
     test('Non-interface type on RHS', () {
@@ -1114,8 +1114,8 @@ main() {
           leftSchema: false,
           astNodeForTesting: Node.placeholder(),
         ),
-      ).isNull();
-      check(tcg.constraints).isEmpty();
+      ).isNull;
+      check(tcg.constraints).isEmpty;
     });
   });
 
@@ -1132,7 +1132,7 @@ main() {
           leftSchema: false,
           astNodeForTesting: Node.placeholder(),
         ),
-      ).isTrue();
+      ).isTrue;
       check(tcg.constraints).unorderedEquals(['String <: T']);
     });
 
@@ -1148,7 +1148,7 @@ main() {
           leftSchema: false,
           astNodeForTesting: Node.placeholder(),
         ),
-      ).isTrue();
+      ).isTrue;
       check(tcg.constraints).unorderedEquals(['num <: T']);
     });
   });
@@ -1160,28 +1160,28 @@ main() {
         tcg.typeAnalyzerOperations.isKnownType(
           SharedTypeSchemaView(Type('String')),
         ),
-      ).isTrue();
+      ).isTrue;
       check(
         tcg.typeAnalyzerOperations.isKnownType(
           SharedTypeSchemaView(Type('dynamic')),
         ),
-      ).isTrue();
+      ).isTrue;
       check(
         tcg.typeAnalyzerOperations.isKnownType(
           SharedTypeSchemaView(Type('Object')),
         ),
-      ).isTrue();
+      ).isTrue;
       check(
         tcg.typeAnalyzerOperations.isKnownType(
           SharedTypeSchemaView(Type('void')),
         ),
-      ).isTrue();
+      ).isTrue;
       check(
         tcg.typeAnalyzerOperations.isKnownType(SharedTypeSchemaView(Type('T'))),
-      ).isTrue();
+      ).isTrue;
       check(
         tcg.typeAnalyzerOperations.isKnownType(SharedTypeSchemaView(Type('_'))),
-      ).isFalse();
+      ).isFalse;
     });
 
     test('Compound types', () {
@@ -1190,86 +1190,86 @@ main() {
         tcg.typeAnalyzerOperations.isKnownType(
           SharedTypeSchemaView(Type('List<String>')),
         ),
-      ).isTrue();
+      ).isTrue;
       check(
         tcg.typeAnalyzerOperations.isKnownType(
           SharedTypeSchemaView(Type('List<_>')),
         ),
-      ).isFalse();
+      ).isFalse;
       check(
         tcg.typeAnalyzerOperations.isKnownType(
           SharedTypeSchemaView(Type('List<List<int>>')),
         ),
-      ).isTrue();
+      ).isTrue;
       check(
         tcg.typeAnalyzerOperations.isKnownType(
           SharedTypeSchemaView(Type('List<List<_>>')),
         ),
-      ).isFalse();
+      ).isFalse;
       check(
         tcg.typeAnalyzerOperations.isKnownType(
           SharedTypeSchemaView(Type('dynamic Function()')),
         ),
-      ).isTrue();
+      ).isTrue;
       check(
         tcg.typeAnalyzerOperations.isKnownType(
           SharedTypeSchemaView(Type('_ Function()')),
         ),
-      ).isFalse();
+      ).isFalse;
       check(
         tcg.typeAnalyzerOperations.isKnownType(
           SharedTypeSchemaView(Type('int Function(int)')),
         ),
-      ).isTrue();
+      ).isTrue;
       check(
         tcg.typeAnalyzerOperations.isKnownType(
           SharedTypeSchemaView(Type('int Function(_)')),
         ),
-      ).isFalse();
+      ).isFalse;
       check(
         tcg.typeAnalyzerOperations.isKnownType(
           SharedTypeSchemaView(Type('int Function({String named})')),
         ),
-      ).isTrue();
+      ).isTrue;
       check(
         tcg.typeAnalyzerOperations.isKnownType(
           SharedTypeSchemaView(Type('int Function({_ named})')),
         ),
-      ).isFalse();
+      ).isFalse;
       check(
         tcg.typeAnalyzerOperations.isKnownType(
           SharedTypeSchemaView(Type('(int, String, Object)')),
         ),
-      ).isTrue();
+      ).isTrue;
       check(
         tcg.typeAnalyzerOperations.isKnownType(
           SharedTypeSchemaView(Type('(int, String, _)')),
         ),
-      ).isFalse();
+      ).isFalse;
       check(
         tcg.typeAnalyzerOperations.isKnownType(
           SharedTypeSchemaView(Type('(int, String, {dynamic named})')),
         ),
-      ).isTrue();
+      ).isTrue;
       check(
         tcg.typeAnalyzerOperations.isKnownType(
           SharedTypeSchemaView(Type('(int, String, {_ named})')),
         ),
-      ).isFalse();
+      ).isFalse;
       check(
         tcg.typeAnalyzerOperations.isKnownType(
           SharedTypeSchemaView(
             Type('(int, String, {List<dynamic> Function(int) named})'),
           ),
         ),
-      ).isTrue();
+      ).isTrue;
       check(
         tcg.typeAnalyzerOperations.isKnownType(
           SharedTypeSchemaView(
             Type('(int, String, {List<_> Function(int) named})'),
           ),
         ),
-      ).isFalse();
+      ).isFalse;
     });
   });
 }

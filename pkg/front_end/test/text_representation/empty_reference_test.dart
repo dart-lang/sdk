@@ -64,23 +64,35 @@ void testTypes() {
     new InterfaceType.byReference(
       unlinkedClassName,
       Nullability.nonNullable,
-      [],
+      DartTypeList.empty,
     ),
     '<unlinked-class-reference>',
   );
   testType(
-    new TypedefType.byReference(unlinkedClassName, Nullability.nonNullable, []),
+    new TypedefType.byReference(
+      unlinkedClassName,
+      Nullability.nonNullable,
+      DartTypeList.empty,
+    ),
     '<unlinked-typedef-reference>',
   );
 
   CanonicalName root = new CanonicalName.root();
   Reference rootReference = new Reference()..canonicalName = root;
   testType(
-    new InterfaceType.byReference(rootReference, Nullability.nonNullable, []),
+    new InterfaceType.byReference(
+      rootReference,
+      Nullability.nonNullable,
+      DartTypeList.empty,
+    ),
     '<root>',
   );
   testType(
-    new TypedefType.byReference(rootReference, Nullability.nonNullable, []),
+    new TypedefType.byReference(
+      rootReference,
+      Nullability.nonNullable,
+      DartTypeList.empty,
+    ),
     '<root>',
   );
 
@@ -90,12 +102,16 @@ void testTypes() {
     new InterfaceType.byReference(
       libraryReference,
       Nullability.nonNullable,
-      [],
+      DartTypeList.empty,
     ),
     'library lib',
   );
   testType(
-    new TypedefType.byReference(libraryReference, Nullability.nonNullable, []),
+    new TypedefType.byReference(
+      libraryReference,
+      Nullability.nonNullable,
+      DartTypeList.empty,
+    ),
     'library lib',
   );
 
@@ -105,7 +121,7 @@ void testTypes() {
     new InterfaceType.byReference(
       classNameReference,
       Nullability.nonNullable,
-      [],
+      DartTypeList.empty,
     ),
     'Class',
     verbose: 'library lib::Class',
@@ -114,7 +130,7 @@ void testTypes() {
     new TypedefType.byReference(
       classNameReference,
       Nullability.nonNullable,
-      [],
+      DartTypeList.empty,
     ),
     'Class',
     verbose: 'library lib::Class',

@@ -46,7 +46,7 @@ class StringScanner extends AbstractScanner {
   @override
   int scanOffset = -1;
 
-  StringScanner(
+  new(
     this._string, {
     ScannerConfiguration? configuration,
     bool includeComments = false,
@@ -59,7 +59,7 @@ class StringScanner extends AbstractScanner {
          numberOfBytesHint: _string.length,
        );
 
-  StringScanner.recoveryOptionScanner(StringScanner super.copyFrom)
+  new recoveryOptionScanner(StringScanner super.copyFrom)
     : _string = copyFrom._string,
       _stringLengthMinusOne = copyFrom._stringLengthMinusOne,
       scanOffset = copyFrom.scanOffset,
@@ -87,9 +87,8 @@ class StringScanner extends AbstractScanner {
   }
 
   @override
-  @pragma('vm:unsafe:no-bounds-checks')
   int current() {
-    if (scanOffset > _stringLengthMinusOne) return $EOF;
+    if (scanOffset < 0 || scanOffset > _stringLengthMinusOne) return $EOF;
     return _string.codeUnitAt(scanOffset);
   }
 
@@ -160,7 +159,11 @@ class StringScanner extends AbstractScanner {
       start,
       scanOffset + extraOffset,
       tokenStart,
-      canonicalize: true,
+      // Identifiers repeat a lot, so canonicalizing them saves memory. Other
+      // lexemes, like comments, are rarely worth it: a cache hit would save
+      // only a substring, while string literals and comments fill the
+      // canonicalization cache and make it prune repeatedly.
+      canonicalize: identical(type, TokenType.IDENTIFIER),
       precedingComments: comments,
       allowLazy: allowLazy,
     );
@@ -199,7 +202,6 @@ class StringScanner extends AbstractScanner {
       start,
       scanOffset + extraOffset,
       tokenStart,
-      canonicalize: true,
     );
   }
 
@@ -216,7 +218,6 @@ class StringScanner extends AbstractScanner {
       start,
       scanOffset + extraOffset,
       tokenStart,
-      canonicalize: true,
     );
   }
 
@@ -233,7 +234,6 @@ class StringScanner extends AbstractScanner {
       tokenStart,
       major,
       minor,
-      canonicalize: true,
     );
   }
 

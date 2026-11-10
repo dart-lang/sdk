@@ -15,15 +15,12 @@ void main() {
 }
 
 @reflectiveTest
-class FlutterSwapWithChildTest extends AssistProcessorTest {
+class FlutterSwapWithChildTest extends BuiltInAssistProcessorTest {
   @override
-  AssistKind get kind => DartAssistKind.flutterSwapWithChild;
+  bool get addFlutterPackageDep => true;
 
   @override
-  void setUp() {
-    super.setUp();
-    writeTestPackageConfig(flutter: true);
-  }
+  AssistKind get kind => DartAssistKind.flutterSwapWithChild;
 
   Future<void> test_aroundCenter() async {
     await resolveTestCode('''

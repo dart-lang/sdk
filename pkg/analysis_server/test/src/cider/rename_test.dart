@@ -320,8 +320,7 @@ void f() {
 
   void test_rename_class_constructor_typeName_add() async {
     var testCode = '''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [new A] and [A.new]
+/// Documentation for [A.new]
 class A {
   ^A() {} // marker
   factory A._() = A;
@@ -337,8 +336,7 @@ void f() {
 
     var result = await _rename(testCode, 'newName');
     _assertTestChangeResult('''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [new A.newName] and [A.newName]
+/// Documentation for [A.newName]
 class A {
   A.newName() {} // marker
   factory A._() = A.newName;
@@ -355,8 +353,7 @@ void f() {
 
   void test_rename_class_constructor_typeName_change() async {
     var testCode = '''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [A.test] and [new A.test]
+/// Documentation for [A.test]
 class A {
   A.^test() {} // marker
   factory A._() = A.test;
@@ -372,8 +369,7 @@ void f() {
 
     var result = await _rename(testCode, 'newName');
     _assertTestChangeResult('''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [A.newName] and [new A.newName]
+/// Documentation for [A.newName]
 class A {
   A.newName() {} // marker
   factory A._() = A.newName;
@@ -390,8 +386,7 @@ void f() {
 
   void test_rename_class_constructor_typeName_remove() async {
     var testCode = '''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [A.test] and [new A.test]
+/// Documentation for [A.test]
 class A {
   A.^test() {} // marker
   factory A._() = A.test;
@@ -407,8 +402,7 @@ void f() {
 
     var result = await _rename(testCode, '');
     _assertTestChangeResult('''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [A] and [new A]
+/// Documentation for [A]
 class A {
   A() {} // marker
   factory A._() = A;
@@ -425,8 +419,7 @@ void f() {
 
   void test_rename_class_constructor_typeName_synthetic() async {
     var testCode = '''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [new A] and [A.new]
+/// Documentation for [A.new]
 class A {
   int field = 0;
 }
@@ -441,8 +434,7 @@ void f() {
 
     var result = await _rename(testCode, 'newName');
     _assertTestChangeResult('''
-// ignore: deprecated_new_in_comment_reference
-/// Documentation for [new A.newName] and [A.newName]
+/// Documentation for [A.newName]
 class A {
   int field = 0;
 

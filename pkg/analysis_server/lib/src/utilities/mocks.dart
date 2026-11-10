@@ -12,6 +12,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/plugin/plugin_isolate.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/dart/analysis/context_root.dart' as analyzer;
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
@@ -22,15 +23,15 @@ import 'package:watcher/watcher.dart';
 
 /// A mock [ServerCommunicationChannel] for testing [AnalysisServer].
 class MockServerChannel implements ServerCommunicationChannel {
-  /// A controller for the stream of requests and responses from the client to
-  /// the server.
+  /// A controller for the stream of requests, responses and notifications from
+  /// the client to the server.
   ///
   /// Messages added to this stream should be converted to/from JSON to ensure
   /// they are fully serialized/deserialized as they would be in a real server
   /// otherwise tests may receive real instances where in reality they would be
   /// maps.
-  StreamController<RequestOrResponse> requestController =
-      StreamController<RequestOrResponse>();
+  StreamController<ClientMessage> requestController =
+      StreamController<ClientMessage>();
 
   /// A controller for the stream of requests and responses from the server to
   /// the client.
@@ -73,7 +74,7 @@ class MockServerChannel implements ServerCommunicationChannel {
   }
 
   @override
-  Stream<RequestOrResponse> get requests => requestController.stream;
+  Stream<ClientMessage> get requests => requestController.stream;
 
   /// Return the broadcast stream of server-to-client requests.
   Stream<Request> get serverToClientRequests {
@@ -141,6 +142,29 @@ class MockServerChannel implements ServerCommunicationChannel {
 
     responsesReceived.add(response);
     responseController.add(response);
+  }
+
+  /// Send the given [notification] to the server as if it had been sent from
+  /// the client.
+  ///
+  /// A notification has no response, so there is nothing to wait for.
+  void simulateNotificationFromClient(Notification notification) {
+    if (_closed) {
+      throw Exception('simulateNotificationFromClient after connection closed');
+    }
+
+    var jsonString = jsonEncode(notification.toJson());
+    if (printMessages) {
+      print('==> $jsonString');
+    }
+
+    // Round-trip via JSON to ensure all types are fully serialized as they
+    // would be in a real setup.
+    notification = Notification.fromJson(
+      jsonDecode(jsonString) as Map<String, Object?>,
+    );
+
+    requestController.add(notification);
   }
 
   /// Send the given [request] to the server as if it had been sent from the
@@ -262,6 +286,7 @@ class TestPluginManager(final ResourceProvider resourceProvider)
   Map<PluginIsolate, Future<plugin.Response>>? Function(plugin.RequestParams)?
   handleRequest;
   Map<analyzer.ContextRoot, List<String>> contextRootPlugins = {};
+  File? Function(Folder pluginFolder)? onResolvePackageConfig;
 
   @override
   List<PluginIsolate> pluginIsolates = [];
@@ -274,6 +299,9 @@ class TestPluginManager(final ResourceProvider resourceProvider)
 
   @override
   final contextRootsWithNoPlugins = <String>{};
+
+  @override
+  final SessionLogger sessionListener = SessionLogger();
 
   @override
   InstrumentationService get instrumentationService =>
@@ -333,6 +361,17 @@ class TestPluginManager(final ResourceProvider resourceProvider)
   @override
   void removedContextRoot(analyzer.ContextRoot contextRoot) {
     contextRootPlugins.remove(contextRoot);
+  }
+
+  @override
+  File? resolvePackageConfig(Folder pluginFolder) {
+    if (onResolvePackageConfig case var callback?) {
+      return callback(pluginFolder);
+    }
+    var packageConfigFile = pluginFolder
+        .getFolder('.dart_tool')
+        .getFile('package_config.json');
+    return packageConfigFile.exists ? packageConfigFile : null;
   }
 
   @override

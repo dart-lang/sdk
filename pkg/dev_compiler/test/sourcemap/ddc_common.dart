@@ -6,7 +6,6 @@
 library dev_compiler.test.sourcemap.ddc_common;
 
 import 'dart:io';
-import 'dart:mirrors' show currentMirrorSystem;
 
 import 'package:_fe_analyzer_shared/src/testing/annotated_code_helper.dart';
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
@@ -214,17 +213,16 @@ void createHtmlWrapper({
   File.fromUri(outputFile.resolve('$outputFilename.html.js')).writeAsStringSync(
     jsContent.replaceFirst("from 'dart_sdk.js'", "from '$jsRootDart'"),
   );
-  File.fromUri(
-    outputFile.resolve('$outputFilename.html.html'),
-  ).writeAsStringSync(
-    getWrapperHtmlContent(
-      inputFile: inputFile,
-      jsRootDart: jsRootDart,
-      outFileRootBuild: '/root_build/$outputFilename.html.js',
-      moduleFormat: moduleFormat,
-      canary: canary,
-    ),
-  );
+  File.fromUri(outputFile.resolve('$outputFilename.html.html'))
+      .writeAsStringSync(
+        getWrapperHtmlContent(
+          inputFile: inputFile,
+          jsRootDart: jsRootDart,
+          outFileRootBuild: '/root_build/$outputFilename.html.js',
+          moduleFormat: moduleFormat,
+          canary: canary,
+        ),
+      );
 
   print(
     'You should now be able to run\n\n'
@@ -273,9 +271,7 @@ String getWrapperHtmlContent({
 ''';
 }
 
-Uri selfUri = currentMirrorSystem()
-    .findLibrary(#dev_compiler.test.sourcemap.ddc_common)
-    .uri;
+Uri selfUri = Platform.script.resolve('ddc_common.dart');
 String d8Preambles = File.fromUri(
   selfUri.resolve(
     '../../../../sdk/lib/_internal/js_dev_runtime/private/preambles/d8.js',

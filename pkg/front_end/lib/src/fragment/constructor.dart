@@ -6,8 +6,9 @@ part of 'fragment.dart';
 
 class ConstructorFragment implements Fragment, FunctionFragment {
   final ConstructorName constructorName;
+  @override
+  final UriOffsetLength uriOffset;
 
-  final Uri fileUri;
   final int startOffset;
   final int formalsOffset;
   final int endOffset;
@@ -36,16 +37,11 @@ class ConstructorFragment implements Fragment, FunctionFragment {
 
   ConstructorFragmentDeclaration? _declaration;
 
-  @override
-  late final UriOffsetLength uriOffset = new UriOffsetLength(
-    fileUri,
-    constructorName.fullNameOffset,
-    constructorName.fullNameLength,
-  );
+  final bool isComplete;
 
   new({
     required this.constructorName,
-    required this.fileUri,
+    required this.uriOffset,
     required this.startOffset,
     required this.formalsOffset,
     required this.endOffset,
@@ -60,10 +56,13 @@ class ConstructorFragment implements Fragment, FunctionFragment {
     required this.nativeMethodName,
     required this.forAbstractClassOrEnumOrMixin,
     required this.buildInitializersForOutline,
-    required Token? beginInitializers,
+    required this._beginInitializers,
     required this.enclosingDeclaration,
     required this.enclosingCompilationUnit,
-  }) : _beginInitializers = beginInitializers;
+    required this.isComplete,
+  });
+
+  Uri get fileUri => uriOffset.fileUri;
 
   Token? get initializersStartToken {
     Token? result = _beginInitializers;

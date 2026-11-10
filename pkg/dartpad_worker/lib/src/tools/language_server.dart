@@ -22,12 +22,15 @@ import 'package:analysis_server/src/services/correction/fix_internal.dart'
 import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:dartpad/src/dartpad_config.dart';
 import 'package:linter/src/rules.dart' as linter;
 import 'package:unified_analytics/unified_analytics.dart' show NoOpAnalytics;
 
 class LanguageServer {
+  static bool _hasRegisteredLintRulesAndGenerators = false;
+
   late final lsp.LspAnalysisServer _server;
 
   final _closed = Completer<void>();
@@ -37,10 +40,14 @@ class LanguageServer {
   LanguageServer({
     required ResourceProvider resourceProvider,
     required DartPadConfig config,
+    required ByteStore byteStore,
   }) {
-    linter.registerLintRules();
-    registerBuiltInAssistGenerators();
-    registerBuiltInFixGenerators();
+    if (!_hasRegisteredLintRulesAndGenerators) {
+      _hasRegisteredLintRulesAndGenerators = true;
+      linter.registerLintRules();
+      registerBuiltInAssistGenerators();
+      registerBuiltInFixGenerators();
+    }
 
     _server = lsp.LspAnalysisServer(
       _LspServerCommunicationChannel(_input.stream, _output.sink),
@@ -55,6 +62,7 @@ class LanguageServer {
       processRunner: null,
       diagnosticServer: null,
       detachableFileSystemManager: null,
+      providedByteStore: byteStore,
     );
     _server.exited.whenComplete(() {
       if (!_closed.isCompleted) {

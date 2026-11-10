@@ -5,10 +5,12 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DuplicateVariablePatternTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -32,7 +34,13 @@ void f(int x) {
 IfStatement
   ifKeyword: if
   leftParenthesis: (
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: int
+    staticType: int
+  expression(v1): SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: int
@@ -57,11 +65,17 @@ IfStatement
           matchedValueType: int
         matchedValueType: int
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
-        expression2: SimpleIdentifier
+        expression2: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@33
+            type: int
+          staticType: int
+        expression(v1): SimpleIdentifier
           token: a
           element: a@33
           staticType: int
@@ -107,9 +121,15 @@ SwitchPatternCase
         matchedValueType: int
       matchedValueType: int
   colon: :
-  statements
+  statements2
     ExpressionStatement
-      expression2: SimpleIdentifier
+      expression2: UnqualifiedNameExpression
+        name: a
+        resolution: VariableReadResolution
+          element: a@44
+          type: int
+        staticType: int
+      expression(v1): SimpleIdentifier
         token: a
         element: a@44
         staticType: int
@@ -133,7 +153,7 @@ void f() {
     assertResolvedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     PatternVariableDeclarationStatement
       declaration: PatternVariableDeclaration
         keyword: var
@@ -170,7 +190,13 @@ Block
         patternTypeSchema: List<_>
       semicolon: ;
     ExpressionStatement
-      expression2: SimpleIdentifier
+      expression2: UnqualifiedNameExpression
+        name: a
+        resolution: VariableReadResolution
+          element: a@18
+          type: int
+        staticType: int
+      expression(v1): SimpleIdentifier
         token: a
         element: a@18
         staticType: int

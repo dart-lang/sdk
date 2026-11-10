@@ -318,11 +318,48 @@ void CheckRegRegImmOperation(
 
 #if defined(TARGET_ARCH_IA32)
 const Register RegRegImmTests::kInputReg = kNoRegister;
+// IA32 passes arguments on the stack, so any caller-saved register
+// other than the return register and SP/FP will do.
+const Register RegRegImmTests::kDistinctReg = ECX;
 #else
 const Register RegRegImmTests::kInputReg =
     CallingConventions::ArgumentRegisters[0];
+// The second argument register is caller-saved on
+// every calling convention we support, and never TMP or TMP2.
+const Register RegRegImmTests::kDistinctReg =
+    CallingConventions::ArgumentRegisters[1];
 #endif
 const Register RegRegImmTests::kReturnReg = CallingConventions::kReturnReg;
+
+// Fixed per architecture, so checking once covers every indirect test below.
+UNIT_TEST_CASE(IndirectAssemblerTestRegisters) {
+  EXPECT_NE(RegRegImmTests::kDistinctReg, RegRegImmTests::kReturnReg);
+  EXPECT_NE(RegRegImmTests::kDistinctReg, TMP);
+  EXPECT_NE(RegRegImmTests::kDistinctReg, TMP2);
+}
+
+// Stages the input in kDistinctReg so the operation under test has dst != src.
+#if defined(TARGET_ARCH_IA32)
+#define LOAD_INDIRECT_INPUT()                                                  \
+  __ movl(RegRegImmTests::kDistinctReg, Address(ESP, 4))
+#else
+#define LOAD_INDIRECT_INPUT()                                                  \
+  __ MoveRegister(RegRegImmTests::kDistinctReg, RegRegImmTests::kInputReg)
+#endif
+
+// The inputs and expectation are the same as the direct tests,
+// but with dst != src.
+#define INDIRECT_ASSEMBLER_TEST(inst, rhs, sz, expected)                       \
+  ASSEMBLER_TEST_GENERATE(inst##_X_##rhs##_##sz##_Indirect, assembler) {       \
+    LOAD_INDIRECT_INPUT();                                                     \
+    __ inst(RegRegImmTests::kReturnReg, RegRegImmTests::kDistinctReg, rhs,     \
+            sz);                                                               \
+    __ Ret();                                                                  \
+  }                                                                            \
+  ASSEMBLER_TEST_RUN(inst##_X_##rhs##_##sz##_Indirect, test) {                 \
+    dart::Expect expect(__FILE__, __LINE__);                                   \
+    CheckRegRegImmOperation(expect, test, rhs, sz, expected);                  \
+  }
 
 #if TARGET_ARCH_IS_32_BIT
 #define FOR_EACH_RHS_AND_SIZE(V)                                               \
@@ -402,9 +439,14 @@ intptr_t RegRegImmTests::And(intptr_t value, intptr_t rhs, OperandSize sz) {
     CheckRegRegImmOperation(expect, test, rhs, sz, RegRegImmTests::And);       \
   }
 
+#define AND_ASSEMBLER_TEST_INDIRECT(rhs, sz)                                   \
+  INDIRECT_ASSEMBLER_TEST(AndImmediate, rhs, sz, RegRegImmTests::And)
+
 FOR_EACH_RHS_AND_SIZE(AND_ASSEMBLER_TEST_GENERATE)
 FOR_EACH_RHS_AND_SIZE(AND_ASSEMBLER_TEST_RUN)
+FOR_EACH_RHS_AND_SIZE(AND_ASSEMBLER_TEST_INDIRECT)
 
+#undef AND_ASSEMBLER_TEST_INDIRECT
 #undef AND_ASSEMBLER_TEST_RUN
 #undef AND_ASSEMBLER_TEST_GENERATE
 #undef FOR_EACH_RHS_AND_SIZE
@@ -481,11 +523,17 @@ FOR_EACH_RHS_AND_SIZE(AND_ASSEMBLER_TEST_RUN)
     CheckRegRegImmOperation(expect, test, shift, sz, RegRegImmTests::Lsl);     \
   }
 
+#define LSL_ASSEMBLER_TEST_INDIRECT(shift, sz)                                 \
+  INDIRECT_ASSEMBLER_TEST(LslImmediate, shift, sz, RegRegImmTests::Lsl)
+
 FOR_EACH_SHIFT_AND_SIGNED_SIZE(LSL_ASSEMBLER_TEST_GENERATE)
 FOR_EACH_SHIFT_AND_SIGNED_SIZE(LSL_ASSEMBLER_TEST_RUN)
+FOR_EACH_SHIFT_AND_SIGNED_SIZE(LSL_ASSEMBLER_TEST_INDIRECT)
 FOR_EACH_SHIFT_AND_UNSIGNED_SIZE(LSL_ASSEMBLER_TEST_GENERATE)
 FOR_EACH_SHIFT_AND_UNSIGNED_SIZE(LSL_ASSEMBLER_TEST_RUN)
+FOR_EACH_SHIFT_AND_UNSIGNED_SIZE(LSL_ASSEMBLER_TEST_INDIRECT)
 
+#undef LSL_ASSEMBLER_TEST_INDIRECT
 #undef LSL_ASSEMBLER_TEST_RUN
 #undef LSL_ASSEMBLER_TEST_GENERATE
 
@@ -516,11 +564,19 @@ FOR_EACH_SHIFT_AND_UNSIGNED_SIZE(LSL_ASSEMBLER_TEST_RUN)
     CheckRegRegImmOperation(expect, test, shift, sz, RegRegImmTests::Asr);     \
   }
 
+#define ASR_ASSEMBLER_TEST_INDIRECT(shift, sz)                                 \
+  INDIRECT_ASSEMBLER_TEST(ArithmeticShiftRightImmediate, shift, sz,            \
+                          RegRegImmTests::Asr)
+
 FOR_EACH_SHIFT_AND_SIGNED_SIZE(ASR_ASSEMBLER_TEST_GENERATE)
 FOR_EACH_SHIFT_AND_SIGNED_SIZE(ASR_ASSEMBLER_TEST_RUN)
+FOR_EACH_SHIFT_AND_SIGNED_SIZE(ASR_ASSEMBLER_TEST_INDIRECT)
 
+#undef ASR_ASSEMBLER_TEST_INDIRECT
 #undef ASR_ASSEMBLER_TEST_RUN
 #undef ASR_ASSEMBLER_TEST_GENERATE
+#undef INDIRECT_ASSEMBLER_TEST
+#undef LOAD_INDIRECT_INPUT
 #undef FOR_EACH_SHIFT_AND_UNSIGNED_SIZE
 #undef FOR_EACH_SHIFT_AND_SIGNED_SIZE
 

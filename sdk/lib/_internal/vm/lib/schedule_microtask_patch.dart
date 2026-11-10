@@ -66,7 +66,7 @@ void Function() _microtaskEntryCallback(_AsyncCallbackEntry entry) {
 @patch
 class _AsyncRun {
   @patch
-  static void _scheduleImmediate(void callback()) {
+  static void _scheduleImmediate(void Function() callback) {
     final closure = _ScheduleImmediate._closure;
     if (closure == null) {
       throw UnsupportedError("Microtasks are not supported");
@@ -75,7 +75,7 @@ class _AsyncRun {
   }
 }
 
-typedef void _ScheduleImmediateClosure(void callback());
+typedef _ScheduleImmediateClosure = void Function(void Function() callback);
 
 class _ScheduleImmediate {
   static _ScheduleImmediateClosure? _closure;

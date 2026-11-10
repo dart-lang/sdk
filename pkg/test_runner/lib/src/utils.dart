@@ -430,3 +430,31 @@ class TestUtils {
     return path;
   }
 }
+
+String oomHelper =
+    "${Directory.current.path}/pkg/test_runner/tool/oom_kill_first";
+
+Future<Process> startProcess(
+  String executable,
+  List<String> arguments, {
+  String? workingDirectory,
+  Map<String, String>? environment,
+}) {
+  // Make the OOM killer prefer to kill the tests instead of the test harness or
+  // swarming client.
+  if (Platform.isLinux) {
+    arguments = [executable, ...arguments];
+    executable = oomHelper;
+  }
+  // TODO(rmacnak): How to reliably find this? What should the limit's value be?
+  // if (Platform.isWindows) {
+  //   arguments = [executable, ...arguments];
+  //   executable = "out\\DebugX64\\job_helper.exe";
+  // }
+  return Process.start(
+    executable,
+    arguments,
+    workingDirectory: workingDirectory,
+    environment: environment,
+  );
+}

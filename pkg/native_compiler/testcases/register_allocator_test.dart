@@ -503,4 +503,83 @@ class LinkedList<E extends LinkedListEntry<E>> {
   }
 }
 
+// DropdownButtonFormField from Flute benchmark.
+
+Object dropdownButtonFormField({
+  Object? items,
+  Object? selectedItemBuilder,
+  Object? value,
+  Object? hint,
+  Object? disabledHint,
+  Object? onChanged,
+  Object? onTap,
+  int elevation = 8,
+  Object? style,
+  Object? icon,
+  Object? iconDisabledColor,
+  Object? iconEnabledColor,
+  double iconSize = 24.0,
+  bool isDense = true,
+  bool isExpanded = false,
+  double? itemHeight,
+  Object? focusColor,
+  Object? focusNode,
+  bool autofocus = false,
+  Object? dropdownColor,
+  Object? decoration,
+  Object? autovalidateMode,
+  double? menuMaxHeight,
+  bool? enableFeedback,
+  Object? alignment,
+  Object? borderRadius,
+  Object? padding,
+  dynamic foo,
+}) {
+  return (
+    dynamic field,
+    dynamic state,
+    dynamic effectiveDecoration,
+    bool isEmpty,
+  ) {
+    foo(
+      builder: (Object context) {
+        return foo(
+          child: foo(
+            items: items,
+            selectedItemBuilder: selectedItemBuilder,
+            value: state.value,
+            hint: hint,
+            disabledHint: disabledHint,
+            onChanged: onChanged == null ? null : state.didChange,
+            onTap: onTap,
+            elevation: elevation,
+            style: style,
+            icon: icon,
+            iconDisabledColor: iconDisabledColor,
+            iconEnabledColor: iconEnabledColor,
+            iconSize: iconSize,
+            isDense: isDense,
+            isExpanded: isExpanded,
+            itemHeight: itemHeight,
+            focusColor: focusColor,
+            focusNode: focusNode,
+            autofocus: autofocus,
+            dropdownColor: dropdownColor,
+            menuMaxHeight: menuMaxHeight,
+            enableFeedback: enableFeedback,
+            alignment: alignment,
+            borderRadius: borderRadius,
+            inputDecoration: effectiveDecoration.copyWith(
+              errorText: field.errorText,
+            ),
+            isEmpty: isEmpty,
+            isFocused: foo(context).hasFocus,
+            padding: padding,
+          ),
+        );
+      },
+    );
+  };
+}
+
 void main() {}

@@ -30,7 +30,11 @@ class A<T> {
     var node = result.findNode.singleIsExpression;
     assertResolvedNodeText(node, r'''
 IsExpression
-  expression2: SuperExpression
+  expression2: InvalidSuperExpression
+    superReference: SuperReference
+      superKeyword: super
+    staticType: InvalidType
+  expression(v1): SuperExpression
     superKeyword: super
     staticType: A<T>
   isOperator: is
@@ -57,7 +61,13 @@ IsExpression
   expression2: SwitchExpression
     switchKeyword: switch
     leftParenthesis: (
-    expression2: SimpleIdentifier
+    expression2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: Object?
+      staticType: Object?
+    expression(v1): SimpleIdentifier
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: Object?
@@ -94,7 +104,13 @@ void f(Object? a) {
     var node = result.findNode.singleIsExpression;
     assertResolvedNodeText(node, r'''
 IsExpression
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: Object?
@@ -117,7 +133,13 @@ void f(Object? a) {
     var node = result.findNode.singleIsExpression;
     assertResolvedNodeText(node, r'''
 IsExpression
-  expression2: SimpleIdentifier
+  expression2: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: Object?
+    staticType: Object?
+  expression(v1): SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: Object?

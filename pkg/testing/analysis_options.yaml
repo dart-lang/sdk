@@ -17,3 +17,4 @@ linter:
     - avoid_void_async
     - lines_longer_than_80_chars
     - unawaited_futures
+    - unnecessary_this_alias

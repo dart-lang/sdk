@@ -1016,18 +1016,27 @@ abstract base class StoreField extends Instruction with HasSideEffects {
 /// For late fields, check if field is initialized if [checkInitialized].
 /// If it is not, then either call initializer or throw exception.
 final class LoadInstanceField extends LoadField {
+  @override
+  final CType type;
+
   LoadInstanceField(
     super.graph,
     super.sourcePosition,
     super.field,
     Definition object, {
     bool checkInitialized = false,
-  }) : super(inputCount: 1, checkInitialized: checkInitialized) {
+    CType? type,
+  }) : type = type ?? field.type,
+       super(inputCount: 1, checkInitialized: checkInitialized) {
     assert(field.isLate || !checkInitialized);
     setInputAt(0, object);
   }
 
   Definition get object => inputDefAt(0);
+
+  @override
+  bool attributesEqual(covariant LoadInstanceField other) =>
+      super.attributesEqual(other) && this.type == other.type;
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitLoadInstanceField(this);
@@ -1111,14 +1120,41 @@ enum ArrayKind {
   uint32List,
   int64List,
   uint64List,
-  // TODO: add FP typed data lists
-  // float32List,
-  // float64List,
-  // TODO: add SIMD typed data lists
-  // float32x4List,
-  // int32x4List,
-  // float64x2List,
-  // TODO: add external typed data lists, typed data views, Strings, built-in Lists.
+  float32List,
+  float64List,
+  float32x4List,
+  float64x2List,
+  int32x4List,
+  // Typed data list views reference elements through indirection.
+  // On the VM this also includes external typed data lists.
+  int8ListView,
+  uint8ListView,
+  uint8ClampedListView,
+  int16ListView,
+  uint16ListView,
+  int32ListView,
+  uint32ListView,
+  int64ListView,
+  uint64ListView,
+  float32ListView,
+  float64ListView,
+  float32x4ListView,
+  float64x2ListView,
+  int32x4ListView,
+  // ByteData provides access to elements of different types via byte offsets.
+  int8ByteData,
+  uint8ByteData,
+  int16ByteData,
+  uint16ByteData,
+  int32ByteData,
+  uint32ByteData,
+  int64ByteData,
+  uint64ByteData,
+  float32ByteData,
+  float64ByteData,
+  float32x4ByteData,
+  float64x2ByteData,
+  int32x4ByteData,
 }
 
 /// Load value from an array element.
@@ -1723,7 +1759,7 @@ enum UnaryIntOpcode(final String token) {
   abs('abs'),
   sign('sign'),
   hash('hash'),
-  bitLength('bitLength')
+  bitLength('bitLength'),
 }
 
 /// Unary operation on the int operand.
@@ -1755,9 +1791,10 @@ enum BinaryDoubleOpcode(final String token) {
   sub('-'),
   mul('*'),
   div('/'),
-  truncatingDiv('~/'),
   mod('%'),
-  rem('remainder');
+  rem('remainder'),
+  pow('pow'),
+  atan2('atan2');
 
   bool get isCommutative => switch (this) {
     add || mul => true,
@@ -1784,10 +1821,7 @@ final class BinaryDoubleOp extends Definition with NoThrow, Pure, Idempotent {
   Definition get right => inputDefAt(1);
 
   @override
-  CType get type => switch (op) {
-    BinaryDoubleOpcode.truncatingDiv => const IntType(),
-    _ => const DoubleType(),
-  };
+  CType get type => const DoubleType();
 
   @override
   bool attributesEqual(covariant BinaryDoubleOp other) => op == other.op;
@@ -1799,7 +1833,6 @@ final class BinaryDoubleOp extends Definition with NoThrow, Pure, Idempotent {
 enum UnaryDoubleOpcode(final String token) {
   neg('-'),
   abs('abs'),
-  sign('sign'),
   square('square'),
   round('round'),
   floor('floor'),
@@ -1808,11 +1841,23 @@ enum UnaryDoubleOpcode(final String token) {
   roundToDouble('roundToDouble'),
   floorToDouble('floorToDouble'),
   ceilToDouble('ceilToDouble'),
-  truncateToDouble('truncateToDouble')
+  truncateToDouble('truncateToDouble'),
+  isNegative('isNegative'),
+  isInfinite('isInfinite'),
+  hash('hash'),
+  sin('sin'),
+  cos('cos'),
+  tan('tan'),
+  asin('asin'),
+  acos('acos'),
+  atan('atan'),
+  sqrt('sqrt'),
+  exp('exp'),
+  log('log'),
 }
 
 /// Unary operation on the double operand.
-final class UnaryDoubleOp extends Definition with NoThrow, Pure, Idempotent {
+final class UnaryDoubleOp extends Definition with Pure, Idempotent {
   UnaryDoubleOpcode op;
 
   UnaryDoubleOp(super.graph, super.sourcePosition, this.op, Definition operand)
@@ -1824,11 +1869,15 @@ final class UnaryDoubleOp extends Definition with NoThrow, Pure, Idempotent {
 
   @override
   CType get type => switch (op) {
-    UnaryDoubleOpcode.round ||
-    UnaryDoubleOpcode.floor ||
-    UnaryDoubleOpcode.ceil ||
-    UnaryDoubleOpcode.truncate => const IntType(),
+    .round || .floor || .ceil || .truncate || .hash => const IntType(),
+    .isNegative || .isInfinite => const BoolType(),
     _ => const DoubleType(),
+  };
+
+  @override
+  bool get canThrow => switch (op) {
+    .round || .floor || .ceil || .truncate => true,
+    _ => false,
   };
 
   @override
@@ -1839,7 +1888,7 @@ final class UnaryDoubleOp extends Definition with NoThrow, Pure, Idempotent {
 }
 
 enum UnaryBoolOpcode(final String token) {
-  not('!')
+  not('!'),
 }
 
 /// Unary operation on the bool operand.
@@ -1928,10 +1977,35 @@ final class LoadExternalField extends LoadField with BackendInstruction {
   }
 
   bool get hasObject => inputCount > 0;
-  Definition? get object => inputDefAt(0);
+  Definition? get object => hasObject ? inputDefAt(0) : null;
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitLoadExternalField(this);
+}
+
+/// Store value to a field of a non-Dart object.
+final class StoreExternalField extends StoreField with BackendInstruction {
+  StoreExternalField(
+    super.graph,
+    super.sourcePosition,
+    super.field,
+    Definition? object,
+    Definition value,
+  ) : super(inputCount: object != null ? 2 : 1, checkNotInitialized: false) {
+    if (object != null) {
+      setInputAt(0, object);
+      setInputAt(1, value);
+    } else {
+      setInputAt(0, value);
+    }
+  }
+
+  bool get hasObject => inputCount > 1;
+  Definition? get object => hasObject ? inputDefAt(0) : null;
+  Definition get value => inputDefAt(inputCount - 1);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitStoreExternalField(this);
 }
 
 /// Load value from an element of a non-Dart array.
@@ -1956,6 +2030,44 @@ final class LoadExternalArrayElement extends Definition
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitLoadExternalArrayElement(this);
+}
+
+/// Copy array elements from one array into another.
+///
+/// [CopyArrayElements] assumes source and destination regions are within array bounds.
+final class CopyArrayElements extends Instruction
+    with NoThrow, HasSideEffects, BackendInstruction {
+  final ArrayKind kind;
+
+  /// Whether the source and destination regions can overlap.
+  bool canOverlap;
+
+  CopyArrayElements(
+    super.graph,
+    super.sourcePosition,
+    this.kind,
+    Definition srcArray,
+    Definition srcStart,
+    Definition dstArray,
+    Definition dstStart,
+    Definition length, {
+    required this.canOverlap,
+  }) : super(inputCount: 5) {
+    setInputAt(0, srcArray);
+    setInputAt(1, srcStart);
+    setInputAt(2, dstArray);
+    setInputAt(3, dstStart);
+    setInputAt(4, length);
+  }
+
+  Definition get srcArray => inputDefAt(0);
+  Definition get srcStart => inputDefAt(1);
+  Definition get dstArray => inputDefAt(2);
+  Definition get dstStart => inputDefAt(3);
+  Definition get length => inputDefAt(4);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitCopyArrayElements(this);
 }
 
 /// Allocate an array (built-in list or typed data list) of given length.
@@ -2009,11 +2121,14 @@ final class AllocateRecord extends Definition
 
 /// Base class for boxing instructions.
 abstract base class Box extends Definition
-    with CanThrow, Pure, BackendInstruction {
+    with CanThrow, Pure, Idempotent, BackendInstruction {
   Box(super.graph, super.sourcePosition, Definition operand)
     : super(inputCount: 1) {
     setInputAt(0, operand);
   }
+
+  @override
+  bool attributesEqual(Instruction other) => true;
 
   Definition get operand => inputDefAt(0);
 }
@@ -2040,15 +2155,32 @@ final class BoxDouble extends Box {
   R accept<R>(InstructionVisitor<R> v) => v.visitBoxDouble(this);
 }
 
+/// Create a box out of raw SIMD value.
+final class BoxSimd extends Box {
+  @override
+  final SimdType type;
+
+  BoxSimd(super.graph, super.sourcePosition, super.operand, this.type);
+
+  @override
+  bool attributesEqual(covariant BoxSimd other) => this.type == other.type;
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitBoxSimd(this);
+}
+
 /// Base class for unboxing instructions.
 abstract base class Unbox extends Definition
-    with NoThrow, Pure, BackendInstruction {
+    with NoThrow, Pure, Idempotent, BackendInstruction {
   Unbox(super.graph, super.sourcePosition, Definition operand)
     : super(inputCount: 1) {
     setInputAt(0, operand);
   }
 
   Definition get operand => inputDefAt(0);
+
+  @override
+  bool attributesEqual(Instruction other) => true;
 }
 
 /// Get raw int value out of the box.
@@ -2071,6 +2203,95 @@ final class UnboxDouble extends Unbox {
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitUnboxDouble(this);
+}
+
+/// Get raw SIMD value out of the box.
+final class UnboxSimd extends Unbox {
+  @override
+  final SimdType type;
+
+  UnboxSimd(super.graph, super.sourcePosition, super.operand, this.type);
+
+  @override
+  bool attributesEqual(covariant UnboxSimd other) => this.type == other.type;
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitUnboxSimd(this);
+}
+
+enum SimdOpcode(final String name) {
+  float32x4Factory('Float32x4 factory'),
+  float64x2Factory('Float64x2 factory'),
+  int32x4Factory('Int32x4 factory'),
+  float32x4GetX('Float32x4.x'),
+  float32x4GetY('Float32x4.y'),
+  float32x4GetZ('Float32x4.z'),
+  float32x4GetW('Float32x4.w'),
+  float64x2GetX('Float64x2.x'),
+  float64x2GetY('Float64x2.y'),
+  int32x4GetX('Int32x4.x'),
+  int32x4GetY('Int32x4.y'),
+  int32x4GetZ('Int32x4.z'),
+  int32x4GetW('Int32x4.w');
+
+  int get inputCount => switch (this) {
+    float32x4GetX ||
+    float32x4GetY ||
+    float32x4GetZ ||
+    float32x4GetW ||
+    float64x2GetX ||
+    float64x2GetY ||
+    int32x4GetX ||
+    int32x4GetY ||
+    int32x4GetZ ||
+    int32x4GetW => 1,
+    float64x2Factory => 2,
+    float32x4Factory || int32x4Factory => 4,
+  };
+
+  CType get resultType => switch (this) {
+    float32x4Factory => const Float32x4Type(),
+    float64x2Factory => const Float64x2Type(),
+    int32x4Factory => const Int32x4Type(),
+    float32x4GetX ||
+    float32x4GetY ||
+    float32x4GetZ ||
+    float32x4GetW ||
+    float64x2GetX ||
+    float64x2GetY => const DoubleType(),
+    int32x4GetX || int32x4GetY || int32x4GetZ || int32x4GetW => const IntType(),
+  };
+}
+
+final class SimdOp extends Definition
+    with NoThrow, Pure, Idempotent, BackendInstruction {
+  SimdOpcode op;
+
+  SimdOp(super.graph, super.sourcePosition, this.op)
+    : super(inputCount: op.inputCount);
+
+  @override
+  CType get type => op.resultType;
+
+  @override
+  bool attributesEqual(covariant SimdOp other) => op == other.op;
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitSimdOp(this);
+}
+
+/// Keep the value alive.
+final class ReachabilityFence extends Instruction
+    with NoThrow, Pure, BackendInstruction {
+  ReachabilityFence(super.graph, super.sourcePosition, Definition value)
+    : super(inputCount: 1) {
+    setInputAt(0, value);
+  }
+
+  Definition get value => inputDefAt(0);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitReachabilityFence(this);
 }
 
 /// Base class for move operations, part of [ParallelMove].

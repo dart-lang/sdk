@@ -32,7 +32,17 @@ class NodeTextExpectationsCollector {
     ),
     _AssertMethod(
       className: 'AnalysisContextCollectionTest',
+      methodName: '_assertContextRootsText',
+      argument: _ArgumentNamed('expected'),
+    ),
+    _AssertMethod(
+      className: 'AnalysisContextCollectionTest',
       methodName: '_assertWorkspaceCollectionText',
+      argument: _ArgumentIndex(1),
+    ),
+    _AssertMethod(
+      className: 'AnalysisContextCollectionTest',
+      methodName: '_assertCollectionText',
       argument: _ArgumentIndex(1),
     ),
     _AssertMethod(
@@ -257,6 +267,11 @@ class NodeTextExpectationsCollector {
       argument: _ArgumentIndex(1),
     ),
     _AssertMethod(
+      className: 'LookupPromotedThisTypeTest',
+      methodName: 'assertPromotedThisTypes',
+      argument: _ArgumentIndex(0),
+    ),
+    _AssertMethod(
       className: 'ResolutionTest',
       methodName: 'resolveTestCodeWithDiagnostics',
       argument: _ArgumentIndex(0),
@@ -344,9 +359,8 @@ class NodeTextExpectationsCollector {
         var invocationTraceLine = traceLines[invocationTraceIndex];
 
         // Parse the invocation stack trace line.
-        var locationMatch = RegExp(
-          r'(file://.+_test.dart):(\d+):',
-        ).firstMatch(invocationTraceLine);
+        var locationMatch = RegExp(r'(file://.+_test.dart):(\d+):')
+            .firstMatch(invocationTraceLine);
         if (locationMatch == null) {
           fail('Cannot parse: $invocationTraceLine');
         }
@@ -357,13 +371,13 @@ class NodeTextExpectationsCollector {
 
         var invocation = file.findInvocation(invocationLine: line);
         if (invocation == null) {
-          fail('Cannot find MethodInvocation.');
+          fail('Cannot find assertion invocation.');
         }
 
-        if (invocation.methodName.name != assertMethod.methodName) {
+        if (invocation.name != assertMethod.methodName) {
           fail(
             'Expected: ${assertMethod.methodName}\n'
-            'Actual: ${invocation.methodName.name}\n',
+            'Actual: ${invocation.name}\n',
           );
         }
 
@@ -412,7 +426,7 @@ sealed class _Argument {
 final class _ArgumentIndex extends _Argument {
   final int index;
 
-  _ArgumentIndex(this.index);
+  new(this.index);
 
   @override
   Expression get(ArgumentList argumentList, {String? intraInvocationId}) {
@@ -426,7 +440,7 @@ final class _ArgumentIndex extends _Argument {
 final class _ArgumentMapEntryValue extends _Argument {
   final _Argument mapArgument;
 
-  _ArgumentMapEntryValue({required this.mapArgument});
+  new({required this.mapArgument});
 
   @override
   Expression get(ArgumentList argumentList, {String? intraInvocationId}) {
@@ -461,7 +475,7 @@ final class _ArgumentNamed extends _Argument {
   final String name;
   final bool shouldCheckIntraInvocationId;
 
-  _ArgumentNamed(this.name, {this.shouldCheckIntraInvocationId = false});
+  new(this.name, {this.shouldCheckIntraInvocationId = false});
 
   @override
   Expression get(ArgumentList argumentList, {String? intraInvocationId}) {
@@ -478,16 +492,14 @@ class _AssertMethod {
   final String stackTracePattern;
   final _Argument argument;
 
-  const _AssertMethod({
+  const new({
     required String className,
     required this.methodName,
     required this.argument,
   }) : stackTracePattern = '$className.$methodName';
 
-  const _AssertMethod.forFunction({
-    required this.methodName,
-    required this.argument,
-  }) : stackTracePattern = ' $methodName';
+  const new forFunction({required this.methodName, required this.argument})
+    : stackTracePattern = ' $methodName';
 }
 
 class _File {
@@ -497,7 +509,7 @@ class _File {
   final CompilationUnit unit;
   final List<_Replacement> replacements = [];
 
-  factory _File(String path) {
+  factory(String path) {
     var content = io.File(path).readAsStringSync();
 
     var collection = AnalysisContextCollection(
@@ -517,7 +529,7 @@ class _File {
     );
   }
 
-  _File._({
+  new _({
     required this.path,
     required this.content,
     required this.lineInfo,
@@ -564,7 +576,9 @@ class _File {
     io.File(path).writeAsStringSync(newCode);
   }
 
-  MethodInvocation? findInvocation({required int invocationLine}) {
+  ({String name, ArgumentList argumentList})? findInvocation({
+    required int invocationLine,
+  }) {
     var visitor = _InvocationVisitor(
       lineInfo: lineInfo,
       requestedLine: invocationLine,
@@ -577,22 +591,28 @@ class _File {
 class _InvocationVisitor extends RecursiveAstVisitor2<void> {
   final LineInfo lineInfo;
   final int requestedLine;
-  MethodInvocation? result;
+  ({String name, ArgumentList argumentList})? result;
 
-  _InvocationVisitor({required this.lineInfo, required this.requestedLine});
+  new({required this.lineInfo, required this.requestedLine});
 
   @override
-  void visitMethodInvocation(MethodInvocation node) {
-    if (result != null) {
-      return;
+  void visitParsedValueArguments(ParsedValueArguments node) {
+    if (result != null) return;
+    if (lineInfo.getLocation(node.offset).lineNumber == requestedLine) {
+      Expression operand = node.operand;
+      if (operand is ParsedTypeArguments) {
+        operand = operand.operand;
+      }
+      var name = switch (operand) {
+        ParsedUnqualifiedName(:var name) => name,
+        ParsedNameAccess(:var name) => name,
+        _ => null,
+      };
+      if (name != null) {
+        result = (name: name.lexeme, argumentList: node.argumentList);
+      }
     }
-
-    var nodeLine = lineInfo.getLocation(node.offset).lineNumber;
-    if (nodeLine == requestedLine) {
-      result = node;
-    }
-
-    super.visitMethodInvocation(node);
+    super.visitParsedValueArguments(node);
   }
 }
 
@@ -601,5 +621,5 @@ class _Replacement {
   final int end;
   final String text;
 
-  _Replacement(this.offset, this.end, this.text);
+  new(this.offset, this.end, this.text);
 }

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:test/test.dart';
@@ -58,7 +59,7 @@ void main([List<String> args = const []]) async {
           workingDirectory: dartAppUri,
           logger: logger,
         );
-        expect(result.stderr, contains('Running build hooks'));
+        expect(result.stderr, isNot(contains('Running build hooks')));
         expect(result.stderr, isNot(contains('Running link hooks')));
         expectDartAppStdout(result.stdout);
         if (verbose) {
@@ -69,6 +70,33 @@ void main([List<String> args = const []]) async {
       });
     });
   }
+
+  test(
+    'dart run stdout is exactly the program output',
+    timeout: longTimeout,
+    () async {
+      await nativeAssetsTest('dart_app', (dartAppUri) async {
+        // Resolve dependencies up front, so that `dart run` only has to run the
+        // build hooks and compile the program.
+        await runPubGet(workingDirectory: dartAppUri, logger: logger);
+        final result = await runDart(
+          arguments: ['run'],
+          workingDirectory: dartAppUri,
+          logger: logger,
+        );
+        expect(
+          const LineSplitter().convert(result.stdout),
+          ['add(5, 6) = 11', 'subtract(5, 6) = -1'],
+        );
+        // Hook errors are still forwarded to stderr, but dartdev's own status
+        // messages are not shown when the output is not a terminal.
+        expect(result.stderr, contains('Some stderr.'));
+        expect(result.stderr, isNot(contains('Running build hooks')));
+        expect(result.stderr, isNot(contains('Running link hooks')));
+        expect(result.stderr, isNot(contains('Generated: ')));
+      });
+    },
+  );
 
   test('dart run --verbosity=error', timeout: longTimeout, () async {
     await nativeAssetsTest('dart_app', (dartAppUri) async {

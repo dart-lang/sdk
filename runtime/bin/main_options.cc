@@ -26,7 +26,6 @@
 #include "include/dart_api.h"
 #include "platform/assert.h"
 #include "platform/globals.h"
-#include "platform/hashmap.h"
 
 namespace dart {
 namespace bin {
@@ -129,6 +128,12 @@ static void hot_reload_rollback_test_mode_callback(
 DEFINE_BOOL_OPTION_CB(hot_reload_rollback_test_mode,
                       hot_reload_rollback_test_mode_callback);
 
+static bool IsInternalExecutableArgument(const char* arg) {
+  return IsOption(arg, "executable-name") ||
+         IsOption(arg, "resolved-executable-name") ||
+         IsOption(arg, "script-uri-override");
+}
+
 bool Options::ParseArguments(int argc,
                              char** argv,
                              bool vm_run_app_snapshot,
@@ -190,7 +195,26 @@ bool Options::ParseArguments(int argc,
   }
 
   // The arguments to the VM are at positions 1 through i-1 in argv.
-  Platform::SetExecutableArguments(i, argv);
+  intptr_t filtered_count = 0;
+  for (intptr_t j = 1; j < i; j++) {
+    if (!IsInternalExecutableArgument(argv[j])) {
+      filtered_count++;
+    }
+  }
+  if (filtered_count == i - 1) {
+    Platform::SetExecutableArguments(i, argv);
+  } else {
+    char** filtered_argv = new char*[filtered_count + 1];
+    filtered_argv[0] = argv[0];
+    intptr_t idx = 1;
+    for (intptr_t j = 1; j < i; j++) {
+      if (!IsInternalExecutableArgument(argv[j])) {
+        filtered_argv[idx++] = argv[j];
+      }
+    }
+    ASSERT(idx == filtered_count + 1);
+    Platform::SetExecutableArguments(filtered_count + 1, filtered_argv);
+  }
 
   // Get the script name.
   if (i < argc) {
@@ -296,18 +320,16 @@ void Options::PrintUsage() {
 }
 // clang-format on
 
-dart::SimpleHashMap* Options::environment_ = nullptr;
 bool Options::ProcessEnvironmentOption(const char* arg,
                                        CommandLineOptions* vm_options) {
-  return OptionProcessor::ProcessEnvironmentOption(arg, vm_options,
-                                                   &Options::environment_);
+  return OptionProcessor::ProcessEnvironmentOption(arg, vm_options);
 }
 
 void Options::Cleanup() {
 #if defined(DART_PRECOMPILED_RUNTIME)
   DestroyEnvArgv();
 #endif
-  DestroyEnvironment();
+  OptionProcessor::DestroyEnvironment();
 
 #define STRING_LIST_OPTION_CLEANUP(flag, variable)                             \
   for (intptr_t i = 0; i < OPTION_FIELD(variable).length(); i++) {             \
@@ -316,18 +338,6 @@ void Options::Cleanup() {
   OPTION_FIELD(variable).Clear();
   STRING_LIST_OPTIONS_LIST(STRING_LIST_OPTION_CLEANUP)
 #undef STRING_LIST_OPTION_CLEANUP
-}
-
-void Options::DestroyEnvironment() {
-  if (environment_ != nullptr) {
-    for (SimpleHashMap::Entry* p = environment_->Start(); p != nullptr;
-         p = environment_->Next(p)) {
-      free(p->key);
-      free(p->value);
-    }
-    delete environment_;
-    environment_ = nullptr;
-  }
 }
 
 #if defined(DART_PRECOMPILED_RUNTIME)

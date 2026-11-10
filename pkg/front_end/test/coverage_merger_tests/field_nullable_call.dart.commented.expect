@@ -1,0 +1,17 @@
+// ignore_for_file: unnecessary_type_name_in_constructor
+
+void main(List<String> args) {
+  Foo foo = new Foo(args.length == 42 ? args : null);
+  print(foo.lateListLengths);
+}
+
+class Foo {
+  final List<String>? list;
+  late final List<int>? lateListLengths = list
+      // Coverage-ignore(suite): Not run.
+      ?.map((x) => x.length)
+      // Coverage-ignore(suite): Not run.
+      .toList();
+
+  Foo(this.list);
+}

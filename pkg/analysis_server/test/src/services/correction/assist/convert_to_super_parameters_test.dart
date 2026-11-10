@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertToSuperParametersTest extends AssistProcessorTest {
+class ConvertToSuperParametersTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertToSuperParameters;
 

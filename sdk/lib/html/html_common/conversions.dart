@@ -25,7 +25,7 @@
 // We omit an unwrapper for Window as no methods take a non-local
 // window as a parameter.
 
-part of html_common;
+part of 'dart:html_common';
 
 /// Converts a Dart value into a JavaScript SerializedScriptValue.
 convertDartToNative_SerializedScriptValue(value) {
@@ -77,7 +77,7 @@ abstract class _StructuredClone {
   cleanupSlots() {} // Will be needed if we mark objects with a property.
   bool cloneNotRequired(object);
   JSObject newJsObject();
-  void forEachObjectKey(object, action(key, value));
+  void forEachObjectKey(object, Function(dynamic key, dynamic value) action);
   void putIntoObject(object, key, value);
   newJsMap();
   List newJsList(length);
@@ -214,7 +214,7 @@ abstract class _AcceptStructuredClone {
   }
 
   /// Iterate over the JS properties.
-  forEachJsField(object, action(key, value));
+  forEachJsField(object, Function(dynamic key, dynamic value) action);
 
   /// Create a new Dart list of the given length. May create a native List or
   /// a JsArray, depending if we're in Dartium or dart2js.

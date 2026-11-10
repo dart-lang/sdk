@@ -51,7 +51,7 @@ int invalidPropertyFn() {
   const List<int> x = [1, 2];
   return x.invalidProperty;
   //       ^^^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'invalidProperty' isn't defined for the type 'List<int>'.
 }
 
@@ -81,7 +81,7 @@ int getWithIndexExceptionFn3() {
   return x[0.1];
   //       ^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
-  // [cfe] A value of type 'double' can't be assigned to a variable of type 'int'.
+  // [cfe] The argument type 'double' can't be assigned to the parameter type 'int'.
 }
 
 const constListAddException = constListAddExceptionFn();

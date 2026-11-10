@@ -92,13 +92,14 @@ class _Visitor(final AnalysisRule rule, final RuleContext context)
     required String accessor,
   }) {
     if (type is! DynamicType) {
-      if (type?.element case InstanceElement element) {
-        var methods = element.methods.map((e) => e.name).toList();
-        if (element.isDartCoreFunction) {
-          methods.add(MethodElement.CALL_METHOD_NAME);
-        }
-        if (!element.getters.map((e) => e.name).contains(lexeme) &&
-            !methods.contains(lexeme)) {
+      if (type is InterfaceType) {
+        var library = context.libraryElement ?? type.element.library;
+        var getter = type.lookUpGetter(lexeme, library);
+        var method = type.lookUpMethod(lexeme, library);
+        if (getter == null &&
+            method == null &&
+            !(type.element.isDartCoreFunction &&
+                lexeme == MethodElement.CALL_METHOD_NAME)) {
           return;
         }
       } else if (type case RecordType record) {

@@ -33,14 +33,28 @@ class TypeArgumentsVerifier {
   final LibraryElement _libraryElement;
   final DiagnosticReporter _diagnosticReporter;
 
-  TypeArgumentsVerifier(
-    this._options,
-    this._libraryElement,
-    this._diagnosticReporter,
-  );
+  new(this._options, this._libraryElement, this._diagnosticReporter);
 
   TypeSystemImpl get _typeSystem =>
       _libraryElement.typeSystem as TypeSystemImpl;
+
+  void checkCallInvocation(CallInvocation node) {
+    var functionType = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element.type,
+      _ => switch (node.receiver) {
+        Expression(:var staticType) => staticType,
+        _ => null,
+      },
+    };
+    _checkInvocationTypeArguments(
+      node.typeArguments?.arguments,
+      functionType,
+      switch (node.resolution) {
+        StaticInvocationResolution(:var invokeType) => invokeType,
+        _ => null,
+      },
+    );
+  }
 
   void checkConstructorTearOff(ConstructorTearOffImpl node) {
     var classElement = node.typeReference.element;
@@ -121,7 +135,7 @@ class TypeArgumentsVerifier {
     );
   }
 
-  void checkEnumConstantDeclaration(EnumConstantDeclarationImpl node) {
+  void checkEnumConstantDeclaration(EnumConstantDeclaration2Impl node) {
     var constructorElement = node.constructorElement;
     if (constructorElement == null) {
       return;
@@ -184,25 +198,35 @@ class TypeArgumentsVerifier {
     }
   }
 
-  void checkFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    // For some function expressions, like an implicit 'call' invocation, the
-    // function type is on `node`'s `element`. For anonymous function
-    // expressions, the function is on `node`'s `function`.
-    // TODO(srawlins): It seems that `node.function`, the Expression, should
-    // always have the static type of the `call` method.
-    var functionType = node.element?.type ?? node.function2.staticType;
+  void checkFunctionInstantiation(FunctionInstantiation node) {
     _checkInvocationTypeArguments(
-      node.typeArguments?.arguments,
-      functionType,
-      node.staticInvokeType,
+      node.typeArguments.arguments,
+      node.operand.staticType,
+      node.staticType,
     );
   }
 
-  void checkFunctionReference(FunctionReference node) {
+  void checkFunctionInvocation(FunctionInvocation node) {
+    var functionType = switch (node.resolution) {
+      ExecutableInvocationResolution(:var element) => element.type,
+      InvalidInvocationResolution(
+        recovery: ExecutableInvocationResolution(:var element),
+      ) =>
+        element.type,
+      _ => null,
+    };
+    var invokeType = switch (node.resolution) {
+      StaticInvocationResolution(:var invokeType) => invokeType,
+      InvalidInvocationResolution(
+        recovery: StaticInvocationResolution(:var invokeType),
+      ) =>
+        invokeType,
+      _ => null,
+    };
     _checkInvocationTypeArguments(
       node.typeArguments?.arguments,
-      node.function2.staticType,
-      node.staticType,
+      functionType,
+      invokeType,
     );
   }
 
@@ -239,14 +263,6 @@ class TypeArgumentsVerifier {
         diag.expectedTwoMapTypeArguments,
       );
     }
-  }
-
-  void checkMethodInvocation(MethodInvocation node) {
-    _checkInvocationTypeArguments(
-      node.typeArguments?.arguments,
-      node.function.staticType,
-      node.staticInvokeType,
-    );
   }
 
   void checkNamedType(NamedTypeImpl node) {
@@ -617,7 +633,7 @@ class TypeArgumentsVerifier {
           }
         }
       case GenericFunctionType(:var returnType, :var parameters):
-        for (var parameter in parameters.parameters) {
+        for (var parameter in parameters.allFormalParameters) {
           if (parameter case RegularFormalParameter(
             functionTypedSuffix: null,
             type: var typeAnnotation?,
@@ -718,9 +734,9 @@ class TypeArgumentsVerifier {
   /// super-bounded types are allowed.
   bool _shouldAllowSuperBoundedTypes(NamedType namedType) {
     switch (namedType.parent2) {
-      case ClassTypeAlias _:
+      case ClassTypeAlias2 _:
       case ExtendsClause _:
-      case GenericTypeAlias _:
+      case GenericTypeAlias2 _:
       case ImplementsClause _:
       case MixinOnClause _:
       case WithClause _:
@@ -764,7 +780,7 @@ class _TypeArgumentIssue {
   /// The type argument that violated the [parameterBound].
   final DartType argument;
 
-  _TypeArgumentIssue(
+  new(
     this.index,
     this.parameter,
     this.parameterName,

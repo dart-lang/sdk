@@ -36,20 +36,20 @@ Set<String> computeSubtypedNames(CompilationUnit unit) {
   }
 
   for (var declaration in unit.declarations2) {
-    if (declaration is ClassDeclaration) {
+    if (declaration is ClassDeclaration2) {
       addSubtypedName(declaration.extendsClause?.superclass);
       addSubtypedNames(declaration.withClause?.mixinTypes);
       addSubtypedNames(declaration.implementsClause?.interfaces);
-    } else if (declaration is ClassTypeAlias) {
+    } else if (declaration is ClassTypeAlias2) {
       addSubtypedName(declaration.superclass);
       addSubtypedNames(declaration.withClause.mixinTypes);
       addSubtypedNames(declaration.implementsClause?.interfaces);
-    } else if (declaration is EnumDeclaration) {
+    } else if (declaration is EnumDeclaration2) {
       addSubtypedNames(declaration.withClause?.mixinTypes);
       addSubtypedNames(declaration.implementsClause?.interfaces);
-    } else if (declaration is ExtensionTypeDeclaration) {
+    } else if (declaration is ExtensionTypeDeclaration2) {
       addSubtypedNames(declaration.implementsClause?.interfaces);
-    } else if (declaration is MixinDeclaration) {
+    } else if (declaration is MixinDeclaration2) {
       addSubtypedNames(declaration.onClause?.superclassConstraints);
       addSubtypedNames(declaration.implementsClause?.interfaces);
     }
@@ -63,120 +63,156 @@ class _LocalNameScope {
   final _LocalNameScope? enclosing;
   Set<String>? names;
 
-  _LocalNameScope(this.enclosing);
+  new(this.enclosing);
 
-  factory _LocalNameScope.forBlock(_LocalNameScope enclosing, Block node) {
+  factory forBlock(_LocalNameScope enclosing, Block node) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
-    for (Statement statement in node.statements) {
-      if (statement is FunctionDeclarationStatement) {
-        scope.add(statement.functionDeclaration.name);
-      } else if (statement is VariableDeclarationStatement) {
-        scope.addVariableNames(statement.variables);
+    for (Statement statement in node.statements2) {
+      if (statement is LocalFunctionDeclaration) {
+        scope.add(statement.name);
+      } else if (statement is LocalVariablesDeclarationStatement) {
+        for (var variable in statement.declaration.variables) {
+          scope.add(variable.name);
+        }
       }
     }
     return scope;
   }
 
-  factory _LocalNameScope.forClass(
-    _LocalNameScope enclosing,
-    ClassDeclarationImpl node,
-  ) {
+  factory forClass(_LocalNameScope enclosing, ClassDeclaration2Impl node) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
     scope.addTypeParameters(node.namePart.typeParameters);
-    for (ClassMember member in node.body.members) {
-      if (member is FieldDeclaration) {
-        scope.addVariableNames(member.fields);
-      } else if (member is MethodDeclaration) {
-        scope.add(member.name);
+    for (var member in node.body.members) {
+      if (member is FieldsDeclarationImpl) {
+        for (var field in member.fields) {
+          scope.add(field.name);
+        }
+      } else if (member is MethodDeclarationV1OriginImpl) {
+        scope.add(member.nameToken);
       }
     }
     return scope;
   }
 
-  factory _LocalNameScope.forClassTypeAlias(
-    _LocalNameScope enclosing,
-    ClassTypeAlias node,
-  ) {
+  factory forClassTypeAlias(_LocalNameScope enclosing, ClassTypeAlias2 node) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
     scope.addTypeParameters(node.typeParameters);
     return scope;
   }
 
-  factory _LocalNameScope.forConstructor(
+  factory forConstructor(
     _LocalNameScope enclosing,
-    ConstructorDeclaration node,
+    ConstructorDeclaration2 node,
   ) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
-    scope.addFormalParameters(node.parameters);
+    scope.addFormalParameters(node.formalParameters);
     return scope;
   }
 
-  factory _LocalNameScope.forExtensionType(
+  factory forExtensionType(
     _LocalNameScope enclosing,
-    ExtensionTypeDeclarationImpl node,
+    ExtensionTypeDeclaration2Impl node,
   ) {
     var scope = _LocalNameScope(enclosing);
     scope.addTypeParameters(node.namePart.typeParameters);
-    for (ClassMember member in node.body.members) {
-      if (member is FieldDeclaration) {
-        scope.addVariableNames(member.fields);
-      } else if (member is MethodDeclaration) {
-        scope.add(member.name);
+    for (var member in node.body.members) {
+      if (member is FieldsDeclarationImpl) {
+        for (var field in member.fields) {
+          scope.add(field.name);
+        }
+      } else if (member is MethodDeclarationV1OriginImpl) {
+        scope.add(member.nameToken);
       }
     }
     return scope;
   }
 
-  factory _LocalNameScope.forFunction(
+  factory forFunctionTypeAlias(
     _LocalNameScope enclosing,
-    FunctionDeclaration node,
-  ) {
-    _LocalNameScope scope = _LocalNameScope(enclosing);
-    scope.addTypeParameters(node.functionExpression.typeParameters);
-    scope.addFormalParameters(node.functionExpression.parameters);
-    return scope;
-  }
-
-  factory _LocalNameScope.forFunctionTypeAlias(
-    _LocalNameScope enclosing,
-    FunctionTypeAlias node,
+    FunctionTypeAlias2 node,
   ) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
     scope.addTypeParameters(node.typeParameters);
     return scope;
   }
 
-  factory _LocalNameScope.forMethod(
+  factory forLocalFunction(
     _LocalNameScope enclosing,
-    MethodDeclaration node,
+    LocalFunctionDeclaration node,
   ) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
     scope.addTypeParameters(node.typeParameters);
-    scope.addFormalParameters(node.parameters);
+    scope.addFormalParameters(node.formalParameters);
     return scope;
   }
 
-  factory _LocalNameScope.forUnit(CompilationUnitImpl node) {
+  factory forMethod(
+    _LocalNameScope enclosing,
+    MethodDeclarationV1OriginImpl node,
+  ) {
+    _LocalNameScope scope = _LocalNameScope(enclosing);
+    scope.addTypeParameters(node.writtenTypeParameters);
+    scope.addFormalParameters(node.writtenFormalParameters);
+    return scope;
+  }
+
+  factory forTopLevelFunction(
+    _LocalNameScope enclosing,
+    TopLevelFunctionDeclarationImpl node,
+  ) {
+    _LocalNameScope scope = _LocalNameScope(enclosing);
+    scope.addTypeParameters(node.typeParameters);
+    scope.addFormalParameters(node.formalParameters);
+    return scope;
+  }
+
+  factory forTopLevelGetter(
+    _LocalNameScope enclosing,
+    TopLevelGetterDeclarationImpl node,
+  ) {
+    _LocalNameScope scope = _LocalNameScope(enclosing);
+    scope.addFormalParameters(node.recoveryFormalParameters);
+    return scope;
+  }
+
+  factory forTopLevelSetter(
+    _LocalNameScope enclosing,
+    TopLevelSetterDeclarationImpl node,
+  ) {
+    _LocalNameScope scope = _LocalNameScope(enclosing);
+    scope.addFormalParameters(node.formalParameters);
+    return scope;
+  }
+
+  factory forUnit(CompilationUnitImpl node) {
     _LocalNameScope scope = _LocalNameScope(null);
     for (var declaration in node.declarations2) {
       switch (declaration) {
-        case ClassDeclarationImpl():
+        case ClassDeclaration2Impl():
           scope.add(declaration.namePart.typeName);
-        case EnumDeclarationImpl():
+        case EnumDeclaration2Impl():
           scope.add(declaration.namePart.typeName);
-        case ExtensionDeclarationImpl():
+        case ExtensionDeclaration2Impl():
           scope.add(declaration.name);
-        case ExtensionTypeDeclarationImpl():
+        case ExtensionTypeDeclaration2Impl():
           scope.add(declaration.namePart.typeName);
-        case FunctionDeclarationImpl():
+        case MixinDeclaration2Impl():
           scope.add(declaration.name);
-        case MixinDeclarationImpl():
+        case TopLevelFunctionDeclarationImpl():
           scope.add(declaration.name);
-        case TopLevelVariableDeclarationImpl():
-          scope.addVariableNames(declaration.variables);
+        case TopLevelVariablesDeclarationImpl():
+          for (var variable in declaration.variables) {
+            scope.add(variable.name);
+          }
         case TopLevelGetterDeclarationImpl():
           scope.add(declaration.name);
-        case TypeAliasImpl():
+        case TopLevelSetterDeclarationImpl():
+          scope.add(declaration.name);
+        case ClassTypeAlias2Impl():
+          scope.add(declaration.name);
+        case FunctionTypeAlias2Impl():
+          scope.add(declaration.name);
+        case GenericTypeAlias2Impl():
           scope.add(declaration.name);
       }
     }
@@ -191,7 +227,7 @@ class _LocalNameScope {
 
   void addFormalParameters(FormalParameterList? parameterList) {
     if (parameterList != null) {
-      for (var p in parameterList.parameters) {
+      for (var p in parameterList.allFormalParameters) {
         add(p.name);
       }
     }
@@ -200,12 +236,6 @@ class _LocalNameScope {
   void addTypeParameters(TypeParameterList? typeParameterList) {
     if (typeParameterList != null) {
       typeParameterList.typeParameters.map((p) => p.name).forEach(add);
-    }
-  }
-
-  void addVariableNames(VariableDeclarationList variableList) {
-    for (VariableDeclaration variable in variableList.variables) {
-      add(variable.name);
     }
   }
 
@@ -227,14 +257,15 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
 
   _LocalNameScope localScope = _LocalNameScope(null);
 
-  _ReferencedNamesComputer({
-    required this.includeAnalyzerDiagnosticExpectations,
-  });
+  new({required this.includeAnalyzerDiagnosticExpectations});
 
   @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    _addCompoundAssignmentOperator(node.operator);
-    super.visitAssignmentExpression(node);
+  void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
+    names.add(switch (node.binaryOperator) {
+      BinaryOperator.notEqual => '==',
+      _ => node.operator.lexeme,
+    });
+    super.visitBinaryOperatorInvocation(node);
   }
 
   @override
@@ -249,29 +280,63 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
-    names.add(node.propertyName.lexeme);
+  void visitCascadeIndexAssignmentTarget(CascadeIndexAssignmentTarget node) {
+    if (node.hasRead) names.add('[]');
+    names.add('[]=');
+    super.visitCascadeIndexAssignmentTarget(node);
   }
 
   @override
-  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
+  void visitCascadeIndexExpression(CascadeIndexExpression node) {
+    names.add('[]');
+    super.visitCascadeIndexExpression(node);
+  }
+
+  @override
+  void visitCascadePropertyAssignmentTarget(
+    CascadePropertyAssignmentTarget node,
+  ) {
+    names.add(node.name.lexeme);
+  }
+
+  @override
+  void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
+    names.add(node.name.lexeme);
+  }
+
+  @override
+  void visitClassDeclaration2(covariant ClassDeclaration2Impl node) {
     _LocalNameScope outerScope = localScope;
     try {
       localScope = _LocalNameScope.forClass(localScope, node);
-      super.visitClassDeclaration(node);
+      super.visitClassDeclaration2(node);
     } finally {
       localScope = outerScope;
     }
   }
 
   @override
-  void visitClassTypeAlias(ClassTypeAlias node) {
+  void visitClassTypeAlias2(ClassTypeAlias2 node) {
     _LocalNameScope outerScope = localScope;
     try {
       localScope = _LocalNameScope.forClassTypeAlias(localScope, node);
-      super.visitClassTypeAlias(node);
+      super.visitClassTypeAlias2(node);
     } finally {
       localScope = outerScope;
+    }
+  }
+
+  @override
+  void visitCombinatorName(CombinatorName node) {
+    names.add(node.name.lexeme);
+  }
+
+  @override
+  void visitCommentReferenceComponent(CommentReferenceComponent node) {
+    var name = node.name.lexeme;
+    if (node.period != null ||
+        !localScope.contains(name) && !importPrefixNames.contains(name)) {
+      names.add(name);
     }
   }
 
@@ -288,11 +353,11 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration2(ConstructorDeclaration2 node) {
     _LocalNameScope outerScope = localScope;
     try {
       localScope = _LocalNameScope.forConstructor(localScope, node);
-      super.visitConstructorDeclaration(node);
+      super.visitConstructorDeclaration2(node);
     } finally {
       localScope = outerScope;
     }
@@ -313,38 +378,45 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitExtensionTypeDeclaration(
-    covariant ExtensionTypeDeclarationImpl node,
+  void visitDotShorthandConstructorInvocation2(
+    DotShorthandConstructorInvocation2 node,
+  ) {
+    names.add(node.name.lexeme);
+    super.visitDotShorthandConstructorInvocation2(node);
+  }
+
+  @override
+  void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
+    names.add(node.name.lexeme);
+  }
+
+  @override
+  void visitExtensionTypeDeclaration2(
+    covariant ExtensionTypeDeclaration2Impl node,
   ) {
     var outerScope = localScope;
     try {
       localScope = _LocalNameScope.forExtensionType(localScope, node);
-      super.visitExtensionTypeDeclaration(node);
+      super.visitExtensionTypeDeclaration2(node);
     } finally {
       localScope = outerScope;
     }
   }
 
   @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    _LocalNameScope outerScope = localScope;
-    try {
-      localScope = _LocalNameScope.forFunction(localScope, node);
-      super.visitFunctionDeclaration(node);
-    } finally {
-      localScope = outerScope;
-    }
-  }
-
-  @override
-  void visitFunctionTypeAlias(FunctionTypeAlias node) {
+  void visitFunctionTypeAlias2(FunctionTypeAlias2 node) {
     _LocalNameScope outerScope = localScope;
     try {
       localScope = _LocalNameScope.forFunctionTypeAlias(localScope, node);
-      super.visitFunctionTypeAlias(node);
+      super.visitFunctionTypeAlias2(node);
     } finally {
       localScope = outerScope;
     }
+  }
+
+  @override
+  void visitGetterDeclaration(covariant GetterDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitGetterDeclaration(node));
   }
 
   @override
@@ -357,14 +429,44 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitMethodDeclaration(MethodDeclaration node) {
+  void visitImportPrefixedAssignmentTarget(
+    ImportPrefixedAssignmentTarget node,
+  ) {
+    names.add(node.name.lexeme);
+    super.visitImportPrefixedAssignmentTarget(node);
+  }
+
+  @override
+  void visitImportPrefixedNameExpression(ImportPrefixedNameExpression node) {
+    names.add(node.name.lexeme);
+    super.visitImportPrefixedNameExpression(node);
+  }
+
+  @override
+  void visitIncrementOrDecrementExpression(
+    IncrementOrDecrementExpression node,
+  ) {
+    names.add(switch (node.operation) {
+      IncrementOrDecrementOperation.increment => '+',
+      IncrementOrDecrementOperation.decrement => '-',
+    });
+    node.visitChildren2(this);
+  }
+
+  @override
+  void visitLocalFunctionDeclaration(LocalFunctionDeclaration node) {
     _LocalNameScope outerScope = localScope;
     try {
-      localScope = _LocalNameScope.forMethod(localScope, node);
-      super.visitMethodDeclaration(node);
+      localScope = _LocalNameScope.forLocalFunction(localScope, node);
+      super.visitLocalFunctionDeclaration(node);
     } finally {
       localScope = outerScope;
     }
+  }
+
+  @override
+  void visitMethodDeclaration2(covariant MethodDeclaration2Impl node) {
+    _visitMethodDeclaration(node, () => super.visitMethodDeclaration2(node));
   }
 
   @override
@@ -386,6 +488,40 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitOperatorDeclaration(covariant OperatorDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitOperatorDeclaration(node));
+  }
+
+  @override
+  void visitParsedCascadeName(ParsedCascadeName node) {
+    names.add(node.name.lexeme);
+  }
+
+  @override
+  void visitParsedDotShorthandName(ParsedDotShorthandName node) {
+    names.add(node.name.lexeme);
+  }
+
+  @override
+  void visitParsedNameAccess(ParsedNameAccess node) {
+    names.add(node.name.lexeme);
+    super.visitParsedNameAccess(node);
+  }
+
+  @override
+  void visitParsedNameAccessAssignmentTarget(
+    ParsedNameAccessAssignmentTarget node,
+  ) {
+    names.add(node.name.lexeme);
+    super.visitParsedNameAccessAssignmentTarget(node);
+  }
+
+  @override
+  void visitParsedUnqualifiedName(ParsedUnqualifiedName node) {
+    _addIfNotShadowed(node.name, hasImportPrefix: false);
+  }
+
+  @override
   void visitPatternField(PatternField node) {
     if (node.effectiveName case var name?) {
       names.add(name);
@@ -395,64 +531,44 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitPostfixDecrement(PostfixDecrement node) {
-    names.add('-');
-    node.visitChildren2(this);
+  void visitReceiverIndexAssignmentTarget(ReceiverIndexAssignmentTarget node) {
+    if (node.hasRead) names.add('[]');
+    names.add('[]=');
+    super.visitReceiverIndexAssignmentTarget(node);
   }
 
   @override
-  void visitPostfixIncrement(PostfixIncrement node) {
-    names.add('+');
-    node.visitChildren2(this);
-  }
-
-  @override
-  void visitPrefixDecrement(PrefixDecrement node) {
-    names.add('-');
-    node.visitChildren2(this);
-  }
-
-  @override
-  void visitPrefixIncrement(PrefixIncrement node) {
-    names.add('+');
-    node.visitChildren2(this);
+  void visitReceiverIndexExpression(ReceiverIndexExpression node) {
+    names.add('[]');
+    super.visitReceiverIndexExpression(node);
   }
 
   @override
   void visitReceiverPropertyAssignmentTarget(
     ReceiverPropertyAssignmentTarget node,
   ) {
-    names.add(node.propertyName.lexeme);
+    names.add(node.name.lexeme);
     super.visitReceiverPropertyAssignmentTarget(node);
   }
 
   @override
   void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
-    names.add(node.propertyName.lexeme);
+    names.add(node.name.lexeme);
     super.visitReceiverPropertyExtraction(node);
   }
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    // Ignore all declarations.
-    if (node.inDeclarationContext()) {
-      return;
-    }
-    // Prepare name.
-    String name = node.name;
-    // Ignore names shadowed by local elements.
-    if (node.isQualified) {
-      // Cannot be local.
-    } else {
-      if (localScope.contains(name)) {
-        return;
-      }
-      if (importPrefixNames.contains(name)) {
-        return;
-      }
-    }
-    // Do add the name.
-    names.add(name);
+  void visitRelationalPattern(RelationalPattern node) {
+    names.add(switch (node.operator.type) {
+      TokenType.BANG_EQ => '==',
+      _ => node.operator.lexeme,
+    });
+    super.visitRelationalPattern(node);
+  }
+
+  @override
+  void visitSetterDeclaration(covariant SetterDeclarationImpl node) {
+    _visitMethodDeclaration(node, () => super.visitSetterDeclaration(node));
   }
 
   @override
@@ -473,10 +589,65 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitTopLevelFunctionDeclaration(
+    covariant TopLevelFunctionDeclarationImpl node,
+  ) {
+    _LocalNameScope outerScope = localScope;
+    try {
+      localScope = _LocalNameScope.forTopLevelFunction(localScope, node);
+      super.visitTopLevelFunctionDeclaration(node);
+    } finally {
+      localScope = outerScope;
+    }
+  }
+
+  @override
+  void visitTopLevelGetterDeclaration(
+    covariant TopLevelGetterDeclarationImpl node,
+  ) {
+    _LocalNameScope outerScope = localScope;
+    try {
+      localScope = _LocalNameScope.forTopLevelGetter(localScope, node);
+      super.visitTopLevelGetterDeclaration(node);
+    } finally {
+      localScope = outerScope;
+    }
+  }
+
+  @override
+  void visitTopLevelSetterDeclaration(
+    covariant TopLevelSetterDeclarationImpl node,
+  ) {
+    _LocalNameScope outerScope = localScope;
+    try {
+      localScope = _LocalNameScope.forTopLevelSetter(localScope, node);
+      super.visitTopLevelSetterDeclaration(node);
+    } finally {
+      localScope = outerScope;
+    }
+  }
+
+  @override
+  void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
+    // The name of `operator unary-` is `-`.
+    names.add(node.operator.lexeme);
+    super.visitUnaryOperatorInvocation(node);
+  }
+
+  @override
   void visitUnqualifiedNameAssignmentTarget(
     UnqualifiedNameAssignmentTarget node,
   ) {
     _addIfNotShadowed(node.name, hasImportPrefix: false);
+  }
+
+  @override
+  void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
+    var name = node.name.lexeme;
+    if (localScope.contains(name) || importPrefixNames.contains(name)) {
+      return;
+    }
+    names.add(name);
   }
 
   void _addCompoundAssignmentOperator(Token operator) {
@@ -499,5 +670,18 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
     }
 
     names.add(name);
+  }
+
+  void _visitMethodDeclaration(
+    MethodDeclarationV1OriginImpl node,
+    void Function() visitSuper,
+  ) {
+    _LocalNameScope outerScope = localScope;
+    try {
+      localScope = _LocalNameScope.forMethod(localScope, node);
+      visitSuper();
+    } finally {
+      localScope = outerScope;
+    }
   }
 }

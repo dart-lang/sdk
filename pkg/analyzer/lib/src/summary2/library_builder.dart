@@ -23,6 +23,7 @@ import 'package:analyzer/src/summary2/element_builder.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/link.dart';
+import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/metadata_resolver.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/reference_resolver.dart';
@@ -31,8 +32,91 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:collection/collection.dart';
 
+/// Builds the URI of the library imported by [state].
+///
+/// The imported library, if any, must be already loaded into the
+/// [elementFactory].
+DirectiveUri buildLibraryImportUri({
+  required LibraryImportState state,
+  required LinkedElementFactory elementFactory,
+}) {
+  switch (state) {
+    case LibraryImportWithFile():
+      var importedLibraryKind = state.importedLibrary;
+      if (importedLibraryKind != null) {
+        var importedFile = importedLibraryKind.file;
+        var importedUri = importedFile.uri;
+        var importedLibrary = elementFactory.libraryOfUri2(importedUri);
+        return DirectiveUriWithLibraryImpl(
+          relativeUriString: state.selectedUri.relativeUriStr,
+          relativeUri: state.selectedUri.relativeUri,
+          source: importedLibrary.source,
+          library: importedLibrary,
+        );
+      } else {
+        return DirectiveUriWithSourceImpl(
+          relativeUriString: state.selectedUri.relativeUriStr,
+          relativeUri: state.selectedUri.relativeUri,
+          source: state.importedSource,
+        );
+      }
+    case LibraryImportWithInSummarySource():
+      var importedLibrarySource = state.importedLibrarySource;
+      if (importedLibrarySource != null) {
+        var importedUri = importedLibrarySource.uri;
+        var importedLibrary = elementFactory.libraryOfUri2(importedUri);
+        return DirectiveUriWithLibraryImpl(
+          relativeUriString: state.selectedUri.relativeUriStr,
+          relativeUri: state.selectedUri.relativeUri,
+          source: importedLibrary.source,
+          library: importedLibrary,
+        );
+      } else {
+        return DirectiveUriWithSourceImpl(
+          relativeUriString: state.selectedUri.relativeUriStr,
+          relativeUri: state.selectedUri.relativeUri,
+          source: state.importedSource,
+        );
+      }
+    default:
+      var selectedUri = state.selectedUri;
+      switch (selectedUri) {
+        case file_state.DirectiveUriWithUri():
+          return DirectiveUriWithRelativeUriImpl(
+            relativeUriString: selectedUri.relativeUriStr,
+            relativeUri: selectedUri.relativeUri,
+          );
+        case file_state.DirectiveUriWithString():
+          return DirectiveUriWithRelativeUriStringImpl(
+            relativeUriString: selectedUri.relativeUriStr,
+          );
+        default:
+          return DirectiveUriImpl();
+      }
+  }
+}
+
+/// Builds the element model combinators from the unlinked [combinators].
+List<NamespaceCombinator> buildNamespaceCombinators(
+  List<UnlinkedCombinator> combinators,
+) {
+  return combinators.map((unlinked) {
+    if (unlinked.isShow) {
+      return ShowElementCombinatorImpl()
+        ..offset = unlinked.keywordOffset
+        ..end = unlinked.endOffset
+        ..shownNames = unlinked.names;
+    } else {
+      return HideElementCombinatorImpl()
+        ..offset = unlinked.keywordOffset
+        ..end = unlinked.endOffset
+        ..hiddenNames = unlinked.names;
+    }
+  }).toFixedList();
+}
+
 class DefiningLinkingUnit extends LinkingUnit {
-  DefiningLinkingUnit({
+  new({
     required super.node,
     required super.fragment,
     required super.informativeBytes,
@@ -42,12 +126,12 @@ class DefiningLinkingUnit extends LinkingUnit {
 class ImplicitEnumNodes {
   final EnumFragmentImpl fragment;
   final ast.NamedTypeImpl valuesTypeNode;
-  final ast.VariableDeclarationImpl valuesNode;
+  final ast.Field2Impl valuesNode;
   final FieldFragmentImpl valuesFragment;
   final Set<String> valuesNames;
   ast.ListLiteralImpl valuesInitializer;
 
-  ImplicitEnumNodes({
+  new({
     required this.fragment,
     required this.valuesTypeNode,
     required this.valuesNode,
@@ -64,6 +148,16 @@ class LibraryBuilder {
   final LibraryReference reference;
   final LibraryElementImpl element;
   final List<LinkingUnit> units;
+
+  /// The files that already contribute a fragment to the library: the
+  /// defining file, and the part files included so far.
+  ///
+  /// Repeated part directives retain their sources, but only the first
+  /// inclusion contributes a fragment and declarations to the library. The
+  /// defining file is here too, because when a part file is analyzed as a
+  /// library (no library includes it), its part directives can lead back to
+  /// itself through a cycle of parts.
+  late final Set<FileState> _includedFiles = {kind.file};
 
   final Map<EnumFragmentImpl, ImplicitEnumNodes> implicitEnumNodes =
       Map.identity();
@@ -100,7 +194,7 @@ class LibraryBuilder {
   /// at the time when we create them, because of future augmentations.
   final Set<FieldFragmentImpl> finalInstanceFields = Set.identity();
 
-  LibraryBuilder._({
+  new _({
     required this.linker,
     required this.kind,
     required this.uri,
@@ -260,11 +354,11 @@ class LibraryBuilder {
   void collectMixinSuperInvokedNames() {
     for (var linkingUnit in units) {
       for (var declaration in linkingUnit.node.declarations2) {
-        if (declaration is ast.MixinDeclarationImpl) {
+        if (declaration is ast.MixinDeclaration2Impl) {
           var names = <String>{};
           var collector = MixinSuperInvokedNamesCollector(names);
           for (var executable in declaration.body.members) {
-            if (executable is ast.MethodDeclarationImpl) {
+            if (executable is ast.MethodDeclarationV1OriginImpl) {
               executable.body.accept2(collector);
             }
           }
@@ -363,31 +457,6 @@ class LibraryBuilder {
     }
   }
 
-  void setDefaultSupertypes() {
-    var shouldResetClassHierarchies = false;
-    var objectType = element.typeProvider.objectType;
-
-    for (var classElement in element.classes) {
-      if (!classElement.isDartCoreObject) {
-        if (classElement.supertype == null) {
-          shouldResetClassHierarchies = true;
-          classElement.supertype = objectType;
-        }
-      }
-    }
-
-    for (var mixinElement in element.mixins) {
-      if (mixinElement.superclassConstraints.isEmpty) {
-        shouldResetClassHierarchies = true;
-        mixinElement.superclassConstraints = [objectType];
-      }
-    }
-
-    if (shouldResetClassHierarchies) {
-      element.session.classHierarchy.removeOfLibraries({uri});
-    }
-  }
-
   void storeExportScope() {
     element.exportEntries = exportScope.toExportEntries();
 
@@ -404,24 +473,6 @@ class LibraryBuilder {
     if (entryPoint is TopLevelFunctionElementImpl) {
       element.entryPoint = entryPoint;
     }
-  }
-
-  List<NamespaceCombinator> _buildCombinators(
-    List<UnlinkedCombinator> combinators2,
-  ) {
-    return combinators2.map((unlinked) {
-      if (unlinked.isShow) {
-        return ShowElementCombinatorImpl()
-          ..offset = unlinked.keywordOffset
-          ..end = unlinked.endOffset
-          ..shownNames = unlinked.names;
-      } else {
-        return HideElementCombinatorImpl()
-          ..offset = unlinked.keywordOffset
-          ..end = unlinked.endOffset
-          ..hiddenNames = unlinked.names;
-      }
-    }).toFixedList();
   }
 
   /// Builds directive elements, for the library and recursively for its
@@ -448,8 +499,6 @@ class LibraryBuilder {
   }
 
   LibraryExportImpl _buildLibraryExport(LibraryExportState state) {
-    var combinators = _buildCombinators(state.unlinked.combinators);
-
     DirectiveUri uri;
     switch (state) {
       case LibraryExportWithFile():
@@ -509,8 +558,9 @@ class LibraryBuilder {
     }
 
     return LibraryExportImpl(
-      combinators: combinators,
+      combinators: buildNamespaceCombinators(state.unlinked.combinators),
       exportKeywordOffset: state.unlinked.exportKeywordOffset,
+      isConditional: state.unlinked.configurations.isNotEmpty,
       uri: uri,
     );
   }
@@ -528,72 +578,16 @@ class LibraryBuilder {
       );
     });
 
-    var combinators = _buildCombinators(state.unlinked.combinators);
-
-    DirectiveUri uri;
-    switch (state) {
-      case LibraryImportWithFile():
-        var importedLibraryKind = state.importedLibrary;
-        if (importedLibraryKind != null) {
-          var importedFile = importedLibraryKind.file;
-          var importedUri = importedFile.uri;
-          var elementFactory = linker.elementFactory;
-          var importedLibrary = elementFactory.libraryOfUri2(importedUri);
-          uri = DirectiveUriWithLibraryImpl(
-            relativeUriString: state.selectedUri.relativeUriStr,
-            relativeUri: state.selectedUri.relativeUri,
-            source: importedLibrary.source,
-            library: importedLibrary,
-          );
-        } else {
-          uri = DirectiveUriWithSourceImpl(
-            relativeUriString: state.selectedUri.relativeUriStr,
-            relativeUri: state.selectedUri.relativeUri,
-            source: state.importedSource,
-          );
-        }
-      case LibraryImportWithInSummarySource():
-        var importedLibrarySource = state.importedLibrarySource;
-        if (importedLibrarySource != null) {
-          var importedUri = importedLibrarySource.uri;
-          var elementFactory = linker.elementFactory;
-          var importedLibrary = elementFactory.libraryOfUri2(importedUri);
-          uri = DirectiveUriWithLibraryImpl(
-            relativeUriString: state.selectedUri.relativeUriStr,
-            relativeUri: state.selectedUri.relativeUri,
-            source: importedLibrary.source,
-            library: importedLibrary,
-          );
-        } else {
-          uri = DirectiveUriWithSourceImpl(
-            relativeUriString: state.selectedUri.relativeUriStr,
-            relativeUri: state.selectedUri.relativeUri,
-            source: state.importedSource,
-          );
-        }
-      default:
-        var selectedUri = state.selectedUri;
-        switch (selectedUri) {
-          case file_state.DirectiveUriWithUri():
-            uri = DirectiveUriWithRelativeUriImpl(
-              relativeUriString: selectedUri.relativeUriStr,
-              relativeUri: selectedUri.relativeUri,
-            );
-          case file_state.DirectiveUriWithString():
-            uri = DirectiveUriWithRelativeUriStringImpl(
-              relativeUriString: selectedUri.relativeUriStr,
-            );
-          default:
-            uri = DirectiveUriImpl();
-        }
-    }
-
     return LibraryImportImpl(
       isSynthetic: state.isSyntheticDartCore,
-      combinators: combinators,
+      combinators: buildNamespaceCombinators(state.unlinked.combinators),
       importKeywordOffset: state.unlinked.importKeywordOffset,
+      isConditional: state.unlinked.configurations.isNotEmpty,
       prefix: prefixFragment,
-      uri: uri,
+      uri: buildLibraryImportUri(
+        state: state,
+        elementFactory: linker.elementFactory,
+      ),
     );
   }
 
@@ -626,12 +620,14 @@ class LibraryBuilder {
     switch (state) {
       case PartIncludeWithFile():
         var includedPart = state.includedPart;
-        if (includedPart != null) {
+        if (includedPart != null && _includedFiles.add(includedPart.file)) {
           var partFile = includedPart.file;
-          var partUnitNode = partFile.parse(
-            performance: OperationPerformanceImpl('<root>'),
-            scanComments: false,
-          );
+          var partUnitNode =
+              partFile.takeParsedUnitForLinking() ??
+              partFile.parse(
+                performance: OperationPerformanceImpl('<root>'),
+                scanComments: false,
+              );
           var libraryFragment = LibraryFragmentImpl(
             library: containerLibrary,
             source: partFile.source,
@@ -727,7 +723,8 @@ class LibraryBuilder {
     var libraryReference = rootReference.getOrCreateLibrary(libraryFile.uri);
 
     var libraryUnitNode = performance.run('libraryFile', (performance) {
-      return libraryFile.parse(performance: performance, scanComments: false);
+      return libraryFile.takeParsedUnitForLinking() ??
+          libraryFile.parse(performance: performance, scanComments: false);
     });
 
     var name = '';
@@ -803,7 +800,7 @@ class LinkingUnit {
   final LibraryFragmentImpl fragment;
   final Uint8List informativeBytes;
 
-  LinkingUnit({
+  new({
     required this.node,
     required this.fragment,
     required this.informativeBytes,
@@ -827,7 +824,7 @@ class _FieldPromotability
   /// Fields that might be promotable, if not marked unpromotable later.
   final List<FieldElementImpl> _potentiallyPromotableFields = [];
 
-  _FieldPromotability(this._libraryBuilder, {required this.enabled});
+  new(this._libraryBuilder, {required this.enabled});
 
   @override
   Iterable<InterfaceElementImpl> getSuperclasses(

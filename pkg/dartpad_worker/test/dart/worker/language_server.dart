@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:json_rpc_2/json_rpc_2.dart';
+import 'package:path/path.dart' as p;
 
 import '../../worker_harness.dart';
 
@@ -17,7 +18,7 @@ void main() {
 
     final r = await lsp.sendRequest('initialize', {
       'processId': null,
-      'rootUri': ws.workspaceFolder.toString(),
+      'rootUri': p.posix.toUri(ws.workspaceFolder).toString(),
       'capabilities': <String, Object?>{},
     });
 
@@ -26,7 +27,7 @@ void main() {
       ..containsKey('hoverProvider')
       ..containsKey('completionProvider');
 
-    await ls.stop();
+    await ls.close();
   });
 
   testDartWorkspace('publishDiagnostics reports syntax errors', (ws) async {
@@ -36,7 +37,7 @@ void main() {
 
     await lsp.sendRequest('initialize', {
       'processId': null,
-      'rootUri': ws.workspaceFolder.toString(),
+      'rootUri': p.posix.toUri(ws.workspaceFolder).toString(),
       'capabilities': {
         'textDocument': {'publishDiagnostics': <String, Object?>{}},
       },
@@ -47,7 +48,9 @@ void main() {
       lsp,
     ).withNotificationQueue('textDocument/publishDiagnostics');
 
-    final fileUri = ws.workspaceFolder.resolve('main.dart');
+    final fileUri = p.posix.toUri(
+      p.posix.join(ws.workspaceFolder, 'main.dart'),
+    );
     final code = 'void main() { print("hello") }'; // Missing semicolon
 
     lsp.sendNotification('textDocument/didOpen', {
@@ -60,14 +63,16 @@ void main() {
     });
 
     await diagnosticsQueue.emitsThrough(
-      (e) => e.isA<Map>()['diagnostics'].isA<List>().any(
-        (d) => d.isA<Map>()['message'].isA<String>().contains(
-          'Expected to find \';\'',
+      .it()
+        ..isA<Map>()['diagnostics'].isA<List>().any(
+          .it()
+            ..isA<Map>()['message'].isA<String>().contains(
+              'Expected to find \';\'',
+            ),
         ),
-      ),
     );
 
-    await ls.stop();
+    await ls.close();
   });
 
   testDartWorkspace('hover returns information', (ws) async {
@@ -77,7 +82,7 @@ void main() {
 
     await lsp.sendRequest('initialize', {
       'processId': null,
-      'rootUri': ws.workspaceFolder.toString(),
+      'rootUri': p.posix.toUri(ws.workspaceFolder).toString(),
       'capabilities': {
         'textDocument': {
           'hover': {
@@ -88,7 +93,9 @@ void main() {
     });
     lsp.sendNotification('initialized', {});
 
-    final fileUri = ws.workspaceFolder.resolve('main.dart');
+    final fileUri = p.posix.toUri(
+      p.posix.join(ws.workspaceFolder, 'main.dart'),
+    );
     final code = 'void main() { print("hello"); }';
     await ws.writeFileFromText('main.dart', code);
 
@@ -110,7 +117,7 @@ void main() {
       ..contains('print')
       ..contains('void');
 
-    await ls.stop();
+    await ls.close();
   });
 
   testDartWorkspace('diagnostics update after didChange', (ws) async {
@@ -120,7 +127,7 @@ void main() {
 
     await lsp.sendRequest('initialize', {
       'processId': null,
-      'rootUri': ws.workspaceFolder.toString(),
+      'rootUri': p.posix.toUri(ws.workspaceFolder).toString(),
       'capabilities': {
         'textDocument': {'publishDiagnostics': <String, Object?>{}},
       },
@@ -131,7 +138,9 @@ void main() {
       lsp,
     ).withNotificationQueue('textDocument/publishDiagnostics');
 
-    final fileUri = ws.workspaceFolder.resolve('main.dart').toString();
+    final fileUri = p.posix
+        .toUri(p.posix.join(ws.workspaceFolder, 'main.dart'))
+        .toString();
 
     // Open with error
     lsp.sendNotification('textDocument/didOpen', {
@@ -144,7 +153,7 @@ void main() {
     });
 
     await diagnosticsQueue.emitsThrough(
-      (e) => e.isA<Map>()['diagnostics'].isA<List>().isNotEmpty(),
+      .it()..isA<Map>()['diagnostics'].isA<List>().isNotEmpty,
     );
 
     // Fix it
@@ -156,10 +165,10 @@ void main() {
     });
 
     await diagnosticsQueue.emitsThrough(
-      (e) => e.isA<Map>()['diagnostics'].isA<List>().isEmpty(),
+      .it()..isA<Map>()['diagnostics'].isA<List>().isEmpty,
     );
 
-    await ls.stop();
+    await ls.close();
   });
 
   testDartWorkspace('publishDiagnostics reports lints', (ws) async {
@@ -170,7 +179,7 @@ void main() {
 
       await lsp.sendRequest('initialize', {
         'processId': null,
-        'rootUri': ws.workspaceFolder.toString(),
+        'rootUri': p.posix.toUri(ws.workspaceFolder).toString(),
         'capabilities': {
           'textDocument': {'publishDiagnostics': <String, Object?>{}},
         },
@@ -187,7 +196,9 @@ linter:
     - prefer_single_quotes
 ''');
 
-      final fileUri = ws.workspaceFolder.resolve('main.dart');
+      final fileUri = p.posix.toUri(
+        p.posix.join(ws.workspaceFolder, 'main.dart'),
+      );
       final code = 'void main() { print("hello"); }';
 
       lsp.sendNotification('textDocument/didOpen', {
@@ -200,13 +211,14 @@ linter:
       });
 
       await diagnosticsQueue.emitsThrough(
-        (e) => e.isA<Map>()['diagnostics'].isA<List>().any(
-          (d) =>
-              d.isA<Map>()['code'].isA<String>().equals('prefer_single_quotes'),
-        ),
+        .it()
+          ..isA<Map>()['diagnostics'].isA<List>().any(
+            .it()
+              ..isA<Map>()['code'].isA<String>().equals('prefer_single_quotes'),
+          ),
       );
     } finally {
-      await ls.stop();
+      await ls.close();
     }
   });
 
@@ -219,7 +231,7 @@ linter:
 
       await lsp.sendRequest('initialize', {
         'processId': null,
-        'rootUri': ws.workspaceFolder.toString(),
+        'rootUri': p.posix.toUri(ws.workspaceFolder).toString(),
         'capabilities': {
           'textDocument': {
             'codeAction': {
@@ -235,7 +247,9 @@ linter:
 
       lsp.sendNotification('initialized', {});
 
-      final fileUri = ws.workspaceFolder.resolve('main.dart');
+      final fileUri = p.posix.toUri(
+        p.posix.join(ws.workspaceFolder, 'main.dart'),
+      );
       final code = 'void main() { print("hello"); }';
 
       lsp.sendNotification('textDocument/didOpen', {
@@ -257,12 +271,13 @@ linter:
       });
 
       check(codeActions).isA<List>().any(
-        (action) => action.isA<Map>()['title'].isA<String>().contains(
-          'Convert to expression body',
-        ),
+        .it()
+          ..isA<Map>()['title'].isA<String>().contains(
+            'Convert to expression body',
+          ),
       );
     } finally {
-      await ls.stop();
+      await ls.close();
     }
   });
 
@@ -284,7 +299,7 @@ linter:
 
       await lsp.sendRequest('initialize', {
         'processId': null,
-        'rootUri': ws.workspaceFolder.toString(),
+        'rootUri': p.posix.toUri(ws.workspaceFolder).toString(),
         'capabilities': {
           'textDocument': {
             'publishDiagnostics': <String, Object?>{},
@@ -306,7 +321,9 @@ linter:
     - prefer_single_quotes
 ''');
 
-      final fileUri = ws.workspaceFolder.resolve('main.dart');
+      final fileUri = p.posix.toUri(
+        p.posix.join(ws.workspaceFolder, 'main.dart'),
+      );
       final code = 'void main() { print("hello"); }';
 
       lsp.sendNotification('textDocument/didOpen', {
@@ -334,12 +351,132 @@ linter:
       });
 
       check(codeActions).isA<List>().any(
-        (action) => action.isA<Map>()['title'].isA<String>().contains(
-          'Convert to single quoted string',
-        ),
+        .it()
+          ..isA<Map>()['title'].isA<String>().contains(
+            'Convert to single quoted string',
+          ),
       );
     } finally {
-      await ls.stop();
+      await ls.close();
+    }
+  });
+
+  testDartWorkspace(
+    'analyzes dart:js_interop and dart:typed_data without missing types',
+    (ws) async {
+      final ls = await ws.startLanguageServer();
+      try {
+        final lsp = Peer.withoutJson(ls.languageServerChannel);
+        unawaited(lsp.listen());
+
+        await lsp.sendRequest('initialize', {
+          'processId': null,
+          'rootUri': p.posix.toUri(ws.workspaceFolder).toString(),
+          'capabilities': {
+            'textDocument': {
+              'publishDiagnostics': <String, Object?>{},
+              'hover': {
+                'contentFormat': ['plaintext'],
+              },
+            },
+          },
+        });
+        lsp.sendNotification('initialized', {});
+
+        final fileUri = p.posix.toUri(
+          p.posix.join(ws.workspaceFolder, 'main.dart'),
+        );
+        const code = '''
+import 'dart:js_interop';
+import 'dart:typed_data';
+
+@JS('console.log')
+external void _log(JSAny? value);
+
+void main() {
+  final obj = JSObject();
+  final bytes = Uint8List(4).toJS;
+  _log(obj);
+  _log(bytes);
+}
+''';
+        await ws.writeFileFromText('main.dart', code);
+
+        lsp.sendNotification('textDocument/didOpen', {
+          'textDocument': {
+            'uri': fileUri.toString(),
+            'languageId': 'dart',
+            'version': 1,
+            'text': code,
+          },
+        });
+
+        // Verify hover on `bytes` resolves `JSUint8Array` (backed by
+        // `dart:_native_typed_data` in `lib/_internal/js_runtime/`).
+        final hover = await lsp.sendRequest('textDocument/hover', {
+          'textDocument': {'uri': fileUri.toString()},
+          'position': {'line': 8, 'character': 9},
+        });
+        check(hover).isA<Map>()['contents'].isA<Map>()['value'].isA<String>()
+          ..contains('JSUint8Array')
+          ..contains('bytes');
+      } finally {
+        await ls.close();
+      }
+    },
+  );
+
+  testDartWorkspace('two language servers in same workspace', (ws) async {
+    final ls1 = await ws.startLanguageServer();
+    final ls2 = await ws.startLanguageServer();
+    try {
+      final lsp1 = Peer.withoutJson(ls1.languageServerChannel);
+      unawaited(lsp1.listen());
+      final lsp2 = Peer.withoutJson(ls2.languageServerChannel);
+      unawaited(lsp2.listen());
+
+      for (final lsp in [lsp1, lsp2]) {
+        await lsp.sendRequest('initialize', {
+          'processId': null,
+          'rootUri': p.posix.toUri(ws.workspaceFolder).toString(),
+          'capabilities': {
+            'textDocument': {
+              'hover': {
+                'contentFormat': ['plaintext'],
+              },
+            },
+          },
+        });
+        lsp.sendNotification('initialized', {});
+      }
+
+      final fileUri = p.posix.toUri(
+        p.posix.join(ws.workspaceFolder, 'main.dart'),
+      );
+      const code = 'void main() { print("hello"); }';
+      await ws.writeFileFromText('main.dart', code);
+
+      for (final lsp in [lsp1, lsp2]) {
+        lsp.sendNotification('textDocument/didOpen', {
+          'textDocument': {
+            'uri': fileUri.toString(),
+            'languageId': 'dart',
+            'version': 1,
+            'text': code,
+          },
+        });
+
+        final hover = await lsp.sendRequest('textDocument/hover', {
+          'textDocument': {'uri': fileUri.toString()},
+          'position': {'line': 0, 'character': 15},
+        });
+        check(hover).isA<Map>()['contents'].isA<Map>()['value'].isA<String>()
+          ..contains('print')
+          ..contains('void');
+      }
+    } finally {
+      await ls1.close();
+      await ls2.close();
     }
   });
 }

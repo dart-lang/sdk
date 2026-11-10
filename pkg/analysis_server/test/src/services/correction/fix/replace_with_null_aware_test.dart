@@ -17,7 +17,7 @@ void main() {
 }
 
 @reflectiveTest
-class ReplaceWithNullAwareTest extends FixProcessorTest {
+class ReplaceWithNullAwareTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.replaceWithNullAware;
 
@@ -60,7 +60,7 @@ void f(List<int>? l) {
 }
 ''',
       filter: (error) => error.length == 6,
-      matchFixMessage: "Replace '..' with '?..' in invocation",
+      fixMessageContains: "Replace '..' with '?..' in invocation",
     );
   }
 
@@ -77,7 +77,7 @@ void f(int? i) {
 }
 ''',
       filter: (error) => error.length == 3,
-      matchFixMessage: "Replace '..' with '?..' in invocation",
+      fixMessageContains: "Replace '..' with '?..' in invocation",
     );
   }
 
@@ -94,7 +94,7 @@ void f(int? i) {
 }
 ''',
       filter: (error) => error.length == 3,
-      matchFixMessage: "Replace '..' with '?..' in invocation",
+      fixMessageContains: "Replace '..' with '?..' in invocation",
     );
   }
 
@@ -111,13 +111,14 @@ void f(List<int>? l) {
 }
 ''',
       filter: (error) => error.length == 1,
-      matchFixMessage: "Replace '..' with '?..' in invocation",
+      fixMessageContains: "Replace '..' with '?..' in invocation",
     );
   }
 }
 
 @reflectiveTest
-class UncheckedMethodInvocationOfNullableValueTest extends FixProcessorTest {
+class UncheckedMethodInvocationOfNullableValueTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.replaceWithNullAware;
 
@@ -148,7 +149,8 @@ class C {
 }
 
 @reflectiveTest
-class UncheckedPropertyAccessOfNullableValueTest extends FixProcessorTest {
+class UncheckedPropertyAccessOfNullableValueTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.replaceWithNullAware;
 

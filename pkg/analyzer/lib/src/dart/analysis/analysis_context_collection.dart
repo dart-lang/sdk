@@ -18,6 +18,7 @@ import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/util/sdk.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// An implementation of [AnalysisContextCollection].
 class AnalysisContextCollectionImpl implements AnalysisContextCollection {
@@ -35,12 +36,14 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
   final List<DriverBasedAnalysisContext> contexts = [];
 
   /// Initialize a newly created analysis context manager.
-  AnalysisContextCollectionImpl({
+  new({
     ByteStore? byteStore,
     Map<String, String>? declaredVariables,
     bool drainStreams = true,
     bool enableIndex = false,
     required List<String> includedPaths,
+    List<String> excludedPaths = const [],
+    Version? languageVersionOverride,
     List<String>? librarySummaryPaths,
     String? optionsFile,
     String? packageConfigFile,
@@ -54,9 +57,6 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     FileContentCache? fileContentCache,
     UnlinkedUnitStore? unlinkedUnitStore,
     List<String> enabledExperiments = const [],
-    @Deprecated('Use configureAnalysisOptionsBuilder instead.')
-    void Function({required AnalysisOptionsImpl analysisOptions})?
-    updateAnalysisOptions4,
     void Function({required AnalysisOptionsBuilder analysisOptionsBuilder})?
     configureAnalysisOptionsBuilder,
     bool enableLintRuleTiming = false,
@@ -76,10 +76,12 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     this.scheduler = scheduler;
 
     _throwIfAnyNotAbsoluteNormalizedPath(includedPaths);
+    _throwIfAnyNotAbsoluteNormalizedPath(excludedPaths);
     _throwIfNotAbsoluteNormalizedPath(sdkPath);
 
     var roots = locateContextRoots(
       includedPaths: includedPaths,
+      excludedPaths: excludedPaths,
       resourceProvider: this.resourceProvider,
       optionsFile: optionsFile,
       packageConfigFile: packageConfigFile,
@@ -99,13 +101,13 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
         declaredVariables: DeclaredVariables.fromMap(declaredVariables ?? {}),
         drainStreams: drainStreams,
         enableIndex: enableIndex,
+        languageVersionOverride: languageVersionOverride,
         librarySummaryPaths: librarySummaryPaths,
         performanceLog: performanceLog,
         retainDataForTesting: retainDataForTesting,
         sdkPath: sdkPath,
         sdkSummaryPath: sdkSummaryPath,
         scheduler: scheduler,
-        updateAnalysisOptions4: updateAnalysisOptions4,
         configureAnalysisOptionsBuilder: configureAnalysisOptionsBuilder,
         fileContentCache: fileContentCache,
         unlinkedUnitStore: unlinkedUnitStore ?? UnlinkedUnitStoreImpl(),

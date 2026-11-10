@@ -44,7 +44,8 @@ class D {
 }
 
 @reflectiveTest
-class RemoveEmptyConstructorBodyTest extends FixProcessorLintTest {
+class RemoveEmptyConstructorBodyTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeEmptyConstructorBody;
 

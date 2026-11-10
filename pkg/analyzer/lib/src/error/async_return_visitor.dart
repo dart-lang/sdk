@@ -1,10 +1,10 @@
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 
@@ -14,15 +14,12 @@ class AsyncReturnVisitor extends SimpleAstVisitor2<void> {
   final TypeProvider _typeProvider;
   final bool _withinTryBlock;
 
-  AsyncReturnVisitor({
-    required Diagnostic? Function(Token token) reportAtToken,
-    required TypeSystem typeSystem,
-    required TypeProvider typeProvider,
-    bool withinTryBlock = false,
-  }) : _withinTryBlock = withinTryBlock,
-       _typeProvider = typeProvider,
-       _typeSystem = typeSystem,
-       _reportAtToken = reportAtToken;
+  new({
+    required this._reportAtToken,
+    required this._typeSystem,
+    required this._typeProvider,
+    this._withinTryBlock = false,
+  });
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
@@ -87,12 +84,17 @@ extension on ReturnStatement {
 
 extension on FunctionBody {
   DartType? get returnType => switch (parent2) {
-    MethodDeclaration(:var declaredFragment) ||
-    FunctionDeclaration(:var declaredFragment) ||
-    FunctionExpression(
-      :var declaredFragment,
-    ) => declaredFragment?.element.returnType,
+    MethodDeclarationV1OriginImpl(:var declaredFragment) =>
+      declaredFragment?.element.returnType,
+    FunctionExpression(:var declaredFragment) =>
+      declaredFragment?.element.returnType,
+    LocalFunctionDeclaration(:var declaredFragment) =>
+      declaredFragment?.element.returnType,
+    TopLevelFunctionDeclaration(:var declaredFragment) =>
+      declaredFragment?.element.returnType,
     TopLevelGetterDeclaration(:var declaredFragment) =>
+      declaredFragment?.element.returnType,
+    TopLevelSetterDeclaration(:var declaredFragment) =>
       declaredFragment?.element.returnType,
     _ => null,
   };

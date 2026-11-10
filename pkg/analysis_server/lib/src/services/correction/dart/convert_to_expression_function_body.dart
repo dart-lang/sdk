@@ -6,8 +6,10 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -34,11 +36,6 @@ class ConvertToExpressionFunctionBody extends ResolvedCorrectionProducer {
     if (body is! BlockFunctionBody || body.isGenerator) {
       return;
     }
-    if (body.block.rightBracket.precedingComments != null) {
-      // TODO(srawlins): Include comments in fixed output.
-      // https://github.com/dart-lang/sdk/issues/29313
-      return;
-    }
     var parent = body.parent;
     if (parent is ConstructorDeclaration && parent.factoryKeyword == null) {
       return;
@@ -53,11 +50,24 @@ class ConvertToExpressionFunctionBody extends ResolvedCorrectionProducer {
     }
     var onlyStatement = statements.single;
     // Prepare the returned expression.
+    CommentToken? beforeExpressionComments;
     Expression returnExpression;
+    CommentToken? beforeReturnComments;
+    CommentToken? beforeSemicolonComments;
     if (onlyStatement case ReturnStatement(:var expression?)) {
       returnExpression = expression;
+      beforeReturnComments = onlyStatement.returnKeyword.precedingComments;
+
+      beforeExpressionComments =
+          onlyStatement.returnKeyword.next?.precedingComments;
+
+      beforeSemicolonComments = onlyStatement.semicolon.precedingComments;
     } else if (onlyStatement is ExpressionStatement) {
       returnExpression = onlyStatement.expression;
+
+      beforeExpressionComments = body.block.leftBracket.next?.precedingComments;
+
+      beforeSemicolonComments = onlyStatement.semicolon?.precedingComments;
     } else {
       return;
     }
@@ -68,50 +78,47 @@ class ConvertToExpressionFunctionBody extends ResolvedCorrectionProducer {
       return;
     }
 
-    var expressionRange = range.node(returnExpression);
-    if (returnExpression.beginToken.precedingComments case var comment?) {
-      expressionRange = range.startEnd(comment, returnExpression);
-    }
-
-    // Preserve comments before `return`; the keyword itself is removed.
-    var leadingCommentText = '';
-    if (onlyStatement case ReturnStatement(:var returnKeyword)) {
-      if (returnKeyword.precedingComments case var comment?) {
-        leadingCommentText = utils.getRangeText(
-          range.startStart(comment, returnKeyword),
-        );
-      }
-    }
-
-    // Preserve comments between the expression and the removed semicolon.
-    var trailingCommentText = '';
-    var semicolon = onlyStatement.endToken;
-    if (semicolon.precedingComments != null) {
-      trailingCommentText = utils.getRangeText(
-        range.endStart(returnExpression, semicolon),
-      );
-    }
-
-    // Preserve comments between `async` and the replaced `{`.
-    var asyncCommentText = '';
-    if (body.isAsynchronous) {
-      if (body.block.leftBracket.precedingComments case var comment?) {
-        asyncCommentText = utils.getRangeText(
-          range.startStart(comment, body.block.leftBracket),
-        );
-      }
-    }
-
+    var prefix = utils.getNodePrefix(body.parent!);
     await builder.addDartFileEdit(file, (builder) {
       builder.addReplacement(range.node(body), (builder) {
         if (body.isAsynchronous) {
           builder.write('async ');
-          builder.write(asyncCommentText);
+        }
+        if (body.keyword != null) {
+          builder.writeComment(
+            body.block.leftBracket.precedingComments,
+            prefix: prefix,
+            after: AfterCommentWrite.space,
+          );
         }
         builder.write('=> ');
-        builder.write(leadingCommentText);
-        builder.write(utils.getRangeText(expressionRange));
-        builder.write(trailingCommentText);
+        builder.writeComment(
+          beforeReturnComments,
+          prefix: prefix,
+          after: AfterCommentWrite.space,
+        );
+        builder.writeComment(
+          beforeExpressionComments,
+          prefix: prefix,
+          after: AfterCommentWrite.space,
+        );
+        builder.write(utils.getNodeText(returnExpression));
+        var lastComments = body.block.rightBracket.precedingComments;
+        builder.writeComment(
+          beforeSemicolonComments,
+          prefix: prefix,
+          before: BeforeCommentWrite.space,
+          after: lastComments == null
+              ? AfterCommentWrite.nothing
+              : AfterCommentWrite.space,
+        );
+        builder.writeComment(
+          lastComments,
+          prefix: prefix,
+          before: beforeSemicolonComments == null
+              ? BeforeCommentWrite.space
+              : BeforeCommentWrite.nothing,
+        );
         var parent = body.parent;
         if (parent is! FunctionExpression ||
             parent.parent is FunctionDeclaration) {

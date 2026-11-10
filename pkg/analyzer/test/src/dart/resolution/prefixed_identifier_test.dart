@@ -27,9 +27,22 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A
+    staticType: A
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::A::@getter::foo
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -55,9 +68,19 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@class::A
+  operator: .
+  name: foo
+  resolution: ExecutableTearOffResolution
+    element: <testLibrary>::@class::A::@method::foo
+    type: void Function<U>(int, U)
+  staticType: void Function<U>(int, U)
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: A
     element: <testLibrary>::@class::A
@@ -83,9 +106,19 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@class::A
+  operator: .
+  name: foo
+  resolution: ExecutableTearOffResolution
+    element: <testLibrary>::@class::A::@method::foo
+    type: void Function(int)
+  staticType: void Function(int)
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: A
     element: <testLibrary>::@class::A
@@ -111,10 +144,35 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.assignment('foo += 1');
+    var node = result.findNode.compoundAssignment('foo += 1');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PrefixedIdentifier
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A
+      staticType: A
+    operator: .
+    name: foo
+    read: GetterInvocationResolution
+      element: <testLibrary>::@class::A::@getter::foo
+      type: int
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::foo
+      acceptedType: int
+  operator: +=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
@@ -127,7 +185,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: +=
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 1
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
@@ -151,10 +209,30 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.assignment('foo = 1');
+    var node = result.findNode.directAssignment('foo = 1');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PrefixedIdentifier
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A
+      staticType: A
+    operator: .
+    name: foo
+    read: <null>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::foo
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
@@ -167,7 +245,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 1
     correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
     staticType: int
@@ -192,9 +270,22 @@ void f(E e) {
 }
 ''');
 
-    var node = result.findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: e
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::e
+      type: E
+    staticType: E
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@enum::E::@getter::foo
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: e
     element: <testLibrary>::@function::f::@formalParameter::e
@@ -221,10 +312,30 @@ void f(E e) {
 }
 ''');
 
-    var node = result.findNode.assignment('foo = 1');
+    var node = result.findNode.directAssignment('foo = 1');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PrefixedIdentifier
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: e
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::e
+        type: E
+      staticType: E
+    operator: .
+    name: foo
+    read: <null>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@enum::E::@setter::foo
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <testLibrary>::@enum::E::@setter::foo::@formalParameter::_
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: e
       element: <testLibrary>::@function::f::@formalParameter::e
@@ -237,7 +348,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 1
     correspondingParameter: <testLibrary>::@enum::E::@setter::foo::@formalParameter::_
     staticType: int
@@ -257,9 +368,21 @@ void f(Function a) {
 }
 ''');
 
-    var node = result.findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: Function
+    staticType: Function
+  operator: .
+  name: call
+  resolution: FunctionInterfaceCallTearOffResolution
+    type: Function
+  staticType: Function
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -281,9 +404,22 @@ void f(int Function(String) a) {
 }
 ''');
 
-    var node = result.findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: int Function(String)
+    staticType: int Function(String)
+  operator: .
+  name: call
+  resolution: FunctionCallTearOffResolution
+    type: int Function(String)
+    associatedFunctionType: int Function(String)
+  staticType: int Function(String)
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -311,9 +447,19 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.prefixed('B.foo');
+    var node = result.findNode.receiverPropertyExtraction('B.foo');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: B
+    element: <testLibrary>::@typeAlias::B
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::A::@getter::foo
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: B
     element: <testLibrary>::@typeAlias::B
@@ -344,9 +490,15 @@ int Function() foo() {
 }
 ''');
 
-    var node = result.findNode.simple('a;');
+    var node = result.findNode.unqualifiedNameExpression('a;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: a
+  resolution: GetterInvocationResolution
+    element: package:test/a.dart::@getter::a
+    type: A
+  staticType: A
+V1: SimpleIdentifier
   token: a
   element: package:test/a.dart::@getter::a
   staticType: A
@@ -371,134 +523,18 @@ int Function() foo() {
 }
 ''');
 
-    var node = result.findNode.simple('a;');
+    var node = result.findNode.unqualifiedNameExpression('a;');
     assertResolvedNodeText(node, r'''
-SimpleIdentifier
+UnqualifiedNameExpression
+  name: a
+  resolution: GetterInvocationResolution
+    element: package:test/a.dart::@getter::a
+    type: A?
+  staticType: A?
+V1: SimpleIdentifier
   token: a
   element: package:test/a.dart::@getter::a
   staticType: A?
-''');
-  }
-
-  test_importPrefix_topLevelFunction() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-void foo() {}
-''');
-
-    var result = await resolveTestCodeWithDiagnostics('''
-import 'a.dart' as prefix;
-
-void f() {
-  prefix.foo;
-}
-''');
-
-    var node = result.findNode.prefixed('prefix.');
-    assertResolvedNodeText(node, r'''
-PrefixedIdentifier
-  prefix: SimpleIdentifier
-    token: prefix
-    element: <testLibraryFragment>::@prefix::prefix
-    staticType: null
-  period: .
-  identifier: SimpleIdentifier
-    token: foo
-    element: package:test/a.dart::@function::foo
-    staticType: void Function()
-  element: package:test/a.dart::@function::foo
-  staticType: void Function()
-''');
-  }
-
-  test_importPrefix_topLevelGetter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-int get foo => 0;
-''');
-
-    var result = await resolveTestCodeWithDiagnostics('''
-import 'a.dart' as prefix;
-
-void f() {
-  prefix.foo;
-}
-''');
-
-    var node = result.findNode.prefixed('prefix.');
-    assertResolvedNodeText(node, r'''
-PrefixedIdentifier
-  prefix: SimpleIdentifier
-    token: prefix
-    element: <testLibraryFragment>::@prefix::prefix
-    staticType: null
-  period: .
-  identifier: SimpleIdentifier
-    token: foo
-    element: package:test/a.dart::@getter::foo
-    staticType: int
-  element: package:test/a.dart::@getter::foo
-  staticType: int
-''');
-  }
-
-  test_importPrefix_topLevelSetter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-set foo(int _) {}
-''');
-
-    var result = await resolveTestCodeWithDiagnostics('''
-import 'a.dart' as prefix;
-
-void f() {
-  prefix.foo;
-//       ^^^
-// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'prefix', but it isn't defined in any of the libraries imported using that prefix.
-}
-''');
-
-    var node = result.findNode.prefixed('prefix.foo;');
-    assertResolvedNodeText(node, r'''
-PrefixedIdentifier
-  prefix: SimpleIdentifier
-    token: prefix
-    element: <testLibraryFragment>::@prefix::prefix
-    staticType: null
-  period: .
-  identifier: SimpleIdentifier
-    token: foo
-    element: <null>
-    staticType: InvalidType
-  element: <null>
-  staticType: InvalidType
-''');
-  }
-
-  test_importPrefix_topLevelVariable() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-final foo = 0;
-''');
-
-    var result = await resolveTestCodeWithDiagnostics('''
-import 'a.dart' as prefix;
-
-void f() {
-  prefix.foo;
-}
-''');
-
-    var node = result.findNode.prefixed('prefix.');
-    assertResolvedNodeText(node, r'''
-PrefixedIdentifier
-  prefix: SimpleIdentifier
-    token: prefix
-    element: <testLibraryFragment>::@prefix::prefix
-    staticType: null
-  period: .
-  identifier: SimpleIdentifier
-    token: foo
-    element: package:test/a.dart::@getter::foo
-    staticType: int
-  element: package:test/a.dart::@getter::foo
-  staticType: int
 ''');
   }
 
@@ -517,9 +553,19 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@class::A
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::A::@getter::foo
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: A
     element: <testLibrary>::@class::A
@@ -549,9 +595,19 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@class::A
+  operator: .
+  name: foo
+  resolution: ExecutableTearOffResolution
+    element: <testLibrary>::@class::A::@method::foo
+    type: void Function()
+  staticType: void Function()
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: A
     element: <testLibrary>::@class::A
@@ -581,10 +637,27 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleAssignmentExpression;
+    var node = result.findNode.singleDirectAssignment;
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PrefixedIdentifier
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@class::A
+    operator: .
+    name: foo
+    read: <null>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@class::A::@setter::foo
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
       element: <testLibrary>::@class::A
@@ -597,7 +670,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
     staticType: int
@@ -621,9 +694,22 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A
+    staticType: A
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extensionType::A::@getter::foo
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -649,9 +735,22 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A
+    staticType: A
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extensionType::A::@getter::foo
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -679,9 +778,22 @@ void f(A? a) {
 }
 ''');
 
-    var node = result.findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A?
+    staticType: A?
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extensionType::A::@getter::foo
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -707,10 +819,23 @@ void f(A? a) {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: SimpleIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A?
+    staticType: A?
+  operator: ?.
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extensionType::A::@getter::foo
+    type: int
+  staticType: int?
+V1: PropertyAccess
+  target: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A?
@@ -734,10 +859,30 @@ void f(A a) {
 }
 ''');
 
-    var node = result.findNode.singleAssignmentExpression;
+    var node = result.findNode.singleDirectAssignment;
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PrefixedIdentifier
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: A
+      staticType: A
+    operator: .
+    name: foo
+    read: <null>
+    write: SetterInvocationResolution
+      element: <testLibrary>::@extensionType::A::@setter::foo
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@extensionType::A::@setter::foo::@formalParameter::_
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
       element: <testLibrary>::@function::f::@formalParameter::a
@@ -750,7 +895,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 0
     correspondingParameter: <testLibrary>::@extensionType::A::@setter::foo::@formalParameter::_
     staticType: int
@@ -770,9 +915,22 @@ void f(dynamic a) {
 }
 ''');
 
-    var node = result.findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: dynamic
+    staticType: dynamic
+  operator: .
+  name: hashCode
+  resolution: GetterInvocationResolution
+    element: dart:core::@class::Object::@getter::hashCode
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -794,9 +952,21 @@ void f(dynamic a) {
 }
 ''');
 
-    var node = result.findNode.singlePrefixedIdentifier;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: dynamic
+    staticType: dynamic
+  operator: .
+  name: foo
+  resolution: DynamicPropertyReadResolution
+    type: dynamic
+  staticType: dynamic
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
@@ -811,18 +981,86 @@ PrefixedIdentifier
 ''');
   }
 
+  test_read_interfaceType_combinedSignature_mergedType_generic() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+abstract class A<T> {
+  (T, void) get foo;
+}
+
+abstract class B<T> {
+  (T, dynamic) get foo;
+}
+
+abstract class C<T> implements A<T>, B<T> {}
+
+void f(C<int> c) {
+  c.foo;
+}
+''');
+
+    var node = result.findNode.singleReceiverPropertyExtraction;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C<int>
+    staticType: C<int>
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: CombinedGetterElementImpl
+      baseElement: <testLibrary>::@class::A::@getter::foo
+      owner: <testLibrary>::@class::C
+      substitution: {T: int}
+    type: (int, Object?)
+  staticType: (int, Object?)
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C<int>
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: CombinedGetterElementImpl
+      baseElement: <testLibrary>::@class::A::@getter::foo
+      owner: <testLibrary>::@class::C
+      substitution: {T: int}
+    staticType: (int, Object?)
+  element: CombinedGetterElementImpl
+    baseElement: <testLibrary>::@class::A::@getter::foo
+    owner: <testLibrary>::@class::C
+    substitution: {T: int}
+  staticType: (int, Object?)
+''');
+  }
+
   test_read_interfaceType_unresolved() async {
     var result = await resolveTestCodeWithDiagnostics('''
 void f(int a) {
   a.foo;
 //  ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'int'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'int'.
 }
 ''');
 
-    var node = result.findNode.prefixed('foo;');
+    var node = result.findNode.receiverPropertyExtraction('foo;');
     assertResolvedNodeText(node, r'''
-PrefixedIdentifier
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: int
+    staticType: int
+  operator: .
+  name: foo
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a

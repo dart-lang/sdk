@@ -111,7 +111,7 @@ void g({int a = 0, int b = 1, int c = 2}) {}
 }
 
 @reflectiveTest
-class RemoveArgumentTest extends FixProcessorLintTest {
+class RemoveArgumentTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeArgument;
 
@@ -165,6 +165,43 @@ void f({bool valWithDefault = true, bool? val}) {}
 
 void g() {
   f(val: false);
+}
+''');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47403')
+  Future<void> test_named_multiline_onlyArgument() async {
+    await resolveTestCode('''
+void test({bool foo = true}) {}
+
+void main() {
+  test(
+    foo: true,
+  );
+}
+''');
+    await assertHasFix('''
+void test({bool foo = true}) {}
+
+void main() {
+  test();
+}
+''');
+  }
+
+  Future<void> test_named_null() async {
+    await resolveTestCode('''
+void f({int? x}) {}
+
+void g() {
+  f(x: null);
+}
+''');
+    await assertHasFix('''
+void f({int? x}) {}
+
+void g() {
+  f();
 }
 ''');
   }

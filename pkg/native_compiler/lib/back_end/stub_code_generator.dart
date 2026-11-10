@@ -17,7 +17,28 @@ abstract interface class StubCodeGenerator {
 abstract base class StubFactory {
   final CodeConsumer consumeGeneratedCode;
   Map<ast.Class, Code> _allocationStubs = {};
-  Map<(Register, Register), Code> _writeBarrierStubs = {};
+  Map<(Register, Register, bool), Code> _writeBarrierStubs = {};
+  List<Code?> _subtypeTestCacheStubs = List<Code?>.filled(8, null);
+
+  late final Code dynamicCallStub = _generateCode(
+    'DynamicCallStub',
+    dynamicCallStubGenerator(),
+  );
+
+  late final Code dynamicInvocationForwarderStub = _generateCode(
+    'DynamicInvocationForwarderStub',
+    dynamicInvocationForwarderStubGenerator(),
+  );
+
+  late final Code invokeDartCodeStub = _generateCode(
+    'InvokeDartCodeStub',
+    invokeDartCodeStubGenerator(),
+  );
+
+  late final Code invokeDartCodeFromBytecodeStub = _generateCode(
+    'InvokeDartCodeFromBytecodeStub',
+    invokeDartCodeFromBytecodeStubGenerator(),
+  );
 
   StubFactory(this.consumeGeneratedCode);
 
@@ -26,7 +47,18 @@ abstract base class StubFactory {
   StubCodeGenerator writeBarrierStubGenerator(
     Register objectReg,
     Register valueReg,
+    bool isArray,
   );
+
+  StubCodeGenerator dynamicCallStubGenerator();
+
+  StubCodeGenerator dynamicInvocationForwarderStubGenerator();
+
+  StubCodeGenerator invokeDartCodeStubGenerator();
+
+  StubCodeGenerator invokeDartCodeFromBytecodeStubGenerator();
+
+  StubCodeGenerator subtypeTestCacheStubGenerator(int n);
 
   Code _generateCode(String name, StubCodeGenerator generator) {
     final code = generator.generate(name);
@@ -37,9 +69,18 @@ abstract base class StubFactory {
   Code getAllocationStub(ast.Class cls) => _allocationStubs[cls] ??=
       _generateCode('AllocationStub for ${cls}', allocationStubGenerator(cls));
 
-  Code getWriteBarrierStub(Register objectReg, Register valueReg) =>
-      _writeBarrierStubs[(objectReg, valueReg)] ??= _generateCode(
-        'WriteBarrierStub for $objectReg, $valueReg',
-        writeBarrierStubGenerator(objectReg, valueReg),
+  Code getWriteBarrierStub(
+    Register objectReg,
+    Register valueReg,
+    bool isArray,
+  ) => _writeBarrierStubs[(objectReg, valueReg, isArray)] ??= _generateCode(
+    'WriteBarrierStub for $objectReg, $valueReg${isArray ? ' array' : ''}',
+    writeBarrierStubGenerator(objectReg, valueReg, isArray),
+  );
+
+  Code getSubtypeTestCacheStub(int numInputs) =>
+      _subtypeTestCacheStubs[numInputs] ??= _generateCode(
+        'SubtypeTestCacheStub',
+        subtypeTestCacheStubGenerator(numInputs),
       );
 }

@@ -6,26 +6,26 @@ import "dart:ffi" as ffi;
 import "dart:ffi";
 
 
-[@vm.inferred-return-type.metadata=dart.ffi::Pointer]
+[@vm.inferred-return-type.metadata=dart.ffi::Pointer<dart.ffi::NativeType> (inexact type args)]
 @#C6
 @#C8
 external static method malloc() → ffi::Pointer<ffi::Void>;
 
-[@vm.inferred-return-type.metadata=dart.ffi::Pointer]
+[@vm.inferred-return-type.metadata=dart.ffi::Pointer<dart.ffi::NativeType> (inexact type args)]
 @#C12
 @#C13
 external static method mallocInAsset() → ffi::Pointer<ffi::Void>;
 
-[@vm.inferred-return-type.metadata=dart.ffi::Pointer]
+[@vm.inferred-return-type.metadata=dart.ffi::Pointer<dart.ffi::NativeType> (inexact type args)]
 @#C16
 static get ptr() → ffi::Pointer<ffi::Void>
-  return [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_loadPointer<ffi::Void>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<ffi::Pointer<ffi::Void>>(#C15), #C17);
+  return [@vm.inferred-type.metadata=dart.ffi::Pointer<dart.ffi::NativeType> (inexact type args)] ffi::_loadPointer<ffi::Void>([@vm.inferred-type.metadata=dart.ffi::Pointer<dart.ffi::NativeType> (inexact type args)] ffi::Native::_addressOf<ffi::Pointer<ffi::Void>>(#C15), #C17);
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
-  core::print([@vm.inferred-type.metadata=dart.ffi::Pointer] self::malloc());
-  core::print([@vm.inferred-type.metadata=dart.ffi::Pointer] self::mallocInAsset());
-  core::print([@vm.inferred-type.metadata=dart.ffi::Pointer] self::ptr);
+  core::print([@vm.inferred-type.metadata=dart.ffi::Pointer<dart.ffi::NativeType> (inexact type args)] self::malloc());
+  core::print([@vm.inferred-type.metadata=dart.ffi::Pointer<dart.ffi::NativeType> (inexact type args)] self::mallocInAsset());
+  core::print([@vm.inferred-type.metadata=dart.ffi::Pointer<dart.ffi::NativeType> (inexact type args)] self::ptr);
 }
 constants  {
   #C1 = "cfe:ffi:native-marker"

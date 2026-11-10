@@ -13,11 +13,11 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_constraint.dart'
     show
         GeneratedTypeConstraint,
         MergedTypeConstraint,
-        TypeConstraintGenerationDataForTesting,
         TypeConstraintFromArgument,
         TypeConstraintFromExtendsClause,
         TypeConstraintFromFunctionContext,
         TypeConstraintFromReturnType,
+        TypeConstraintGenerationDataForTesting,
         TypeConstraintOrigin,
         UnknownTypeConstraintOrigin;
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
@@ -127,12 +127,12 @@ class TypeConstraintGatherer
   final TypeSystemOperations _typeSystemOperations;
   final TypeConstraintGenerationDataForTesting? dataForTesting;
 
-  TypeConstraintGatherer({
+  new({
     required Iterable<TypeParameterElementImpl> typeParameters,
-    required TypeSystemOperations typeSystemOperations,
+    required this._typeSystemOperations,
     required super.inferenceUsingBoundsIsEnabled,
     required this.dataForTesting,
-  }) : _typeSystemOperations = typeSystemOperations {
+  }) {
     typeParametersToConstrain.addAll(typeParameters);
   }
 

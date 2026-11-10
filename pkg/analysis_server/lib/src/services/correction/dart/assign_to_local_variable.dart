@@ -5,11 +5,11 @@
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -37,7 +37,7 @@ class AssignToLocalVariable extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     // prepare enclosing ExpressionStatement
     ExpressionStatement? expressionStatement;
-    for (var node in this.node.withAncestors) {
+    for (var node in node.withAncestors) {
       if (node is ExpressionStatement) {
         expressionStatement = node;
         break;
@@ -61,15 +61,10 @@ class AssignToLocalVariable extends ResolvedCorrectionProducer {
     if (type is VoidType) {
       return;
     }
-    // prepare excluded names
-    var excluded = <String>{};
-    var scopedNameFinder = ScopedNameFinder(offset);
-    expression.accept(scopedNameFinder);
-    excluded.addAll(scopedNameFinder.locals);
     var suggestions = getVariableNameSuggestionsForExpression(
       type,
       expression,
-      excluded,
+      expression.nameConflictPredicateForNewLocal(),
     );
 
     if (suggestions.isNotEmpty) {

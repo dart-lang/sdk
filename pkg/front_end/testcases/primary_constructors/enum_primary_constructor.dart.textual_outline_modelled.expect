@@ -1,5 +1,5 @@
 enum E1() {
-  a
+  a,
 }
 
 enum E5() {
@@ -48,7 +48,7 @@ enum E9 {
 }
 
 enum const E2() {
-  a
+  a,
 }
 
 enum const E3() {

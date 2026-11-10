@@ -87,6 +87,7 @@ static method main() → void {
     late self::Foo foo11;
     _in::reachabilityFence(:foo11:finalizableValue);
   }
+  bar(){() → Null};
   _in::reachabilityFence(:foo:finalizableValue);
 }
 constants  {

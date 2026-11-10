@@ -5,12 +5,12 @@ library;
 // pkg/front_end/testcases/extension_types/issue53867.dart:15:37: Error: The representation type 'E2' of extension type 'E6' must be either a subtype of the representation type 'int' of the implemented extension type 'E3' or a subtype of 'E3' itself.
 // Try changing the representation type to a subtype of 'int'.
 // extension type E6(E2 it) implements E3 {} // Error.
-//                                     ^
+//                                     ^^
 //
 // pkg/front_end/testcases/extension_types/issue53867.dart:17:41: Error: The representation type 'String' of extension type 'E7' must be either a subtype of the representation type 'num' of the implemented extension type 'E1' or a subtype of 'E1' itself.
 // Try changing the representation type to a subtype of 'num'.
 // extension type E7(String it) implements E1 {} // Error.
-//                                         ^
+//                                         ^^
 //
 import self as self;
 import "dart:core" as core;

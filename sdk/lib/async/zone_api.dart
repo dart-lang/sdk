@@ -62,7 +62,7 @@ typedef ZoneBinaryCallback<R, T1, T2> = R Function(T1, T2);
 /// synchronous errors from [body], but may throw an error anyway returning
 /// `null` if the generic argument [R] is not nullable.
 R runZoned<R>(
-  R body(), {
+  R Function() body, {
   Map<Object?, Object?>? zoneValues,
   ZoneSpecification? zoneSpecification,
   @Deprecated("Use runZonedGuarded instead") Function? onError,
@@ -115,8 +115,8 @@ R runZoned<R>(
 /// inaccessible will cause the error to be reported *again* in it's original
 /// error zone.
 R? runZonedGuarded<R>(
-  R body(),
-  void onError(Object error, StackTrace stack), {
+  R Function() body,
+  void Function(Object error, StackTrace stack) onError, {
   Map<Object?, Object?>? zoneValues,
   ZoneSpecification? zoneSpecification,
 }) {
@@ -153,7 +153,7 @@ R? runZonedGuarded<R>(
 
 /// Runs [body] in a new zone based on [zoneValues] and [specification].
 R _runZoned<R>(
-  R body(),
+  R Function() body,
   Map<Object?, Object?>? zoneValues,
   ZoneSpecification? specification,
 ) {

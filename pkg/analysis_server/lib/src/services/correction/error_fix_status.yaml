@@ -173,6 +173,16 @@ abstract_super_member_reference:
   notes: |-
     The only fix we could automate is to remove the call to super, which is
     unlikely to be the right solution.
+ambiguous_comment_reference_name:
+  status: needsFix
+  notes: |-
+    For each library, add a fix to hide the name from the other imports or doc
+    imports.
+ambiguous_comment_reference_prefix:
+  status: needsFix
+  notes: |-
+    For each library, add a fix to give its import or doc import a new prefix,
+    and use it in the comment reference.
 ambiguous_export:
   status: needsFix
   notes: |-
@@ -214,35 +224,10 @@ argument_type_not_assignable:
   status: hasFix
 assert_in_redirecting_constructor:
   status: hasFix
-assignment_to_const:
-  status: noFix
-  notes: |-
-    Making the field non-const doesn't seem to be a good choice, but it is a
-    possibility.
 assignment_to_primary_constructor_parameter:
   status: needsEvaluation
-assignment_to_final:
-  status: hasFix
 assignment_to_final_local:
   status: hasFix
-assignment_to_final_no_setter:
-  status: needsFix
-  notes: |-
-    The fix is to create the missing setter.
-assignment_to_function:
-  status: noFix
-  notes: |-
-    Theoretically we could replace the function with a function valued variable
-    if the value being assigned is a function with the same signature, but that
-    case is likely rare enough to not be worth supporting.
-assignment_to_method:
-  status: noFix
-  notes: |-
-    Theoretically we could replace the method with a function valued variable
-    if the value being assigned is a function with the same signature, but that
-    case is likely rare enough to not be worth supporting.
-assignment_to_type:
-  status: noFix
 async_for_in_wrong_context:
   status: hasFix
 augmentation_extends_clause_already_present:
@@ -617,10 +602,6 @@ disallowed_type_instantiation_expression:
   since: 2.15
 dot_shorthand_missing_context:
   status: needsEvaluation
-dot_shorthand_undefined_getter:
-  status: hasFix
-dot_shorthand_undefined_invocation:
-  status: hasFix
 duplicate_constructor_default:
   status: noFix
   notes: |-
@@ -1107,6 +1088,11 @@ invocation_of_non_function:
     Suggest similarly named functions.
 invocation_of_non_function_expression:
   status: hasFix
+js_interop_extension_constructor_js_annotation_has_no_effect:
+  status: needsFix
+  notes: |-
+    Move the `@JS` annotation to the extension type declaration.
+    Remove the `@JS` annotation (`RemoveAnnotation`).
 label_in_outer_scope:
   status: noFix
 label_undefined:
@@ -1287,10 +1273,6 @@ non_const_map_as_expression_statement:
   status: needsFix
   notes: |-
     Add `const` keyword.
-non_constant_annotation_constructor:
-  status: needsFix
-  notes: |-
-    Add `const` to the constructor (if doing so would be valid).
 non_constant_case_expression:
   status: noFix
   notes: |-
@@ -1487,8 +1469,6 @@ private_named_parameter_duplicate_public_name:
   status: noFix
 private_named_parameter_without_public_name:
   status: noFix
-private_setter:
-  status: noFix
 read_potentially_unassigned_final:
   status: noFix
 record_literal_one_positional_no_trailing_comma_by_type:
@@ -1560,7 +1540,9 @@ return_of_invalid_type_from_function:
 return_of_invalid_type_from_method:
   status: hasFix
 return_without_value:
-  status: noFix
+  status: hasFix
+  notes: |-
+    Only when the enclosing function's return type is a function type.
 sealed_class_subtype_outside_of_library:
   status: noFix
 set_element_from_deferred_library:
@@ -1659,6 +1641,8 @@ type_test_with_non_type:
     right operand to the static type of the left.
 type_test_with_undefined_name:
   status: hasFix
+unchecked_instantiation_of_nullable_value:
+  status: hasFix
 unchecked_invocation_of_nullable_value:
   status: hasFix
 unchecked_method_invocation_of_nullable_value:
@@ -1677,8 +1661,6 @@ unchecked_use_of_nullable_value_in_yield_each:
   status: hasFix
 unawaited_return_in_try_block:
   status: hasFix
-undefined_annotation:
-  status: hasFix
 undefined_class:
   status: hasFix
 undefined_class_boolean:
@@ -1690,65 +1672,235 @@ undefined_constructor_in_initializer:
     for closely named constructors.
 undefined_constructor_in_initializer_default:
   status: hasFix
-undefined_enum_constant:
-  status: hasFix
 undefined_enum_constructor_named:
   status: hasFix
   since: 2.17
 undefined_enum_constructor_unnamed:
   status: hasFix
   since: 2.17
-undefined_extension_getter:
+undefined_extension_member_read_not_found:
   status: hasFix
-undefined_extension_method:
+undefined_extension_member_read_private:
+  status: noFix
+  notes: |-
+    The member is declared in another library, which would have to make it
+    public.
+undefined_extension_member_read_setter_only:
   status: hasFix
+undefined_extension_member_write_getter_only:
+  status: hasFix
+undefined_extension_member_write_not_found:
+  status: hasFix
+undefined_extension_member_write_private:
+  status: noFix
+  notes: |-
+    The member is declared in another library, which would have to make it
+    public.
+undefined_extension_member_write_wrong_kind:
+  status: noFix
+  notes: |-
+    A method can't be made assignable; the fix is to assign to something else.
 undefined_extension_operator:
-  status: hasFix
-undefined_extension_setter:
-  status: hasFix
-undefined_function:
-  status: hasFix
-undefined_getter:
-  status: hasFix
-undefined_getter_on_function_type:
-  status: needsFix
-  since: 2.15
-undefined_identifier:
   status: hasFix
 undefined_identifier_await:
   status: hasFix
-undefined_method:
+undefined_instance_member_read_not_found:
   status: hasFix
-undefined_method_on_function_type:
+undefined_instance_member_read_private:
+  status: noFix
+  notes: |-
+    The member is declared in another library, which would have to make it
+    public.
+undefined_instance_member_read_setter_only:
+  status: hasFix
+undefined_instance_member_write_final:
+  status: hasFix
+undefined_instance_member_write_getter_only:
   status: needsFix
-  since: 2.15
+  notes: |-
+    The fix is to create the missing setter.
+undefined_instance_member_write_not_found:
+  status: hasFix
+undefined_instance_member_write_private:
+  status: noFix
+  notes: |-
+    The member is declared in another library, which would have to make it
+    public.
+undefined_instance_member_write_wrong_kind:
+  status: noFix
+  notes: |-
+    A method can't be made assignable; the fix is to assign to something else.
 undefined_named_parameter:
   status: hasFix
 undefined_operator:
   status: hasFix
-undefined_prefixed_name:
+undefined_prefixed_name_read_not_found:
   status: hasFix
-undefined_setter:
+undefined_prefixed_name_read_not_found_annotation:
   status: hasFix
-undefined_setter_on_function_type:
+undefined_prefixed_name_read_not_found_constant:
+  status: hasFix
+undefined_prefixed_name_read_private:
+  status: noFix
+  notes: |-
+    The declaration is in another library, which would have to make it
+    public.
+undefined_prefixed_name_read_setter_only:
   status: needsFix
-  since: 2.15
-undefined_super_getter:
+  notes: |-
+    The fix is to create the getter in the imported library.
+undefined_prefixed_name_write_const:
+  status: noFix
+  notes: |-
+    A constant can't be assigned; making it a variable changes its meaning.
+undefined_prefixed_name_write_final:
+  status: needsFix
+  notes: |-
+    The fix is to make the variable in the imported library non-final.
+undefined_prefixed_name_write_getter_only:
+  status: needsFix
+  notes: |-
+    The fix is to create the setter in the imported library.
+undefined_prefixed_name_write_not_found:
+  status: hasFix
+undefined_prefixed_name_write_private:
+  status: noFix
+  notes: |-
+    The declaration is in another library, which would have to make it
+    public.
+undefined_prefixed_name_write_wrong_kind:
+  status: noFix
+  notes: |-
+    A function or a type can't be made assignable; the fix is to assign to
+    something else.
+undefined_static_member_read_no_static_members:
+  status: noFix
+  notes: |-
+    A function type has no static members; the correction suggests wrapping
+    the alias in parentheses, which changes the meaning.
+undefined_static_member_read_no_static_members_dot_shorthand:
+  status: noFix
+  notes: |-
+    The context type has no static members; the fix depends on which
+    declaration was meant.
+undefined_static_member_read_not_found:
+  status: hasFix
+undefined_static_member_read_not_found_annotation:
+  status: hasFix
+undefined_static_member_read_not_found_constant:
+  status: hasFix
+undefined_static_member_read_not_found_dot_shorthand:
+  status: hasFix
+undefined_static_member_read_not_found_dot_shorthand_constant:
+  status: hasFix
+undefined_static_member_read_private:
+  status: noFix
+  notes: |-
+    The member is declared in another library, which would have to make it
+    public.
+undefined_static_member_read_private_dot_shorthand:
+  status: noFix
+  notes: |-
+    The context type is declared in another library, which would have to make
+    it public.
+undefined_static_member_read_setter_only:
+  status: needsFix
+  notes: |-
+    The fix is to create the static getter.
+undefined_static_member_write_const:
+  status: noFix
+  notes: |-
+    A constant can't be assigned; making it a variable changes its meaning.
+undefined_static_member_write_final:
+  status: hasFix
+undefined_static_member_write_getter_only:
+  status: needsFix
+  notes: |-
+    The fix is to create the static setter.
+undefined_static_member_write_no_static_members:
+  status: noFix
+  notes: |-
+    A function type has no static members; the correction suggests wrapping
+    the alias in parentheses, which changes the meaning.
+undefined_static_member_write_not_found:
+  status: hasFix
+undefined_static_member_write_private:
+  status: noFix
+  notes: |-
+    The member is declared in another library, which would have to make it
+    public.
+undefined_static_member_write_wrong_kind:
+  status: noFix
+  notes: |-
+    A method can't be made assignable; the fix is to assign to something else.
+undefined_super_member_read_not_found:
+  status: needsFix
+  notes: |-
+    The fix is to create a method, getter, or field, assuming the superclass
+    is editable.
+undefined_super_member_read_private:
+  status: noFix
+  notes: |-
+    The member is declared in another library, which would have to make it
+    public.
+undefined_super_member_read_setter_only:
   status: needsFix
   notes: |-
     The fix is to create the getter, assuming the superclass is editable.
-undefined_super_method:
+undefined_super_member_write_final:
   status: needsFix
   notes: |-
-    The fix is to create the method, assuming the superclass is editable.
+    The fix is to remove `final` from the field, assuming the superclass is
+    editable.
+undefined_super_member_write_getter_only:
+  status: needsFix
+  notes: |-
+    The fix is to create the setter, assuming the superclass is editable.
+undefined_super_member_write_not_found:
+  status: needsFix
+  notes: |-
+    The fix is to create the setter or field, assuming the superclass is
+    editable.
+undefined_super_member_write_private:
+  status: noFix
+  notes: |-
+    The member is declared in another library, which would have to make it
+    public.
+undefined_super_member_write_wrong_kind:
+  status: noFix
+  notes: |-
+    A method can't be made assignable; the fix is to assign to something else.
 undefined_super_operator:
   status: needsFix
   notes: |-
     The fix is to create the operator, assuming the superclass is editable.
-undefined_super_setter:
+undefined_unqualified_name_read_not_found:
+  status: hasFix
+undefined_unqualified_name_read_not_found_annotation:
+  status: hasFix
+undefined_unqualified_name_read_not_found_constant:
+  status: hasFix
+undefined_unqualified_name_read_setter_only:
   status: needsFix
   notes: |-
-    The fix is to create the setter, assuming the superclass is editable.
+    The fix is to create the getter.
+undefined_unqualified_name_write_const:
+  status: noFix
+  notes: |-
+    A constant can't be assigned; making it a variable changes its meaning.
+undefined_unqualified_name_write_final:
+  status: hasFix
+undefined_unqualified_name_write_getter_only:
+  status: needsFix
+  notes: |-
+    The fix is to create the setter.
+undefined_unqualified_name_write_not_found:
+  status: hasFix
+undefined_unqualified_name_write_wrong_kind:
+  status: noFix
+  notes: |-
+    A function, a method, or a type can't be made assignable; the fix is to
+    assign to something else.
 unqualified_reference_to_non_local_static_member:
   status: hasFix
 unqualified_reference_to_static_member_of_extended_type:
@@ -1951,6 +2103,14 @@ deprecated_colon_for_default_value:
   status: hasFix
 deprecated_member_use:
   status: hasFix
+deprecated_member_use_implicit_super_constructor_invocation:
+  status: needsEvaluation
+deprecated_member_use_implicit_super_constructor_invocation_with_message:
+  status: needsEvaluation
+deprecated_member_use_implicit_type:
+  status: needsEvaluation
+deprecated_member_use_implicit_type_with_message:
+  status: needsEvaluation
 deprecated_member_use_with_message:
   status: hasFix
 import_deferred_library_with_load_function:
@@ -1990,6 +2150,8 @@ analyzer_public_api_experimental_inconsistency:
 analyzer_public_api_exports_non_public_name:
   status: noFix
 analyzer_public_api_impl_in_public_api:
+  status: noFix
+analyzer_v1_ast_use:
   status: noFix
 annotate_overrides:
   status: hasFix
@@ -2193,6 +2355,8 @@ directives_ordering_exports:
   status: hasFix
 directives_ordering_package_before_relative:
   status: hasFix
+discarded_future_or:
+  status: hasFix
 discarded_futures:
   status: hasFix
 do_not_use_environment:
@@ -2252,6 +2416,8 @@ invalid_runtime_check_with_js_interop_types_dart_as_js:
     In other cases, JS interop helpers may be used to do the type test instead.
 invalid_runtime_check_with_js_interop_types_dart_is_js:
   status: needsEvaluation
+invalid_runtime_check_with_js_interop_types_js_and_dart_js:
+    status: needsEvaluation
 invalid_runtime_check_with_js_interop_types_js_as_dart:
   status: needsEvaluation
 invalid_runtime_check_with_js_interop_types_js_as_incompatible_js:
@@ -2561,6 +2727,8 @@ type_init_formals:
   status: hasFix
 type_literal_in_constant_pattern:
   status: hasFix
+unawaited_future_or:
+  status: hasFix
 unawaited_futures:
   status: hasFix
 unintended_html_in_doc_comment:
@@ -2634,7 +2802,7 @@ unnecessary_string_interpolations:
 unnecessary_this:
   status: hasFix
 unnecessary_this_alias:
-  status: needsEvaluation
+  status: hasFix
 unnecessary_to_list_in_spreads:
   status: hasFix
 unnecessary_type_name_in_constructor:
@@ -2678,7 +2846,7 @@ use_function_type_syntax_for_parameters:
 use_if_null_to_convert_nulls_to_bools:
   status: hasFix
 use_is_even_rather_than_modulo:
-  status: needsFix
+  status: hasFix
 use_key_in_widget_constructors:
   status: hasFix
 use_late_for_private_fields_and_variables:
@@ -3214,7 +3382,11 @@ missing_get:
   notes: |-
     Add the `get`.
 missing_identifier:
-  status: noFix
+  status: hasFix
+  notes: |-
+    Only where a function-typed expression is missing: a named argument, a
+    variable's initializer, a switch expression case's result, or an arrow
+    function's body.
 missing_initializer:
   status: noFix
 missing_keyword_operator:
@@ -3636,11 +3808,11 @@ deprecated_mixin_function:
   status: needsFix
   notes: |-
     The fix is to remove `Function` from where it's referenced.
-deprecated_new_in_comment_reference:
-  status: hasFix
 deprecated_optional:
   status: needsEvaluation
 deprecated_subclass:
+  status: hasFix
+deprecated_web_configuration:
   status: hasFix
 doc_directive_argument_wrong_format:
   status: noFix
@@ -3673,13 +3845,17 @@ doc_directive_unknown:
   status: noFix
 doc_import_cannot_be_deferred:
   status: needsFix
-doc_import_cannot_have_combinators:
-  status: needsFix
 doc_import_cannot_have_configurations:
   status: needsFix
-doc_import_cannot_have_prefix:
+doc_import_in_part_file:
   status: needsFix
+  notes: |-
+    The fix is to move the doc import to the library file.
 duplicate_export:
+  status: needsFix
+  notes: |-
+    One fix is to remove the duplicated export.
+duplicate_export_in_part:
   status: needsFix
   notes: |-
     One fix is to remove the duplicated export.
@@ -3691,6 +3867,10 @@ duplicate_ignore:
     One fix is to remove the duplicated error code.
 duplicate_import:
   status: hasFix
+duplicate_import_in_part:
+  status: needsFix
+  notes: |-
+    One fix is to remove the duplicated import.
 duplicate_shown_name:
   status: hasFix
 equal_elements_in_set:
@@ -3746,12 +3926,7 @@ invalid_deprecated_subclass_annotation:
   status: needsFix
   notes: The fix is to remove the annotation.
 invalid_export_of_internal_element:
-  status: needsFix
-  notes: |-
-    Low priority, because this is likely not encountered often.
-
-    The fix is to update the export directive so that the name is no longer
-    exported.
+  status: hasFix
 invalid_export_of_internal_element_indirectly:
   status: needsFix
   notes: |-
@@ -3856,6 +4031,8 @@ mixin_on_sealed_class:
     `sealed` annotation is likely to be replaced by the `sealed` keyword
     in the next stable release.
 multiple_combinators:
+  status: hasFix
+multiple_combinators_deprecated:
   status: hasFix
 multiple_primary_constructor_body_declarations:
   status: needsEvaluation
@@ -4035,9 +4212,7 @@ unused_result_with_message:
 unused_shown_name:
   status: hasFix
 uri_does_not_exist_in_doc_import:
-  status: needsFix
-  notes: |-
-    The same fix as CompileTimeErrorCode.URI_DOES_NOT_EXIST
+  status: hasFix
 var_with_no_type_annotation:
   status: hasFix
 deprecated_factory_method:

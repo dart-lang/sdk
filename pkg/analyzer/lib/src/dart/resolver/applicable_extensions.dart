@@ -18,11 +18,7 @@ class InstantiatedExtensionWithMember {
   final MapSubstitution substitution;
   final TypeImpl extendedType;
 
-  InstantiatedExtensionWithMember(
-    this.candidate,
-    this.substitution,
-    this.extendedType,
-  );
+  new(this.candidate, this.substitution, this.extendedType);
 
   ExtensionResolutionResult get asResolutionResult {
     return SingleExtensionResolutionResult(getter2: getter, setter2: setter);
@@ -44,24 +40,21 @@ class InstantiatedExtensionWithoutMember {
   final MapSubstitution substitution;
   final DartType extendedType;
 
-  InstantiatedExtensionWithoutMember(
-    this.extension,
-    this.substitution,
-    this.extendedType,
-  );
+  new(this.extension, this.substitution, this.extendedType);
 }
 
 class _ExtensionWithMemberWithName {
   final ExtensionElementImpl extension;
-  final InternalExecutableElement member;
+  final InternalExecutableElement? getter2;
+  final InternalExecutableElement? setter2;
 
-  _ExtensionWithMemberWithName({required this.extension, required this.member});
+  new({required this.extension, required this.getter2, required this.setter2});
 }
 
 abstract class _NotInstantiatedExtension<R> {
   final ExtensionElementImpl extension;
 
-  _NotInstantiatedExtension(this.extension);
+  new(this.extension);
 
   R instantiate({
     required MapSubstitution substitution,
@@ -74,11 +67,8 @@ class _NotInstantiatedExtensionWithMember
   final InternalExecutableElement? getter;
   final InternalExecutableElement? setter;
 
-  _NotInstantiatedExtensionWithMember(
-    super.extension, {
-    this.getter,
-    this.setter,
-  }) : assert(getter != null || setter != null);
+  new(super.extension, {this.getter, this.setter})
+    : assert(getter != null || setter != null);
 
   @override
   InstantiatedExtensionWithMember instantiate({
@@ -92,7 +82,7 @@ class _NotInstantiatedExtensionWithMember
 /// [_NotInstantiatedExtension] for any [ExtensionElement].
 class _NotInstantiatedExtensionWithoutMember
     extends _NotInstantiatedExtension<InstantiatedExtensionWithoutMember> {
-  _NotInstantiatedExtensionWithoutMember(super.extension);
+  new(super.extension);
 
   @override
   InstantiatedExtensionWithoutMember instantiate({
@@ -104,6 +94,42 @@ class _NotInstantiatedExtensionWithoutMember
       substitution,
       extendedType,
     );
+  }
+}
+
+extension on List<_NotInstantiatedExtensionWithMember> {
+  /// Adds [extension] with its instance members that have the basename
+  /// [name], if it has any.
+  void addIfHasMemberWithBaseName(ExtensionElementImpl extension, String name) {
+    if (name == '[]') {
+      var getter = extension.getMethod('[]');
+      var setter = extension.getMethod('[]=');
+      if (getter != null || setter != null) {
+        add(
+          _NotInstantiatedExtensionWithMember(
+            extension,
+            getter: getter,
+            setter: setter,
+          ),
+        );
+      }
+    } else {
+      var field = extension.getField(name);
+      if (field != null && !field.isStatic) {
+        add(
+          _NotInstantiatedExtensionWithMember(
+            extension,
+            getter: field.getter,
+            setter: field.setter,
+          ),
+        );
+      }
+
+      var method = extension.getMethod(name);
+      if (method != null && !method.isStatic) {
+        add(_NotInstantiatedExtensionWithMember(extension, getter: method));
+      }
+    }
   }
 }
 
@@ -126,40 +152,25 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
   ) {
     var result = <_NotInstantiatedExtensionWithMember>[];
     for (var extension in cast<ExtensionElementImpl>()) {
-      if (!baseName.isAccessibleFor(extension.library.uri)) {
-        continue;
+      if (baseName.isAccessibleFor(extension.library.uri)) {
+        result.addIfHasMemberWithBaseName(extension, baseName.name);
       }
+    }
+    return result;
+  }
 
-      if (baseName.name == '[]') {
-        var getter = extension.getMethod('[]');
-        var setter = extension.getMethod('[]=');
-        if (getter != null || setter != null) {
-          result.add(
-            _NotInstantiatedExtensionWithMember(
-              extension,
-              getter: getter,
-              setter: setter,
-            ),
-          );
-        }
-      } else {
-        var field = extension.getField(baseName.name);
-        if (field != null && !field.isStatic) {
-          result.add(
-            _NotInstantiatedExtensionWithMember(
-              extension,
-              getter: field.getter,
-              setter: field.setter,
-            ),
-          );
-        }
-
-        var method = extension.getMethod(baseName.name);
-        if (method != null && !method.isStatic) {
-          result.add(
-            _NotInstantiatedExtensionWithMember(extension, getter: method),
-          );
-        }
+  /// Returns the sublist of [ExtensionElement]s that are declared in another
+  /// library than the private [baseName], and have an instance member with
+  /// its basename.
+  ///
+  /// This is for reporting a failed lookup of [baseName]: `_foo` of another
+  /// library is a different name, so [havingMemberWithBaseName] skips it.
+  List<_NotInstantiatedExtensionWithMember>
+  havingPrivateMemberOfOtherLibraryWithBaseName(Name baseName) {
+    var result = <_NotInstantiatedExtensionWithMember>[];
+    for (var extension in cast<ExtensionElementImpl>()) {
+      if (!baseName.isAccessibleFor(extension.library.uri)) {
+        result.addIfHasMemberWithBaseName(extension, baseName.name);
       }
     }
     return result;
@@ -174,24 +185,29 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
         continue;
       }
 
-      var getter = extension.getGetter(name.name);
-      if (getter != null && getter.isStatic) {
-        result.add(
-          _ExtensionWithMemberWithName(extension: extension, member: getter),
-        );
+      ExecutableElementImpl? lookedUpGetter;
+      ExecutableElementImpl? lookedUpSetter;
+
+      if (extension.getGetter(name.name) case var getter2?
+          when getter2.isStatic) {
+        lookedUpGetter = getter2;
+      } else if (extension.getMethod(name.name) case var method2?
+          when method2.isStatic) {
+        lookedUpGetter = method2;
       }
 
-      var setter = extension.getSetter(name.name);
-      if (setter != null && setter.isStatic) {
-        result.add(
-          _ExtensionWithMemberWithName(extension: extension, member: setter),
-        );
+      if (extension.getSetter(name.name) case var setter2?
+          when setter2.isStatic) {
+        lookedUpSetter = setter2;
       }
 
-      var method = extension.getMethod(name.name);
-      if (method != null && method.isStatic) {
+      if (lookedUpGetter != null || lookedUpSetter != null) {
         result.add(
-          _ExtensionWithMemberWithName(extension: extension, member: method),
+          _ExtensionWithMemberWithName(
+            extension: extension,
+            getter2: lookedUpGetter,
+            setter2: lookedUpSetter,
+          ),
         );
       }
     }
@@ -244,7 +260,6 @@ extension NotInstantiatedExtensionsExtensions<R>
         freshTypeParameters,
         genericMetadataIsEnabled: genericMetadataIsEnabled,
         inferenceUsingBoundsIsEnabled: inferenceUsingBoundsIsEnabled,
-        strictInference: false,
         typeSystemOperations: typeSystemOperations,
         dataForTesting: null,
       );

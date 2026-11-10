@@ -3969,9 +3969,126 @@ Condition DoubleTestOpInstr::EmitConditionCode(FlowGraphCompiler* compiler,
   V(Int32x4BitAnd, vand)                                                       \
   V(Int32x4BitOr, vorr)                                                        \
   V(Int32x4BitXor, veor)                                                       \
+  V(Int32x4Equal, vceqw)                                                       \
+  V(Int32x4AndNot, vbic)                                                       \
   V(Float32x4Equal, vceqs)                                                     \
   V(Float32x4GreaterThan, vcgts)                                               \
   V(Float32x4GreaterThanOrEqual, vcges)
+
+static simd128_value_t ShuffleTableIndices(intptr_t mask) {
+  simd128_value_t indices;
+  for (intptr_t i = 0; i < 4; i++) {
+    const int32_t lane = (mask >> (2 * i)) & 0x3;
+    indices.int_storage[i] = 0x03020100 + 0x04040404 * lane;
+  }
+  return indices;
+}
+
+DEFINE_EMIT(Simd32x4Shuffle, (VRegister result, VRegister value)) {
+  const intptr_t mask = instr->mask();
+  // Each case comment lists the lanes of `value` that the result lanes x, y,
+  // z and w take.
+  switch (mask) {
+    case 0x00:  // xxxx
+      __ vdups(result, value, 0);
+      break;
+    case 0x55:  // yyyy
+      __ vdups(result, value, 1);
+      break;
+    case 0xAA:  // zzzz
+      __ vdups(result, value, 2);
+      break;
+    case 0xFF:  // wwww
+      __ vdups(result, value, 3);
+      break;
+    case 0xB1:  // yxwz
+      __ vrev64_4s(result, value);
+      break;
+    case 0x39:  // yzwx
+      __ vext(result, value, value, 4);
+      break;
+    case 0x4E:  // zwxy
+      __ vext(result, value, value, 8);
+      break;
+    case 0x93:  // wxyz
+      __ vext(result, value, value, 12);
+      break;
+    case 0xE5:  // yyzw
+      __ vmov(result, value);
+      __ vinss(result, 0, value, 1);
+      break;
+    case 0xE6:  // zyzw
+      __ vmov(result, value);
+      __ vinss(result, 0, value, 2);
+      break;
+    case 0xE7:  // wyzw
+      __ vmov(result, value);
+      __ vinss(result, 0, value, 3);
+      break;
+    case 0xE0:  // xxzw
+      __ vmov(result, value);
+      __ vinss(result, 1, value, 0);
+      break;
+    case 0xE8:  // xzzw
+      __ vmov(result, value);
+      __ vinss(result, 1, value, 2);
+      break;
+    case 0xEC:  // xwzw
+      __ vmov(result, value);
+      __ vinss(result, 1, value, 3);
+      break;
+    case 0xC4:  // xyxw
+      __ vmov(result, value);
+      __ vinss(result, 2, value, 0);
+      break;
+    case 0xD4:  // xyyw
+      __ vmov(result, value);
+      __ vinss(result, 2, value, 1);
+      break;
+    case 0xF4:  // xyww
+      __ vmov(result, value);
+      __ vinss(result, 2, value, 3);
+      break;
+    case 0x24:  // xyzx
+      __ vmov(result, value);
+      __ vinss(result, 3, value, 0);
+      break;
+    case 0x64:  // xyzy
+      __ vmov(result, value);
+      __ vinss(result, 3, value, 1);
+      break;
+    case 0xA4:  // xyzz
+      __ vmov(result, value);
+      __ vinss(result, 3, value, 2);
+      break;
+    default:
+      __ LoadQImmediate(VTMP, ShuffleTableIndices(mask));
+      __ vtbl1(result, value, VTMP);
+      break;
+  }
+}
+
+DEFINE_EMIT(Simd32x4ShuffleMix,
+            (VRegister result, VRegister left, VRegister right)) {
+  const intptr_t mask = instr->mask();
+  // Each case comment lists the lanes that the result lanes x, y, z and w
+  // take. x and y come from `left`, z and w from `right`.
+  switch (mask) {
+    case 0x4E:  // zwxy
+      __ vext(result, left, right, 8);
+      break;
+    case 0xE4:  // xyzw
+      __ vmov(result, left);
+      __ vinsd(result, 1, right, 1);
+      break;
+    default:
+      __ LoadQImmediate(VTMP, ShuffleTableIndices(mask));
+      __ vtbl1(result, left, VTMP);
+      __ vtbl1(VTMP, right, VTMP);
+      __ vinsd(result, 1, VTMP, 1);
+      break;
+  }
+}
 
 DEFINE_EMIT(SimdBinaryOp, (VRegister result, VRegister left, VRegister right)) {
   switch (instr->kind()) {
@@ -3981,15 +4098,6 @@ DEFINE_EMIT(SimdBinaryOp, (VRegister result, VRegister left, VRegister right)) {
     break;
     SIMD_OP_SIMPLE_BINARY(EMIT)
 #undef EMIT
-    case SimdOpInstr::kFloat32x4ShuffleMix:
-    case SimdOpInstr::kInt32x4ShuffleMix: {
-      const intptr_t mask = instr->mask();
-      __ vinss(result, 0, left, (mask >> 0) & 0x3);
-      __ vinss(result, 1, left, (mask >> 2) & 0x3);
-      __ vinss(result, 2, right, (mask >> 4) & 0x3);
-      __ vinss(result, 3, right, (mask >> 6) & 0x3);
-      break;
-    }
     case SimdOpInstr::kFloat32x4NotEqual:
       __ vceqs(result, left, right);
       // Invert the result.
@@ -4051,24 +4159,6 @@ DEFINE_EMIT(SimdUnaryOp, (VRegister result, VRegister value)) {
       __ vinss(result, 0, value, 3);
       __ fcvtds(result, result);
       break;
-    case SimdOpInstr::kInt32x4Shuffle:
-    case SimdOpInstr::kFloat32x4Shuffle: {
-      const intptr_t mask = instr->mask();
-      if (mask == 0x00) {
-        __ vdups(result, value, 0);
-      } else if (mask == 0x55) {
-        __ vdups(result, value, 1);
-      } else if (mask == 0xAA) {
-        __ vdups(result, value, 2);
-      } else if (mask == 0xFF) {
-        __ vdups(result, value, 3);
-      } else {
-        for (intptr_t i = 0; i < 4; i++) {
-          __ vinss(result, i, value, (mask >> (2 * i)) & 0x3);
-        }
-      }
-      break;
-    }
     case SimdOpInstr::kFloat32x4Splat:
       // Convert to Float32.
       __ fcvtsd(VTMP, value);
@@ -4112,22 +4202,17 @@ DEFINE_EMIT(SimdUnaryOp, (VRegister result, VRegister value)) {
 }
 
 DEFINE_EMIT(Simd32x4GetSignMask,
-            (Register out, VRegister value, Temp<Register> temp)) {
-  // X lane.
-  __ vmovrs(out, value, 0);
-  __ LsrImmediate(out, out, 31);
-  // Y lane.
-  __ vmovrs(temp, value, 1);
-  __ LsrImmediate(temp, temp, 31);
-  __ orr(out, out, compiler::Operand(temp, LSL, 1));
-  // Z lane.
-  __ vmovrs(temp, value, 2);
-  __ LsrImmediate(temp, temp, 31);
-  __ orr(out, out, compiler::Operand(temp, LSL, 2));
-  // W lane.
-  __ vmovrs(temp, value, 3);
-  __ LsrImmediate(temp, temp, 31);
-  __ orr(out, out, compiler::Operand(temp, LSL, 3));
+            (Register out, VRegister value, Temp<VRegister> temp)) {
+  simd128_value_t weights;
+  weights.int_storage[0] = 1;
+  weights.int_storage[1] = 2;
+  weights.int_storage[2] = 4;
+  weights.int_storage[3] = 8;
+  __ vsshr_4s(VTMP, value, 31);
+  __ LoadQImmediate(temp, weights);
+  __ vand(VTMP, VTMP, temp);
+  __ vuaddlv_4s(VTMP, VTMP);
+  __ fmovrs(out, VTMP);
 }
 
 DEFINE_EMIT(
@@ -4141,20 +4226,6 @@ DEFINE_EMIT(
   __ vinss(r, 2, VTMP, 0);
   __ fcvtsd(VTMP, v3);
   __ vinss(r, 3, VTMP, 0);
-}
-
-DEFINE_EMIT(
-    Float32x4Clamp,
-    (VRegister result, VRegister value, VRegister lower, VRegister upper)) {
-  __ vmins(result, value, upper);
-  __ vmaxs(result, result, lower);
-}
-
-DEFINE_EMIT(
-    Float64x2Clamp,
-    (VRegister result, VRegister value, VRegister lower, VRegister upper)) {
-  __ vmind(result, value, upper);
-  __ vmaxd(result, result, lower);
 }
 
 DEFINE_EMIT(Float32x4With,
@@ -4223,6 +4294,10 @@ DEFINE_EMIT(
   __ vinsw(result, 3, v3);
 }
 
+DEFINE_EMIT(Int32x4Splat, (VRegister result, Register value)) {
+  __ vdupw(result, value);
+}
+
 DEFINE_EMIT(Int32x4FromBools,
             (VRegister result,
              Register v0,
@@ -4288,6 +4363,31 @@ DEFINE_EMIT(Int32x4GetFlag, (Register result, VRegister value)) {
   __ csel(result, TMP, result, EQ);
 }
 
+DEFINE_EMIT(Int32x4AnyTrue, (Register out, VRegister value)) {
+  __ vumaxp_4s(VTMP, value, value);
+  __ vmovrd(out, VTMP, 0);
+  __ tst(out, compiler::Operand(out));
+  __ LoadObject(out, Bool::True());
+  __ LoadObject(TMP, Bool::False());
+  __ csel(out, TMP, out, EQ);
+}
+
+DEFINE_EMIT(Int32x4AllTrue, (Register out, VRegister value)) {
+  __ vuminv_4s(VTMP, value);
+  __ vmovrs(out, VTMP, 0);
+  __ tst(out, compiler::Operand(out));
+  __ LoadObject(out, Bool::True());
+  __ LoadObject(TMP, Bool::False());
+  __ csel(out, TMP, out, EQ);
+}
+
+DEFINE_EMIT(Int32x4NotEqual,
+            (VRegister result, VRegister left, VRegister right)) {
+  // Compare-equal, then invert to get not-equal.
+  __ vceqw(result, left, right);
+  __ vnot(result, result);
+}
+
 DEFINE_EMIT(Int32x4Select,
             (VRegister out,
              VRegister mask,
@@ -4303,6 +4403,17 @@ DEFINE_EMIT(Int32x4Select,
   __ vand(temp2, temp2, falseValue);
   // out = temp1 | temp2.
   __ vorr(out, temp1, temp2);
+}
+
+DEFINE_EMIT(Int32x4WithLane,
+            (SameAsFirstInput, VRegister value, Register newLaneValue)) {
+  COMPILE_ASSERT(
+      SimdOpInstr::kInt32x4WithY == (SimdOpInstr::kInt32x4WithX + 1) &&
+      SimdOpInstr::kInt32x4WithZ == (SimdOpInstr::kInt32x4WithX + 2) &&
+      SimdOpInstr::kInt32x4WithW == (SimdOpInstr::kInt32x4WithX + 3));
+  const intptr_t lane_index = instr->kind() - SimdOpInstr::kInt32x4WithX;
+  ASSERT(0 <= lane_index && lane_index < 4);
+  __ vinsw(value, lane_index, newLaneValue);
 }
 
 DEFINE_EMIT(Int32x4WithFlag,
@@ -4329,16 +4440,37 @@ DEFINE_EMIT(Int32x4WithFlag,
   }
 }
 
+DEFINE_EMIT(Int32x4Shift,
+            (VRegister result,
+             VRegister value,
+             Register shift,
+             Temp<Register> count,
+             Temp<VRegister> shift_vector)) {
+  __ AndImmediate(count, shift, 31);
+  if (instr->kind() != SimdOpInstr::kInt32x4Shl) {
+    // SSHL and USHL shift right when the per-lane count is negative.
+    __ neg(count, count);
+  }
+  __ vdupw(shift_vector, count);
+  if (instr->kind() == SimdOpInstr::kInt32x4ShrU) {
+    __ vushlw(result, value, shift_vector);
+  } else {
+    __ vsshlw(result, value, shift_vector);
+  }
+}
+
 // Map SimdOpInstr::Kind-s to corresponding emit functions. Uses the following
 // format:
 //
 //     CASE(OpA) CASE(OpB) ____(Emitter) - Emitter is used to emit OpA and OpB.
 //     SIMPLE(OpA) - Emitter with name OpA is used to emit OpA.
 //
-#define SIMD_OP_VARIANTS(CASE, ____)                                           \
+#define SIMD_OP_VARIANTS(CASE, ____, SIMPLE)                                   \
+  CASE(Int32x4Shl)                                                             \
+  CASE(Int32x4ShrS)                                                            \
+  CASE(Int32x4ShrU)                                                            \
+  ____(Int32x4Shift)                                                           \
   SIMD_OP_SIMPLE_BINARY(CASE)                                                  \
-  CASE(Float32x4ShuffleMix)                                                    \
-  CASE(Int32x4ShuffleMix)                                                      \
   CASE(Float32x4NotEqual)                                                      \
   CASE(Float32x4LessThan)                                                      \
   CASE(Float32x4LessThanOrEqual)                                               \
@@ -4346,13 +4478,15 @@ DEFINE_EMIT(Int32x4WithFlag,
   CASE(Float64x2FromDoubles)                                                   \
   CASE(Float64x2Scale)                                                         \
   ____(SimdBinaryOp)                                                           \
+  CASE(Float32x4ShuffleMix)                                                    \
+  CASE(Int32x4ShuffleMix)                                                      \
+  ____(Simd32x4ShuffleMix)                                                     \
+  SIMPLE(Int32x4NotEqual)                                                      \
   SIMD_OP_SIMPLE_UNARY(CASE)                                                   \
   CASE(Float32x4GetX)                                                          \
   CASE(Float32x4GetY)                                                          \
   CASE(Float32x4GetZ)                                                          \
   CASE(Float32x4GetW)                                                          \
-  CASE(Int32x4Shuffle)                                                         \
-  CASE(Float32x4Shuffle)                                                       \
   CASE(Float32x4Splat)                                                         \
   CASE(Float64x2GetX)                                                          \
   CASE(Float64x2GetY)                                                          \
@@ -4360,18 +4494,16 @@ DEFINE_EMIT(Int32x4WithFlag,
   CASE(Float64x2ToFloat32x4)                                                   \
   CASE(Float32x4ToFloat64x2)                                                   \
   ____(SimdUnaryOp)                                                            \
+  CASE(Int32x4Shuffle)                                                         \
+  CASE(Float32x4Shuffle)                                                       \
+  ____(Simd32x4Shuffle)                                                        \
   CASE(Float32x4GetSignMask)                                                   \
   CASE(Int32x4GetSignMask)                                                     \
   ____(Simd32x4GetSignMask)                                                    \
-  CASE(Float32x4FromDoubles)                                                   \
-  ____(Float32x4FromDoubles)                                                   \
+  SIMPLE(Float32x4FromDoubles)                                                 \
   CASE(Float32x4Zero)                                                          \
   CASE(Float64x2Zero)                                                          \
   ____(SimdZero)                                                               \
-  CASE(Float32x4Clamp)                                                         \
-  ____(Float32x4Clamp)                                                         \
-  CASE(Float64x2Clamp)                                                         \
-  ____(Float64x2Clamp)                                                         \
   CASE(Float32x4WithX)                                                         \
   CASE(Float32x4WithY)                                                         \
   CASE(Float32x4WithZ)                                                         \
@@ -4380,15 +4512,13 @@ DEFINE_EMIT(Int32x4WithFlag,
   CASE(Float32x4ToInt32x4)                                                     \
   CASE(Int32x4ToFloat32x4)                                                     \
   ____(Simd32x4ToSimd32x4)                                                     \
-  CASE(Float64x2GetSignMask)                                                   \
-  ____(Float64x2GetSignMask)                                                   \
+  SIMPLE(Float64x2GetSignMask)                                                 \
   CASE(Float64x2WithX)                                                         \
   CASE(Float64x2WithY)                                                         \
   ____(Float64x2With)                                                          \
-  CASE(Int32x4FromInts)                                                        \
-  ____(Int32x4FromInts)                                                        \
-  CASE(Int32x4FromBools)                                                       \
-  ____(Int32x4FromBools)                                                       \
+  SIMPLE(Int32x4FromInts)                                                      \
+  SIMPLE(Int32x4Splat)                                                         \
+  SIMPLE(Int32x4FromBools)                                                     \
   CASE(Int32x4GetX)                                                            \
   CASE(Int32x4GetY)                                                            \
   CASE(Int32x4GetZ)                                                            \
@@ -4399,8 +4529,14 @@ DEFINE_EMIT(Int32x4WithFlag,
   CASE(Int32x4GetFlagZ)                                                        \
   CASE(Int32x4GetFlagW)                                                        \
   ____(Int32x4GetFlag)                                                         \
-  CASE(Int32x4Select)                                                          \
-  ____(Int32x4Select)                                                          \
+  SIMPLE(Int32x4AnyTrue)                                                       \
+  SIMPLE(Int32x4AllTrue)                                                       \
+  SIMPLE(Int32x4Select)                                                        \
+  CASE(Int32x4WithX)                                                           \
+  CASE(Int32x4WithY)                                                           \
+  CASE(Int32x4WithZ)                                                           \
+  CASE(Int32x4WithW)                                                           \
+  ____(Int32x4WithLane)                                                        \
   CASE(Int32x4WithFlagX)                                                       \
   CASE(Int32x4WithFlagY)                                                       \
   CASE(Int32x4WithFlagZ)                                                       \
@@ -4412,9 +4548,11 @@ LocationSummary* SimdOpInstr::MakeLocationSummary(Zone* zone, bool opt) const {
 #define CASE(Name, ...) case k##Name:
 #define EMIT(Name)                                                             \
   return MakeLocationSummaryFromEmitter(zone, this, &Emit##Name);
-    SIMD_OP_VARIANTS(CASE, EMIT)
+#define SIMPLE(Name) CASE(Name) EMIT(Name)
+    SIMD_OP_VARIANTS(CASE, EMIT, SIMPLE)
 #undef CASE
 #undef EMIT
+#undef SIMPLE
     case kIllegalSimdOp:
       UNREACHABLE();
       break;
@@ -4429,9 +4567,11 @@ void SimdOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #define EMIT(Name)                                                             \
   InvokeEmitter(compiler, this, &Emit##Name);                                  \
   break;
-    SIMD_OP_VARIANTS(CASE, EMIT)
+#define SIMPLE(Name) CASE(Name) EMIT(Name)
+    SIMD_OP_VARIANTS(CASE, EMIT, SIMPLE)
 #undef CASE
 #undef EMIT
+#undef SIMPLE
     case kIllegalSimdOp:
       UNREACHABLE();
       break;
@@ -4541,6 +4681,9 @@ void UnaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const VRegister result = locs()->out(0).fpu_reg();
   const VRegister value = locs()->in(0).fpu_reg();
   switch (op_kind()) {
+    case Token::kABS:
+      __ fabsd(result, value);
+      break;
     case Token::kNEGATE:
       __ fnegd(result, value);
       break;
@@ -4735,13 +4878,13 @@ void FloatToDoubleInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ fcvtds(result, value);
 }
 
-LocationSummary* FloatCompareInstr::MakeLocationSummary(Zone* zone,
-                                                        bool opt) const {
+LocationSummary* CompareAsMaskInstr::MakeLocationSummary(Zone* zone,
+                                                         bool opt) const {
   UNREACHABLE();
   return NULL;
 }
 
-void FloatCompareInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+void CompareAsMaskInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   UNREACHABLE();
 }
 
@@ -5851,7 +5994,7 @@ void UnaryInt64OpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kPOPCNT: {
       __ fmovdr(VTMP, left);
       __ vcnt(VTMP, VTMP);
-      __ vuaddlv(VTMP, VTMP);
+      __ vuaddlv_8b(VTMP, VTMP);
       __ fmovrs(out, VTMP);
       break;
     }

@@ -69,7 +69,7 @@ class Validator(var AnalysisRule rule) extends SimpleAstVisitor<void> {
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    if (Identifier.isPrivateName(node.namePart.typeName.lexeme)) {
+    if (node.namePart.typeName.lexeme.isPrivateName) {
       return;
     }
     node.namePart.typeParameters?.accept(this);
@@ -79,7 +79,7 @@ class Validator(var AnalysisRule rule) extends SimpleAstVisitor<void> {
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     var name = node.name;
-    if (name == null || Identifier.isPrivateName(name.lexeme)) {
+    if (name == null || name.lexeme.isPrivateName) {
       return;
     }
     node.typeParameters?.accept(this);
@@ -90,7 +90,7 @@ class Validator(var AnalysisRule rule) extends SimpleAstVisitor<void> {
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     var namePart = node.namePart;
-    if (Identifier.isPrivateName(namePart.typeName.lexeme)) {
+    if (namePart.typeName.lexeme.isPrivateName) {
       return;
     }
     namePart.typeParameters?.accept(this);
@@ -99,7 +99,7 @@ class Validator(var AnalysisRule rule) extends SimpleAstVisitor<void> {
       for (var formalParameter in namePart.formalParameters.parameters) {
         if (formalParameter is RegularFormalParameter) {
           var name = formalParameter.name;
-          if (name != null && !Identifier.isPrivateName(name.lexeme)) {
+          if (name != null && !name.lexeme.isPrivateName) {
             formalParameter.type?.accept(this);
           }
         }
@@ -113,7 +113,7 @@ class Validator(var AnalysisRule rule) extends SimpleAstVisitor<void> {
   void visitFieldDeclaration(FieldDeclaration node) {
     if (node.isInvalidExtensionTypeField) return;
     if (node.fields.variables.any(
-      (field) => !Identifier.isPrivateName(field.name.lexeme),
+      (field) => !field.name.lexeme.isPrivateName,
     )) {
       node.fields.type?.accept(this);
     }
@@ -121,7 +121,7 @@ class Validator(var AnalysisRule rule) extends SimpleAstVisitor<void> {
 
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
-    if (node.isNamed && Identifier.isPrivateName(node.name.lexeme)) {
+    if (node.isNamed && node.name.lexeme.isPrivateName) {
       return;
     }
     // Check for a declared type.
@@ -148,7 +148,7 @@ class Validator(var AnalysisRule rule) extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    if (Identifier.isPrivateName(node.name.lexeme)) {
+    if (node.name.lexeme.isPrivateName) {
       return;
     }
     node.returnType?.accept(this);
@@ -158,7 +158,7 @@ class Validator(var AnalysisRule rule) extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
-    if (Identifier.isPrivateName(node.name.lexeme)) {
+    if (node.name.lexeme.isPrivateName) {
       return;
     }
     node.returnType?.accept(this);
@@ -175,7 +175,7 @@ class Validator(var AnalysisRule rule) extends SimpleAstVisitor<void> {
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
-    if (Identifier.isPrivateName(node.name.lexeme)) {
+    if (node.name.lexeme.isPrivateName) {
       return;
     }
     node.typeParameters?.accept(this);
@@ -184,7 +184,7 @@ class Validator(var AnalysisRule rule) extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    if (Identifier.isPrivateName(node.name.lexeme)) {
+    if (node.name.lexeme.isPrivateName) {
       return;
     }
     node.returnType?.accept(this);
@@ -194,7 +194,7 @@ class Validator(var AnalysisRule rule) extends SimpleAstVisitor<void> {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    if (Identifier.isPrivateName(node.name.lexeme)) {
+    if (node.name.lexeme.isPrivateName) {
       return;
     }
     node.onClause?.superclassConstraints.accept(this);
@@ -222,7 +222,7 @@ class Validator(var AnalysisRule rule) extends SimpleAstVisitor<void> {
   @override
   void visitRegularFormalParameter(RegularFormalParameter node) {
     var name = node.name;
-    if (name != null && node.isNamed && Identifier.isPrivateName(name.lexeme)) {
+    if (name != null && node.isNamed && name.lexeme.isPrivateName) {
       return;
     }
     if (node.functionTypedSuffix case var functionTypedSuffix?) {
@@ -236,7 +236,7 @@ class Validator(var AnalysisRule rule) extends SimpleAstVisitor<void> {
 
   @override
   void visitSuperFormalParameter(SuperFormalParameter node) {
-    if (node.isNamed && Identifier.isPrivateName(node.name.lexeme)) {
+    if (node.isNamed && node.name.lexeme.isPrivateName) {
       return;
     }
 
@@ -260,7 +260,7 @@ class Validator(var AnalysisRule rule) extends SimpleAstVisitor<void> {
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     if (node.variables.variables.any(
-      (field) => !Identifier.isPrivateName(field.name.lexeme),
+      (field) => !field.name.lexeme.isPrivateName,
     )) {
       node.variables.type?.accept(this);
     }
@@ -295,8 +295,7 @@ class Validator(var AnalysisRule rule) extends SimpleAstVisitor<void> {
   /// library.
   static bool isPrivate(Element element) => isPrivateName(element.name);
 
-  static bool isPrivateName(String? name) =>
-      name != null && Identifier.isPrivateName(name);
+  static bool isPrivateName(String? name) => name != null && name.isPrivateName;
 }
 
 class _Visitor(var AnalysisRule rule) extends SimpleAstVisitor<void> {

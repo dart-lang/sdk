@@ -53,9 +53,9 @@ class _FileStream extends Stream<List<int>> {
       _openedFile = f;
 
   StreamSubscription<Uint8List> listen(
-    void onData(Uint8List event)?, {
+    void Function(Uint8List event)? onData, {
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool? cancelOnError,
   }) {
     _controller = new StreamController<Uint8List>(

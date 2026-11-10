@@ -30,9 +30,8 @@ extension type A(int it) {
     var node = result.findNode.singleBinaryOperatorInvocation;
     assertResolvedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SuperExpression
+  leftOperand: SuperReference
     superKeyword: super
-    staticType: A
   operator: +
   rightOperand: IntegerLiteral
     literal: 0
@@ -56,6 +55,82 @@ V1: BinaryExpression
 ''');
   }
 
+  test_call() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+extension type A(int it) {
+  void f() {
+    super();
+//  ^^^^^
+// [diag.superInExtensionType] The 'super' keyword can't be used in an extension type because an extension type doesn't have a superclass.
+  }
+}
+''');
+
+    var node = result.findNode.singleCallInvocation;
+    assertResolvedNodeText(node, r'''
+CallInvocation
+  receiver: SuperReference
+    superKeyword: super
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: FunctionExpressionInvocation
+  function: SuperExpression
+    superKeyword: super
+    staticType: A
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  element: <null>
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_index() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+extension type A(int it) {
+  void f() {
+    super[0];
+//  ^^^^^
+// [diag.superInExtensionType] The 'super' keyword can't be used in an extension type because an extension type doesn't have a superclass.
+  }
+}
+''');
+
+    var node = result.findNode.singleReceiverIndexExpression;
+    assertResolvedNodeText(node, r'''
+ReceiverIndexExpression
+  receiver: SuperReference
+    superKeyword: super
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  rightBracket: ]
+  resolution: InvalidIndexReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: IndexExpression
+  target: SuperExpression
+    superKeyword: super
+    staticType: A
+  leftBracket: [
+  index: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  rightBracket: ]
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
   test_methodInvocation() async {
     var result = await resolveTestCodeWithDiagnostics('''
 extension type A(int it) {
@@ -67,10 +142,22 @@ extension type A(int it) {
 }
 ''');
 
-    var node = result.findNode.singleMethodInvocation;
+    var node = result.findNode.singleReceiverMethodInvocation;
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SuperExpression
+ReceiverMethodInvocation
+  receiver: SuperReference
+    superKeyword: super
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SuperExpression
     superKeyword: super
     staticType: A
   operator: .
@@ -86,6 +173,36 @@ MethodInvocation
 ''');
   }
 
+  test_prefixOperator() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+extension type A(int it) {
+  void f() {
+    -super;
+//   ^^^^^
+// [diag.superInExtensionType] The 'super' keyword can't be used in an extension type because an extension type doesn't have a superclass.
+  }
+}
+''');
+
+    var node = result.findNode.singleUnaryOperatorInvocation;
+    assertResolvedNodeText(node, r'''
+UnaryOperatorInvocation
+  operator: -
+  operand: SuperReference
+    superKeyword: super
+  unaryOperator: negate
+  element: <null>
+  staticType: InvalidType
+V1: PrefixExpression
+  operator: -
+  operand: SuperExpression
+    superKeyword: super
+    staticType: A
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
   test_propertyAccess() async {
     var result = await resolveTestCodeWithDiagnostics('''
 extension type A(int it) {
@@ -97,10 +214,18 @@ extension type A(int it) {
 }
 ''');
 
-    var node = result.findNode.singlePropertyAccess;
+    var node = result.findNode.singleReceiverPropertyExtraction;
     assertResolvedNodeText(node, r'''
-PropertyAccess
-  target2: SuperExpression
+ReceiverPropertyExtraction
+  receiver: SuperReference
+    superKeyword: super
+  operator: .
+  name: foo
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PropertyAccess
+  target: SuperExpression
     superKeyword: super
     staticType: A
   operator: .

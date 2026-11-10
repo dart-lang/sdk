@@ -50,7 +50,7 @@ String supertypeToString(InterfaceType type) {
 }
 
 class _InheritanceDataComputer extends DataComputer<String> {
-  const _InheritanceDataComputer();
+  const new();
 
   @override
   DataInterpreter<String> get dataValidator => const StringDataInterpreter();
@@ -74,7 +74,7 @@ class _InheritanceDataComputer extends DataComputer<String> {
   void computeUnitData(
     TestingData testingData,
     CompilationUnit unit,
-    Map<Id, ActualData<String>> actualMap,
+    ActualDataMap<String> actualMap,
   ) {
     _InheritanceDataExtractor(
       unit.declaredFragment!.source.uri,
@@ -86,7 +86,7 @@ class _InheritanceDataComputer extends DataComputer<String> {
 class _InheritanceDataExtractor extends AstDataExtractor<String> {
   final inheritance = InheritanceManager3();
 
-  _InheritanceDataExtractor(super.uri, super.actualMap);
+  new(super.uri, super.actualMap);
 
   @override
   String? computeElementValue(Id id, Element element) {
@@ -94,55 +94,48 @@ class _InheritanceDataExtractor extends AstDataExtractor<String> {
   }
 
   @override
-  void computeForClass(Declaration node, Id? id) {
+  void computeForClass(ClassDeclaration2 node, Id? id) {
     super.computeForClass(node, id);
-    if (node is ClassDeclaration) {
-      var element = node.declaredFragment!.element;
+    var element = node.declaredFragment!.element;
 
-      void registerMember(
-        MemberId id,
-        int offset,
-        Object object,
-        DartType type,
-      ) {
-        registerValue(uri, offset, id, type.getDisplayString(), object);
+    void registerMember(MemberId id, int offset, Object object, DartType type) {
+      registerValue(uri, offset, id, type.getDisplayString(), object);
+    }
+
+    var interface = inheritance.getInterface(element);
+    for (var name in interface.map.keys) {
+      var executable = interface.map[name]!;
+
+      var enclosingClass = executable.enclosingElement as InterfaceElement;
+      if (enclosingClass is ClassElement && enclosingClass.isDartCoreObject) {
+        continue;
       }
 
-      var interface = inheritance.getInterface(element);
-      for (var name in interface.map.keys) {
-        var executable = interface.map[name]!;
+      var id = MemberId.internal(name.name, className: element.name);
 
-        var enclosingClass = executable.enclosingElement as InterfaceElement;
-        if (enclosingClass is ClassElement && enclosingClass.isDartCoreObject) {
-          continue;
-        }
+      var offset = enclosingClass == element
+          ? executable.firstFragment.nameOffset
+          : element.firstFragment.nameOffset;
+      offset ??= -1;
 
-        var id = MemberId.internal(name.name, className: element.name);
-
-        var offset = enclosingClass == element
-            ? executable.firstFragment.nameOffset
-            : element.firstFragment.nameOffset;
-        offset ??= -1;
-
-        DartType type;
-        if (executable is MethodElement) {
-          type = executable.type;
-        } else if (executable is GetterElement) {
-          type = executable.returnType;
-        } else if (executable is SetterElement) {
-          type = executable.formalParameters.first.type;
-        } else {
-          throw UnimplementedError('(${executable.runtimeType}) $executable');
-        }
-
-        registerMember(id, offset, executable, type);
+      DartType type;
+      if (executable is MethodElement) {
+        type = executable.type;
+      } else if (executable is GetterElement) {
+        type = executable.returnType;
+      } else if (executable is SetterElement) {
+        type = executable.formalParameters.first.type;
+      } else {
+        throw UnimplementedError('(${executable.runtimeType}) $executable');
       }
+
+      registerMember(id, offset, executable, type);
     }
   }
 
   @override
   String? computeNodeValue(Id id, AstNode node) {
-    if (node is ClassDeclaration) {
+    if (node is ClassDeclaration2) {
       var cls = node.declaredFragment!.element;
       var supertypes = <String>[];
       supertypes.add(supertypeToString(cls.thisType));

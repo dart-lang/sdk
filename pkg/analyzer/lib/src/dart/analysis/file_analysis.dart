@@ -19,7 +19,11 @@ class FileAnalysis {
   final IgnoreInfo ignoreInfo;
   final ImportsTracking importsTracking;
 
-  FileAnalysis({
+  /// The scope of the `@docImport`s visible in this file, set when resolving
+  /// its directives; `null` if there are none.
+  DocImportScope? docImportScope;
+
+  new({
     required this.file,
     required this.diagnosticListener,
     required this.unit,

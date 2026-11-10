@@ -84,12 +84,12 @@ void testInt32x4View() {
 void testUnmodifiable() {
   final list = makeList();
   final unmodifiable = list.asUnmodifiableView();
-  Expect.throws(() => unmodifiable[0] = Int32x4(0, 0, 0, 0));
+  Expect.throws(() => unmodifiable[0] = Int32x4.zero());
   final bd = unmodifiable.buffer.asByteData();
   Expect.throws(() => bd.setUint8(0, 1));
   Expect.equals(0x44, bd.getUint8(0));
   final view = unmodifiable.buffer.asInt32x4List();
-  Expect.throws(() => view[0] = Int32x4(0, 0, 0, 0));
+  Expect.throws(() => view[0] = Int32x4.zero());
 }
 
 void testFromListAndSetRange() {
@@ -101,7 +101,7 @@ void testFromListAndSetRange() {
   Expect.equals(3, copy.length);
   Expect.equals(20, copy[0].y);
   Expect.equals(-4, copy[2].w);
-  copy[0] = Int32x4(0, 0, 0, 0);
+  copy[0] = Int32x4.zero();
   Expect.equals(20, source[0].y);
 
   final fromPlain = Int32x4List.fromList([

@@ -723,8 +723,7 @@ bool isExtensionThisName(String? name) {
 }
 
 // Coverage-ignore(suite): Not run.
-bool hasUnnamedExtensionNamePrefix(String? name) {
-  if (name == null) return false;
+bool hasUnnamedExtensionNamePrefix(String name) {
   if (name.startsWith(NameScheme.unnamedExtensionNamePrefix)) return true;
   return false;
 }
@@ -895,9 +894,6 @@ const String unnamedExtensionSentinel = '<unnamed extension>';
 /// No-name extension type constructors use `new` as the name.
 ///
 /// DartDocTest(
-///   extractQualifiedNameFromExtensionMethodName(null),
-///   null)
-/// DartDocTest(
 ///   extractQualifiedNameFromExtensionMethodName('Foo'),
 ///   null)
 /// DartDocTest(
@@ -944,10 +940,9 @@ const String unnamedExtensionSentinel = '<unnamed extension>';
 ///    '_extension#3.bar',
 ///  )
 String? extractQualifiedNameFromExtensionMethodName(
-  String? methodName, {
+  String methodName, {
   bool keepUnnamedExtensionNamePrefix = false,
 }) {
-  if (methodName == null) return null;
   int delimiterIndex = methodName.indexOf(NameScheme.extensionNameDelimiter);
   if (delimiterIndex == -1) return null;
   String extensionName = methodName.substring(0, delimiterIndex);

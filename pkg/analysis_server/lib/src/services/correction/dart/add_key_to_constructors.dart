@@ -114,21 +114,28 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
     }
 
     var canBeConst = _canBeConst(node, constructors);
+    var superParameters = isEnabled(Feature.super_parameters);
     await builder.addDartFileEdit(file, (builder) {
       builder.insertConstructor(node, (builder) {
-        // TODO(srawlins): Replace this block with `writeConstructorDeclaration`
-        // and `parameterWriter`.
-        if (canBeConst) {
-          builder.write('const ');
-        }
-        builder.write(className);
-        builder.write('({');
-        if (isEnabled(Feature.super_parameters)) {
-          builder.write('super.key});');
-        } else {
-          builder.writeType(keyType);
-          builder.write(' key}) : super(key: key);');
-        }
+        builder.writeConstructorDeclaration(
+          className,
+          isConst: canBeConst,
+          parameterWriter: () {
+            builder.write('{');
+            if (superParameters) {
+              builder.write('super.key');
+            } else {
+              builder.writeType(keyType);
+              builder.write(' key');
+            }
+            builder.write('}');
+          },
+          initializerWriter: superParameters
+              ? null
+              : () {
+                  builder.write('super(key: key)');
+                },
+        );
       });
     });
   }

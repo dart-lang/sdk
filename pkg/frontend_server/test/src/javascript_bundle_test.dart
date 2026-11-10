@@ -686,6 +686,107 @@ void main() {
     // C source code should be updated.
     expect(code, contains('AlternativeContents'));
   });
+
+  test('handles unreachable libraries in invalidation and compile', () async {
+    final Uri uriC = new Uri.file('/c.dart');
+    final Library libraryC = new Library(
+      uriC,
+      fileUri: uriC,
+      procedures: [
+        new Procedure(
+          new Name('CheckForContents'),
+          ProcedureKind.Method,
+          new FunctionNode(new Block([])),
+          fileUri: uriC,
+        ),
+      ],
+    );
+    final Uri uriA = new Uri.file('/a.dart');
+    final Library libraryA = new Library(
+      uriA,
+      fileUri: uriA,
+      dependencies: [new LibraryDependency.import(libraryC)],
+      procedures: [
+        new Procedure(
+          new Name('ArbitrarilyChosen'),
+          ProcedureKind.Method,
+          new FunctionNode(new Block([])),
+          fileUri: uriA,
+        ),
+      ],
+    );
+    final Component testComponent = new Component(
+      libraries: [libraryA, libraryC, ...testCoreLibraries],
+    );
+
+    final IncrementalJavaScriptBundler javaScriptBundler =
+        new IncrementalJavaScriptBundler(null, {}, multiRootScheme);
+
+    await javaScriptBundler.initialize(testComponent, uriA, packageConfig);
+
+    // Create an unreachable library D that is not imported by the entrypoint A.
+    final Uri uriD = new Uri.file('/d.dart');
+    final Library libraryD = new Library(
+      uriD,
+      fileUri: uriD,
+      procedures: [
+        new Procedure(
+          new Name('UnreachableMethod'),
+          ProcedureKind.Method,
+          new FunctionNode(new Block([])),
+          fileUri: uriD,
+        ),
+      ],
+    );
+
+    // Create updated C and unreachable D.
+    final Library libraryC2 = new Library(
+      uriC,
+      fileUri: uriC,
+      procedures: [
+        new Procedure(
+          new Name('AlternativeContents'),
+          ProcedureKind.Method,
+          new FunctionNode(new Block([])),
+          fileUri: uriC,
+        ),
+      ],
+    );
+
+    final Component partialComponent = new Component(
+      libraries: [libraryC2, libraryD],
+    );
+
+    await javaScriptBundler.invalidate(
+      partialComponent,
+      testComponent,
+      uriA,
+      packageConfig,
+      recompileRestart: false,
+    );
+
+    final _MemorySink manifestSink = new _MemorySink();
+    final _MemorySink codeSink = new _MemorySink();
+    final _MemorySink sourcemapSink = new _MemorySink();
+    final _MemorySink metadataSink = new _MemorySink();
+    final _MemorySink symbolsSink = new _MemorySink();
+    final CoreTypes coreTypes = new CoreTypes(testComponent);
+
+    await javaScriptBundler.compile(
+      new ClassHierarchy(testComponent, coreTypes),
+      coreTypes,
+      packageConfig,
+      codeSink,
+      manifestSink,
+      sourcemapSink,
+      metadataSink,
+      symbolsSink,
+    );
+
+    final String code = utf8.decode(codeSink.buffer);
+    expect(code, contains('AlternativeContents'));
+    expect(code, isNot(contains('UnreachableMethod')));
+  });
 }
 
 class _MemorySink implements IOSink {

@@ -4,16 +4,13 @@
 
 // VMOptions=--optimization-counter-threshold=10 --no-background-compilation
 
-// Library tag to be able to run in html test framework.
-library float32x4_two_arg_shuffle_test;
-
 import 'dart:typed_data';
 
 import "package:expect/expect.dart";
 
 testWithZWInXY() {
-  Float32x4 a = new Float32x4(1.0, 2.0, 3.0, 4.0);
-  Float32x4 b = new Float32x4(5.0, 6.0, 7.0, 8.0);
+  Float32x4 a = Float32x4(1.0, 2.0, 3.0, 4.0);
+  Float32x4 b = Float32x4(5.0, 6.0, 7.0, 8.0);
   Float32x4 c = b.shuffleMix(a, Float32x4.zwzw);
   Expect.equals(7.0, c.x);
   Expect.equals(8.0, c.y);
@@ -22,8 +19,8 @@ testWithZWInXY() {
 }
 
 testInterleaveXY() {
-  Float32x4 a = new Float32x4(1.0, 2.0, 3.0, 4.0);
-  Float32x4 b = new Float32x4(5.0, 6.0, 7.0, 8.0);
+  Float32x4 a = Float32x4(1.0, 2.0, 3.0, 4.0);
+  Float32x4 b = Float32x4(5.0, 6.0, 7.0, 8.0);
   Float32x4 c = a.shuffleMix(b, Float32x4.xyxy).shuffle(Float32x4.xzyw);
   Expect.equals(1.0, c.x);
   Expect.equals(5.0, c.y);
@@ -32,8 +29,8 @@ testInterleaveXY() {
 }
 
 testInterleaveZW() {
-  Float32x4 a = new Float32x4(1.0, 2.0, 3.0, 4.0);
-  Float32x4 b = new Float32x4(5.0, 6.0, 7.0, 8.0);
+  Float32x4 a = Float32x4(1.0, 2.0, 3.0, 4.0);
+  Float32x4 b = Float32x4(5.0, 6.0, 7.0, 8.0);
   Float32x4 c = a.shuffleMix(b, Float32x4.zwzw).shuffle(Float32x4.xzyw);
   Expect.equals(3.0, c.x);
   Expect.equals(7.0, c.y);
@@ -42,8 +39,8 @@ testInterleaveZW() {
 }
 
 testInterleaveXYPairs() {
-  Float32x4 a = new Float32x4(1.0, 2.0, 3.0, 4.0);
-  Float32x4 b = new Float32x4(5.0, 6.0, 7.0, 8.0);
+  Float32x4 a = Float32x4(1.0, 2.0, 3.0, 4.0);
+  Float32x4 b = Float32x4(5.0, 6.0, 7.0, 8.0);
   Float32x4 c = a.shuffleMix(b, Float32x4.xyxy);
   Expect.equals(1.0, c.x);
   Expect.equals(2.0, c.y);
@@ -52,8 +49,8 @@ testInterleaveXYPairs() {
 }
 
 testInterleaveZWPairs() {
-  Float32x4 a = new Float32x4(1.0, 2.0, 3.0, 4.0);
-  Float32x4 b = new Float32x4(5.0, 6.0, 7.0, 8.0);
+  Float32x4 a = Float32x4(1.0, 2.0, 3.0, 4.0);
+  Float32x4 b = Float32x4(5.0, 6.0, 7.0, 8.0);
   Float32x4 c = a.shuffleMix(b, Float32x4.zwzw);
   Expect.equals(3.0, c.x);
   Expect.equals(4.0, c.y);

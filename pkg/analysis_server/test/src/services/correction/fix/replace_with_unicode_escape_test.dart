@@ -15,7 +15,8 @@ void main() {
 }
 
 @reflectiveTest
-class ReplaceWithUnicodeEscapeTest extends FixProcessorTest {
+class ReplaceWithUnicodeEscapeTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.replaceWithUnicodeEscape;
 

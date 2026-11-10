@@ -5,19 +5,10 @@
 import 'package:platform/platform.dart' as platform;
 import 'package:unified_analytics/unified_analytics.dart';
 
-DashTool? get topLevelTool {
-  var toolValue = _readEnv(DashEnvVar.tool.name);
-  if (toolValue != null) {
-    try {
-      return DashTool.fromLabel(toolValue);
-    } on Exception {
-      // Unsupported tools are skipped.
-      // We could consider logging or crash-reporting but we can't collect
-      // analytics since telemetry for an unknown tool can't be opted into.
-    }
-  }
-  return null;
-}
+/// The name of the AI coding agent running the analysis server, if any.
+///
+/// Detected from the environment using [AiAgent.detectAgentName].
+String? get aiAgent => AiAgent.detectAgentName(_locaEnvironment);
 
 Map<String, String> get _locaEnvironment =>
     // TODO(natebosch): bump dependency after package rollout is settled.
@@ -25,14 +16,15 @@ Map<String, String> get _locaEnvironment =>
     // ignore: deprecated_member_use
     const platform.LocalPlatform().environment;
 
-/// Returns a copy of the current environment with the given analytics values set.
-Map<String, String> map({
-  required DashTool? tool,
-  required bool suppressAnalytics,
-}) => <String, String>{
-  ..._locaEnvironment,
-  DashEnvVar.suppressAnalytics.name: suppressAnalytics.toString(),
-  if (tool != null) DashEnvVar.tool.name: tool.label,
+/// Returns the [DashTool] for the IDE identified by [clientId], or `null` if
+/// [clientId] doesn't identify a known IDE.
+///
+/// This is passed to `Analytics` as the `fallbackRootTool`, so that IDE
+/// plugins that don't set the `DASH__TOOL` environment variable still report
+/// analytics under the IDE that started the analysis server.
+DashTool? fallbackRootToolForClientId(String? clientId) => switch (clientId) {
+  'VS-Code' || 'VS-Code-Remote' => DashTool.vscodePlugins,
+  'IntelliJ-IDEA' => DashTool.intellijPlugins,
+  'Android-Studio' => DashTool.androidStudioPlugins,
+  _ => null,
 };
-
-String? _readEnv(String key) => _locaEnvironment[key];

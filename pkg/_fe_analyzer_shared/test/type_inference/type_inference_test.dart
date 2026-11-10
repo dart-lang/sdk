@@ -3763,6 +3763,41 @@ main() {
             },
           );
         });
+
+        test('Inside logical-or pattern', () {
+          // The logical-or pattern is an error, and the context is made
+          // refutable to avoid cascading errors.
+          var x = Var('x');
+          var y = Var('y');
+          h.run(
+            [
+              declare(x, type: 'num'),
+              declare(y, type: 'num'),
+              ((x.pattern().or(
+                y.pattern(),
+              )..errorId = 'PATTERN').assign(expr('int'))..errorId = 'CONTEXT'),
+            ],
+            expectedErrors: {
+              'refutablePatternInIrrefutableContext(pattern: PATTERN, '
+                  'context: CONTEXT)',
+            },
+          );
+        });
+
+        test('Inside null-check pattern', () {
+          var x = Var('x');
+          h.run(
+            [
+              declare(x, type: 'num'),
+              ((x.pattern().nullCheck..errorId = 'PATTERN').assign(expr('int?'))
+                ..errorId = 'CONTEXT'),
+            ],
+            expectedErrors: {
+              'refutablePatternInIrrefutableContext(pattern: PATTERN, '
+                  'context: CONTEXT)',
+            },
+          );
+        });
       });
     });
 

@@ -11,6 +11,7 @@ import 'package:kernel/type_algebra.dart';
 
 import '../../base/messages.dart' show Message;
 import '../../base/problems.dart' show unexpected, unimplemented, unsupported;
+import '../../base/uri_offset.dart';
 import '../../source/source_class_builder.dart';
 import '../../type_inference/type_schema.dart';
 
@@ -192,7 +193,7 @@ class BuilderMixinInferrer {
   }
 
   Supertype? asInstantiationOf(Supertype type, Class superclass) {
-    List<DartType>? arguments = classHierarchyBase.getTypeArgumentsAsInstanceOf(
+    DartTypeList? arguments = classHierarchyBase.getTypeArgumentsAsInstanceOf(
       type.asInterfaceType,
       superclass,
     );
@@ -201,17 +202,7 @@ class BuilderMixinInferrer {
   }
 
   void reportProblem(Message message, Class kernelClass) {
-    int length = classBuilder.isMixinApplication
-        ? 1
-        :
-          // Coverage-ignore(suite): Not run.
-          classBuilder.fullNameForErrors.length;
-    classBuilder.libraryBuilder.addProblem(
-      message,
-      classBuilder.fileOffset,
-      length,
-      classBuilder.fileUri,
-    );
+    classBuilder.libraryBuilder.addProblem2(message, classBuilder.uriOffset);
   }
 
   // Coverage-ignore(suite): Not run.

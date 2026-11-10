@@ -15,7 +15,7 @@
     let compiledApp = await mjs.compileStreaming(fetch(`${filename}.wasm`));
 
     function loadDeferredModules(modules, callback) {
-        return Promise.all(modules.map((m) => fetch(m).then((r) => callback(m, r))));
+        return Promise.all(modules.map((m) => callback(m, fetch(m))));
     }
 
     let idMap;

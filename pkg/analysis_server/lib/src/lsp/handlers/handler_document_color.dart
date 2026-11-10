@@ -47,9 +47,11 @@ class DocumentColorHandler
       return success([]);
     }
 
-    var path = pathOfDoc(params.textDocument);
-    var unit = await path.mapResult(requireResolvedUnit);
-    return unit.mapResultSync((unit) => _getColors(unit));
+    return withResolvedUnit(
+      textDocument: params.textDocument,
+      token,
+      (unit, _, _) async => _getColors(unit),
+    );
   }
 
   ErrorOr<List<ColorInformation>> _getColors(ResolvedUnitResult unit) {

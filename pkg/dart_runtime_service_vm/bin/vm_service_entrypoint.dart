@@ -5,9 +5,8 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:vmservice_io' show getResidentCompilerInfoFileConsideringArgsImpl;
 
-import 'package:dart_runtime_service/dart_runtime_service.dart';
+import 'package:dart_runtime_service/dart_runtime_service_io.dart';
 import 'package:dart_runtime_service_vm/dart_runtime_service_vm.dart';
 import 'package:dart_runtime_service_vm/src/native_bindings.dart';
 import 'package:dart_runtime_service_vm/src/vm_isolate_manager.dart';
@@ -103,55 +102,43 @@ bool _waitForDdsToAdvertiseService = false;
 @entrypoint
 bool _printDtd = false;
 
-File? _residentCompilerInfoFile;
-
-/// Sets the resident compiler info file, which is used to configure the
-/// service to utilize a resident compiler.
-///
-/// If either `--resident-compiler-info-file` or `--resident-server-info-file`
-/// was supplied on the command line, the CLI argument should be forwarded as
-/// the argument to [residentCompilerInfoFilePathArgumentFromCli]. If neither
-/// option was supplied, the argument to this parameter should be null.
-@entrypoint
-// ignore: unused_element
-void _populateResidentCompilerInfoFile(
-  String? residentCompilerInfoFilePathArgumentFromCli,
-) {
-  _residentCompilerInfoFile = getResidentCompilerInfoFileConsideringArgsImpl(
-    residentCompilerInfoFilePathArgumentFromCli,
-  );
-}
-
 @pragma('vm:entry-point', 'get')
 Future<void> main([List<String> args = const []]) async {
   if (args case ['--help']) {
     return;
   }
-  await DartRuntimeService.initialize(
-    config: DartRuntimeServiceOptions(
-      enableLogging: Platform.environment.containsKey('VM_SERVICE_LOGGING'),
-      port: _port,
-      disableAuthCodes: _authCodesDisabled,
-      disableOriginCheck: _originCheckDisabled,
-      autoStart: _autoStart,
-      serveDevTools: _serveDevtools,
-      enableServicePortFallback: _enableServicePortFallback,
-      host: _ip,
-    ),
-    backendBuilder: (frontend) => DartRuntimeServiceVMBackend(
-      frontend: frontend,
-      signalWatch: _signalWatch!,
-      runningIsolatesStream: _isolateRegistrationStreamController.stream,
-      ddsManager: DartDevelopmentServiceManager(
-        frontend: frontend,
-        launchOnStart: _waitForDdsToAdvertiseService,
-        printDtd: _printDtd,
-        host: _ddsIP,
-        port: _ddsPort,
+  try {
+    await DartRuntimeService.initialize(
+      config: DartRuntimeServiceOptions(
+        enableLogging: Platform.environment.containsKey('VM_SERVICE_LOGGING'),
+        port: _port,
+        disableAuthCodes: _authCodesDisabled,
+        disableOriginCheck: _originCheckDisabled,
+        autoStart: _autoStart,
+        serveDevTools: _serveDevtools,
+        enableServicePortFallback: _enableServicePortFallback,
+        host: _ip,
       ),
-      residentCompilerInfoFile: _residentCompilerInfoFile,
-      serviceInfoFilename: _serviceInfoFilename,
-    ),
-  );
+      backendBuilder: (frontend) => DartRuntimeServiceVMBackend(
+        frontend: frontend,
+        signalWatch: _signalWatch!,
+        runningIsolatesStream: _isolateRegistrationStreamController.stream,
+        ddsManager: DartDevelopmentServiceManager(
+          frontend: frontend,
+          launchOnStart: _waitForDdsToAdvertiseService,
+          printDtd: _printDtd,
+          host: _ddsIP,
+          port: _ddsPort,
+        ),
+        serviceInfoFilename: _serviceInfoFilename,
+      ),
+    );
+  } on DartRuntimeServiceFailedToStartException catch (e) {
+    stderr.writeln('Could not start the VM service: ${e.message}');
+    NativeBindings().onServerAddressChange(null);
+  } catch (e, st) {
+    stderr.writeln('Could not start the VM service: $e\n$st');
+    NativeBindings().onServerAddressChange(null);
+  }
   NativeBindings().notifyFinishedInitializing();
 }

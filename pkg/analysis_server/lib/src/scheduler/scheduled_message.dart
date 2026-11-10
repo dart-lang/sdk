@@ -48,6 +48,20 @@ final class LegacyMessage extends ScheduledMessage {
   String get id => 'legacy:${request.method}';
 }
 
+/// Represents a notification in the Legacy protocol format.
+///
+/// Unlike a [LegacyMessage], there is no response for the client to wait for
+/// and nothing to cancel.
+final class LegacyNotificationMessage extends ScheduledMessage {
+  /// The Legacy notification that was received.
+  final legacy.Notification notification;
+
+  new({required this.notification});
+
+  @override
+  String get id => 'legacy:${notification.event}';
+}
+
 /// Represents a message in the LSP protocol format.
 final class LspMessage extends ScheduledMessage {
   /// The LSP message that was received.

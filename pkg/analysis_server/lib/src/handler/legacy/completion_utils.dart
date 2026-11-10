@@ -13,7 +13,6 @@ import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/element/element.dart' as e;
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/completion/relevance.dart';
 
@@ -785,9 +784,10 @@ void _setDocumentation(
 ) {
   var doc = request.documentationComputer.compute(
     element,
+    includeFull: true,
     includeSummary: true,
   );
-  if (doc is DocumentationWithSummary) {
+  if (doc != null) {
     suggestion.docComplete = doc.full;
     suggestion.docSummary = doc.summary;
   }

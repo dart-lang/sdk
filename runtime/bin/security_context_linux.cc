@@ -9,6 +9,11 @@
 
 #include "bin/security_context.h"
 
+#if defined(DART_HOST_OS_ANDROID)
+#include <dirent.h>
+#include <errno.h>
+#include <string.h>
+#endif
 #include <openssl/bio.h>
 #include <openssl/ssl.h>
 #include <openssl/x509.h>
@@ -17,12 +22,44 @@
 #include "bin/file.h"
 #include "bin/secure_socket_filter.h"
 #include "bin/secure_socket_utils.h"
+#include "platform/signal_blocker.h"
 #include "platform/syslog.h"
 
 namespace dart {
 namespace bin {
 
 const intptr_t SSLCertContext::kApproximateSize = sizeof(SSLCertContext);
+
+#if defined(DART_HOST_OS_ANDROID)
+static bool IsNonEmptyDirectory(const char* path) {
+  ThreadSignalBlocker tsb(SIGPROF);
+  DIR* dir;
+  do {
+    dir = opendir(path);
+  } while ((dir == nullptr) && (errno == EINTR));
+  if (dir == nullptr) {
+    return false;
+  }
+  bool has_entry = false;
+  while (true) {
+    errno = 0;
+    struct dirent* entry = readdir(dir);
+    if (entry == nullptr) {
+      if (errno == EINTR) {
+        continue;
+      }
+      break;
+    }
+    if ((strcmp(entry->d_name, ".") != 0) &&
+        (strcmp(entry->d_name, "..") != 0)) {
+      has_entry = true;
+      break;
+    }
+  }
+  VOID_NO_RETRY_EXPECTED(closedir(dir));
+  return has_entry;
+}
+#endif
 
 void SSLCertContext::TrustBuiltinRoots() {
   // First, try to use locations specified on the command line.
@@ -48,8 +85,18 @@ void SSLCertContext::TrustBuiltinRoots() {
     // looking for root certs during its trust evaluation. We call
     // SSL_do_handshake directly from the Dart thread so that Dart code can be
     // invoked from the "bad certificate" callback called by SSL_do_handshake.
-    const char* android_cacerts = "/system/etc/security/cacerts";
-    LoadRootCertCache(android_cacerts);
+    //
+    // Since Android 14, the system root store lives in the updatable Conscrypt
+    // APEX module, and /system/etc/security/cacerts is only a fallback.
+    // Match Conscrypt's TrustedCertificateStore behavior by only using the APEX
+    // directory if it exists and is non-empty.
+    const char* android_apex_cacerts = "/apex/com.android.conscrypt/cacerts";
+    const char* android_system_cacerts = "/system/etc/security/cacerts";
+    if (IsNonEmptyDirectory(android_apex_cacerts)) {
+      LoadRootCertCache(android_apex_cacerts);
+    } else {
+      LoadRootCertCache(android_system_cacerts);
+    }
     return;
 #else
     // On Linux, we use the compiled-in trusted certs as a last resort. First,

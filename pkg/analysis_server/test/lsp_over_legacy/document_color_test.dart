@@ -18,10 +18,7 @@ void main() {
 @reflectiveTest
 class DocumentColorTest extends LspOverLegacyTest {
   @override
-  void createDefaultFiles() {
-    super.createDefaultFiles();
-    writeTestPackageConfig(flutter: true);
-  }
+  bool get addFlutterPackageDep => true;
 
   Future<void> test_color() async {
     var content = '''

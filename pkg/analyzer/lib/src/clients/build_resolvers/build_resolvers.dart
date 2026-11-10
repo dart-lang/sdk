@@ -25,7 +25,7 @@ export 'package:analyzer/dart/analysis/analysis_options.dart'
 export 'package:analyzer/source/source.dart' show Source;
 export 'package:analyzer/src/analysis_options/analysis_options.dart'
     show AnalysisOptionsBuilder, AnalysisOptionsImpl;
-export 'package:analyzer/src/context/packages.dart' show Packages, Package;
+export 'package:analyzer/src/context/packages.dart' show Package, Packages;
 export 'package:analyzer/src/dart/analysis/byte_store.dart' show ByteStore;
 export 'package:analyzer/src/dart/analysis/experiments.dart'
     show ExperimentStatus;
@@ -92,7 +92,7 @@ class AnalysisDriverForPackageBuild {
   final List<Uri> _sdkLibraryUris;
   final AnalysisDriver _driver;
 
-  AnalysisDriverForPackageBuild._(this._sdkLibraryUris, this._driver);
+  new _(this._sdkLibraryUris, this._driver);
 
   AnalysisSession get currentSession {
     return _driver.currentSession;

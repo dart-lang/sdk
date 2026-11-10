@@ -11,7 +11,7 @@ import 'dart:typed_data';
 ///
 /// The returned unmodifiable lists lazily read values on access.
 class BoolListReader extends Reader<List<bool>> {
-  const BoolListReader();
+  const new();
 
   @override
   int get size => 4;
@@ -23,7 +23,7 @@ class BoolListReader extends Reader<List<bool>> {
 
 /// The reader of booleans.
 class BoolReader extends Reader<bool> {
-  const BoolReader() : super();
+  const new() : super();
 
   @override
   int get size => 1;
@@ -36,13 +36,13 @@ class BoolReader extends Reader<bool> {
 class BufferContext {
   final ByteData _buffer;
 
-  factory BufferContext.fromBytes(List<int> byteList) {
+  factory fromBytes(List<int> byteList) {
     Uint8List uint8List = _asUint8List(byteList);
     ByteData buf = ByteData.view(uint8List.buffer, uint8List.offsetInBytes);
     return BufferContext._(buf);
   }
 
-  BufferContext._(this._buffer);
+  new _(this._buffer);
 
   int derefObject(int offset) {
     return offset + _getUint32(offset);
@@ -108,7 +108,7 @@ class Builder {
   /// to avoid duplicating strings.
   final Map<String, Offset<String>> _strings = <String, Offset<String>>{};
 
-  Builder({this.initialSize = 1024}) {
+  new({this.initialSize = 1024}) {
     reset();
   }
 
@@ -493,7 +493,7 @@ class Builder {
 ///
 /// The returned unmodifiable lists lazily read values on access.
 class Float64ListReader extends Reader<List<double>> {
-  const Float64ListReader();
+  const new();
 
   @override
   int get size => 4;
@@ -505,7 +505,7 @@ class Float64ListReader extends Reader<List<double>> {
 
 /// The reader of 64-bit floats.
 class Float64Reader extends Reader<double> {
-  const Float64Reader() : super();
+  const new() : super();
 
   @override
   int get size => 8;
@@ -516,7 +516,7 @@ class Float64Reader extends Reader<double> {
 
 /// The reader of signed 32-bit integers.
 class Int32Reader extends Reader<int> {
-  const Int32Reader() : super();
+  const new() : super();
 
   @override
   int get size => 4;
@@ -527,7 +527,7 @@ class Int32Reader extends Reader<int> {
 
 /// The reader of 8-bit signed integers.
 class Int8Reader extends Reader<int> {
-  const Int8Reader() : super();
+  const new() : super();
 
   @override
   int get size => 1;
@@ -542,7 +542,7 @@ class Int8Reader extends Reader<int> {
 class ListReader<E> extends Reader<List<E>> {
   final Reader<E> _elementReader;
 
-  const ListReader(this._elementReader);
+  const new(this._elementReader);
 
   @override
   int get size => 4;
@@ -557,12 +557,12 @@ class ListReader<E> extends Reader<List<E>> {
 class Offset<T> {
   final int _tail;
 
-  Offset(this._tail);
+  new(this._tail);
 }
 
 /// Object that can read a value at a [BufferContext].
 abstract class Reader<T> {
-  const Reader();
+  const new();
 
   /// The size of the value in bytes.
   int get size;
@@ -595,7 +595,7 @@ abstract class Reader<T> {
 
 /// The reader of string values.
 class StringReader extends Reader<String> {
-  const StringReader() : super();
+  const new() : super();
 
   @override
   int get size => 4;
@@ -624,7 +624,7 @@ class StringReader extends Reader<String> {
 
 /// An abstract reader for tables.
 abstract class TableReader<T> extends Reader<T> {
-  const TableReader();
+  const new();
 
   @override
   int get size => 4;
@@ -643,7 +643,7 @@ abstract class TableReader<T> extends Reader<T> {
 ///
 /// The returned unmodifiable lists lazily read values on access.
 class Uint32ListReader extends Reader<List<int>> {
-  const Uint32ListReader();
+  const new();
 
   @override
   int get size => 4;
@@ -655,7 +655,7 @@ class Uint32ListReader extends Reader<List<int>> {
 
 /// The reader of unsigned 32-bit integers.
 class Uint32Reader extends Reader<int> {
-  const Uint32Reader() : super();
+  const new() : super();
 
   @override
   int get size => 4;
@@ -668,7 +668,7 @@ class Uint32Reader extends Reader<int> {
 ///
 /// The returned unmodifiable lists lazily read values on access.
 class Uint8ListReader extends Reader<List<int>> {
-  const Uint8ListReader();
+  const new();
 
   @override
   int get size => 4;
@@ -680,7 +680,7 @@ class Uint8ListReader extends Reader<List<int>> {
 
 /// The reader of unsigned 8-bit integers.
 class Uint8Reader extends Reader<int> {
-  const Uint8Reader() : super();
+  const new() : super();
 
   @override
   int get size => 1;
@@ -695,7 +695,7 @@ class _FbBoolList with ListMixin<bool> implements List<bool> {
   final int offset;
   int? _length;
 
-  _FbBoolList(this.bc, this.offset);
+  new(this.bc, this.offset);
 
   @override
   int get length {
@@ -725,7 +725,7 @@ class _FbBoolList with ListMixin<bool> implements List<bool> {
 
 /// The list backed by 64-bit values - Uint64 length and Float64.
 class _FbFloat64List extends _FbList<double> {
-  _FbFloat64List(super.bc, super.offset);
+  new(super.bc, super.offset);
 
   @override
   double operator [](int i) {
@@ -739,8 +739,7 @@ class _FbGenericList<E> extends _FbList<E> {
 
   List<E?>? _items;
 
-  _FbGenericList(this.elementReader, BufferContext bp, int offset)
-    : super(bp, offset);
+  new(this.elementReader, BufferContext bp, int offset) : super(bp, offset);
 
   @override
   E operator [](int i) {
@@ -760,7 +759,7 @@ abstract class _FbList<E> with ListMixin<E> implements List<E> {
   final int offset;
   int? _length;
 
-  _FbList(this.bc, this.offset);
+  new(this.bc, this.offset);
 
   @override
   int get length {
@@ -777,7 +776,7 @@ abstract class _FbList<E> with ListMixin<E> implements List<E> {
 
 /// List backed by 32-bit unsigned integers.
 class _FbUint32List extends _FbList<int> {
-  _FbUint32List(super.bc, super.offset);
+  new(super.bc, super.offset);
 
   @override
   int operator [](int i) {
@@ -787,7 +786,7 @@ class _FbUint32List extends _FbList<int> {
 
 /// List backed by 8-bit unsigned integers.
 class _FbUint8List extends _FbList<int> {
-  _FbUint8List(super.bc, super.offset);
+  new(super.bc, super.offset);
 
   @override
   int operator [](int i) {
@@ -814,7 +813,7 @@ class _VTable {
   /// multiple tables of identical structure.
   int? tail;
 
-  _VTable(this._reusedFieldTails, this._reusedFieldOffsets);
+  new(this._reusedFieldTails, this._reusedFieldOffsets);
 
   int get numOfUint16 => 1 + 1 + _fieldCount;
 

@@ -43,7 +43,7 @@ class C {}
 }
 
 @reflectiveTest
-class ConvertToWhereTypeTest extends FixProcessorLintTest {
+class ConvertToWhereTypeTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToWhereType;
 

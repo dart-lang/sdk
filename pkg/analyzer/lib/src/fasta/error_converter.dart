@@ -19,7 +19,7 @@ class FastaErrorReporter {
 
   /// Initialize a newly created error reporter to report diagnostics to the
   /// given [diagnosticReporter].
-  FastaErrorReporter(this.diagnosticReporter);
+  new(this.diagnosticReporter);
 
   void reportByCode(
     PseudoSharedCode? pseudoSharedCode,
@@ -314,9 +314,6 @@ class FastaErrorReporter {
         // Not reported but followed by a
         // CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD.
         return;
-      case PseudoSharedCode.extensionTypeWithAbstractMember:
-        // Reported by [ErrorVerifier._checkForExtensionTypeWithAbstractMember].
-        return;
       case PseudoSharedCode.extensionTypeDeclaresInstanceField:
         // Reported by
         // [ErrorVerifier._checkForExtensionTypeDeclaresInstanceField]
@@ -334,7 +331,7 @@ class FastaErrorReporter {
         return;
       case PseudoSharedCode.assertAsExpression:
         // Reported as UNDEFINED_IDENTIFIER in
-        // [SimpleIdentifierResolver._resolve1],
+        // [PropertyElementResolver._resolveUnqualifiedNameRead],
         // followed by an EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD error,
         // or followed by an EXPECTED_TOKEN error as seen in
         // `language/constructor/explicit_instantiation_syntax_test`

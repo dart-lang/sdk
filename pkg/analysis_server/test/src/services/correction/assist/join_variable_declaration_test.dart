@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class JoinVariableDeclarationTest extends AssistProcessorTest {
+class JoinVariableDeclarationTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.joinVariableDeclaration;
 

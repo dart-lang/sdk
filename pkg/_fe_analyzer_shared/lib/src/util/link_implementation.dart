@@ -12,7 +12,7 @@ class LinkIterator<T> implements Iterator<T> {
   T? _current;
   Link<T> _link;
 
-  LinkIterator(this._link);
+  new(this._link);
 
   @override
   T get current => _current!;
@@ -29,14 +29,14 @@ class LinkIterator<T> implements Iterator<T> {
   }
 }
 
-typedef T Transformation<S, T>(S input);
+typedef Transformation<S, T> = T Function(S input);
 
 class MappedLinkIterator<S, T> implements Iterator<T> {
   Transformation<S, T> _transformation;
   Link<S> _link;
   T? _current;
 
-  MappedLinkIterator(this._link, this._transformation);
+  new(this._link, this._transformation);
 
   @override
   T get current => _current!;
@@ -57,7 +57,7 @@ class MappedLinkIterable<S, T> extends IterableBase<T> {
   Transformation<S, T> _transformation;
   Link<S> _link;
 
-  MappedLinkIterable(this._link, this._transformation);
+  new(this._link, this._transformation);
 
   @override
   Iterator<T> get iterator {
@@ -71,7 +71,7 @@ class LinkEntry<T> extends Link<T> {
   @override
   Link<T> tail;
 
-  LinkEntry(this.head, [Link<T>? tail]) : tail = tail ?? const Link<Never>();
+  new(this.head, [Link<T>? tail]) : tail = tail ?? const Link<Never>();
 
   @override
   Link<T> prepend(T element) {
@@ -174,7 +174,7 @@ class LinkBuilderImplementation<T> implements LinkBuilder<T> {
   @override
   int length = 0;
 
-  LinkBuilderImplementation();
+  new();
 
   @override
   Link<T> toLink(Link<T> tail) {

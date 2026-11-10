@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../../debug_info.dart' show DebugInfoSerializer;
 import '../serialize/printer.dart';
 import '../serialize/serialize.dart';
 import 'ir.dart';
@@ -71,6 +72,10 @@ abstract class BaseFunction with Indexable, Exportable {
   Export buildExport(String name) {
     return FunctionExport(name, this);
   }
+
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    usedTypes.add(type);
+  }
 }
 
 /// A function defined in a module.
@@ -98,7 +103,13 @@ class DefinedFunction extends BaseFunction implements Serializable {
   ]);
 
   @override
-  void serialize(Serializer s) {
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    super.collectUsedTypes(usedTypes);
+    body.collectUsedTypes(usedTypes);
+  }
+
+  @override
+  void serialize(Serializer s, [DebugInfoSerializer? debugInfoSerializer]) {
     // Serialize locals internally first in order to compute the total size of
     // the serialized data.
     final localS = Serializer();
@@ -117,11 +128,16 @@ class DefinedFunction extends BaseFunction implements Serializable {
       }
     }
 
-    // Bundle locals and body
-    localS.write(body);
+    final localsLength = localS.offset;
+    final byteDebugInfo = body.serialize(localS, debugInfoSerializer != null);
+
     s.writeUnsigned(localS.data.length);
-    s.sourceMapSerializer.copyMappings(localS.sourceMapSerializer, s.offset);
+    final functionCodeOffset = s.offset + localsLength;
     s.writeData(localS);
+
+    if (byteDebugInfo != null && debugInfoSerializer != null) {
+      debugInfoSerializer.addFunction(functionCodeOffset, byteDebugInfo);
+    }
   }
 
   void printTo(IrPrinter p) {

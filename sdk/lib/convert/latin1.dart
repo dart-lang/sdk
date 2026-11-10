@@ -169,18 +169,6 @@ class _Latin1DecoderSink extends ByteConversionSink {
   }
 
   static void _checkValidLatin1(List<int> source, int start, int end) {
-    var mask = 0;
-    for (var i = start; i < end; i++) {
-      mask |= source[i];
-    }
-    if (mask >= 0 && mask <= _latin1Mask) {
-      return;
-    }
-    _reportInvalidLatin1(source, start, end); // Always throws.
-  }
-
-  static void _reportInvalidLatin1(List<int> source, int start, int end) {
-    // Find the index of the first non-Latin-1 character code.
     for (var i = start; i < end; i++) {
       var char = source[i];
       if (char < 0 || char > _latin1Mask) {
@@ -191,8 +179,6 @@ class _Latin1DecoderSink extends ByteConversionSink {
         );
       }
     }
-    // Unreachable - we only call the function if the loop above throws.
-    assert(false);
   }
 }
 

@@ -44,8 +44,10 @@ var a = A(3);
 
 @reflectiveTest
 class RemoveConstructorNameInFileTest extends FixInFileProcessorTest {
+  @override
+  List<String> get lintCodes => [LintNames.unnecessary_constructor_name];
+
   Future<void> test_File() async {
-    createAnalysisOptionsFile(lints: [LintNames.unnecessary_constructor_name]);
     await resolveTestCode(r'''
 class A {
   A.new(int x) {
@@ -68,7 +70,7 @@ var a = A(3);
 }
 
 @reflectiveTest
-class RemoveConstructorNameTest extends FixProcessorLintTest {
+class RemoveConstructorNameTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeConstructorName;
 

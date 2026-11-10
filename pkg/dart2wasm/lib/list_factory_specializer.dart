@@ -133,13 +133,13 @@ class ListFactorySpecializer {
         // List.filled(n, null, growable: true) => _GrowableList(n)
         return StaticInvocation(
           _growableListFactory,
-          Arguments([length], types: args.types),
+          Arguments(ExpressionList(length), types: args.types),
         )..fileOffset = node.fileOffset;
       } else {
         // List.filled(n, x, growable: true) => _GrowableList.filled(n, x)
         return StaticInvocation(
           _growableListFilledFactory,
-          Arguments([length, fill], types: args.types),
+          Arguments(ExpressionList(length, fill), types: args.types),
         )..fileOffset = node.fileOffset;
       }
     } else {
@@ -147,13 +147,13 @@ class ListFactorySpecializer {
         // List.filled(n, null, growable: false) => _List(n)
         return StaticInvocation(
           _fixedListFactory,
-          Arguments([length], types: args.types),
+          Arguments(ExpressionList(length), types: args.types),
         )..fileOffset = node.fileOffset;
       } else {
         // List.filled(n, x, growable: false) => _List.filled(n, x)
         return StaticInvocation(
           _fixedListFilledFactory,
-          Arguments([length, fill], types: args.types),
+          Arguments(ExpressionList(length, fill), types: args.types),
         )..fileOffset = node.fileOffset;
       }
     }
@@ -177,14 +177,14 @@ class ListFactorySpecializer {
       // List.empty(growable: true) => _GrowableList.empty()
       return StaticInvocation(
         _growableListEmptyFactory,
-        Arguments([], types: args.types),
+        Arguments(ExpressionList.empty, types: args.types),
       )..fileOffset = node.fileOffset;
     } else {
       // List.empty() => _List.empty()
       // List.empty(growable: false) => _List.empty()
       return StaticInvocation(
         _fixedListEmptyFactory,
-        Arguments([], types: args.types),
+        Arguments(ExpressionList.empty, types: args.types),
       )..fileOffset = node.fileOffset;
     }
   }
@@ -204,13 +204,13 @@ class ListFactorySpecializer {
       // List.generate(n, y) => _GrowableList.generate(n, y)
       return StaticInvocation(
         _growableListGenerateFactory,
-        Arguments([length, generator], types: args.types),
+        Arguments(ExpressionList(length, generator), types: args.types),
       )..fileOffset = node.fileOffset;
     } else {
       // List.generate(n, y, growable: false) => _List.generate(n, y)
       return StaticInvocation(
         _fixedListGenerateFactory,
-        Arguments([length, generator], types: args.types),
+        Arguments(ExpressionList(length, generator), types: args.types),
       )..fileOffset = node.fileOffset;
     }
   }

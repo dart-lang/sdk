@@ -26,6 +26,41 @@ f() { intList[] = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: DirectAssignment
+                target: ReceiverIndexAssignmentTarget
+                  receiver: ParsedUnqualifiedName
+                    name: intList
+                  leftBracket: [
+                  index: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  rightBracket: ]
+                operator: =
+                value: IntegerLiteral
+                  literal: 0
+              expression(v1): AssignmentExpression
+                leftHandSide: IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
+                    token: <empty> <synthetic>
+                  rightBracket: ]
+                operator: =
+                rightHandSide: IntegerLiteral
+                  literal: 0
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -37,18 +72,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: DirectAssignment
-                  target: IndexAssignmentTarget
-                    receiver: SimpleIdentifier
-                      token: intList
-                    leftBracket: [
-                    index: SimpleIdentifier
-                      token: <empty> <synthetic>
-                    rightBracket: ]
-                  operator: =
-                  value: IntegerLiteral
-                    literal: 0
-                expression(v1): AssignmentExpression
+                expression: AssignmentExpression
                   leftHandSide: IndexExpression
                     target: SimpleIdentifier
                       token: intList
@@ -74,6 +98,41 @@ f() { intList[ ] = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: DirectAssignment
+                target: ReceiverIndexAssignmentTarget
+                  receiver: ParsedUnqualifiedName
+                    name: intList
+                  leftBracket: [
+                  index: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  rightBracket: ]
+                operator: =
+                value: IntegerLiteral
+                  literal: 0
+              expression(v1): AssignmentExpression
+                leftHandSide: IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
+                    token: <empty> <synthetic>
+                  rightBracket: ]
+                operator: =
+                rightHandSide: IntegerLiteral
+                  literal: 0
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -85,18 +144,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: DirectAssignment
-                  target: IndexAssignmentTarget
-                    receiver: SimpleIdentifier
-                      token: intList
-                    leftBracket: [
-                    index: SimpleIdentifier
-                      token: <empty> <synthetic>
-                    rightBracket: ]
-                  operator: =
-                  value: IntegerLiteral
-                    literal: 0
-                expression(v1): AssignmentExpression
+                expression: AssignmentExpression
                   leftHandSide: IndexExpression
                     target: SimpleIdentifier
                       token: intList
@@ -122,6 +170,41 @@ f() { intList[x,y] = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: DirectAssignment
+                target: ReceiverIndexAssignmentTarget
+                  receiver: ParsedUnqualifiedName
+                    name: intList
+                  leftBracket: [
+                  index: ParsedUnqualifiedName
+                    name: x
+                  rightBracket: ]
+                operator: =
+                value: IntegerLiteral
+                  literal: 0
+              expression(v1): AssignmentExpression
+                leftHandSide: IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
+                    token: x
+                  rightBracket: ]
+                operator: =
+                rightHandSide: IntegerLiteral
+                  literal: 0
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -133,18 +216,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: DirectAssignment
-                  target: IndexAssignmentTarget
-                    receiver: SimpleIdentifier
-                      token: intList
-                    leftBracket: [
-                    index: SimpleIdentifier
-                      token: x
-                    rightBracket: ]
-                  operator: =
-                  value: IntegerLiteral
-                    literal: 0
-                expression(v1): AssignmentExpression
+                expression: AssignmentExpression
                   leftHandSide: IndexExpression
                     target: SimpleIdentifier
                       token: intList
@@ -170,6 +242,41 @@ f() { intList[x,] = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: DirectAssignment
+                target: ReceiverIndexAssignmentTarget
+                  receiver: ParsedUnqualifiedName
+                    name: intList
+                  leftBracket: [
+                  index: ParsedUnqualifiedName
+                    name: x
+                  rightBracket: ]
+                operator: =
+                value: IntegerLiteral
+                  literal: 0
+              expression(v1): AssignmentExpression
+                leftHandSide: IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
+                    token: x
+                  rightBracket: ]
+                operator: =
+                rightHandSide: IntegerLiteral
+                  literal: 0
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -181,18 +288,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: DirectAssignment
-                  target: IndexAssignmentTarget
-                    receiver: SimpleIdentifier
-                      token: intList
-                    leftBracket: [
-                    index: SimpleIdentifier
-                      token: x
-                    rightBracket: ]
-                  operator: =
-                  value: IntegerLiteral
-                    literal: 0
-                expression(v1): AssignmentExpression
+                expression: AssignmentExpression
                   leftHandSide: IndexExpression
                     target: SimpleIdentifier
                       token: intList
@@ -218,6 +314,41 @@ f() { intList[x y] = 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: DirectAssignment
+                target: ReceiverIndexAssignmentTarget
+                  receiver: ParsedUnqualifiedName
+                    name: intList
+                  leftBracket: [
+                  index: ParsedUnqualifiedName
+                    name: x
+                  rightBracket: ]
+                operator: =
+                value: IntegerLiteral
+                  literal: 0
+              expression(v1): AssignmentExpression
+                leftHandSide: IndexExpression
+                  target: SimpleIdentifier
+                    token: intList
+                  leftBracket: [
+                  index: SimpleIdentifier
+                    token: x
+                  rightBracket: ]
+                operator: =
+                rightHandSide: IntegerLiteral
+                  literal: 0
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -229,18 +360,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: DirectAssignment
-                  target: IndexAssignmentTarget
-                    receiver: SimpleIdentifier
-                      token: intList
-                    leftBracket: [
-                    index: SimpleIdentifier
-                      token: x
-                    rightBracket: ]
-                  operator: =
-                  value: IntegerLiteral
-                    literal: 0
-                expression(v1): AssignmentExpression
+                expression: AssignmentExpression
                   leftHandSide: IndexExpression
                     target: SimpleIdentifier
                       token: intList
@@ -270,6 +390,40 @@ f() { intList[x assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: ReceiverIndexExpression
+                receiver: ParsedUnqualifiedName
+                  name: intList
+                leftBracket: [
+                index: ParsedUnqualifiedName
+                  name: x
+                rightBracket: ] <synthetic>
+              expression(v1): IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SimpleIdentifier
+                  token: x
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -281,14 +435,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
-                  receiver: SimpleIdentifier
-                    token: intList
-                  leftBracket: [
-                  index: SimpleIdentifier
-                    token: x
-                  rightBracket: ] <synthetic>
-                expression(v1): IndexExpression
+                expression: IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -299,7 +446,7 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -319,6 +466,36 @@ f() { intList[x {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: ReceiverIndexExpression
+                receiver: ParsedUnqualifiedName
+                  name: intList
+                leftBracket: [
+                index: ParsedUnqualifiedName
+                  name: x
+                rightBracket: ] <synthetic>
+              expression(v1): IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SimpleIdentifier
+                  token: x
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -330,14 +507,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
-                  receiver: SimpleIdentifier
-                    token: intList
-                  leftBracket: [
-                  index: SimpleIdentifier
-                    token: x
-                  rightBracket: ] <synthetic>
-                expression(v1): IndexExpression
+                expression: IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -367,6 +537,36 @@ f() { intList[x break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: ReceiverIndexExpression
+                receiver: ParsedUnqualifiedName
+                  name: intList
+                leftBracket: [
+                index: ParsedUnqualifiedName
+                  name: x
+                rightBracket: ] <synthetic>
+              expression(v1): IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SimpleIdentifier
+                  token: x
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -378,14 +578,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
-                  receiver: SimpleIdentifier
-                    token: intList
-                  leftBracket: [
-                  index: SimpleIdentifier
-                    token: x
-                  rightBracket: ] <synthetic>
-                expression(v1): IndexExpression
+                expression: IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -415,6 +608,36 @@ f() { intList[x continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: ReceiverIndexExpression
+                receiver: ParsedUnqualifiedName
+                  name: intList
+                leftBracket: [
+                index: ParsedUnqualifiedName
+                  name: x
+                rightBracket: ] <synthetic>
+              expression(v1): IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SimpleIdentifier
+                  token: x
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -426,14 +649,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
-                  receiver: SimpleIdentifier
-                    token: intList
-                  leftBracket: [
-                  index: SimpleIdentifier
-                    token: x
-                  rightBracket: ] <synthetic>
-                expression(v1): IndexExpression
+                expression: IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -462,6 +678,44 @@ f() { intList[x do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: ReceiverIndexExpression
+                receiver: ParsedUnqualifiedName
+                  name: intList
+                leftBracket: [
+                index: ParsedUnqualifiedName
+                  name: x
+                rightBracket: ] <synthetic>
+              expression(v1): IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SimpleIdentifier
+                  token: x
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -473,14 +727,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
-                  receiver: SimpleIdentifier
-                    token: intList
-                  leftBracket: [
-                  index: SimpleIdentifier
-                    token: x
-                  rightBracket: ] <synthetic>
-                expression(v1): IndexExpression
+                expression: IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -495,7 +742,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -515,6 +762,33 @@ f() { intList[x }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: ReceiverIndexExpression
+                receiver: ParsedUnqualifiedName
+                  name: intList
+                leftBracket: [
+                index: ParsedUnqualifiedName
+                  name: x
+                rightBracket: ] <synthetic>
+              expression(v1): IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SimpleIdentifier
+                  token: x
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -526,14 +800,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
-                  receiver: SimpleIdentifier
-                    token: intList
-                  leftBracket: [
-                  index: SimpleIdentifier
-                    token: x
-                  rightBracket: ] <synthetic>
-                expression(v1): IndexExpression
+                expression: IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -559,6 +826,49 @@ f() { intList[x for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: ReceiverIndexExpression
+                receiver: ParsedUnqualifiedName
+                  name: intList
+                leftBracket: [
+                index: ParsedUnqualifiedName
+                  name: x
+                rightBracket: ] <synthetic>
+              expression(v1): IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SimpleIdentifier
+                  token: x
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: y
+                iterable(v1): SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -570,14 +880,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
-                  receiver: SimpleIdentifier
-                    token: intList
-                  leftBracket: [
-                  index: SimpleIdentifier
-                    token: x
-                  rightBracket: ] <synthetic>
-                expression(v1): IndexExpression
+                expression: IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -593,7 +896,7 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -617,6 +920,42 @@ f() { intList[x if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: ReceiverIndexExpression
+                receiver: ParsedUnqualifiedName
+                  name: intList
+                leftBracket: [
+                index: ParsedUnqualifiedName
+                  name: x
+                rightBracket: ] <synthetic>
+              expression(v1): IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SimpleIdentifier
+                  token: x
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -628,14 +967,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
-                  receiver: SimpleIdentifier
-                    token: intList
-                  leftBracket: [
-                  index: SimpleIdentifier
-                    token: x
-                  rightBracket: ] <synthetic>
-                expression(v1): IndexExpression
+                expression: IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -646,7 +978,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: BooleanLiteral
+                expression: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -668,6 +1000,41 @@ f() { intList[x l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: ReceiverIndexExpression
+                receiver: ParsedUnqualifiedName
+                  name: intList
+                leftBracket: [
+                index: ParsedUnqualifiedName
+                  name: x
+                rightBracket: ] <synthetic>
+              expression(v1): IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SimpleIdentifier
+                  token: x
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+            LabeledStatement
+              labels
+                Label
+                  name: l
+                  colon: :
+              statement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -679,14 +1046,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
-                  receiver: SimpleIdentifier
-                    token: intList
-                  leftBracket: [
-                  index: SimpleIdentifier
-                    token: x
-                  rightBracket: ] <synthetic>
-                expression(v1): IndexExpression
+                expression: IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -720,6 +1080,67 @@ f() { intList[x int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: ReceiverIndexExpression
+                receiver: ParsedUnqualifiedName
+                  name: intList
+                leftBracket: [
+                index: ParsedUnqualifiedName
+                  name: x
+                rightBracket: ] <synthetic>
+              expression(v1): IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SimpleIdentifier
+                  token: x
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            ExpressionStatement
+              expression: IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SimpleIdentifier
+                  token: x
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: int
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -731,14 +1152,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
-                  receiver: SimpleIdentifier
-                    token: intList
-                  leftBracket: [
-                  index: SimpleIdentifier
-                    token: x
-                  rightBracket: ] <synthetic>
-                expression(v1): IndexExpression
+                expression: IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -777,6 +1191,67 @@ f() { intList[x void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: ReceiverIndexExpression
+                receiver: ParsedUnqualifiedName
+                  name: intList
+                leftBracket: [
+                index: ParsedUnqualifiedName
+                  name: x
+                rightBracket: ] <synthetic>
+              expression(v1): IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SimpleIdentifier
+                  token: x
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            ExpressionStatement
+              expression: IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SimpleIdentifier
+                  token: x
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+            FunctionDeclarationStatement
+              functionDeclaration: FunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                functionExpression: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -788,14 +1263,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
-                  receiver: SimpleIdentifier
-                    token: intList
-                  leftBracket: [
-                  index: SimpleIdentifier
-                    token: x
-                  rightBracket: ] <synthetic>
-                expression(v1): IndexExpression
+                expression: IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -834,6 +1302,57 @@ f() { intList[x var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: ReceiverIndexExpression
+                receiver: ParsedUnqualifiedName
+                  name: intList
+                leftBracket: [
+                index: ParsedUnqualifiedName
+                  name: x
+                rightBracket: ] <synthetic>
+              expression(v1): IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SimpleIdentifier
+                  token: x
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            ExpressionStatement
+              expression: IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SimpleIdentifier
+                  token: x
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: x
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -845,14 +1364,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
-                  receiver: SimpleIdentifier
-                    token: intList
-                  leftBracket: [
-                  index: SimpleIdentifier
-                    token: x
-                  rightBracket: ] <synthetic>
-                expression(v1): IndexExpression
+                expression: IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -885,6 +1397,36 @@ f() { intList[x return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: ReceiverIndexExpression
+                receiver: ParsedUnqualifiedName
+                  name: intList
+                leftBracket: [
+                index: ParsedUnqualifiedName
+                  name: x
+                rightBracket: ] <synthetic>
+              expression(v1): IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SimpleIdentifier
+                  token: x
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -896,14 +1438,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
-                  receiver: SimpleIdentifier
-                    token: intList
-                  leftBracket: [
-                  index: SimpleIdentifier
-                    token: x
-                  rightBracket: ] <synthetic>
-                expression(v1): IndexExpression
+                expression: IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -932,6 +1467,43 @@ f() { intList[x switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: ReceiverIndexExpression
+                receiver: ParsedUnqualifiedName
+                  name: intList
+                leftBracket: [
+                index: ParsedUnqualifiedName
+                  name: x
+                rightBracket: ] <synthetic>
+              expression(v1): IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SimpleIdentifier
+                  token: x
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+            SwitchStatement
+              switchKeyword: switch
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              rightParenthesis: )
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -943,14 +1515,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
-                  receiver: SimpleIdentifier
-                    token: intList
-                  leftBracket: [
-                  index: SimpleIdentifier
-                    token: x
-                  rightBracket: ] <synthetic>
-                expression(v1): IndexExpression
+                expression: IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -961,7 +1526,7 @@ CompilationUnit
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -984,6 +1549,42 @@ f() { intList[x try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: ReceiverIndexExpression
+                receiver: ParsedUnqualifiedName
+                  name: intList
+                leftBracket: [
+                index: ParsedUnqualifiedName
+                  name: x
+                rightBracket: ] <synthetic>
+              expression(v1): IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SimpleIdentifier
+                  token: x
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -995,14 +1596,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
-                  receiver: SimpleIdentifier
-                    token: intList
-                  leftBracket: [
-                  index: SimpleIdentifier
-                    token: x
-                  rightBracket: ] <synthetic>
-                expression(v1): IndexExpression
+                expression: IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1037,6 +1631,42 @@ f() { intList[x while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: ReceiverIndexExpression
+                receiver: ParsedUnqualifiedName
+                  name: intList
+                leftBracket: [
+                index: ParsedUnqualifiedName
+                  name: x
+                rightBracket: ] <synthetic>
+              expression(v1): IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SimpleIdentifier
+                  token: x
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1048,14 +1678,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
-                  receiver: SimpleIdentifier
-                    token: intList
-                  leftBracket: [
-                  index: SimpleIdentifier
-                    token: x
-                  rightBracket: ] <synthetic>
-                expression(v1): IndexExpression
+                expression: IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1066,7 +1689,7 @@ CompilationUnit
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block
@@ -1086,6 +1709,47 @@ f() { intList[ assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: ReceiverIndexExpression
+                receiver: ParsedUnqualifiedName
+                  name: intList
+                leftBracket: [
+                index: CallInvocation
+                  receiver: ParsedUnqualifiedName
+                    name: assert
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      BooleanLiteral
+                        literal: true
+                    rightParenthesis: )
+                rightBracket: ] <synthetic>
+              expression(v1): IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: FunctionExpressionInvocation
+                  function: SimpleIdentifier
+                    token: assert
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments
+                      BooleanLiteral
+                        literal: true
+                    rightParenthesis: )
+                rightBracket: ] <synthetic>
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1097,21 +1761,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
-                  receiver: SimpleIdentifier
-                    token: intList
-                  leftBracket: [
-                  index: FunctionExpressionInvocation
-                    function2: SimpleIdentifier
-                      token: assert
-                    argumentList: ArgumentList
-                      leftParenthesis: (
-                      arguments2
-                        BooleanLiteral
-                          literal: true
-                      rightParenthesis: )
-                  rightBracket: ] <synthetic>
-                expression(v1): IndexExpression
+                expression: IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1142,6 +1792,37 @@ f() { intList[ {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: ReceiverIndexExpression
+                receiver: ParsedUnqualifiedName
+                  name: intList
+                leftBracket: [
+                index: SetOrMapLiteral
+                  leftBracket: {
+                  rightBracket: }
+                  isMap: false
+                rightBracket: ] <synthetic>
+              expression(v1): IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SetOrMapLiteral
+                  leftBracket: {
+                  rightBracket: }
+                  isMap: false
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1153,16 +1834,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
-                  receiver: SimpleIdentifier
-                    token: intList
-                  leftBracket: [
-                  index: SetOrMapLiteral
-                    leftBracket: {
-                    rightBracket: }
-                    isMap: false
-                  rightBracket: ] <synthetic>
-                expression(v1): IndexExpression
+                expression: IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1192,6 +1864,36 @@ f() { intList[ break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: ReceiverIndexExpression
+                receiver: ParsedUnqualifiedName
+                  name: intList
+                leftBracket: [
+                index: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                rightBracket: ] <synthetic>
+              expression(v1): IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+            BreakStatement
+              breakKeyword: break
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1203,14 +1905,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
-                  receiver: SimpleIdentifier
-                    token: intList
-                  leftBracket: [
-                  index: SimpleIdentifier
-                    token: <empty> <synthetic>
-                  rightBracket: ] <synthetic>
-                expression(v1): IndexExpression
+                expression: IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1241,6 +1936,36 @@ f() { intList[ continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: ReceiverIndexExpression
+                receiver: ParsedUnqualifiedName
+                  name: intList
+                leftBracket: [
+                index: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                rightBracket: ] <synthetic>
+              expression(v1): IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1252,14 +1977,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
-                  receiver: SimpleIdentifier
-                    token: intList
-                  leftBracket: [
-                  index: SimpleIdentifier
-                    token: <empty> <synthetic>
-                  rightBracket: ] <synthetic>
-                expression(v1): IndexExpression
+                expression: IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1289,6 +2007,44 @@ f() { intList[ do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: ReceiverIndexExpression
+                receiver: ParsedUnqualifiedName
+                  name: intList
+                leftBracket: [
+                index: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                rightBracket: ] <synthetic>
+              expression(v1): IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+            DoStatement
+              doKeyword: do
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1300,14 +2056,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
-                  receiver: SimpleIdentifier
-                    token: intList
-                  leftBracket: [
-                  index: SimpleIdentifier
-                    token: <empty> <synthetic>
-                  rightBracket: ] <synthetic>
-                expression(v1): IndexExpression
+                expression: IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1322,7 +2071,7 @@ CompilationUnit
                   rightBracket: }
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 semicolon: ;
@@ -1343,6 +2092,33 @@ f() { intList[ }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: ReceiverIndexExpression
+                receiver: ParsedUnqualifiedName
+                  name: intList
+                leftBracket: [
+                index: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                rightBracket: ] <synthetic>
+              expression(v1): IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1354,14 +2130,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
-                  receiver: SimpleIdentifier
-                    token: intList
-                  leftBracket: [
-                  index: SimpleIdentifier
-                    token: <empty> <synthetic>
-                  rightBracket: ] <synthetic>
-                expression(v1): IndexExpression
+                expression: IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1388,6 +2157,49 @@ f() { intList[ for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: ReceiverIndexExpression
+                receiver: ParsedUnqualifiedName
+                  name: intList
+                leftBracket: [
+                index: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                rightBracket: ] <synthetic>
+              expression(v1): IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+            ForStatement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: x
+                inKeyword: in
+                iterable2: ParsedUnqualifiedName
+                  name: y
+                iterable(v1): SimpleIdentifier
+                  token: y
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1399,14 +2211,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
-                  receiver: SimpleIdentifier
-                    token: intList
-                  leftBracket: [
-                  index: SimpleIdentifier
-                    token: <empty> <synthetic>
-                  rightBracket: ] <synthetic>
-                expression(v1): IndexExpression
+                expression: IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1422,7 +2227,7 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable: SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -1447,6 +2252,42 @@ f() { intList[ if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: ReceiverIndexExpression
+                receiver: ParsedUnqualifiedName
+                  name: intList
+                leftBracket: [
+                index: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                rightBracket: ] <synthetic>
+              expression(v1): IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              thenStatement2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1458,14 +2299,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
-                  receiver: SimpleIdentifier
-                    token: intList
-                  leftBracket: [
-                  index: SimpleIdentifier
-                    token: <empty> <synthetic>
-                  rightBracket: ] <synthetic>
-                expression(v1): IndexExpression
+                expression: IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1476,7 +2310,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: BooleanLiteral
+                expression: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 thenStatement: Block
@@ -1500,6 +2334,42 @@ f() { intList[ l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: ReceiverIndexExpression
+                receiver: ParsedUnqualifiedName
+                  name: intList
+                leftBracket: [
+                index: ParsedUnqualifiedName
+                  name: l
+                rightBracket: ] <synthetic>
+              expression(v1): IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SimpleIdentifier
+                  token: l
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+            ExpressionStatement
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1511,14 +2381,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
-                  receiver: SimpleIdentifier
-                    token: intList
-                  leftBracket: [
-                  index: SimpleIdentifier
-                    token: l
-                  rightBracket: ] <synthetic>
-                expression(v1): IndexExpression
+                expression: IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1527,7 +2390,7 @@ CompilationUnit
                   rightBracket: ] <synthetic>
                 semicolon: ; <synthetic>
               ExpressionStatement
-                expression2: SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               Block
@@ -1551,6 +2414,45 @@ f() { intList[ int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: ReceiverIndexExpression
+                receiver: ParsedUnqualifiedName
+                  name: intList
+                leftBracket: [
+                index: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+                rightBracket: ] <synthetic>
+              expression(v1): IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1562,20 +2464,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
-                  receiver: SimpleIdentifier
-                    token: intList
-                  leftBracket: [
-                  index: FunctionExpression
-                    parameters: FormalParameterList
-                      leftParenthesis: (
-                      rightParenthesis: )
-                    body: BlockFunctionBody
-                      block: Block
-                        leftBracket: {
-                        rightBracket: }
-                  rightBracket: ] <synthetic>
-                expression(v1): IndexExpression
+                expression: IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1607,6 +2496,45 @@ f() { intList[ void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: ReceiverIndexExpression
+                receiver: ParsedUnqualifiedName
+                  name: intList
+                leftBracket: [
+                index: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+                rightBracket: ] <synthetic>
+              expression(v1): IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1618,20 +2546,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
-                  receiver: SimpleIdentifier
-                    token: intList
-                  leftBracket: [
-                  index: FunctionExpression
-                    parameters: FormalParameterList
-                      leftParenthesis: (
-                      rightParenthesis: )
-                    body: BlockFunctionBody
-                      block: Block
-                        leftBracket: {
-                        rightBracket: }
-                  rightBracket: ] <synthetic>
-                expression(v1): IndexExpression
+                expression: IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1664,6 +2579,57 @@ f() { intList[ var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: ReceiverIndexExpression
+                receiver: ParsedUnqualifiedName
+                  name: intList
+                leftBracket: [
+                index: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                rightBracket: ] <synthetic>
+              expression(v1): IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+            LocalVariablesDeclarationStatement
+              declaration: LocalVariablesDeclaration
+                constFinalOrVarKeyword: var
+                variables
+                  LocalVariable
+                    name: x
+              semicolon: ;
+          statements(v1)
+            ExpressionStatement
+              expression: IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: x
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1675,14 +2641,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
-                  receiver: SimpleIdentifier
-                    token: intList
-                  leftBracket: [
-                  index: SimpleIdentifier
-                    token: <empty> <synthetic>
-                  rightBracket: ] <synthetic>
-                expression(v1): IndexExpression
+                expression: IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1714,6 +2673,33 @@ f() { intList[ return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: ReceiverIndexExpression
+                receiver: ParsedUnqualifiedName
+                  name: intList
+                leftBracket: [
+                index: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                rightBracket: ] <synthetic>
+              expression(v1): IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightBracket: ] <synthetic>
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1725,14 +2711,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
-                  receiver: SimpleIdentifier
-                    token: intList
-                  leftBracket: [
-                  index: SimpleIdentifier
-                    token: <empty> <synthetic>
-                  rightBracket: ] <synthetic>
-                expression(v1): IndexExpression
+                expression: IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1756,6 +2735,47 @@ f() { intList[ switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: ReceiverIndexExpression
+                receiver: ParsedUnqualifiedName
+                  name: intList
+                leftBracket: [
+                index: SwitchExpression
+                  switchKeyword: switch
+                  leftParenthesis: (
+                  expression2: ParsedUnqualifiedName
+                    name: x
+                  expression(v1): SimpleIdentifier
+                    token: x
+                  rightParenthesis: )
+                  leftBracket: {
+                  rightBracket: }
+                rightBracket: ] <synthetic>
+              expression(v1): IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SwitchExpression
+                  switchKeyword: switch
+                  leftParenthesis: (
+                  expression: SimpleIdentifier
+                    token: x
+                  rightParenthesis: )
+                  leftBracket: {
+                  rightBracket: }
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1767,20 +2787,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
-                  receiver: SimpleIdentifier
-                    token: intList
-                  leftBracket: [
-                  index: SwitchExpression
-                    switchKeyword: switch
-                    leftParenthesis: (
-                    expression2: SimpleIdentifier
-                      token: x
-                    rightParenthesis: )
-                    leftBracket: {
-                    rightBracket: }
-                  rightBracket: ] <synthetic>
-                expression(v1): IndexExpression
+                expression: IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1813,6 +2820,42 @@ f() { intList[ try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: ReceiverIndexExpression
+                receiver: ParsedUnqualifiedName
+                  name: intList
+                leftBracket: [
+                index: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                rightBracket: ] <synthetic>
+              expression(v1): IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1824,14 +2867,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
-                  receiver: SimpleIdentifier
-                    token: intList
-                  leftBracket: [
-                  index: SimpleIdentifier
-                    token: <empty> <synthetic>
-                  rightBracket: ] <synthetic>
-                expression(v1): IndexExpression
+                expression: IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1867,6 +2903,42 @@ f() { intList[ while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements2
+            ExpressionStatement
+              expression2: ReceiverIndexExpression
+                receiver: ParsedUnqualifiedName
+                  name: intList
+                leftBracket: [
+                index: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                rightBracket: ] <synthetic>
+              expression(v1): IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SimpleIdentifier
+                  token: <empty> <synthetic>
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BooleanLiteral
+                literal: true
+              rightParenthesis: )
+              body2: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1878,14 +2950,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: IndexExpression2
-                  receiver: SimpleIdentifier
-                    token: intList
-                  leftBracket: [
-                  index: SimpleIdentifier
-                    token: <empty> <synthetic>
-                  rightBracket: ] <synthetic>
-                expression(v1): IndexExpression
+                expression: IndexExpression
                   target: SimpleIdentifier
                     token: intList
                   leftBracket: [
@@ -1896,7 +2961,7 @@ CompilationUnit
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BooleanLiteral
+                condition: BooleanLiteral
                   literal: true
                 rightParenthesis: )
                 body: Block

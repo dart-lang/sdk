@@ -21,7 +21,7 @@ import 'package:analyzer/src/summary/flat_buffers.dart' as fb;
 import 'package:analyzer/src/summary/idl.dart' as idl;
 
 class _IndexRelationKindReader extends fb.Reader<idl.IndexRelationKind> {
-  const _IndexRelationKindReader() : super();
+  const new() : super();
 
   @override
   int get size => 1;
@@ -37,7 +37,7 @@ class _IndexRelationKindReader extends fb.Reader<idl.IndexRelationKind> {
 
 class _IndexSyntheticElementKindReader
     extends fb.Reader<idl.IndexSyntheticElementKind> {
-  const _IndexSyntheticElementKindReader() : super();
+  const new() : super();
 
   @override
   int get size => 1;
@@ -92,15 +92,7 @@ class AnalysisDriverExceptionContextBuilder extends Object
     this._stackTrace = value;
   }
 
-  AnalysisDriverExceptionContextBuilder({
-    String? exception,
-    List<AnalysisDriverExceptionFileBuilder>? files,
-    String? path,
-    String? stackTrace,
-  }) : _exception = exception,
-       _files = files,
-       _path = path,
-       _stackTrace = stackTrace;
+  new({this._exception, this._files, this._path, this._stackTrace});
 
   /// Flush informative data recursively.
   void flushInformative() {
@@ -177,7 +169,7 @@ idl.AnalysisDriverExceptionContext readAnalysisDriverExceptionContext(
 
 class _AnalysisDriverExceptionContextReader
     extends fb.TableReader<_AnalysisDriverExceptionContextImpl> {
-  const _AnalysisDriverExceptionContextReader();
+  const new();
 
   @override
   _AnalysisDriverExceptionContextImpl createObject(
@@ -192,7 +184,7 @@ class _AnalysisDriverExceptionContextImpl extends Object
   final fb.BufferContext _bc;
   final int _bcOffset;
 
-  _AnalysisDriverExceptionContextImpl(this._bc, this._bcOffset);
+  new(this._bc, this._bcOffset);
 
   String? _exception;
   List<idl.AnalysisDriverExceptionFile>? _files;
@@ -290,9 +282,7 @@ class AnalysisDriverExceptionFileBuilder extends Object
     this._path = value;
   }
 
-  AnalysisDriverExceptionFileBuilder({String? content, String? path})
-    : _content = content,
-      _path = path;
+  new({this._content, this._path});
 
   /// Flush informative data recursively.
   void flushInformative() {}
@@ -327,7 +317,7 @@ class AnalysisDriverExceptionFileBuilder extends Object
 
 class _AnalysisDriverExceptionFileReader
     extends fb.TableReader<_AnalysisDriverExceptionFileImpl> {
-  const _AnalysisDriverExceptionFileReader();
+  const new();
 
   @override
   _AnalysisDriverExceptionFileImpl createObject(
@@ -342,7 +332,7 @@ class _AnalysisDriverExceptionFileImpl extends Object
   final fb.BufferContext _bc;
   final int _bcOffset;
 
-  _AnalysisDriverExceptionFileImpl(this._bc, this._bcOffset);
+  new(this._bc, this._bcOffset);
 
   String? _content;
   String? _path;
@@ -409,11 +399,7 @@ class AnalysisDriverResolvedUnitBuilder extends Object
     this._index = value;
   }
 
-  AnalysisDriverResolvedUnitBuilder({
-    List<AnalysisDriverUnitErrorBuilder>? errors,
-    AnalysisDriverUnitIndexBuilder? index,
-  }) : _errors = errors,
-       _index = index;
+  new({this._errors, this._index});
 
   /// Flush informative data recursively.
   void flushInformative() {
@@ -474,7 +460,7 @@ idl.AnalysisDriverResolvedUnit readAnalysisDriverResolvedUnit(
 
 class _AnalysisDriverResolvedUnitReader
     extends fb.TableReader<_AnalysisDriverResolvedUnitImpl> {
-  const _AnalysisDriverResolvedUnitReader();
+  const new();
 
   @override
   _AnalysisDriverResolvedUnitImpl createObject(
@@ -489,7 +475,7 @@ class _AnalysisDriverResolvedUnitImpl extends Object
   final fb.BufferContext _bc;
   final int _bcOffset;
 
-  _AnalysisDriverResolvedUnitImpl(this._bc, this._bcOffset);
+  new(this._bc, this._bcOffset);
 
   List<idl.AnalysisDriverUnitError>? _errors;
   idl.AnalysisDriverUnitIndex? _index;
@@ -561,9 +547,7 @@ class AnalysisDriverSubtypeBuilder extends Object
     this._name = value;
   }
 
-  AnalysisDriverSubtypeBuilder({List<int>? members, int? name})
-    : _members = members,
-      _name = name;
+  new({this._members, this._name});
 
   /// Flush informative data recursively.
   void flushInformative() {}
@@ -599,7 +583,7 @@ class AnalysisDriverSubtypeBuilder extends Object
 
 class _AnalysisDriverSubtypeReader
     extends fb.TableReader<_AnalysisDriverSubtypeImpl> {
-  const _AnalysisDriverSubtypeReader();
+  const new();
 
   @override
   _AnalysisDriverSubtypeImpl createObject(fb.BufferContext bc, int offset) =>
@@ -612,7 +596,7 @@ class _AnalysisDriverSubtypeImpl extends Object
   final fb.BufferContext _bc;
   final int _bcOffset;
 
-  _AnalysisDriverSubtypeImpl(this._bc, this._bcOffset);
+  new(this._bc, this._bcOffset);
 
   List<int>? _members;
   int? _name;
@@ -716,19 +700,14 @@ class AnalysisDriverUnitErrorBuilder extends Object
     this._uniqueName = value;
   }
 
-  AnalysisDriverUnitErrorBuilder({
-    List<DiagnosticMessageBuilder>? contextMessages,
-    String? correction,
-    int? length,
-    String? message,
-    int? offset,
-    String? uniqueName,
-  }) : _contextMessages = contextMessages,
-       _correction = correction,
-       _length = length,
-       _message = message,
-       _offset = offset,
-       _uniqueName = uniqueName;
+  new({
+    this._contextMessages,
+    this._correction,
+    this._length,
+    this._message,
+    this._offset,
+    this._uniqueName,
+  });
 
   /// Flush informative data recursively.
   void flushInformative() {
@@ -797,7 +776,7 @@ class AnalysisDriverUnitErrorBuilder extends Object
 
 class _AnalysisDriverUnitErrorReader
     extends fb.TableReader<_AnalysisDriverUnitErrorImpl> {
-  const _AnalysisDriverUnitErrorReader();
+  const new();
 
   @override
   _AnalysisDriverUnitErrorImpl createObject(fb.BufferContext bc, int offset) =>
@@ -810,7 +789,7 @@ class _AnalysisDriverUnitErrorImpl extends Object
   final fb.BufferContext _bc;
   final int _bcOffset;
 
-  _AnalysisDriverUnitErrorImpl(this._bc, this._bcOffset);
+  new(this._bc, this._bcOffset);
 
   List<idl.DiagnosticMessage>? _contextMessages;
   String? _correction;
@@ -917,7 +896,6 @@ mixin _AnalysisDriverUnitErrorMixin implements idl.AnalysisDriverUnitError {
 class AnalysisDriverUnitIndexBuilder extends Object
     with _AnalysisDriverUnitIndexMixin
     implements idl.AnalysisDriverUnitIndex {
-  List<String>? _elementImportPrefixes;
   List<idl.IndexSyntheticElementKind>? _elementKinds;
   List<int>? _elementNameClassMemberIds;
   List<int>? _elementNameParameterIds;
@@ -941,16 +919,6 @@ class AnalysisDriverUnitIndexBuilder extends Object
   List<idl.IndexRelationKind>? _usedNameKinds;
   List<int>? _usedNameOffsets;
   List<int>? _usedNames;
-
-  @override
-  List<String> get elementImportPrefixes =>
-      _elementImportPrefixes ??= <String>[];
-
-  /// Each item of this list corresponds to a unique referenced element. It is
-  /// a list of the prefixes associated with references to the element.
-  set elementImportPrefixes(List<String> value) {
-    this._elementImportPrefixes = value;
-  }
 
   @override
   List<idl.IndexSyntheticElementKind> get elementKinds =>
@@ -1200,55 +1168,31 @@ class AnalysisDriverUnitIndexBuilder extends Object
     this._usedNames = value;
   }
 
-  AnalysisDriverUnitIndexBuilder({
-    List<String>? elementImportPrefixes,
-    List<idl.IndexSyntheticElementKind>? elementKinds,
-    List<int>? elementNameClassMemberIds,
-    List<int>? elementNameParameterIds,
-    List<int>? elementNameUnitMemberIds,
-    List<int>? elementUnits,
-    List<int>? libFragmentRefTargets,
-    List<int>? libFragmentRefUriLengths,
-    List<int>? libFragmentRefUriOffsets,
-    int? nullStringId,
-    List<String>? strings,
-    List<AnalysisDriverSubtypeBuilder>? subtypes,
-    List<int>? supertypes,
-    List<int>? unitLibraryPaths,
-    List<int>? unitUnitPaths,
-    List<bool>? usedElementIsQualifiedFlags,
-    List<idl.IndexRelationKind>? usedElementKinds,
-    List<int>? usedElementLengths,
-    List<int>? usedElementOffsets,
-    List<int>? usedElements,
-    List<bool>? usedNameIsQualifiedFlags,
-    List<idl.IndexRelationKind>? usedNameKinds,
-    List<int>? usedNameOffsets,
-    List<int>? usedNames,
-  }) : _elementImportPrefixes = elementImportPrefixes,
-       _elementKinds = elementKinds,
-       _elementNameClassMemberIds = elementNameClassMemberIds,
-       _elementNameParameterIds = elementNameParameterIds,
-       _elementNameUnitMemberIds = elementNameUnitMemberIds,
-       _elementUnits = elementUnits,
-       _libFragmentRefTargets = libFragmentRefTargets,
-       _libFragmentRefUriLengths = libFragmentRefUriLengths,
-       _libFragmentRefUriOffsets = libFragmentRefUriOffsets,
-       _nullStringId = nullStringId,
-       _strings = strings,
-       _subtypes = subtypes,
-       _supertypes = supertypes,
-       _unitLibraryPaths = unitLibraryPaths,
-       _unitUnitPaths = unitUnitPaths,
-       _usedElementIsQualifiedFlags = usedElementIsQualifiedFlags,
-       _usedElementKinds = usedElementKinds,
-       _usedElementLengths = usedElementLengths,
-       _usedElementOffsets = usedElementOffsets,
-       _usedElements = usedElements,
-       _usedNameIsQualifiedFlags = usedNameIsQualifiedFlags,
-       _usedNameKinds = usedNameKinds,
-       _usedNameOffsets = usedNameOffsets,
-       _usedNames = usedNames;
+  new({
+    this._elementKinds,
+    this._elementNameClassMemberIds,
+    this._elementNameParameterIds,
+    this._elementNameUnitMemberIds,
+    this._elementUnits,
+    this._libFragmentRefTargets,
+    this._libFragmentRefUriLengths,
+    this._libFragmentRefUriOffsets,
+    this._nullStringId,
+    this._strings,
+    this._subtypes,
+    this._supertypes,
+    this._unitLibraryPaths,
+    this._unitUnitPaths,
+    this._usedElementIsQualifiedFlags,
+    this._usedElementKinds,
+    this._usedElementLengths,
+    this._usedElementOffsets,
+    this._usedElements,
+    this._usedNameIsQualifiedFlags,
+    this._usedNameKinds,
+    this._usedNameOffsets,
+    this._usedNames,
+  });
 
   /// Flush informative data recursively.
   void flushInformative() {
@@ -1429,15 +1373,6 @@ class AnalysisDriverUnitIndexBuilder extends Object
         x.collectApiSignature(signatureSink);
       }
     }
-    var elementImportPrefixes = this._elementImportPrefixes;
-    if (elementImportPrefixes == null) {
-      signatureSink.addInt(0);
-    } else {
-      signatureSink.addInt(elementImportPrefixes.length);
-      for (var x in elementImportPrefixes) {
-        signatureSink.addString(x);
-      }
-    }
     var libFragmentRefTargets = this._libFragmentRefTargets;
     if (libFragmentRefTargets == null) {
       signatureSink.addInt(0);
@@ -1473,7 +1408,6 @@ class AnalysisDriverUnitIndexBuilder extends Object
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
-    fb.Offset? offset_elementImportPrefixes;
     fb.Offset? offset_elementKinds;
     fb.Offset? offset_elementNameClassMemberIds;
     fb.Offset? offset_elementNameParameterIds;
@@ -1496,12 +1430,6 @@ class AnalysisDriverUnitIndexBuilder extends Object
     fb.Offset? offset_usedNameKinds;
     fb.Offset? offset_usedNameOffsets;
     fb.Offset? offset_usedNames;
-    var elementImportPrefixes = _elementImportPrefixes;
-    if (!(elementImportPrefixes == null || elementImportPrefixes.isEmpty)) {
-      offset_elementImportPrefixes = fbBuilder.writeList(
-        elementImportPrefixes.map((b) => fbBuilder.writeString(b)).toList(),
-      );
-    }
     var elementKinds = _elementKinds;
     if (!(elementKinds == null || elementKinds.isEmpty)) {
       offset_elementKinds = fbBuilder.writeListUint8(
@@ -1623,9 +1551,6 @@ class AnalysisDriverUnitIndexBuilder extends Object
       offset_usedNames = fbBuilder.writeListUint32(usedNames);
     }
     fbBuilder.startTable();
-    if (offset_elementImportPrefixes != null) {
-      fbBuilder.addOffset(20, offset_elementImportPrefixes);
-    }
     if (offset_elementKinds != null) {
       fbBuilder.addOffset(4, offset_elementKinds);
     }
@@ -1642,13 +1567,13 @@ class AnalysisDriverUnitIndexBuilder extends Object
       fbBuilder.addOffset(5, offset_elementUnits);
     }
     if (offset_libFragmentRefTargets != null) {
-      fbBuilder.addOffset(21, offset_libFragmentRefTargets);
+      fbBuilder.addOffset(20, offset_libFragmentRefTargets);
     }
     if (offset_libFragmentRefUriLengths != null) {
-      fbBuilder.addOffset(23, offset_libFragmentRefUriLengths);
+      fbBuilder.addOffset(22, offset_libFragmentRefUriLengths);
     }
     if (offset_libFragmentRefUriOffsets != null) {
-      fbBuilder.addOffset(22, offset_libFragmentRefUriOffsets);
+      fbBuilder.addOffset(21, offset_libFragmentRefUriOffsets);
     }
     fbBuilder.addUint32(1, _nullStringId, 0);
     if (offset_strings != null) {
@@ -1704,7 +1629,7 @@ idl.AnalysisDriverUnitIndex readAnalysisDriverUnitIndex(List<int> buffer) {
 
 class _AnalysisDriverUnitIndexReader
     extends fb.TableReader<_AnalysisDriverUnitIndexImpl> {
-  const _AnalysisDriverUnitIndexReader();
+  const new();
 
   @override
   _AnalysisDriverUnitIndexImpl createObject(fb.BufferContext bc, int offset) =>
@@ -1717,9 +1642,8 @@ class _AnalysisDriverUnitIndexImpl extends Object
   final fb.BufferContext _bc;
   final int _bcOffset;
 
-  _AnalysisDriverUnitIndexImpl(this._bc, this._bcOffset);
+  new(this._bc, this._bcOffset);
 
-  List<String>? _elementImportPrefixes;
   List<idl.IndexSyntheticElementKind>? _elementKinds;
   List<int>? _elementNameClassMemberIds;
   List<int>? _elementNameParameterIds;
@@ -1743,13 +1667,6 @@ class _AnalysisDriverUnitIndexImpl extends Object
   List<idl.IndexRelationKind>? _usedNameKinds;
   List<int>? _usedNameOffsets;
   List<int>? _usedNames;
-
-  @override
-  List<String> get elementImportPrefixes {
-    return _elementImportPrefixes ??= const fb.ListReader<String>(
-      fb.StringReader(),
-    ).vTableGet(_bc, _bcOffset, 20, const <String>[]);
-  }
 
   @override
   List<idl.IndexSyntheticElementKind> get elementKinds {
@@ -1803,7 +1720,7 @@ class _AnalysisDriverUnitIndexImpl extends Object
     return _libFragmentRefTargets ??= const fb.Uint32ListReader().vTableGet(
       _bc,
       _bcOffset,
-      21,
+      20,
       const <int>[],
     );
   }
@@ -1813,7 +1730,7 @@ class _AnalysisDriverUnitIndexImpl extends Object
     return _libFragmentRefUriLengths ??= const fb.Uint32ListReader().vTableGet(
       _bc,
       _bcOffset,
-      23,
+      22,
       const <int>[],
     );
   }
@@ -1823,7 +1740,7 @@ class _AnalysisDriverUnitIndexImpl extends Object
     return _libFragmentRefUriOffsets ??= const fb.Uint32ListReader().vTableGet(
       _bc,
       _bcOffset,
-      22,
+      21,
       const <int>[],
     );
   }
@@ -1840,9 +1757,8 @@ class _AnalysisDriverUnitIndexImpl extends Object
 
   @override
   List<String> get strings {
-    return _strings ??= const fb.ListReader<String>(
-      fb.StringReader(),
-    ).vTableGet(_bc, _bcOffset, 0, const <String>[]);
+    return _strings ??= const fb.ListReader<String>(fb.StringReader())
+        .vTableGet(_bc, _bcOffset, 0, const <String>[]);
   }
 
   @override
@@ -1971,10 +1887,6 @@ mixin _AnalysisDriverUnitIndexMixin implements idl.AnalysisDriverUnitIndex {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> result = <String, Object>{};
-    var local_elementImportPrefixes = elementImportPrefixes;
-    if (local_elementImportPrefixes.isNotEmpty) {
-      result["elementImportPrefixes"] = local_elementImportPrefixes;
-    }
     var local_elementKinds = elementKinds;
     if (local_elementKinds.isNotEmpty) {
       result["elementKinds"] = local_elementKinds
@@ -2080,7 +1992,6 @@ mixin _AnalysisDriverUnitIndexMixin implements idl.AnalysisDriverUnitIndex {
 
   @override
   Map<String, Object?> toMap() => {
-    "elementImportPrefixes": elementImportPrefixes,
     "elementKinds": elementKinds,
     "elementNameClassMemberIds": elementNameClassMemberIds,
     "elementNameParameterIds": elementNameParameterIds,
@@ -2123,8 +2034,7 @@ class CiderUnitErrorsBuilder extends Object
     this._errors = value;
   }
 
-  CiderUnitErrorsBuilder({List<AnalysisDriverUnitErrorBuilder>? errors})
-    : _errors = errors;
+  new({this._errors});
 
   /// Flush informative data recursively.
   void flushInformative() {
@@ -2171,7 +2081,7 @@ idl.CiderUnitErrors readCiderUnitErrors(List<int> buffer) {
 }
 
 class _CiderUnitErrorsReader extends fb.TableReader<_CiderUnitErrorsImpl> {
-  const _CiderUnitErrorsReader();
+  const new();
 
   @override
   _CiderUnitErrorsImpl createObject(fb.BufferContext bc, int offset) =>
@@ -2184,7 +2094,7 @@ class _CiderUnitErrorsImpl extends Object
   final fb.BufferContext _bc;
   final int _bcOffset;
 
-  _CiderUnitErrorsImpl(this._bc, this._bcOffset);
+  new(this._bc, this._bcOffset);
 
   List<idl.AnalysisDriverUnitError>? _errors;
 
@@ -2266,17 +2176,7 @@ class DiagnosticMessageBuilder extends Object
     this._url = value;
   }
 
-  DiagnosticMessageBuilder({
-    String? filePath,
-    int? length,
-    String? message,
-    int? offset,
-    String? url,
-  }) : _filePath = filePath,
-       _length = length,
-       _message = message,
-       _offset = offset,
-       _url = url;
+  new({this._filePath, this._length, this._message, this._offset, this._url});
 
   /// Flush informative data recursively.
   void flushInformative() {}
@@ -2323,7 +2223,7 @@ class DiagnosticMessageBuilder extends Object
 }
 
 class _DiagnosticMessageReader extends fb.TableReader<_DiagnosticMessageImpl> {
-  const _DiagnosticMessageReader();
+  const new();
 
   @override
   _DiagnosticMessageImpl createObject(fb.BufferContext bc, int offset) =>
@@ -2336,7 +2236,7 @@ class _DiagnosticMessageImpl extends Object
   final fb.BufferContext _bc;
   final int _bcOffset;
 
-  _DiagnosticMessageImpl(this._bc, this._bcOffset);
+  new(this._bc, this._bcOffset);
 
   String? _filePath;
   int? _length;

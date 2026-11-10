@@ -11,7 +11,8 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/resolver/exit_detector.dart'; // ignore: implementation_imports
+import 'package:analyzer/src/dart/ast/ast.dart' // ignore: implementation_imports
+    show StatementImpl;
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -1373,22 +1374,14 @@ extension on AsyncState? {
 }
 
 extension on AstNode {
-  bool get terminatesControl {
-    var self = this;
-    if (self is Block) {
-      return self.statements.isNotEmpty &&
-          self.statements.last.terminatesControl;
-    }
-    // TODO(srawlins): Make ExitDetector 100% functional for our needs. The
-    // basic (only?) difference is that it doesn't consider a `break` statement
-    // to be exiting.
-    if (self is ReturnStatement ||
-        self is BreakStatement ||
-        self is ContinueStatement) {
-      return true;
-    }
-    return ExitDetector.exits(this);
-  }
+  /// Whether this branch of an `if` statement or element terminates control,
+  /// so that code after the `if` is reached only through the other branch.
+  ///
+  /// For statements this is the reachability computed by flow analysis, so
+  /// `return`, `throw`, `break`, `continue`, and expressions of type `Never`
+  /// all terminate control. Collection elements are conservatively considered
+  /// to not terminate control.
+  bool get terminatesControl => this is StatementImpl && !mayCompleteNormally;
 }
 
 extension on PrefixExpression {
@@ -1436,26 +1429,6 @@ extension on Expression {
   }
 }
 
-extension on Statement {
-  /// Whether this statement terminates control, via a [BreakStatement], a
-  /// [ContinueStatement], or other definite exits, as determined by
-  /// [ExitDetector].
-  bool get terminatesControl {
-    var self = this;
-    if (self is Block) {
-      var last = self.statements.lastOrNull;
-      return last != null && last.terminatesControl;
-    }
-    // TODO(srawlins): Make ExitDetector 100% functional for our needs. The
-    // basic (only?) difference is that it doesn't consider a `break` statement
-    // to be exiting.
-    if (self is BreakStatement || self is ContinueStatement) {
-      return true;
-    }
-    return ExitDetector.exits(this);
-  }
-}
-
 extension on Expression {
   bool? get constantBoolValue => computeConstantValue()?.value?.toBoolValue();
 }
@@ -1465,21 +1438,17 @@ extension ElementExtension on Element {
   /// The `mounted` getter which is associated with `this`, if this static
   /// element is `BuildContext` from Flutter.
   Element? get associatedMountedGetter {
-    var self = this;
-
-    if (self is PropertyAccessorElement) {
-      var enclosingElement = self.enclosingElement;
-      if (enclosingElement is InterfaceElement && enclosingElement.isState) {
-        // The BuildContext object is the field on Flutter's State class.
-        // This object can only be guarded by async gaps with a mounted
-        // check on the State.
-        return enclosingElement.mountedGetter;
-      }
+    if (this case PropertyAccessorElement(
+      enclosingElement: InterfaceElement(isState: true) && var enclosingElement,
+    )) {
+      // The BuildContext object is the field on Flutter's State class. This
+      // can only be guarded by async gaps with a mounted check on the State.
+      return enclosingElement.mountedGetter;
     }
 
-    var buildContextElement = switch (self) {
-      ExecutableElement() => self.returnType,
-      VariableElement() => self.type,
+    var buildContextElement = switch (this) {
+      ExecutableElement() => returnType,
+      VariableElement() => type,
       _ => null,
     }?.element;
     if (buildContextElement is InterfaceElement) {

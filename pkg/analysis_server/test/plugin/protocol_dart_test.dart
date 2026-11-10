@@ -7,10 +7,11 @@ import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/src/dart/element/element.dart' as engine;
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_testing/src/single_unit.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../abstract_single_unit.dart';
+import '../find_element.dart';
 import '../utils/test_code_extensions.dart';
 
 void main() {
@@ -21,7 +22,10 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertElementTest extends AbstractSingleUnitTest {
+class ConvertElementTest extends SingleUnitTest with FindElementMixin {
+  @override
+  bool get addMetaPackageDep => true;
+
   Future<void> test_CLASS() async {
     await resolveTestCode('''
 @deprecated
@@ -80,7 +84,6 @@ class A {
   }
 
   Future<void> test_CONSTRUCTOR_required_parameters_1() async {
-    writeTestPackageConfig(meta: true);
     await resolveTestCode('''
 import 'package:meta/meta.dart';
 class A {
@@ -95,7 +98,6 @@ class A {
 
   /// Verify parameter re-ordering for required params
   Future<void> test_CONSTRUCTOR_required_parameters_2() async {
-    writeTestPackageConfig(meta: true);
     await resolveTestCode('''
 import 'package:meta/meta.dart';
 class A {
@@ -113,7 +115,6 @@ class A {
 
   /// Verify parameter re-ordering for required params
   Future<void> test_CONSTRUCTOR_required_parameters_3() async {
-    writeTestPackageConfig(meta: true);
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
 import 'package:meta/meta.dart';

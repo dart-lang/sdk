@@ -39,7 +39,7 @@ class _MockDiagnostic implements Diagnostic {
 
   int expectedIndex;
 
-  _MockDiagnostic({required this.expectedIndex, required this.hashCode});
+  new({required this.expectedIndex, required this.hashCode});
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

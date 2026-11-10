@@ -14,4 +14,5 @@ export 'package:_fe_analyzer_shared/src/scanner/token.dart'
         SyntheticKeywordToken,
         SyntheticStringToken,
         SyntheticToken,
-        TokenClass;
+        TokenClass,
+        tokenTypesByIndex;

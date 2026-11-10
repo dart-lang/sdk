@@ -11,6 +11,7 @@ import 'package:kernel/type_environment.dart';
 import '../../base/lookup_result.dart';
 import '../../base/messages.dart';
 import '../../base/problems.dart' show unexpected, unhandled;
+import '../../base/uri_offset.dart';
 import '../../builder/builder.dart';
 import '../../builder/constructor_builder.dart';
 import '../../builder/constructor_reference_builder.dart';
@@ -56,7 +57,7 @@ class FactoryEncoding implements InferredTypeListener {
 
   DelayedDefaultValueCloner? _delayedDefaultValueCloner;
 
-  List<DartType>? _redirectionTypeArguments;
+  DartTypeList? _redirectionTypeArguments;
 
   FreshTypeParameters? _tearOffTypeParameters;
 
@@ -80,12 +81,12 @@ class FactoryEncoding implements InferredTypeListener {
     _procedure.function.returnType = type;
   }
 
-  List<DartType>? get redirectionTypeArguments {
+  DartTypeList? get redirectionTypeArguments {
     assert(_redirectionTarget != null);
     return _redirectionTypeArguments;
   }
 
-  void set redirectionTypeArguments(List<DartType>? value) {
+  void set redirectionTypeArguments(DartTypeList? value) {
     assert(_redirectionTarget != null);
     _redirectionTypeArguments = value;
   }
@@ -171,13 +172,9 @@ class FactoryEncoding implements InferredTypeListener {
 
     if (_redirectionTarget != null) {
       if (_redirectionTarget.typeArguments != null) {
-        redirectionTypeArguments = new List<DartType>.generate(
-          _redirectionTarget.typeArguments!.length,
-          (int i) => _redirectionTarget.typeArguments![i].build(
-            libraryBuilder,
-            TypeUse.redirectionTypeArgument,
-          ),
-          growable: false,
+        redirectionTypeArguments = DartTypeList.mapped(
+          _redirectionTarget.typeArguments!,
+          (a) => a.build(libraryBuilder, TypeUse.redirectionTypeArgument),
         );
       }
       if (_tearOff != null) {
@@ -240,8 +237,8 @@ class FactoryEncoding implements InferredTypeListener {
       // The error is reported elsewhere.
       return;
     }
-    List<DartType>? typeArguments = redirectingFactoryTarget.typeArguments;
-    Member? target = redirectingFactoryTarget.target;
+    DartTypeList? typeArguments = redirectingFactoryTarget.typeArguments;
+    Member? redirectionTarget = redirectingFactoryTarget.target;
     if (typeArguments != null && typeArguments.any((t) => t is UnknownType)) {
       TypeInferrer inferrer = libraryBuilder.loader.typeInferenceEngine
           .createTypeInferrer(
@@ -262,11 +259,11 @@ class FactoryEncoding implements InferredTypeListener {
         );
       }
       if (targetBuilder is FunctionBuilder) {
-        target = targetBuilder.invokeTarget!;
+        redirectionTarget = targetBuilder.invokeTarget!;
       }
       // Coverage-ignore(suite): Not run.
       else if (targetBuilder is DillMemberBuilder) {
-        target = targetBuilder.invokeTarget!;
+        redirectionTarget = targetBuilder.invokeTarget!;
       } else {
         unhandled(
           "${targetBuilder.runtimeType}",
@@ -281,8 +278,8 @@ class FactoryEncoding implements InferredTypeListener {
         redirectingFactoryFunction: _procedure.function,
         fileUri: _fragment.fileUri,
         fileOffset: _fragment.fullNameOffset,
-        target: target,
-        targetType: target.function!.computeFunctionType(
+        target: redirectionTarget,
+        targetType: redirectionTarget.function!.computeFunctionType(
           Nullability.nonNullable,
         ),
       );
@@ -294,16 +291,14 @@ class FactoryEncoding implements InferredTypeListener {
           ),
         );
         // Use 'dynamic' for recovery.
-        typeArguments = new List<DartType>.filled(
+        typeArguments = new DartTypeList.filledWithDynamic(
           declarationBuilder.typeParametersCount,
-          const DynamicType(),
-          growable: true,
         );
       }
 
       _procedure.function.registerFunctionBody(
         createRedirectingFactoryBody(
-          target,
+          redirectionTarget,
           typeArguments,
           _procedure.function,
         ),
@@ -312,44 +307,47 @@ class FactoryEncoding implements InferredTypeListener {
       //  scopeProviderInfo in the call below.
       _procedure.function.registerScopeProviderInfo(null);
       _procedure.function.redirectingFactoryTarget =
-          new RedirectingFactoryTarget(target, typeArguments);
+          new RedirectingFactoryTarget(redirectionTarget, typeArguments);
     }
 
+    List<DartType>? tearOffTypeArguments = typeArguments;
     Set<Procedure> seenTargets = {};
-    while (target is Procedure && target.isRedirectingFactory) {
-      if (!seenTargets.add(target)) {
+    while (redirectionTarget is Procedure &&
+        redirectionTarget.isRedirectingFactory) {
+      if (!seenTargets.add(redirectionTarget)) {
         // Cyclic dependency.
-        target = null;
+        redirectionTarget = null;
         break;
       }
       RedirectingFactoryTarget redirectingFactoryTarget =
-          target.function.redirectingFactoryTarget!;
-      if (typeArguments != null) {
+          redirectionTarget.function.redirectingFactoryTarget!;
+      if (tearOffTypeArguments != null) {
         Substitution substitution = Substitution.fromPairs(
-          target.function.typeParameters,
-          typeArguments,
+          redirectionTarget.function.typeParameters,
+          tearOffTypeArguments,
         );
-        typeArguments = redirectingFactoryTarget.typeArguments
+        tearOffTypeArguments = redirectingFactoryTarget.typeArguments
             ?.map(substitution.substituteType)
             .toList();
       } else {
         // Coverage-ignore-block(suite): Not run.
-        typeArguments = redirectingFactoryTarget.typeArguments;
+        tearOffTypeArguments = redirectingFactoryTarget.typeArguments;
       }
-      target = redirectingFactoryTarget.target;
+      redirectionTarget = redirectingFactoryTarget.target;
     }
 
-    if (target is Constructor ||
-        target is Procedure &&
-            (target.isFactory || target.isExtensionTypeMember)) {
+    if (redirectionTarget is Constructor ||
+        redirectionTarget is Procedure &&
+            (redirectionTarget.isFactory ||
+                redirectionTarget.isExtensionTypeMember)) {
       // Coverage-ignore(suite): Not run.
-      typeArguments ??= [];
+      tearOffTypeArguments ??= [];
       if (_tearOff != null) {
         delayedDefaultValueCloners.add(
           buildRedirectingFactoryTearOffBody(
             _tearOff,
-            target!,
-            typeArguments,
+            redirectionTarget!,
+            tearOffTypeArguments,
             _tearOffTypeParameters!,
             libraryBuilder,
           ),
@@ -357,10 +355,10 @@ class FactoryEncoding implements InferredTypeListener {
       }
       delayedDefaultValueCloners.add(
         new DelayedDefaultValueCloner(
-          target!,
-          _procedure,
+          source: redirectionTarget!,
+          target: _procedure,
+          parameterMapping: const DirectParameterMapping(),
           libraryBuilder: libraryBuilder,
-          identicalSignatures: false,
           isOutlineNode: true,
         ),
       );
@@ -464,7 +462,7 @@ class FactoryEncoding implements InferredTypeListener {
         targetNode = null;
       }
       if (targetNode != null) {
-        List<DartType>? typeArguments = redirectionTypeArguments;
+        DartTypeList? typeArguments = redirectionTypeArguments;
         if (typeArguments == null) {
           int typeArgumentCount;
           if (targetBuilder!.isExtensionTypeMember) {
@@ -476,7 +474,7 @@ class FactoryEncoding implements InferredTypeListener {
             typeArgumentCount =
                 targetNode.enclosingClass!.typeParameters.length;
           }
-          typeArguments = new List<DartType>.filled(
+          typeArguments = new DartTypeList.filled(
             typeArgumentCount,
             const UnknownType(),
           );
@@ -493,7 +491,7 @@ class FactoryEncoding implements InferredTypeListener {
   void _setRedirectingFactoryBody({
     required SourceLibraryBuilder libraryBuilder,
     required Member target,
-    required List<DartType> typeArguments,
+    required DartTypeList typeArguments,
   }) {
     if (_procedure.function.body != null) {
       unexpected(
@@ -506,11 +504,9 @@ class FactoryEncoding implements InferredTypeListener {
 
     // Ensure that constant factories only have constant targets/bodies.
     if (_fragment.modifiers.isConst && !target.isConst) {
-      libraryBuilder.addProblem(
+      libraryBuilder.addProblem2(
         diag.constFactoryRedirectionToNonConst,
-        _fragment.fullNameOffset,
-        noLength,
-        _fragment.fileUri,
+        _fragment.uriOffset,
       );
     }
 
@@ -879,20 +875,6 @@ class FactoryEncoding implements InferredTypeListener {
   FunctionSignature get signature =>
       new FunctionNodeSignature(_procedure.function);
 
-  FunctionParameter? getTearOffParameter(int index) {
-    if (_tearOff != null) {
-      if (index < _tearOff.function.positionalParameters.length) {
-        return _tearOff.function.positionalParameters[index];
-      } else {
-        index -= _tearOff.function.positionalParameters.length;
-        if (index < _tearOff.function.namedParameters.length) {
-          return _tearOff.function.namedParameters[index];
-        }
-      }
-    }
-    return null;
-  }
-
   DartType get returnTypeContext => _procedure.function.returnType;
 }
 
@@ -913,9 +895,7 @@ abstract class FactoryEncodingStrategy {
     required List<TypeParameterFragment>? declarationTypeParameterFragments,
     required TypeParameterFactory typeParameterFactory,
     required String fullName,
-    required Uri fileUri,
-    required int fullNameOffset,
-    required int fullNameLength,
+    required UriOffsetLength uriOffset,
   });
 }
 
@@ -929,9 +909,7 @@ class RegularFactoryEncodingStrategy implements FactoryEncodingStrategy {
     required List<TypeParameterFragment>? declarationTypeParameterFragments,
     required TypeParameterFactory typeParameterFactory,
     required String fullName,
-    required Uri fileUri,
-    required int fullNameOffset,
-    required int fullNameLength,
+    required UriOffsetLength uriOffset,
   }) {
     NominalParameterCopy? nominalParameterCopy = typeParameterFactory
         .copyTypeParameters(
@@ -947,8 +925,7 @@ class RegularFactoryEncodingStrategy implements FactoryEncodingStrategy {
           declarationBuilder,
           const NullabilityBuilder.omitted(),
           arguments: nominalParameterCopy?.newTypeArguments,
-          fileUri: fileUri,
-          charOffset: fullNameOffset,
+          uriOffset: uriOffset,
           instanceTypeParameterAccess: InstanceTypeParameterAccessState.Allowed,
         );
     return (typeParameters, returnType);
@@ -964,10 +941,8 @@ class ExtensionFactoryEncodingStrategy implements FactoryEncodingStrategy {
     required DeclarationBuilder declarationBuilder,
     required List<TypeParameterFragment>? declarationTypeParameterFragments,
     required TypeParameterFactory typeParameterFactory,
+    required UriOffsetLength uriOffset,
     required String fullName,
-    required Uri fileUri,
-    required int fullNameOffset,
-    required int fullNameLength,
   }) {
     NominalParameterCopy? nominalParameterCopy = typeParameterFactory
         .copyTypeParameters(
@@ -981,11 +956,8 @@ class ExtensionFactoryEncodingStrategy implements FactoryEncodingStrategy {
     TypeBuilder returnType = new NamedTypeBuilderImpl.forInvalidType(
       fullName,
       const NullabilityBuilder.omitted(),
-      diag.extensionDeclaresConstructor.withLocation(
-        fileUri,
-        fullNameOffset,
-        fullNameLength,
-      ),
+      diag.extensionDeclaresConstructor.withLocation2(uriOffset),
+      uriOffset: uriOffset,
     );
     return (typeParameters, returnType);
   }

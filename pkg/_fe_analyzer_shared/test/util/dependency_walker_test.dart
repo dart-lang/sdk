@@ -207,7 +207,7 @@ class TestNode extends Node<TestNode> {
 
   final _dependencies = <TestNode>[];
 
-  TestNode(this._name);
+  new(this._name);
 
   @override
   List<TestNode> computeDependencies() {

@@ -5,10 +5,12 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtensionOverrideAccessToStaticMemberTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -28,14 +30,35 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.functionExpressionInvocation('();');
+    var node = result.findNode.callInvocation('();');
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function2: ExtensionOverride
+CallInvocation
+  receiver: ExtensionOverride2
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        IntegerLiteral
+          literal: 0
+          correspondingParameter: <null>
+          staticType: int
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: int
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::call
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: FunctionExpressionInvocation
+  function: ExtensionOverride
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
         IntegerLiteral
           literal: 0
           correspondingParameter: <null>
@@ -92,14 +115,35 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('empty();');
+    var node = result.findNode.receiverMethodInvocation('empty();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: ExtensionOverride
+ReceiverMethodInvocation
+  receiver: ExtensionOverride2
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        SimpleStringLiteral
+          literal: 'a'
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: String
+  operator: .
+  name: empty
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::empty
+    invokeType: String Function()
+    type: String
+  staticType: String
+V1: MethodInvocation
+  target: ExtensionOverride
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
         SimpleStringLiteral
           literal: 'a'
       rightParenthesis: )

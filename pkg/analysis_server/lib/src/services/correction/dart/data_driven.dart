@@ -36,7 +36,7 @@ class DataDriven extends MultiCorrectionProducer {
         importedUris.add(uri.relativeUri);
       }
     }
-    var matchers = ElementMatcher.matchersForNode(node, token, library);
+    var matchers = ElementMatcher.matchersForNode(node, token);
     if (matchers.isEmpty) {
       // The node doesn't represent any element that can be transformed.
       return const [];
@@ -78,8 +78,7 @@ class DataDrivenFix extends ResolvedCorrectionProducer {
 
   @override
   CorrectionApplicability get applicability =>
-      // TODO(applicability): comment on why.
-      CorrectionApplicability.singleLocation;
+      CorrectionApplicability.acrossFiles;
 
   /// Return a description of the element that was changed.
   ElementDescriptor get element => _transform.element;

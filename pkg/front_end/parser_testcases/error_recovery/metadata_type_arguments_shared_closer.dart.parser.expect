@@ -1,0 +1,49 @@
+NOTICE: Stream was rewritten by parser!
+
+class C<@a<int>*synthetic*> {}
+
+List<@a<int>*synthetic*> x;
+
+(@a<int>*synthetic*> x, int y) z;
+
+class C2<@a<List<int>>*synthetic*> {}
+
+List<@a<List<int>>*synthetic*> x2;
+
+(@a<List<int>>*synthetic*> x, int y) z2;
+
+Map<@a<int>*synthetic*, @b<int>*synthetic*> x3;
+
+@a<@b<int>*synthetic*>
+class C3 {}
+
+void f(x) {
+if (x case <@a<int>*synthetic*>[]) {}
+}
+
+class C4 = Object with List<@a<int>*synthetic*>
+;
+
+class[KeywordToken] C[StringToken]<[BeginToken]@[SimpleToken]a[StringToken]<[BeginToken]int[StringToken]>[SimpleToken][SyntheticStringToken]>[SimpleToken] {[BeginToken]}[SimpleToken]
+
+List[StringToken]<[BeginToken]@[SimpleToken]a[StringToken]<[BeginToken]int[StringToken]>[SimpleToken][SyntheticStringToken]>[SimpleToken] x[StringToken];[SimpleToken]
+
+([BeginToken]@[SimpleToken]a[StringToken]<[BeginToken]int[StringToken]>[SimpleToken][SyntheticStringToken]>[SimpleToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] z[StringToken];[SimpleToken]
+
+class[KeywordToken] C2[StringToken]<[BeginToken]@[SimpleToken]a[StringToken]<[BeginToken]List[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]>[SimpleToken][SyntheticStringToken]>[SimpleToken] {[BeginToken]}[SimpleToken]
+
+List[StringToken]<[BeginToken]@[SimpleToken]a[StringToken]<[BeginToken]List[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]>[SimpleToken][SyntheticStringToken]>[SimpleToken] x2[StringToken];[SimpleToken]
+
+([BeginToken]@[SimpleToken]a[StringToken]<[BeginToken]List[StringToken]<[BeginToken]int[StringToken]>[SimpleToken]>[SimpleToken][SyntheticStringToken]>[SimpleToken] x[StringToken],[SimpleToken] int[StringToken] y[StringToken])[SimpleToken] z2[StringToken];[SimpleToken]
+
+Map[StringToken]<[BeginToken]@[SimpleToken]a[StringToken]<[BeginToken]int[StringToken]>[SimpleToken][SyntheticStringToken],[SimpleToken] @[SimpleToken]b[StringToken]<[BeginToken]int[StringToken]>[SimpleToken][SyntheticStringToken]>[SimpleToken] x3[StringToken];[SimpleToken]
+
+@[SimpleToken]a[StringToken]<[BeginToken]@[SimpleToken]b[StringToken]<[BeginToken]int[StringToken]>[SimpleToken][SyntheticStringToken]>[SimpleToken]
+class[KeywordToken] C3[StringToken] {[BeginToken]}[SimpleToken]
+
+void[KeywordToken] f[StringToken]([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+if[KeywordToken] ([BeginToken]x[StringToken] case[KeywordToken] <[BeginToken]@[SimpleToken]a[StringToken]<[BeginToken]int[StringToken]>[SimpleToken][SyntheticStringToken]>[SimpleToken][[BeginToken]][SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] C4[StringToken] =[SimpleToken] Object[StringToken] with[KeywordToken] List[StringToken]<[BeginToken]@[SimpleToken]a[StringToken]<[BeginToken]int[StringToken]>[SimpleToken][SyntheticStringToken]>[SimpleToken]
+;[SyntheticToken][SimpleToken]

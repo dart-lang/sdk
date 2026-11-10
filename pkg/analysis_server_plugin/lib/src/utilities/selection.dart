@@ -22,11 +22,7 @@ class Selection {
   /// Initialize a newly created selection to include the characters starting at
   /// the [offset] and including [length] characters, all of which fall within
   /// the [coveringNode].
-  Selection({
-    required this.offset,
-    required this.length,
-    required this.coveringNode,
-  });
+  new({required this.offset, required this.length, required this.coveringNode});
 
   bool isCoveredByNode(AstNode node) {
     return node.offset <= offset && offset + length <= node.end;
@@ -61,7 +57,7 @@ class _ChildrenFinder extends SimpleAstVisitor<void> {
   List<AstNode> nodes = [];
 
   /// Initialize a newly created visitor.
-  _ChildrenFinder(this.range);
+  new(this.range);
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {

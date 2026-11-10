@@ -151,13 +151,13 @@ ExportDirective
     newFile('$testPackageLibPath/a_io.dart', 'class A {}');
 
     declaredVariables = {
-      'dart.library.html': 'false',
+      'dart.library.js_interop': 'false',
       'dart.library.io': 'false',
     };
 
     var result = await resolveTestCodeWithDiagnostics(r'''
 export 'a.dart'
-  if (dart.library.html) 'a_html.dart'
+  if (dart.library.js_interop) 'a_html.dart'
   if (dart.library.io) 'a_io.dart';
 ''');
 
@@ -177,7 +177,7 @@ ExportDirective
           .
           library
           .
-          html
+          js_interop
       rightParenthesis: )
       uri: SimpleStringLiteral
         literal: 'a_html.dart'
@@ -211,13 +211,13 @@ ExportDirective
     newFile('$testPackageLibPath/a_io.dart', 'class A {}');
 
     declaredVariables = {
-      'dart.library.html': 'true',
+      'dart.library.js_interop': 'true',
       'dart.library.io': 'false',
     };
 
     var result = await resolveTestCodeWithDiagnostics(r'''
 export 'a.dart'
-  if (dart.library.html) 'a_html.dart'
+  if (dart.library.js_interop) 'a_html.dart'
   if (dart.library.io) 'a_io.dart';
 ''');
 
@@ -237,7 +237,7 @@ ExportDirective
           .
           library
           .
-          html
+          js_interop
       rightParenthesis: )
       uri: SimpleStringLiteral
         literal: 'a_html.dart'
@@ -271,13 +271,13 @@ ExportDirective
     newFile('$testPackageLibPath/a_io.dart', 'class A {}');
 
     declaredVariables = {
-      'dart.library.html': 'false',
+      'dart.library.js_interop': 'false',
       'dart.library.io': 'true',
     };
 
     var result = await resolveTestCodeWithDiagnostics(r'''
 export 'a.dart'
-  if (dart.library.html) 'a_html.dart'
+  if (dart.library.js_interop) 'a_html.dart'
   if (dart.library.io) 'a_io.dart';
 ''');
 
@@ -297,7 +297,7 @@ ExportDirective
           .
           library
           .
-          html
+          js_interop
       rightParenthesis: )
       uri: SimpleStringLiteral
         literal: 'a_html.dart'

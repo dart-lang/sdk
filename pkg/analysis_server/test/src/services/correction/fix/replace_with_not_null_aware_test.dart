@@ -64,7 +64,8 @@ class A {
 }
 
 @reflectiveTest
-class ReplaceWithNotNullAwareLintTest extends FixProcessorLintTest {
+class ReplaceWithNotNullAwareLintTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.replaceWithNotNullAware;
 
@@ -112,7 +113,7 @@ void f(String? s) {
 }
 
 @reflectiveTest
-class ReplaceWithNotNullAwareTest extends FixProcessorTest {
+class ReplaceWithNotNullAwareTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.replaceWithNotNullAware;
 

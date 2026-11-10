@@ -10,7 +10,7 @@ import 'package:dartdev/src/commands/compile.dart'
         CompileNativeCommand,
         crossCompileErrorExitCode,
         CompileSubcommandCommand;
-import 'package:hooks_runner/hooks_runner.dart';
+import 'package:dartdev/src/target.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 

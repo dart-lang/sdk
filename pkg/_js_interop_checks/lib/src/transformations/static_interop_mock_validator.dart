@@ -120,9 +120,17 @@ class StaticInteropMockValidator {
           var name = descriptor.name.text;
           var type = _getTypeOfDescriptor(descriptor);
           if (descriptor.isGetter) {
-            type = FunctionType([], type, Nullability.nonNullable);
+            type = FunctionType(
+              DartTypeList.empty,
+              type,
+              Nullability.nonNullable,
+            );
           } else if (descriptor.isSetter) {
-            type = FunctionType([type], VoidType(), Nullability.nonNullable);
+            type = FunctionType(
+              DartTypeList(type),
+              const VoidType(),
+              Nullability.nonNullable,
+            );
             name += '=';
           }
           type = typeParameterResolver.resolve(type);
@@ -230,7 +238,7 @@ class StaticInteropMockValidator {
           .withoutTypeParameters;
       // Ignore the first argument `this` in the generated procedure.
       return FunctionType(
-        interopMemberType.positionalParameters.skip(1).toList(),
+        interopMemberType.positionalParameters.skip(1),
         interopMemberType.returnType,
         interopMemberType.declaredNullability,
         namedParameters: interopMemberType.namedParameters,

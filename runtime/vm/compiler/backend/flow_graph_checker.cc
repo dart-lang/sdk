@@ -527,13 +527,10 @@ void FlowGraphChecker::VisitRedefinition(RedefinitionInstr* def) {
 
 // Asserts that arguments appear in environment at the right place.
 void FlowGraphChecker::AssertArgumentsInEnv(Definition* call) {
-  const auto& function = flow_graph_->function();
   Environment* env = call->env();
   if (env == nullptr) {
     // Environments can be removed by EliminateEnvironments pass and
     // are not present before SSA.
-  } else if (function.IsIrregexpFunction()) {
-    // TODO(dartbug.com/38577): cleanup regexp pipeline too....
   } else {
     // Otherwise, the trailing environment entries must
     // correspond directly with the arguments.

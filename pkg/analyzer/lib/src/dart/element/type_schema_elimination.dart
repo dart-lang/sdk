@@ -17,11 +17,7 @@ class TypeSchemaEliminationVisitor extends ReplacementVisitor {
 
   bool _isLeastClosure;
 
-  TypeSchemaEliminationVisitor._(
-    this._topType,
-    this._bottomType,
-    this._isLeastClosure,
-  );
+  new _(this._topType, this._bottomType, this._isLeastClosure);
 
   @override
   void changeVariance() {

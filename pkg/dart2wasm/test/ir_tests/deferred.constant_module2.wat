@@ -6,8 +6,8 @@
   (type $Array<_NamedParameter> <...>)
   (type $Array<_Type> <...>)
   (type $H0 (sub final $Object (struct
-    (field $field0 i32)
-    (field $field1 (mut i32))
+    (field $#classId i32)
+    (field $#identityHash (mut i32))
     (field $fun (ref $#Closure-0-1)))))
   (type $JSExternWrapper <...>)
   (type $Object <...>)
@@ -21,7 +21,7 @@
   (table $M.constant-table0 (import "M" "constant-table0") 1 (ref null $_FunctionType))
   (table $M.cross-module-funcs-0 (import "M" "cross-module-funcs-0") 11 funcref)
   (global $"\"globalH0Foo\"" (ref $JSExternWrapper)
-    (i32.const 65)
+    (i32.const 66)
     (i32.const 0)
     (global.get $.globalH0Foo)
     (struct.new $JSExternWrapper))
@@ -39,12 +39,12 @@
     (local $var0 (ref $_FunctionType))
     (local $var1 (ref $#Closure-0-1))
     (local $var2 (ref $H0))
-    i32.const 112
+    i32.const 113
     i32.const 0
     block $label0 (result (ref $#Closure-0-1))
       global.get $"globalH0Foo tear-off"
       br_on_non_null $label0
-      i32.const 37
+      i32.const 51
       i32.const 0
       global.get $global0
       global.get $global2

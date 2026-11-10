@@ -10,8 +10,8 @@ import "dart:typed_data";
 import 'package:expect/expect.dart';
 
 aliasWithByteData1() {
-  var aa = new Int8List(10);
-  var b = new ByteData.view(aa.buffer);
+  var aa = Int8List(10);
+  var b = ByteData.view(aa.buffer);
   for (int i = 0; i < aa.length; i++) aa[i] = 9;
 
   var x1 = aa[3];
@@ -23,8 +23,8 @@ aliasWithByteData1() {
 }
 
 aliasWithByteData2() {
-  var b = new ByteData(10);
-  var aa = new Int8List.view(b.buffer);
+  var b = ByteData(10);
+  var aa = Int8List.view(b.buffer);
   for (int i = 0; i < aa.length; i++) aa[i] = 9;
 
   var x1 = aa[3];
@@ -36,9 +36,9 @@ aliasWithByteData2() {
 }
 
 alias8x8() {
-  var buffer = new Int8List(10).buffer;
-  var a1 = new Int8List.view(buffer);
-  var a2 = new Int8List.view(buffer, 1);
+  var buffer = Int8List(10).buffer;
+  var a1 = Int8List.view(buffer);
+  var a2 = Int8List.view(buffer, 1);
 
   for (int i = 0; i < a1.length; i++) a1[i] = 9;
 
@@ -60,8 +60,8 @@ alias8x8() {
 }
 
 alias8x16() {
-  var a1 = new Int8List(10);
-  var a2 = new Int16List.view(a1.buffer);
+  var a1 = Int8List(10);
+  var a2 = Int16List.view(a1.buffer);
 
   for (int i = 0; i < a1.length; i++) a1[i] = 9;
 

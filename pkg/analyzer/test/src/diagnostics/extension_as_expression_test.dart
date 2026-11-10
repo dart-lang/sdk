@@ -24,8 +24,30 @@ var v = p.E;
 //      ^^^
 // [diag.extensionAsExpression] Extension 'p.E' can't be used as an expression.
 ''');
-    assertTypeDynamic(result.findNode.simple('E;'));
-    assertTypeDynamic(result.findNode.prefixed('p.E;'));
+    var node = result.findNode.importPrefixedNameExpression('p.E;');
+    assertResolvedNodeText(node, r'''
+ImportPrefixedNameExpression
+  importPrefix: ImportPrefixReference
+    name: p
+    period: .
+    element: <testLibraryFragment>::@prefix::p
+  name: E
+  resolution: InvalidNamedReadResolution
+    recoveryElement: package:test/a.dart::@extension::E
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: p
+    element: <testLibraryFragment>::@prefix::p
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: E
+    element: package:test/a.dart::@extension::E
+    staticType: InvalidType
+  element: package:test/a.dart::@extension::E
+  staticType: InvalidType
+''');
   }
 
   test_simpleIdentifier() async {
@@ -35,6 +57,17 @@ var v = E;
 //      ^
 // [diag.extensionAsExpression] Extension 'E' can't be used as an expression.
 ''');
-    assertTypeDynamic(result.findNode.simple('E;'));
+    var node = result.findNode.unqualifiedNameExpression('E;');
+    assertResolvedNodeText(node, r'''
+UnqualifiedNameExpression
+  name: E
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <testLibrary>::@extension::E
+  staticType: InvalidType
+V1: SimpleIdentifier
+  token: E
+  element: <testLibrary>::@extension::E
+  staticType: InvalidType
+''');
   }
 }

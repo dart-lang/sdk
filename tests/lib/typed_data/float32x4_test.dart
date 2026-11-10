@@ -109,7 +109,7 @@ void testDiv() {
 void testComparison() {
   var m = Float32x4(1.0, 2.0, 0.1, 0.001);
   var n = Float32x4(2.0, 2.0, 0.001, 0.1);
-  var cmp;
+  Int32x4 cmp;
   cmp = m.lessThan(n);
   Expect.equals(-1, cmp.x);
   Expect.equals(0, cmp.y);
@@ -311,54 +311,6 @@ void testShuffle() {
     checkEquals(getLane(m, (i >> 4) & 3), shuffled.z);
     checkEquals(getLane(m, (i >> 6) & 3), shuffled.w);
   }
-}
-
-void testMin() {
-  var m = Float32x4(1.0, 2.0, 3.0, 4.0);
-  var n = Float32x4(1.0, 0.0, 2.5, 5.0);
-  m = m.min(n);
-  checkEquals(1.0, m.x);
-  checkEquals(0.0, m.y);
-  checkEquals(2.5, m.z);
-  checkEquals(4.0, m.w);
-
-  var p = Float32x4(-0.0, -inf, -0.0, nan);
-  var q = Float32x4(0.0, -max, -min, 3.5);
-  var r = p.min(q);
-  checkOneOf([-0.0, 0.0], r.x);
-  checkEquals(-inf, r.y);
-  checkEquals(-min, r.z);
-  checkOneOf([nan, 3.5], r.w);
-
-  r = q.min(p);
-  checkOneOf([-0.0, 0.0], r.x);
-  checkEquals(-inf, r.y);
-  checkEquals(-min, r.z);
-  checkOneOf([nan, 3.5], r.w);
-}
-
-void testMax() {
-  var m = Float32x4(1.0, 2.0, 3.0, 4.0);
-  var n = Float32x4(1.0, 0.0, 2.5, 5.0);
-  m = m.max(n);
-  checkEquals(1.0, m.x);
-  checkEquals(2.0, m.y);
-  checkEquals(3.0, m.z);
-  checkEquals(5.0, m.w);
-
-  var p = Float32x4(-0.0, -inf, -0.0, nan);
-  var q = Float32x4(0.0, -max, -min, 3.5);
-  var r = p.max(q);
-  checkOneOf([-0.0, 0.0], r.x);
-  checkEquals(-max, r.y);
-  checkEquals(-0.0, r.z);
-  checkOneOf([nan, 3.5], r.w);
-
-  r = q.max(p);
-  checkOneOf([-0.0, 0.0], r.x);
-  checkEquals(-max, r.y);
-  checkEquals(-0.0, r.z);
-  checkOneOf([nan, 3.5], r.w);
 }
 
 void testSqrt() {
@@ -608,7 +560,7 @@ void testSpecialValues() {
   ];
 
   for (var (input, expected) in allTests) {
-    var f;
+    Float32x4 f;
     f = Float32x4(input, 2.0, 3.0, 4.0);
     checkEquals(expected, f.x);
     checkEquals(2.0, f.y);
@@ -653,8 +605,6 @@ void main() {
     testScale();
     testClamp();
     testAbs();
-    testMin();
-    testMax();
     testSqrt();
     testReciprocal();
     testReciprocalSqrt();

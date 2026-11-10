@@ -20,10 +20,9 @@ import '../base/messages.dart'
         noLength,
         CompilationPhaseForProblemReporting;
 import '../base/scope.dart';
-import '../base/uris.dart';
+import '../base/uri_offset.dart';
 import '../dill/dill_class_builder.dart';
 import '../dill/dill_type_alias_builder.dart';
-import '../kernel/implicit_field_type.dart';
 import '../kernel/type_algorithms.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_loader.dart';
@@ -31,7 +30,6 @@ import '../source/type_parameter_factory.dart';
 import '../util/helpers.dart';
 import 'builder.dart';
 import 'declaration_builders.dart';
-import 'inferable_type_builder.dart';
 import 'library_builder.dart';
 import 'nullability_builder.dart';
 import 'prefix_builder.dart';
@@ -81,7 +79,7 @@ enum InstanceTypeParameterAccessState {
   Unexpected,
 }
 
-abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
+class NamedTypeBuilderImpl extends NamedTypeBuilder {
   @override
   final TypeName typeName;
 
@@ -92,10 +90,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   final NullabilityBuilder nullabilityBuilder;
 
   @override
-  final Uri? fileUri;
-
-  @override
-  final int? charOffset;
+  final UriOffsetLength uriOffset;
 
   TypeDeclarationBuilder? _declaration;
 
@@ -106,81 +101,106 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   /// Set to `true` if the type was resolved through a deferred import prefix.
   bool _isDeferred = false;
 
-  factory(
+  DartType? _type;
+
+  new(
     TypeName name,
     NullabilityBuilder nullabilityBuilder, {
     List<TypeBuilder>? arguments,
-    Uri? fileUri,
-    int? charOffset,
+    required UriOffsetLength uriOffset,
     required InstanceTypeParameterAccessState instanceTypeParameterAccess,
-  }) {
-    bool isExplicit = true;
-    if (arguments != null) {
-      for (int i = 0; i < arguments.length; i++) {
-        TypeBuilder argument = arguments[i];
-        if (!argument.isExplicit) {
-          isExplicit = false;
-        }
-      }
-    }
-    return isExplicit
-        ? new _ExplicitNamedTypeBuilder(
-            name,
-            nullabilityBuilder,
-            arguments: arguments,
-            fileUri: fileUri,
-            charOffset: charOffset,
-            instanceTypeParameterAccess: instanceTypeParameterAccess,
-          )
-        :
-          // Coverage-ignore(suite): Not run.
-          new _InferredNamedTypeBuilder(
-            name,
-            nullabilityBuilder,
-            arguments: arguments,
-            fileUri: fileUri,
-            charOffset: charOffset,
-            instanceTypeParameterAccess: instanceTypeParameterAccess,
-          );
-  }
+  }) : this._(
+         typeName: name,
+         nullabilityBuilder: nullabilityBuilder,
+         typeArguments: arguments,
+         uriOffset: uriOffset,
+         instanceTypeParameterAccess: instanceTypeParameterAccess,
+       );
 
   new _({
     required this.typeName,
     required this.nullabilityBuilder,
     this.typeArguments,
-    this.fileUri,
-    this.charOffset,
+    required this.uriOffset,
     required InstanceTypeParameterAccessState instanceTypeParameterAccess,
     TypeDeclarationBuilder? declaration,
+    this._type,
   }) : this._instanceTypeParameterAccess = instanceTypeParameterAccess,
        this.hasExplicitTypeArguments = typeArguments != null,
        this._declaration = declaration;
 
-  factory forDartType(
+  new forDartType(
     DartType type,
-    TypeDeclarationBuilder _declaration,
-    NullabilityBuilder nullabilityBuilder, {
-    List<TypeBuilder>? arguments,
-    Uri? fileUri,
-    int? charOffset,
-  }) = _ExplicitNamedTypeBuilder.forDartType;
-
-  factory fromTypeDeclarationBuilder(
     TypeDeclarationBuilder declaration,
     NullabilityBuilder nullabilityBuilder, {
     List<TypeBuilder>? arguments,
-    Uri? fileUri,
-    int? charOffset,
+    required UriOffsetLength uriOffset,
+  }) : this._(
+         declaration: declaration,
+         typeName: new PredefinedTypeName(declaration.name),
+         nullabilityBuilder: nullabilityBuilder,
+         typeArguments: arguments,
+         instanceTypeParameterAccess:
+             InstanceTypeParameterAccessState.Unexpected,
+         uriOffset: uriOffset,
+         type: type,
+       );
+
+  new fromTypeDeclarationBuilder(
+    TypeDeclarationBuilder declaration,
+    NullabilityBuilder nullabilityBuilder, {
+    List<TypeBuilder>? arguments,
+    required UriOffsetLength uriOffset,
     required InstanceTypeParameterAccessState instanceTypeParameterAccess,
     DartType? type,
-  }) = _ExplicitNamedTypeBuilder.fromTypeDeclarationBuilder;
+  }) : this._(
+         typeName: new PredefinedTypeName(declaration.name),
+         declaration: declaration,
+         nullabilityBuilder: nullabilityBuilder,
+         typeArguments: arguments,
+         uriOffset: uriOffset,
+         instanceTypeParameterAccess: instanceTypeParameterAccess,
+         type: type,
+       );
 
-  factory forInvalidType(
+  new forInvalidType(
     String name,
     NullabilityBuilder nullabilityBuilder,
     LocatedMessage message, {
+    required UriOffsetLength uriOffset,
     List<LocatedMessage>? context,
-  }) = _ExplicitNamedTypeBuilder.forInvalidType;
+  }) : this._(
+         typeName: new PredefinedTypeName(name),
+         nullabilityBuilder: nullabilityBuilder,
+         declaration: new InvalidBuilder(
+           name,
+           message,
+           uriOffset,
+           context: context,
+         ),
+         uriOffset: uriOffset,
+         instanceTypeParameterAccess:
+             InstanceTypeParameterAccessState.Unexpected,
+         type: const InvalidType(),
+       );
+
+  @override
+  Uri get fileUri => uriOffset.fileUri;
+
+  @override
+  int get charOffset => uriOffset.fileOffset;
+
+  @override
+  bool get isExplicit => true;
+
+  @override
+  DartType build(
+    LibraryBuilder library,
+    TypeUse typeUse, {
+    ClassHierarchyBase? hierarchy,
+  }) {
+    return _type ??= _buildInternal(library, typeUse, hierarchy);
+  }
 
   @override
   TypeDeclarationBuilder get declaration {
@@ -198,12 +218,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   }
 
   @override
-  void resolveIn(
-    LookupScope scope,
-    int charOffset,
-    Uri fileUri,
-    ProblemReporting problemReporting,
-  ) {
+  void resolveIn(LookupScope scope, ProblemReporting problemReporting) {
     if (_declaration != null) return;
     Builder? member;
     String? qualifier = typeName.qualifier;
@@ -213,13 +228,12 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         bind(
           problemReporting,
           buildInvalidTypeDeclarationBuilder(
-            LookupResult.createDuplicateMessage(
+            LookupResult.createDuplicateMessage2(
               result,
               name: qualifier,
-              fileUri: fileUri,
-              fileOffset: typeName.fullNameOffset,
-              length: typeName.fullNameLength,
+              uriOffset: uriOffset,
             ),
+            uriOffset: uriOffset,
           ),
         );
         return;
@@ -233,13 +247,12 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
           bind(
             problemReporting,
             buildInvalidTypeDeclarationBuilder(
-              LookupResult.createDuplicateMessage(
+              LookupResult.createDuplicateMessage2(
                 result,
                 name: qualifier,
-                fileUri: fileUri,
-                fileOffset: typeName.fullNameOffset,
-                length: typeName.fullNameLength,
+                uriOffset: uriOffset,
               ),
+              uriOffset: uriOffset,
             ),
           );
           return;
@@ -247,17 +260,16 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         member = result?.getable;
       } else {
         // Attempt to use a member or type parameter as a prefix.
-        int nameOffset = typeName.fullNameOffset;
-        int nameLength = typeName.fullNameLength;
         Message message = diag.notAPrefixInTypeAnnotation.withArguments(
           prefix: qualifier,
           typeName: typeName.name,
         );
-        problemReporting.addProblem(message, nameOffset, nameLength, fileUri);
+        problemReporting.addProblem2(message, uriOffset);
         bind(
           problemReporting,
           buildInvalidTypeDeclarationBuilder(
-            message.withLocation(fileUri, nameOffset, nameLength),
+            message.withLocation2(uriOffset),
+            uriOffset: uriOffset,
           ),
         );
         return;
@@ -268,13 +280,12 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         bind(
           problemReporting,
           buildInvalidTypeDeclarationBuilder(
-            LookupResult.createDuplicateMessage(
+            LookupResult.createDuplicateMessage2(
               result,
               name: typeName.name,
-              fileUri: fileUri,
-              fileOffset: typeName.fullNameOffset,
-              length: typeName.fullNameLength,
+              uriOffset: uriOffset,
             ),
+            uriOffset: uriOffset,
           ),
         );
         return;
@@ -285,7 +296,6 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       bind(problemReporting, member);
     } else {
       String nameText = typeName.fullName;
-      int nameOffset = typeName.fullNameOffset;
       int nameLength = typeName.fullNameLength;
       Message message;
       List<LocatedMessage>? context;
@@ -301,15 +311,10 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         ];
         message = diag.notAType.withArguments(name: nameText);
       }
-      problemReporting.addProblem(
-        message,
-        nameOffset,
-        nameLength,
-        fileUri,
-        context: context,
-      );
+      problemReporting.addProblem2(message, uriOffset, context: context);
       TypeDeclarationBuilder declaration = buildInvalidTypeDeclarationBuilder(
-        message.withLocation(fileUri, nameOffset, nameLength),
+        message.withLocation2(uriOffset),
+        uriOffset: uriOffset,
         context: context,
       );
       bind(problemReporting, declaration);
@@ -323,26 +328,24 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
     if (typeArguments != null) {
       if (_declaration!.isTypeParameter) {
         String nameText = typeName.name;
-        int nameOffset = typeName.nameOffset;
-        int nameLength = typeName.nameLength;
         Message message = diag.typeArgumentsOnTypeVariable.withArguments(
           typeVariableName: nameText,
         );
-        problemReporting.addProblem(message, nameOffset, nameLength, fileUri);
+        problemReporting.addProblem2(message, uriOffset);
         // TODO(johnniwinther): Should we retain the declaration to support
         //  additional errors?
         _declaration = buildInvalidTypeDeclarationBuilder(
-          message.withLocation(fileUri!, nameOffset, nameLength),
+          message.withLocation2(uriOffset),
+          uriOffset: uriOffset,
         );
       } else if (typeArguments!.length != declaration.typeParametersCount) {
-        int nameOffset = typeName.nameOffset;
-        int nameLength = typeName.nameLength;
         Message message = diag.typeArgumentMismatch.withArguments(
           expectedCount: declaration.typeParametersCount,
         );
-        problemReporting.addProblem(message, nameOffset, nameLength, fileUri);
+        problemReporting.addProblem2(message, uriOffset);
         _declaration = buildInvalidTypeDeclarationBuilder(
-          message.withLocation(fileUri!, nameOffset, nameLength),
+          message.withLocation2(uriOffset),
+          uriOffset: uriOffset,
         );
       }
     }
@@ -350,13 +353,12 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
     if (_declaration is ExtensionBuilder &&
         problemReporting is SourceLibraryBuilder) {
       String nameText = typeName.name;
-      int nameOffset = typeName.nameOffset;
-      int nameLength = typeName.nameLength;
       // TODO(johnniwinther): Create a custom message.
       Message message = diag.notAType.withArguments(name: nameText);
-      problemReporting.addProblem(message, nameOffset, nameLength, fileUri);
+      problemReporting.addProblem2(message, uriOffset);
       _declaration = buildInvalidTypeDeclarationBuilder(
-        message.withLocation(fileUri!, nameOffset, nameLength),
+        message.withLocation2(uriOffset),
+        uriOffset: uriOffset,
       );
     } else if (_declaration is NominalParameterBuilder) {
       NominalParameterBuilder typeParameterBuilder =
@@ -367,25 +369,18 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
           typeParameterBuilder.kind == TypeParameterKind.extensionSynthesized) {
         switch (_instanceTypeParameterAccess) {
           case InstanceTypeParameterAccessState.Disallowed:
-            int nameOffset = typeName.nameOffset;
-            int nameLength = typeName.nameLength;
             Message message = diag.typeVariableInStaticContext;
-            problemReporting.addProblem(
-              message,
-              nameOffset,
-              nameLength,
-              fileUri,
-            );
+            problemReporting.addProblem2(message, uriOffset);
             _declaration = buildInvalidTypeDeclarationBuilder(
-              message.withLocation(fileUri!, nameOffset, nameLength),
+              message.withLocation2(uriOffset),
+              uriOffset: uriOffset,
             );
             return;
           case InstanceTypeParameterAccessState.Invalid:
-            int nameOffset = typeName.nameOffset;
-            int nameLength = typeName.nameLength;
             Message message = diag.typeVariableInStaticContext;
             _declaration = buildInvalidTypeDeclarationBuilder(
-              message.withLocation(fileUri!, nameOffset, nameLength),
+              message.withLocation2(uriOffset),
+              uriOffset: uriOffset,
             );
             return;
           case InstanceTypeParameterAccessState.Unexpected:
@@ -429,9 +424,15 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   @override
   InvalidBuilder buildInvalidTypeDeclarationBuilder(
     LocatedMessage message, {
+    required UriOffsetLength uriOffset,
     List<LocatedMessage>? context,
   }) {
-    return new InvalidBuilder(typeName.fullName, message, context: context);
+    return new InvalidBuilder(
+      typeName.fullName,
+      message,
+      uriOffset,
+      context: context,
+    );
   }
 
   Supertype? _handleInvalidSupertype(LibraryBuilder library) {
@@ -439,11 +440,9 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         declaration.isTypeParameter
         ? diag.supertypeIsTypeParameter
         : diag.supertypeIsIllegal;
-    library.addProblem(
+    library.addProblem2(
       template.withArguments(typeName: fullNameForErrors),
-      charOffset!,
-      noLength,
-      fileUri,
+      uriOffset,
     );
     return null;
   }
@@ -474,11 +473,9 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         aliasedType: type,
       );
     }
-    library.addProblem(
+    library.addProblem2(
       message,
-      charOffset!,
-      noLength,
-      fileUri,
+      uriOffset,
       context: [
         diag.typedefCause.withLocation(
           aliasBuilder.fileUri,
@@ -498,40 +495,35 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
             diag.extendsDeferredClass,
             typeName.fullNameOffset,
             typeName.fullNameLength,
-            fileUri ?? // Coverage-ignore(suite): Not run.
-                libraryBuilder.fileUri,
+            fileUri,
           );
         case TypeUse.classImplementsType:
           libraryBuilder.addProblem(
             diag.classImplementsDeferredClass,
             typeName.fullNameOffset,
             typeName.fullNameLength,
-            fileUri ?? // Coverage-ignore(suite): Not run.
-                libraryBuilder.fileUri,
+            fileUri,
           );
         case TypeUse.mixinOnType:
           libraryBuilder.addProblem(
             diag.mixinSuperClassConstraintDeferredClass,
             typeName.fullNameOffset,
             typeName.fullNameLength,
-            fileUri ?? // Coverage-ignore(suite): Not run.
-                libraryBuilder.fileUri,
+            fileUri,
           );
         case TypeUse.extensionTypeImplementsType:
           libraryBuilder.addProblem(
             diag.extensionTypeImplementsDeferred,
             typeName.fullNameOffset,
             typeName.fullNameLength,
-            fileUri ?? // Coverage-ignore(suite): Not run.
-                libraryBuilder.fileUri,
+            fileUri,
           );
         case TypeUse.classWithType:
           libraryBuilder.addProblem(
             diag.mixinDeferredMixin,
             typeName.fullNameOffset,
             typeName.fullNameLength,
-            fileUri ?? // Coverage-ignore(suite): Not run.
-                libraryBuilder.fileUri,
+            fileUri,
           );
         case TypeUse.literalTypeArgument:
         case TypeUse.variableType:
@@ -587,7 +579,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         // Coverage-ignore-block(suite): Not run.
         libraryBuilder.reportFeatureNotEnabled(
           libraryBuilder.libraryFeatures.records,
-          fileUri ?? libraryBuilder.fileUri,
+          fileUri,
           typeName.fullNameOffset,
           typeName.fullNameLength,
         );
@@ -625,7 +617,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       // Coverage-ignore-block(suite): Not run.
       library.reportFeatureNotEnabled(
         library.libraryFeatures.records,
-        fileUri ?? library.fileUri,
+        fileUri,
         typeName.fullNameOffset,
         typeName.fullNameLength,
       );
@@ -644,8 +636,8 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       nullabilityBuilder,
       typeArguments,
       typeUse,
-      fileUri ?? missingUri,
-      charOffset ?? TreeNode.noOffset,
+      fileUri,
+      charOffset,
       hierarchy,
       hasExplicitTypeArguments: hasExplicitTypeArguments,
     );
@@ -659,13 +651,11 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         if (declaration.isNullClass) {
           // Coverage-ignore-block(suite): Not run.
           if (!library.mayImplementRestrictedTypes) {
-            library.addProblem(
+            library.addProblem2(
               diag.extendingRestricted.withArguments(
                 restrictedName: declaration.name,
               ),
-              charOffset!,
-              noLength,
-              fileUri,
+              uriOffset,
             );
           }
         }
@@ -673,11 +663,14 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         if (type is InterfaceType) {
           return new Supertype(type.classNode, type.typeArguments);
         } else if (type is FutureOrType) {
-          return new Supertype(declaration.cls, [type.typeArgument]);
+          return new Supertype(
+            declaration.cls,
+            new DartTypeList(type.typeArgument),
+          );
         }
         // Coverage-ignore(suite): Not run.
         else if (type is NullType) {
-          return new Supertype(declaration.cls, []);
+          return new Supertype(declaration.cls, DartTypeList.empty);
         }
       case TypeAliasBuilder():
         TypeAliasBuilder aliasBuilder = declaration;
@@ -707,7 +700,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
           );
           return new Supertype(
             (unaliasedDeclaration as ClassBuilder).cls,
-            const <DartType>[],
+            DartTypeList.empty,
           );
         } else if (type is FutureOrType) {
           // Coverage-ignore-block(suite): Not run.
@@ -734,7 +727,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
           );
           return new Supertype(
             (unaliasedDeclaration as ClassBuilder).cls,
-            <DartType>[type.typeArgument],
+            new DartTypeList(type.typeArgument),
           );
         }
         return _handleInvalidAliasedSupertype(library, aliasBuilder, type);
@@ -808,8 +801,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       declaration,
       nullabilityBuilder,
       arguments: typeArguments,
-      fileUri: fileUri,
-      charOffset: charOffset,
+      uriOffset: uriOffset,
       instanceTypeParameterAccess: _instanceTypeParameterAccess,
     );
   }
@@ -823,8 +815,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         _declaration!,
         nullabilityBuilder,
         arguments: arguments,
-        fileUri: fileUri,
-        charOffset: charOffset,
+        uriOffset: uriOffset,
         instanceTypeParameterAccess: _instanceTypeParameterAccess,
       );
     } else {
@@ -833,8 +824,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         typeName,
         nullabilityBuilder,
         arguments: arguments,
-        fileUri: fileUri,
-        charOffset: charOffset,
+        uriOffset: uriOffset,
         instanceTypeParameterAccess: _instanceTypeParameterAccess,
       );
     }
@@ -1269,143 +1259,5 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       }
     }
     return typesAndDependencies;
-  }
-}
-
-/// A named type that is defined without the need for type inference.
-///
-/// This is the normal function type whose type arguments are either explicit or
-/// omitted.
-class _ExplicitNamedTypeBuilder extends NamedTypeBuilderImpl {
-  DartType? _type;
-
-  new(
-    TypeName name,
-    NullabilityBuilder nullabilityBuilder, {
-    List<TypeBuilder>? arguments,
-    Uri? fileUri,
-    int? charOffset,
-    required InstanceTypeParameterAccessState instanceTypeParameterAccess,
-  }) : super._(
-         typeName: name,
-         nullabilityBuilder: nullabilityBuilder,
-         typeArguments: arguments,
-         fileUri: fileUri,
-         charOffset: charOffset,
-         instanceTypeParameterAccess: instanceTypeParameterAccess,
-       );
-
-  new forDartType(
-    DartType type,
-    TypeDeclarationBuilder declaration,
-    NullabilityBuilder nullabilityBuilder, {
-    List<TypeBuilder>? arguments,
-    Uri? fileUri,
-    int? charOffset,
-  }) : _type = type,
-       super._(
-         declaration: declaration,
-         typeName: new PredefinedTypeName(declaration.name),
-         nullabilityBuilder: nullabilityBuilder,
-         typeArguments: arguments,
-         instanceTypeParameterAccess:
-             InstanceTypeParameterAccessState.Unexpected,
-         fileUri: fileUri,
-         charOffset: charOffset,
-       );
-
-  new fromTypeDeclarationBuilder(
-    TypeDeclarationBuilder declaration,
-    NullabilityBuilder nullabilityBuilder, {
-    List<TypeBuilder>? arguments,
-    Uri? fileUri,
-    int? charOffset,
-    required InstanceTypeParameterAccessState instanceTypeParameterAccess,
-    DartType? type,
-  }) : this._type = type,
-       super._(
-         typeName: new PredefinedTypeName(declaration.name),
-         declaration: declaration,
-         nullabilityBuilder: nullabilityBuilder,
-         typeArguments: arguments,
-         fileUri: fileUri,
-         charOffset: charOffset,
-         instanceTypeParameterAccess: instanceTypeParameterAccess,
-       );
-
-  new forInvalidType(
-    String name,
-    NullabilityBuilder nullabilityBuilder,
-    LocatedMessage message, {
-    List<LocatedMessage>? context,
-  }) : _type = const InvalidType(),
-       super._(
-         typeName: new PredefinedTypeName(name),
-         nullabilityBuilder: nullabilityBuilder,
-         declaration: new InvalidBuilder(name, message, context: context),
-         fileUri: message.uri,
-         charOffset: message.charOffset,
-         instanceTypeParameterAccess:
-             InstanceTypeParameterAccessState.Unexpected,
-       );
-
-  @override
-  bool get isExplicit => true;
-
-  @override
-  DartType build(
-    LibraryBuilder library,
-    TypeUse typeUse, {
-    ClassHierarchyBase? hierarchy,
-  }) {
-    return _type ??= _buildInternal(library, typeUse, hierarchy);
-  }
-}
-
-// Coverage-ignore(suite): Not run.
-/// A named type that needs type inference to be fully defined.
-///
-/// This occurs through macros where type arguments can be defined in terms of
-/// inferred types, making this type indirectly depend on type inference.
-class _InferredNamedTypeBuilder extends NamedTypeBuilderImpl
-    with InferableTypeBuilderMixin {
-  new(
-    TypeName name,
-    NullabilityBuilder nullabilityBuilder, {
-    List<TypeBuilder>? arguments,
-    Uri? fileUri,
-    int? charOffset,
-    required InstanceTypeParameterAccessState instanceTypeParameterAccess,
-  }) : super._(
-         typeName: name,
-         nullabilityBuilder: nullabilityBuilder,
-         typeArguments: arguments,
-         fileUri: fileUri,
-         charOffset: charOffset,
-         instanceTypeParameterAccess: instanceTypeParameterAccess,
-       );
-
-  @override
-  bool get isExplicit => false;
-
-  @override
-  DartType build(
-    LibraryBuilder library,
-    TypeUse typeUse, {
-    ClassHierarchyBase? hierarchy,
-  }) {
-    if (hasType) {
-      return type;
-    } else if (hierarchy != null) {
-      return registerType(_buildInternal(library, typeUse, hierarchy));
-    } else {
-      InferableTypeUse inferableTypeUse = new InferableTypeUse(
-        library as SourceLibraryBuilder,
-        this,
-        typeUse,
-      );
-      library.loader.inferableTypes.registerInferableType(inferableTypeUse);
-      return new InferredType.fromInferableTypeUse(inferableTypeUse);
-    }
   }
 }

@@ -20,8 +20,12 @@ void main() {
       expect(results, isNotNull);
       expect(results, isNotEmpty);
 
-      for (var process in results!) {
-        expect(process.memoryMb, greaterThan(0));
+      // A concurrent Dart process on the machine may be starting up or exiting
+      // with under 1024 KB RSS, which integer-divides to 0 MB. At least the
+      // current test process should report non-zero memory.
+      expect(results!.map((p) => p.memoryMb), contains(greaterThan(0)));
+      for (var process in results) {
+        expect(process.memoryMb, greaterThanOrEqualTo(0));
         expect(process.cpuPercent, null);
         expect(process.elapsedTime, null);
         expect(process.commandLine, startsWith('dart'));
@@ -37,6 +41,12 @@ void main() {
       expect(result!.command, 'dart.exe');
       // 233384kb == 227MB
       expect(result.memoryMb, 227);
+
+      final smallRssLine = '"dart.exe","12068","Console","1","512 K"';
+      var smallRssResult = ProcessInfo.parseWindows(smallRssLine);
+      expect(smallRssResult, isNotNull);
+      expect(smallRssResult!.command, 'dart.exe');
+      expect(smallRssResult.memoryMb, 0);
     });
   }, skip: !Platform.isWindows);
 

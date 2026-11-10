@@ -50,11 +50,6 @@ library;
 //   Foo() : this.new = 42;
 //   ^^^
 //
-// pkg/front_end/testcases/primary_constructors/new_in_initializer.dart:7:16: Error: Expected an identifier, but got ''.
-// Try inserting an identifier before ''.
-//   Foo() : this.new = 42;
-//                ^
-//
 // pkg/front_end/testcases/primary_constructors/new_in_initializer.dart:7:20: Error: Expected a function body or '=>'.
 // Try adding {}.
 //   Foo() : this.new = 42;

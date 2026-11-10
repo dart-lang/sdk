@@ -126,8 +126,15 @@ String _buildSnippetString(
 
   // Remove any groups outside of the range of this edit.
   //
-  // We have some fixes that produced linked edit groups (and selections) that
-  // might be outside of the edit. For example:
+  // There are two reasons we might have edit groups outside of this range.
+  //
+  // 1. Some changes produce multiple edits and a placeholder can only belong to
+  // one, so when building the other, the placeholder will always be out of
+  // range. For example, the `test()` snippet will insert `test("x")` and
+  // might also add an `import 'package:test/test.dart';` directive.
+  //
+  // 2. Some fixes produce linked edit groups (or selections) that are outside
+  // of the edit, for example:
   //
   // ```
   // void f() {

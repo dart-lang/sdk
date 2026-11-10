@@ -29,7 +29,7 @@ class ConvertToPackageImport_AlwaysUsePackageImportsBulkTest
   String get lintCode => LintNames.always_use_package_imports;
 
   Future<void> test_singleFile() async {
-    writeTestPackageConfig(config: PackageConfigFileBuilder());
+    writeTestPackageConfig2(config: PackageConfigFileBuilder());
     newFile('$testPackageLibPath/foo.dart', 'class Foo {}');
     newFile('$testPackageLibPath/bar.dart', 'class Bar {}');
 
@@ -52,7 +52,7 @@ var bar = Bar();
 
 @reflectiveTest
 class ConvertToPackageImport_AlwaysUsePackageImportsTest
-    extends FixProcessorLintTest {
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToPackageImport;
 
@@ -75,6 +75,30 @@ import 'package:test/foo.dart';
 var foo = Foo();
 ''');
   }
+
+  Future<void> test_relativeImport_inPart() async {
+    newFile('$testPackageLibPath/foo.dart', '''
+class Foo {}
+''');
+    newFile('$testPackageLibPath/a.dart', '''
+part 'test.dart';
+''');
+    await resolveTestCode('''
+part of 'a.dart';
+
+import 'foo.dart';
+
+var foo = Foo();
+''');
+
+    await assertHasFix('''
+part of 'a.dart';
+
+import 'package:test/foo.dart';
+
+var foo = Foo();
+''');
+  }
 }
 
 @reflectiveTest
@@ -88,7 +112,7 @@ class ConvertToPackageImport_AvoidRelativeLibImportsBulkTest
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44673')
   Future<void> test_singleFile() async {
-    writeTestPackageConfig(config: PackageConfigFileBuilder());
+    writeTestPackageConfig2(config: PackageConfigFileBuilder());
     newFile('$testPackageLibPath/bar.dart', 'class Bar {}');
 
     await resolveTestCode('''
@@ -106,7 +130,7 @@ var bar = Bar();
 
 @reflectiveTest
 class ConvertToPackageImport_AvoidRelativeLibImportsTest
-    extends FixProcessorLintTest {
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToPackageImport;
 

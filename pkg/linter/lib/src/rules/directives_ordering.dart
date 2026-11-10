@@ -287,9 +287,11 @@ class _Visitor(final DirectivesOrdering rule) extends SimpleAstVisitor<void> {
 
 extension on CompilationUnit {
   Iterable<ImportDirective> get docImportDirectives {
-    var libraryDirective = directives.whereType<LibraryDirective>().firstOrNull;
-    if (libraryDirective == null) return const [];
-    var docComment = libraryDirective.documentationComment;
+    var directive = directives
+        .where((d) => d is LibraryDirective || d is PartOfDirective)
+        .firstOrNull;
+    if (directive == null) return const [];
+    var docComment = directive.documentationComment;
     if (docComment == null) return const [];
     return docComment.docImports.map((e) => e.import);
   }

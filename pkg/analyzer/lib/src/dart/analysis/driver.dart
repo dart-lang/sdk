@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -13,6 +14,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/analysis_options/analysis_options.dart';
 import 'package:analyzer/src/context/packages.dart';
@@ -23,6 +25,7 @@ import 'package:analyzer/src/dart/analysis/driver_event.dart' as events;
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/file_state_filter.dart';
 import 'package:analyzer/src/dart/analysis/file_tracker.dart';
 import 'package:analyzer/src/dart/analysis/index.dart';
 import 'package:analyzer/src/dart/analysis/library_analyzer.dart';
@@ -36,8 +39,8 @@ import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart'
     show DiagnosticMessageImpl;
@@ -63,6 +66,7 @@ import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// This function is used to test recording requirements during analysis.
 ///
@@ -109,7 +113,20 @@ testFineAfterLibraryAnalyzerHook;
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 691;
+  static const int DATA_VERSION = 759;
+
+  /// The signature of the numbering of token types.
+  ///
+  /// Bundles store indexes into [tokenTypesByIndex], so they can be read back
+  /// only with the same numbering, which `_fe_analyzer_shared` can change
+  /// without anyone updating [DATA_VERSION].
+  static final Uint32List _tokenTypesSignature = () {
+    var signature = ApiSignature();
+    for (var type in tokenTypesByIndex) {
+      signature.addString(type.name);
+    }
+    return signature.toUint32List();
+  }();
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -147,6 +164,9 @@ class AnalysisDriver {
 
   /// The [Packages] object with packages and their language versions.
   final Packages _packages;
+
+  /// Replaces the discovered default language version for non-SDK files.
+  final Version? _languageVersionOverride;
 
   /// Whether fine-grained dependencies experiment is enabled.
   final bool withFineDependencies;
@@ -201,8 +221,8 @@ class AnalysisDriver {
   /// The queue of requests for completion.
   final List<_ResolveForCompletionRequest> _resolveForCompletionRequests = [];
 
-  /// Set to `true` after first [discoverAvailableFiles].
-  bool _hasAvailableFilesDiscovered = false;
+  /// The task that incrementally discovers files available to this driver.
+  _DiscoverAvailableFilesTask? _discoverAvailableFilesTask;
 
   /// The requests to compute files defining a class member with the name.
   final _definingClassMemberNameRequests =
@@ -294,13 +314,13 @@ class AnalysisDriver {
   ///
   /// The given [SourceFactory] is cloned to ensure that it does not contain a
   /// reference to an [AnalysisContext] in which it could have been used.
-  AnalysisDriver({
-    required AnalysisDriverScheduler scheduler,
-    required PerformanceLog logger,
+  new({
+    required this._scheduler,
+    required this._logger,
     required ResourceProvider resourceProvider,
-    required ByteStore byteStore,
-    required SourceFactory sourceFactory,
-    required Packages packages,
+    required this._byteStore,
+    required this._sourceFactory,
+    required this._packages,
     required this.withFineDependencies,
     this.ownedFiles,
     this.analysisContext,
@@ -309,32 +329,31 @@ class AnalysisDriver {
     UnlinkedUnitStore? unlinkedUnitStore,
     this.enableIndex = false,
     this.shouldReportInconsistentAnalysisException = true,
-    SummaryDataStore? externalSummaries,
+    this._externalSummaries,
     DeclaredVariables? declaredVariables,
+    this._languageVersionOverride,
     bool retainDataForTesting = false,
     this.testView,
-    bool enableLintRuleTiming = false,
-  }) : _scheduler = scheduler,
-       _resourceProvider = resourceProvider,
-       _byteStore = byteStore,
+    this._enableLintRuleTiming = false,
+  }) : _resourceProvider = resourceProvider,
        _fileContentCache =
            fileContentCache ?? FileContentCache.ephemeral(resourceProvider),
        _unlinkedUnitStore = unlinkedUnitStore ?? UnlinkedUnitStoreImpl(),
-       _logger = logger,
-       _packages = packages,
-       _sourceFactory = sourceFactory,
-       _externalSummaries = externalSummaries,
        declaredVariables = declaredVariables ?? DeclaredVariables(),
        testingData = retainDataForTesting ? TestingData() : null,
-       _enableLintRuleTiming = enableLintRuleTiming,
-       _saltForUnlinked = _calculateSaltForUnlinked(enableIndex: enableIndex),
+       _saltForUnlinked = _calculateSaltForUnlinked(
+         enableIndex: enableIndex,
+         sdkLanguageVersion: _sourceFactory.dartSdk!.languageVersion,
+       ),
        _saltForElements = _calculateSaltForElements(
          declaredVariables ?? DeclaredVariables(),
+         sdkLanguageVersion: _sourceFactory.dartSdk!.languageVersion,
        ),
        _saltForResolution = _calculateSaltForResolution(
          enableIndex: enableIndex,
          analysisContext: analysisContext,
          declaredVariables: declaredVariables ?? DeclaredVariables(),
+         sdkLanguageVersion: _sourceFactory.dartSdk!.languageVersion,
        ) {
     analysisContext?.driver = this;
     testView?.driver = this;
@@ -371,9 +390,8 @@ class AnalysisDriver {
     // plugins from its parent context).
     var rootOptionsFile = analysisContext?.contextRoot.optionsFile;
     return rootOptionsFile != null
-        ? getAnalysisOptionsForFile(
-            rootOptionsFile,
-          ).enabledLegacyPluginNames.toSet()
+        ? getAnalysisOptionsForFile(rootOptionsFile).enabledLegacyPluginNames
+              .toSet()
         : const {};
   }
 
@@ -491,6 +509,9 @@ class AnalysisDriver {
     if (_unitElementRequestedFiles.isNotEmpty) {
       return AnalysisDriverPriority.interactive;
     }
+    if (_hasPendingAvailableFilesDiscovery) {
+      return AnalysisDriverPriority.interactive;
+    }
     if (_priorityFiles.isNotEmpty) {
       for (String path in _priorityFiles) {
         if (_fileTracker.isFilePending(path)) {
@@ -539,7 +560,12 @@ class AnalysisDriver {
         _referencingNameRequests.isNotEmpty ||
         _indexRequestedFiles.isNotEmpty ||
         _unitElementRequestedFiles.isNotEmpty ||
+        _hasPendingAvailableFilesDiscovery ||
         _disposeRequests.isNotEmpty;
+  }
+
+  bool get _hasPendingAvailableFilesDiscovery {
+    return _discoverAvailableFilesTask?.hasPendingWork ?? false;
   }
 
   /// Add the file with the given [path] to the set of files that are explicitly
@@ -677,61 +703,55 @@ class AnalysisDriver {
   void clearLibraryContext() {
     _libraryContext?.dispose();
     _libraryContext = null;
+
+    // The cached results belong to the discarded session.
+    _priorityResults.clear();
+    _resolvedLibraryCache.clear();
   }
 
+  /// Discards data that is expensive to keep in memory, and can be computed
+  /// or read again when needed.
   void discardMemoryExpensiveData() {
-    if (_hasDiscardedMemoryExpensiveData) {
-      return;
+    if (_libraryContext case var libraryContext?) {
+      var elementFactory = libraryContext.elementFactory;
+      elementFactory.analysisSession.clearHierarchies();
+      elementFactory.discardDecodedLibraryManifests();
+      _scheduler.eventsController.add(
+        events.DiscardMemoryExpensiveData(driver: this, keptIds: const []),
+      );
     }
-    _hasDiscardedMemoryExpensiveData = true;
-    currentSession.clearHierarchies();
-    libraryContext.elementFactory.discardLibraryManifestInstances();
   }
 
-  /// Discovers all files that are potentially available, so that they are
-  /// included in [knownFiles].
-  void discoverAvailableFiles() {
-    if (_hasAvailableFilesDiscovered) {
-      return;
+  /// Completes after all potentially available files have been added to
+  /// [knownFiles]. Discovery is performed incrementally by the driver
+  /// scheduler so that large or slow package trees do not monopolize the
+  /// isolate.
+  Future<void> discoverAvailableFiles() {
+    var task = _discoverAvailableFilesTask ??= _DiscoverAvailableFilesTask(
+      this,
+    );
+    var result = task.discoverAvailableFiles();
+    if (task.hasPendingWork) {
+      _scheduler.notify();
     }
-    _hasAvailableFilesDiscovered = true;
+    return result;
+  }
 
-    // Discover added files.
-    for (var path in addedFiles) {
-      _fsState.getFileForPath(path);
+  /// Completes after files that can be accessed by the [targetFile] have been
+  /// added to [knownFiles].
+  ///
+  /// For a file in a Pub package, this discovers files from the same package,
+  /// public files from direct dependencies, and SDK libraries. Other workspace
+  /// kinds fall back to discovering all available files.
+  Future<void> discoverAvailableFilesFor(FileState targetFile) {
+    var task = _discoverAvailableFilesTask ??= _DiscoverAvailableFilesTask(
+      this,
+    );
+    var result = task.discoverAvailableFilesFor(targetFile);
+    if (task.hasPendingWork) {
+      _scheduler.notify();
     }
-
-    // Discover SDK libraries.
-    if (_sourceFactory.dartSdk case var dartSdk?) {
-      for (var sdkLibrary in dartSdk.sdkLibraries) {
-        var source = dartSdk.mapDartUri(sdkLibrary.shortName);
-        var path = source!.fullName;
-        _fsState.getFileForPath(path);
-      }
-    }
-
-    void discoverRecursively(Folder folder) {
-      try {
-        var pathContext = resourceProvider.pathContext;
-        for (var child in folder.getChildren()) {
-          if (child is File) {
-            var path = child.path;
-            if (file_paths.isDart(pathContext, path)) {
-              _fsState.getFileForPath(path);
-            }
-          } else if (child is Folder) {
-            discoverRecursively(child);
-          }
-        }
-      } catch (_) {}
-    }
-
-    // Discover files in package/lib folders.
-    if (_sourceFactory.packageMap case var packageMap?) {
-      for (var folder in packageMap.values) {
-        discoverRecursively(folder);
-      }
-    }
+    return result;
   }
 
   /// Notify the driver that the client is going to stop using it.
@@ -780,6 +800,8 @@ class AnalysisDriver {
       completer.completeError(DisposedAnalysisContextResult());
     }
     _pendingFileChangesCompleters.clear();
+
+    _discoverAvailableFilesTask?.complete();
 
     _scheduler.notify();
     return completer.future;
@@ -834,7 +856,7 @@ class AnalysisDriver {
 
   /// Completes with files that define a class member with the [name].
   Future<List<FileState>> getFilesDefiningClassMemberName(String name) async {
-    discoverAvailableFiles();
+    await discoverAvailableFiles();
     var request = _GetFilesDefiningClassMemberNameRequest(name);
     _definingClassMemberNameRequests.add(request);
     _scheduler.notify();
@@ -846,7 +868,7 @@ class AnalysisDriver {
     if (names.isEmpty) {
       return const [];
     }
-    discoverAvailableFiles();
+    await discoverAvailableFiles();
     var request = _GetFilesReferencingNamesRequest(names);
     _referencingNameRequests.add(request);
     _scheduler.notify();
@@ -1192,7 +1214,8 @@ class AnalysisDriver {
       } catch (exception, stackTrace) {
         _reportException(request.path, exception, stackTrace, null);
         request.completer.completeError(exception, stackTrace);
-        _clearLibraryContextAfterException();
+        // Recover from a possibly inconsistent library context.
+        clearLibraryContext();
       }
       return;
     }
@@ -1225,6 +1248,14 @@ class AnalysisDriver {
     if (_unitElementRequestedFiles.firstKey case var path?) {
       _getUnitElement(path);
       return;
+    }
+
+    // Explicit requests above take precedence over discovery.
+    if (_discoverAvailableFilesTask case var task?) {
+      if (task.hasPendingWork) {
+        task.perform();
+        return;
+      }
     }
 
     // Compute files defining a class member.
@@ -1358,27 +1389,14 @@ class AnalysisDriver {
         }
 
         performance.run('libraryContext', (performance) {
-          libraryContext.load(targetLibrary: library, performance: performance);
+          libraryContext.loadForResolution(
+            targetLibrary: library,
+            performance: performance,
+          );
         });
 
-        for (var import in library.docLibraryImports) {
-          if (import is LibraryImportWithFile) {
-            if (import.importedLibrary case var libraryFileKind?) {
-              libraryContext.load(
-                targetLibrary: libraryFileKind,
-                performance: OperationPerformanceImpl('<root>'),
-              );
-            }
-          }
-        }
-
-        var analysisOptions = file.analysisOptions;
         var libraryElement = libraryContext.elementFactory.libraryOfUri2(
           library.file.uri,
-        );
-        var typeSystemOperations = TypeSystemOperations(
-          libraryElement.typeSystem,
-          strictCasts: analysisOptions.strictCasts,
         );
 
         RequirementsManifest? requirements;
@@ -1390,14 +1408,13 @@ class AnalysisDriver {
 
         var results = performance.run('LibraryAnalyzer', (performance) {
           return LibraryAnalyzer(
-            analysisOptions,
+            library.file.analysisOptions,
             declaredVariables,
             libraryElement,
             libraryContext.elementFactory.analysisSession.inheritanceManager,
             library,
             performance: performance,
             testingData: testingData,
-            typeSystemOperations: typeSystemOperations,
             enableLintRuleTiming: _enableLintRuleTiming,
           ).analyze();
         });
@@ -1409,9 +1426,9 @@ class AnalysisDriver {
         }
 
         if (withFineDependencies) {
-          assert(requirements!.assertSerialization());
           globalResultRequirements?.stopRecording();
           globalResultRequirements = null;
+          assert(requirements!.assertSerialization());
         }
 
         var isLibraryWithPriorityFile = _isLibraryWithPriorityFile(library);
@@ -1464,7 +1481,7 @@ class AnalysisDriver {
           }
 
           _fileTracker.fileWasAnalyzed(unitFile.path);
-          _lastProducedSignatures[path] = unitSignature;
+          _lastProducedSignatures[unitFile.path] = unitSignature;
           _scheduler.eventsController.add(resolvedUnit);
 
           if (isLibraryWithPriorityFile) {
@@ -1555,7 +1572,8 @@ class AnalysisDriver {
         }
         // getResolvedLibrary()
         completeWithError(_requestedLibraries.remove(library.file.path));
-        _clearLibraryContextAfterException();
+        // Recover from a possibly inconsistent library context.
+        clearLibraryContext();
       }
 
       return null;
@@ -1574,6 +1592,7 @@ class AnalysisDriver {
           _fileTracker.changeFile(path);
         case FileChangeKind.remove:
           _fileTracker.removeFile(path);
+          _resetAvailableFilesDiscovery();
           // TODO(scheglov): We have to do this because we discard files.
           // But this is not right, we need to handle removing better.
           clearLibraryContext();
@@ -1591,16 +1610,6 @@ class AnalysisDriver {
         completer.complete(accumulatedAffected.toList());
       }
     }
-  }
-
-  /// There was an exception during a file analysis, we don't know why.
-  /// But it might have been caused by an inconsistency of files state, and
-  /// the library context state. Reset the library context, and hope that
-  /// we will solve the inconsistency while loading / building summaries.
-  void _clearLibraryContextAfterException() {
-    clearLibraryContext();
-    _priorityResults.clear();
-    _resolvedLibraryCache.clear();
   }
 
   /// Completes pending requests if a required SDK library is missing.
@@ -1700,6 +1709,7 @@ class AnalysisDriver {
       _saltForElements,
       featureSetProvider,
       analysisOptionsMap,
+      languageVersionOverride: _languageVersionOverride,
       fileContentStrategy: _fileContentStrategy,
       unlinkedUnitStore: _unlinkedUnitStore,
       prefetchFiles: null,
@@ -1721,6 +1731,25 @@ class AnalysisDriver {
       unit: unitResult.unit,
       diagnostics: unitResult.diagnostics,
     );
+  }
+
+  /// Like [discardMemoryExpensiveData], but keeps decoded data that the
+  /// analysis keeps using. The scheduler invokes it once after each period
+  /// of work of this driver.
+  void _discardMemoryExpensiveDataOnIdle() {
+    if (_hasDiscardedMemoryExpensiveData) {
+      return;
+    }
+    _hasDiscardedMemoryExpensiveData = true;
+
+    if (_libraryContext case var libraryContext?) {
+      var elementFactory = libraryContext.elementFactory;
+      elementFactory.analysisSession.clearHierarchies();
+      var keptIds = elementFactory.discardDecodedLibraryManifestsOnIdle();
+      _scheduler.eventsController.add(
+        events.DiscardMemoryExpensiveData(driver: this, keptIds: keptIds),
+      );
+    }
   }
 
   /// When we look at a part that has a `part of name;` directive, we
@@ -1790,18 +1819,10 @@ class AnalysisDriver {
 
       // Errors are based on elements, so load them.
       performance.run('libraryContext', (performance) {
-        libraryContext.load(targetLibrary: library, performance: performance);
-
-        for (var import in library.docLibraryImports) {
-          if (import is LibraryImportWithFile) {
-            if (import.importedLibrary case var libraryFileKind?) {
-              libraryContext.load(
-                targetLibrary: libraryFileKind,
-                performance: OperationPerformanceImpl('<root>'),
-              );
-            }
-          }
-        }
+        libraryContext.loadForResolution(
+          targetLibrary: library,
+          performance: performance,
+        );
       });
 
       if (withFineDependencies) {
@@ -2009,6 +2030,7 @@ class AnalysisDriver {
       keyBuilder.addString(file.path);
       keyBuilder.addString(file.uriStr);
       keyBuilder.addString(file.contentHash);
+      keyBuilder.addLanguageVersion(file.packageLanguageVersion);
       file.kind.addDirectivesSignature(keyBuilder);
     }
 
@@ -2053,6 +2075,13 @@ class AnalysisDriver {
     }
     signature.addString(library.file.uriStr);
     signature.addString(library.libraryCycle.apiSignature);
+
+    // Doc imports are not dependencies of the library cycle, but documentation
+    // comments are resolved against the doc-imported libraries.
+    for (var importedLibrary in library.docImportedLibraries) {
+      signature.addString(importedLibrary.libraryCycle.apiSignature);
+    }
+
     signature.addUint32List(library.file.analysisOptions.signature);
     signature.addString(file.uriStr);
     signature.addString(file.contentHash);
@@ -2148,21 +2177,10 @@ class AnalysisDriver {
         workingStatistics?.produceErrorsElementsTimer.start();
         try {
           performance.run('libraryContext', (performance) {
-            libraryContext.load(
+            libraryContext.loadForResolution(
               targetLibrary: library,
               performance: performance,
             );
-
-            for (var import in library.docLibraryImports) {
-              if (import is LibraryImportWithFile) {
-                if (import.importedLibrary case var libraryFileKind?) {
-                  libraryContext.load(
-                    targetLibrary: libraryFileKind,
-                    performance: OperationPerformanceImpl('<root>'),
-                  );
-                }
-              }
-            }
           });
         } finally {
           workingStatistics?.produceErrorsElementsTimer.stop();
@@ -2329,6 +2347,18 @@ class AnalysisDriver {
     );
   }
 
+  void _resetAvailableFilesDiscovery() {
+    var task = _discoverAvailableFilesTask;
+    if (task == null) {
+      return;
+    }
+    if (task.hasPendingWork) {
+      task.reset();
+    } else {
+      _discoverAvailableFilesTask = null;
+    }
+  }
+
   ResolvedForCompletionResultImpl? _resolveForCompletion(
     _ResolveForCompletionRequest request,
   ) {
@@ -2366,26 +2396,19 @@ class AnalysisDriver {
         libraryContext.load(targetLibrary: library, performance: performance);
       });
       var libraryFragment = libraryContext.computeUnitElement(library, file);
-      var analysisOptions = libraryContext.analysisContext
-          .getAnalysisOptionsForFile(file.resource);
       var libraryElement = libraryContext.elementFactory.libraryOfUri2(
         library.file.uri,
-      );
-      var typeSystemOperations = TypeSystemOperations(
-        libraryElement.typeSystem,
-        strictCasts: analysisOptions.strictCasts,
       );
 
       var analysisResult = performance.run('LibraryAnalyzer', (performance) {
         return LibraryAnalyzer(
-          analysisOptions as AnalysisOptionsImpl,
+          library.file.analysisOptions,
           declaredVariables,
           libraryElement,
           libraryContext.elementFactory.analysisSession.inheritanceManager,
           library,
           performance: OperationPerformanceImpl('<root>'),
           testingData: testingData,
-          typeSystemOperations: typeSystemOperations,
         ).analyzeForCompletion(
           file: file,
           offset: offset,
@@ -2504,10 +2527,13 @@ class AnalysisDriver {
   }
 
   static Uint32List _calculateSaltForElements(
-    DeclaredVariables declaredVariables,
-  ) {
+    DeclaredVariables declaredVariables, {
+    required Version sdkLanguageVersion,
+  }) {
     var buffer = ApiSignature();
     buffer.addInt(DATA_VERSION);
+    buffer.addUint32List(_tokenTypesSignature);
+    buffer.addLanguageVersion(sdkLanguageVersion);
     _addDeclaredVariablesToSignature(buffer, declaredVariables);
     return buffer.toUint32List();
   }
@@ -2516,10 +2542,12 @@ class AnalysisDriver {
     required bool enableIndex,
     required DriverBasedAnalysisContext? analysisContext,
     required DeclaredVariables declaredVariables,
+    required Version sdkLanguageVersion,
   }) {
     var buffer = ApiSignature()
       ..addInt(DATA_VERSION)
-      ..addBool(enableIndex);
+      ..addBool(enableIndex)
+      ..addLanguageVersion(sdkLanguageVersion);
     _addDeclaredVariablesToSignature(buffer, declaredVariables);
 
     var workspace = analysisContext?.contextRoot.workspace;
@@ -2528,10 +2556,14 @@ class AnalysisDriver {
     return buffer.toUint32List();
   }
 
-  static Uint32List _calculateSaltForUnlinked({required bool enableIndex}) {
+  static Uint32List _calculateSaltForUnlinked({
+    required bool enableIndex,
+    required Version sdkLanguageVersion,
+  }) {
     var buffer = ApiSignature()
       ..addInt(DATA_VERSION)
-      ..addBool(enableIndex);
+      ..addBool(enableIndex)
+      ..addLanguageVersion(sdkLanguageVersion);
 
     return buffer.toUint32List();
   }
@@ -2611,7 +2643,7 @@ class AnalysisDriverScheduler {
   /// File updates since last transition to working status.
   FileUpdatesStatistics _fileUpdatesStatistics = FileUpdatesStatistics();
 
-  AnalysisDriverScheduler(
+  new(
     this._logger, {
     this.driverWatcher,
     this.shouldDiscardMemoryExpensiveDataOnIdle = true,
@@ -2762,7 +2794,7 @@ class AnalysisDriverScheduler {
         if (priority == AnalysisDriverPriority.nothing) {
           if (driver.withFineDependencies &&
               shouldDiscardMemoryExpensiveDataOnIdle) {
-            driver.discardMemoryExpensiveData();
+            driver._discardMemoryExpensiveDataOnIdle();
           }
         } else {
           driver._hasDiscardedMemoryExpensiveData = false;
@@ -2977,7 +3009,7 @@ class ExceptionResult {
   /// number of context to store was reached, etc.
   final String? contextKey;
 
-  ExceptionResult({
+  new({
     required this.filePath,
     required this.fileContentMap,
     required this.exception,
@@ -2990,7 +3022,7 @@ class FileChange {
   final String path;
   final FileChangeKind kind;
 
-  FileChange(this.path, this.kind);
+  new(this.path, this.kind);
 
   @override
   String toString() {
@@ -3011,6 +3043,10 @@ class OwnedFiles {
   /// Value: a driver in which this file is available via dependencies.
   /// This map does not contain any files that are in [addedFiles].
   final Map<File, AnalysisDriver> knownFiles = {};
+
+  /// Key: the folder from the collection's resource provider.
+  /// Value: the driver discovering this package folder.
+  final Map<Folder, AnalysisDriver> knownFolders = {};
 
   void addAdded(File file, AnalysisDriver analysisDriver) {
     addedFiles[file] ??= analysisDriver;
@@ -3050,18 +3086,271 @@ abstract class SchedulerWorker {
   Future<void> performWork();
 }
 
+/// Incrementally adds files selected by [filter] to the file-system state.
+///
+/// Directory listing and file-state creation use synchronous APIs. Keeping
+/// each invocation bounded does not make an individual I/O operation
+/// interruptible, but it prevents a large package graph from monopolizing the
+/// isolate across thousands of such operations.
+class _DiscoverAvailableFilesJob {
+  static const _workInterval = Duration(milliseconds: 5);
+
+  final AnalysisDriver driver;
+  final FileStateFilter? filter;
+  final Completer<void> completer = Completer<void>();
+
+  final Queue<File> _files = Queue<File>();
+  final Queue<({Folder folder, bool excludeSrc})> _folders = Queue();
+  final Set<File> _seenFiles = <File>{};
+  final Set<({Folder folder, bool excludeSrc})> _seenFolders = {};
+
+  bool _isInitialized = false;
+
+  new(this.driver, this.filter);
+
+  bool get isCompleted => completer.isCompleted;
+
+  void complete() {
+    if (!isCompleted) {
+      _clearPending();
+      completer.complete();
+    }
+  }
+
+  void perform() {
+    if (isCompleted) {
+      return;
+    }
+    _initialize();
+
+    var timer = Stopwatch()..start();
+    while (true) {
+      if (_files.isNotEmpty) {
+        driver._fsState.getFileForPath(_files.removeFirst().path);
+      } else if (_folders.isNotEmpty) {
+        _discoverChildren(_folders.removeFirst());
+      } else {
+        complete();
+        return;
+      }
+
+      if (timer.elapsed >= _workInterval) {
+        return;
+      }
+    }
+  }
+
+  /// Restarts an in-progress job after the file-system state was cleared.
+  /// The existing completer deliberately remains pending so callers never
+  /// observe a "complete" discovery whose results have just been discarded.
+  void reset() {
+    if (isCompleted) {
+      throw StateError('Cannot reset completed discovery.');
+    }
+    _clearPending();
+    _isInitialized = false;
+  }
+
+  void _addFile(File file) {
+    if (filter == null) {
+      if (driver.ownedFiles case var ownedFiles?) {
+        var owner = ownedFiles.ownerOf(file);
+        if (owner != null && !identical(owner, driver)) {
+          return;
+        }
+      }
+    }
+    if (_seenFiles.add(file)) {
+      _files.addLast(file);
+    }
+  }
+
+  void _addFolder(Folder folder, {required bool excludeSrc}) {
+    var request = (folder: folder, excludeSrc: excludeSrc);
+    if (_seenFolders.add(request)) {
+      _folders.addLast(request);
+    }
+  }
+
+  void _clearPending() {
+    _folders.clear();
+    _files.clear();
+    _seenFolders.clear();
+    _seenFiles.clear();
+  }
+
+  void _discoverChildren(({Folder folder, bool excludeSrc}) request) {
+    try {
+      var pathContext = driver.resourceProvider.pathContext;
+      for (var child in request.folder.getChildren()) {
+        if (child is File) {
+          if (file_paths.isDart(pathContext, child.path)) {
+            _addFile(child);
+          }
+        } else if (child is Folder) {
+          if (!request.excludeSrc || child.shortName != 'src') {
+            _addFolder(child, excludeSrc: false);
+          }
+        }
+      }
+    } catch (_) {}
+  }
+
+  void _initialize() {
+    if (_isInitialized) {
+      return;
+    }
+    _isInitialized = true;
+
+    for (var path in driver.addedFiles) {
+      var file = driver.resourceProvider.getFile(path);
+      _addFile(file);
+    }
+
+    if (driver._sourceFactory.dartSdk case var dartSdk?) {
+      for (var sdkLibrary in dartSdk.sdkLibraries) {
+        var source = dartSdk.mapDartUri(sdkLibrary.shortName);
+        if (source is FileSource) {
+          _addFile(source.file);
+        }
+      }
+    }
+
+    if (driver._sourceFactory.packageMap case var packageMap?) {
+      for (var MapEntry(key: packageName, value: folder)
+          in packageMap.entries) {
+        if (filter case var filter?) {
+          if (filter.shouldIncludePackage(packageName)) {
+            _addFolder(
+              folder,
+              excludeSrc: !filter.shouldIncludePackageSrc(packageName),
+            );
+          }
+        } else {
+          var owner = driver.ownedFiles?.knownFolders[folder];
+          if (owner != null && !identical(owner, driver)) {
+            continue;
+          }
+          driver.ownedFiles?.knownFolders[folder] ??= driver;
+          _addFolder(folder, excludeSrc: false);
+        }
+      }
+    }
+  }
+}
+
+/// Schedules incremental discovery of files available to this driver.
+///
+/// Requests scoped to a target file take precedence over complete discovery.
+/// This lets interactive operations avoid waiting for transitive dependencies,
+/// while searches can still request every available file.
+class _DiscoverAvailableFilesTask {
+  final AnalysisDriver driver;
+  final Queue<_DiscoverAvailableFilesJob> _pendingScopedJobs = Queue();
+  final Map<FileStateFilter, _DiscoverAvailableFilesJob> _scopedJobs = {};
+
+  _DiscoverAvailableFilesJob? _allFilesJob;
+  bool _isStopped = false;
+
+  new(this.driver);
+
+  bool get hasPendingWork {
+    return _pendingScopedJobs.any((job) => !job.isCompleted) ||
+        (_allFilesJob?.isCompleted == false);
+  }
+
+  void complete() {
+    if (_isStopped) {
+      return;
+    }
+    _isStopped = true;
+    _allFilesJob?.complete();
+    for (var job in _scopedJobs.values) {
+      job.complete();
+    }
+    _pendingScopedJobs.clear();
+  }
+
+  Future<void> discoverAvailableFiles() {
+    if (_isStopped) {
+      return Future.value();
+    }
+    var job = _allFilesJob ??= _DiscoverAvailableFilesJob(driver, null);
+    return job.completer.future;
+  }
+
+  Future<void> discoverAvailableFilesFor(FileState targetFile) {
+    if (_isStopped) {
+      return Future.value();
+    }
+
+    if (_allFilesJob case var allFilesJob?) {
+      if (allFilesJob.isCompleted) {
+        return allFilesJob.completer.future;
+      }
+    }
+
+    var filter = FileStateFilter(targetFile);
+    if (filter.includesAllPackages) {
+      return discoverAvailableFiles();
+    }
+
+    var job = _scopedJobs[filter];
+    if (job == null) {
+      job = _DiscoverAvailableFilesJob(driver, filter);
+      _scopedJobs[filter] = job;
+      _pendingScopedJobs.addLast(job);
+    }
+    return job.completer.future;
+  }
+
+  void perform() {
+    while (_pendingScopedJobs.isNotEmpty &&
+        _pendingScopedJobs.first.isCompleted) {
+      _pendingScopedJobs.removeFirst();
+    }
+
+    if (_pendingScopedJobs.firstOrNull case var job?) {
+      job.perform();
+      return;
+    }
+
+    _allFilesJob?.perform();
+  }
+
+  void reset() {
+    if (_isStopped) {
+      throw StateError('Cannot reset stopped discovery.');
+    }
+
+    _scopedJobs.removeWhere((_, job) => job.isCompleted);
+    _pendingScopedJobs.removeWhere((job) => job.isCompleted);
+    for (var job in _pendingScopedJobs) {
+      job.reset();
+    }
+
+    if (_allFilesJob case var job?) {
+      if (job.isCompleted) {
+        _allFilesJob = null;
+      } else {
+        job.reset();
+      }
+    }
+  }
+}
+
 class _GetFilesDefiningClassMemberNameRequest {
   final String name;
   final completer = Completer<List<FileState>>();
 
-  _GetFilesDefiningClassMemberNameRequest(this.name);
+  new(this.name);
 }
 
 class _GetFilesReferencingNamesRequest {
   final Set<String> names;
   final completer = Completer<List<FileState>>();
 
-  _GetFilesReferencingNamesRequest(this.names);
+  new(this.names);
 }
 
 class _ResolveForCompletionRequest {
@@ -3072,7 +3361,7 @@ class _ResolveForCompletionRequest {
   final OperationPerformanceImpl performance;
   final Completer<ResolvedForCompletionResultImpl?> completer = Completer();
 
-  _ResolveForCompletionRequest({
+  new({
     required this.path,
     required this.offset,
     required this.line,

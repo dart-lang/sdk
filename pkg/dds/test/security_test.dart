@@ -5,6 +5,8 @@
 import 'dart:io';
 
 import 'package:dds/dds.dart';
+import 'package:dds/devtools_server.dart';
+import 'package:devtools_shared/devtools_shared.dart';
 import 'package:test/test.dart';
 
 import 'common/test_helper.dart';
@@ -124,6 +126,145 @@ void main() {
         final response = await request.close();
         expect(response.statusCode, HttpStatus.notFound);
         await response.drain();
+      });
+    });
+
+    test(
+      'DDS-hosted DevTools allows cross-site iframe navigation to /devtools/ '
+      'and forbids /devtools/api/ping',
+      () async {
+        final dds = await DartDevelopmentService.startDartDevelopmentService(
+          remoteVmServiceUri,
+          devToolsConfiguration: DevToolsConfiguration(
+            enable: true,
+            customBuildDirectoryPath: devtoolsAppUri(),
+          ),
+        );
+        final client = HttpClient();
+        addTearDown(() async {
+          client.close();
+          await dds.shutdown();
+        });
+
+        final docRequest = await client.getUrl(dds.uri!.resolve('devtools/'));
+        docRequest.headers.set('Sec-Fetch-Site', 'cross-site');
+        docRequest.headers.set('Sec-Fetch-Dest', 'iframe');
+        final docResponse = await docRequest.close();
+        expect(docResponse.statusCode, HttpStatus.ok);
+        await docResponse.drain();
+
+        final apiRequest = await client.getUrl(
+          dds.uri!.resolve('devtools/api/ping'),
+        );
+        apiRequest.headers.set('Sec-Fetch-Site', 'cross-site');
+        apiRequest.headers.set('Sec-Fetch-Dest', 'iframe');
+        final apiResponse = await apiRequest.close();
+        expect(apiResponse.statusCode, HttpStatus.forbidden);
+        await apiResponse.drain();
+      },
+    );
+
+    group('Legacy package:dds DevToolsServer (in-process)', () {
+      group('Host and Origin validation (Enabled by default)', () {
+        late HttpServer server;
+        late Uri serverUri;
+        late HttpClient client;
+
+        setUpAll(() async {
+          server = (await DevToolsServer().serveDevTools(
+            enableStdinCommands: false,
+            dtdInfo: DtdInfo(Uri.parse('ws://127.0.0.1:0')),
+          ))!;
+          serverUri = Uri.parse(
+            'http://${server.address.host}:${server.port}/',
+          );
+          client = HttpClient();
+        });
+
+        tearDownAll(() async {
+          client.close();
+          await server.close(force: true);
+        });
+
+        for (final (site, status) in [
+          ('cross-site', HttpStatus.forbidden),
+          ('same-site', HttpStatus.forbidden),
+          ('same-origin', HttpStatus.ok),
+          ('none', HttpStatus.ok),
+        ]) {
+          test(
+            'returns $status for GET request without Origin and with '
+            'Sec-Fetch-Site: $site to /api/ping',
+            () async {
+              final request = await client.getUrl(
+                serverUri.resolve('api/ping'),
+              );
+              request.headers.set('Sec-Fetch-Site', site);
+              final response = await request.close();
+              expect(response.statusCode, status);
+              await response.drain();
+            },
+          );
+        }
+
+        test(
+          'forbids GET request without Origin and with cross-site '
+          'Sec-Fetch-Site header to /api/sse',
+          () async {
+            final request = await client.getUrl(serverUri.resolve('api/sse'));
+            request.headers.set('Sec-Fetch-Site', 'cross-site');
+            final response = await request.close();
+            expect(response.statusCode, HttpStatus.forbidden);
+            await response.drain();
+          },
+        );
+
+        test(
+          'allows GET request with loopback Origin and same-site '
+          'Sec-Fetch-Site header to /api/ping',
+          () async {
+            final request = await client.getUrl(serverUri.resolve('api/ping'));
+            request.headers.set('Origin', 'http://localhost:12345');
+            request.headers.set('Sec-Fetch-Site', 'same-site');
+            final response = await request.close();
+            expect(response.statusCode, HttpStatus.ok);
+            await response.drain();
+          },
+        );
+      });
+
+      group('Disable Origin Check', () {
+        late HttpServer server;
+        late Uri serverUri;
+        late HttpClient client;
+
+        setUpAll(() async {
+          server = (await DevToolsServer().serveDevTools(
+            enableStdinCommands: false,
+            dtdInfo: DtdInfo(Uri.parse('ws://127.0.0.1:0')),
+            disableServiceOriginCheck: true,
+          ))!;
+          serverUri = Uri.parse(
+            'http://${server.address.host}:${server.port}/',
+          );
+          client = HttpClient();
+        });
+
+        tearDownAll(() async {
+          client.close();
+          await server.close(force: true);
+        });
+
+        test(
+          'allows cross-site Sec-Fetch-Site header without Origin to /api/ping',
+          () async {
+            final request = await client.getUrl(serverUri.resolve('api/ping'));
+            request.headers.set('Sec-Fetch-Site', 'cross-site');
+            final response = await request.close();
+            expect(response.statusCode, HttpStatus.ok);
+            await response.drain();
+          },
+        );
       });
     });
   });

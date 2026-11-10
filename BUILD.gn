@@ -98,7 +98,10 @@ group("runtime") {
   } else if (is_fuchsia) {
     deps += [ ":fuchsia_test_package" ]
   } else if (is_win) {
-    deps += [ "runtime/bin:create_process_test_helper" ]
+    deps += [
+      "runtime/bin:create_process_test_helper",
+      "runtime/bin:job_helper",
+    ]
   }
 }
 
@@ -174,6 +177,17 @@ group("dart2wasm") {
   ]
 }
 
+group("dart2wasm_dev") {
+  deps = [
+    "utils/dart2wasm:dart2wasm_dev_platform",
+    "utils/dart2wasm:dart2wasm_dev_snapshot",
+    "utils/dart2wasm:wasm_dev_rt",
+  ]
+  if (defined(is_product) && !is_product) {
+    deps += [ "utils/dart2wasm:dart2wasm_dev_asserts_snapshot" ]
+  }
+}
+
 group("dart2wasm_benchmark") {
   deps = [
     ":dart2wasm_platform",
@@ -232,6 +246,8 @@ group("dart2js_bot") {
 
 group("dart2wasm_bot") {
   deps = [
+    ":dart2wasm",
+    ":dart2wasm_dev",
     "sdk:create_most_sdk",
     "utils/dart2wasm:test_wasm_modules",
   ]
@@ -370,6 +386,7 @@ if (is_fuchsia) {
   test_resources = []
   foreach(test_source, jit_test_sources) {
     label = string_replace(test_source, "/", "_")
+
     application_snapshot(label) {
       dart_snapshot_kind = "kernel"
       main_dart = test_source
@@ -386,6 +403,7 @@ if (is_fuchsia) {
   }
   foreach(test_source, aot_test_sources) {
     label = string_replace(test_source, "/", "_") + "_aot"
+
     aot_snapshot(label) {
       main_dart = test_source
       output = "$target_out_dir/$test_source.elf"
@@ -501,14 +519,14 @@ if (is_fuchsia) {
             dest = "lib/asan/ld.so.1"
           },
           {
-            path = "//buildtools/linux-x64/clang/lib/clang/23/lib/$triple/libclang_rt.asan.so"
+            path = "//buildtools/linux-x64/clang/lib/clang/24/lib/$triple/libclang_rt.asan.so"
             dest = "lib/libclang_rt.asan.so"
           },
         ]
       } else if (is_ubsan) {
         resources += [
           {
-            path = "//buildtools/linux-x64/clang/lib/clang/23/lib/$triple/libclang_rt.ubsan_standalone.so"
+            path = "//buildtools/linux-x64/clang/lib/clang/24/lib/$triple/libclang_rt.ubsan_standalone.so"
             dest = "lib/libclang_rt.ubsan_standalone.so"
           },
         ]

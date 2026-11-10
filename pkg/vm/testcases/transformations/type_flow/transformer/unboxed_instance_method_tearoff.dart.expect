@@ -278,7 +278,7 @@ static method main() → dynamic {
   self::use([@vm.inferred-type.metadata=int] b.{self::BaseImpl2::returnBoxedNullableInt}(null){(self::X?) → dynamic});
   self::use([@vm.inferred-type.metadata=dart.core::_Double] b.{self::BaseImpl2::returnBoxedNullableDouble}(null){(self::X?) → dynamic});
   self::use([@vm.inferred-type.metadata=dart.core::_Double] b.{self::BaseImpl2::returnBoxedIntOrDouble}(null){(self::X?) → dynamic});
-  self::use([@vm.inferred-type.metadata=!] b.{self::BaseImpl2::returnBoxedNullableIntOrDouble}(null){(self::X?) → dynamic});
+  self::use([@vm.inferred-type.metadata=dart.core::num (inexact)] b.{self::BaseImpl2::returnBoxedNullableIntOrDouble}(null){(self::X?) → dynamic});
   self::use([@vm.inferred-type.metadata=#lib::X] b.{self::BaseImpl2::returnBoxedNullableX}(null){(self::X?) → dynamic});
   self::use([@vm.inferred-type.metadata=#lib::X] b.{self::BaseImpl2::returnBoxedX}(null){(self::X?) → dynamic});
   self::use([@vm.direct-call.metadata=#lib::SubImpl3.returnUnboxedSmi] [@vm.inferred-type.metadata=dart.core::_Smi (skip check) (value: 3)] c.{self::SubImpl3::returnUnboxedSmi}(null){(self::X?) → dynamic});
@@ -295,7 +295,7 @@ static method main() → dynamic {
   self::use([@vm.inferred-type.metadata=dart.core::_Double] d.{self::Interface::returnUnboxedDouble}(null){(self::X?) → dynamic});
   self::use([@vm.inferred-type.metadata=int?] d.{self::Interface::returnBoxedNullableInt}(null){(self::X?) → dynamic});
   self::use([@vm.inferred-type.metadata=dart.core::_Double?] d.{self::Interface::returnBoxedNullableDouble}(null){(self::X?) → dynamic});
-  self::use([@vm.inferred-type.metadata=!] d.{self::Interface::returnBoxedIntOrDouble}(null){(self::X?) → dynamic});
+  self::use([@vm.inferred-type.metadata=dart.core::num (inexact)] d.{self::Interface::returnBoxedIntOrDouble}(null){(self::X?) → dynamic});
   self::use([@vm.inferred-type.metadata=dart.core::_Double?] d.{self::Interface::returnBoxedNullableIntOrDouble}(null){(self::X?) → dynamic});
   self::use([@vm.inferred-type.metadata=#lib::X?] d.{self::Interface::returnBoxedNullableX}(null){(self::X?) → dynamic});
   self::use([@vm.inferred-type.metadata=#lib::X] d.{self::Interface::returnBoxedX}(null){(self::X?) → dynamic});

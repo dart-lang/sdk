@@ -1,0 +1,57 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "named_mixin_application_lib1.dart" as nam;
+import "named_mixin_application_lib2.dart" as nam2;
+
+import "org-dartlang-testcase:///named_mixin_application_lib1.dart";
+
+class Super extends core::Object {
+  synthetic constructor •() → self::Super
+    ;
+  @core::override
+  method toString() → core::String
+    ;
+}
+class Class extends self::_Class&Super&NamedMixin {
+  synthetic constructor •() → self::Class
+    ;
+}
+abstract class _Class&Super&NamedMixin = self::Super with nam::NamedMixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Class&Super&NamedMixin
+    : super self::Super::•()
+    ;
+  synthetic mixin-super-stub method toString() → core::String
+    return super.{nam2::Mixin::toString}();
+}
+
+library;
+import self as nam;
+import "dart:core" as core;
+import "named_mixin_application_lib2.dart" as nam2;
+
+import "org-dartlang-testcase:///named_mixin_application_lib2.dart";
+
+mixin class NamedMixin = core::Object with nam2::Mixin /*hasConstConstructor*/  {
+  const synthetic constructor •() → nam::NamedMixin
+    : super core::Object::•()
+    ;
+  synthetic mixin-super-stub method toString() → core::String
+    return super.{nam2::Mixin::toString}();
+}
+
+library;
+import self as nam2;
+import "dart:core" as core;
+
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
+  @core::override
+  method toString() → core::String
+    ;
+}
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///named_mixin_application.dart:8:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///named_mixin_application_lib2.dart:6:4 -> InstanceConstant(const _Override{})
+Extra constant evaluation: evaluated: 6, effectively constant: 2

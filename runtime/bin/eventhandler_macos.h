@@ -29,10 +29,7 @@ class DescriptorInfo : public DescriptorInfoBase {
 
   intptr_t GetPollEvents();
 
-  virtual void Close() {
-    close(fd_);
-    fd_ = -1;
-  }
+  virtual void Close();
 
   void set_tracked_by_kqueue(bool value) { tracked_by_kqueue_ = value; }
 

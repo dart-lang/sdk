@@ -22,6 +22,29 @@ class ReturnOfDoNotStoreTest extends PubPackageResolutionTest {
     writeTestPackageConfigWithMeta();
   }
 
+  test_combinedSignature_getter() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+abstract class A {
+  Future<dynamic> get foo;
+}
+
+class B {
+  @doNotStore
+  Future<void> get foo async {}
+}
+
+class C extends B implements A {}
+
+Future<void> f(C c) {
+  return c.foo;
+//       ^^^^^
+// [diag.returnOfDoNotStore] 'foo' is annotated with 'doNotStore' and shouldn't be returned unless 'f' is also annotated.
+}
+''');
+  }
+
   test_constructor() async {
     // TODO(srawlins): We should report `returnOfDoNotStore`.
     await resolveTestCodeWithDiagnostics(r'''

@@ -7,13 +7,19 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show RefactoringProblemSeverity, SourceChange, SourceEdit;
+import 'package:analyzer_testing/src/selection_mixin.dart';
+import 'package:analyzer_testing/src/single_unit.dart';
+import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 
-import '../../../abstract_single_unit.dart';
-import '../../../selection_mixin.dart';
+import '../../../find_element.dart';
+import '../../../find_node.dart';
 
 int findIdentifierLength(String search) {
   var length = 0;
@@ -30,14 +36,16 @@ int findIdentifierLength(String search) {
 }
 
 /// The base class for all [Refactoring] tests.
-abstract class RefactoringTest extends AbstractSingleUnitTest
-    with SelectionMixin {
-  late RefactoringWorkspace refactoringWorkspace;
-  late SearchEngine searchEngine;
-
+abstract class RefactoringTest extends SingleUnitTest
+    with FindElementMixin, FindNodeMixin, SelectionMixin {
   late SourceChange refactoringChange;
 
   Refactoring get refactoring;
+
+  RefactoringWorkspace get refactoringWorkspace =>
+      RefactoringWorkspace([driverFor(testFile)], searchEngine);
+
+  SearchEngine get searchEngine => SearchEngineImpl([driverFor(testFile)]);
 
   /// Asserts that [refactoringChange] contains a [FileEdit] for the file
   /// with the given [path], and it results the [expectedCode].
@@ -117,6 +125,12 @@ abstract class RefactoringTest extends AbstractSingleUnitTest
     assertRefactoringStatus(status, null);
   }
 
+  void assertSourceChange(SourceChange sourceChange, String expected) {
+    var buffer = StringBuffer();
+    _writeSourceChangeToBuffer(buffer: buffer, sourceChange: sourceChange);
+    _assertTextExpectation(buffer.toString(), expected);
+  }
+
   /// Checks that all conditions of [refactoring] are OK and the result of
   /// applying the [SourceChange] to [testUnit] is [expectedCode].
   Future<void> assertSuccessfulRefactoring(String expectedCode) async {
@@ -147,10 +161,22 @@ abstract class RefactoringTest extends AbstractSingleUnitTest
     }
     // validate resulting code
     var actualCode = SourceEdit.applySequence(testCode, fileEdit.edits);
-    if (actualCode != expectedCode) {
-      print(actualCode);
-    }
     expect(actualCode, expectedCode);
+  }
+
+  /// Returns the existing analysis driver that should be used to analyze the
+  /// given [file], or throw [StateError] if the [file] is not analyzed in any
+  /// of the created analysis contexts.
+  AnalysisDriver driverFor(File file) {
+    return contextFor2(file).driver;
+  }
+
+  /// Returns the offset of the first occurence of [search] in [testCode],
+  /// failing the current test if it is not found.
+  int findOffset(String search) {
+    var offset = testCode.indexOf(search);
+    expect(offset, isNonNegative, reason: "Not found '$search' in\n$testCode");
+    return offset;
   }
 
   Future<void> indexTestUnit(
@@ -170,10 +196,30 @@ abstract class RefactoringTest extends AbstractSingleUnitTest
   }
 
   @override
-  void verifyCreatedCollection() {
-    super.verifyCreatedCollection();
-    var drivers = [driverFor(testFile)];
-    searchEngine = SearchEngineImpl(drivers);
-    refactoringWorkspace = RefactoringWorkspace(drivers, searchEngine);
+  void setUp() {
+    registerLintRules();
+    super.setUp();
+  }
+
+  void _assertTextExpectation(String actual, String expected) {
+    if (actual != expected) {
+      print('-' * 64);
+      print(actual.trimRight());
+      print('-' * 64);
+    }
+    expect(actual, expected);
+  }
+
+  void _writeSourceChangeToBuffer({
+    required StringBuffer buffer,
+    required SourceChange sourceChange,
+  }) {
+    for (var fileEdit in sourceChange.edits) {
+      var file = getFile(fileEdit.file);
+      buffer.write('>>>>>>>>>> ${file.posixPath}$eol');
+      var current = file.readAsStringSync();
+      var updated = SourceEdit.applySequence(current, fileEdit.edits);
+      buffer.write(updated);
+    }
   }
 }

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math' as math;
+
 import 'package:cfg/ir/constant_value.dart';
 import 'package:cfg/ir/global_context.dart';
 import 'package:cfg/ir/instructions.dart';
@@ -81,7 +83,7 @@ void main() {
         expect(cv.isString, isFalse);
         expect(cv.doubleValue, same(v));
         expect(cv.type is DoubleType, isTrue);
-        expect(cv.isZero, equals(v == 0.0));
+        expect(cv.isZero, equals(identical(v, 0.0)));
         expect(cv.isNegative, equals(v.isNegative));
         expect(cv.valueToString(), equals(v.toString()));
       }
@@ -460,7 +462,11 @@ void main() {
       testOp(BinaryDoubleOpcode.mod, (double a, double b) => a % b);
       testOp(BinaryDoubleOpcode.rem, (double a, double b) => a.remainder(b));
       testOp(BinaryDoubleOpcode.div, (double a, double b) => a / b);
-      testOp(BinaryDoubleOpcode.truncatingDiv, (double a, double b) => a ~/ b);
+      testOp(BinaryDoubleOpcode.pow, (double a, double b) => math.pow(a, b));
+      testOp(
+        BinaryDoubleOpcode.atan2,
+        (double a, double b) => math.atan2(a, b),
+      );
     });
 
     test('unary double op', () {
@@ -500,7 +506,6 @@ void main() {
 
       testOp(UnaryDoubleOpcode.neg, (double v) => -v);
       testOp(UnaryDoubleOpcode.abs, (double v) => v.abs());
-      testOp(UnaryDoubleOpcode.sign, (double v) => v.sign);
       testOp(UnaryDoubleOpcode.square, (double v) => v * v);
       testOp(UnaryDoubleOpcode.round, (double v) => v.round());
       testOp(UnaryDoubleOpcode.floor, (double v) => v.floor());
@@ -513,6 +518,15 @@ void main() {
         UnaryDoubleOpcode.truncateToDouble,
         (double v) => v.truncateToDouble(),
       );
+      testOp(UnaryDoubleOpcode.sin, (double v) => math.sin(v));
+      testOp(UnaryDoubleOpcode.cos, (double v) => math.cos(v));
+      testOp(UnaryDoubleOpcode.tan, (double v) => math.tan(v));
+      testOp(UnaryDoubleOpcode.asin, (double v) => math.asin(v));
+      testOp(UnaryDoubleOpcode.acos, (double v) => math.acos(v));
+      testOp(UnaryDoubleOpcode.atan, (double v) => math.atan(v));
+      testOp(UnaryDoubleOpcode.sqrt, (double v) => math.sqrt(v));
+      testOp(UnaryDoubleOpcode.exp, (double v) => math.exp(v));
+      testOp(UnaryDoubleOpcode.log, (double v) => math.log(v));
     });
 
     test('unary bool op', () {
@@ -541,7 +555,9 @@ void main() {
         ConstantValue.fromBool(false): 'false',
         ConstantValue.fromDouble(3.14): '3.14',
         ConstantValue.fromNull(): 'null',
-        ConstantValue(ast.ListConstant(const ast.DynamicType(), [])): null,
+        ConstantValue(
+          ast.ListConstant(const ast.DynamicType(), ast.ConstantList.empty),
+        ): null,
       };
 
       for (final e in testCases.entries) {
@@ -570,7 +586,7 @@ void main() {
             ast.MapConstant(
               const ast.DynamicType(),
               const ast.DynamicType(),
-              [],
+              ast.ConstantMapEntryList.empty,
             ),
           ),
           ConstantValue.fromString(', z = '),

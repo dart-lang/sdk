@@ -16,7 +16,8 @@ void main() {
 }
 
 @reflectiveTest
-class RemoveConstructorTest_extension extends FixProcessorTest {
+class RemoveConstructorTest_extension
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeConstructor;
 
@@ -126,7 +127,7 @@ extension E<T> on int;
 }
 
 @reflectiveTest
-class RemoveConstructorTest_mixin extends FixProcessorTest {
+class RemoveConstructorTest_mixin extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeConstructor;
 

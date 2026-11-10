@@ -4,6 +4,7 @@
 
 // Check that JS types work.
 
+import 'dart:async';
 import 'dart:collection';
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
@@ -17,12 +18,6 @@ const isJSBackend = const bool.fromEnvironment('dart.library.html');
 @JS('Set')
 extension type JSSet._(JSObject _) implements JSObject, JSIterable<JSNumber> {
   external JSSet(JSArray<JSNumber> contents);
-}
-
-@JS('Error')
-extension type JSError._(JSObject _) implements JSObject {
-  external JSError(String message);
-  external String get message;
 }
 
 @JS()
@@ -224,13 +219,17 @@ class DartObject {
 @pragma('dart2js:assumeDynamic')
 confuse(x) => x;
 
+/// A no-op function that will fail to compile if the static type of [value]
+/// isn't a subtype of [T].
+void expectStaticType<T>(T value) {}
+
 // TODO(srujzs): Split this test into multiple tests.
 void syncTests() {
   eval('''
     globalThis.obj = {
       'foo': 'bar',
     };
-    globalThis.fun = function(a, b) {
+    globalThis.fun = function fun(a, b) {
       return globalThis.edf(a, b);
     }
     globalThis.nullAny = null;
@@ -253,6 +252,8 @@ void syncTests() {
   // [JSFunction]
   Expect.isTrue(fun is JSFunction);
   Expect.isTrue(confuse(fun) is JSFunction);
+  Expect.equals(2, fun.length);
+  Expect.equals('fun', fun.name);
 
   // [JSExportedDartFunction] <-> [Function]
   final dartFunction = (JSString a, JSString b) {
@@ -300,6 +301,50 @@ void syncTests() {
         (edfWithThis as JSExportedDartFunction<int Function(JSString)>).toDart,
   );
   Expect.notEquals(edfWithThis, dartFunctionThis.toJSCaptureThis);
+
+  // Var args
+  final varArgsDart = (JSArray<JSString> args) =>
+      args.toDartStringList.join().toJS;
+  final edfVarArgs = varArgsDart.toJSVarArgs;
+  Expect.equals(
+    'foobar',
+    (edfVarArgs.callAsFunction(
+      null,
+      'foo'.toJS,
+      'bar'.toJS,
+    ) as JSString).toDart,
+  );
+  Expect.equals('foobar', edfVarArgs.toDart(['foo', 'bar'].toJS).toDart);
+  Expect.identical(edfVarArgs.toDart, varArgsDart);
+  Expect.notEquals(edfVarArgs, varArgsDart.toJSVarArgs);
+  Expect.equals('', (edfVarArgs.callAsFunction(null) as JSString).toDart);
+
+  final captureThisVarArgsDart = (JSObject this__, JSArray<JSString> args) {
+    Expect.equals(this_, this__);
+    return args.toDartStringList.join().toJS;
+  };
+  final edfCaptureThisVarArgs = captureThisVarArgsDart.toJSCaptureThisVarArgs;
+  Expect.equals(
+    'foobar',
+    (edfCaptureThisVarArgs.callAsFunction(
+      this_,
+      'foo'.toJS,
+      'bar'.toJS,
+    ) as JSString).toDart,
+  );
+  Expect.equals(
+    'foobar',
+    edfCaptureThisVarArgs.toDart(this_, ['foo', 'bar'].toJS).toDart,
+  );
+  Expect.identical(edfCaptureThisVarArgs.toDart, captureThisVarArgsDart);
+  Expect.notEquals(
+    edfCaptureThisVarArgs,
+    captureThisVarArgsDart.toJSCaptureThisVarArgs,
+  );
+  Expect.equals(
+    '',
+    edfCaptureThisVarArgs.toDart(this_, <JSString>[].toJS).toDart,
+  );
 
   // [JSIterable]
   final iterable = JSSet([1.toJS, 2.toJS].toJS);
@@ -951,6 +996,22 @@ void syncTests() {
   Expect.isFalse(definedNonNullAny.isUndefinedOrNull);
   Expect.isTrue(definedNonNullAny.isDefinedAndNotNull);
   Expect.isTrue(definedNonNullAny.typeofEquals('object'));
+
+  final JSError error = JSError('foo');
+  Expect.equals('foo', error.message);
+  Expect.equals('Error', error.name);
+  final defaultCause = error.cause;
+  Expect.isTrue(
+    isJSBackend ? defaultCause.isUndefined : defaultCause.isUndefinedOrNull,
+  );
+  Expect.equals('bar'.toJS, JSError('foo', cause: 'bar'.toJS).cause);
+  Expect.isTrue(error.isA<JSError>());
+  Expect.isFalse('foo'.isA<JSError>());
+  Expect.isFalse(JSObject().isA<JSError>());
+
+  final errorWithStack = JSError('foo');
+  JSError.captureStackTrace(errorWithStack);
+  Expect.notEquals('', errorWithStack.stack);
 }
 
 @JS()
@@ -985,6 +1046,13 @@ Future<void> asyncTests() async {
     }
   ''');
 
+  // [JSArray.fromAsync]
+  final arrN = await JSArray.fromAsync<JSNumber>(
+    [Future.value(1.toJS).toJS].toJS,
+  ).toDart;
+  Expect.equals(1, arrN.length);
+  Expect.equals(1, arrN[0].toDartInt);
+
   // [JSPromise] -> [Future].
   // Test resolution.
   {
@@ -997,6 +1065,13 @@ Future<void> asyncTests() async {
     final f = getResolvedPromise<JSString>().toDart;
     Expect.equals('resolved', (await f).toDart);
   }
+
+  {
+    final f = JSPromise.resolve('resolved'.toJS).toDart;
+    Expect.equals('resolved', (await f).toDart);
+  }
+
+  Expect.throws(() => JSPromise.resolve(JSPromise.resolve('resolved'.toJS)));
 
   // Test resolution with incorrect type.
   // TODO(54214): This type error is not caught in the JS compilers correctly.
@@ -1029,6 +1104,16 @@ Future<void> asyncTests() async {
   {
     try {
       await getRejectedPromise<JSString>().toDart;
+      Expect.fail('Expected rejected promise to throw.');
+    } catch (e) {
+      final jsError = e as JSObject;
+      Expect.equals('Error: rejected', jsError.toString());
+    }
+  }
+
+  {
+    try {
+      await JSPromise.reject(JSError('rejected')).toDart;
       Expect.fail('Expected rejected promise to throw.');
     } catch (e) {
       final jsError = e as JSObject;
@@ -1260,6 +1345,74 @@ Future<void> asyncTests() async {
       final jsError = error as JSError;
       Expect.isTrue((jsError['error'] as JSBoxedDartObject).toDart);
     }
+  }
+
+  // [FutureOr<JSAny>] -> [JSAny]
+
+  // Non-future
+  {
+    final FutureOr<JSString> f = 'value'.toJS;
+    final p = f.toJSPromiseOrValue;
+    expectStaticType<JSAny>(p);
+    Expect.equals('value'.toJS, p);
+  }
+
+  // Future
+  {
+    final FutureOr<JSString> f = Future.value('value'.toJS);
+    final p = f.toJSPromiseOrValue;
+    expectStaticType<JSAny>(p);
+    Expect.type<JSPromise>(p);
+    Expect.equals('value'.toJS, await (p as JSPromise<JSString>).toDart);
+  }
+
+  // [FutureOr<JSAny?>] -> [JSAny?]
+
+  // Non-future
+  {
+    final FutureOr<JSString?> f = null;
+    final p = f.toJSPromiseOrValue;
+    Expect.isNull(p);
+  }
+
+  // Future
+  {
+    final FutureOr<JSString?> f = Future.value(null);
+    final p = f.toJSPromiseOrValue;
+    Expect.type<JSPromise>(p);
+    Expect.isNull(await (p as JSPromise<JSString?>).toDart);
+  }
+
+  // [JSAny] -> [FutureOr<JSAny?>]
+
+  // Non-promise
+  {
+    final f = 'value'.toJS.toDartFutureOr;
+    Expect.type<FutureOr<JSAny?>>(f);
+    Expect.equals('value'.toJS, f);
+  }
+
+  // Promise
+  {
+    final f = getResolvedPromise().toDartFutureOr;
+    expectStaticType<FutureOr<JSAny?>>(f);
+    Expect.equals('resolved'.toJS, await f);
+  }
+
+  // [JSAny?] -> [FutureOr<JSAny?>]
+
+  // Non-promise
+  {
+    final f = null.toDartFutureOr;
+    Expect.type<FutureOr<JSAny?>>(f);
+    Expect.isNull(f);
+  }
+
+  // Promise
+  {
+    final f = resolvePromiseWithNullOrUndefined<JSAny?>(true).toDartFutureOr;
+    expectStaticType<FutureOr<JSAny?>>(f);
+    Expect.isNull(await f);
   }
 }
 

@@ -4,7 +4,7 @@
 
 part of "core_patch.dart";
 
-typedef Uri _UriBaseClosure();
+typedef _UriBaseClosure = Uri Function();
 
 Uri _unsupportedUriBase() {
   throw UnsupportedError("'Uri.base' is not supported");

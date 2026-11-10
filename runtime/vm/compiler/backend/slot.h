@@ -250,7 +250,8 @@ class ParsedFunction;
 // Note: Currently LoadFieldInstr::IsImmutableLengthLoad() assumes that no
 // slots of non-Dart values represent length loads.
 #define UNBOXED_NATIVE_NONDART_SLOTS_LIST(V)                                   \
-  V(StreamInfo, _, enabled, IntPtr, VAR)
+  V(StreamInfo, _, enabled, IntPtr, VAR)                                       \
+  V(TimelineStream, _, enabled, IntPtr, VAR)
 
 // List of slots that correspond to fields of non-Dart objects containing
 // untagged addresses in the following format:
@@ -441,9 +442,6 @@ class Slot : public ZoneObject {
     // A slot used to store type arguments.
     kTypeArguments,
 
-    // A slot at a specific [index] in a [UntaggedTypeArgument] vector.
-    kTypeArgumentsIndex,
-
     // A slot corresponding to an array element at given offset.
     // Only used during allocation sinking and in MaterializeObjectInstr.
     kArrayElement,
@@ -473,9 +471,6 @@ class Slot : public ZoneObject {
   // represented by the same Slot object. Type argument slots are final
   // so disambiguating type arguments fields does not improve alias analysis.
   static const Slot& GetTypeArgumentsSlotFor(Thread* thread, const Class& cls);
-
-  // Returns a slot at a specific [index] in a [UntaggedTypeArgument] vector.
-  static const Slot& GetTypeArgumentsIndexSlot(Thread* thread, intptr_t index);
 
   // Returns a slot corresponding to an array element at [offset_in_bytes].
   static const Slot& GetArrayElementSlot(Thread* thread,
@@ -514,7 +509,6 @@ class Slot : public ZoneObject {
   bool IsDartField() const { return kind() == Kind::kDartField; }
   bool IsLocalVariable() const { return kind() == Kind::kCapturedVariable; }
   bool IsTypeArguments() const { return kind() == Kind::kTypeArguments; }
-  bool IsArgumentOfType() const { return kind() == Kind::kTypeArgumentsIndex; }
   bool IsArrayElement() const { return kind() == Kind::kArrayElement; }
   bool IsRecordField() const { return kind() == Kind::kRecordField; }
   bool IsClosureElement() const { return kind() == Kind::kClosureElement; }

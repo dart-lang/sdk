@@ -285,6 +285,44 @@ A f(List<int> l) => A(l);
 ''');
   }
 
+  test_cannotBeConst_argumentIsPropertyOfUnresolvedImport() async {
+    await assertDiagnostics(
+      r'''
+import 'package:not_resolved/not_resolved.dart' show B;
+
+class A {
+  const A(Object? o);
+}
+A f() => A(B.foo.bar);
+''',
+      [error(diag.uriDoesNotExist, 7, 40)],
+    );
+  }
+
+  test_cannotBeConst_argumentIsUndefinedName() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  const A(Object? o);
+}
+A f() => A(undefined);
+''',
+      [error(diag.undefinedUnqualifiedNameReadNotFound, 45, 9)],
+    );
+  }
+
+  test_cannotBeConst_argumentIsUndefinedStaticGetter() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  const A(Object? o);
+}
+A f() => A(A.undefined);
+''',
+      [error(diag.undefinedStaticMemberReadNotFound, 47, 9)],
+    );
+  }
+
   test_cannotBeConst_dotShorthands_issue60963() async {
     await assertNoDiagnostics(r'''
 class A {

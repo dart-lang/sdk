@@ -47,6 +47,9 @@ abstract class FactoryDeclaration {
 
   ConstructorReferenceBuilder? get redirectionTarget;
 
+  /// Returns `true` if this factory constructor declaration is complete.
+  bool get isComplete;
+
   void createEncoding({
     required ProblemReporting problemReporting,
     required DeclarationBuilder declarationBuilder,
@@ -67,7 +70,7 @@ abstract class FactoryDeclaration {
   void buildOutlineNodes({
     required SourceLibraryBuilder libraryBuilder,
     required SourceFactoryBuilder factoryBuilder,
-    required BuildNodesCallback f,
+    required BuildNodesCallback callback,
     required NameScheme nameScheme,
     required FactoryReferences? factoryReferences,
     required bool isConst,
@@ -123,6 +126,9 @@ class FactoryDeclarationImpl
   }
 
   @override
+  bool get isComplete => _fragment.isComplete;
+
+  @override
   void createEncoding({
     required ProblemReporting problemReporting,
     required DeclarationBuilder declarationBuilder,
@@ -138,9 +144,7 @@ class FactoryDeclarationImpl
               _fragment.enclosingDeclaration.typeParameters,
           typeParameterFactory: typeParameterFactory,
           fullName: _fragment.constructorName.fullName,
-          fileUri: _fragment.fileUri,
-          fullNameOffset: _fragment.constructorName.fullNameOffset,
-          fullNameLength: _fragment.constructorName.fullNameLength,
+          uriOffset: _fragment.uriOffset,
         );
     _typeParameters = typeParameters;
     _returnType = returnType;
@@ -260,7 +264,7 @@ class FactoryDeclarationImpl
   void buildOutlineNodes({
     required SourceLibraryBuilder libraryBuilder,
     required SourceFactoryBuilder factoryBuilder,
-    required BuildNodesCallback f,
+    required BuildNodesCallback callback,
     required NameScheme nameScheme,
     required FactoryReferences? factoryReferences,
     required bool isConst,
@@ -268,7 +272,7 @@ class FactoryDeclarationImpl
     _encoding.buildOutlineNodes(
       libraryBuilder: libraryBuilder,
       factoryBuilder: factoryBuilder,
-      f: f,
+      f: callback,
       name: _fragment.name,
       nameScheme: nameScheme,
       factoryReferences: factoryReferences,
@@ -339,11 +343,6 @@ class FactoryDeclarationImpl
   }
 
   @override
-  FunctionParameter? getTearOffParameter(int index) {
-    return _encoding.getTearOffParameter(index);
-  }
-
-  @override
   void inferRedirectionTarget({
     required SourceLibraryBuilder libraryBuilder,
     required SourceFactoryBuilder factoryBuilder,
@@ -409,14 +408,6 @@ abstract class FactoryFragmentDeclaration {
   BodyBuilderContext createBodyBuilderContext(
     SourceFactoryBuilder factoryBuilder,
   );
-
-  /// If this is an extension instance method or constructor with lowering
-  /// enabled, the tear off parameter corresponding to the [index]th parameter
-  /// on the instance method or constructor is returned.
-  ///
-  /// This is used to update the default value for the closure parameter when
-  /// it has been computed for the original parameter.
-  FunctionParameter? getTearOffParameter(int index);
 
   void registerFunctionBody({
     required Statement? body,

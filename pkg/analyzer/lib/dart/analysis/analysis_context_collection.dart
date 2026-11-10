@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// A collection of analysis contexts.
 ///
@@ -21,14 +22,28 @@ abstract class AnalysisContextCollection {
   /// If [sdkPath] is given, then Dart SDK at this path will be used, otherwise
   /// the default Dart SDK will be used.
   ///
+  /// If [languageVersionOverride] is given, it replaces the default language
+  /// version determined from package or workspace configuration for non-SDK
+  /// files. A `// @dart=` comment in a file still takes precedence.
+  ///
+  /// If [enabledExperiments] is not empty, these experiment flags, such as
+  /// `foo` to enable and `no-foo` to disable the experiment `foo`, replace
+  /// the experiments from all analysis options files. Otherwise, experiments
+  /// from analysis options files are used. Unknown and expired flags are
+  /// ignored.
+  ///
   /// [dispose] must be invoked after collection is finished being used.
-  factory AnalysisContextCollection({
+  factory({
+    List<String> enabledExperiments = const [],
     required List<String> includedPaths,
+    Version? languageVersionOverride,
     ResourceProvider? resourceProvider,
     String? sdkPath,
   }) {
     return AnalysisContextCollectionImpl(
+      enabledExperiments: enabledExperiments,
       includedPaths: includedPaths,
+      languageVersionOverride: languageVersionOverride,
       resourceProvider: resourceProvider,
       sdkPath: sdkPath,
     );

@@ -25,6 +25,7 @@ namespace dart {
   V(ArgDescVar, ":arg_desc")                                                   \
   V(ArgumentError, "ArgumentError")                                            \
   V(Array, "Array")                                                            \
+  V(_Array, "_Array")                                                          \
   V(StateError, "StateError")                                                  \
   V(AssertionError, "_AssertionError")                                         \
   V(AssignIndexToken, "[]=")                                                   \
@@ -70,7 +71,6 @@ namespace dart {
   V(DartNativeWrappers, "dart:nativewrappers")                                 \
   V(DartNativeWrappersLibName, "nativewrappers")                               \
   V(DartScheme, "dart:")                                                       \
-  V(DartSchemePrivate, "dart:_")                                               \
   V(DartTypedData, "dart:typed_data")                                          \
   V(DartVM, "dart:_vm")                                                        \
   V(DartVMProduct, "dart.vm.product")                                          \
@@ -119,6 +119,7 @@ namespace dart {
   V(FfiDouble, "Double")                                                       \
   V(FfiDynamicLibrary, "DynamicLibrary")                                       \
   V(FfiElementType, "elementType")                                             \
+  V(FfiFieldNames, "fieldNames")                                               \
   V(FfiFieldPacking, "packing")                                                \
   V(FfiFieldTypes, "fieldTypes")                                               \
   V(FfiFloat, "Float")                                                         \
@@ -210,6 +211,7 @@ namespace dart {
   V(LoadLibrary, "_loadLibrary")                                               \
   V(LoadingUnit, "LoadingUnit")                                                \
   V(LocalVarDescriptors, "LocalVarDescriptors")                                \
+  V(LocalVarDescriptor, "LocalVarDescriptor")                                  \
   V(Map, "Map")                                                                \
   V(MapLiteralFactory, "Map._fromLiteral")                                     \
   V(MapKeyValuesFactory, "Map._fromKeyValues")                                 \
@@ -218,6 +220,7 @@ namespace dart {
   V(MoveNext, "moveNext")                                                      \
   V(Mutex, "Mutex")                                                            \
   V(Namespace, "Namespace")                                                    \
+  V(NativeFieldWrapperClass1, "NativeFieldWrapperClass1")                      \
   V(Never, "Never")                                                            \
   V(NoSuchMethod, "noSuchMethod")                                              \
   V(NoSuchMethodError, "NoSuchMethodError")                                    \
@@ -406,6 +409,7 @@ namespace dart {
   V(_TypeVariableMirror, "_TypeVariableMirror")                                \
   V(_TypedList, "_TypedList")                                                  \
   V(_TypedListBase, "_TypedListBase")                                          \
+  V(_TypedListView, "_TypedListView")                                          \
   V(_Uint16ArrayFactory, "Uint16List.")                                        \
   V(_Uint16ArrayView, "_Uint16ArrayView")                                      \
   V(_Uint16List, "_Uint16List")                                                \
@@ -468,10 +472,6 @@ namespace dart {
   V(_mapKeys, "_mapKeys")                                                      \
   V(_name, "_name")                                                            \
   V(_nextListener, "_nextListener")                                            \
-  V(_nativeGetFloat32, "_nativeGetFloat32")                                    \
-  V(_nativeSetFloat32, "_nativeSetFloat32")                                    \
-  V(_nativeGetFloat64, "_nativeGetFloat64")                                    \
-  V(_nativeSetFloat64, "_nativeSetFloat64")                                    \
   V(_nativeGetFloat32x4, "_nativeGetFloat32x4")                                \
   V(_nativeSetFloat32x4, "_nativeSetFloat32x4")                                \
   V(_nativeGetInt32x4, "_nativeGetInt32x4")                                    \

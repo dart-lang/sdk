@@ -96,6 +96,38 @@ void main() {
       );
     });
 
+    test(
+      'escape errors in a triple-quoted string start at the backslash',
+      () async {
+        var errors = <CfeDiagnosticMessage>[];
+        var options = new CompilerOptions()..onDiagnostic = errors.add;
+        await compileScript(
+          r"main() { var s = '''\u{110000}'''; }",
+          options: options,
+        );
+        var error = errors.single as FormattedMessage;
+        expect(error.problemMessage, diag.invalidCodePoint.problemMessage);
+        expect(error.charOffset, 20);
+        expect(error.length, 9);
+      },
+    );
+
+    test(
+      'escape errors in a middle interpolation part start at the backslash',
+      () async {
+        var errors = <CfeDiagnosticMessage>[];
+        var options = new CompilerOptions()..onDiagnostic = errors.add;
+        await compileScript(
+          r"main() { var s = '${0}\u{110000}${1}'; }",
+          options: options,
+        );
+        var error = errors.single as FormattedMessage;
+        expect(error.problemMessage, diag.invalidCodePoint.problemMessage);
+        expect(error.charOffset, 22);
+        expect(error.length, 9);
+      },
+    );
+
     test('generated program contains source-info', () async {
       Component component = (await compileScript(
         'a() => print("hi"); main() {}',

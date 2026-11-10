@@ -9,7 +9,6 @@ import 'analysis_options_map_test.dart' as analysis_options_map;
 import 'byte_store_test.dart' as byte_store_test;
 import 'cache_test.dart' as cache_test;
 import 'context_builder_test.dart' as context_builder;
-import 'context_locator_test.dart' as context_locator;
 import 'context_root_test.dart' as context_root;
 import 'defined_names_test.dart' as defined_names;
 import 'driver_caching_test.dart' as driver_caching;
@@ -26,8 +25,10 @@ import 'results/test_all.dart' as results;
 import 'search_test.dart' as search;
 import 'session_helper_test.dart' as session_helper;
 import 'session_test.dart' as session;
+import 'single_file_byte_store_test.dart' as single_file_byte_store_test;
 import 'unlinked_api_signature_test.dart' as unlinked_api_signature;
 import 'uri_converter_test.dart' as uri_converter;
+import 'xxh64_test.dart' as xxh64_test;
 
 main() {
   defineReflectiveSuite(() {
@@ -36,7 +37,6 @@ main() {
     byte_store_test.main();
     cache_test.main();
     context_builder.main();
-    context_locator.main();
     context_root.main();
     defined_names.main();
     driver.main();
@@ -53,7 +53,9 @@ main() {
     search.main();
     session.main();
     session_helper.main();
+    single_file_byte_store_test.main();
     unlinked_api_signature.main();
     uri_converter.main();
+    xxh64_test.main();
   }, name: 'analysis');
 }

@@ -7,7 +7,8 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
 import 'package:kernel/ast.dart';
 
 import '../base/loader.dart' show Loader;
-import '../base/uris.dart' show missingUri;
+import '../base/uri_offset.dart';
+import '../base/uris.dart' show missingUriOffset;
 import '../builder/declaration_builders.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
 import '../builder/fixed_type_builder.dart';
@@ -30,7 +31,10 @@ class TypeBuilderComputer {
   new(Loader loader)
     : _typeBuilderComputerHelper = new _TypeBuilderComputerHelper(loader);
 
-  TypeBuilder visit(DartType type) => _typeBuilderComputerHelper.visit(type);
+  TypeBuilder visit({
+    required DartType type,
+    required UriOffsetLength uriOffset,
+  }) => _typeBuilderComputerHelper.visit(type, uriOffset);
 }
 
 class _TypeBuilderComputerHelper
@@ -50,27 +54,26 @@ class _TypeBuilderComputerHelper
       new DynamicTypeDeclarationBuilder(
         const DynamicType(),
         loader.coreLibrary,
-        -1,
       );
 
   late final NeverTypeDeclarationBuilder neverDeclaration =
       new NeverTypeDeclarationBuilder(
         const NeverType.nonNullable(),
         loader.coreLibrary,
-        -1,
       );
 
   late final NullTypeDeclarationBuilder nullDeclaration =
-      new NullTypeDeclarationBuilder(const NullType(), loader.coreLibrary, -1);
+      new NullTypeDeclarationBuilder(const NullType(), loader.coreLibrary);
 
   late final FutureOrTypeDeclarationBuilder futureOrDeclaration =
       new FutureOrTypeDeclarationBuilder(
         new FutureOrType(const DynamicType(), Nullability.nonNullable),
         loader.coreLibrary,
-        -1,
       );
 
   new(this.loader);
+
+  UriOffsetLength _uriOffset = missingUriOffset;
 
   final Map<StructuralParameter, StructuralParameterBuilder>
   structuralTypeParameters =
@@ -80,11 +83,14 @@ class _TypeBuilderComputerHelper
   computedNominalTypeParameters =
       <TypeParameter, DillNominalParameterBuilder>{};
 
-  TypeBuilder visit(DartType type) {
+  TypeBuilder visit(DartType type, UriOffsetLength uriOffset) {
+    UriOffsetLength oldUriOffset = _uriOffset;
+    _uriOffset = uriOffset;
     TypeBuilder typeBuilder = type.accept1(
       this,
       <TypeParameter, DillNominalParameterBuilder>{},
     );
+    _uriOffset = oldUriOffset;
     structuralTypeParameters.clear();
     computedNominalTypeParameters.clear();
     return typeBuilder;
@@ -95,11 +101,7 @@ class _TypeBuilderComputerHelper
     InvalidType node,
     Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables,
   ) {
-    return new FixedTypeBuilderImpl(
-      node,
-      /* fileUri = */ null,
-      /* charOffset = */ null,
-    );
+    return new FixedTypeBuilderImpl(node, _uriOffset);
   }
 
   @override
@@ -112,6 +114,7 @@ class _TypeBuilderComputerHelper
       node,
       dynamicDeclaration,
       const NullabilityBuilder.inherent(),
+      uriOffset: _uriOffset,
     );
   }
 
@@ -120,7 +123,7 @@ class _TypeBuilderComputerHelper
     VoidType node,
     Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables,
   ) {
-    return new VoidTypeBuilder(/* fileUri = */ null, /* charOffset = */ null);
+    return new VoidTypeBuilder(_uriOffset);
   }
 
   @override
@@ -133,6 +136,7 @@ class _TypeBuilderComputerHelper
       node,
       neverDeclaration,
       new NullabilityBuilder.fromNullability(node.nullability),
+      uriOffset: _uriOffset,
     );
   }
 
@@ -145,6 +149,7 @@ class _TypeBuilderComputerHelper
       node,
       nullDeclaration,
       const NullabilityBuilder.inherent(),
+      uriOffset: _uriOffset,
     );
   }
 
@@ -170,6 +175,7 @@ class _TypeBuilderComputerHelper
       cls,
       new NullabilityBuilder.fromNullability(node.nullability),
       arguments: arguments,
+      uriOffset: _uriOffset,
     );
   }
 
@@ -196,6 +202,7 @@ class _TypeBuilderComputerHelper
       extensionTypeDeclaration,
       new NullabilityBuilder.fromNullability(node.nullability),
       arguments: arguments,
+      uriOffset: _uriOffset,
     );
   }
 
@@ -214,6 +221,7 @@ class _TypeBuilderComputerHelper
       futureOrDeclaration,
       new NullabilityBuilder.fromNullability(node.nullability),
       arguments: [argument],
+      uriOffset: _uriOffset,
     );
   }
 
@@ -227,7 +235,10 @@ class _TypeBuilderComputerHelper
       typeParameters = <StructuralParameterBuilder>[
         for (StructuralParameter structuralParameter in node.typeParameters)
           structuralTypeParameters[structuralParameter] =
-              new DillStructuralParameterBuilder(structuralParameter),
+              new DillStructuralParameterBuilder(
+                structuralParameter,
+                uriOffset: _uriOffset,
+              ),
       ];
     }
 
@@ -274,8 +285,7 @@ class _TypeBuilderComputerHelper
       typeParameters,
       formals,
       new NullabilityBuilder.fromNullability(node.nullability),
-      /* fileUri = */ null,
-      /* charOffset = */ TreeNode.noOffset,
+      _uriOffset,
     );
   }
 
@@ -293,6 +303,7 @@ class _TypeBuilderComputerHelper
       nominalVariableBuilder = new DillNominalParameterBuilder(
         node.parameter,
         loader: null,
+        uriOffset: _uriOffset,
       );
       nominalVariableBuilder.bound = node.parameter.bound.accept1(this, {
         ...pendingNominalVariables,
@@ -309,6 +320,7 @@ class _TypeBuilderComputerHelper
       new NullabilityBuilder.fromNullability(node.nullability),
       instanceTypeParameterAccess: InstanceTypeParameterAccessState.Allowed,
       type: node,
+      uriOffset: _uriOffset,
     );
   }
 
@@ -323,6 +335,7 @@ class _TypeBuilderComputerHelper
       new NullabilityBuilder.fromNullability(node.nullability),
       instanceTypeParameterAccess: InstanceTypeParameterAccessState.Allowed,
       type: node,
+      uriOffset: _uriOffset,
     );
   }
 
@@ -383,8 +396,7 @@ class _TypeBuilderComputerHelper
       positionalBuilders,
       namedBuilders,
       new NullabilityBuilder.fromNullability(node.nullability),
-      missingUri,
-      TreeNode.noOffset,
+      _uriOffset,
     );
   }
 

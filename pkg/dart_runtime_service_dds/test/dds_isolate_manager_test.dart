@@ -1,0 +1,1249 @@
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:async';
+import 'dart:collection';
+import 'dart:convert';
+
+import 'package:dart_runtime_service/dart_runtime_service.dart';
+import 'package:dart_runtime_service_dds/src/dds_isolate_manager.dart';
+import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
+import 'package:stream_channel/stream_channel.dart';
+import 'package:test/fake.dart';
+import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart' as vm;
+
+final class FakeVmService extends Fake implements vm.VmService {
+  final isolates = <String, vm.Isolate>{};
+  final getIsolateCompleters = <String, Completer<vm.Isolate>>{};
+  final resumeAttempts = <String>[];
+  final resumedIsolates = <String>[];
+  final cpuSamplesByIsolate = <String, String>{};
+  final failingCpuSampleIsolates = <String, Exception>{};
+  String timelineTrace = '';
+  int? lastTimeOriginMicros;
+  int? lastTimeExtentMicros;
+  Completer<void>? resumeCompleter;
+  Exception? resumeError;
+
+  @override
+  Future<vm.VM> getVM() async => vm.VM(
+    isolates: [
+      for (final iso in isolates.values)
+        vm.IsolateRef(id: iso.id, name: iso.name, number: iso.number),
+    ],
+  );
+
+  @override
+  Future<vm.Isolate> getIsolate(String isolateId) async {
+    if (getIsolateCompleters[isolateId] case final completer?) {
+      return await completer.future;
+    }
+    return isolates[isolateId] ??
+        (throw vm.SentinelException.parse(
+          'Sentinel',
+          const <String, Object?>{},
+        ));
+  }
+
+  @override
+  Future<vm.FlagList> getFlagList() async =>
+      vm.FlagList(flags: const <vm.Flag>[]);
+
+  @override
+  Future<vm.Success> resume(
+    String isolateId, {
+    int? frameIndex,
+    String? step,
+  }) async {
+    resumeAttempts.add(isolateId);
+    if (resumeError case final error?) {
+      throw error;
+    }
+    resumedIsolates.add(isolateId);
+    if (resumeCompleter case final completer?) {
+      await completer.future;
+    }
+    if (isolates[isolateId] case final isolate?) {
+      isolate.pauseEvent = vm.Event(
+        kind: vm.EventKind.kResume,
+        timestamp: DateTime.now().millisecondsSinceEpoch,
+      );
+    }
+    return vm.Success();
+  }
+
+  @override
+  Future<vm.PerfettoTimeline> getPerfettoVMTimeline({
+    int? timeOriginMicros,
+    int? timeExtentMicros,
+  }) async {
+    lastTimeOriginMicros = timeOriginMicros;
+    lastTimeExtentMicros = timeExtentMicros;
+    return vm.PerfettoTimeline(
+      trace: timelineTrace,
+      timeOriginMicros: timeOriginMicros,
+      timeExtentMicros: timeExtentMicros,
+    );
+  }
+
+  @override
+  Future<vm.PerfettoCpuSamples> getPerfettoCpuSamples(
+    String isolateId, {
+    int? timeOriginMicros,
+    int? timeExtentMicros,
+  }) async {
+    if (failingCpuSampleIsolates[isolateId] case final Exception error) {
+      throw error;
+    }
+    return vm.PerfettoCpuSamples(
+      samplePeriod: 1000,
+      maxStackDepth: 10,
+      sampleCount: 1,
+      timeOriginMicros: timeOriginMicros ?? -1,
+      timeExtentMicros: timeExtentMicros ?? -1,
+      pid: 123,
+      samples: cpuSamplesByIsolate[isolateId] ?? '',
+    );
+  }
+}
+
+final class FakeBackend extends Fake
+    implements DartRuntimeServiceBackend<IsolateManager> {
+  @override
+  ExpressionEvaluator? get expressionEvaluator => null;
+
+  @override
+  UnmodifiableListView<ServiceRpcHandler> get rpcs =>
+      UnmodifiableListView(const <ServiceRpcHandler>[]);
+
+  @override
+  UnmodifiableListView<RpcHandlerWithParameters> get fallbacks =>
+      UnmodifiableListView(const <RpcHandlerWithParameters>[]);
+}
+
+Client createTestClient({required String name}) {
+  final controller = StreamChannelController<String>();
+  late final ClientManager clientManager;
+  final backend = FakeBackend();
+  final eventStreamMethods = EventStreamManager(
+    backend: backend,
+    clientsGetter: () => clientManager.clients,
+  );
+  clientManager = ClientManager(
+    backend: backend,
+    eventStreamMethods: eventStreamMethods,
+  );
+  return clientManager.addClient(connection: controller.foreign, name: name);
+}
+
+void main() {
+  group('DdsIsolateManager', () {
+    late FakeVmService fakeVmService;
+    late DdsIsolateManager manager;
+
+    setUp(() {
+      fakeVmService = FakeVmService();
+      manager = DdsIsolateManager(vmServiceClient: fakeVmService);
+    });
+
+    test(
+      'requireUserPermissionToResume and getRequireUserPermissionToResume',
+      () async {
+        final client = createTestClient(name: 'testClient');
+
+        // Initial state
+        var result = manager.getRequireUserPermissionToResume(
+          json_rpc.Parameters(
+            'getRequireUserPermissionToResume',
+            const <String, Object?>{},
+          ),
+          client,
+        );
+        expect(
+          result,
+          equals(const <String, Object?>{
+            'type': 'ResumePermissionsRequired',
+            'onPauseStart': false,
+            'onPauseExit': false,
+          }),
+        );
+
+        // Require onPauseStart
+        await manager.requireUserPermissionToResume(
+          json_rpc.Parameters(
+            'requireUserPermissionToResume',
+            const <String, Object?>{'onPauseStart': true},
+          ),
+          client,
+        );
+        result = manager.getRequireUserPermissionToResume(
+          json_rpc.Parameters(
+            'getRequireUserPermissionToResume',
+            const <String, Object?>{},
+          ),
+          client,
+        );
+        expect(
+          result,
+          equals(const <String, Object?>{
+            'type': 'ResumePermissionsRequired',
+            'onPauseStart': true,
+            'onPauseExit': false,
+          }),
+        );
+
+        // Require onPauseExit as well
+        await manager.requireUserPermissionToResume(
+          json_rpc.Parameters(
+            'requireUserPermissionToResume',
+            const <String, Object?>{'onPauseExit': true, 'onPauseStart': true},
+          ),
+          client,
+        );
+        result = manager.getRequireUserPermissionToResume(
+          json_rpc.Parameters(
+            'getRequireUserPermissionToResume',
+            const <String, Object?>{},
+          ),
+          client,
+        );
+        expect(
+          result,
+          equals(const <String, Object?>{
+            'type': 'ResumePermissionsRequired',
+            'onPauseStart': true,
+            'onPauseExit': true,
+          }),
+        );
+      },
+    );
+
+    test(
+      'requirePermissionToResume enforces approvals before resuming',
+      () async {
+        final client1 = createTestClient(name: 'client1');
+        final client2 = createTestClient(name: 'client2');
+
+        final isolate = vm.Isolate(
+          id: 'isolates/1',
+          name: 'main',
+          number: '1',
+          pauseEvent: vm.Event(
+            kind: vm.EventKind.kPauseStart,
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+          ),
+        );
+        fakeVmService.isolates['isolates/1'] = isolate;
+        await manager.initializeIsolates();
+
+        // Client1 requires permission on start
+        await manager.requirePermissionToResume(
+          json_rpc.Parameters(
+            'requirePermissionToResume',
+            const <String, Object?>{'onPauseStart': true},
+          ),
+          client1,
+        );
+
+        // Client2 sends readyToResume; should succeed RPC-wise but not forward
+        // to VM until client1 approves.
+        final response = await manager.readyToResume(
+          json_rpc.Parameters('readyToResume', const <String, Object?>{
+            'isolateId': 'isolates/1',
+          }),
+          client2,
+        );
+        expect(response['type'], equals('Success'));
+        expect(fakeVmService.resumedIsolates, isEmpty);
+
+        // Client1 sends readyToResume
+        await manager.readyToResume(
+          json_rpc.Parameters('readyToResume', const <String, Object?>{
+            'isolateId': 'isolates/1',
+          }),
+          client1,
+        );
+
+        // Now VM should have received the resume request
+        expect(fakeVmService.resumedIsolates, contains('isolates/1'));
+      },
+    );
+
+    test(
+      'handleClientDisconnected clears approvals and unblocks resume',
+      () async {
+        final client1 = createTestClient(name: 'client1');
+        final client2 = createTestClient(name: 'client2');
+
+        final isolate = vm.Isolate(
+          id: 'isolates/2',
+          name: 'main',
+          number: '2',
+          pauseEvent: vm.Event(
+            kind: vm.EventKind.kPauseStart,
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+          ),
+        );
+        fakeVmService.isolates['isolates/2'] = isolate;
+        await manager.initializeIsolates();
+
+        // Client1 requires permission on start
+        await manager.requirePermissionToResume(
+          json_rpc.Parameters(
+            'requirePermissionToResume',
+            const <String, Object?>{'onPauseStart': true},
+          ),
+          client1,
+        );
+
+        // Client2 calls readyToResume; pending client1 approval
+        await manager.readyToResume(
+          json_rpc.Parameters('readyToResume', const <String, Object?>{
+            'isolateId': 'isolates/2',
+          }),
+          client2,
+        );
+        expect(fakeVmService.resumedIsolates, isEmpty);
+
+        // Client1 disconnects
+        manager.handleClientDisconnected(client1);
+        await pumpEventQueue();
+
+        // Now isolate should resume automatically since blocking client is gone
+        expect(fakeVmService.resumedIsolates, contains('isolates/2'));
+      },
+    );
+
+    test('resume succeeds when requireUserPermissionToResume is set', () async {
+      final client = createTestClient(name: 'client');
+      final isolate = vm.Isolate(
+        id: 'isolates/3',
+        name: 'main',
+        number: '3',
+        pauseEvent: vm.Event(
+          kind: vm.EventKind.kPauseExit,
+          timestamp: DateTime.now().millisecondsSinceEpoch,
+        ),
+      );
+      fakeVmService.isolates['isolates/3'] = isolate;
+      await manager.initializeIsolates();
+
+      // Require user permission to resume on exit
+      await manager.requireUserPermissionToResume(
+        json_rpc.Parameters(
+          'requireUserPermissionToResume',
+          const <String, Object?>{'onPauseExit': true},
+        ),
+        client,
+      );
+
+      // readyToResume should NOT resume when user permission is required
+      await manager.readyToResume(
+        json_rpc.Parameters('readyToResume', const <String, Object?>{
+          'isolateId': 'isolates/3',
+        }),
+        client,
+      );
+      expect(fakeVmService.resumedIsolates, isEmpty);
+
+      // Explicit resume from client SHOULD resume the isolate on the VM
+      final response = await manager.resume(
+        json_rpc.Parameters('resume', const <String, Object?>{
+          'isolateId': 'isolates/3',
+        }),
+        client,
+      );
+      expect(response['type'], equals('Success'));
+      expect(fakeVmService.resumedIsolates, contains('isolates/3'));
+    });
+
+    test('requireUserPermissionToResume(onPauseStart: false) automatically '
+        'resumes isolates waiting for user resume', () async {
+      final client = createTestClient(name: 'client');
+      final isolate = vm.Isolate(
+        id: 'isolates/4',
+        name: 'main',
+        number: '4',
+        pauseEvent: vm.Event(
+          kind: vm.EventKind.kPauseStart,
+          timestamp: DateTime.now().millisecondsSinceEpoch,
+        ),
+      );
+      fakeVmService.isolates['isolates/4'] = isolate;
+      await manager.initializeIsolates();
+
+      // Require user permission to resume on start
+      await manager.requireUserPermissionToResume(
+        json_rpc.Parameters(
+          'requireUserPermissionToResume',
+          const <String, Object?>{'onPauseStart': true},
+        ),
+        client,
+      );
+
+      // readyToResume should NOT resume when user permission is required
+      await manager.readyToResume(
+        json_rpc.Parameters('readyToResume', const <String, Object?>{
+          'isolateId': 'isolates/4',
+        }),
+        client,
+      );
+      expect(fakeVmService.resumedIsolates, isEmpty);
+
+      // Setting onPauseStart to false should immediately resume the isolate
+      await manager.requireUserPermissionToResume(
+        json_rpc.Parameters(
+          'requireUserPermissionToResume',
+          const <String, Object?>{'onPauseStart': false},
+        ),
+        client,
+      );
+      expect(fakeVmService.resumedIsolates, contains('isolates/4'));
+    });
+
+    test('requirePermissionToResume(onPauseStart: false) automatically resumes '
+        'isolates waiting for client permission', () async {
+      final client1 = createTestClient(name: 'client1');
+      final client2 = createTestClient(name: 'client2');
+
+      final isolate = vm.Isolate(
+        id: 'isolates/5',
+        name: 'main',
+        number: '5',
+        pauseEvent: vm.Event(
+          kind: vm.EventKind.kPauseStart,
+          timestamp: DateTime.now().millisecondsSinceEpoch,
+        ),
+      );
+      fakeVmService.isolates['isolates/5'] = isolate;
+      await manager.initializeIsolates();
+
+      // Client1 requires permission on start
+      await manager.requirePermissionToResume(
+        json_rpc.Parameters(
+          'requirePermissionToResume',
+          const <String, Object?>{'onPauseStart': true},
+        ),
+        client1,
+      );
+
+      // Client2 calls readyToResume; pending client1 approval
+      await manager.readyToResume(
+        json_rpc.Parameters('readyToResume', const <String, Object?>{
+          'isolateId': 'isolates/5',
+        }),
+        client2,
+      );
+      expect(fakeVmService.resumedIsolates, isEmpty);
+
+      // Client1 removes permission requirement on start
+      await manager.requirePermissionToResume(
+        json_rpc.Parameters(
+          'requirePermissionToResume',
+          const <String, Object?>{'onPauseStart': false},
+        ),
+        client1,
+      );
+      expect(fakeVmService.resumedIsolates, contains('isolates/5'));
+    });
+
+    test(
+      'resume force-resumes even when other clients have not approved',
+      () async {
+        final client1 = createTestClient(name: 'client1');
+        final client2 = createTestClient(name: 'client2');
+
+        final isolate = vm.Isolate(
+          id: 'isolates/force',
+          name: 'main',
+          number: '10',
+          pauseEvent: vm.Event(
+            kind: vm.EventKind.kPauseStart,
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+          ),
+        );
+        fakeVmService.isolates['isolates/force'] = isolate;
+        await manager.initializeIsolates();
+
+        await manager.requirePermissionToResume(
+          json_rpc.Parameters(
+            'requirePermissionToResume',
+            const <String, Object?>{'onPauseStart': true},
+          ),
+          client1,
+        );
+
+        // Client2 force resumes without client1 approval
+        final response = await manager.resume(
+          json_rpc.Parameters('resume', const <String, Object?>{
+            'isolateId': 'isolates/force',
+          }),
+          client2,
+        );
+        expect(response['type'], equals('Success'));
+        expect(fakeVmService.resumedIsolates, contains('isolates/force'));
+      },
+    );
+
+    test('handleClientNameChanged updates permissions and resumes waiting '
+        'isolates', () async {
+      final client1 = createTestClient(name: 'client1');
+      final client2 = createTestClient(name: 'client2');
+
+      final isolate = vm.Isolate(
+        id: 'isolates/name_change',
+        name: 'main',
+        number: '11',
+        pauseEvent: vm.Event(
+          kind: vm.EventKind.kPauseStart,
+          timestamp: DateTime.now().millisecondsSinceEpoch,
+        ),
+      );
+      fakeVmService.isolates['isolates/name_change'] = isolate;
+      await manager.initializeIsolates();
+
+      await manager.requirePermissionToResume(
+        json_rpc.Parameters(
+          'requirePermissionToResume',
+          const <String, Object?>{'onPauseStart': true},
+        ),
+        client1,
+      );
+
+      await manager.readyToResume(
+        json_rpc.Parameters('readyToResume', const <String, Object?>{
+          'isolateId': 'isolates/name_change',
+        }),
+        client2,
+      );
+      expect(fakeVmService.resumedIsolates, isEmpty);
+
+      // Change client1's name, removing the requirement for client1
+      manager.handleClientNameChanged(
+        client1,
+        oldName: 'client1',
+        newName: 'client1_renamed',
+      );
+      await pumpEventQueue();
+
+      // Now isolate should resume since client1's permissions are cleared
+      expect(fakeVmService.resumedIsolates, contains('isolates/name_change'));
+    });
+
+    test('serializes concurrent resume requests via mutex', () async {
+      final client = createTestClient(name: 'client');
+      final isolate = vm.Isolate(
+        id: 'isolates/concurrent',
+        name: 'main',
+        number: '12',
+        pauseEvent: vm.Event(
+          kind: vm.EventKind.kPauseBreakpoint,
+          timestamp: DateTime.now().millisecondsSinceEpoch,
+        ),
+      );
+      fakeVmService.isolates['isolates/concurrent'] = isolate;
+      await manager.initializeIsolates();
+
+      final completer = Completer<void>();
+      fakeVmService.resumeCompleter = completer;
+
+      final firstResume = manager.resume(
+        json_rpc.Parameters('resume', const <String, Object?>{
+          'isolateId': 'isolates/concurrent',
+          'step': 'Into',
+        }),
+        client,
+      );
+      final secondResume = manager.resume(
+        json_rpc.Parameters('resume', const <String, Object?>{
+          'isolateId': 'isolates/concurrent',
+        }),
+        client,
+      );
+
+      await pumpEventQueue();
+      // Only the first resume should have reached the VM service while blocked.
+      expect(fakeVmService.resumedIsolates, ['isolates/concurrent']);
+
+      fakeVmService.resumeCompleter = null;
+      completer.complete();
+
+      await Future.wait([firstResume, secondResume]);
+      expect(fakeVmService.resumedIsolates, [
+        'isolates/concurrent',
+        'isolates/concurrent',
+      ]);
+    });
+
+    test(
+      'serializes readyToResume with handleIsolateEvent via mutex',
+      () async {
+        final client = createTestClient(name: 'client');
+        final isolate = vm.Isolate(
+          id: 'isolates/race',
+          name: 'main',
+          number: '13',
+          pauseEvent: vm.Event(
+            kind: vm.EventKind.kPauseStart,
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+          ),
+        );
+        fakeVmService.isolates['isolates/race'] = isolate;
+        await manager.initializeIsolates();
+        await pumpEventQueue();
+
+        final completer = Completer<void>();
+        fakeVmService.resumeCompleter = completer;
+
+        final readyFuture = manager.readyToResume(
+          json_rpc.Parameters('readyToResume', const <String, Object?>{
+            'isolateId': 'isolates/race',
+          }),
+          client,
+        );
+
+        await pumpEventQueue();
+        expect(fakeVmService.resumedIsolates, ['isolates/race']);
+
+        // Dispatch a kResume followed by kPauseExit event while readyToResume
+        // is still in-flight awaiting the VM response.
+        manager.handleIsolateEvent(
+          vm.Event(
+            kind: vm.EventKind.kResume,
+            isolate: vm.IsolateRef(
+              id: 'isolates/race',
+              name: 'main',
+              number: '13',
+            ),
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+          ),
+        );
+        manager.handleIsolateEvent(
+          vm.Event(
+            kind: vm.EventKind.kPauseExit,
+            isolate: vm.IsolateRef(
+              id: 'isolates/race',
+              name: 'main',
+              number: '13',
+            ),
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+          ),
+        );
+
+        await pumpEventQueue();
+        // State transition events must remain queued behind the in-flight
+        // readyToResume operation.
+        expect(
+          manager.ddsIsolates['isolates/race']?.state,
+          IsolateState.pauseStart,
+        );
+
+        fakeVmService.resumeCompleter = null;
+        completer.complete();
+        await readyFuture;
+        await pumpEventQueue();
+
+        expect(
+          manager.ddsIsolates['isolates/race']?.state,
+          IsolateState.pauseExit,
+        );
+      },
+    );
+
+    test(
+      'getPerfettoVMTimelineWithCpuSamples combines timeline and isolate '
+      'CPU sample traces and ignores non-runnable or exited isolates',
+      () async {
+        for (final id in [
+          'isolates/1',
+          'isolates/2',
+          'isolates/3',
+          'isolates/4',
+        ]) {
+          fakeVmService.isolates[id] = vm.Isolate(
+            id: id,
+            name: id,
+            number: id.split('/').last,
+          );
+        }
+        await manager.initializeIsolates();
+        await pumpEventQueue();
+
+        final timelineBytes = utf8.encode('timeline-packet;');
+        final sample1Bytes = utf8.encode('isolate1-samples;');
+        final sample4Bytes = utf8.encode('isolate4-samples;');
+        fakeVmService.timelineTrace = base64Encode(timelineBytes);
+        fakeVmService.cpuSamplesByIsolate['isolates/1'] = base64Encode(
+          sample1Bytes,
+        );
+        fakeVmService.failingCpuSampleIsolates['isolates/2'] = vm.RPCError(
+          'getPerfettoCpuSamples',
+          vm.RPCErrorKind.kIsolateMustBeRunnable.code,
+          'Isolate not runnable',
+        );
+        fakeVmService.failingCpuSampleIsolates['isolates/3'] =
+            vm.SentinelException.parse('Sentinel', const <String, Object?>{});
+        fakeVmService.cpuSamplesByIsolate['isolates/4'] = base64Encode(
+          sample4Bytes,
+        );
+
+        final response = await manager.getPerfettoVMTimelineWithCpuSamples(
+          json_rpc.Parameters(
+            'getPerfettoVMTimelineWithCpuSamples',
+            const <String, Object?>{
+              'timeOriginMicros': 10,
+              'timeExtentMicros': 500,
+            },
+          ),
+        );
+
+        expect(fakeVmService.lastTimeOriginMicros, 10);
+        expect(fakeVmService.lastTimeExtentMicros, 500);
+        expect(response['type'], 'PerfettoTimeline');
+        expect(response['timeOriginMicros'], 10);
+        expect(response['timeExtentMicros'], 500);
+
+        final decodedTrace = utf8.decode(
+          base64Decode(response['trace'] as String),
+        );
+        expect(
+          decodedTrace,
+          'timeline-packet;isolate1-samples;isolate4-samples;',
+        );
+      },
+    );
+
+    test('getPerfettoVMTimelineWithCpuSamples defaults time range parameters '
+        'to -1 when omitted or null', () async {
+      fakeVmService.timelineTrace = base64Encode(utf8.encode('trace'));
+
+      for (final params in <Object?>[
+        const <String, Object?>{
+          'timeOriginMicros': null,
+          'timeExtentMicros': null,
+        },
+        const <String, Object?>{},
+        null,
+      ]) {
+        fakeVmService.lastTimeOriginMicros = null;
+        fakeVmService.lastTimeExtentMicros = null;
+
+        final response = await manager.getPerfettoVMTimelineWithCpuSamples(
+          json_rpc.Parameters('getPerfettoVMTimelineWithCpuSamples', params),
+        );
+
+        expect(fakeVmService.lastTimeOriginMicros, -1);
+        expect(fakeVmService.lastTimeExtentMicros, -1);
+        expect(response['timeOriginMicros'], -1);
+        expect(response['timeExtentMicros'], -1);
+      }
+    });
+
+    const expectedSentinel = <String, Object?>{
+      'type': 'Sentinel',
+      'kind': vm.SentinelKind.kCollected,
+      'valueAsString': '<collected>',
+    };
+
+    test('readyToResume and resume return Collected Sentinel for unknown '
+        'isolateId', () async {
+      final client = createTestClient(name: 'client');
+
+      final readyResponse = await manager.readyToResume(
+        json_rpc.Parameters('readyToResume', const <String, Object?>{
+          'isolateId': 'isolates/nonexistent',
+        }),
+        client,
+      );
+      expect(readyResponse, equals(expectedSentinel));
+      expect(fakeVmService.resumedIsolates, isEmpty);
+
+      final resumeResponse = await manager.resume(
+        json_rpc.Parameters('resume', const <String, Object?>{
+          'isolateId': 'isolates/nonexistent',
+        }),
+        client,
+      );
+      expect(resumeResponse, equals(expectedSentinel));
+      expect(fakeVmService.resumedIsolates, isEmpty);
+    });
+
+    const testIsolateId = 'isolates/1';
+
+    Future<Client> registerResumeClient(
+      String name, {
+      bool onPauseExit = false,
+      bool onPauseReload = false,
+      bool onPauseStart = true,
+    }) async {
+      final client = createTestClient(name: name);
+      await manager.requirePermissionToResume(
+        json_rpc.Parameters('requirePermissionToResume', <String, Object?>{
+          'onPauseStart': onPauseStart,
+          'onPauseReload': onPauseReload,
+          'onPauseExit': onPauseExit,
+        }),
+        client,
+      );
+      return client;
+    }
+
+    Future<void> approveResume(
+      Client client, [
+      String isolateId = testIsolateId,
+    ]) => manager.readyToResume(
+      json_rpc.Parameters('readyToResume', <String, Object?>{
+        'isolateId': isolateId,
+      }),
+      client,
+    );
+
+    Future<void> sendIsolateEvent(
+      String kind, [
+      String isolateId = testIsolateId,
+    ]) async {
+      manager.handleIsolateEvent(
+        vm.Event(
+          kind: kind,
+          isolate: vm.IsolateRef(id: isolateId, name: 'worker', number: '1'),
+          timestamp: DateTime.now().millisecondsSinceEpoch,
+        ),
+      );
+      await pumpEventQueue();
+    }
+
+    test('readyToResume before PauseStart retains client approval until all '
+        'clients approve', () async {
+      final devToolsClient = await registerResumeClient('DevTools');
+      final dapClient = await registerResumeClient('DAP');
+
+      await sendIsolateEvent(vm.EventKind.kIsolateStart);
+      await approveResume(devToolsClient);
+      expect(fakeVmService.resumedIsolates, isEmpty);
+
+      await sendIsolateEvent(vm.EventKind.kPauseStart);
+      expect(fakeVmService.resumedIsolates, isEmpty);
+
+      await approveResume(dapClient);
+      expect(fakeVmService.resumedIsolates, equals(<String>[testIsolateId]));
+    });
+
+    test('readyToResume from all required clients before PauseStart resumes '
+        'isolate when PauseStart arrives', () async {
+      final dapClient = await registerResumeClient('DAP');
+
+      await sendIsolateEvent(vm.EventKind.kIsolateStart);
+      await approveResume(dapClient);
+      expect(fakeVmService.resumedIsolates, isEmpty);
+
+      await sendIsolateEvent(vm.EventKind.kPauseStart);
+      expect(fakeVmService.resumedIsolates, equals(<String>[testIsolateId]));
+    });
+
+    test('late readyToResume while isolate is running does not carry over to '
+        'subsequent PauseExit or PausePostRequest', () async {
+      final devToolsClient = await registerResumeClient(
+        'DevTools',
+        onPauseExit: true,
+        onPauseReload: true,
+      );
+
+      await sendIsolateEvent(vm.EventKind.kIsolateStart);
+      await sendIsolateEvent(vm.EventKind.kPauseStart);
+      await approveResume(devToolsClient);
+      expect(fakeVmService.resumedIsolates, equals(<String>[testIsolateId]));
+      fakeVmService.resumedIsolates.clear();
+
+      await sendIsolateEvent(vm.EventKind.kResume);
+      await approveResume(devToolsClient);
+      expect(fakeVmService.resumedIsolates, isEmpty);
+
+      await sendIsolateEvent(vm.EventKind.kPauseExit);
+      expect(fakeVmService.resumedIsolates, isEmpty);
+
+      await approveResume(devToolsClient);
+      expect(fakeVmService.resumedIsolates, equals(<String>[testIsolateId]));
+    });
+
+    test('early readyToResume after IsolateStart does not auto-resume '
+        'PauseExit if isolate never paused on start', () async {
+      final devToolsClient = await registerResumeClient(
+        'DevTools',
+        onPauseExit: true,
+      );
+
+      await sendIsolateEvent(vm.EventKind.kIsolateStart);
+      await approveResume(devToolsClient);
+      await sendIsolateEvent(vm.EventKind.kPauseExit);
+      expect(fakeVmService.resumedIsolates, isEmpty);
+    });
+
+    test('auto-resume catches RPCError and SentinelException when isolate '
+        'exits before resume completes', () async {
+      const secondIsolateId = 'isolates/2';
+      final dapClient = await registerResumeClient('DAP');
+      fakeVmService.resumeError = vm.RPCError(
+        'resume',
+        vm.RPCErrorKind.kIsolateMustBePaused.code,
+        'Isolate must be paused',
+      );
+
+      await sendIsolateEvent(vm.EventKind.kIsolateStart);
+      await approveResume(dapClient);
+      await sendIsolateEvent(vm.EventKind.kPauseStart);
+      expect(fakeVmService.resumeAttempts, equals(<String>[testIsolateId]));
+      expect(fakeVmService.resumedIsolates, isEmpty);
+
+      fakeVmService.resumeError = vm.SentinelException.parse(
+        'Sentinel',
+        const <String, Object?>{},
+      );
+      await sendIsolateEvent(vm.EventKind.kIsolateStart, secondIsolateId);
+      await approveResume(dapClient, secondIsolateId);
+      await sendIsolateEvent(vm.EventKind.kPauseStart, secondIsolateId);
+      expect(
+        fakeVmService.resumeAttempts,
+        equals(<String>[testIsolateId, secondIsolateId]),
+      );
+      expect(fakeVmService.resumedIsolates, isEmpty);
+    });
+
+    test(
+      'initializeIsolates getIsolate completion preserves existing '
+      'DdsRunningIsolate approvals and auto-resumes when all approved',
+      () async {
+        fakeVmService.isolates[testIsolateId] = vm.Isolate(
+          id: testIsolateId,
+          name: 'main',
+          number: '1',
+        );
+        final completer = Completer<vm.Isolate>();
+        fakeVmService.getIsolateCompleters[testIsolateId] = completer;
+
+        final devToolsClient = await registerResumeClient('DevTools');
+        final dapClient = await registerResumeClient('DAP');
+
+        await manager.initializeIsolates();
+        await approveResume(devToolsClient);
+        await approveResume(dapClient);
+        expect(fakeVmService.resumedIsolates, isEmpty);
+
+        completer.complete(
+          vm.Isolate(
+            id: testIsolateId,
+            name: 'main',
+            number: '1',
+            pauseEvent: vm.Event(
+              kind: vm.EventKind.kPauseStart,
+              timestamp: DateTime.now().millisecondsSinceEpoch,
+            ),
+          ),
+        );
+        await pumpEventQueue();
+        expect(fakeVmService.resumedIsolates, equals(<String>[testIsolateId]));
+      },
+    );
+
+    test('initializeIsolates with PauseEvent None preserves approvals for '
+        'subsequent PauseStart', () async {
+      fakeVmService.isolates[testIsolateId] = vm.Isolate(
+        id: testIsolateId,
+        name: 'main',
+        number: '1',
+        pauseEvent: vm.Event(
+          kind: vm.EventKind.kNone,
+          timestamp: DateTime.now().millisecondsSinceEpoch,
+        ),
+      );
+
+      final devToolsClient = await registerResumeClient('DevTools');
+      final dapClient = await registerResumeClient('DAP');
+
+      await manager.initializeIsolates();
+      await pumpEventQueue();
+
+      await approveResume(devToolsClient);
+      await approveResume(dapClient);
+      expect(fakeVmService.resumedIsolates, isEmpty);
+
+      await sendIsolateEvent(vm.EventKind.kPauseStart);
+      expect(fakeVmService.resumedIsolates, equals(<String>[testIsolateId]));
+    });
+
+    test('PausePostRequest arriving while paused at PauseStart does not '
+        'auto-resume using partial PauseStart approval', () async {
+      final devToolsClient = await registerResumeClient('DevTools');
+      final dapClient = await registerResumeClient('DAP');
+
+      await sendIsolateEvent(vm.EventKind.kIsolateStart);
+      await approveResume(devToolsClient);
+
+      await sendIsolateEvent(vm.EventKind.kPauseStart);
+      expect(fakeVmService.resumedIsolates, isEmpty);
+
+      await sendIsolateEvent(vm.EventKind.kPausePostRequest);
+      expect(fakeVmService.resumedIsolates, isEmpty);
+
+      await approveResume(dapClient);
+      expect(fakeVmService.resumedIsolates, equals(<String>[testIsolateId]));
+    });
+
+    test('sendResumeRequest returns Sentinel when isolate exits before resume '
+        'completes', () async {
+      const isolateId = 'isolates/exiting';
+      final client1 = createTestClient(name: 'client1');
+
+      fakeVmService.isolates[isolateId] = vm.Isolate(
+        id: isolateId,
+        name: 'main',
+        number: '14',
+        pauseEvent: vm.Event(
+          kind: vm.EventKind.kPauseStart,
+          timestamp: DateTime.now().millisecondsSinceEpoch,
+        ),
+      );
+      await manager.initializeIsolates();
+      await pumpEventQueue();
+      expect(manager.ddsIsolates, contains(isolateId));
+
+      fakeVmService.resumeError = vm.SentinelException.parse(
+        'resume',
+        expectedSentinel,
+      );
+
+      final readyResponse = await manager.readyToResume(
+        json_rpc.Parameters('readyToResume', const <String, Object?>{
+          'isolateId': isolateId,
+        }),
+        client1,
+      );
+      expect(readyResponse, equals(expectedSentinel));
+
+      final resumeResponse = await manager.resume(
+        json_rpc.Parameters('resume', const <String, Object?>{
+          'isolateId': isolateId,
+        }),
+        client1,
+      );
+      expect(resumeResponse, equals(expectedSentinel));
+    });
+
+    test('maybeResumeIsolates ignores concurrent RPCError when isolate resumes '
+        'or exits', () async {
+      const isolateId = 'isolates/exiting_auto';
+      final client1 = createTestClient(name: 'client1');
+      final client2 = createTestClient(name: 'client2');
+
+      fakeVmService.isolates[isolateId] = vm.Isolate(
+        id: isolateId,
+        name: 'main',
+        number: '14',
+        pauseEvent: vm.Event(
+          kind: vm.EventKind.kPauseStart,
+          timestamp: DateTime.now().millisecondsSinceEpoch,
+        ),
+      );
+      await manager.initializeIsolates();
+      await pumpEventQueue();
+
+      await manager.requirePermissionToResume(
+        json_rpc.Parameters(
+          'requirePermissionToResume',
+          const <String, Object?>{'onPauseStart': true},
+        ),
+        client1,
+      );
+      await manager.readyToResume(
+        json_rpc.Parameters('readyToResume', const <String, Object?>{
+          'isolateId': isolateId,
+        }),
+        client2,
+      );
+
+      fakeVmService.resumeAttempts.clear();
+      fakeVmService.resumeError = vm.RPCError(
+        'resume',
+        vm.RPCErrorKind.kIsolateMustBePaused.code,
+        'Isolate must be paused',
+      );
+      manager.handleClientDisconnected(client1);
+      await pumpEventQueue();
+      expect(fakeVmService.resumeAttempts, equals(<String>[isolateId]));
+      expect(fakeVmService.resumedIsolates, isEmpty);
+    });
+
+    test('initializeIsolates does not block on pending getIsolate and does not '
+        'overwrite concurrent isolate events', () async {
+      const kNoneIsolateId = 'isolates/none';
+      const runningIsolateId = 'isolates/running';
+      const breakpointIsolateId = 'isolates/breakpoint';
+      const blockedFfiIsolateId = 'isolates/blocked_ffi';
+      const concurrentIsolateId = 'isolates/concurrent_event';
+
+      fakeVmService.isolates[kNoneIsolateId] = vm.Isolate(
+        id: kNoneIsolateId,
+        name: 'none',
+        number: '15',
+        pauseEvent: vm.Event(
+          kind: vm.EventKind.kNone,
+          timestamp: DateTime.now().millisecondsSinceEpoch,
+        ),
+      );
+      fakeVmService.isolates[runningIsolateId] = vm.Isolate(
+        id: runningIsolateId,
+        name: 'running',
+        number: '16',
+        pauseEvent: vm.Event(
+          kind: vm.EventKind.kResume,
+          timestamp: DateTime.now().millisecondsSinceEpoch,
+        ),
+      );
+      fakeVmService.isolates[breakpointIsolateId] = vm.Isolate(
+        id: breakpointIsolateId,
+        name: 'breakpoint',
+        number: '17',
+        pauseEvent: vm.Event(
+          kind: vm.EventKind.kPauseBreakpoint,
+          timestamp: DateTime.now().millisecondsSinceEpoch,
+        ),
+      );
+      fakeVmService.isolates[blockedFfiIsolateId] = vm.Isolate(
+        id: blockedFfiIsolateId,
+        name: 'blocked_ffi',
+        number: '18',
+      );
+      fakeVmService.isolates[concurrentIsolateId] = vm.Isolate(
+        id: concurrentIsolateId,
+        name: 'concurrent',
+        number: '19',
+      );
+
+      final blockedFfiCompleter = Completer<vm.Isolate>();
+      final concurrentCompleter = Completer<vm.Isolate>();
+      fakeVmService.getIsolateCompleters[blockedFfiIsolateId] =
+          blockedFfiCompleter;
+      fakeVmService.getIsolateCompleters[concurrentIsolateId] =
+          concurrentCompleter;
+
+      // initializeIsolates must complete even when getIsolate is blocked
+      // indefinitely (e.g., an isolate blocked in synchronous FFI code,
+      // b/323386606).
+      await manager.initializeIsolates();
+      await pumpEventQueue();
+
+      expect(manager.ddsIsolates[kNoneIsolateId]?.state, IsolateState.start);
+      expect(
+        manager.ddsIsolates[runningIsolateId]?.state,
+        IsolateState.running,
+      );
+      expect(
+        manager.ddsIsolates[breakpointIsolateId]?.state,
+        IsolateState.running,
+      );
+      expect(
+        manager.ddsIsolates[blockedFfiIsolateId]?.state,
+        IsolateState.unknown,
+      );
+
+      // Simulate a concurrent Debug stream PauseExit event arriving before
+      // getIsolate completes for concurrentIsolateId.
+      manager.handleIsolateEvent(
+        vm.Event(
+          kind: vm.EventKind.kPauseExit,
+          isolate: vm.IsolateRef(
+            id: concurrentIsolateId,
+            name: 'concurrent',
+            number: '19',
+          ),
+          timestamp: DateTime.now().millisecondsSinceEpoch,
+        ),
+      );
+      await pumpEventQueue();
+      expect(
+        manager.ddsIsolates[concurrentIsolateId]?.state,
+        IsolateState.pauseExit,
+      );
+
+      // Late getIsolate response (with kResume) must not overwrite the newer
+      // pauseExit state set by handleIsolateEvent.
+      concurrentCompleter.complete(
+        vm.Isolate(
+          id: concurrentIsolateId,
+          name: 'concurrent',
+          number: '19',
+          pauseEvent: vm.Event(
+            kind: vm.EventKind.kResume,
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+          ),
+        ),
+      );
+      await pumpEventQueue();
+
+      expect(
+        manager.ddsIsolates[concurrentIsolateId]?.state,
+        IsolateState.pauseExit,
+      );
+    });
+
+    test('readyToResume on isolate in running state (e.g. PauseBreakpoint) '
+        'does not resume VM or carry over to PauseExit, and null pauseEvent '
+        'maps to start', () async {
+      const nullPauseIsolateId = 'isolates/null_pause';
+      final devToolsClient = await registerResumeClient(
+        'DevTools',
+        onPauseExit: true,
+      );
+
+      fakeVmService.isolates[testIsolateId] = vm.Isolate(
+        id: testIsolateId,
+        name: 'main',
+        number: '1',
+        pauseEvent: vm.Event(
+          kind: vm.EventKind.kPauseBreakpoint,
+          timestamp: DateTime.now().millisecondsSinceEpoch,
+        ),
+      );
+      fakeVmService.isolates[nullPauseIsolateId] = vm.Isolate(
+        id: nullPauseIsolateId,
+        name: 'worker',
+        number: '2',
+      );
+      await manager.initializeIsolates();
+      await pumpEventQueue();
+
+      final isolate = manager.ddsIsolates[testIsolateId]!;
+      expect(isolate.state, IsolateState.running);
+
+      final response = await manager.readyToResume(
+        json_rpc.Parameters('readyToResume', const <String, Object?>{
+          'isolateId': testIsolateId,
+        }),
+        devToolsClient,
+      );
+      expect(response['type'], equals('Success'));
+      expect(fakeVmService.resumedIsolates, isEmpty);
+
+      await sendIsolateEvent(vm.EventKind.kPauseExit);
+      expect(fakeVmService.resumedIsolates, isEmpty);
+
+      await approveResume(devToolsClient);
+      expect(fakeVmService.resumedIsolates, equals(<String>[testIsolateId]));
+
+      fakeVmService.resumedIsolates.clear();
+      expect(
+        manager.ddsIsolates[nullPauseIsolateId]?.state,
+        IsolateState.start,
+      );
+      await approveResume(devToolsClient, nullPauseIsolateId);
+      expect(fakeVmService.resumedIsolates, isEmpty);
+
+      await sendIsolateEvent(vm.EventKind.kPauseStart, nullPauseIsolateId);
+      expect(
+        fakeVmService.resumedIsolates,
+        equals(<String>[nullPauseIsolateId]),
+      );
+    });
+  });
+}

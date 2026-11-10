@@ -21,6 +21,7 @@ template("copy_tree") {
   assert(defined(invoker.dest), "copy_tree must define 'dest'")
   source = invoker.source
   dest = invoker.dest
+
   action(target_name) {
     mnemonic = "COPY_TREE"
 
@@ -53,10 +54,11 @@ template("copy_tree") {
       ]
     }
 
-    outputs = [
-      stampfile,
-      dest,
-    ]
+    outputs = [ stampfile ]
+
+    # TODO(64886): Resolve output collision in the SDK.
+    # outputs += [ dest ]
+
     script = "$_dart_root/tools/copy_tree.py"
     args = common_args
   }

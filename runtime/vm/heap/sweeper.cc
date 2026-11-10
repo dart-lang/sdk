@@ -15,7 +15,7 @@
 
 namespace dart {
 
-intptr_t GCSweeper::SweepNewPage(Page* page) {
+void GCSweeper::SweepNewPage(Page* page) {
   ASSERT(!page->is_image());
   ASSERT(!page->is_old());
   ASSERT(!page->is_executable());
@@ -23,7 +23,6 @@ intptr_t GCSweeper::SweepNewPage(Page* page) {
   uword start = page->object_start();
   uword end = page->object_end();
   uword current = start;
-  intptr_t free = 0;
   while (current < end) {
     ObjectPtr raw_obj = UntaggedObject::FromAddr(current);
     ASSERT(Page::Of(raw_obj) == page);
@@ -49,12 +48,24 @@ intptr_t GCSweeper::SweepNewPage(Page* page) {
 #if defined(DEBUG)
       memset(reinterpret_cast<void*>(current), Heap::kZapByte, obj_size);
 #endif  // DEBUG
-      FreeListElement::AsElementNew(current, obj_size);
-      free += obj_size;
+      new_free_ += obj_size;
+      FreeListElement* element =
+          FreeListElement::AsElementNew(current, obj_size);
+      if (obj_size >= Scavenger::kMinTlabReuseSize) {
+        element->set_next(new_free_head_);
+        new_free_head_ = element;
+        if (new_free_tail_ == nullptr) new_free_tail_ = element;
+      }
     }
     current += obj_size;
   }
-  return free;
+}
+
+void GCSweeper::FinalizeNewSweep(Scavenger* new_space) {
+  new_space->AddSweepResults(new_free_, new_free_head_, new_free_tail_);
+  new_free_ = 0;
+  new_free_head_ = nullptr;
+  new_free_tail_ = nullptr;
 }
 
 bool GCSweeper::SweepPage(Page* page, FreeList* freelist) {

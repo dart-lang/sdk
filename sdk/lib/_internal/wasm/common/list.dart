@@ -50,7 +50,7 @@ abstract class WasmListBase<E> extends ListBase<E> {
     return GrowableList<E>(length)..setRange(0, length, this, start);
   }
 
-  void forEach(f(E element)) {
+  void forEach(Function(E element) f) {
     final initialLength = length;
     for (int i = 0; i < initialLength; i++) {
       f(unsafeCast<E>(_data[i]));
@@ -100,8 +100,10 @@ abstract class _ModifiableList<E> extends WasmListBase<E> {
         return;
       }
 
-      if (iterable is List) {
-        final iterableList = unsafeCast<List<E>>(iterable);
+      if (iterable case List<E> iterableList) {
+        if (skipCount + length > iterableList.length) {
+          throw IterableElementError.tooFew();
+        }
         for (int i = skipCount, j = start; i < skipCount + length; i++, j++) {
           _data[j] = iterableList[i];
         }
@@ -145,8 +147,7 @@ abstract class _ModifiableList<E> extends WasmListBase<E> {
       return;
     }
 
-    if (iterable is List) {
-      final iterableList = unsafeCast<List<E>>(iterable);
+    if (iterable case List<E> iterableList) {
       final elementCount = iterableList.length;
       RangeErrorUtils.checkValidRange(index, index + elementCount, length);
       for (int i = 0, j = index; i < elementCount; i++, j++) {
@@ -155,6 +156,7 @@ abstract class _ModifiableList<E> extends WasmListBase<E> {
       return;
     }
 
+    RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(index, length);
     for (var value in iterable) {
       this[index++] = value;
     }
@@ -200,7 +202,7 @@ class ModifiableFixedLengthList<E> extends _ModifiableList<E>
   // Used by pkg/dart2wasm/lib/list_factory_specializer.dart.
   factory ModifiableFixedLengthList.generate(
     int length,
-    E generator(int index),
+    E Function(int index) generator,
   ) {
     final result = ModifiableFixedLengthList<E>(length);
     for (int i = 0; i < result.length; ++i) {
@@ -420,7 +422,7 @@ class GrowableList<E> extends _ModifiableList<E> {
 
   // Specialization of List.generate constructor for growable == true.
   // Used by pkg/dart2wasm/lib/list_factory_specializer.dart.
-  factory GrowableList.generate(int length, E generator(int index)) {
+  factory GrowableList.generate(int length, E Function(int index) generator) {
     final result = GrowableList<E>(length);
     for (int i = 0; i < result.length; ++i) {
       result._data[i] = generator(i);

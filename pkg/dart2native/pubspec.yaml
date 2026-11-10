@@ -13,9 +13,9 @@ executables:
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
+  cli_util: any
   code_assets: any
   collection: any
-  front_end: any
   kernel: any
   path: any
 

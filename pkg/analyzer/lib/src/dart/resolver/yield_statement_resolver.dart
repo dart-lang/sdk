@@ -8,25 +8,25 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for resolving [YieldStatement]s.
 class YieldStatementResolver {
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _typeAnalyzer;
 
-  YieldStatementResolver({required ResolverVisitor resolver})
-    : _resolver = resolver;
+  new({required this._typeAnalyzer});
 
-  DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
+  DiagnosticReporter get _diagnosticReporter =>
+      _typeAnalyzer.diagnosticReporter;
 
-  TypeProviderImpl get _typeProvider => _resolver.typeProvider;
+  TypeProviderImpl get _typeProvider => _typeAnalyzer.typeProvider;
 
-  TypeSystemImpl get _typeSystem => _resolver.typeSystem;
+  TypeSystemImpl get _typeSystem => _typeAnalyzer.typeSystem;
 
   void resolve(YieldStatementImpl node) {
-    var bodyContext = _resolver.bodyContext;
+    var bodyContext = _typeAnalyzer.bodyContext;
     if (bodyContext != null && bodyContext.isGenerator) {
       _resolve_generator(bodyContext, node);
     } else {
@@ -47,13 +47,7 @@ class YieldStatementResolver {
       return false;
     }
 
-    if (expression is MethodInvocation) {
-      _diagnosticReporter.report(
-        diag.useOfVoidResult.at(expression.methodName),
-      );
-    } else {
-      _diagnosticReporter.report(diag.useOfVoidResult.at(expression));
-    }
+    _diagnosticReporter.report(diag.useOfVoidResult.at(expression));
 
     return true;
   }
@@ -86,7 +80,7 @@ class YieldStatementResolver {
         if (!_typeSystem.isAssignableTo(
           impliedReturnType,
           imposedReturnType,
-          strictCasts: _resolver.analysisOptions.strictCasts,
+          strictCasts: _typeAnalyzer.analysisOptions.strictCasts,
         )) {
           _diagnosticReporter.report(
             diag.yieldEachOfInvalidType
@@ -109,7 +103,7 @@ class YieldStatementResolver {
           if (!_typeSystem.isAssignableTo(
             expressionType,
             imposedValueType,
-            strictCasts: _resolver.analysisOptions.strictCasts,
+            strictCasts: _typeAnalyzer.analysisOptions.strictCasts,
           )) {
             _diagnosticReporter.report(
               diag.yieldOfInvalidType
@@ -139,7 +133,7 @@ class YieldStatementResolver {
       if (!_typeSystem.isAssignableTo(
         impliedReturnType,
         requiredReturnType,
-        strictCasts: _resolver.analysisOptions.strictCasts,
+        strictCasts: _typeAnalyzer.analysisOptions.strictCasts,
       )) {
         _diagnosticReporter.report(
           diag.yieldEachOfInvalidType
@@ -157,15 +151,16 @@ class YieldStatementResolver {
     BodyInferenceContext bodyContext,
     YieldStatementImpl node,
   ) {
-    _resolver.analyzeYieldStatement(
+    _typeAnalyzer.analyzeYieldStatement(
       node,
       node.expression2,
       isYieldStar: node.star != null,
+      suspensionOffset: node.semicolon.offset,
     );
-    _resolver.popRewrite();
+    _typeAnalyzer.popRewrite();
 
     if (node.star != null) {
-      _resolver.nullableDereferenceVerifier.expression(
+      _typeAnalyzer.nullableDereferenceVerifier.expression(
         diag.uncheckedUseOfNullableValueInYieldEach,
         node.expression2,
       );
@@ -182,11 +177,11 @@ class YieldStatementResolver {
   }
 
   void _resolve_notGenerator(YieldStatementImpl node) {
-    _resolver.analyzeExpression(
+    _typeAnalyzer.analyzeExpression(
       node.expression2,
-      _resolver.operations.unknownType,
+      _typeAnalyzer.operations.unknownType,
     );
-    _resolver.popRewrite();
+    _typeAnalyzer.popRewrite();
 
     _diagnosticReporter.report(
       (node.star != null

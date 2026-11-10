@@ -33,7 +33,7 @@ class Isolate {
 
   @patch
   static Future<Isolate> spawn<T>(
-    void entryPoint(T message),
+    void Function(T message) entryPoint,
     T message, {
     bool paused = false,
     bool errorsAreFatal = true,
@@ -93,30 +93,6 @@ class Isolate {
   @patch
   static Never exit([SendPort? finalMessagePort, Object? message]) =>
       _unsupported();
-
-  @patch
-  static Isolate create({String? debugName}) => _unsupported();
-
-  @patch
-  void shutdownSync() => _unsupported();
-
-  @patch
-  R runSync<R>(R Function() f) => _unsupported();
-
-  @patch
-  static bool pinToCurrentThread() => _unsupported();
-
-  @patch
-  bool get isPinnedToCurrentThread => _unsupported();
-
-  @patch
-  void runEventLoopSync() => _unsupported();
-
-  @patch
-  void set onEvent(void Function(Isolate) callback) => _unsupported();
-
-  @patch
-  void handleEvent() => _unsupported();
 }
 
 /// Default factory for receive ports.

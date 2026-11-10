@@ -4,7 +4,7 @@
 
 part of "dart:async";
 
-typedef void _AsyncCallback();
+typedef _AsyncCallback = void Function();
 
 class _AsyncCallbackEntry {
   final _AsyncCallback callback;

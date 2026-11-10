@@ -8,24 +8,21 @@ import "dart:io";
 
 import "process_test_util.dart";
 
-test(args) {
-  var future = Process.start(
+test(args) async {
+  var process = await Process.start(
     Platform.executable,
     []
       ..addAll(Platform.executableArguments)
       ..addAll(args),
   );
-  future.then((process) {
-    process.exitCode.then((exitCode) {
-      Expect.equals(0, exitCode);
-    });
-    // Drain stdout and stderr.
-    process.stdout.listen((_) {});
-    process.stderr.listen((_) {});
-  });
+  var exitCode = await process.exitCode;
+  Expect.equals(0, exitCode);
+  // Drain stdout and stderr.
+  await process.stdout.drain();
+  await process.stderr.drain();
 }
 
-main() {
+main() async {
   // Get the Dart script file which checks arguments.
   var scriptFile = new File(
     "tests/standalone/io/process_check_arguments_script.dart",
@@ -35,14 +32,14 @@ main() {
       "../tests/standalone/io/process_check_arguments_script.dart",
     );
   }
-  test([scriptFile.path, '3', '0', 'a']);
-  test([scriptFile.path, '3', '0', 'a b']);
-  test([scriptFile.path, '3', '0', 'a\tb']);
-  test([scriptFile.path, '3', '1', 'a\tb"']);
-  test([scriptFile.path, '3', '1', 'a"\tb']);
-  test([scriptFile.path, '3', '1', 'a"\t\\\\"b"']);
-  test([scriptFile.path, '4', '0', 'a\tb', 'a']);
-  test([scriptFile.path, '4', '0', 'a\tb', 'a\t\t\t\tb']);
-  test([scriptFile.path, '4', '0', 'a\tb', 'a    b']);
-  test([scriptFile.path, '5', '0', 'a\tb', 'a    b', '']);
+  await test([scriptFile.path, '3', '0', 'a']);
+  await test([scriptFile.path, '3', '0', 'a b']);
+  await test([scriptFile.path, '3', '0', 'a\tb']);
+  await test([scriptFile.path, '3', '1', 'a\tb"']);
+  await test([scriptFile.path, '3', '1', 'a"\tb']);
+  await test([scriptFile.path, '3', '1', 'a"\t\\\\"b"']);
+  await test([scriptFile.path, '4', '0', 'a\tb', 'a']);
+  await test([scriptFile.path, '4', '0', 'a\tb', 'a\t\t\t\tb']);
+  await test([scriptFile.path, '4', '0', 'a\tb', 'a    b']);
+  await test([scriptFile.path, '5', '0', 'a\tb', 'a    b', '']);
 }

@@ -115,10 +115,6 @@ class CompilerState : public ThreadStackResource {
   // Returns _StringBase._interpolateSingle
   const Function& StringBaseInterpolateSingle();
 
-  const Function& TypedListGetFloat32();
-  const Function& TypedListSetFloat32();
-  const Function& TypedListGetFloat64();
-  const Function& TypedListSetFloat64();
   const Function& TypedListGetFloat32x4();
   const Function& TypedListSetFloat32x4();
   const Function& TypedListGetInt32x4();
@@ -127,6 +123,14 @@ class CompilerState : public ThreadStackResource {
   const Function& TypedListSetFloat64x2();
 
   const Class& ErrorClass();
+
+  const Class& _ArrayClass();
+  const Class& FinalizerBaseClass();
+  const Class& TypedListBaseClass();
+  const Class& TypedListViewClass();
+  const Class& StringBaseClass();
+  const Class& LinkedHashBaseClass();
+  const Class& NativeFieldWrapperClass1Class();
 
   const Field& ErrorStackTraceField();
 
@@ -170,6 +174,13 @@ class CompilerState : public ThreadStackResource {
   const Function* interpolate_ = nullptr;
   const Function* interpolate_single_ = nullptr;
   const Class* typed_list_class_ = nullptr;
+  const Class* array_base_class_ = nullptr;
+  const Class* finalizer_base_class_ = nullptr;
+  const Class* typed_list_base_class_ = nullptr;
+  const Class* typed_list_view_class_ = nullptr;
+  const Class* string_base_class_ = nullptr;
+  const Class* linked_hash_base_class_ = nullptr;
+  const Class* native_field_wrapper_class1_class_ = nullptr;
   const Class* array_class_ = nullptr;
   const Class* compound_class_ = nullptr;
   const Class* struct_class_ = nullptr;
@@ -177,10 +188,6 @@ class CompilerState : public ThreadStackResource {
   const Field* compound_offset_in_bytes_field_ = nullptr;
   const Field* compound_typed_data_base_field_ = nullptr;
   const Field* error_stack_trace_field_ = nullptr;
-  const Function* typed_list_get_float32_ = nullptr;
-  const Function* typed_list_set_float32_ = nullptr;
-  const Function* typed_list_get_float64_ = nullptr;
-  const Function* typed_list_set_float64_ = nullptr;
   const Function* typed_list_get_float32x4_ = nullptr;
   const Function* typed_list_set_float32x4_ = nullptr;
   const Function* typed_list_get_int32x4_ = nullptr;
