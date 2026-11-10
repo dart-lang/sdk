@@ -7,10 +7,10 @@ import("../aot_snapshot.gni")
 import("../application_snapshot.gni")
 
 group("dartdev_aot") {
-  public_deps = [
-    ":copy_prebuilt_devtools",
-    ":dartdev_aot_snapshot",
-  ]
+  public_deps = [ ":dartdev_aot_snapshot" ]
+  if (dart_include_devtools) {
+    public_deps += [ ":copy_prebuilt_devtools" ]
+  }
 }
 
 aot_snapshot("dartdev_aot_profile_snapshot") {
@@ -32,10 +32,10 @@ aot_snapshot("dartdev_aot_snapshot") {
 }
 
 group("dartdev") {
-  public_deps = [
-    ":copy_dartdev_snapshot",
-    ":copy_prebuilt_devtools",
-  ]
+  public_deps = [ ":copy_dartdev_snapshot" ]
+  if (dart_include_devtools) {
+    public_deps += [ ":copy_prebuilt_devtools" ]
+  }
 }
 
 application_snapshot("generate_dartdev_snapshot") {
@@ -51,12 +51,14 @@ copy("copy_dartdev_snapshot") {
   outputs = [ "$root_out_dir/dartdev.dart.snapshot" ]
 }
 
-copy_tree("copy_prebuilt_devtools") {
-  visibility = [
-    ":dartdev",
-    ":dartdev_aot",
-  ]
-  source = "../../third_party/devtools/web"
-  dest = "$root_out_dir/devtools"
-  exclude = "{}"
+if (dart_include_devtools) {
+  copy_tree("copy_prebuilt_devtools") {
+    visibility = [
+      ":dartdev",
+      ":dartdev_aot",
+    ]
+    source = "../../third_party/devtools/web"
+    dest = "$root_out_dir/devtools"
+    exclude = "{}"
+  }
 }

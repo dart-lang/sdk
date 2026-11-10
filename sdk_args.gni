@@ -17,6 +17,11 @@ declare_args() {
   # The location in the build output directory of the built Dart SDK.
   dart_sdk_output = "dart-sdk"
 
+  # Include the DevTools web application in the SDK. DevTools ships as a
+  # prebuilt bundle fetched from CIPD, or is built from sources that live
+  # outside this tree, so a build that has neither can turn it off.
+  dart_include_devtools = true
+
   # When set to `true`, the Dart Runtime Service based implementation of the
   # VM service will be included in the build. By default, the legacy VM
   # service implementation will be launched by the VM, unless the
