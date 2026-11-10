@@ -69,7 +69,7 @@ suggestions
     relevance: 594
   v01
     kind: parameter
-    relevance: 578
+    relevance: 579
 ''');
   }
 
@@ -92,7 +92,7 @@ suggestions
     relevance: 588
   v01
     kind: parameter
-    relevance: 573
+    relevance: 574
 ''');
   }
 
@@ -116,7 +116,7 @@ replacement
 suggestions
   v02
     kind: parameter
-    relevance: 561
+    relevance: 562
   v01
     kind: class
     relevance: 522
@@ -146,7 +146,7 @@ replacement
 suggestions
   v02
     kind: parameter
-    relevance: 561
+    relevance: 562
   v01
     kind: functionInvocation
     relevance: 513
@@ -169,7 +169,7 @@ replacement
 suggestions
   v02
     kind: parameter
-    relevance: 561
+    relevance: 562
   v01
     kind: functionInvocation
     relevance: 513
@@ -192,10 +192,10 @@ replacement
 suggestions
   v01
     kind: parameter
-    relevance: 561
+    relevance: 562
   v02
     kind: parameter
-    relevance: 555
+    relevance: 556
 ''');
   }
 
@@ -213,10 +213,10 @@ replacement
 suggestions
   v01
     kind: parameter
-    relevance: 561
+    relevance: 562
   v02
     kind: parameter
-    relevance: 555
+    relevance: 556
 ''');
   }
 
@@ -240,10 +240,10 @@ suggestions
     relevance: 564
   v03
     kind: parameter
-    relevance: 561
+    relevance: 562
   v04
     kind: parameter
-    relevance: 555
+    relevance: 556
   v01
     kind: parameter
     relevance: 546
@@ -266,10 +266,10 @@ replacement
 suggestions
   v01
     kind: parameter
-    relevance: 561
+    relevance: 562
   v02
     kind: parameter
-    relevance: 555
+    relevance: 556
 ''');
   }
 
@@ -291,7 +291,7 @@ suggestions
     relevance: 575
   v01
     kind: parameter
-    relevance: 555
+    relevance: 556
 ''');
   }
 
@@ -316,7 +316,7 @@ suggestions
     relevance: 569
   v01
     kind: parameter
-    relevance: 550
+    relevance: 551
 ''');
   }
 
@@ -341,7 +341,7 @@ suggestions
     relevance: 569
   v01
     kind: parameter
-    relevance: 550
+    relevance: 551
 ''');
   }
 
@@ -363,7 +363,7 @@ suggestions
     relevance: 575
   v01
     kind: parameter
-    relevance: 555
+    relevance: 556
 ''');
   }
 
@@ -386,7 +386,7 @@ suggestions
     relevance: 575
   v01
     kind: parameter
-    relevance: 555
+    relevance: 556
 ''');
   }
 
