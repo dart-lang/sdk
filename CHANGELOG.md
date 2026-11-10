@@ -125,6 +125,8 @@ of 3.15 or greater. For more details, see
   bigints.
   For more details, see SDK issue [#64558][].
 
+- Added `jsThrow`, which throws an error without any Dart wrappers.
+
 [#64558]: https://github.com/dart-lang/sdk/issues/64558
 
 #### `dart:typed_data`
@@ -326,8 +328,6 @@ of 3.15 or greater. For more details, see
   bounded by a JS interop type (for example,
   `extension <T extends JSObject> on T`).
   For more details, see SDK issue [#61248][].
-
-- Added `jsThrow`, which throws an error without any Dart wrappers.
 
 #### `dart:mirrors`
 
