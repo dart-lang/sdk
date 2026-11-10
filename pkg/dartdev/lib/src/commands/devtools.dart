@@ -52,6 +52,10 @@ class DevToolsCommand extends DartdevCommand {
         ? sdk.devToolsBinaries
         : path.absolute(sdkDir, 'devtools');
 
+    if (!checkArtifactExists(devToolsBinaries)) {
+      return DartdevCommand.errorExitCode;
+    }
+
     final argList = await _performDDSCheck(args);
     final server = await DevToolsServer().serveDevToolsWithArgs(
       argList,
