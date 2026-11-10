@@ -5228,6 +5228,7 @@ Dart_GetNativeFieldsOfArgument(Dart_NativeArguments args,
                                int num_fields,
                                intptr_t* field_values) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  TransitionNativeToVM transition(arguments->thread());
   if ((arg_index < 0) || (arg_index >= arguments->NativeArgCount())) {
     return Api::NewError(
         "%s: argument 'arg_index' out of range. Expected 0..%d but saw %d.",
@@ -5276,6 +5277,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeIntegerArgument(Dart_NativeArguments args,
                                                       int index,
                                                       int64_t* value) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  TransitionNativeToVM transition(arguments->thread());
   if ((index < 0) || (index >= arguments->NativeArgCount())) {
     return Api::NewError(
         "%s: argument 'index' out of range. Expected 0..%d but saw %d.",
@@ -5294,6 +5296,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeBooleanArgument(Dart_NativeArguments args,
                                                       int index,
                                                       bool* value) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  TransitionNativeToVM transition(arguments->thread());
   if ((index < 0) || (index >= arguments->NativeArgCount())) {
     return Api::NewError(
         "%s: argument 'index' out of range. Expected 0..%d but saw %d.",
@@ -5311,6 +5314,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeDoubleArgument(Dart_NativeArguments args,
                                                      int index,
                                                      double* value) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+  TransitionNativeToVM transition(arguments->thread());
   if ((index < 0) || (index >= arguments->NativeArgCount())) {
     return Api::NewError(
         "%s: argument 'index' out of range. Expected 0..%d but saw %d.",

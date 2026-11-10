@@ -3566,11 +3566,38 @@
           ]
         },
         {
+          "name": "build dart (release asan)",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=release",
+            "--sanitizer=asan",
+            "iso_stress"
+          ]
+        },
+        {
+          "name": "build dart (release msan)",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=release",
+            "--sanitizer=msan",
+            "iso_stress"
+          ]
+        },
+        {
           "name": "build dart (release tsan)",
           "script": "tools/build.py",
           "arguments": [
             "--mode=release",
             "--sanitizer=tsan",
+            "iso_stress"
+          ]
+        },
+        {
+          "name": "build dart (release ubsan)",
+          "script": "tools/build.py",
+          "arguments": [
+            "--mode=release",
+            "--sanitizer=ubsan",
             "iso_stress"
           ]
         },
@@ -3611,7 +3638,7 @@
             "--arch=${arch}",
             "--copy-coredumps"
           ],
-          "shards": 4,
+          "shards": 8,
           "fileset": "vm"
         }
       ]
