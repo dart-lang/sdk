@@ -269,7 +269,7 @@ class PluginWatcher implements DriverWatcher {
         "Creating shared plugin folder at '${sharedPluginFolder.path}' for "
         "context root: '${contextRoot.root.path}' group $i",
       );
-      manager.sessionLogger.logInfo(
+      manager.sessionListener.logInfo(
         "Creating shared plugin folder at '${sharedPluginFolder.path}' for "
         "context root: '${contextRoot.root.path}' group $i",
       );
@@ -294,7 +294,7 @@ class PluginWatcher implements DriverWatcher {
         'Adding ${groupConfigurations.length} analyzer plugins for '
         "context root: '${contextRoot.root.path}' group $i",
       );
-      manager.sessionLogger.logInfo(
+      manager.sessionListener.logInfo(
         'Adding ${groupConfigurations.length} analyzer plugins for '
         "context root: '${contextRoot.root.path}' group $i",
       );

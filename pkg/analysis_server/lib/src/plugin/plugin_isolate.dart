@@ -12,7 +12,7 @@ import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/server_isolate_channel.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
-import 'package:analysis_server/src/session_logger/session_logger.dart';
+import 'package:analysis_server/src/session_logger/session_listener.dart';
 import 'package:analyzer/dart/analysis/context_root.dart' as analyzer;
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -55,8 +55,8 @@ class PluginIsolate {
   /// The instrumentation service that is being used by the analysis server.
   final InstrumentationService _instrumentationService;
 
-  /// The session logger that is to be used by the isolate.
-  final SessionLogger sessionLogger;
+  /// The session listener that is to be used by the isolate.
+  final SessionListener sessionListener;
 
   /// The context roots that are currently using the results produced by the
   /// plugin.
@@ -84,7 +84,7 @@ class PluginIsolate {
     this.packageConfigPath,
     this._notificationManager,
     this._instrumentationService,
-    this.sessionLogger, {
+    this.sessionListener, {
     required this.isLegacy,
   }) {
     // TODO(srawlins): Also print to stdout if this is `dart analyze` or
@@ -309,7 +309,7 @@ class PluginIsolate {
       Uri.file(executionPath!, windows: platform.isWindows),
       Uri.file(packageConfigPath!, windows: platform.isWindows),
       _instrumentationService,
-      sessionLogger,
+      sessionListener,
     );
   }
 
@@ -494,7 +494,7 @@ class PluginSession {
             "Plugin cannot handle request '${request.method}' with parameters: "
             '$parameters.',
           );
-          _isolate.sessionLogger.logInfo(
+          _isolate.sessionListener.logInfo(
             "Plugin cannot handle request '${request.method}' with parameters: "
             '$parameters.',
           );
