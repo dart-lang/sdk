@@ -1446,15 +1446,12 @@ extension JSAnyToFutureOr on JSAny? {
 
 JSAny _convertError(Object error, StackTrace stackTrace) {
   if (error.isA<JSAny>()) return error as JSAny;
-  final errorConstructor = globalContext['Error'] as JSFunction;
-  final wrapper = errorConstructor.callAsConstructor<JSObject>(
-    "Wrapped Dart error thrown from converted Future. See 'error'"
-            "and 'stack' properties.\n$error"
-        .toJS,
-  );
-  wrapper['error'] = error.toJSBox;
-  wrapper['stack'] = stackTrace.toString().toJS;
-  return wrapper;
+  return JSError(
+      "Wrapped Dart error thrown from converted Future. See 'error'"
+      "and 'stack' properties.\n$error",
+    )
+    ..['error'] = error.toJSBox
+    ..['stack'] = stackTrace.toString().toJS;
 }
 
 /// Conversions from [Future] to [JSPromise] where the [Future] returns a value.
@@ -1535,7 +1532,7 @@ external JSArray<JSString> _getOwnPropertyNames(JSObject object);
 /// The type of error produced when [FutureOfJSAnyToJSPromise.toJS] or
 /// [FutureOfVoidToJSPromise.toJS] catches a Dart exception.
 @Since('3.14')
-extension type WrappedPromiseError._(JSObject _) implements JSObject {
+extension type WrappedPromiseError._(JSError _) implements JSError {
   /// The Dart error that was originally thrown.
   external JSBoxedDartObject get error;
 
