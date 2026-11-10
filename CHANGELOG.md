@@ -125,6 +125,10 @@ of 3.15 or greater. For more details, see
   bigints.
   For more details, see SDK issue [#64558][].
 
+- Added `WrappedPromiseError` to represent the error type produced by
+  `FutureOfJSAnyToJSPromise.toJS` and `FutureOfVoidToJSPromise.toJS` when they
+  wrap a Dart error.
+
 [#64558]: https://github.com/dart-lang/sdk/issues/64558
 
 ### Tools
@@ -270,10 +274,6 @@ of 3.15 or greater. For more details, see
   values (`JSAny`) through directly to the rejected promise without
   wrapping them. Only Dart errors are wrapped in a JS `Error`.
   For more details, see SDK issue [#61353][].
-
-- Added `WrappedPromiseError` to represent the error type produced by
-  `FutureOfJSAnyToJSPromise.toJS` and `FutureOfVoidToJSPromise.toJS` when they
-  wrap a Dart error.
 
 - Added extension methods `JSArray<JSNumber>.toDartDoubleList` and
   `JSArray<JSNumber>.toDartIntList` (`JSArrayOfJSNumberToList`);

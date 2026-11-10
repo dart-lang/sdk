@@ -1531,7 +1531,7 @@ external JSArray<JSString> _getOwnPropertyNames(JSObject object);
 
 /// The type of error produced when [FutureOfJSAnyToJSPromise.toJS] or
 /// [FutureOfVoidToJSPromise.toJS] catches a Dart exception.
-@Since('3.14')
+@Since('3.15')
 extension type WrappedPromiseError._(JSError _) implements JSError {
   /// The Dart error that was originally thrown.
   external JSBoxedDartObject get error;
