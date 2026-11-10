@@ -453,7 +453,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   }
 
   bool _localIsInitialized(ir.Local local) {
-    return _localInitialized[local.index];
+    return !_reachable || _localInitialized[local.index];
   }
 
   void _resetLocalInitialization(Label label) {
