@@ -298,7 +298,7 @@ final class MessageScheduler {
         null,
         attachments,
       );
-      server.sessionLogger.logException(
+      server.sessionListener.logException(
         exception: fatalException,
         attachments: attachments,
       );

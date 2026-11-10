@@ -715,7 +715,7 @@ class LegacyAnalysisServer extends AnalysisServer {
           instrumentationService.logError(
             'Unknown notification ${notification.event}',
           );
-          sessionLogger.logException(
+          sessionListener.logException(
             exception: 'Unknown notification ${notification.event}',
           );
         }
@@ -809,7 +809,7 @@ class LegacyAnalysisServer extends AnalysisServer {
             null,
             attachments,
           );
-          sessionLogger.logException(
+          sessionListener.logException(
             exception: fatalException,
             attachments: attachments,
           );

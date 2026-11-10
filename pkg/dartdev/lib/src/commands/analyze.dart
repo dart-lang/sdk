@@ -116,7 +116,9 @@ class AnalyzeCommand extends DartdevCommand {
       )
       ..addFlag(
         'plugins',
-        help: 'Use analyzer plugins.',
+        help:
+            'Use analyzer plugins. Defaults to true when the CI environment '
+            'variable is set.',
         defaultsTo: null,
       )
       ..addFlag(
@@ -280,6 +282,10 @@ class AnalyzeCommand extends DartdevCommand {
     final targetsNames = targets
         .map((entity) => path.basename(entity.path))
         .join(', ');
+    final usePlugins = resolveUsePlugins(
+      pluginsFlag: args.wasParsed('plugins') ? args.flag('plugins') : null,
+      neverTrustPlugins: neverTrustPlugins,
+    );
     final server = LspAnalysisServer(
       _packagesFile(),
       sdkPath,
@@ -287,7 +293,7 @@ class AnalyzeCommand extends DartdevCommand {
       cacheDirectoryPath: args.option('cache'),
       commandName: 'analyze',
       argResults: args,
-      usePlugins: args.wasParsed('plugins') ? args.flag('plugins') : null,
+      usePlugins: usePlugins,
       trustPlugins: trustPlugins,
       alwaysTrustPlugins: alwaysTrustPlugins,
       neverTrustPlugins: neverTrustPlugins,
@@ -700,6 +706,37 @@ class AnalyzeCommand extends DartdevCommand {
   /// Converts a line or column number from 0-based (LSP) to 1-based.
   static int lspToUser(int i) {
     return i + 1;
+  }
+
+  /// Resolves whether plugins should be enabled for an `analyze` invocation.
+  ///
+  /// Pass a value for [pluginsFlag] if `--plugins` or `--no-plugins` is
+  /// explicitly given. Pass `neverTrustPlugins: true` if
+  /// `--never-trust-plugins` is given.
+  ///
+  /// Returns [pluginsFlag] if given, `false` if [neverTrustPlugins], and
+  /// otherwise returns `true` when [environment] has a truthy `CI`
+  /// variable, and `null` otherwise. `null` means that no direction was given
+  /// at the command-line. (`--always-trust-plugins` is not taken into account
+  /// here.)
+  @visibleForTesting
+  static bool? resolveUsePlugins({
+    required bool? pluginsFlag,
+    required bool neverTrustPlugins,
+    Map<String, String>? environment,
+  }) {
+    if (pluginsFlag != null) {
+      return pluginsFlag;
+    }
+    if (!neverTrustPlugins && _isCi(environment ?? io.Platform.environment)) {
+      return true;
+    }
+    return null;
+  }
+
+  static bool _isCi(Map<String, String> environment) {
+    final ci = environment['CI']?.trim().toLowerCase();
+    return const {'true', '1', 'yes'}.contains(ci);
   }
 }
 

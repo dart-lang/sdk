@@ -474,8 +474,7 @@ class CodeViewElement extends CustomElement implements Renderable {
       HTMLTableCellElement cell = tr.cells.item(i) as HTMLTableCellElement;
       final content = row.values[i];
       if (content is S.HeapObject) {
-        cell.textContent = '';
-        cell.append(anyRef(_isolate, content, _objects, queue: _r.queue));
+        cell.innerHTML = anyRef(_isolate, content, _objects, queue: _r.queue);
       } else if (content != null) {
         String text = '$content';
         if (i == kDisassemblyColumnIndex) {

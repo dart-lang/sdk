@@ -243,7 +243,7 @@ class HttpDate {
     if (format == formatAsctime) {
       month = expectMonth();
       expectChar(_CharCode.SP);
-      if (source.codeUnitAt(index) == _CharCode.SP) index++;
+      if (index < end && source.codeUnitAt(index) == _CharCode.SP) index++;
       day = expectNum(2);
       expectChar(_CharCode.SP);
       hours = expectNum(2);

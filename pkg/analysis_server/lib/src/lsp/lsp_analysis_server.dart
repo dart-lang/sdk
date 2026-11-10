@@ -364,7 +364,7 @@ class LspAnalysisServer extends AnalysisServer {
         'MessageScheduler.allowOverlappingHandlers set to '
         '$allowOverlappingHandlers by LSP client initializationOptions',
       );
-      sessionLogger.logInfo(
+      sessionListener.logInfo(
         'MessageScheduler.allowOverlappingHandlers set to '
         '$allowOverlappingHandlers by LSP client initializationOptions',
       );
@@ -577,7 +577,7 @@ class LspAnalysisServer extends AnalysisServer {
     var fatalException = FatalException(message, exception, stackTrace);
     var attachments = crashReportingAttachmentsBuilder.forException(exception);
     instrumentationService.logException(fatalException, null, attachments);
-    sessionLogger.logException(
+    sessionListener.logException(
       exception: fatalException,
       attachments: attachments,
     );
@@ -1039,7 +1039,7 @@ class LspAnalysisServer extends AnalysisServer {
     // is an unhandled exception that was not awaited and is almost certainly a
     // bug.
     instrumentationService.logException(error, stackTrace);
-    sessionLogger.logException(exception: error, stackTrace: stackTrace);
+    sessionListener.logException(exception: error, stackTrace: stackTrace);
 
     sendServerErrorNotification('Unhandled handler error', error, stackTrace);
   }

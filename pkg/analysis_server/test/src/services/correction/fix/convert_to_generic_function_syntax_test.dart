@@ -101,6 +101,15 @@ g(String Function(int x) f, int Function() h) {}
 ''', isParse: true);
   }
 
+  Future<void> test_singleFile_declaring() async {
+    await parseTestCode('''
+class E(final int f(String s), var g(int x)) {}
+''');
+    await assertHasFix('''
+class E(final int Function(String s) f, var Function(int x) g) {}
+''', isParse: true);
+  }
+
   @failingTest
   Future<void> test_singleFile_nested() async {
     // Only the outer function gets converted.
@@ -122,6 +131,130 @@ class UseFunctionTypeSyntaxForParametersTest
   @override
   String get lintCode => LintNames.use_function_type_syntax_for_parameters;
 
+  Future<void> test_functionTypedParameter_declaring_annotation() async {
+    await resolveTestCode('''
+class E(@deprecated final int ^f(String s)) {}
+''');
+    await assertHasFix('''
+class E(@deprecated final int Function(String s) f) {}
+''');
+  }
+
+  Future<void> test_functionTypedParameter_declaring_defaultValue() async {
+    await resolveTestCode('''
+int id(String s) => 0;
+class E({final int ^f(String s) = id}) {}
+''');
+    await assertHasFix('''
+int id(String s) => 0;
+class E({final int Function(String s) f = id}) {}
+''');
+  }
+
+  Future<void> test_functionTypedParameter_declaring_docComment() async {
+    await resolveTestCode('''
+class E(
+  /// The callback.
+  final int ^f(String s),
+) {}
+''');
+    await assertHasFix('''
+class E(
+  /// The callback.
+  final int Function(String s) f,
+) {}
+''');
+  }
+
+  Future<void> test_functionTypedParameter_declaring_enum() async {
+    await resolveTestCode('''
+int id(String s) => 0;
+enum E(final int ^f(String s)) {
+  a(id);
+}
+''');
+    await assertHasFix('''
+int id(String s) => 0;
+enum E(final int Function(String s) f) {
+  a(id);
+}
+''');
+  }
+
+  Future<void>
+  test_functionTypedParameter_declaring_extensionType_final() async {
+    await resolveTestCode('''
+extension type E(final int ^f(String s)) {}
+''');
+    await assertHasFix('''
+extension type E(final int Function(String s) f) {}
+''');
+  }
+
+  Future<void> test_functionTypedParameter_declaring_extensionType_var() async {
+    // `var` is illegal on a representation field. The field stays final.
+    await resolveTestCode('''
+extension type E(var int ^f(String s)) {}
+''');
+    await assertHasFix('''
+extension type E(int Function(String s) f) {}
+''', filter: (diagnostic) => '${diagnostic.diagnosticCode}' == lintCode);
+  }
+
+  Future<void> test_functionTypedParameter_declaring_final() async {
+    await resolveTestCode('''
+class E(final int ^f(String s)) {}
+''');
+    await assertHasFix('''
+class E(final int Function(String s) f) {}
+''');
+  }
+
+  Future<void> test_functionTypedParameter_declaring_nullable() async {
+    await resolveTestCode('''
+class E(final int ^f(String s)?) {}
+''');
+    await assertHasFix('''
+class E(final int Function(String s)? f) {}
+''');
+  }
+
+  Future<void> test_functionTypedParameter_declaring_requiredNamed() async {
+    await resolveTestCode('''
+class E({required final int ^f(String s)}) {}
+''');
+    await assertHasFix('''
+class E({required final int Function(String s) f}) {}
+''');
+  }
+
+  Future<void> test_functionTypedParameter_declaring_typeParameters() async {
+    await resolveTestCode('''
+class E(final void ^f<T>(T t)) {}
+''');
+    await assertHasFix('''
+class E(final void Function<T>(T t) f) {}
+''');
+  }
+
+  Future<void> test_functionTypedParameter_declaring_var() async {
+    await resolveTestCode('''
+class E(var ^f(String s)) {}
+''');
+    await assertHasFix('''
+class E(var Function(String s) f) {}
+''');
+  }
+
+  Future<void> test_functionTypedParameter_declaring_varWithReturnType() async {
+    await resolveTestCode('''
+class E(var int ^f(String s)) {}
+''');
+    await assertHasFix('''
+class E(var int Function(String s) f) {}
+''');
+  }
+
   Future<void> test_functionTypedParameter_fieldFormal() async {
     await resolveTestCode('''
 class C {
@@ -135,6 +268,21 @@ class C {
   C(String Function(int x) this.f);
 }
 ''');
+  }
+
+  Future<void> test_functionTypedParameter_fieldFormal_final() async {
+    await resolveTestCode('''
+class C {
+  String Function(int) f;
+  C(final String this.f(int x));
+}
+''');
+    await assertHasFix('''
+class C {
+  String Function(int) f;
+  C(String Function(int x) this.f);
+}
+''', filter: (diagnostic) => '${diagnostic.diagnosticCode}' == lintCode);
   }
 
   Future<void> test_functionTypedParameter_noParameterTypes() async {
@@ -151,6 +299,19 @@ g(List<String> f()?) {}
     await assertHasFix('''
 g(List<String> Function()? f) {}
 ''');
+  }
+
+  Future<void> test_functionTypedParameter_ordinaryMethod_final() async {
+    await resolveTestCode('''
+class C {
+  void m(final int ^f(String s)) {}
+}
+''');
+    await assertHasFix('''
+class C {
+  void m(int Function(String s) f) {}
+}
+''', filter: (diagnostic) => '${diagnostic.diagnosticCode}' == lintCode);
   }
 
   Future<void> test_functionTypedParameter_primaryConstructor() async {
@@ -197,6 +358,25 @@ class D extends C {
   D(String Function(int x) super.f);
 }
 ''');
+  }
+
+  Future<void> test_functionTypedParameter_superParameter_final() async {
+    await resolveTestCode('''
+class C {
+  C(String Function(int x) f);
+}
+class D extends C {
+  D(final String super.f(int x));
+}
+''');
+    await assertHasFix('''
+class C {
+  C(String Function(int x) f);
+}
+class D extends C {
+  D(String Function(int x) super.f);
+}
+''', filter: (diagnostic) => '${diagnostic.diagnosticCode}' == lintCode);
   }
 
   Future<void> test_typeParameters() async {

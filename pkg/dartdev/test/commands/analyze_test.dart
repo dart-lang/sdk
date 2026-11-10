@@ -918,6 +918,129 @@ plugins:
       });
 
       test(
+        'resolveUsePlugins respects flags, CI values, and neverTrustPlugins',
+        () {
+          expect(
+            AnalyzeCommand.resolveUsePlugins(
+              pluginsFlag: null,
+              neverTrustPlugins: false,
+              environment: const {},
+            ),
+            isNull,
+          );
+          for (final truthy in const ['true', 'TRUE', ' True ', '1', 'yes']) {
+            expect(
+              AnalyzeCommand.resolveUsePlugins(
+                pluginsFlag: null,
+                neverTrustPlugins: false,
+                environment: {'CI': truthy},
+              ),
+              isTrue,
+              reason: 'CI=$truthy should enable plugins',
+            );
+          }
+          for (final falsy in const ['', '   ', 'false', 'FALSE', '0', 'no']) {
+            expect(
+              AnalyzeCommand.resolveUsePlugins(
+                pluginsFlag: null,
+                neverTrustPlugins: false,
+                environment: {'CI': falsy},
+              ),
+              isNull,
+              reason: 'CI=$falsy should not enable plugins',
+            );
+          }
+          expect(
+            AnalyzeCommand.resolveUsePlugins(
+              pluginsFlag: false,
+              neverTrustPlugins: false,
+              environment: const {'CI': 'true'},
+            ),
+            isFalse,
+          );
+          expect(
+            AnalyzeCommand.resolveUsePlugins(
+              pluginsFlag: true,
+              neverTrustPlugins: true,
+              environment: const {},
+            ),
+            isTrue,
+          );
+          expect(
+            AnalyzeCommand.resolveUsePlugins(
+              pluginsFlag: null,
+              neverTrustPlugins: true,
+              environment: const {'CI': 'true'},
+            ),
+            isNull,
+          );
+        },
+      );
+
+      test(
+        'CI environment variable enables plugins without persisting trust',
+        () async {
+          p = project(
+            mainSrc: 'int get foo => 1;\n',
+            analysisOptions: '''
+plugins:
+  my_plugin:
+    path: tools/my_plugin
+''',
+          );
+          final resolvedDirPath = p.dir.resolveSymbolicLinksSync();
+          final pluginPath = path.join(p.dirPath, 'tools', 'my_plugin');
+          final source = PathPluginSource(path: pluginPath);
+
+          var ciResult = await p.runAnalyze(
+            [p.dirPath],
+            environment: {'CI': 'true'},
+          );
+          expect(ciResult.exitCode, 0);
+          expect(
+            ciResult.stdout,
+            isNot(contains('not run because they are not trusted.')),
+          );
+          expect(
+            trustForProject(p).getTrust('my_plugin', source),
+            TrustSetting.unset,
+          );
+
+          // Explicit --no-plugins overrides CI=true.
+          var noPluginsResult = await p.runAnalyze(
+            ['--no-plugins', p.dirPath],
+            environment: {'CI': 'true'},
+          );
+          expect(noPluginsResult.exitCode, 0);
+          expect(
+            noPluginsResult.stdout,
+            isNot(contains('not run because they are not trusted.')),
+          );
+          expect(
+            trustForProject(p).getTrust('my_plugin', source),
+            TrustSetting.unset,
+          );
+
+          // Falsy CI values do not bypass plugin trust.
+          for (final falsy in const ['false', '0', '']) {
+            var result = await p.runAnalyze(
+              [p.dirPath],
+              environment: {'CI': falsy},
+            );
+            expect(result.exitCode, 0);
+            expect(
+              result.stdout,
+              contains(
+                "Analyzer plugins are configured in '$resolvedDirPath', but "
+                'were not run because they are not trusted.',
+              ),
+              reason: 'CI=$falsy should not bypass plugin trust',
+            );
+          }
+        },
+      );
+
+      test(
         '--trust-plugins, --always-trust-plugins, and --never-trust-plugins '
         'persist trust state and are mutually exclusive',
         () async {

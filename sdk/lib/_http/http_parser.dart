@@ -1220,6 +1220,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
 
       case _State.HEADER_VALUE_START:
       case _State.HEADER_VALUE:
+      case _State.HEADER_VALUE_FOLD_OR_END:
         method = "Header value";
         break;
 

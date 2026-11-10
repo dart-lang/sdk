@@ -120,7 +120,7 @@ class DtdServices {
       }
     } catch (error, stackTrace) {
       _server.instrumentationService.logException(error, stackTrace);
-      _server.sessionLogger.logException(
+      _server.sessionListener.logException(
         exception: error,
         stackTrace: stackTrace,
       );
@@ -151,7 +151,7 @@ class DtdServices {
       _server.instrumentationService.logInfo(
         'Error closing DTD connection:\n$error\n$stack',
       );
-      _server.sessionLogger.logInfo(
+      _server.sessionListener.logInfo(
         'Error closing DTD connection:\n$error\n$stack',
       );
     }
@@ -221,13 +221,13 @@ class DtdServices {
         responseCompleter: completer,
       ),
     );
-    _server.sessionLogger.logMessage(
+    _server.sessionListener.logMessage(
       from: ProcessId.dtd,
       to: ProcessId.server,
       message: message.toJson(),
     );
     var response = await completer.future;
-    _server.sessionLogger.logMessage(
+    _server.sessionListener.logMessage(
       from: ProcessId.server,
       to: ProcessId.dtd,
       message: response,
@@ -243,7 +243,7 @@ class DtdServices {
       ['Failed to connect to/initialize DTD:', error, ?stack].join('\n'),
     );
     if (error != null && stack is StackTrace?) {
-      _server.sessionLogger.logException(
+      _server.sessionListener.logException(
         exception: [
           'Failed to connect to/initialize DTD:',
           error,
@@ -272,7 +272,7 @@ class DtdServices {
     var event = 'initialized';
     var params = <String, Object?>{};
     // Ensure this shows up in the log to aid debugging.
-    _server.sessionLogger.logMessage(
+    _server.sessionListener.logMessage(
       from: ProcessId.server,
       to: ProcessId.dtd,
       message: {'event': event, 'params': params},

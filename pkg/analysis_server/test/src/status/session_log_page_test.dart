@@ -54,7 +54,7 @@ class SessionLogPageTest extends PubPackageAnalysisServerTest {
   }
 
   Future<void> test_handlePost_toggleCapture() async {
-    var sink = server.sessionLogger.sink as SessionLoggerInMemorySink;
+    var sink = server.sessionLogger?.sink as SessionLoggerInMemorySink;
     expect(sink.isCapturingEntries, isFalse);
 
     await page.handlePost({'capture-entries': 'true'});

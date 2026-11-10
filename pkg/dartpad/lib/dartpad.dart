@@ -82,7 +82,7 @@ final class DartPadSdk {
       ),
     );
     final worker = web.Worker(
-      blobUrl,
+      blobUrl.toJS,
       web.WorkerOptions(name: 'dartpad-worker', type: 'module'),
     );
     final errorSub = web.EventStreamProviders.errorEvent
@@ -140,7 +140,7 @@ final class DartPadSdk {
       },
     );
     final sharedWorker = web.SharedWorker(
-      url.toString(),
+      url.toString().toJS,
       web.WorkerOptions(name: 'dartpad-worker', type: 'module'),
     )..port.start();
 
@@ -335,7 +335,7 @@ final class DartPadSdk {
       sandboxJs: _assetBaseUrl.resolve('sandbox.js'),
       headHtml: headHtml,
       bodyHtml: bodyHtml,
-    );
+    ).toJS;
     final port = await _waitForConnectPort(
       container,
       iframe,

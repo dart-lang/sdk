@@ -858,6 +858,25 @@
     },
     {
       "builders": [
+        "vm-aot-android-debug-riscv64",
+        "vm-aot-android-release-riscv64"
+      ],
+      "meta": {
+        "description": "Build-only configuration."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--os=android",
+            "android_bot"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
         "vm-aot-android-debug-x64c",
         "vm-aot-android-release-x64c"
       ],
@@ -2253,58 +2272,15 @@
           "name": "ddc sdk tests",
           "arguments": [
             "-nddc-${system}-firefox",
+            "-j4",
+            "co19",
             "corelib",
             "dartdevc",
             "language",
             "lib",
             "web"
           ],
-          "shards": 6,
-          "fileset": "js_platform"
-        },
-        {
-          "name": "ddc co19 Language tests",
-          "arguments": [
-            "-nddc-${system}-firefox",
-            "co19/Language"
-          ],
-          "shards": 3,
-          "fileset": "js_platform"
-        },
-        {
-          "name": "ddc co19 LanguageFeatures tests",
-          "arguments": [
-            "-nddc-${system}-firefox",
-            "co19/LanguageFeatures"
-          ],
-          "shards": 3,
-          "fileset": "js_platform"
-        },
-        {
-          "name": "ddc co19 LibTest tests",
-          "arguments": [
-            "-nddc-${system}-firefox",
-            "co19/LibTest"
-          ],
-          "shards": 3,
-          "fileset": "js_platform"
-        },
-        {
-          "name": "ddc co19 TypeSystem tests",
-          "arguments": [
-            "-nddc-${system}-firefox",
-            "co19/TypeSystem"
-          ],
-          "shards": 3,
-          "fileset": "js_platform"
-        },
-        {
-          "name": "ddc co19 Utils tests",
-          "arguments": [
-            "-nddc-${system}-firefox",
-            "co19/Utils"
-          ],
-          "shards": 3,
+          "shards": 12,
           "fileset": "js_platform"
         }
       ]

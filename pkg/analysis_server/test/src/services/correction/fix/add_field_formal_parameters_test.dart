@@ -91,6 +91,26 @@ class Foo {
 ''');
   }
 
+  Future<void> test_constConstructor_lint() async {
+    createAnalysisOptionsFile(
+      lints: [LintNames.always_put_required_named_parameters_first],
+    );
+    await resolveTestCode('''
+class C {
+  const C();
+
+  final int i;
+}
+''');
+    await assertHasFix('''
+class C {
+  const C({required this.i});
+
+  final int i;
+}
+''');
+  }
+
   Future<void> test_enum() async {
     await resolveTestCode('''
 enum MyEnum {
@@ -271,6 +291,94 @@ class Test {
 ''');
   }
 
+  Future<void> test_hasNoParameters_lint() async {
+    createAnalysisOptionsFile(
+      lints: [LintNames.always_put_required_named_parameters_first],
+    );
+    await resolveTestCode('''
+class Foo {
+  Foo();
+
+  final int i;
+  final int j;
+}
+''');
+    await assertHasFix('''
+class Foo {
+  Foo({required this.i, required this.j});
+
+  final int i;
+  final int j;
+}
+''');
+  }
+
+  Future<void> test_hasNoParameters_lint_initializer() async {
+    createAnalysisOptionsFile(
+      lints: [LintNames.always_put_required_named_parameters_first],
+    );
+    await resolveTestCode('''
+class C {
+  C() : assert(true);
+
+  final int i;
+}
+''');
+    await assertHasFix('''
+class C {
+  C({required this.i}) : assert(true);
+
+  final int i;
+}
+''');
+  }
+
+  Future<void> test_hasNoParameters_lint_private() async {
+    createAnalysisOptionsFile(
+      lints: [LintNames.always_put_required_named_parameters_first],
+    );
+    await resolveTestCode('''
+class C {
+  C();
+
+  final int _foo;
+}
+''');
+    await assertHasFix(
+      '''
+class C {
+  C({required this._foo});
+
+  final int _foo;
+}
+''',
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode == diag.finalNotInitializedConstructor1,
+    );
+  }
+
+  Future<void> test_hasNoParameters_lint_requiredFirst() async {
+    createAnalysisOptionsFile(
+      lints: [LintNames.always_put_required_named_parameters_first],
+    );
+    await resolveTestCode('''
+class Foo {
+  Foo();
+
+  final int? i;
+  final int j;
+}
+''');
+    await assertHasFix('''
+class Foo {
+  Foo({required this.j, this.i});
+
+  final int? i;
+  final int j;
+}
+''');
+  }
+
   Future<void> test_hasOptionalPositionalParameter() async {
     await resolveTestCode('''
 class Test {
@@ -321,6 +429,30 @@ class Test {
 ''');
   }
 
+  Future<void> test_hasRequiredParameter_lint() async {
+    createAnalysisOptionsFile(
+      lints: [LintNames.always_put_required_named_parameters_first],
+    );
+    await resolveTestCode('''
+class Foo {
+  Foo(this.a);
+
+  final int a;
+  final int? b;
+  final int c;
+}
+''');
+    await assertHasFix('''
+class Foo {
+  Foo(this.a, {required this.c, this.b});
+
+  final int a;
+  final int? b;
+  final int c;
+}
+''');
+  }
+
   Future<void> test_inPrimaryConstructor_named() async {
     await resolveTestCode('''
 class Test.named(this.a) {
@@ -349,6 +481,67 @@ class Test(this.a, {required this.b}) {
   final int b;
 }
 ''');
+  }
+
+  Future<void> test_inPrimaryConstructor_unnamed_lint() async {
+    createAnalysisOptionsFile(
+      lints: [LintNames.always_put_required_named_parameters_first],
+    );
+    await resolveTestCode('''
+class Foo() {
+  final int i;
+  final int j;
+}
+''');
+    await assertHasFix('''
+class Foo({required this.i, required this.j}) {
+  final int i;
+  final int j;
+}
+''');
+  }
+
+  Future<void> test_namedConstructors() async {
+    await resolveTestCode('''
+class C {
+  C();
+  C._();
+  C.named();
+
+  final int field;
+}
+''');
+    await assertHasFix('''
+class C {
+  C({required this.field});
+  C._();
+  C.named();
+
+  final int field;
+}
+''', filter: (diagnostic) => diagnostic.offset == testCode.indexOf('C()'));
+    await assertHasFix('''
+class C {
+  C();
+  C._({required this.field});
+  C.named();
+
+  final int field;
+}
+''', filter: (diagnostic) => diagnostic.offset == testCode.indexOf('C._()'));
+    await assertHasFix(
+      '''
+class C {
+  C();
+  C._();
+  C.named({required this.field});
+
+  final int field;
+}
+''',
+      filter: (diagnostic) =>
+          diagnostic.offset == testCode.indexOf('C.named()'),
+    );
   }
 
   Future<void> test_privateField() async {

@@ -226,6 +226,33 @@ void main() {
           expect(capturedArgs, isNot(contains('--never-trust-plugins')));
         },
       );
+
+      test('passes --plugins or --no-plugins when usePlugins is set', () async {
+        for (final value in [true, false]) {
+          late List<String> capturedArgs;
+          final mockProcess = MockServerProcess();
+          final server = LspAnalysisServer(
+            null,
+            io.Directory(sdk.sdkPath),
+            [],
+            commandName: 'testing',
+            argResults: null,
+            usePlugins: value,
+            suppressAnalytics: true,
+            processFactory: (_, arguments) async {
+              capturedArgs = arguments;
+              return mockProcess;
+            },
+          );
+          await server.start();
+          await server.shutdown();
+
+          expect(
+            capturedArgs,
+            value ? contains('--plugins') : contains('--no-plugins'),
+          );
+        }
+      });
     });
   });
 }

@@ -468,7 +468,7 @@ final class EmbedderStringImpl
     if (other is String || other is EmbedderRegExp) {
       return indexOf(other, startIndex) >= 0;
     } else {
-      return other.allMatches(substring(startIndex)).isNotEmpty;
+      return other.allMatches(this, startIndex).isNotEmpty;
     }
   }
 

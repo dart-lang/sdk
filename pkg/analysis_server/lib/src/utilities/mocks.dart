@@ -301,7 +301,7 @@ class TestPluginManager(final ResourceProvider resourceProvider)
   final contextRootsWithNoPlugins = <String>{};
 
   @override
-  final SessionLogger sessionLogger = SessionLogger();
+  final SessionLogger sessionListener = SessionLogger();
 
   @override
   InstrumentationService get instrumentationService =>

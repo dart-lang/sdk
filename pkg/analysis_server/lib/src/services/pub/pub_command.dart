@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:analysis_server/src/session_logger/session_logger.dart';
+import 'package:analysis_server/src/session_logger/session_listener.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server/src/utilities/sdk.dart';
 import 'package:analyzer/instrumentation/service.dart';
@@ -28,7 +28,7 @@ class PubCommand {
       'DART_SERVER_DISABLE_PUB_COMMAND';
 
   final InstrumentationService _instrumentationService;
-  final SessionLogger _sessionLogger;
+  final SessionListener _sessionListener;
   final path.Context _pathContext;
   late final ProcessRunner _processRunner;
   late final String _pubEnvironmentValue;
@@ -47,7 +47,7 @@ class PubCommand {
 
   new(
     this._instrumentationService,
-    this._sessionLogger,
+    this._sessionListener,
     this._pathContext,
     this._processRunner,
   ) {
@@ -101,7 +101,7 @@ class PubCommand {
   void shutdown() {
     for (var process in _activeProcesses) {
       _instrumentationService.logInfo('Terminating process ${process.pid}');
-      _sessionLogger.logInfo('Terminating process ${process.pid}');
+      _sessionListener.logInfo('Terminating process ${process.pid}');
       process.kill();
     }
   }
@@ -125,7 +125,7 @@ class PubCommand {
 
     try {
       _instrumentationService.logInfo('Starting pub command $args');
-      _sessionLogger.logInfo('Starting pub command $args');
+      _sessionListener.logInfo('Starting pub command $args');
       var process = await _processRunner.start(
         sdk.dart,
         ['pub', ...args],
@@ -146,7 +146,7 @@ class PubCommand {
         _instrumentationService.logError(
           'pub command returned $exitCode exit code: $stderr.',
         );
-        _sessionLogger.logException(
+        _sessionListener.logException(
           exception: 'pub command returned $exitCode exit code: $stderr.',
         );
         return null;
@@ -155,20 +155,20 @@ class PubCommand {
       try {
         var results = jsonDecode(stdout);
         _instrumentationService.logInfo('pub command completed successfully');
-        _sessionLogger.logInfo('pub command completed successfully');
+        _sessionListener.logInfo('pub command completed successfully');
         return results as Map<String, Object?>?;
       } catch (e) {
         _instrumentationService.logError(
           'pub command returned invalid JSON: $e.',
         );
-        _sessionLogger.logException(
+        _sessionListener.logException(
           exception: 'pub command returned invalid JSON: $e.',
         );
         return null;
       }
     } catch (e, stackTrace) {
       _instrumentationService.logError('pub command failed to run: $e.');
-      _sessionLogger.logException(
+      _sessionListener.logException(
         exception: 'pub command failed to run: $e.',
         stackTrace: stackTrace,
       );
