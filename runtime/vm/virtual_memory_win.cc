@@ -127,7 +127,7 @@ VirtualMemory* VirtualMemory::Reserve(intptr_t size, intptr_t alignment) {
   return new VirtualMemory(region, reserved);
 }
 
-void VirtualMemory::Commit(void* address, intptr_t size) {
+void VirtualMemory::Commit(void* address, intptr_t size, const char* name) {
   ASSERT(Utils::IsAligned(address, PageSize()));
   ASSERT(Utils::IsAligned(size, PageSize()));
   void* result = VirtualAlloc(address, size, MEM_COMMIT, PAGE_READWRITE);

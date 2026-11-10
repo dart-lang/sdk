@@ -74,7 +74,7 @@ Page* Page::Allocate(Cage* cage, intptr_t size, uword flags) {
   if (memory == nullptr) {
     if (compressed) {
 #if defined(DART_COMPRESSED_POINTERS)
-      memory = cage->Allocate(size, kPageSize);
+      memory = cage->Allocate(size, kPageSize, name);
 #else
       UNREACHABLE();
 #endif

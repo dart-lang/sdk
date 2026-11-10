@@ -36,7 +36,7 @@ class Cage : public MallocAllocated {
   Cage();
   ~Cage();
 
-  VirtualMemory* Allocate(intptr_t size, intptr_t alignment);
+  VirtualMemory* Allocate(intptr_t size, intptr_t alignment, const char* name);
   void Free(void* address, intptr_t size);
 
   void* GetRegion();
