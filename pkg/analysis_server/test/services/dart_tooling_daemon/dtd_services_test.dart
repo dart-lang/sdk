@@ -129,7 +129,7 @@ class TestAnalysisServer implements AnalysisServer {
   ErrorOr<Object?>? resultToReturn;
 
   @override
-  final SessionLogger sessionLogger = SessionLogger();
+  final SessionLogger sessionListener = SessionLogger();
 
   @override
   FutureOr<ErrorOr<Object?>> immediatelyHandleLspMessage(

@@ -156,20 +156,16 @@ class PubspecFixGenerator {
     var addDevDeps = data.addDevDeps;
     var removeDevDeps = data.removeDevDeps;
 
-    if (addDeps.isNotEmpty) {
-      var (text, offset) = _getTextAndOffset(node, 'dependencies', addDeps);
+    for (var (sectionName, packageNames) in [
+      ('dependencies', addDeps),
+      ('dev_dependencies', addDevDeps),
+    ]) {
+      if (packageNames.isEmpty) continue;
+      var insertions = _computeInsertions(node, sectionName, packageNames);
       await builder.addYamlFileEdit(file, (builder) {
-        builder.addSimpleInsertion(offset, text);
-      });
-    }
-    if (addDevDeps.isNotEmpty) {
-      var (text, offset) = _getTextAndOffset(
-        node,
-        'dev_dependencies',
-        addDevDeps,
-      );
-      await builder.addYamlFileEdit(file, (builder) {
-        builder.addSimpleInsertion(offset, text);
+        for (var (offset, text) in insertions) {
+          builder.addSimpleInsertion(offset, text);
+        }
       });
     }
     if (removeDevDeps.isNotEmpty) {
@@ -212,29 +208,11 @@ class PubspecFixGenerator {
             prevEntry = entry;
           }
           if (currentEntry != null) {
-            if (nextEntry == null) {
-              // Removing the last entry, check to see if there are any other
-              // sections after dev_dependencies.
-              MapEntry<dynamic, YamlNode>? deps;
-              for (var entry in node.nodes.entries) {
-                if (entry.key.value == 'dev_dependencies') {
-                  deps = entry;
-                  continue;
-                }
-                if (deps != null) {
-                  nextEntry == entry;
-                  break;
-                }
-              }
-            }
-
             var startOffset = prevEntry != null
                 ? prevEntry.value.span.end.offset
                 : (currentEntry.key as YamlNode).span.start.offset;
             // If nextEntry is null, this is the last entry in the
-            // dev_dependencies section, and also dev_dependencies is the last
-            // section in the pubspec file. So delete till the end of the
-            // section.
+            // dev_dependencies section, so delete till the end of its value.
             var endOffset = nextEntry == null
                 ? currentEntry.value.span.end.offset
                 : (nextEntry.key as YamlNode).span.start.offset;
@@ -302,6 +280,110 @@ class PubspecFixGenerator {
     _addFixFromBuilder(builder, fixKind);
   }
 
+  /// Returns the `(offset, text)` insertions needed to add [packageNames] to
+  /// the section named [sectionName] in the pubspec [node].
+  ///
+  /// When the section is an existing, non-empty block map, entries are
+  /// inserted in alphabetical order if the existing entries are already
+  /// sorted (matching the behavior of `dart pub add`), and are otherwise
+  /// appended directly after the last entry (before any trailing blank lines
+  /// or comments that separate it from the next section).
+  ///
+  /// When the section key is present but has no value, entries are inserted
+  /// directly below the key. When the section is missing, it is added at the
+  /// end of the document.
+  ///
+  /// Returns an empty list if the section has some other shape (for example a
+  /// flow-style map or a non-map value) that cannot be safely edited.
+  List<(int, String)> _computeInsertions(
+    YamlMap node,
+    String sectionName,
+    List<String> packageNames,
+  ) {
+    var section = node.nodes[sectionName];
+    if (section == null) {
+      var (text, offset) = _getTextAndOffset(node, sectionName, packageNames);
+      return [(offset, text)];
+    }
+    if (section is YamlMap &&
+        section.style == CollectionStyle.BLOCK &&
+        section.nodes.isNotEmpty) {
+      return _computeInsertionsInMap(section, packageNames);
+    }
+    if (section is YamlScalar &&
+        section.value == null &&
+        section.span.length == 0) {
+      // The key is present with an empty value (`dependencies:`).
+      var key = node.nodes.keys.whereType<YamlNode>().firstWhere(
+        (key) => key.value == sectionName,
+      );
+      var (offset, prefix) = _offsetAfterNode(key);
+      var buffer = StringBuffer(prefix);
+      for (var name in packageNames) {
+        buffer.write('  $name: any$endOfLine');
+      }
+      return [(offset, buffer.toString())];
+    }
+    return const [];
+  }
+
+  /// Returns the `(offset, text)` insertions needed to add [packageNames] to
+  /// the non-empty block map [section].
+  List<(int, String)> _computeInsertionsInMap(
+    YamlMap section,
+    List<String> packageNames,
+  ) {
+    var entries = section.nodes.entries.toList()
+      ..sort(
+        (a, b) => (a.key as YamlNode).span.start.offset.compareTo(
+          (b.key as YamlNode).span.start.offset,
+        ),
+      );
+    var names = [
+      for (var entry in entries) (entry.key as YamlNode).value.toString(),
+    ];
+    var firstKey = entries.first.key as YamlNode;
+    var indent = ' ' * firstKey.span.start.column;
+
+    var isSorted = true;
+    for (var i = 1; i < names.length; i++) {
+      if (names[i].compareTo(names[i - 1]) < 0) {
+        isSorted = false;
+        break;
+      }
+    }
+
+    var (endOffset, endPrefix) = _offsetAfterNode(entries.last.value);
+
+    // Group insertions by offset so that multiple packages inserted at the
+    // same location are emitted as a single edit, in the desired order.
+    var insertions = <int, StringBuffer>{};
+    void add(int offset, String prefix, String name) {
+      insertions
+          .putIfAbsent(offset, () => StringBuffer()..write(prefix))
+          .write('$indent$name: any$endOfLine');
+    }
+
+    if (!isSorted) {
+      for (var name in packageNames) {
+        add(endOffset, endPrefix, name);
+      }
+    } else {
+      for (var name in packageNames.toList()..sort()) {
+        var index = names.indexWhere((n) => n.compareTo(name) > 0);
+        if (index < 0) {
+          add(endOffset, endPrefix, name);
+        } else {
+          var key = entries[index].key as YamlNode;
+          add(lineInfo.getOffsetOfLine(key.span.start.line), '', name);
+        }
+      }
+    }
+    return [
+      for (var entry in insertions.entries) (entry.key, entry.value.toString()),
+    ];
+  }
+
   /// Creates a [ChangeBuilder] with the change description set correctly for
   /// [fixKind].
   ChangeBuilderImpl _createChangeBuilder(FixKind fixKind) {
@@ -313,31 +395,30 @@ class PubspecFixGenerator {
     return builder;
   }
 
+  /// Returns the text and offset needed to add a new section named
+  /// [sectionName], containing [packageNames], at the end of [node].
+  ///
+  /// Must only be called when [node] has no entry for [sectionName].
   (String, int) _getTextAndOffset(
     YamlMap node,
     String sectionName,
     List<String> packageNames,
   ) {
-    var section = node[sectionName] as YamlNode?;
-    var insertAfterNode = section ?? node;
-    var insertNewline = !insertAfterNode.span.text.endsWith(endOfLine);
+    assert(!node.nodes.containsKey(sectionName));
+    var insertNewline = !node.span.text.endsWith(endOfLine);
 
     var buffer = StringBuffer();
     if (insertNewline) {
       buffer.write(endOfLine);
     }
-    if (section == null) {
-      buffer.write('$sectionName:');
-      buffer.write(endOfLine);
-    }
+    buffer.write('$sectionName:');
+    buffer.write(endOfLine);
     for (var name in packageNames) {
       buffer.write('  $name: any');
       buffer.write(endOfLine);
     }
 
-    var offset = insertAfterNode.span.end.offset;
-
-    return (buffer.toString(), offset);
+    return (buffer.toString(), node.span.end.offset);
   }
 
   String _identifierFrom(String directoryName) {
@@ -370,6 +451,9 @@ class PubspecFixGenerator {
         identical(next, $_);
   }
 
+  bool _isWhitespace(int char) =>
+      char == $SPACE || char == $TAB || char == $CR || char == $LF;
+
   /// Normalizes the indentation of a dependency entry.
   String _normalizeEntryIndentation(String text, String indentation) {
     var lines = text.split(RegExp(r'\r?\n'));
@@ -385,6 +469,24 @@ class PubspecFixGenerator {
       }
     }
     return result.toString();
+  }
+
+  /// Returns the offset of the start of the line following the last
+  /// non-whitespace character of [node], along with a prefix that must be
+  /// inserted before new content at that offset (an end-of-line marker when
+  /// [node] ends on the last line of a file without a trailing newline).
+  (int, String) _offsetAfterNode(YamlNode node) {
+    var end = node.span.end.offset;
+    while (end > 0 && _isWhitespace(content.codeUnitAt(end - 1))) {
+      end--;
+    }
+    // `lineNumber` is one-based, so it is the zero-based index of the
+    // following line.
+    var nextLine = lineInfo.getLocation(end).lineNumber;
+    if (nextLine < lineInfo.lineCount) {
+      return (lineInfo.getOffsetOfLine(nextLine), '');
+    }
+    return (content.length, endOfLine);
   }
 
   int _offsetOfFirstKey(YamlMap map) {

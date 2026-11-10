@@ -211,7 +211,13 @@ abstract base class CfgToWasm {
   }
 
   w.Local _allocateLocal(Definition def) {
-    final wasmType = translateType(def.type).withNullability(true);
+    var wasmType = translateType(def.type);
+    if (def is Phi) {
+      // `Phi` locals are initialized inside the target `block` and read after
+      // its `end` (where Wasm resets non-defaultable local initialization), and
+      // may also be assigned `ref.null` for `UndefinedConstant` inputs.
+      wasmType = wasmType.withNullability(true);
+    }
     return b.addLocal(wasmType);
   }
 

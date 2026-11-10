@@ -1740,7 +1740,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     for (var field in node.fields) {
       _recordDataForNode('RecordLiteral_fieldName', field);
       if (field is RecordLiteralNamedField) {
-        _recordDataForNode('RecordListeral_fieldValue', field.fieldExpression);
+        _recordDataForNode('RecordLiteral_fieldValue', field.fieldExpression);
       }
     }
     super.visitRecordLiteral(node);

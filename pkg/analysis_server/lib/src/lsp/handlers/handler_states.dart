@@ -204,7 +204,7 @@ class InitializingStateMessageHandler extends ServerStateMessageHandler {
       server.instrumentationService.logInfo(
         'Ignoring ${message.method} message while initializing',
       );
-      server.sessionLogger.logInfo(
+      server.sessionListener.logInfo(
         'Ignoring ${message.method} message while initializing',
       );
       return success(null);
@@ -229,7 +229,7 @@ class ShuttingDownStateMessageHandler extends ServerStateMessageHandler {
       server.instrumentationService.logInfo(
         'Ignoring ${message.method} message while shutting down',
       );
-      server.sessionLogger.logInfo(
+      server.sessionListener.logInfo(
         'Ignoring ${message.method} message while shutting down',
       );
       return success(null);
@@ -255,7 +255,7 @@ class UninitializedStateMessageHandler extends ServerStateMessageHandler {
       server.instrumentationService.logInfo(
         'Ignoring ${message.method} message while uninitialized',
       );
-      server.sessionLogger.logInfo(
+      server.sessionListener.logInfo(
         'Ignoring ${message.method} message while uninitialized',
       );
       return success(null);

@@ -1491,8 +1491,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitForEachPartsWithPattern(ForEachPartsWithPattern node) {
-    // TODO(brianwilkerson): Rename the completion location.
-    collector.completionLocation = 'visitForEachPartsWithPattern_iterable';
+    collector.completionLocation = 'ForEachPartsWithPattern_iterable';
     _visitForEachParts(node);
   }
 

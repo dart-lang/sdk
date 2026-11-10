@@ -365,7 +365,7 @@ class TestServer implements LspAnalysisServer {
   final InstrumentationService instrumentationService;
 
   @override
-  final SessionLogger sessionLogger;
+  final SessionLogger sessionListener;
 
   @override
   bool supportsShowMessageRequest = true;
@@ -394,7 +394,7 @@ class TestServer implements LspAnalysisServer {
 
   String? respondToPromptWithAction;
 
-  new(this.instrumentationService, this.sessionLogger);
+  new(this.instrumentationService, this.sessionListener);
 
   ExecuteCommandParams get lastCommandParams =>
       (executeCommandHandler as TestExecuteCommandHandler).lastParams!;

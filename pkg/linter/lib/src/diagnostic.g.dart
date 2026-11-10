@@ -2165,7 +2165,8 @@ nullCheckOnNullableTypeParameter = LinterLintWithoutArguments(
 /// No parameters.
 const LinterLintWithoutArguments nullClosures = LinterLintWithoutArguments(
   name: 'null_closures',
-  problemMessage: "Closure can't be 'null' because it might be invoked.",
+  problemMessage:
+      "Don't pass 'null' as an argument where a closure is expected.",
   correctionMessage: "Try providing a non-null closure.",
   uniqueName: 'null_closures',
   expectedTypes: [],

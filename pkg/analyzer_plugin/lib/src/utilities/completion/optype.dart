@@ -868,7 +868,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitForEachPartsWithPattern(ForEachPartsWithPattern node) {
     if (identical(entity, node.iterable)) {
-      optype.completionLocation = 'visitForEachPartsWithPattern_iterable';
+      optype.completionLocation = 'ForEachPartsWithPattern_iterable';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     } else {

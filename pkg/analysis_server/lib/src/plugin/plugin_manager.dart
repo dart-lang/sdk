@@ -13,7 +13,7 @@ import 'dart:io' show ProcessResult, pid;
 import 'package:analysis_server/src/analytics/percentile_calculator.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_isolate.dart';
-import 'package:analysis_server/src/session_logger/session_logger.dart';
+import 'package:analysis_server/src/session_logger/session_listener.dart';
 import 'package:analysis_server/src/utilities/file_paths.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server/src/utilities/sdk.dart';
@@ -99,8 +99,8 @@ class PluginManager {
   /// The instrumentation service that is being used by the analysis server.
   final InstrumentationService instrumentationService;
 
-  /// The session logger that is being used by the analysis server.
-  final SessionLogger sessionLogger;
+  /// The session listener that is being used by the analysis server.
+  final SessionListener sessionListener;
 
   /// A table mapping the paths of plugins to information about those plugins.
   final Map<String, PluginIsolate> _pluginMap = <String, PluginIsolate>{};
@@ -175,7 +175,7 @@ class PluginManager {
     this._sdkPath,
     this._notificationManager,
     this.instrumentationService,
-    this.sessionLogger, {
+    this.sessionListener, {
     this._processRunner = const ProcessRunner(),
     @visibleForTesting String? dartVersion,
   }) : _dartVersion = dartVersion ?? platform.version;
@@ -229,7 +229,7 @@ class PluginManager {
           null,
           _notificationManager,
           instrumentationService,
-          sessionLogger,
+          sessionListener,
           isLegacy: isLegacyPlugin,
         );
         pluginIsolate.reportException(CaughtException(exception, stackTrace));
@@ -242,12 +242,12 @@ class PluginManager {
         pluginFiles.packageConfig.path,
         _notificationManager,
         instrumentationService,
-        sessionLogger,
+        sessionListener,
         isLegacy: isLegacyPlugin,
       );
       try {
         instrumentationService.logInfo('Starting plugin "$pluginIsolate"');
-        sessionLogger.logInfo('Starting plugin "$pluginIsolate"');
+        sessionListener.logInfo('Starting plugin "$pluginIsolate"');
         var session = await pluginIsolate.start(_byteStorePath, _sdkPath);
         unawaited(
           session?.onDone.then((_) {
@@ -463,7 +463,7 @@ class PluginManager {
             stackTrace,
           );
           instrumentationService.logException(silentException);
-          sessionLogger.logException(exception: silentException);
+          sessionListener.logException(exception: silentException);
         }
       }
     }
@@ -636,7 +636,7 @@ class PluginManager {
           await pluginIsolate.stop();
         } catch (exception, stackTrace) {
           instrumentationService.logException(exception, stackTrace);
-          sessionLogger.logException(
+          sessionListener.logException(
             exception: exception,
             stackTrace: stackTrace,
           );
@@ -660,7 +660,7 @@ class PluginManager {
     instrumentationService.logInfo(
       'Running "dart compile aot-snapshot $entrypoint".',
     );
-    sessionLogger.logInfo('Running "dart compile aot-snapshot $entrypoint".');
+    sessionListener.logInfo('Running "dart compile aot-snapshot $entrypoint".');
 
     var stopwatch = Stopwatch()..start();
     var binFolder = entrypoint.parent;
@@ -703,7 +703,7 @@ class PluginManager {
     instrumentationService.logInfo(
       'Running "dart compile aot-snapshot" took ${stopwatch.elapsed}.',
     );
-    sessionLogger.logInfo(
+    sessionListener.logInfo(
       'Running "dart compile aot-snapshot" took ${stopwatch.elapsed}.',
     );
 
@@ -725,7 +725,7 @@ class PluginManager {
           'Using existing plugin AOT snapshot at '
           "'${aotSnapshotFile.path}'",
         );
-        sessionLogger.logInfo(
+        sessionListener.logInfo(
           'Using existing plugin AOT snapshot at '
           "'${aotSnapshotFile.path}'",
         );
@@ -736,7 +736,7 @@ class PluginManager {
           'Exception while checking an existing plugin AOT snapshot: '
           '"$error"\n$stackTrace';
       instrumentationService.logException(exception);
-      sessionLogger.logException(exception: exception);
+      sessionListener.logException(exception: exception);
     }
 
     // When the Dart Analysis Server is built as AOT, then all spawned
@@ -760,7 +760,7 @@ class PluginManager {
       buffer.writeln('  stderr = $stderr');
       var exceptionReason = buffer.toString();
       instrumentationService.logError(exceptionReason);
-      sessionLogger.logException(exception: exceptionReason);
+      sessionListener.logException(exception: exceptionReason);
       throw PluginException(exceptionReason);
     }
 
@@ -934,7 +934,7 @@ class PluginManager {
       if (file.exists) file.delete();
     } catch (e) {
       instrumentationService.logInfo('Could not delete "$file": $e.');
-      sessionLogger.logInfo('Could not delete "$file": $e.');
+      sessionListener.logInfo('Could not delete "$file": $e.');
     }
   }
 
@@ -960,7 +960,7 @@ class PluginManager {
       instrumentationService.logInfo(
         'Could not delete stale temporary files in "$binFolder": $e.',
       );
-      sessionLogger.logInfo(
+      sessionListener.logInfo(
         'Could not delete stale temporary files in "$binFolder": $e.',
       );
     }
@@ -1037,7 +1037,7 @@ class PluginManager {
       instrumentationService.logInfo(
         'Could not replace "$destination": $e. Using the existing file.',
       );
-      sessionLogger.logInfo(
+      sessionListener.logInfo(
         'Could not replace "$destination": $e. Using the existing file.',
       );
     }
@@ -1069,7 +1069,7 @@ class PluginManager {
     instrumentationService.logInfo(
       'Running "pub $pubCommand" in "${workingDirectory.path}".',
     );
-    sessionLogger.logInfo(
+    sessionListener.logInfo(
       'Running "pub $pubCommand" in "${workingDirectory.path}".',
     );
 
@@ -1087,7 +1087,7 @@ class PluginManager {
     instrumentationService.logInfo(
       'Running "pub $pubCommand" took ${stopwatch.elapsed}.',
     );
-    sessionLogger.logInfo(
+    sessionListener.logInfo(
       'Running "pub $pubCommand" took ${stopwatch.elapsed}.',
     );
 

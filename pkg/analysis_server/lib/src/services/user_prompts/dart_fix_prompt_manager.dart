@@ -141,7 +141,7 @@ class DartFixPromptManager {
     server.instrumentationService.logInfo(
       'Checking whether to prompt about "dart fix" took ${sw.elapsed}',
     );
-    server.sessionLogger.logInfo(
+    server.sessionListener.logInfo(
       'Checking whether to prompt about "dart fix" took ${sw.elapsed}',
     );
 
@@ -227,7 +227,7 @@ class DartFixPromptManager {
         server.instrumentationService.logError(
           'Failed to perform bulk "dart fix" check: $e',
         );
-        server.sessionLogger.logException(
+        server.sessionListener.logException(
           exception: 'Failed to perform bulk "dart fix" check: $e',
         );
       }),

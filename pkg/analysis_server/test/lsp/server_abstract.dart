@@ -126,7 +126,7 @@ abstract class AbstractLspAnalysisServerTest
       'c',
       server.notificationManager,
       server.instrumentationService,
-      server.sessionLogger,
+      server.sessionListener,
       isLegacy: true,
     );
     pluginManager.pluginIsolates.add(pluginIsolate);

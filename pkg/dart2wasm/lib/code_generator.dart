@@ -5161,7 +5161,10 @@ class SynchronousLambdaCodeGenerator extends AstCodeGenerator {
   void generateInternal() {
     closures = lambda.enclosingMemberClosures;
 
-    setSourceMapSource(lambda.functionNodeSource);
+    setSourceMapSourceAndFileOffset(
+      lambda.functionNodeSource,
+      lambda.functionNode.fileOffset,
+    );
 
     assert(lambda.functionNode.asyncMarker != AsyncMarker.Async);
 

@@ -41,8 +41,183 @@ name: test
 environment:
   sdk: '>=2.12.0 <3.0.0'
 dependencies:
-  path: any
   matcher: any
+  path: any
+''');
+  }
+
+  /// https://github.com/dart-lang/sdk/issues/64890
+  Future<void> test_addMissingDependency_emptySection() async {
+    _runValidator(
+      '''
+name: test
+dependencies:
+dev_dependencies:
+  lints: any
+''',
+      {'path'},
+      {},
+    );
+    await assertHasFix('''
+name: test
+dependencies:
+  path: any
+dev_dependencies:
+  lints: any
+''');
+  }
+
+  Future<void> test_addMissingDependency_emptySection_atEndOfFile() async {
+    _runValidator(
+      '''
+name: test
+dependencies:''',
+      {'path'},
+      {},
+    );
+    await assertHasFix('''
+name: test
+dependencies:
+  path: any
+''');
+  }
+
+  Future<void> test_addMissingDependency_flowMap_noFix() async {
+    _runValidator(
+      '''
+name: test
+dependencies: {}
+''',
+      {'path'},
+      {},
+    );
+    await assertHasNoFix(content);
+  }
+
+  /// https://github.com/dart-lang/sdk/issues/64870
+  Future<void> test_addMissingDependency_sorted_insertsInOrder() async {
+    _runValidator(
+      '''
+name: repro
+dependencies:
+  async: ^2.13.0
+  path: ^1.9.0
+dev_dependencies:
+  lints: ^6.0.0
+''',
+      {'collection', 'async', 'path'},
+      {},
+    );
+    await assertHasFix('''
+name: repro
+dependencies:
+  async: ^2.13.0
+  collection: any
+  path: ^1.9.0
+dev_dependencies:
+  lints: ^6.0.0
+''');
+  }
+
+  Future<void> test_addMissingDependency_sorted_multiple() async {
+    _runValidator(
+      '''
+name: test
+dependencies:
+  b: any
+  d: any
+''',
+      {'e', 'c', 'a', 'b', 'd'},
+      {},
+    );
+    await assertHasFix('''
+name: test
+dependencies:
+  a: any
+  b: any
+  c: any
+  d: any
+  e: any
+''');
+  }
+
+  Future<void> test_addMissingDependency_trailingBlankLine_sorted() async {
+    _runValidator(
+      '''
+name: test
+dependencies:
+  a: any
+  b: any
+
+dev_dependencies:
+  lints: any
+''',
+      {'a', 'b', 'c'},
+      {},
+    );
+    await assertHasFix('''
+name: test
+dependencies:
+  a: any
+  b: any
+  c: any
+
+dev_dependencies:
+  lints: any
+''');
+  }
+
+  Future<void> test_addMissingDependency_trailingBlankLine_unsorted() async {
+    _runValidator(
+      '''
+name: test
+dependencies:
+  flutter:
+    sdk: flutter
+  b: any
+
+dev_dependencies:
+  lints: any
+''',
+      {'flutter', 'b', 'a'},
+      {},
+    );
+    await assertHasFix('''
+name: test
+dependencies:
+  flutter:
+    sdk: flutter
+  b: any
+  a: any
+
+dev_dependencies:
+  lints: any
+''');
+  }
+
+  Future<void> test_addMissingDependency_trailingNestedMap() async {
+    _runValidator(
+      '''
+name: test
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  lints: any
+''',
+      {'flutter', 'path'},
+      {},
+    );
+    await assertHasFix('''
+name: test
+dependencies:
+  flutter:
+    sdk: flutter
+  path: any
+
+dev_dependencies:
+  lints: any
 ''');
   }
 
@@ -88,6 +263,27 @@ dependencies:
 dev_dependencies:
   checks: any
   matcher: any
+''');
+  }
+
+  /// https://github.com/dart-lang/sdk/issues/64890
+  Future<void> test_addMissingDevDependency_emptySection() async {
+    _runValidator(
+      '''
+name: test
+dependencies:
+  path: any
+dev_dependencies:
+''',
+      {'path'},
+      {'lints'},
+    );
+    await assertHasFix('''
+name: test
+dependencies:
+  path: any
+dev_dependencies:
+  lints: any
 ''');
   }
 
@@ -152,8 +348,8 @@ name: test
 environment:
   sdk: '>=2.12.0 <3.0.0'
 dependencies:
-  path: any
   matcher: any
+  path: any
 ''');
   }
 
@@ -177,8 +373,8 @@ name: test
 environment:
   sdk: '>=2.12.0 <3.0.0'
 dependencies:
-  path: any
   matcher: any
+  path: any
 dev_dependencies:
   test: any
 ''');
@@ -204,10 +400,38 @@ name: test
 environment:
   sdk: '>=2.12.0 <3.0.0'
 dependencies:
-  path: any
   matcher: any
+  path: any
 dev_dependencies:
   test: any
+''');
+  }
+
+  Future<void>
+  test_addRemoveMissingDependency_lastDevDep_followedBySection() async {
+    _runValidator(
+      '''
+name: test
+dependencies:
+  path: any
+dev_dependencies:
+  test: any
+  matcher: any
+flutter:
+  uses-material-design: true
+''',
+      {'path', 'matcher'},
+      {},
+    );
+    await assertHasFix('''
+name: test
+dependencies:
+  matcher: any
+  path: any
+dev_dependencies:
+  test: any
+flutter:
+  uses-material-design: true
 ''');
   }
 
@@ -233,10 +457,10 @@ name: tests
 environment:
   sdk: '>=2.12.0 <3.0.0'
 dependencies:
-  path: any
-  matcher: any
-  test: any
   lints: any
+  matcher: any
+  path: any
+  test: any
 dev_dependencies:
   checks: any
 ''');
@@ -261,8 +485,8 @@ name: test
 environment:
   sdk: '>=2.12.0 <3.0.0'
 dependencies:
-  path: any
   matcher: any
+  path: any
 ''');
   }
 
@@ -287,9 +511,9 @@ name: test
 environment:
   sdk: '>=2.12.0 <3.0.0'
 dependencies:
-  path: any
-  matcher: any
   checks: any
+  matcher: any
+  path: any
 dev_dependencies:
   test: any
 ''');
@@ -316,9 +540,9 @@ name: test
 environment:
   sdk: '>=2.12.0 <3.0.0'
 dependencies:
-  path: any
-  matcher: any
   checks: any
+  matcher: any
+  path: any
 dev_dependencies:
   test: any
 ''');
@@ -345,9 +569,9 @@ name: test
 environment:
   sdk: '>=2.12.0 <3.0.0'
 dependencies:
-  path: any
-  matcher: any
   checks: any
+  matcher: any
+  path: any
 dev_dependencies:
   test: any
 ''');

@@ -5,7 +5,9 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/session_logger/log_sanitizer.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analysis_server/src/session_logger/session_logger_sink.dart';
 import 'package:analysis_server/src/status/diagnostics.dart';
 import 'package:analysis_server/src/status/pages.dart';
@@ -26,7 +28,7 @@ class SessionLogPage extends DiagnosticPageWithNav implements PostablePage {
 
   @override
   Future<void> generateContent(Map<String, String> params) async {
-    var sink = server.sessionLogger.sink;
+    var sink = server.sessionLogger?.sink;
     if (sink is! SessionLoggerInMemorySink) {
       buf.write('Internal error.');
       return;
@@ -141,7 +143,7 @@ function downloadSanitizedSessionLog() {
   Future<String> handlePost(Map<String, String> params) async {
     var newCaptureState = params[_captureFormId];
     if (newCaptureState != null) {
-      var sink = server.sessionLogger.sink;
+      var sink = server.sessionLogger?.sink;
       if (sink is SessionLoggerInMemorySink) {
         if (newCaptureState == 'true') {
           sink.startCapture();
@@ -151,5 +153,18 @@ function downloadSanitizedSessionLog() {
       }
     }
     return path;
+  }
+}
+
+extension AnalysisServerExtension on AnalysisServer {
+  /// The session logger used to log the session events.
+  SessionLogger? get sessionLogger {
+    var listener = sessionListener;
+    if (listener is SessionLogger) {
+      return listener;
+    }
+    // At the moment, this will always be a session logger. The plan is to add
+    // more subclasses of `SessionListener`, and this will need to be extended.
+    return null;
   }
 }

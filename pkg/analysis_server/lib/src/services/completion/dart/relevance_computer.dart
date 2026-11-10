@@ -223,7 +223,10 @@ class RelevanceComputer {
         return 500;
       case ImportPrefixSuggestion():
         return computeScore(
-          elementKind: _computeElementKind(suggestion.libraryElement),
+          elementKind: _computeElementKind(
+            suggestion.libraryElement,
+            distance: null,
+          ),
         );
       case KeywordSuggestion():
         return _computeKeywordRelevance(suggestion);
@@ -375,7 +378,7 @@ class RelevanceComputer {
       request.contextType,
       elementType,
     );
-    var elementKind = _computeElementKind(element);
+    var elementKind = _computeElementKind(element, distance: null);
     var hasDeprecated = featureComputer.hasDeprecatedFeature(element);
     var isConstant = preferConstants
         ? featureComputer.isConstantFeature(element)
@@ -463,7 +466,7 @@ class RelevanceComputer {
 
   /// Compute the value of the _element kind_ feature for the given [element] in
   /// the completion context.
-  double _computeElementKind(Element element, {double? distance}) {
+  double _computeElementKind(Element element, {required double? distance}) {
     var location = completionLocation;
     var elementKind = featureComputer.elementKindFeature(
       element,
@@ -534,7 +537,10 @@ class RelevanceComputer {
     var localVariableDistance = featureComputer.distanceToPercent(
       suggestion.distance,
     );
-    var elementKind = _computeElementKind(element);
+    var elementKind = _computeElementKind(
+      element,
+      distance: localVariableDistance,
+    );
     var isConstant = preferConstants
         ? featureComputer.isConstantFeature(element)
         : 0.0;
@@ -725,7 +731,7 @@ class RelevanceComputer {
 
   /// Compute the relevance for [TypeParameterElement].
   int _computeTypeParameterRelevance(TypeParameterElement parameter) {
-    var elementKind = _computeElementKind(parameter);
+    var elementKind = _computeElementKind(parameter, distance: null);
     var isConstant = preferConstants
         ? featureComputer.isConstantFeature(parameter)
         : 0.0;

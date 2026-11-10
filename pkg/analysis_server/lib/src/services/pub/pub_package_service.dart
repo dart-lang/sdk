@@ -10,7 +10,7 @@ import 'dart:convert';
 
 import 'package:analysis_server/src/services/pub/pub_api.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
-import 'package:analysis_server/src/session_logger/session_logger.dart';
+import 'package:analysis_server/src/session_logger/session_listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:meta/meta.dart';
@@ -145,7 +145,7 @@ class PubPackage {
 /// Expensive results are cached to disk using [resourceProvider].
 class PubPackageService {
   final InstrumentationService _instrumentationService;
-  final SessionLogger _sessionLogger;
+  final SessionListener _sessionListener;
 
   /// The [PubApi] used by this service.
   final PubApi api;
@@ -177,7 +177,7 @@ class PubPackageService {
 
   new(
     this._instrumentationService,
-    this._sessionLogger,
+    this._sessionListener,
     this.resourceProvider,
     this.api,
     this._command,
@@ -349,7 +349,7 @@ class PubPackageService {
       }
     } catch (e) {
       _instrumentationService.logError('Error reading pub cache file: $e');
-      _sessionLogger.logException(
+      _sessionListener.logException(
         exception: 'Error reading pub cache file: $e',
       );
       return null;
@@ -385,7 +385,7 @@ class PubPackageService {
       writeDiskCache();
     } catch (e) {
       _instrumentationService.logError('Failed to fetch packages from Pub: $e');
-      _sessionLogger.logException(
+      _sessionListener.logException(
         exception: 'Failed to fetch packages from Pub: $e',
       );
     } finally {

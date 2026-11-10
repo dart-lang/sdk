@@ -7,7 +7,7 @@ import 'dart:collection';
 
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_parser.dart';
 import 'package:analysis_server/src/session_logger/process_id.dart';
-import 'package:analysis_server/src/session_logger/session_logger.dart';
+import 'package:analysis_server/src/session_logger/session_listener.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/listener.dart';
@@ -221,8 +221,8 @@ class ContextManagerImpl implements ContextManager {
   /// The instrumentation service used to report instrumentation data.
   final InstrumentationService _instrumentationService;
 
-  /// The session logger.
-  final SessionLogger _sessionLogger;
+  /// The session listener.
+  final SessionListener _sessionListener;
 
   @override
   ContextManagerCallbacks callbacks;
@@ -286,7 +286,7 @@ class ContextManagerImpl implements ContextManager {
     this._performanceLog,
     this._scheduler,
     this._instrumentationService,
-    this._sessionLogger, {
+    this._sessionListener, {
     this.callbacks = const NoopContextManagerCallbacks(),
     required bool enableBlazeWatcher,
     this.withFineDependencies = false,
@@ -704,7 +704,7 @@ class ContextManagerImpl implements ContextManager {
       CancellationToken cancellationToken,
     ) async {
       var rebuildMessage = '(Re)building analysis contexts: $reason';
-      _sessionLogger.logInfo(rebuildMessage);
+      _sessionListener.logInfo(rebuildMessage);
 
       /// A helper that performs the context rebuild and waits for all watchers
       /// to be fully initialized.
@@ -790,7 +790,7 @@ class ContextManagerImpl implements ContextManager {
         for (var i = 0; i < collection.contexts.length; i++) {
           var analysisContext = collection.contexts[i];
           var packages = analysisContext.contextRoot.workspace.packages;
-          _sessionLogger.addPackageRoots(
+          _sessionListener.addPackageRoots(
             index: i,
             packageRoots: {
               for (var package in packages.packages)
@@ -846,7 +846,7 @@ class ContextManagerImpl implements ContextManager {
                   '$error\n$stackTrace',
                 );
                 if (error is Object) {
-                  _sessionLogger.logException(
+                  _sessionListener.logException(
                     exception:
                         'Temporary watcher error; restarting context build.\n'
                         '$error',
@@ -977,7 +977,7 @@ class ContextManagerImpl implements ContextManager {
     var type = event.type;
 
     _instrumentationService.logWatchEvent('<unknown>', path, type.toString());
-    _sessionLogger.logMessage(
+    _sessionListener.logMessage(
       from: ProcessId.watcher,
       to: ProcessId.server,
       message: {'path': path, 'type': type.toString()},
@@ -1052,7 +1052,7 @@ class ContextManagerImpl implements ContextManager {
         'Watcher error; not refreshing contexts '
         'because PathNotFound.\n$error\n$stackTrace',
       );
-      _sessionLogger.logException(
+      _sessionListener.logException(
         exception:
             'Watcher error; not refreshing contexts '
             'because PathNotFound.\n$error',
@@ -1066,7 +1066,7 @@ class ContextManagerImpl implements ContextManager {
       'Watcher error; refreshing contexts.\n$error\n$stackTrace',
     );
     if (error != null) {
-      _sessionLogger.logException(
+      _sessionListener.logException(
         exception: 'Watcher error; refreshing contexts.\n$error',
         stackTrace: stackTrace,
       );
