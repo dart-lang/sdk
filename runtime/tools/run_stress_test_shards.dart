@@ -158,7 +158,7 @@ void writeUnexpectedCrashesFile(List<PotentialCrash> crashes) {
 Iterable<String> filterSlowFlags(Iterable<String> flags) =>
     flags.where((flag) => !flag.startsWith('--gc_at_throw'));
 
-const int tsanShards = 64;
+const int sanitizerShards = 64;
 
 late final List<TestRunner> configurations;
 
@@ -214,15 +214,42 @@ main(List<String> arguments) async {
       ],
       [...filterSlowFlags(someAotRuntimeFlags())],
     ),
+    for (int i = 0; i < sanitizerShards; ++i)
+      JitTestRunner('out/ReleaseASAN$arch', [
+        '--disable-dart-dev',
+        ...filterSlowFlags(someJitRuntimeFlags()),
+        '-Drepeat=4',
+        '-Dshard=$i',
+        '-Dshards=$sanitizerShards',
+        'runtime/tests/concurrency/generated_stress_test.dart.jit.dill',
+      ]),
+    for (int i = 0; i < sanitizerShards; ++i)
+      JitTestRunner('out/ReleaseMSAN$arch', [
+        '--disable-dart-dev',
+        ...filterSlowFlags(someJitRuntimeFlags()),
+        '-Drepeat=4',
+        '-Dshard=$i',
+        '-Dshards=$sanitizerShards',
+        'runtime/tests/concurrency/generated_stress_test.dart.jit.dill',
+      ]),
+    for (int i = 0; i < sanitizerShards; ++i)
+      JitTestRunner('out/ReleaseUBSAN$arch', [
+        '--disable-dart-dev',
+        ...filterSlowFlags(someJitRuntimeFlags()),
+        '-Drepeat=4',
+        '-Dshard=$i',
+        '-Dshards=$sanitizerShards',
+        'runtime/tests/concurrency/generated_stress_test.dart.jit.dill',
+      ]),
     // TSAN last so the other steps are evenly distributed.
-    for (int i = 0; i < tsanShards; ++i)
+    for (int i = 0; i < sanitizerShards; ++i)
       JitTestRunner('out/ReleaseTSAN$arch', [
         '--disable-dart-dev',
         ...filterSlowFlags(someJitRuntimeFlags()),
         '--no-profiler', // TODO(https://github.com/dart-lang/sdk/issues/60804, https://github.com/dart-lang/sdk/issues/60805)
         '-Drepeat=4',
         '-Dshard=$i',
-        '-Dshards=$tsanShards',
+        '-Dshards=$sanitizerShards',
         'runtime/tests/concurrency/generated_stress_test.dart.jit.dill',
       ]),
   ];
