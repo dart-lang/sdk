@@ -359,31 +359,145 @@ void main() {
     });
 
     test('BinaryStreamEvent.fromData parses streamId and payload', () {
-      final header = json.encode(<String, Object?>{
-        'jsonrpc': '2.0',
-        'method': 'streamNotify',
-        'params': <String, Object?>{
-          'streamId': 'BinaryStream',
-          'event': <String, Object?>{
-            'type': 'Event',
-            'kind': 'BinaryData',
-            'timestamp': 123456789,
-          },
-        },
-      });
-      final headerBytes = utf8.encode(header);
-      const metadataOffset = 4;
-      final dataOffset = metadataOffset + headerBytes.length;
-      final payload = <int>[10, 20, 30, 40];
-      final buffer = Uint8List(dataOffset + payload.length);
-      final byteData = ByteData.view(buffer.buffer);
-      byteData.setUint32(0, dataOffset, Endian.little);
-      buffer.setRange(metadataOffset, dataOffset, headerBytes);
-      buffer.setRange(dataOffset, buffer.length, payload);
+      const binaryStreamId = 'BinaryStream';
+      final buffer = _buildBinaryStreamFrame(
+        payload: _binaryPayload,
+        streamId: binaryStreamId,
+      );
 
       final event = BinaryStreamEvent.fromData(buffer);
-      expect(event.streamId, equals('BinaryStream'));
+      expect(event.streamId, equals(binaryStreamId));
       expect(event.data, equals(buffer));
     });
+
+    test('streamNotify ignores closed subscribers and delivers to open '
+        'subscribers', () async {
+      late final _DelayedStreamCancelBackend backend;
+      final service = await createDartRuntimeServiceForTest(
+        config: const DartRuntimeServiceOptions(enableLogging: true),
+        backendBuilder: (frontend) {
+          backend = _DelayedStreamCancelBackend(frontend: frontend);
+          return backend;
+        },
+      );
+
+      const heldStreamId = 'HeldStream';
+      final closedClient = await vmServiceConnectUri(service.uri.toString());
+      addTearDown(closedClient.dispose);
+      final openClient = await vmServiceConnectUri(service.uri.toString());
+      addTearDown(openClient.dispose);
+
+      await closedClient.streamListen(heldStreamId);
+      await closedClient.streamListen(HelloWorldEvent.kStreamId);
+      await openClient.streamListen(HelloWorldEvent.kStreamId);
+
+      final openClientEvents = <Event>[];
+      final bothEventsReceived = Completer<void>();
+      openClient.onEvent(HelloWorldEvent.kStreamId).listen((event) {
+        openClientEvents.add(event);
+        if (openClientEvents.length == 2 && !bothEventsReceived.isCompleted) {
+          bothEventsReceived.complete();
+        }
+      });
+
+      final binaryFrame = _buildBinaryStreamFrame(
+        payload: _binaryPayload,
+        streamId: HelloWorldEvent.kStreamId,
+      );
+
+      // Hold closedClient in onClientDisconnect on heldStreamId so its peer
+      // is already closed while it still remains in streamListeners for
+      // HelloWorldEvent.kStreamId.
+      final cancelStarted = Completer<void>();
+      final allowCancel = Completer<void>();
+      addTearDown(() {
+        if (!allowCancel.isCompleted) {
+          allowCancel.complete();
+        }
+      });
+      backend.onCancelStartedCompleters[heldStreamId] = cancelStarted;
+      backend.onStreamCancelCompleters[heldStreamId] = allowCancel;
+
+      final disposeFuture = closedClient.dispose();
+      await cancelStarted.future;
+
+      expect(
+        () => HelloWorldEvent().send(
+          eventStreamMethods: service.eventStreamManager,
+        ),
+        returnsNormally,
+      );
+      expect(
+        () => BinaryStreamEvent.fromData(
+          binaryFrame,
+        ).send(eventStreamMethods: service.eventStreamManager),
+        returnsNormally,
+      );
+
+      await bothEventsReceived.future;
+      expect(openClientEvents[0].kind, HelloWorldEvent.kKind);
+      expect(openClientEvents[1].kind, _binaryDataEventKind);
+      expect(
+        openClientEvents[1].data!.buffer.asUint8List(
+          openClientEvents[1].data!.offsetInBytes,
+          openClientEvents[1].data!.lengthInBytes,
+        ),
+        equals(_binaryPayload),
+      );
+
+      allowCancel.complete();
+      await disposeFuture;
+      await openClient.dispose();
+    });
   });
+}
+
+const _binaryDataEventKind = 'BinaryData';
+const _binaryDataTimestamp = 123_456_789;
+const _binaryPayload = <int>[10, 20, 30, 40];
+
+Uint8List _buildBinaryStreamFrame({
+  required List<int> payload,
+  required String streamId,
+}) {
+  final headerBytes = utf8.encode(
+    json.encode(<String, Object?>{
+      'jsonrpc': '2.0',
+      'method': EventStreamManager.kStreamNotify,
+      'params': <String, Object?>{
+        StreamEvent.kStreamId: streamId,
+        StreamEvent.kEvent: <String, Object?>{
+          'type': 'Event',
+          'kind': _binaryDataEventKind,
+          'timestamp': _binaryDataTimestamp,
+        },
+      },
+    }),
+  );
+  const metadataOffset = 4;
+  final dataOffset = metadataOffset + headerBytes.length;
+  final frame = Uint8List(dataOffset + payload.length)
+    ..setRange(metadataOffset, dataOffset, headerBytes)
+    ..setRange(dataOffset, dataOffset + payload.length, payload);
+  ByteData.view(frame.buffer).setUint32(0, dataOffset, .little);
+  return frame;
+}
+
+final class _DelayedStreamCancelBackend extends FakeDartRuntimeServiceBackend {
+  _DelayedStreamCancelBackend({required super.frontend});
+
+  final onCancelStartedCompleters = <String, Completer<void>>{};
+  final onStreamCancelCompleters = <String, Completer<void>>{};
+
+  @override
+  Future<void> onStreamCancel({required String streamId}) async {
+    final started = onCancelStartedCompleters[streamId];
+    if (started != null && !started.isCompleted) {
+      started.complete();
+    }
+    final completer = onStreamCancelCompleters[streamId];
+    if (completer != null) {
+      await completer.future;
+    }
+  }
 }

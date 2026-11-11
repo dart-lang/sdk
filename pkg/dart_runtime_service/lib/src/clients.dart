@@ -40,10 +40,26 @@ base class Client<BE extends DartRuntimeServiceBackend> {
     // if we try and add directly to the sink, which we do for binary events
     // in [EventStreamMethod]'s streamNotify().
     final manualConnectionSinkCast = StreamController<String>(sync: true)
-      ..stream
-          .cast<String>()
-          .listen((event) => connection.sink.add(event))
-          .onDone(() => connection.sink.close());
+      ..stream.listen(
+        (event) {
+          try {
+            connection.sink.add(event);
+            // ignore: avoid_catching_errors
+          } on StateError {
+            // Close `_clientPeer` if the underlying sink closed before the peer
+            // updated its state.
+            unawaited(_clientPeer.close());
+          }
+        },
+        onDone: () {
+          try {
+            connection.sink.close().ignore();
+            // ignore: avoid_catching_errors
+          } on StateError {
+            // Ignore if the underlying sink cannot be closed.
+          }
+        },
+      );
     final manualConnectionStreamCast = connection.stream.cast<String>();
     _clientPeer = json_rpc.Peer(
       StreamChannel<String>(
@@ -85,6 +101,9 @@ base class Client<BE extends DartRuntimeServiceBackend> {
   /// finishes.
   late final Future<void> done;
 
+  /// Whether the underlying JSON-RPC peer connection is closed.
+  bool get isClosed => _clientPeer.isClosed;
+
   Future<void> initialize({required String namespace}) {
     logger.info('Initializing...');
     this.namespace = namespace;
@@ -93,7 +112,13 @@ base class Client<BE extends DartRuntimeServiceBackend> {
         .catchError((Object e, StackTrace st) {
           logger.warning('Client peer closed with error: $e', e, st);
         })
-        .whenComplete(cleanup);
+        .whenComplete(() async {
+          try {
+            await cleanup();
+          } on Object catch (e, st) {
+            logger.warning('Error during client cleanup: $e', e, st);
+          }
+        });
     logger.info('Initialization complete.');
     return done;
   }
@@ -163,7 +188,7 @@ base class Client<BE extends DartRuntimeServiceBackend> {
     required String method,
     Map<String, Object?>? parameters,
   }) async {
-    if (_clientPeer.isClosed) {
+    if (isClosed) {
       RpcException.serviceDisappeared.throwException();
     }
 
@@ -177,19 +202,22 @@ base class Client<BE extends DartRuntimeServiceBackend> {
 
   /// Invokes a JSON-RPC [method] provided by this client, ignoring the
   /// response.
+  ///
+  /// Does nothing if the connection to the client has already closed.
   void sendNotification({
     required String method,
     Map<String, Object?>? parameters,
   }) {
-    if (_clientPeer.isClosed) {
-      RpcException.serviceDisappeared.throwException();
+    if (isClosed) {
+      return;
     }
 
     try {
       _clientPeer.sendNotification(method, parameters);
       // ignore: avoid_catching_errors
     } on StateError {
-      RpcException.serviceDisappeared.throwException();
+      // Do nothing if the peer sink closed while `_clientPeer` is still
+      // closing.
     }
   }
 
@@ -197,16 +225,20 @@ base class Client<BE extends DartRuntimeServiceBackend> {
   ///
   /// This technically isn't compliant with the JSON-RPC specification and
   /// should only be used to send binary events to streams.
+  ///
+  /// Does nothing if the connection to the client has already closed.
   void sendBinaryData({required Uint8List data}) {
-    if (_clientPeer.isClosed) {
-      RpcException.serviceDisappeared.throwException();
+    if (isClosed) {
+      return;
     }
 
     try {
       connection.sink.add(data);
       // ignore: avoid_catching_errors
     } on StateError {
-      RpcException.serviceDisappeared.throwException();
+      // Close `_clientPeer` if the underlying sink closed before the peer
+      // updated its state.
+      unawaited(_clientPeer.close());
     }
   }
 
@@ -361,10 +393,12 @@ base class ClientManager<BE extends DartRuntimeServiceBackend>
       artificial: artificial,
     );
     final namespace = _clients.add(client);
-    client.initialize(namespace: namespace).then((_) {
-      // Remove the client from the clients list when it disconnects.
-      removeClient(client);
-    });
+    unawaited(
+      client.initialize(namespace: namespace).whenComplete(() {
+        // Remove the client from the clients list when it disconnects.
+        removeClient(client);
+      }),
+    );
     return client;
   }
 
@@ -398,7 +432,13 @@ base class ClientManager<BE extends DartRuntimeServiceBackend>
     // Copy `clients` to guard against modification while iterating.
     for (final client in _clients.toList()) {
       futures.add(
-        Future.sync(() => removeClient(client)).whenComplete(client.close),
+        Future.sync(() => removeClient(client)).whenComplete(() async {
+          try {
+            await client.close();
+          } on Object catch (e, st) {
+            _logger.warning('Error closing client during shutdown: $e', e, st);
+          }
+        }),
       );
     }
     await Future.wait(futures);
