@@ -125,11 +125,22 @@ of 3.15 or greater. For more details, see
   bigints.
   For more details, see SDK issue [#64558][].
 
+- Added `jsThrow`, which throws an error without any Dart wrappers.
+
 - Added `WrappedPromiseError` to represent the error type produced by
   `FutureOfJSAnyToJSPromise.toJS` and `FutureOfVoidToJSPromise.toJS` when they
   wrap a Dart error.
 
 [#64558]: https://github.com/dart-lang/sdk/issues/64558
+
+#### `dart:typed_data`
+
+- Added the multiplication operator `*` to `Int32x4`, a lane-wise 32-bit integer
+  multiply that keeps the low 32 bits of each product, wrapping around on
+  overflow.
+  For more details, see SDK issue [#64170][].
+
+[#64170]: https://github.com/dart-lang/sdk/issues/64170
 
 ### Tools
 

@@ -208,29 +208,11 @@ class PubspecFixGenerator {
             prevEntry = entry;
           }
           if (currentEntry != null) {
-            if (nextEntry == null) {
-              // Removing the last entry, check to see if there are any other
-              // sections after dev_dependencies.
-              MapEntry<dynamic, YamlNode>? deps;
-              for (var entry in node.nodes.entries) {
-                if (entry.key.value == 'dev_dependencies') {
-                  deps = entry;
-                  continue;
-                }
-                if (deps != null) {
-                  nextEntry == entry;
-                  break;
-                }
-              }
-            }
-
             var startOffset = prevEntry != null
                 ? prevEntry.value.span.end.offset
                 : (currentEntry.key as YamlNode).span.start.offset;
             // If nextEntry is null, this is the last entry in the
-            // dev_dependencies section, and also dev_dependencies is the last
-            // section in the pubspec file. So delete till the end of the
-            // section.
+            // dev_dependencies section, so delete till the end of its value.
             var endOffset = nextEntry == null
                 ? currentEntry.value.span.end.offset
                 : (nextEntry.key as YamlNode).span.start.offset;
@@ -306,19 +288,43 @@ class PubspecFixGenerator {
   /// sorted (matching the behavior of `dart pub add`), and are otherwise
   /// appended directly after the last entry (before any trailing blank lines
   /// or comments that separate it from the next section).
+  ///
+  /// When the section key is present but has no value, entries are inserted
+  /// directly below the key. When the section is missing, it is added at the
+  /// end of the document.
+  ///
+  /// Returns an empty list if the section has some other shape (for example a
+  /// flow-style map or a non-map value) that cannot be safely edited.
   List<(int, String)> _computeInsertions(
     YamlMap node,
     String sectionName,
     List<String> packageNames,
   ) {
     var section = node.nodes[sectionName];
+    if (section == null) {
+      var (text, offset) = _getTextAndOffset(node, sectionName, packageNames);
+      return [(offset, text)];
+    }
     if (section is YamlMap &&
         section.style == CollectionStyle.BLOCK &&
         section.nodes.isNotEmpty) {
       return _computeInsertionsInMap(section, packageNames);
     }
-    var (text, offset) = _getTextAndOffset(node, sectionName, packageNames);
-    return [(offset, text)];
+    if (section is YamlScalar &&
+        section.value == null &&
+        section.span.length == 0) {
+      // The key is present with an empty value (`dependencies:`).
+      var key = node.nodes.keys.whereType<YamlNode>().firstWhere(
+        (key) => key.value == sectionName,
+      );
+      var (offset, prefix) = _offsetAfterNode(key);
+      var buffer = StringBuffer(prefix);
+      for (var name in packageNames) {
+        buffer.write('  $name: any$endOfLine');
+      }
+      return [(offset, buffer.toString())];
+    }
+    return const [];
   }
 
   /// Returns the `(offset, text)` insertions needed to add [packageNames] to
@@ -389,31 +395,30 @@ class PubspecFixGenerator {
     return builder;
   }
 
+  /// Returns the text and offset needed to add a new section named
+  /// [sectionName], containing [packageNames], at the end of [node].
+  ///
+  /// Must only be called when [node] has no entry for [sectionName].
   (String, int) _getTextAndOffset(
     YamlMap node,
     String sectionName,
     List<String> packageNames,
   ) {
-    var section = node[sectionName] as YamlNode?;
-    var insertAfterNode = section ?? node;
-    var insertNewline = !insertAfterNode.span.text.endsWith(endOfLine);
+    assert(!node.nodes.containsKey(sectionName));
+    var insertNewline = !node.span.text.endsWith(endOfLine);
 
     var buffer = StringBuffer();
     if (insertNewline) {
       buffer.write(endOfLine);
     }
-    if (section == null) {
-      buffer.write('$sectionName:');
-      buffer.write(endOfLine);
-    }
+    buffer.write('$sectionName:');
+    buffer.write(endOfLine);
     for (var name in packageNames) {
       buffer.write('  $name: any');
       buffer.write(endOfLine);
     }
 
-    var offset = insertAfterNode.span.end.offset;
-
-    return (buffer.toString(), offset);
+    return (buffer.toString(), node.span.end.offset);
   }
 
   String _identifierFrom(String directoryName) {

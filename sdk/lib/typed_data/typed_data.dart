@@ -4399,6 +4399,19 @@ abstract final class Int32x4 {
   /// Subtraction operator.
   Int32x4 operator -(Int32x4 other);
 
+  /// Multiplication operator.
+  ///
+  /// Returns a new [Int32x4] where each lane is the product of the
+  /// corresponding lane of this value and the corresponding lane of [other].
+  ///
+  /// An [Int32x4] represents its values as two's complement 32-bit integers,
+  /// so each lane is the low 32 bits of the exact product, interpreted as a
+  /// signed 32-bit integer. Multiplying 0x7fffffff by itself therefore yields
+  /// 1. A product which does not fit in 32 bits wraps around rather than
+  /// being an error.
+  @Since("3.15")
+  Int32x4 operator *(Int32x4 other);
+
   /// Returns a new [Int32x4] value where each lane is the negation of
   /// the value of the corresponding lane of this `Int32x4`.
   ///

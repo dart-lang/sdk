@@ -70,7 +70,14 @@ Middleware authCodeVerificationMiddleware({required String authCode}) =>
       return innerHandler(request.change(path: clientProvidedCode));
     };
 
-Middleware originCheckMiddleware({required DartRuntimeService frontend}) =>
+/// Creates [Middleware] that rejects requests whose `Origin` (or
+/// `Sec-WebSocket-Origin`) is not allowed by [_isAllowedOrigin].
+///
+/// [boundAddress] is the IP address the server is bound to.
+Middleware originCheckMiddleware({
+  required DartRuntimeService frontend,
+  required String boundAddress,
+}) =>
     (Handler innerHandler) => (Request request) {
       // First check the web-socket specific origin.
       var origins = request.headers['Sec-WebSocket-Origin'];
@@ -83,21 +90,28 @@ Middleware originCheckMiddleware({required DartRuntimeService frontend}) =>
       }
 
       for (final origin in origins.split(',')) {
-        if (_isAllowedOrigin(origin, frontend)) {
+        if (_isAllowedOrigin(origin, frontend, boundAddress)) {
           return innerHandler(request);
         }
       }
       return Response.forbidden('forbidden origin');
     };
 
-Middleware hostCheckMiddleware({required DartRuntimeService frontend}) =>
+/// Creates [Middleware] that rejects requests whose `Host` header is not
+/// allowed by [_isAllowedHost].
+///
+/// [boundAddress] is the IP address the server is bound to.
+Middleware hostCheckMiddleware({
+  required DartRuntimeService frontend,
+  required String boundAddress,
+}) =>
     (Handler innerHandler) => (Request request) {
       final hostHeader = request.headers[_kHostHeader];
       if (hostHeader == null) {
         return Response.forbidden('missing Host header');
       }
 
-      if (!_isAllowedHost(hostHeader, frontend)) {
+      if (!_isAllowedHost(hostHeader, frontend, boundAddress)) {
         return Response.forbidden('forbidden host');
       }
 
@@ -106,9 +120,15 @@ Middleware hostCheckMiddleware({required DartRuntimeService frontend}) =>
 
 /// Validates if [origin] is allowed to connect to the service.
 ///
-/// Returns `true` if the origin is localhost, loopback, or matches the
-/// bound address of the server.
-bool _isAllowedOrigin(String origin, DartRuntimeService frontend) {
+/// Returns `true` if the origin is localhost or loopback on any port, or if it
+/// is on the server's port and its host is either the host in the service URI
+/// (which may be a hostname) or [boundAddress], the IP address the server is
+/// bound to.
+bool _isAllowedOrigin(
+  String origin,
+  DartRuntimeService frontend,
+  String boundAddress,
+) {
   Uri uri;
   try {
     uri = Uri.parse(origin);
@@ -125,7 +145,8 @@ bool _isAllowedOrigin(String origin, DartRuntimeService frontend) {
   }
 
   final serverUri = frontend.uri;
-  if (uri.port == serverUri.port && uri.host == serverUri.host) {
+  if (uri.port == serverUri.port &&
+      (uri.host == serverUri.host || uri.host == boundAddress)) {
     return true;
   }
 
@@ -139,8 +160,12 @@ bool _isAllowedOrigin(String origin, DartRuntimeService frontend) {
 ///
 /// Prepends `http://` to the host header to parse it as a [Uri] and delegates
 /// to [_isAllowedOrigin].
-bool _isAllowedHost(String hostHeader, DartRuntimeService frontend) {
-  return _isAllowedOrigin('http://$hostHeader', frontend);
+bool _isAllowedHost(
+  String hostHeader,
+  DartRuntimeService frontend,
+  String boundAddress,
+) {
+  return _isAllowedOrigin('http://$hostHeader', frontend, boundAddress);
 }
 
 /// Creates a [Handler] responsible for processing HTTP requests.

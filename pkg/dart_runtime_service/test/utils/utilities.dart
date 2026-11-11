@@ -40,6 +40,23 @@ Future<int> getAvailablePort() async {
   return port;
 }
 
+/// Resolves [hostname] to the address [DartRuntimeService] binds when it is
+/// configured with that name: the first IPv4 result, or the first result if
+/// there is no IPv4 address.
+///
+/// Returns `null` if the lookup fails.
+Future<InternetAddress?> resolveBindAddress(String hostname) async {
+  try {
+    final addresses = await InternetAddress.lookup(hostname);
+    return addresses.firstWhere(
+      (a) => a.type == InternetAddressType.IPv4,
+      orElse: () => addresses.first,
+    );
+  } on SocketException {
+    return null;
+  }
+}
+
 /// Resolves a path as if it was relative to the `test` dir in this package.
 Uri resolveTestRelativePath(String relativePath) =>
     isolate.Isolate.resolvePackageUriSync(

@@ -1986,6 +1986,13 @@ final class NativeInt32x4 implements Int32x4 {
     );
   }
 
+  Int32x4 operator *(Int32x4 other) => NativeInt32x4._truncated(
+    Math.imul32(x, other.x),
+    Math.imul32(y, other.y),
+    Math.imul32(z, other.z),
+    Math.imul32(w, other.w),
+  );
+
   Int32x4 operator -() {
     // Avoid going through the typed array by "| 0" the result.
     return NativeInt32x4._truncated(

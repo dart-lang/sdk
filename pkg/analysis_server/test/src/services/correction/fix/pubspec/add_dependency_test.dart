@@ -46,6 +46,54 @@ dependencies:
 ''');
   }
 
+  /// https://github.com/dart-lang/sdk/issues/64890
+  Future<void> test_addMissingDependency_emptySection() async {
+    _runValidator(
+      '''
+name: test
+dependencies:
+dev_dependencies:
+  lints: any
+''',
+      {'path'},
+      {},
+    );
+    await assertHasFix('''
+name: test
+dependencies:
+  path: any
+dev_dependencies:
+  lints: any
+''');
+  }
+
+  Future<void> test_addMissingDependency_emptySection_atEndOfFile() async {
+    _runValidator(
+      '''
+name: test
+dependencies:''',
+      {'path'},
+      {},
+    );
+    await assertHasFix('''
+name: test
+dependencies:
+  path: any
+''');
+  }
+
+  Future<void> test_addMissingDependency_flowMap_noFix() async {
+    _runValidator(
+      '''
+name: test
+dependencies: {}
+''',
+      {'path'},
+      {},
+    );
+    await assertHasNoFix(content);
+  }
+
   /// https://github.com/dart-lang/sdk/issues/64870
   Future<void> test_addMissingDependency_sorted_insertsInOrder() async {
     _runValidator(
@@ -218,6 +266,27 @@ dev_dependencies:
 ''');
   }
 
+  /// https://github.com/dart-lang/sdk/issues/64890
+  Future<void> test_addMissingDevDependency_emptySection() async {
+    _runValidator(
+      '''
+name: test
+dependencies:
+  path: any
+dev_dependencies:
+''',
+      {'path'},
+      {'lints'},
+    );
+    await assertHasFix('''
+name: test
+dependencies:
+  path: any
+dev_dependencies:
+  lints: any
+''');
+  }
+
   Future<void> test_addMissingDevDependency_when_no_deps() async {
     _runValidator(
       '''
@@ -335,6 +404,34 @@ dependencies:
   path: any
 dev_dependencies:
   test: any
+''');
+  }
+
+  Future<void>
+  test_addRemoveMissingDependency_lastDevDep_followedBySection() async {
+    _runValidator(
+      '''
+name: test
+dependencies:
+  path: any
+dev_dependencies:
+  test: any
+  matcher: any
+flutter:
+  uses-material-design: true
+''',
+      {'path', 'matcher'},
+      {},
+    );
+    await assertHasFix('''
+name: test
+dependencies:
+  matcher: any
+  path: any
+dev_dependencies:
+  test: any
+flutter:
+  uses-material-design: true
 ''');
   }
 

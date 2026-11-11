@@ -90,6 +90,75 @@ void testSub() {
   Expect.equals(1, o.w);
 }
 
+void testMultiply() {
+  const int min = -2147483648;
+  const int max = 2147483647;
+
+  // Checks `a * b` lane by lane against `expected`, and that multiplication
+  // is commutative.
+  void checkMultiply(Int32x4 a, Int32x4 b, Int32x4 expected) {
+    void expectSameLanes(Int32x4 actual, String what) {
+      Expect.equals(expected.x, actual.x, '$what.x');
+      Expect.equals(expected.y, actual.y, '$what.y');
+      Expect.equals(expected.z, actual.z, '$what.z');
+      Expect.equals(expected.w, actual.w, '$what.w');
+    }
+
+    expectSameLanes(a * b, 'a * b');
+    expectSameLanes(b * a, 'b * a');
+  }
+
+  // For the cases where the interesting part is a single 32-bit product
+  // rather than the lanes differing from each other.
+  void checkLaneProduct(int a, int b, int expected) {
+    checkMultiply(Int32x4.splat(a), Int32x4.splat(b), Int32x4.splat(expected));
+  }
+
+  // Distinct lanes multiply independently.
+  checkMultiply(
+    Int32x4(2, 3, 4, 5),
+    Int32x4(6, 7, 8, 9),
+    Int32x4(12, 21, 32, 45),
+  );
+  // Signs combine as usual.
+  checkMultiply(
+    Int32x4(-2, 3, -4, -5),
+    Int32x4(3, -3, 3, -6),
+    Int32x4(-6, -9, -12, 30),
+  );
+  // Zero absorbs and one is the identity, on either side of the operator.
+  checkMultiply(
+    Int32x4(0, 1, 123456789, 123456),
+    Int32x4(12345, -987654321, 1, 0),
+    Int32x4(0, -987654321, 123456789, 0),
+  );
+
+  // A product which does not fit in 32 bits keeps only its low 32 bits.
+  checkLaneProduct(0x10000, 0x10000, 0); // 2^32.
+  checkLaneProduct(0x40000, 0x2000, min); // 2^31.
+  checkLaneProduct(max, max, 1); // 2^62 - 2^32 + 1.
+  checkLaneProduct(min, min, 0); // 2^62.
+  checkLaneProduct(min, max, min); // -2^62 + 2^31.
+  checkLaneProduct(min, 2, 0); // -2^32.
+  checkLaneProduct(max, 2, -2); // 2^32 - 2.
+
+  // Multiplying by -1 negates, which leaves the minimum unchanged.
+  checkLaneProduct(min, -1, min);
+  checkLaneProduct(max, -1, min + 1);
+
+  // A wrapped product can land back on a positive value.
+  checkLaneProduct(3, max, max - 2); // 3 * 2^31 - 3.
+  checkLaneProduct(-3, min, min); // 3 * 2^31.
+
+  // A zero lane of a product is positive zero, never negative zero.
+  final mixed = Int32x4(-1, -7, min, max);
+  final zeroProduct = Int32x4.splat(0) * mixed;
+  expectPositiveZero(zeroProduct.x, "(Int32x4.splat(0) * mixed).x");
+  expectPositiveZero(zeroProduct.y, "(Int32x4.splat(0) * mixed).y");
+  expectPositiveZero(zeroProduct.z, "(Int32x4.splat(0) * mixed).z");
+  expectPositiveZero(zeroProduct.w, "(Int32x4.splat(0) * mixed).w");
+}
+
 void testNegate() {
   const int min = -2147483648;
   const int max = 2147483647;
@@ -365,6 +434,7 @@ void main() {
   for (int i = 0; i < 20; i++) {
     testAdd();
     testSub();
+    testMultiply();
     testNegate();
     testAbs();
     testNegativeZero();

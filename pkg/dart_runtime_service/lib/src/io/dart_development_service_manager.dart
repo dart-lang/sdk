@@ -160,33 +160,38 @@ final class DartDevelopmentServiceManager {
       'Rejecting future connections and disconnecting non-DDS clients.',
     );
     frontend.clientConnectionController.rejectConnections(redirectUri: uri);
+    try {
+      // Notify clients why they're being disconnected from the VM service.
+      _DartDevelopmentServiceConnectedEvent(
+        uri: uri,
+      ).send(eventStreamMethods: frontend.eventStreams, excludedClient: client);
+
+      await Future.wait([
+        for (final otherClient in frontend.clients.toList())
+          if (otherClient != client && !otherClient.artificial)
+            otherClient.close(),
+      ]);
+
+      if (client.isClosed || !frontend.clients.contains(client)) {
+        RpcException.serviceDisappeared.throwException();
+      }
+      client.setName('DDS');
+    } on Object {
+      frontend.clientConnectionController.acceptConnections();
+      rethrow;
+    }
+
+    _logger.info('Non-DDS clients disconnected.');
+    _yieldCompleter.complete(uri);
 
     // Register a callback to cleanup state if DDS disconnects.
     unawaited(
-      client.done.then((_) async {
-        await _yieldCompleter.future;
+      client.done.whenComplete(() {
         _cleanup();
         frontend.clientConnectionController.acceptConnections();
         _logger.info('DDS disconnected. Accepting future connections.');
       }),
     );
-
-    client.setName('DDS');
-
-    // Notify clients why they're being disconnected from the VM service.
-    _DartDevelopmentServiceConnectedEvent(
-      uri: uri,
-    ).send(eventStreamMethods: frontend.eventStreams, excludedClient: client);
-
-    await Future.wait([
-      for (final client in frontend.clients.toList().where(
-        (e) => e != client && !e.artificial,
-      ))
-        client.close(),
-    ]);
-
-    _logger.info('Non-DDS clients disconnected.');
-    _yieldCompleter.complete(uri);
     return Success().toJson();
   }
 }

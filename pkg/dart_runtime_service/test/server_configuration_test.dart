@@ -64,6 +64,42 @@ void main() {
       expect(service.isServerRunning, true);
     });
 
+    test(
+      'reports the bound loopback IP when configured with localhost',
+      () async {
+        final service = await createDartRuntimeServiceForTest(
+          config: const DartRuntimeServiceOptions(
+            enableLogging: true,
+            host: 'localhost',
+          ),
+        );
+        expect(service.uri.host, equals(InternetAddress.loopbackIPv4.address));
+        expect(
+          service.httpUri.host,
+          equals(InternetAddress.loopbackIPv4.address),
+        );
+        expect(service.isServerRunning, true);
+      },
+    );
+
+    test('reports the configured hostname when it resolves to a non-loopback '
+        'address', () async {
+      final hostname = Platform.localHostname;
+      final bindAddress = await resolveBindAddress(hostname);
+      if (bindAddress == null || bindAddress.isLoopback) {
+        markTestSkipped(
+          '$hostname does not resolve to a non-loopback address.',
+        );
+        return;
+      }
+      final service = await createDartRuntimeServiceForTest(
+        config: DartRuntimeServiceOptions(enableLogging: true, host: hostname),
+      );
+      expect(service.uri.host, equals(hostname.toLowerCase()));
+      expect(service.httpUri.host, equals(hostname.toLowerCase()));
+      expect(service.isServerRunning, true);
+    });
+
     test('allows non-HTTP backend to start and stop without binding an HTTP '
         'server', () async {
       final service = await DartRuntimeService.initialize(

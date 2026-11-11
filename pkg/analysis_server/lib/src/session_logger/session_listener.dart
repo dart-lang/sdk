@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/session_logger/process_id.dart';
+import 'package:analyzer/instrumentation/instrumentation.dart';
 
 /// A listener that will receive information about the analysis server session.
 abstract class SessionListener {
@@ -21,7 +22,7 @@ abstract class SessionListener {
   void logException({
     required Object exception,
     StackTrace? stackTrace,
-    List<Object>? attachments,
+    List<InstrumentationServiceAttachment>? attachments,
   });
 
   /// Log unstructured text information for debugging purposes.
