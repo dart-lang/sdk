@@ -167,7 +167,7 @@ class VirtualMemory {
   static bool FreeSubSegment(void* address, intptr_t size);
 
   static VirtualMemory* Reserve(intptr_t size, intptr_t alignment);
-  static void Commit(void* address, intptr_t size);
+  static void Commit(void* address, intptr_t size, const char* name);
   static void Decommit(void* address, intptr_t size);
 
 #if defined(DART_ENABLE_RX_WORKAROUNDS)

@@ -55,7 +55,9 @@ Cage::~Cage() {
   zx_vmar_destroy(outer_vmar_);
 }
 
-VirtualMemory* Cage::Allocate(intptr_t size, intptr_t alignment) {
+VirtualMemory* Cage::Allocate(intptr_t size,
+                              intptr_t alignment,
+                              const char* name) {
   const zx_vm_option_t align_flag = Utils::ShiftForPowerOfTwo(alignment)
                                     << ZX_VM_ALIGN_BASE;
   ASSERT((ZX_VM_ALIGN_1KB <= align_flag) && (align_flag <= ZX_VM_ALIGN_4GB));
@@ -67,6 +69,10 @@ VirtualMemory* Cage::Allocate(intptr_t size, intptr_t alignment) {
   } else if (status != ZX_OK) {
     FATAL("zx_vmo_create(0x%lx) failed: %s\n", size,
           zx_status_get_string(status));
+  }
+
+  if (name != nullptr) {
+    zx_object_set_property(vmo, ZX_PROP_NAME, name, strlen(name));
   }
 
   const zx_vm_option_t region_options =
@@ -177,7 +183,9 @@ void* Cage::GetRegion() {
   return reinterpret_cast<void*>(base_);
 }
 
-VirtualMemory* Cage::Allocate(intptr_t size, intptr_t alignment) {
+VirtualMemory* Cage::Allocate(intptr_t size,
+                              intptr_t alignment,
+                              const char* name) {
   ASSERT(alignment <= kCompressedHeapAlignment);
   const intptr_t allocated_size = Utils::RoundUp(size, kCompressedPageSize);
   uword pages = allocated_size / kCompressedPageSize;
@@ -227,7 +235,7 @@ VirtualMemory* Cage::Allocate(intptr_t size, intptr_t alignment) {
   uword address = base_ + page_id * kCompressedPageSize;
   ASSERT(Utils::IsAligned(address, kCompressedPageSize));
   MemoryRegion region(reinterpret_cast<void*>(address), allocated_size);
-  VirtualMemory::Commit(region.pointer(), region.size());
+  VirtualMemory::Commit(region.pointer(), region.size(), name);
   return new VirtualMemory(region, region, this);
 }
 

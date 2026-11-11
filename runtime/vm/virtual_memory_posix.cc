@@ -720,7 +720,7 @@ VirtualMemory* VirtualMemory::Reserve(intptr_t size, intptr_t alignment) {
   return new VirtualMemory(region, region);
 }
 
-void VirtualMemory::Commit(void* address, intptr_t size) {
+void VirtualMemory::Commit(void* address, intptr_t size, const char* name) {
   ASSERT(Utils::IsAligned(address, PageSize()));
   ASSERT(Utils::IsAligned(size, PageSize()));
   void* result = mmap(address, size, PROT_READ | PROT_WRITE,
@@ -732,6 +732,9 @@ void VirtualMemory::Commit(void* address, intptr_t size) {
     FATAL("Failed to commit: %d (%s)", error,
           Utils::StrError(error, error_buf, kBufferSize));
   }
+#if defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX)
+  prctl(PR_SET_VMA, PR_SET_VMA_ANON_NAME, address, size, name);
+#endif
 }
 
 void VirtualMemory::Decommit(void* address, intptr_t size) {
@@ -747,6 +750,9 @@ void VirtualMemory::Decommit(void* address, intptr_t size) {
     FATAL("Failed to decommit: %d (%s)", error,
           Utils::StrError(error, error_buf, kBufferSize));
   }
+#if defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX)
+  prctl(PR_SET_VMA, PR_SET_VMA_ANON_NAME, address, size, nullptr);
+#endif
 }
 
 VirtualMemory::~VirtualMemory() {
