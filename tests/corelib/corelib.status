@@ -70,3 +70,4 @@ regexp/pcre_test: Slow, Pass
 
 [ $hot_reload || $hot_reload_rollback ]
 bigint_test: SkipSlow
+int_parse_radix_character_test: Pass, Slow
