@@ -72,6 +72,24 @@ final class DartRuntimeServiceRpcs {
     _backendFallbacks.addAll(backend.fallbacks);
   }
 
+  Future<RpcResponse> _invokeWithErrorHandling(
+    String method,
+    FutureOr<RpcResponse> Function() callback,
+  ) async {
+    try {
+      return await callback();
+    } on RPCError catch (e) {
+      throw json_rpc.RpcException(e.code, e.message, data: e.data);
+    } on json_rpc.RpcException {
+      rethrow;
+    } catch (e, st) {
+      client.logger.info('Exception thrown when invoking $method: $e\n$st');
+      RpcException.internalError.throwExceptionWithDetails(
+        details: '$method: Unexpected exception: $e\n$st',
+      );
+    }
+  }
+
   /// Registers the set of platform-agnostic and backend RPCs for use by
   /// [client].
   void registerRpcsWithPeer(json_rpc.Peer clientPeer) {
@@ -83,48 +101,45 @@ final class DartRuntimeServiceRpcs {
         throw StateError("Callback for '$method' is not valid. ($callback).");
       }
       client.logger.info('Registering $method');
-      clientPeer.registerMethod(method, (json_rpc.Parameters parameters) async {
-        try {
-          late RpcResponse response;
-          if (callback is RpcHandlerWithNoParameters) {
-            client.logger.info('Invoked $method');
-            response = await callback();
-            client.logger.info('Response: $response');
-          } else if (callback is RpcHandlerWithParameters) {
-            client.logger.info('Invoked $method (${parameters.value})');
-            response = await callback(parameters);
-            client.logger.info('Response: $response');
-          } else if (callback is RpcHandlerWithParametersAndClient) {
-            client.logger.info('Invoked $method (${parameters.value})');
-            response = await callback(parameters, client);
-            client.logger.info('Response: $response');
-          }
-          return response;
-        } on RPCError catch (e) {
-          throw json_rpc.RpcException(e.code, e.message, data: e.data);
-        } catch (e, st) {
-          client.logger.info('Exception thrown when invoking $method: $e\n$st');
-          rethrow;
-        }
-      });
+      clientPeer.registerMethod(
+        method,
+        (json_rpc.Parameters parameters) =>
+            _invokeWithErrorHandling(method, () async {
+              late final RpcResponse response;
+              if (callback is RpcHandlerWithNoParameters) {
+                client.logger.info('Invoked $method');
+                response = await callback();
+              } else if (callback is RpcHandlerWithParameters) {
+                client.logger.info('Invoked $method (${parameters.value})');
+                response = await callback(parameters);
+              } else if (callback is RpcHandlerWithParametersAndClient) {
+                client.logger.info('Invoked $method (${parameters.value})');
+                response = await callback(parameters, client);
+              }
+              client.logger.info('Response: $response');
+              return response;
+            }),
+      );
     }
   }
 
   void registerServiceExtensionForwarder(json_rpc.Peer clientPeer) {
-    clientPeer.registerFallback(serviceExtensionForwarderFallback);
+    clientPeer.registerFallback(
+      (json_rpc.Parameters parameters) => _invokeWithErrorHandling(
+        parameters.method,
+        () => serviceExtensionForwarderFallback(parameters),
+      ),
+    );
   }
 
   void registerBackendFallbacks(json_rpc.Peer clientPeer) {
     for (final fallback in _backendFallbacks) {
-      Future<RpcResponse> callback(json_rpc.Parameters parameters) async {
-        try {
-          return await fallback(parameters);
-        } on RPCError catch (e) {
-          throw json_rpc.RpcException(e.code, e.message, data: e.data);
-        }
-      }
-
-      clientPeer.registerFallback(callback);
+      clientPeer.registerFallback(
+        (json_rpc.Parameters parameters) => _invokeWithErrorHandling(
+          parameters.method,
+          () => fallback(parameters),
+        ),
+      );
     }
   }
 
