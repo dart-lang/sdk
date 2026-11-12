@@ -544,6 +544,13 @@ class BytecodeReader : public AllStatic {
       const Function& function,
       const Bytecode& bytecode);
 #endif
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // Returns whether the bytecode of the instance expression evaluation
+  // function [function] may access its receiver.
+  static bool EvaluationFunctionUsesReceiver(Zone* zone,
+                                             const Function& function);
+#endif
 };
 
 class BytecodeSourcePositionsIterator : ValueObject {

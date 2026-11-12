@@ -3207,6 +3207,36 @@ LocalVarDescriptorsPtr BytecodeReader::ComputeLocalVarDescriptors(
 
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+bool BytecodeReader::EvaluationFunctionUsesReceiver(Zone* zone,
+                                                    const Function& function) {
+  ASSERT(!function.is_static() && function.HasBytecode());
+  ASSERT(!function.HasOptionalParameters());
+  ASSERT(!function.IsSuspendableFunction());
+  const auto& bytecode = Bytecode::Handle(zone, function.GetBytecode());
+  auto* pc = reinterpret_cast<const KBCInstr*>(bytecode.PayloadStart());
+  auto* const end = pc + bytecode.Size();
+  ASSERT(KernelBytecode::IsEntryOpcode(pc));
+  // As there are no optional parameters, the parameters are not copied into
+  // locals, and the receiver, parameter 0 of n, stays in frame slot
+  // -kKBCParamEndSlotFromFp - n. The receiver is immutable, so only pushes
+  // can use it.
+  const intptr_t receiver_slot =
+      -kKBCParamEndSlotFromFp - function.NumParameters();
+  for (; pc < end; pc = KernelBytecode::Next(pc)) {
+    switch (KernelBytecode::DecodeOpcode(pc)) {
+      case KernelBytecode::kPush:
+      case KernelBytecode::kPush_Wide:
+        if (KernelBytecode::DecodeX(pc) == receiver_slot) return true;
+        break;
+      default:
+        break;
+    }
+  }
+  return false;
+}
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 }  // namespace bytecode
 }  // namespace dart
 

@@ -5030,6 +5030,12 @@ static ObjectPtr LoadExpressionEvaluationFunction(
 static bool EvaluationFunctionNeedsReceiver(Thread* thread,
                                             Zone* zone,
                                             const Function& eval_function) {
+#if defined(DART_DYNAMIC_MODULES)
+  if (eval_function.is_declared_in_bytecode()) {
+    return bytecode::BytecodeReader::EvaluationFunctionUsesReceiver(
+        zone, eval_function);
+  }
+#endif  // defined(DART_DYNAMIC_MODULES)
   auto parsed_function = new ParsedFunction(
       thread, Function::ZoneHandle(zone, eval_function.ptr()));
   parsed_function->EnsureKernelScopes();
