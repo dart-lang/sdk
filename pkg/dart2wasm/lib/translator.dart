@@ -220,6 +220,9 @@ class Translator with KernelNodes {
   );
   final Map<Procedure, w.Memory> _memories = {};
 
+  /// Globals created for `extern Global<WasmI64> global` definitions.
+  final Map<Procedure, w.Global> _globalsForGlobalInterop = {};
+
   // Lazily import FFI memory if used.
   final _ffiMemoryImports = <w.ModuleBuilder, w.Memory>{};
   w.Memory ffiMemory(w.ModuleBuilder usingModule) {
@@ -2660,6 +2663,50 @@ class Translator with KernelNodes {
       }
       return memory;
     });
+  }
+
+  w.Global interopGlobal(Procedure topLevelExternalGlobalGetter) {
+    return _globalsForGlobalInterop.putIfAbsent(
+      topLevelExternalGlobalGetter,
+      () {
+        final module = moduleForReference(
+          topLevelExternalGlobalGetter.reference,
+        );
+        final import = util.getWasmImportPragma(
+          coreTypes,
+          topLevelExternalGlobalGetter,
+        );
+        final exportName = interopMemberNamer.getExportName(
+          topLevelExternalGlobalGetter,
+        );
+
+        // Either Global<T> or MutableGlobal<T>
+        final dartType =
+            topLevelExternalGlobalGetter.getterType as InterfaceType;
+        final type = w.GlobalType(
+          translateExternalType(dartType.typeArguments[0]),
+          mutable: dartType.classNode == wasmMutableGlobalClass,
+        );
+
+        w.Global wasmGlobal;
+        if (import != null) {
+          wasmGlobal = module.globals.import(
+            import.moduleName,
+            import.itemName,
+            type,
+          );
+        } else {
+          throw UnimplementedError('Non-imported globals');
+        }
+
+        if (exportName != null) {
+          module.exports.export(exportName, wasmGlobal);
+        }
+
+        wasmGlobal.globalName = topLevelExternalGlobalGetter.name.text;
+        return wasmGlobal;
+      },
+    );
   }
 
   void instantiateDummyValueHeapType(

@@ -422,6 +422,10 @@ external WasmF64 mathExp(WasmF64 a);
 @pragma("wasm:import", "dart.mathLog")
 external WasmF64 mathLog(WasmF64 a);
 
+/// A value to seed the random number generator used for [identityHashCode].
+@pragma("wasm:import", "dart.hashCodeSeed")
+external final Global<WasmI64> hashCodeSeed;
+
 @pragma("wasm:import", "dart.randomInt")
 external WasmI64 randomInt();
 @pragma("wasm:import", "dart.randomIntSecure")

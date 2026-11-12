@@ -393,6 +393,11 @@ mixin KernelNodes {
     "_value",
   );
 
+  late final Class wasmGlobalClass = index.getClass('dart:_wasm', 'Global');
+  late final Class wasmMutableGlobalClass = index.getClass(
+    'dart:_wasm',
+    'MutableGlobal',
+  );
   late final Class wasmMemoryClass = index.getClass('dart:_wasm', 'Memory');
   late final Class wasmMemoryTypeClass = index.getClass(
     'dart:_wasm',

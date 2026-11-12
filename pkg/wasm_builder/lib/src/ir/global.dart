@@ -134,7 +134,7 @@ class ImportedGlobal extends Global implements Import {
     p.write(' ');
     p.writeImport(module, name);
     p.write(' ');
-    p.writeValueType(type.type);
+    type.printTo(p);
     p.write(')');
   }
 }

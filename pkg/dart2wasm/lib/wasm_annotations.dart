@@ -7,7 +7,7 @@ import 'package:kernel/ast.dart';
 import 'kernel_nodes.dart';
 import 'util.dart' as util;
 
-enum ExternType { memory }
+enum ExternType { memory, global }
 
 final class WasmMemoryType({
   required final bool shared,

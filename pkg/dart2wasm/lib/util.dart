@@ -95,6 +95,16 @@ final class ImportName {
   ImportName(this.moduleName, this.itemName);
 
   @override
+  int get hashCode => Object.hash(moduleName, itemName);
+
+  @override
+  bool operator ==(Object other) {
+    return other is ImportName &&
+        other.moduleName == moduleName &&
+        other.itemName == itemName;
+  }
+
+  @override
   String toString() {
     return '$moduleName.$itemName';
   }

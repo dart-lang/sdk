@@ -6,7 +6,7 @@
     (field $_externRef (ref extern)))))
   (global $".hello world" (import "" "hello world") (ref extern))
   (global $"\"hello world\"" (ref $JSExternWrapper)
-    (i32.const 67)
+    (i32.const 65)
     (global.get $".hello world")
     (struct.new $JSExternWrapper))
   (@binaryen.inline 0)
