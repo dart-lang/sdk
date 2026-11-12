@@ -108,6 +108,9 @@ class RelevanceComputer {
 
   /// Compute the relevance for the given [CandidateSuggestion].
   int computeRelevance(CandidateSuggestion suggestion) {
+    if (!useRelevanceScores) {
+      return 0;
+    }
     // See https://github.com/dart-lang/sdk/issues/61679
     // We have two checks to distinguish prefix `str` or `STR` when
     // candidates are also `str` or `STR`. We want to prefer the same case.

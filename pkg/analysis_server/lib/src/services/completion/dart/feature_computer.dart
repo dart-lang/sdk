@@ -11,6 +11,7 @@ import 'dart:math' as math;
 import 'package:analysis_server/src/protocol_server.dart'
     as protocol
     show ElementKind;
+import 'package:analysis_server/src/services/completion/dart/probability_range.dart';
 import 'package:analysis_server/src/services/completion/dart/relevance_tables.g.dart';
 import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analysis_server/src/utilities/extensions/numeric.dart';
@@ -43,6 +44,12 @@ const List<String> stringNames = [
   'str',
   'string',
 ];
+
+/// Whether to compute relevance scores at all.
+bool useRelevanceScores = true;
+
+/// Whether to use the generated relevance tables when computing relevance.
+bool useRelevanceTables = true;
 
 /// Convert a relevance score (assumed to be between `0.0` and `1.0` inclusive)
 /// to a relevance value between `0` and `1000` ([maximumRelevance]).
@@ -339,6 +346,20 @@ class FeatureComputer {
     String? completionLocation, {
     double? distance,
   }) {
+    if (!useRelevanceTables) {
+      // TODO(dantup): Review this behaviour when testing this flag and see if
+      //  we can decouple distance from this?
+      //
+      // Use a uniform probability range so that all element kinds have the same
+      // baseline score (0.5) and the tables have zero net effect on kind
+      // ranking, while still scaling any `distance` sub-feature (such as
+      // `inheritanceDistance` or `localVariableDistance`).
+      const uniformRange = ProbabilityRange(lower: 0.0, upper: 1.0);
+      if (distance == null) {
+        return uniformRange.middle;
+      }
+      return uniformRange.conditionalProbability(distance);
+    }
     if (completionLocation == null) {
       return 0.0;
     }
@@ -427,6 +448,11 @@ class FeatureComputer {
   /// Return the value of the _keyword_ feature for the [keyword] when
   /// completing at the given [completionLocation].
   double keywordFeature(String keyword, String? completionLocation) {
+    if (!useRelevanceTables) {
+      // Return 0.5 to match the midpoint of the uniform [0.0, 1.0] range used
+      // by [elementKindFeature] when relevance tables are disabled.
+      return 0.5;
+    }
     if (completionLocation == null) {
       return 0.0;
     }

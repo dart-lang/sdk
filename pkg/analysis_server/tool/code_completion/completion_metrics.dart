@@ -858,6 +858,25 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
     }
   }
 
+  /// Compare the default relevance computation against disabling only the
+  /// generated relevance tables and disabling relevance scores entirely.
+  void compareRelevanceModes() {
+    targetMetrics.add(
+      CompletionMetrics(
+        'no relevance tables',
+        enableFunction: () => useRelevanceTables = false,
+        disableFunction: () => useRelevanceTables = true,
+      ),
+    );
+    targetMetrics.add(
+      CompletionMetrics(
+        'no relevance scores',
+        enableFunction: () => useRelevanceScores = false,
+        disableFunction: () => useRelevanceScores = true,
+      ),
+    );
+  }
+
   /// Compare the relevance [tables] to the default relevance tables.
   void compareRelevanceTables(List<RelevanceTables> tables) {
     assert(tables.isNotEmpty);
@@ -883,6 +902,10 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
     // To compare two or more changes to completions, add a `CompletionMetrics`
     // object with enable and disable functions to the list of `targetMetrics`.
     targetMetrics.add(CompletionMetrics('shipping'));
+
+    // To compare the default relevance computation against disabling relevance
+    // tables and disabling relevance scores entirely, uncomment the line below.
+    //    compareRelevanceModes();
 
     // To compare two or more relevance tables, uncomment the line below and
     // add the `RelevanceTables` to the list. The default relevance tables
