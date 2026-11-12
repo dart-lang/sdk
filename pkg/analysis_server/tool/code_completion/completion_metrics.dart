@@ -1038,10 +1038,16 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
       var charsBeforeTop = _computeCharsBeforeTop(
         expectedCompletion,
         suggestions,
+        targetRank: rank,
       );
       metrics.charsBeforeTop.addValue(charsBeforeTop);
       metrics.charsBeforeTopFive.addValue(
-        _computeCharsBeforeTop(expectedCompletion, suggestions, minRank: 5),
+        _computeCharsBeforeTop(
+          expectedCompletion,
+          suggestions,
+          targetRank: rank,
+          minRank: 5,
+        ),
       );
       metrics.insertionLengthTheoretical.addValue(
         expectedCompletion.completion.length - charsBeforeTop,
@@ -1548,21 +1554,36 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
   @override
   void setupForResolution(AnalysisContext context) {}
 
+  /// Computes the number of characters that need to be typed before [target]
+  /// with [targetRank] would be in the top [minRank] results.
   int _computeCharsBeforeTop(
     ExpectedCompletion target,
     List<CandidateSuggestion> suggestions, {
+    required int targetRank,
     int minRank = 1,
   }) {
-    var rank = placementInSuggestionList(suggestions, target).rank;
-    if (rank <= minRank) {
+    if (targetRank <= minRank) {
       return 0;
     }
+    // Ranks are 1-based, so `target` is at index `targetRank - 1`. Only
+    // suggestions before `targetIndex` can still rank ahead of `target` after
+    // filtering, so we only need to check those, not the entire list.
+    var targetIndex = targetRank - 1;
     var expected = target.completion;
     for (var i = 1; i < expected.length + 1; i++) {
       var prefix = expected.substring(0, i);
-      var filteredSuggestions = _filterSuggestions(prefix, suggestions);
-      rank = placementInSuggestionList(filteredSuggestions, target).rank;
-      if (rank <= minRank) {
+      var newRank = 1;
+      for (var j = 0; j < targetIndex; j++) {
+        // TODO(brianwilkerson): Replace `startsWith` with a more realistic
+        //  filtering algorithm.
+        if (suggestions[j].completion.startsWith(prefix)) {
+          newRank++;
+          if (newRank > minRank) {
+            break;
+          }
+        }
+      }
+      if (newRank <= minRank) {
         return i;
       }
     }
@@ -1589,17 +1610,6 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
           maxSuggestions: -1,
         );
     return collector.suggestions;
-  }
-
-  List<CandidateSuggestion> _filterSuggestions(
-    String prefix,
-    List<CandidateSuggestion> suggestions,
-  ) {
-    // TODO(brianwilkerson): Replace this with a more realistic filtering
-    //  algorithm.
-    return suggestions
-        .where((suggestion) => suggestion.completion.startsWith(prefix))
-        .toList();
   }
 
   void _printWorstResults(String title, List<CompletionResult> worstResults) {
