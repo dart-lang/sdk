@@ -1670,9 +1670,22 @@ class UntaggedClosureData : public UntaggedObject {
   static_assert(PackedInstantiationMode::mask_in_place() <=
                     compiler::target::kSmiMax,
                 "Instantiation mode must fit in a Smi");
-  using PackedAwaiterLinkDepth = BitField<decltype(packed_fields_),
-                                          uint8_t,
-                                          PackedInstantiationMode::kNextBit>;
+
+  // Number of type parameters declared by the enclosing generic functions
+  // (for closure functions).
+  using PackedNumParentTypeArguments =
+      BitField<decltype(packed_fields_),
+               uint8_t,
+               PackedInstantiationMode::kNextBit>;
+  // kernel_to_il.cc assumes we can load the untagged value and box it in a Smi.
+  static_assert(PackedNumParentTypeArguments::mask_in_place() <=
+                    compiler::target::kSmiMax,
+                "Number of parent type arguments must fit in a Smi");
+
+  using PackedAwaiterLinkDepth =
+      BitField<decltype(packed_fields_),
+               uint8_t,
+               PackedNumParentTypeArguments::kNextBit>;
   using PackedAwaiterLinkIndex = BitField<decltype(packed_fields_),
                                           uint8_t,
                                           PackedAwaiterLinkDepth::kNextBit>;
@@ -3104,17 +3117,8 @@ class UntaggedFunctionType : public UntaggedAbstractType {
   // The bit fields are public for use in kernel_to_il.cc.
  public:
   // For packed_type_parameter_counts_.
-  using PackedNumParentTypeArguments =
-      BitField<decltype(packed_type_parameter_counts_), uint8_t>;
-  static constexpr intptr_t kPackedNumParentTypeArgumentsPos =
-      PackedNumParentTypeArguments::shift();
-  static constexpr intptr_t kPackedNumParentTypeArgumentsSize =
-      PackedNumParentTypeArguments::bitsize();
-
   using PackedNumTypeParameters =
-      BitField<decltype(packed_type_parameter_counts_),
-               uint8_t,
-               PackedNumParentTypeArguments::kNextBit>;
+      BitField<decltype(packed_type_parameter_counts_), uint8_t>;
   static constexpr intptr_t kPackedNumTypeParametersPos =
       PackedNumTypeParameters::shift();
   static constexpr intptr_t kPackedNumTypeParametersSize =
@@ -3190,8 +3194,13 @@ class UntaggedTypeParameter : public UntaggedAbstractType {
   // FunctionType or Smi (class id).
   COMPRESSED_POINTER_FIELD(ObjectPtr, owner)
   VISIT_TO(owner)
-  uint16_t base_;   // Number of enclosing function type parameters.
-  uint16_t index_;  // Keep size in sync with BuildTypeParameterTypeTestStub.
+  // Index of this type parameter among type parameters declared by its owner.
+  uint16_t index_in_owner_;
+  // Index of this type parameter in the instantiator type arguments vector
+  // (for class type parameters) or function type arguments vector
+  // (for function type parameters).
+  // Keep size in sync with BuildTypeParameterTypeTestStub.
+  uint16_t index_in_tav_;
 
  private:
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }

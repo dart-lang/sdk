@@ -1030,10 +1030,13 @@ class ClosureDataDeserializationCluster : public DeserializationCluster {
       data->untag()->context_scope_ = static_cast<ContextScopePtr>(d.null());
       data->untag()->parent_function_ = static_cast<FunctionPtr>(d.ReadRef());
       data->untag()->closure_ = static_cast<ClosurePtr>(d.null());
+      const intptr_t num_parent_type_args = d.ReadUnsigned();
       data->untag()->packed_fields_ =
           UntaggedClosureData::PackedAwaiterLinkDepth::update(
               UntaggedClosureData::kNoAwaiterLinkDepth,
-              UntaggedClosureData::PackedAwaiterLinkIndex::encode(-1));
+              UntaggedClosureData::PackedAwaiterLinkIndex::encode(-1) |
+                  UntaggedClosureData::PackedNumParentTypeArguments::encode(
+                      num_parent_type_args));
     }
   }
 };
@@ -1683,8 +1686,8 @@ class TypeParameterTypeDeserializationCluster : public DeserializationCluster {
       tp->untag()->type_test_stub_ = static_cast<CodePtr>(d.null());
       tp->untag()->hash_ = Smi::New(0);
       tp->untag()->owner_ = owner;
-      tp->untag()->base_ = 0;
-      tp->untag()->index_ = d.ReadUnsigned();
+      tp->untag()->index_in_owner_ = d.ReadUnsigned();
+      tp->untag()->index_in_tav_ = d.ReadUnsigned();
     }
   }
 

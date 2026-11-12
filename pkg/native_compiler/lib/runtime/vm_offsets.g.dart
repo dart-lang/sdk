@@ -128,10 +128,6 @@ base class VMOffsets {
   int get UntaggedFunction_kAsync => throw 'Unknown';
   int get UntaggedFunction_kSyncGen => throw 'Unknown';
   int get UntaggedFunction_kAsyncGen => throw 'Unknown';
-  int get UntaggedFunctionType_kPackedNumParentTypeArgumentsPos =>
-      throw 'Unknown';
-  int get UntaggedFunctionType_kPackedNumParentTypeArgumentsSize =>
-      throw 'Unknown';
   int get UntaggedFunctionType_kPackedNumTypeParametersPos => throw 'Unknown';
   int get UntaggedFunctionType_kPackedNumTypeParametersSize => throw 'Unknown';
   int get UntaggedFunctionType_kPackedNumImplicitParametersPos =>
@@ -941,11 +937,7 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get UntaggedFunction_kAsyncGen => 0x3;
   @override
-  int get UntaggedFunctionType_kPackedNumParentTypeArgumentsPos => 0x0;
-  @override
-  int get UntaggedFunctionType_kPackedNumParentTypeArgumentsSize => 0x8;
-  @override
-  int get UntaggedFunctionType_kPackedNumTypeParametersPos => 0x8;
+  int get UntaggedFunctionType_kPackedNumTypeParametersPos => 0x0;
   @override
   int get UntaggedFunctionType_kPackedNumTypeParametersSize => 0x8;
   @override
@@ -2112,11 +2104,7 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get UntaggedFunction_kAsyncGen => 0x3;
   @override
-  int get UntaggedFunctionType_kPackedNumParentTypeArgumentsPos => 0x0;
-  @override
-  int get UntaggedFunctionType_kPackedNumParentTypeArgumentsSize => 0x8;
-  @override
-  int get UntaggedFunctionType_kPackedNumTypeParametersPos => 0x8;
+  int get UntaggedFunctionType_kPackedNumTypeParametersPos => 0x0;
   @override
   int get UntaggedFunctionType_kPackedNumTypeParametersSize => 0x8;
   @override

@@ -3516,13 +3516,9 @@ void TypeTranslator::BuildFutureOrType() {
 }
 
 void TypeTranslator::BuildFunctionType(bool simple) {
-  const intptr_t num_enclosing_type_arguments =
-      active_class_->enclosing != nullptr
-          ? active_class_->enclosing->NumTypeArguments()
-          : 0;
   Nullability nullability = helper_->ReadNullability();
-  FunctionType& signature = FunctionType::ZoneHandle(
-      Z, FunctionType::New(num_enclosing_type_arguments, nullability));
+  FunctionType& signature =
+      FunctionType::ZoneHandle(Z, FunctionType::New(nullability));
 
   // Suspend finalization of types inside this one. They will be finalized after
   // the whole function type is constructed.

@@ -195,8 +195,6 @@
   CONSTANT(UntaggedFunction, kAsync)                                           \
   CONSTANT(UntaggedFunction, kSyncGen)                                         \
   CONSTANT(UntaggedFunction, kAsyncGen)                                        \
-  CONSTANT(UntaggedFunctionType, kPackedNumParentTypeArgumentsPos)             \
-  CONSTANT(UntaggedFunctionType, kPackedNumParentTypeArgumentsSize)            \
   CONSTANT(UntaggedFunctionType, kPackedNumTypeParametersPos)                  \
   CONSTANT(UntaggedFunctionType, kPackedNumTypeParametersSize)                 \
   CONSTANT(UntaggedFunctionType, kPackedNumImplicitParametersPos)              \

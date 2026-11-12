@@ -1500,7 +1500,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_Future) {
       type_closure.ToNullability(Nullability::kNullable, Heap::kOld));
   FinalizeAndCanonicalize(&type_nullable_closure);
   auto& type_function_int_nullary =
-      FunctionType::Handle(FunctionType::New(0, Nullability::kNonNullable));
+      FunctionType::Handle(FunctionType::New(Nullability::kNonNullable));
   // Testing with a closure, so it has an implicit parameter, and we want a
   // type that is canonically equal to the type of the closure.
   type_function_int_nullary.set_num_implicit_parameters(1);

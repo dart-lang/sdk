@@ -3183,7 +3183,9 @@ class Function : public Object {
   // Returns the number of local type arguments for this function.
   intptr_t NumTypeParameters() const;
   // Return the cumulative number of type arguments in all parent functions.
+  // Can be non-zero only for closure functions.
   intptr_t NumParentTypeArguments() const;
+  void SetNumParentTypeArguments(intptr_t value) const;
   // Return the cumulative number of type arguments for this function, including
   // type arguments for all parent functions.
   intptr_t NumTypeArguments() const;
@@ -4425,6 +4427,8 @@ class ClosureData : public Object {
   }
 
   using PackedInstantiationMode = UntaggedClosureData::PackedInstantiationMode;
+  using PackedNumParentTypeArguments =
+      UntaggedClosureData::PackedNumParentTypeArguments;
 
   static constexpr uint8_t kNoAwaiterLinkDepth =
       UntaggedClosureData::kNoAwaiterLinkDepth;
@@ -4462,6 +4466,14 @@ class ClosureData : public Object {
   }
   void set_default_type_arguments_instantiation_mode(
       InstantiationMode value) const;
+
+  static intptr_t NumParentTypeArgumentsOf(ClosureDataPtr ptr) {
+    return ptr->untag()->packed_fields_.Read<PackedNumParentTypeArguments>();
+  }
+  intptr_t num_parent_type_arguments() const {
+    return NumParentTypeArgumentsOf(ptr());
+  }
+  void set_num_parent_type_arguments(intptr_t value) const;
 
 #if defined(DART_DYNAMIC_MODULES) && !defined(PRODUCT) &&                      \
     !defined(DART_PRECOMPILED_RUNTIME)
@@ -9185,16 +9197,20 @@ class TypeArguments : public Instance {
       FunctionTypeMapping* function_type_equivalence = nullptr) const;
 
   // Check if the vector is instantiated (it must not be null).
-  bool IsInstantiated(Genericity genericity = kAny,
-                      intptr_t num_free_fun_type_params = kAllFree) const {
+  bool IsInstantiated(
+      Genericity genericity = kAny,
+      intptr_t num_free_fun_type_params = kAllFree,
+      FunctionTypeMapping* enclosing_function_types = nullptr) const {
     return IsSubvectorInstantiated(0, Length(), genericity,
-                                   num_free_fun_type_params);
+                                   num_free_fun_type_params,
+                                   enclosing_function_types);
   }
   bool IsSubvectorInstantiated(
       intptr_t from_index,
       intptr_t len,
       Genericity genericity = kAny,
-      intptr_t num_free_fun_type_params = kAllFree) const;
+      intptr_t num_free_fun_type_params = kAllFree,
+      FunctionTypeMapping* enclosing_function_types = nullptr) const;
   bool IsUninstantiatedIdentity() const;
 
   // Determine whether this uninstantiated type argument vector can share its
@@ -9250,14 +9266,11 @@ class TypeArguments : public Instance {
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
       Heap::Space space,
-      FunctionTypeMapping* function_type_mapping = nullptr,
-      intptr_t num_parent_type_args_adjustment = 0) const;
+      FunctionTypeMapping* function_type_mapping = nullptr) const;
 
-  // Update number of parent function type arguments for
-  // all elements of this vector.
+  // Copy nested function types (updating owners of their type parameters)
+  // in all elements of this vector. See AbstractType::UpdateFunctionTypes.
   TypeArgumentsPtr UpdateFunctionTypes(
-      intptr_t num_parent_type_args_adjustment,
-      intptr_t num_free_fun_type_params,
       Heap::Space space,
       FunctionTypeMapping* function_type_mapping) const;
 
@@ -9565,9 +9578,16 @@ class AbstractType : public Instance {
   virtual classid_t type_class_id() const;
   virtual ClassPtr type_class() const;
   virtual TypeArgumentsPtr arguments() const;
+  // Returns true if this type does not refer to free type parameters.
+  // Class type parameters are considered free unless genericity is
+  // kFunctions. Function type parameters are considered free unless
+  // genericity is kCurrentClass, or they are bound (owned by this type,
+  // its nested function types or one of the [enclosing_function_types]),
+  // or their index_in_tav is not less than [num_free_fun_type_params].
   virtual bool IsInstantiated(
       Genericity genericity = kAny,
-      intptr_t num_free_fun_type_params = kAllFree) const;
+      intptr_t num_free_fun_type_params = kAllFree,
+      FunctionTypeMapping* enclosing_function_types = nullptr) const;
   virtual bool CanonicalizeEquals(const Instance& other) const {
     return Equals(other);
   }
@@ -9596,22 +9616,16 @@ class AbstractType : public Instance {
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
       Heap::Space space,
-      FunctionTypeMapping* function_type_mapping = nullptr,
-      intptr_t num_parent_type_args_adjustment = 0) const;
+      FunctionTypeMapping* function_type_mapping = nullptr) const;
 
-  // Update number of parent function type arguments for the
-  // nested function types and their type parameters.
+  // Copy nested generic function types, updating owners of their
+  // type parameters. Also replace type parameters owned by function types
+  // in [function_type_mapping] with type parameters of the corresponding
+  // new owners.
   //
-  // This adjustment is needed when nesting one generic function type
-  // inside another. It is also needed when function type is copied
-  // and owners of type parameters need to be adjusted.
-  //
-  // Number of parent function type arguments is adjusted by
-  // [num_parent_type_args_adjustment].
-  // Type parameters up to [num_free_fun_type_params] are not adjusted.
+  // This is needed when function type is copied and owners of type
+  // parameters need to be adjusted.
   virtual AbstractTypePtr UpdateFunctionTypes(
-      intptr_t num_parent_type_args_adjustment,
-      intptr_t num_free_fun_type_params,
       Heap::Space space,
       FunctionTypeMapping* function_type_mapping) const;
 
@@ -9866,7 +9880,8 @@ class Type : public AbstractType {
 
   virtual bool IsInstantiated(
       Genericity genericity = kAny,
-      intptr_t num_free_fun_type_params = kAllFree) const;
+      intptr_t num_free_fun_type_params = kAllFree,
+      FunctionTypeMapping* enclosing_function_types = nullptr) const;
   virtual bool IsEquivalent(
       const Instance& other,
       TypeEquality kind,
@@ -9881,12 +9896,9 @@ class Type : public AbstractType {
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
       Heap::Space space,
-      FunctionTypeMapping* function_type_mapping = nullptr,
-      intptr_t num_parent_type_args_adjustment = 0) const;
+      FunctionTypeMapping* function_type_mapping = nullptr) const;
 
   virtual AbstractTypePtr UpdateFunctionTypes(
-      intptr_t num_parent_type_args_adjustment,
-      intptr_t num_free_fun_type_params,
       Heap::Space space,
       FunctionTypeMapping* function_type_mapping) const;
 
@@ -9991,8 +10003,6 @@ class Type : public AbstractType {
 class FunctionType : public AbstractType {
  public:
   // Reexported so they can be used by the flow graph builders.
-  using PackedNumParentTypeArguments =
-      UntaggedFunctionType::PackedNumParentTypeArguments;
   using PackedNumTypeParameters = UntaggedFunctionType::PackedNumTypeParameters;
   using PackedHasNamedOptionalParameters =
       UntaggedFunctionType::PackedHasNamedOptionalParameters;
@@ -10008,7 +10018,8 @@ class FunctionType : public AbstractType {
   virtual classid_t type_class_id() const { return kIllegalCid; }
   virtual bool IsInstantiated(
       Genericity genericity = kAny,
-      intptr_t num_free_fun_type_params = kAllFree) const;
+      intptr_t num_free_fun_type_params = kAllFree,
+      FunctionTypeMapping* enclosing_function_types = nullptr) const;
   virtual bool IsEquivalent(
       const Instance& other,
       TypeEquality kind,
@@ -10019,12 +10030,9 @@ class FunctionType : public AbstractType {
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
       Heap::Space space,
-      FunctionTypeMapping* function_type_mapping = nullptr,
-      intptr_t num_parent_type_args_adjustment = 0) const;
+      FunctionTypeMapping* function_type_mapping = nullptr) const;
 
   virtual AbstractTypePtr UpdateFunctionTypes(
-      intptr_t num_parent_type_args_adjustment,
-      intptr_t num_free_fun_type_params,
       Heap::Space space,
       FunctionTypeMapping* function_type_mapping) const;
 
@@ -10040,25 +10048,11 @@ class FunctionType : public AbstractType {
       Heap::Space space,
       FunctionTypeMapping* function_type_equivalence = nullptr) const;
 
-  static intptr_t NumParentTypeArgumentsOf(FunctionTypePtr ptr) {
-    return ptr->untag()
-        ->packed_type_parameter_counts_.Read<PackedNumParentTypeArguments>();
-  }
-  // Return the number of type arguments in the enclosing signature.
-  intptr_t NumParentTypeArguments() const {
-    return NumParentTypeArgumentsOf(ptr());
-  }
-  void SetNumParentTypeArguments(intptr_t value) const;
   static intptr_t NumTypeParametersOf(FunctionTypePtr ptr) {
     return ptr->untag()
         ->packed_type_parameter_counts_.Read<PackedNumTypeParameters>();
   }
   intptr_t NumTypeParameters() const { return NumTypeParametersOf(ptr()); }
-
-  static intptr_t NumTypeArgumentsOf(FunctionTypePtr ptr) {
-    return NumTypeParametersOf(ptr) + NumParentTypeArgumentsOf(ptr);
-  }
-  intptr_t NumTypeArguments() const { return NumTypeArgumentsOf(ptr()); }
 
   intptr_t num_implicit_parameters() const {
     return untag()
@@ -10141,9 +10135,17 @@ class FunctionType : public AbstractType {
   }
 
   // Return the type parameter declared at index.
+  //
+  // [num_parent_type_arguments] is the number of type parameters declared
+  // by the enclosing generic functions, which is used to calculate
+  // the index of the type parameter in the function type arguments vector.
+  // It can be non-zero only if this function type is a signature of a
+  // closure function. Use Function::TypeParameterAt in order to get
+  // a type parameter of a function signature.
   TypeParameterPtr TypeParameterAt(
       intptr_t index,
-      Nullability nullability = Nullability::kNonNullable) const;
+      Nullability nullability = Nullability::kNonNullable,
+      intptr_t num_parent_type_arguments = 0) const;
 
   AbstractTypePtr result_type() const { return untag()->result_type(); }
   void set_result_type(const AbstractType& value) const;
@@ -10224,9 +10226,6 @@ class FunctionType : public AbstractType {
   }
   bool IsGeneric() const { return IsGeneric(ptr()); }
 
-  // Return true if any enclosing signature of this signature is generic.
-  bool HasGenericParent() const { return NumParentTypeArguments() > 0; }
-
   // Returns true if the type of the formal parameter at the given position in
   // this function type is contravariant with the type of the other formal
   // parameter at the given position in the other function type.
@@ -10242,7 +10241,11 @@ class FunctionType : public AbstractType {
   // corresponding mask within the flag.
   intptr_t GetRequiredFlagIndex(intptr_t index, intptr_t* flag_mask) const;
 
-  void Print(NameVisibility name_visibility, BaseTextBuffer* printer) const;
+  // [num_parent_type_arguments] is used for naming type parameters
+  // of function signatures, see Function::NumParentTypeArguments.
+  void Print(NameVisibility name_visibility,
+             BaseTextBuffer* printer,
+             intptr_t num_parent_type_arguments = 0) const;
   void PrintParameters(Thread* thread,
                        Zone* zone,
                        NameVisibility name_visibility,
@@ -10256,7 +10259,6 @@ class FunctionType : public AbstractType {
   }
 
   static FunctionTypePtr New(
-      intptr_t num_parent_type_arguments = 0,
       Nullability nullability = Nullability::kNonNullable,
       Heap::Space space = Heap::kOld);
 
@@ -10272,14 +10274,35 @@ class FunctionType : public AbstractType {
   friend class Function;
 };
 
-// A TypeParameter represents a type parameter of a parameterized class.
-// It specifies its index (and its name for debugging purposes), as well as its
-// upper bound.
+// A TypeParameter represents a reference to a type parameter of a
+// parameterized class or a generic function type.
+//
+// A type parameter is identified by its owner (class or FunctionType) and
+// its index among the type parameters declared by the owner
+// ([index_in_owner]).
+//
+// In addition, [index_in_tav] specifies the position of the corresponding
+// type argument in the instantiator type arguments vector (for class type
+// parameters) or function type arguments vector (for type parameters
+// of function signatures). For class type parameters, [index_in_tav]
+// is finalized when the class is finalized, as it depends on the number of
+// type arguments of the super classes. For type parameters of a function
+// signature, [index_in_tav] is the number of type parameters declared by
+// the enclosing generic functions (see Function::NumParentTypeArguments)
+// plus [index_in_owner]. Only closure functions can have non-zero number
+// of parent type arguments, so for type parameters of function types which
+// are not signatures of closures [index_in_tav] is the same as
+// [index_in_owner].
+//
+// A function type parameter is bound if it is referenced inside its owner
+// function type, and free otherwise. Only free type parameters are
+// substituted with type arguments from the function type arguments vector
+// during instantiation, using [index_in_tav]. Type parameters of non-signature
+// function types are always bound (assuming they do not escape their owner).
+//
 // For example, the type parameter 'V' is specified as index 1 in the context of
 // the class HashMap<K, V>. At compile time, the TypeParameter is not
 // instantiated yet, i.e. it is only a place holder.
-// Upon finalization, the TypeParameter index is changed to reflect its position
-// as type argument (rather than type parameter) of the parameterized class.
 // If the type parameter is declared without an extends clause, its bound is set
 // to the ObjectType.
 class TypeParameter : public AbstractType {
@@ -10294,12 +10317,19 @@ class TypeParameter : public AbstractType {
   }
   bool IsClassTypeParameter() const { return !IsFunctionTypeParameter(); }
 
-  intptr_t base() const { return untag()->base_; }
-  void set_base(intptr_t value) const;
-  intptr_t index() const { return untag()->index_; }
-  void set_index(intptr_t value) const;
+  // Index of this type parameter among the type parameters of its owner.
+  intptr_t index_in_owner() const { return untag()->index_in_owner_; }
+  void set_index_in_owner(intptr_t value) const;
+
+  // Index of this type parameter in the instantiator (for class type
+  // parameters) or function (for function type parameters) type arguments
+  // vector.
+  intptr_t index_in_tav() const { return untag()->index_in_tav_; }
+  void set_index_in_tav(intptr_t value) const;
+
+  // Offset of [index_in_tav].
   static intptr_t index_offset() {
-    return OFFSET_OF(UntaggedTypeParameter, index_);
+    return OFFSET_OF(UntaggedTypeParameter, index_in_tav_);
   }
 
   classid_t parameterized_class_id() const;
@@ -10311,7 +10341,8 @@ class TypeParameter : public AbstractType {
 
   virtual bool IsInstantiated(
       Genericity genericity = kAny,
-      intptr_t num_free_fun_type_params = kAllFree) const;
+      intptr_t num_free_fun_type_params = kAllFree,
+      FunctionTypeMapping* enclosing_function_types = nullptr) const;
   virtual bool IsEquivalent(
       const Instance& other,
       TypeEquality kind,
@@ -10321,12 +10352,9 @@ class TypeParameter : public AbstractType {
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
       Heap::Space space,
-      FunctionTypeMapping* function_type_mapping = nullptr,
-      intptr_t num_parent_type_args_adjustment = 0) const;
+      FunctionTypeMapping* function_type_mapping = nullptr) const;
 
   virtual AbstractTypePtr UpdateFunctionTypes(
-      intptr_t num_parent_type_args_adjustment,
-      intptr_t num_free_fun_type_params,
       Heap::Space space,
       FunctionTypeMapping* function_type_mapping) const;
 
@@ -10344,13 +10372,14 @@ class TypeParameter : public AbstractType {
       const TypeArguments& function_type_arguments) const;
 
   // Return a constructed name for this nameless type parameter.
-  const char* CanonicalNameCString() const {
-    return CanonicalNameCString(IsClassTypeParameter(), base(), index());
-  }
+  const char* CanonicalNameCString() const;
 
+  // Return a constructed name for a nameless type parameter with given
+  // [index_in_owner]. [base] is the number of type parameters declared
+  // by the enclosing scopes.
   static const char* CanonicalNameCString(bool is_class_type_parameter,
                                           intptr_t base,
-                                          intptr_t index);
+                                          intptr_t index_in_owner);
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedTypeParameter));
@@ -10358,8 +10387,8 @@ class TypeParameter : public AbstractType {
 
   // 'owner' is a Class or FunctionType.
   static TypeParameterPtr New(const Object& owner,
-                              intptr_t base,
-                              intptr_t index,
+                              intptr_t index_in_owner,
+                              intptr_t index_in_tav,
                               Nullability nullability);
 
  private:
@@ -10371,6 +10400,50 @@ class TypeParameter : public AbstractType {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(TypeParameter, AbstractType);
   friend class Class;
+};
+
+// Scoped mapping FunctionType -> FunctionType.
+// Used for tracking enclosing function types when traversing types
+// (in order to determine which function type parameters are bound) and
+// for updating owners of type parameters when copying and instantiating
+// generic function types.
+class FunctionTypeMapping : public ValueObject {
+ public:
+  // [num_free_fun_type_params] is the number of parent function type
+  // parameters which are instantiated when mapping [from] to [to]. It is used
+  // to adjust the indices of type parameters of [to] in the function type
+  // arguments vector.
+  FunctionTypeMapping(Zone* zone,
+                      FunctionTypeMapping** mapping,
+                      const FunctionType& from,
+                      const FunctionType& to,
+                      intptr_t num_free_fun_type_params = 0)
+      : zone_(zone),
+        parent_(*mapping),
+        from_(from),
+        to_(to),
+        num_free_fun_type_params_(num_free_fun_type_params) {
+    // Add self to the linked list.
+    *mapping = this;
+  }
+
+  // Returns true if [owner] is in the domain of this mapping, i.e. it is
+  // one of the enclosing function types.
+  bool Contains(FunctionTypePtr owner) const;
+
+  const FunctionType* Find(const Object& from) const;
+
+  TypeParameterPtr MapTypeParameter(const TypeParameter& type_param) const;
+
+  bool ContainsOwnersOfTypeParameters(const TypeParameter& p1,
+                                      const TypeParameter& p2) const;
+
+ private:
+  Zone* zone_;
+  const FunctionTypeMapping* const parent_;
+  const FunctionType& from_;
+  const FunctionType& to_;
+  const intptr_t num_free_fun_type_params_;
 };
 
 class Number : public Instance {
@@ -11826,7 +11899,8 @@ class RecordType : public AbstractType {
   virtual classid_t type_class_id() const { return kIllegalCid; }
   virtual bool IsInstantiated(
       Genericity genericity = kAny,
-      intptr_t num_free_fun_type_params = kAllFree) const;
+      intptr_t num_free_fun_type_params = kAllFree,
+      FunctionTypeMapping* enclosing_function_types = nullptr) const;
   virtual bool IsEquivalent(
       const Instance& other,
       TypeEquality kind,
@@ -11837,12 +11911,9 @@ class RecordType : public AbstractType {
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
       Heap::Space space,
-      FunctionTypeMapping* function_type_mapping = nullptr,
-      intptr_t num_parent_type_args_adjustment = 0) const;
+      FunctionTypeMapping* function_type_mapping = nullptr) const;
 
   virtual AbstractTypePtr UpdateFunctionTypes(
-      intptr_t num_parent_type_args_adjustment,
-      intptr_t num_free_fun_type_params,
       Heap::Space space,
       FunctionTypeMapping* function_type_mapping) const;
 
