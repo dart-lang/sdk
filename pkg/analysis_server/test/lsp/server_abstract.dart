@@ -895,6 +895,14 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
+  void setWorkspaceSymbolKinds(List<SymbolKind> kinds) {
+    workspaceCapabilities = extendWorkspaceCapabilities(workspaceCapabilities, {
+      'symbol': {
+        'symbolKind': {'valueSet': kinds.map((k) => k.toJson()).toList()},
+      },
+    });
+  }
+
   WorkspaceClientCapabilities _withResourceOperationKinds(
     WorkspaceClientCapabilities source,
     List<ResourceOperationKind> kinds,
