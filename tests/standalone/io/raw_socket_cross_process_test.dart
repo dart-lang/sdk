@@ -10,16 +10,16 @@ import "package:expect/expect.dart";
 
 const int serversCount = 10;
 
-void main(List<String> args) {
+main(List<String> args) async {
   if (args.isEmpty) {
     for (int i = 0; i < serversCount; ++i) {
-      makeServer().then((server) {
-        runClientProcess(server.port).then((_) => server.close());
-      });
+      var server = await makeServer();
+      await runClientProcess(server.port);
+      await server.close();
     }
   } else if (args[0] == '--client') {
     int port = int.parse(args[1]);
-    runClient(port);
+    await runClient(port);
   } else {
     Expect.fail('Unknown arguments to raw_socket_cross_process_test.dart');
   }

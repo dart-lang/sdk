@@ -52,6 +52,7 @@ mixin DartRuntimeServiceIoBackend<IM extends IsolateManager>
   }) async {
     final hostStr = config.host ?? InternetAddress.loopbackIPv4.host;
     var parsedHost = InternetAddress.tryParse(hostStr);
+    final boundByName = parsedHost == null;
     if (parsedHost == null) {
       final addresses = await InternetAddress.lookup(hostStr);
       parsedHost = addresses.firstWhere(
@@ -60,6 +61,16 @@ mixin DartRuntimeServiceIoBackend<IM extends IsolateManager>
       );
     }
     final host = parsedHost;
+    // When the host was given as a name rather than an IP literal, report that
+    // name in the service URI so tools that rewrite URIs based on the hostname
+    // (e.g. proxy encoders) can recognize it. Loopback names such as
+    // `localhost` are reported as the bound IP instead, like legacy DDS did:
+    // clients may resolve `localhost` to a different loopback address than the
+    // one bound here (e.g. `::1` instead of `127.0.0.1`) and send the auth code
+    // to whatever is listening there.
+    final reportedHost = boundByName && !host.isLoopback
+        ? hostStr
+        : host.address;
 
     logger.info('Starting the Dart Runtime Service.');
     String? errorMessage;
@@ -67,7 +78,11 @@ mixin DartRuntimeServiceIoBackend<IM extends IsolateManager>
     Future<HttpServer?> start() async {
       try {
         logger.info('Attempting to bind to ${host.address}:$port');
-        final handlers = _handlers(config: config, logger: logger);
+        final handlers = _handlers(
+          config: config,
+          logger: logger,
+          boundAddress: host.address,
+        );
         return await io.serve(handlers, host, port);
       } on SocketException catch (e) {
         if (config.enableServicePortFallback && port != 0) {
@@ -109,7 +124,7 @@ mixin DartRuntimeServiceIoBackend<IM extends IsolateManager>
     );
     return Uri(
       scheme: 'ws',
-      host: host.address,
+      host: reportedHost,
       port: server.port,
       path: frontend.authCode != null ? '/${frontend.authCode}' : '',
     );
@@ -125,6 +140,7 @@ mixin DartRuntimeServiceIoBackend<IM extends IsolateManager>
   shelf.Handler _handlers({
     required DartRuntimeServiceOptions config,
     required Logger logger,
+    required String boundAddress,
   }) {
     logger.info('Building Shelf handlers.');
     final DartRuntimeService(:authCode, :clientManager) = frontend;
@@ -145,10 +161,10 @@ mixin DartRuntimeServiceIoBackend<IM extends IsolateManager>
     if (!config.disableOriginCheck) {
       logger.info('Origin and Host checks are enabled.');
       pipeline = pipeline.addMiddleware(
-        hostCheckMiddleware(frontend: frontend),
+        hostCheckMiddleware(frontend: frontend, boundAddress: boundAddress),
       );
       pipeline = pipeline.addMiddleware(
-        originCheckMiddleware(frontend: frontend),
+        originCheckMiddleware(frontend: frontend, boundAddress: boundAddress),
       );
     }
 
