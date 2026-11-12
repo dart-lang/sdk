@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/completion/dart/candidate_suggestion.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart/relevance_tables.g.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -473,14 +474,14 @@ class RelevanceComputer {
       location,
       distance: distance,
     );
-    if (elementKind < 0.0) {
+    if (listener case var listener?) {
       if (location == null) {
-        listener?.missingCompletionLocationAt(
+        listener.missingCompletionLocationAt(
           request.target.containingNode,
           request.target.entity!,
         );
-      } else {
-        listener?.missingElementKindTableFor(location);
+      } else if (elementKindRelevance[location] == null) {
+        listener.missingElementKindTableFor(location);
       }
     }
     return elementKind;
@@ -495,14 +496,14 @@ class RelevanceComputer {
       location,
       distance: distance,
     );
-    if (elementKind < 0.0) {
+    if (listener case var listener?) {
       if (location == null) {
-        listener?.missingCompletionLocationAt(
+        listener.missingCompletionLocationAt(
           request.target.containingNode,
           request.target.entity!,
         );
-      } else {
-        listener?.missingElementKindTableFor(location);
+      } else if (elementKindRelevance[location] == null) {
+        listener.missingElementKindTableFor(location);
       }
     }
     return elementKind;
