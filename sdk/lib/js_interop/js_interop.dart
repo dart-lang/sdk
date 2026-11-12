@@ -1458,7 +1458,7 @@ JSAny _convertError(Object error, StackTrace stackTrace) {
 extension FutureOfJSAnyToJSPromise<T extends JSAny?> on Future<T> {
   /// A [JSPromise] that either resolves with the result of the completed
   /// [Future] or rejects with its error if it is a JS value and otherwise
-  /// rejects with a [WrappedPromiseerror] that wraps its Dart error value.
+  /// rejects with a [WrappedPromiseError] that wraps its Dart error value.
   JSPromise<T> get toJS {
     return JSPromise<T>(
       (JSFunction resolve, JSFunction reject) {
@@ -1483,7 +1483,7 @@ extension FutureOfJSAnyToJSPromise<T extends JSAny?> on Future<T> {
 extension FutureOfVoidToJSPromise on Future<void> {
   /// A [JSPromise] that either resolves once this [Future] completes or rejects
   /// with its error if it is a JS value and otherwise rejects with a
-  /// [WrappedPromiseerror] that wraps its Dart error value.
+  /// [WrappedPromiseError] that wraps its Dart error value.
   JSPromise get toJS {
     return JSPromise(
       (JSFunction resolve, JSFunction reject) {
