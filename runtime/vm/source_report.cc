@@ -363,8 +363,10 @@ struct SourceReportCodeInfo : public ValueObject {
 
 void SourceReport::PrintCallSitesData(JSONObject* jsobj,
                                       const SourceReportCodeInfo& info) {
+  JSONArray sites(jsobj, "callSites");
   if (info.HasBytecode()) {
-    // TODO(sstrickl): Handle call site data for bytecode.
+    // TODO(sstrickl): Handle call site data for bytecode. The interpreter
+    // does not collect ICData, so there are no call site entries to report.
     return;
   }
   ZoneGrowableArray<const ICData*>* ic_data_array =
@@ -372,8 +374,6 @@ void SourceReport::PrintCallSitesData(JSONObject* jsobj,
   info.function.RestoreICDataMap(ic_data_array, /*clone_ic_data=*/false);
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(zone(), info.Code().pc_descriptors());
-
-  JSONArray sites(jsobj, "callSites");
 
   PcDescriptors::Iterator iter(
       descriptors,
