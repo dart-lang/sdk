@@ -23,4 +23,4 @@ library part_of_multiple;
 //
 import self as self3;
 
-part part_of_multiple_part.dart;
+part part_of_multiple_part.dart /* not included */;

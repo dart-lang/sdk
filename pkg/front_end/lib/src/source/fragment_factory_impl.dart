@@ -61,7 +61,7 @@ abstract class CompilationUnitRegistry {
     required List<MetadataBuilder>? metadata,
   });
   void registerPartOf(PartOf partOf);
-  void registerPart(Part part);
+  void registerPart(PartDirective part);
   void registerLibraryPart(LibraryPart libraryPart);
   void registerImport(Import import);
   void registerExport(Export export);
@@ -835,13 +835,6 @@ class FragmentFactoryImpl implements FragmentFactory {
       referencesFromIndex: _indexedLibrary,
       referenceIsPartOwner: _indexedLibrary != null,
     );
-    _compilationUnitRegistry.registerPart(
-      new Part(
-        fileUri: _compilationUnit.fileUri,
-        fileOffset: charOffset,
-        compilationUnit: compilationUnit,
-      ),
-    );
 
     // TODO(ahe): [metadata] should be stored, evaluated, and added to [part].
     LibraryPart part = new LibraryPart(
@@ -851,6 +844,15 @@ class FragmentFactoryImpl implements FragmentFactory {
     )..fileOffset = charOffset;
     _compilationUnitRegistry.registerLibraryPart(part);
     offsetMap.registerPart(partKeyword, part);
+
+    _compilationUnitRegistry.registerPart(
+      new PartDirective(
+        fileUri: _compilationUnit.fileUri,
+        fileOffset: charOffset,
+        compilationUnit: compilationUnit,
+        kernelPart: part,
+      ),
+    );
   }
 
   @override
