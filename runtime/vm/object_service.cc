@@ -1630,7 +1630,7 @@ void TypeParameter::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (ref) {
     return;
   }
-  jsobj.AddProperty("parameterIndex", index());
+  jsobj.AddProperty("parameterIndex", index_in_tav());
   const AbstractType& upper_bound = AbstractType::Handle(bound());
   jsobj.AddProperty("bound", upper_bound);
 }

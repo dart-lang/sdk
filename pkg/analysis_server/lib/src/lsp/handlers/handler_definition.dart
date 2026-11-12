@@ -300,7 +300,7 @@ class DefinitionHandler
     if (node is VariableDeclaration) {
       // For variables, expand to the variable declaration list if this is the
       // only variable so that the target range can include keywords/type.
-      // Don't do this when there are multiple becaues it may include other
+      // Don't do this when there are multiple because it may include other
       // variables in the range.
       var parent = node.parent;
       if (parent is VariableDeclarationList && parent.variables.length == 1) {

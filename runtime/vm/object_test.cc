@@ -7497,7 +7497,7 @@ ISOLATE_UNIT_TEST_CASE(FunctionType_IsSubtypeOfNonNullableObject) {
       IsolateGroup::Current()->object_store()->non_nullable_object_type());
 
   auto& type_function_int_nullary =
-      FunctionType::Handle(FunctionType::New(0, Nullability::kNonNullable));
+      FunctionType::Handle(FunctionType::New(Nullability::kNonNullable));
   type_function_int_nullary.set_result_type(Type::Handle(Type::IntType()));
   FinalizeAndCanonicalize(&type_function_int_nullary);
 

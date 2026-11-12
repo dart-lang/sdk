@@ -328,14 +328,44 @@ class BytecodeReaderHelper : public ValueObject {
 
   class FunctionTypeScope : public ValueObject {
    public:
-    explicit FunctionTypeScope(BytecodeReaderHelper* bytecode_reader,
-                               const FunctionType& type)
+    // [num_parent_type_args_in_bytecode] is the number of parent type
+    // arguments of the function type as encoded in the bytecode. It is used
+    // to resolve references to type parameters of the enclosing function
+    // types.
+    //
+    // [num_parent_type_args] is the number of parent type arguments in the
+    // VM, which is used to calculate indices of type parameters in the
+    // function type arguments vector. It is non-zero only for signatures
+    // of closure functions.
+    FunctionTypeScope(BytecodeReaderHelper* bytecode_reader,
+                      const FunctionType& type,
+                      intptr_t num_parent_type_args_in_bytecode,
+                      intptr_t num_parent_type_args)
         : bytecode_reader_(bytecode_reader) {
       bytecode_reader_->enclosing_function_types_.Add(&type);
+      bytecode_reader_->enclosing_function_types_num_parent_type_args_.Add(
+          num_parent_type_args_in_bytecode);
+      bytecode_reader_->enclosing_function_types_vm_num_parent_type_args_.Add(
+          num_parent_type_args);
+    }
+
+    // Scope of a signature of the given function.
+    FunctionTypeScope(BytecodeReaderHelper* bytecode_reader,
+                      const Function& function,
+                      const FunctionType& signature)
+        : FunctionTypeScope(bytecode_reader,
+                            signature,
+                            function.NumParentTypeArguments(),
+                            function.NumParentTypeArguments()) {
+      ASSERT(function.signature() == signature.ptr());
     }
 
     ~FunctionTypeScope() {
       bytecode_reader_->enclosing_function_types_.RemoveLast();
+      bytecode_reader_->enclosing_function_types_num_parent_type_args_
+          .RemoveLast();
+      bytecode_reader_->enclosing_function_types_vm_num_parent_type_args_
+          .RemoveLast();
     }
 
    private:
@@ -375,7 +405,8 @@ class BytecodeReaderHelper : public ValueObject {
                                         bool has_optional_named_params,
                                         bool has_type_params,
                                         bool has_positional_param_names,
-                                        bool has_parameter_flags);
+                                        bool has_parameter_flags,
+                                        intptr_t num_parent_type_args = -1);
   void ReadTypeParametersDeclaration(
       const Class& parameterized_class,
       const FunctionType& parameterized_signature);
@@ -426,6 +457,12 @@ class BytecodeReaderHelper : public ValueObject {
   Array* functions_ = nullptr;
   intptr_t function_index_ = 0;
   GrowableArray<const FunctionType*> enclosing_function_types_;
+  // Number of parent type arguments of the [enclosing_function_types_]
+  // as encoded in the bytecode.
+  GrowableArray<intptr_t> enclosing_function_types_num_parent_type_args_;
+  // Number of parent type arguments of the [enclosing_function_types_]
+  // in the VM.
+  GrowableArray<intptr_t> enclosing_function_types_vm_num_parent_type_args_;
   Function& scoped_function_;
   String& scoped_function_name_;
   Class& scoped_function_class_;

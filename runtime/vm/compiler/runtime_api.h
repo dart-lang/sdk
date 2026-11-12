@@ -456,8 +456,6 @@ class UntaggedFunction : public AllStatic {
 };
 
 class UntaggedFunctionType : public AllStatic {
-  static const word kPackedNumParentTypeArgumentsPos;
-  static const word kPackedNumParentTypeArgumentsSize;
   static const word kPackedNumTypeParametersPos;
   static const word kPackedNumTypeParametersSize;
   static const word kPackedNumImplicitParametersPos;

@@ -16,6 +16,7 @@ import 'package:analyzer/src/utilities/extensions/diagnostic.dart';
 import 'package:args/args.dart';
 import 'package:cli_util/cli_logging.dart';
 
+import 'metrics_util.dart';
 import 'visitors.dart';
 
 final logger = Logger.standard(ansi: Ansi(Ansi.terminalSupportsAnsi));
@@ -121,9 +122,7 @@ abstract class CompletionMetricsComputer {
     var results = <ResolvedUnitResult>[];
     var pathContext = context.contextRoot.resourceProvider.pathContext;
     for (var filePath in context.contextRoot.analyzedFiles()) {
-      if (file_paths.isGenerated(filePath) ||
-          filePath.endsWith('animated_icons.dart') ||
-          filePath.endsWith('animated_icons_data.dart')) {
+      if (shouldSkipFile(pathContext, filePath)) {
         continue;
       }
       if (file_paths.isDart(pathContext, filePath)) {

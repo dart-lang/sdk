@@ -1300,7 +1300,11 @@ final class RecordShapeRefSerializationCluster extends SerializationCluster {
   }
 }
 
-class ClosureData(final CFunction parentFunction);
+class ClosureData(
+  final CFunction parentFunction,
+  // Number of type parameters declared by the enclosing generic functions.
+  final int numParentTypeArguments,
+);
 
 final class ClosureDataSerializationCluster extends SerializationCluster {
   final List<ClosureData> _objects = [];
@@ -1329,6 +1333,7 @@ final class ClosureDataSerializationCluster extends SerializationCluster {
   void writeFill(SnapshotSerializer serializer) {
     for (final closureData in _objects) {
       serializer.writeRefId(closureData.parentFunction);
+      serializer.writeUint(closureData.numParentTypeArguments);
     }
   }
 }
@@ -1452,9 +1457,13 @@ final class FunctionSerializationCluster extends SerializationCluster {
 
     final data = switch (function) {
       // TODO: implicit_static_closure
-      LocalFunction() => ClosureData(function.enclosingFunction),
+      LocalFunction() => ClosureData(
+        function.enclosingFunction,
+        function.numberOfEnclosingFunctionTypeParameters,
+      ),
       TearOffFunction() => ClosureData(
         serializer.functionRegistry.getFunction(function.member),
+        0,
       ),
       ImplicitFieldGetter() ||
       ImplicitFieldSetter() ||
@@ -2261,7 +2270,6 @@ final class FunctionTypeSerializationCluster extends SerializationCluster {
         numTypeParams <
             (1 << vmOffsets.UntaggedFunctionType_kPackedNumTypeParametersSize),
       );
-      // TODO: number of parent type arguments
       final packedTypeParamCount =
           (type.typeParameters.length <<
           vmOffsets.UntaggedFunctionType_kPackedNumTypeParametersPos);
@@ -2379,26 +2387,31 @@ final class TypeParameterTypeSerializationCluster extends SerializationCluster {
         type.declaredNullability == ast.Nullability.nullable ? 1 : 0,
       );
       Object owner;
-      int index;
+      int indexInOwner;
+      int indexInTAV;
       switch (type) {
         case ast.TypeParameterType():
-          owner = _getTypeParameterOwner(
-            serializer,
-            type.parameter.declaration!,
-          );
-          index = computeIndexOfTypeParameter(type.parameter);
+          final declaration = type.parameter.declaration!;
+          owner = _getTypeParameterOwner(serializer, declaration);
+          indexInOwner = declaration.typeParameters.indexOf(type.parameter);
+          indexInTAV = computeIndexOfTypeParameter(type.parameter);
           break;
         case ast.StructuralParameterType():
           final functionType = _structuralParameterOwner[type.parameter]!;
           owner = functionType;
-          index = functionType.typeParameters.indexOf(type.parameter);
+          indexInOwner = functionType.typeParameters.indexOf(type.parameter);
+          // Function types which are not signatures do not have
+          // parent type arguments.
+          indexInTAV = indexInOwner;
           break;
         default:
           throw 'Unexpected type parameter ${type.runtimeType} $type';
       }
-      assert(index >= 0);
+      assert(indexInOwner >= 0);
+      assert(indexInTAV >= indexInOwner);
       serializer.writeRefId(owner);
-      serializer.writeUint(index);
+      serializer.writeUint(indexInOwner);
+      serializer.writeUint(indexInTAV);
     }
   }
 }

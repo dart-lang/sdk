@@ -3627,10 +3627,12 @@ Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
   Fragment generic;
   // Calculate the number of parent type arguments and store them in
   // info.num_parent_type_args.
-  generic += LoadLocal(info.signature);
+  generic += LoadLocal(info.closure);
+  generic += LoadNativeField(Slot::Closure_function());
+  generic += LoadNativeField(Slot::Function_data());
   generic += BuildExtractUnboxedSlotBitFieldIntoSmi<
-      UntaggedFunctionType::PackedNumParentTypeArguments>(
-      Slot::FunctionType_packed_type_parameter_counts());
+      ClosureData::PackedNumParentTypeArguments>(
+      Slot::ClosureData_packed_fields());
   info.num_parent_type_args = MakeTemporary("num_parent_type_args");
 
   // Hoist number of type parameters.
