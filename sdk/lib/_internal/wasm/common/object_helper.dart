@@ -4,8 +4,13 @@
 
 library dart._object_helper;
 
+import 'dart:math';
+
 // Access hidden identity hash code field.
 @pragma("wasm:intrinsic")
 external int getIdentityHashField(Object obj);
 @pragma("wasm:intrinsic")
 external void setIdentityHashField(Object obj, int hash);
+
+// Random number generator used to generate identity hash codes.
+external Random get objectIdentityHashCodeRng;

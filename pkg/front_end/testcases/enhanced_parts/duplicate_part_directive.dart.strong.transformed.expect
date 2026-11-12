@@ -14,6 +14,6 @@ import self as self;
 
 part duplicate_part_directive_part1.dart;
 part duplicate_part_directive_part3.dart;
-part duplicate_part_directive_part3.dart;
+part duplicate_part_directive_part3.dart /* not included */;
 part duplicate_part_directive_part2.dart;
-part duplicate_part_directive_part2.dart;
+part duplicate_part_directive_part2.dart /* not included */;

@@ -25,7 +25,7 @@ Future<void> main(List<String> args) async {
     }
   }
 
-  if (rest.length != 2) {
+  if (rest.length != 2 || !rest[1].endsWith('.wasm')) {
     stderr.writeln(
       'Usage: dart2wasm_dev.dart [options] <input.dart> <output.wasm>',
     );
@@ -34,11 +34,14 @@ Future<void> main(List<String> args) async {
 
   final mainUri = Uri.base.resolveUri(Uri.file(rest[0]));
   final outputPath = rest[1];
-  File(outputPath).writeAsBytesSync(
-    await compile(
-      mainUri,
-      platformPath: platformPath,
-      librariesSpecPath: librariesSpecPath,
-    ),
+  final modules = await compile(
+    mainUri,
+    platformPath: platformPath,
+    librariesSpecPath: librariesSpecPath,
   );
+  final prefix = outputPath.substring(0, outputPath.length - '.wasm'.length);
+  for (var i = 0; i < modules.length; i++) {
+    final modulePath = i == 0 ? outputPath : '${prefix}_module$i.wasm';
+    File(modulePath).writeAsBytesSync(modules[i]);
+  }
 }

@@ -8,4 +8,4 @@ library;
 //
 import self as self;
 
-part part_of_self.dart;
+part part_of_self.dart /* not included */;

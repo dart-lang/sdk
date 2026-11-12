@@ -38,7 +38,7 @@ void checkDartWasmApiUse(
 }
 
 class _DartWasmLibraryChecks extends _BaseVerifier
-    with _MemoryVerifierMixin, _ImportExportVerifierMixin, _SimdVerifierMixin {
+    with _ExternVerifierMixin, _ImportExportVerifierMixin, _SimdVerifierMixin {
   _DartWasmLibraryChecks(
     super.coreTypes,
     super.isStandalone,
@@ -112,6 +112,10 @@ abstract class _BaseVerifier extends RecursiveVisitor with KernelNodes {
         if (type.classNode == wasmMemoryClass) {
           return ExternType.memory;
         }
+        if (type.classNode == wasmGlobalClass ||
+            type.classNode == wasmMutableGlobalClass) {
+          return ExternType.global;
+        }
       }
     }
 
@@ -119,7 +123,8 @@ abstract class _BaseVerifier extends RecursiveVisitor with KernelNodes {
   }
 }
 
-mixin _MemoryVerifierMixin on _BaseVerifier {
+/// Verifies usages of `Memory` and `Global` externs.
+mixin _ExternVerifierMixin on _BaseVerifier {
   @override
   void defaultMember(Member node) {
     if (_categorizeWasmExtern(node) == ExternType.memory) {
@@ -146,25 +151,26 @@ mixin _MemoryVerifierMixin on _BaseVerifier {
 
   @override
   void visitStaticInvocation(StaticInvocation node) {
+    if (_validateMemoryAccessIntrinsic(node)) {
+      return;
+    }
+    if (_validateGlobalAccessIntrinsic(node)) {
+      return;
+    }
+
+    super.visitStaticInvocation(node);
+  }
+
+  bool _validateMemoryAccessIntrinsic(StaticInvocation node) {
     final target = node.target;
     if (target.enclosingLibrary == wasmLibrary &&
         target.name.text.startsWith('MemoryAccessExtension|')) {
       final args = node.arguments;
       final memory = args.positional[0];
-      final isTearOff = target.function.returnType is FunctionType;
+      _checkNoTearOff(node, target);
 
-      if (isTearOff) {
-        // Reference to a getter generated to implement tear offs, e.g. in
-        // memory.fill (as opposed to a direct memory.fill(a, b, c) call).
-        _diagnosticReporter.report(
-          diag.wasmIntrinsicTearOff,
-          node.fileOffset,
-          1,
-          _currentMember!.fileUri,
-        );
-      }
-
-      if (_isWasmMemoryRef(memory)) {
+      if (memory is StaticGet &&
+          _categorizeWasmExtern(memory.target) == .memory) {
         for (final positional in args.positional.skip(1)) {
           positional.accept(this);
         }
@@ -188,23 +194,63 @@ mixin _MemoryVerifierMixin on _BaseVerifier {
           }
         }
 
-        return;
-      } else {
-        _diagnosticReporter.report(
-          diag.wasmExternInvalidTarget,
-          node.fileOffset,
-          0,
-          _currentMember!.fileUri,
-        );
+        return true;
       }
+
+      _diagnosticReporter.report(
+        diag.wasmExternInvalidTarget,
+        node.fileOffset,
+        0,
+        _currentMember!.fileUri,
+      );
     }
 
-    super.visitStaticInvocation(node);
+    return false;
+  }
+
+  bool _validateGlobalAccessIntrinsic(StaticInvocation node) {
+    final target = node.target;
+    if (target.enclosingLibrary == wasmLibrary &&
+        (target.name.text.startsWith('GlobalGet|') ||
+            target.name.text.startsWith('GlobalSet|'))) {
+      _checkNoTearOff(node, target);
+
+      final args = node.arguments;
+      final global = args.positional[0];
+      if (global is StaticGet &&
+          _categorizeWasmExtern(global.target) == .global) {
+        return true;
+      }
+
+      _diagnosticReporter.report(
+        diag.wasmExternInvalidTarget,
+        node.fileOffset,
+        0,
+        _currentMember!.fileUri,
+      );
+    }
+
+    return false;
+  }
+
+  void _checkNoTearOff(StaticInvocation node, Procedure target) {
+    final isTearOff = target.function.returnType is FunctionType;
+
+    if (isTearOff) {
+      // Reference to a getter generated to implement tear offs, e.g. in
+      // memory.fill (as opposed to a direct memory.fill(a, b, c) call).
+      _diagnosticReporter.report(
+        diag.wasmIntrinsicTearOff,
+        node.fileOffset,
+        1,
+        _currentMember!.fileUri,
+      );
+    }
   }
 
   @override
   void visitStaticGet(StaticGet node) {
-    if (_isWasmMemoryRef(node)) {
+    if (_categorizeWasmExtern(node.target) != null) {
       // The only valid use of a wasm element is to call an intrinsic extension
       // method on it, in which case an outer visit method would have skipped
       // this node. This get is invalid.
@@ -217,11 +263,6 @@ mixin _MemoryVerifierMixin on _BaseVerifier {
     }
 
     super.visitStaticGet(node);
-  }
-
-  bool _isWasmMemoryRef(Expression expr) {
-    return expr is StaticGet &&
-        _categorizeWasmExtern(expr.target) == ExternType.memory;
   }
 }
 
@@ -302,7 +343,7 @@ mixin _ImportExportVerifierMixin on _BaseVerifier {
     final hasWeakExport = util.hasWasmWeakExportPragma(coreTypes, node);
     if (!hasImport && !hasExport && !hasWeakExport) return;
 
-    final isMemory = _categorizeWasmExtern(node) == ExternType.memory;
+    final externType = _categorizeWasmExtern(node);
     final isMethod = node is Procedure && node.kind == ProcedureKind.Method;
 
     if (hasImport) {
@@ -310,7 +351,7 @@ mixin _ImportExportVerifierMixin on _BaseVerifier {
           node is Procedure &&
           node.isStatic &&
           node.isExternal &&
-          (isMethod || isMemory) &&
+          (isMethod || externType != null) &&
           !hasExport &&
           !hasWeakExport &&
           util.getWasmImportPragma(coreTypes, node) != null;
@@ -327,7 +368,7 @@ mixin _ImportExportVerifierMixin on _BaseVerifier {
     if (hasExport || hasWeakExport) {
       final isValidExport =
           ((isMethod && node.isStatic && !node.isExternal) ||
-              (isMemory && hasExport)) &&
+              (externType != null && hasExport)) &&
           !hasImport &&
           !(hasExport && hasWeakExport) &&
           (hasExport

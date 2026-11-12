@@ -6,6 +6,7 @@
 
 library dart._wasm;
 
+part 'global.dart';
 part 'memory.dart';
 
 // A collection a special Dart types that are mapped directly to Wasm types

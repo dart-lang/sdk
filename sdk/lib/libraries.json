@@ -361,6 +361,12 @@
           "_internal/wasm/standalone/print_patch.dart"
         ]
       },
+      "_object_helper": {
+        "uri": "_internal/wasm/common/object_helper.dart",
+        "patches": [
+          "_internal/wasm/standalone/object_helper_patch.dart"
+        ]
+      },
       "_wasm": {
         "uri": "_wasm/wasm_types.dart"
       },
@@ -399,6 +405,12 @@
       },
       "_wasm": {
         "uri": "_wasm/wasm_types.dart"
+      },
+      "_object_helper": {
+        "uri": "_internal/wasm/common/object_helper.dart",
+        "patches": [
+          "_internal/wasm/js_common/object_helper_patch.dart"
+        ]
       },
       "async": {
         "uri": "async/async.dart",
@@ -470,9 +482,6 @@
       },
       "_list": {
         "uri": "_internal/wasm/common/list.dart"
-      },
-      "_object_helper": {
-        "uri": "_internal/wasm/common/object_helper.dart"
       },
       "_simd": {
         "uri": "_internal/wasm/common/simd.dart"

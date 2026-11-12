@@ -35,6 +35,9 @@ external Memory get validImportedMemory;
 @pragma('wasm:memory-type', MemoryType(limits: Limits(1)))
 external Memory get validExportedMemory;
 
+@pragma('wasm:import', 'env.global')
+external Global<WasmI32> get validImportedGlobal;
+
 // Invalid `wasm:import` pragmas.
 @pragma('wasm:import')
 external WasmVoid importMissingArg();

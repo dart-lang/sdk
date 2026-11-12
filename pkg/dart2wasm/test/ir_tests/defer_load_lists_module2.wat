@@ -1,7 +1,7 @@
 (module $M2
   (type $Array<WasmArray<WasmI8>?> <...>)
   (type $Array<WasmI8> <...>)
-  (global $deferredLoadLists (import "M" "global3") (ref $Array<WasmArray<WasmI8>?>))
+  (global $deferredLoadLists (import "M" "global3") (mut (ref $Array<WasmArray<WasmI8>?>)))
   (func $#init
     global.get $deferredLoadLists
     i32.const 5

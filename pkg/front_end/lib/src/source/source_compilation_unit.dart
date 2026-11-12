@@ -659,7 +659,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     if (isPart) {
       // This is a part with no enclosing library.
       _problemReporting.addProblem(diag.partOrphan, 0, 1, fileUri);
-      _compilationUnitData.parts.clear();
+      _compilationUnitData.partDirectives.clear();
       _reportExporters();
     }
     return libraryBuilder;
@@ -813,6 +813,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     required int partFileOffset,
     required CompilationUnit compilationUnit,
     required bool forPatch,
+    required PartDirective? partDirective,
   }) {
     if (compilationUnit == this) {
       _problemReporting.addProblem(
@@ -849,6 +850,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           partOffset: partFileOffset,
           partUri: fileUri,
           forPatch: forPatch,
+          partDirective: partDirective,
         );
       }
     } else {
@@ -868,17 +870,18 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     required Set<Uri> usedParts,
   }) {
     Set<Uri> seenParts = new Set<Uri>();
-    for (Part part in _compilationUnitData.parts) {
+    for (PartDirective partDirective in _compilationUnitData.partDirectives) {
       _tryIncludePart(
         libraryBuilder: libraryBuilder,
         libraryNameSpaceBuilder: libraryNameSpaceBuilder,
         includedParts: includedParts,
         usedParts: usedParts,
         seenParts: seenParts,
-        partFileUri: part.fileUri,
-        partFileOffset: part.fileOffset,
-        compilationUnit: part.compilationUnit,
+        partFileUri: partDirective.fileUri,
+        partFileOffset: partDirective.fileOffset,
+        compilationUnit: partDirective.compilationUnit,
         forPatch: false,
+        partDirective: partDirective,
       );
     }
     if (_patches != null) {
@@ -893,6 +896,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           partFileOffset: TreeNode.noOffset,
           compilationUnit: augmentation,
           forPatch: true,
+          partDirective: null,
         );
       }
     }
@@ -908,6 +912,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     required Uri partUri,
     required int partOffset,
     required bool forPatch,
+    required PartDirective? partDirective,
   }) {
     switch (part) {
       case SourceCompilationUnit():
@@ -997,6 +1002,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           allowPartInParts:
               forPatch ||
               parentCompilationUnit.libraryFeatures.enhancedParts.isEnabled,
+          partDirective: partDirective,
         );
       case DillCompilationUnit():
         // Trying to add a dill library builder as a part means that it exists
@@ -1027,6 +1033,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     required int partOffset,
     required Uri partUri,
     required bool allowPartInParts,
+    required PartDirective? partDirective,
   }) {
     // Language versions have to match. Except if (at least) one of them is
     // invalid in which case we've already gotten an error about this.
@@ -1096,13 +1103,16 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       includedParts,
       usedParts,
       allowPartInParts: allowPartInParts,
+      partDirective: partDirective,
     );
   }
 
   void _becomePart(
     SourceLibraryBuilder libraryBuilder,
     LibraryNameSpaceBuilder libraryNameSpaceBuilder,
+    PartDirective? partDirective,
   ) {
+    partDirective?.kernelPart.isIncluded = true;
     libraryNameSpaceBuilder.includeBuilders(_libraryNameSpaceBuilder);
 
     // TODO(ahe): Include metadata from part?
@@ -1154,6 +1164,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     List<SourceCompilationUnit> includedParts,
     Set<Uri> usedParts, {
     required bool allowPartInParts,
+    required PartDirective? partDirective,
   }) {
     assert(
       _libraryBuilder == null,
@@ -1164,7 +1175,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     _partOfLibrary = libraryBuilder;
     _parentCompilationUnit = parentCompilationUnit;
     if (!allowPartInParts) {
-      if (_compilationUnitData.parts.isNotEmpty) {
+      if (_compilationUnitData.partDirectives.isNotEmpty) {
         List<LocatedMessage> context = <LocatedMessage>[
           diag.partInPartLibraryContext.withLocation(
             libraryBuilder.fileUri,
@@ -1172,24 +1183,25 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
             1,
           ),
         ];
-        for (Part part in _compilationUnitData.parts) {
+        for (PartDirective partDirective
+            in _compilationUnitData.partDirectives) {
           _problemReporting.addProblem(
             diag.partInPart,
-            part.fileOffset,
+            partDirective.fileOffset,
             noLength,
             fileUri,
             context: context,
           );
           // Mark this part as used so we don't report it as orphaned.
-          usedParts.add(part.compilationUnit.importUri);
+          usedParts.add(partDirective.compilationUnit.importUri);
         }
       }
-      _compilationUnitData.parts.clear();
+      _compilationUnitData.partDirectives.clear();
       _reportExporters();
-      _becomePart(libraryBuilder, libraryNameSpaceBuilder);
+      _becomePart(libraryBuilder, libraryNameSpaceBuilder, partDirective);
     } else {
       _reportExporters();
-      _becomePart(libraryBuilder, libraryNameSpaceBuilder);
+      _becomePart(libraryBuilder, libraryNameSpaceBuilder, partDirective);
       _includeParts(
         libraryBuilder: libraryBuilder,
         libraryNameSpaceBuilder: libraryNameSpaceBuilder,
@@ -1586,7 +1598,7 @@ class _CompilationUnitData implements CompilationUnitRegistry {
   List<MetadataBuilder>? _metadata;
 
   /// The part directives in this compilation unit.
-  final List<Part> _parts = [];
+  final List<PartDirective> _partDirectives = [];
 
   final List<LibraryPart> _libraryParts = [];
 
@@ -1609,8 +1621,8 @@ class _CompilationUnitData implements CompilationUnitRegistry {
   }
 
   @override
-  void registerPart(Part part) {
-    _parts.add(part);
+  void registerPart(PartDirective part) {
+    _partDirectives.add(part);
   }
 
   @override
@@ -1636,7 +1648,7 @@ class _CompilationUnitData implements CompilationUnitRegistry {
 
   PartOf? get partOf => _partOf;
 
-  List<Part> get parts => _parts;
+  List<PartDirective> get partDirectives => _partDirectives;
 
   List<LibraryPart> get libraryParts => _libraryParts;
 

@@ -438,6 +438,13 @@ String dart2WasmStandaloneHtml(String title, String wasmPath) {
       builtins: ['js-string']
     });
 
+    function generateRandom() {
+      const low = (Math.random() * 4294967295.0) | 0;
+      const high = (Math.random() * 4294967295.0) | 0;
+
+      return (BigInt(high) << 32n) | BigInt(low);
+    }
+
     const dartEmbedder = {
       // See sdk/lib/_internal/wasm_standalone/lib/embedder.dart for required definitions.
       scheduleOnce: (delayInMicros, callback, arg) => {
@@ -637,12 +644,8 @@ String dart2WasmStandaloneHtml(String title, String wasmPath) {
       mathAtan: Math.atan,
       mathExp: Math.exp,
       mathLog: Math.log,
-      randomInt: () => {
-        const low = (Math.random() * 4294967295.0) | 0;
-        const high = (Math.random() * 4294967295.0) | 0;
-
-        return (BigInt(high) << 32n) | BigInt(low);
-      },
+      hashCodeSeed: new WebAssembly.Global({value: "i64", mutable: false}, generateRandom()),
+      randomInt: generateRandom,
       randomIntSecure: () => {
         const typedArray = new BigUint64Array(1);
         crypto.getRandomValues(typedArray);

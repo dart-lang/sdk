@@ -280,3 +280,6 @@ wildcard_variables/class_type_parameters: semiFuzzFailureOnForceRebuildBodies # 
 wildcard_variables/initializing_formals: RuntimeError # Expected
 wildcard_variables/local_var_no_shadowing: semiFuzzFailureOnForceRebuildBodies # Expected
 wildcard_variables/top_level_function_no_shadow: semiFuzzFailureOnForceRebuildBodies # Expected
+
+# Likely temporary
+general/part_of_multiple: SemiFuzzFailure

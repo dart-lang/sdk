@@ -22,6 +22,7 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import '../cfg/passes/lower_irreducible_control_flow.dart';
 import '../target.dart';
+import '../util.dart';
 import 'cfg/to_wasm.dart';
 import 'names.dart';
 import 'runtime.dart';
@@ -37,14 +38,17 @@ final Map<w.ValueType, String> _boxLabels = {
   _jsString: 'dart:_string::JSStringImpl',
 };
 
-/// Compiles a Dart file into a Wasm dev module.
+/// Compiles a Dart file and its imported libraries into Wasm dev modules.
+///
+/// The first returned module is the main module (exporting `main`), followed by
+/// modules for the other imported libraries.
 ///
 /// It assumes that either
 /// * [platformPath] is provided and is the path to the
 ///   `dart2wasm_dev_platform.dill` file or
 /// * [librariesSpecPath] is provided and points to a valid `libraries.json`
 ///   file allowing the compiler to compile the `dart:*` libraries from source
-Future<Uint8List> compile(
+Future<List<Uint8List>> compile(
   Uri mainUri, {
   Uri? platformPath,
   Uri? librariesSpecPath,
@@ -69,17 +73,29 @@ Future<Uint8List> compile(
       coreLibraries: LibraryIndex.all(component),
     ),
     () {
-      final module = w.ModuleBuilder('dev', null);
-      final runtime = DevRuntime(module);
-      final compiler = ModuleCompiler(module, runtime);
-      compiler.compileLibrary(
-        mainMethod.enclosingLibrary,
-        mainMethod: mainMethod,
-      );
+      int nextModuleId = 0;
+      Uint8List compileLibrary(
+        ast.Library library, {
+        ast.Procedure? mainMethod,
+      }) {
+        final moduleName = moduleNameFromId(nextModuleId++);
+        final module = w.ModuleBuilder(moduleName, null);
+        final runtime = DevRuntime(module);
+        final compiler = ModuleCompiler(module, runtime);
+        compiler.compileLibrary(library, mainMethod: mainMethod);
 
-      final serializer = w.Serializer();
-      module.build().serialize(serializer);
-      return serializer.data;
+        final serializer = w.Serializer();
+        module.build().serialize(serializer);
+        return serializer.data;
+      }
+
+      final mainLibrary = mainMethod.enclosingLibrary;
+      return [
+        compileLibrary(mainLibrary, mainMethod: mainMethod),
+        for (final library in component.libraries)
+          if (!library.importUri.isScheme('dart') && library != mainLibrary)
+            compileLibrary(library),
+      ];
     },
   );
 }

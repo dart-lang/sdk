@@ -8,11 +8,11 @@
   (func $JSStringImpl.fromRefUnchecked (param $var0 (ref extern)) (result (ref $JSExternWrapper)) <...>)
   (@binaryen.inline 0)
   (func $constantStringOps
-    i32.const 59
+    i32.const 106
     i64.const 3
     struct.new $BoxedInt
     call $print
-    i32.const 59
+    i32.const 106
     i64.const 102
     struct.new $BoxedInt
     call $print

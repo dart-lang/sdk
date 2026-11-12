@@ -13,7 +13,7 @@ library;
 import self as self;
 
 part missing_part_file_part.dart;
-part non_existing_part_file.dart;
+part non_existing_part_file.dart /* not included */;
 
 library;
 import self as self2;

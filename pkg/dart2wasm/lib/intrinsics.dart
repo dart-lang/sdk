@@ -465,6 +465,9 @@ enum StaticIntrinsic {
     null,
     'WasmI8x16|constructor#fromInts',
   ),
+  wasmGlobalGet('dart:_wasm', null, 'GlobalGet|get#value'),
+  wasmGlobalMutableGet('dart:_wasm', null, 'GlobalSet|get#value'),
+  wasmGlobalSet('dart:_wasm', null, 'GlobalSet|set#value'),
   wasmMemoryStoreInt8('dart:_wasm', null, 'MemoryAccessExtension|storeInt8'),
   wasmMemoryStoreInt16('dart:_wasm', null, 'MemoryAccessExtension|storeInt16'),
   wasmMemoryStoreInt32('dart:_wasm', null, 'MemoryAccessExtension|storeInt32'),
@@ -1343,7 +1346,7 @@ class Intrinsifier {
       }
     }
 
-    if (_isIntrinsicMemoryGetter(node.target)) {
+    if (_isIntrinsicMemoryOrGlobalGetter(node.target)) {
       // External memory getters may only be invoked as a receiver to a
       // MemoryAccessExtension call, which is intrinsified. When TFA detects
       // that arguments to a memory access invocation throw unconditionally, the
@@ -1358,15 +1361,19 @@ class Intrinsifier {
     return null;
   }
 
-  bool _isIntrinsicMemoryGetter(Member member) {
+  bool _isIntrinsicMemoryOrGlobalGetter(Member member) {
     if (member case Procedure(
       kind: ProcedureKind.Getter,
       isStatic: true,
       isExternal: true,
       function: FunctionNode(returnType: final InterfaceType type),
     )) {
+      final classNode = type.classNode;
+
       return !type.isPotentiallyNullable &&
-          type.classNode == translator.wasmMemoryClass;
+          (classNode == translator.wasmMemoryClass ||
+              classNode == translator.wasmGlobalClass ||
+              classNode == translator.wasmMutableGlobalClass);
     }
 
     return false;
@@ -3584,6 +3591,17 @@ class Intrinsifier {
 
         b.ref_null(w.HeapType.none);
         return translator.topType;
+      case StaticIntrinsic.wasmGlobalGet:
+      case StaticIntrinsic.wasmGlobalMutableGet:
+        final global = _extractGlobalFromCall(node);
+        return translator.globals.readGlobal(b, global);
+      case StaticIntrinsic.wasmGlobalSet:
+        final value = node.arguments.positional[1];
+        final global = _extractGlobalFromCall(node);
+
+        codeGen.translateExpression(value, global.type.type);
+        translator.globals.writeGlobal(b, global);
+        return translator.voidMarker;
     }
   }
 
@@ -4300,6 +4318,13 @@ class Intrinsifier {
       memory.target as Procedure,
       builder.moduleBuilder,
     );
+  }
+
+  w.Global _extractGlobalFromCall(StaticInvocation call) {
+    // A validator ensures that intrinsic extensions on globals are only called
+    // with a direct reference to the global.
+    final global = call.arguments.positional[0] as StaticGet;
+    return translator.interopGlobal(global.target as Procedure);
   }
 
   ({w.Memory memory, int offset, int align}) _extractMemoryOperands(
