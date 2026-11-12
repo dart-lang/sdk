@@ -1544,7 +1544,7 @@ extension type WrappedPromiseError._(JSError _) implements JSError {
   static bool isA(JSAny? value) {
     if (!value.isA<JSObject>()) return false;
     var object = value as JSObject;
-    return _getOwnPropertyNames(object).length == 3 &&
+    return object.isA<JSError>() &&
         object.has('error') &&
         object.has('message') &&
         object['stack'].isA<JSString>();
