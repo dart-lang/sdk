@@ -6,8 +6,46 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:analysis_server/src/status/pages.dart';
+import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:path/path.dart' as path;
 
 import 'output_utilities.dart';
+
+/// Returns `true` if [filePath] is a generated file (or large generated data
+/// file) that should be skipped when computing completion metrics or generating
+/// relevance tables.
+bool shouldSkipFile(path.Context pathContext, String filePath) {
+  if (file_paths.isGenerated(filePath)) {
+    return true;
+  }
+  const generatedSuffixes = [
+    '.chopper.dart',
+    '.config.dart',
+    '.freezed.dart',
+    '.gen.dart',
+    '.gr.dart',
+    '.mapper.dart',
+    '.mocks.dart',
+    '_bindings_generated.dart',
+  ];
+  for (var suffix in generatedSuffixes) {
+    if (filePath.endsWith(suffix)) {
+      return true;
+    }
+  }
+  var fileName = pathContext.basename(filePath);
+  if (fileName == 'animated_icons.dart' ||
+      fileName == 'animated_icons_data.dart' ||
+      fileName == 'app_localizations.dart' ||
+      fileName == 'generated_plugin_registrant.dart' ||
+      fileName == 'web_plugin_registrant.dart') {
+    return true;
+  }
+  if (fileName.startsWith('app_localizations_') && fileName.endsWith('.dart')) {
+    return true;
+  }
+  return false;
+}
 
 /// https://en.wikipedia.org/wiki/Average#Arithmetic_mean
 class ArithmeticMeanComputer {

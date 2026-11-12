@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import '../../../tool/code_completion/metrics_util.dart';
@@ -233,6 +234,34 @@ void main() {
       expect(place == Place(1, 2), isFalse);
       expect(place == Place(10, 200), isFalse);
       expect(place == Place(1, 20), isFalse);
+    });
+  });
+
+  group('shouldSkipGeneratedFile', () {
+    void expectSkip(String filePath) {
+      expect(shouldSkipFile(path.posix, filePath), isTrue);
+    }
+
+    void expectNoSkip(String filePath) {
+      expect(shouldSkipFile(path.posix, filePath), isFalse);
+    }
+
+    test('skips common generated files', () {
+      expectSkip('/a/lib/foo.g.dart');
+      expectSkip('/a/lib/foo.freezed.dart');
+      expectSkip('/a/lib/foo.mocks.dart');
+      expectSkip('/a/lib/assets.gen.dart');
+      expectSkip('/a/lib/api.chopper.dart');
+      expectSkip('/a/lib/l10n/app_localizations.dart');
+      expectSkip('/a/lib/l10n/app_localizations_en.dart');
+      expectSkip('/a/lib/generated_plugin_registrant.dart');
+      expectSkip('/a/lib/src/pedometer_bindings_generated.dart');
+    });
+
+    test('keeps handwritten dart files', () {
+      expectNoSkip('/a/lib/main.dart');
+      expectNoSkip('/a/lib/localizations.dart');
+      expectNoSkip('/a/lib/widget_bindings_observer.dart');
     });
   });
 }
