@@ -474,13 +474,18 @@ class RelevanceComputer {
       location,
       distance: distance,
     );
-    if (listener case var listener?) {
+    if (listener case var listener? when elementKind == 0.0) {
       if (location == null) {
         listener.missingCompletionLocationAt(
           request.target.containingNode,
           request.target.entity!,
         );
-      } else if (elementKindRelevance[location] == null) {
+      } else if (elementKindRelevance[location] case var locationTable?) {
+        var kind = featureComputer.computeElementKind2(element);
+        if (locationTable[kind] == null) {
+          listener.missingElementKindEntryFor(location, kind);
+        }
+      } else {
         listener.missingElementKindTableFor(location);
       }
     }
@@ -496,13 +501,18 @@ class RelevanceComputer {
       location,
       distance: distance,
     );
-    if (listener case var listener?) {
+    if (listener case var listener? when elementKind == 0.0) {
       if (location == null) {
         listener.missingCompletionLocationAt(
           request.target.containingNode,
           request.target.entity!,
         );
-      } else if (elementKindRelevance[location] == null) {
+      } else if (elementKindRelevance[location] case var locationTable?) {
+        var kind = featureComputer.computeElementKind2(element);
+        if (locationTable[kind] == null) {
+          listener.missingElementKindEntryFor(location, kind);
+        }
+      } else {
         listener.missingElementKindTableFor(location);
       }
     }

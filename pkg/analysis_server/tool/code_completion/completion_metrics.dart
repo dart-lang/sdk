@@ -397,6 +397,11 @@ class CompletionMetrics {
   /// The completion locations for which no relevance table was available.
   final Set<String> missingCompletionLocationTables = {};
 
+  /// The element kinds missing from the relevance table for each completion
+  /// location.
+  final Map<String, Set<protocol.ElementKind>>
+  missingCompletionLocationTableEntries = {};
+
   /// A map, keyed by completion location of the missed completions at those
   /// locations.
   Map<String, List<ExpectedCompletion>> missedCompletions = {};
@@ -472,6 +477,15 @@ class CompletionMetrics {
         in map['missingCompletionLocationTables'] as List<dynamic>) {
       metrics.missingCompletionLocationTables.add(element as String);
     }
+    if (map['missingCompletionLocationTableEntries']
+        case Map<String, Object?> entries) {
+      for (var entry in entries.entries) {
+        metrics.missingCompletionLocationTableEntries[entry.key] = {
+          for (var kind in entry.value as List<Object?>)
+            protocol.ElementKind.values.byName(kind as String),
+        };
+      }
+    }
     metrics.slowestResults.addAll([
       for (var result in map['slowestResults'] as List<dynamic>)
         CompletionResult.fromJson(result as Map<String, dynamic>),
@@ -516,6 +530,11 @@ class CompletionMetrics {
     missingCompletionLocationTables.addAll(
       metrics.missingCompletionLocationTables,
     );
+    for (var entry in metrics.missingCompletionLocationTableEntries.entries) {
+      missingCompletionLocationTableEntries
+          .putIfAbsent(entry.key, () => {})
+          .addAll(entry.value);
+    }
     for (var result in metrics.slowestResults) {
       _recordSlowestResult(result);
     }
@@ -605,6 +624,11 @@ class CompletionMetrics {
       'missingCompletionLocations': missingCompletionLocations.toList(),
       'missingCompletionLocationTables': missingCompletionLocationTables
           .toList(),
+      'missingCompletionLocationTableEntries':
+          missingCompletionLocationTableEntries.map(
+            (key, value) =>
+                MapEntry(key, value.map((kind) => kind.name).toList()),
+          ),
       'slowestResults': slowestResults
           .map((result) => result.toJson())
           .toList(),
@@ -627,6 +651,13 @@ class CompletionMetrics {
       location = listener.missingCompletionLocationTable;
       if (location != null) {
         missingCompletionLocationTables.add(location);
+      } else {
+        for (var entry
+            in listener.missingCompletionLocationTableEntries.entries) {
+          missingCompletionLocationTableEntries
+              .putIfAbsent(entry.key, () => {})
+              .addAll(entry.value);
+        }
       }
     }
   }
@@ -1250,6 +1281,22 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
         print('- $table');
       }
     }
+
+    var tableEntries = metrics.missingCompletionLocationTableEntries;
+    if (tableEntries.isNotEmpty) {
+      print('');
+      printHeading(
+        2,
+        'Missing element kinds in tables for the following completion '
+        'locations',
+      );
+      var entries = tableEntries.entries.toList()
+        ..sort((first, second) => first.key.compareTo(second.key));
+      for (var entry in entries) {
+        var kinds = entry.value.map((kind) => kind.name).toList()..sort();
+        print('- ${entry.key}: ${kinds.join(', ')}');
+      }
+    }
   }
 
   void printMrrComparison() {
@@ -1854,6 +1901,9 @@ class MetricsSuggestionListener implements SuggestionListener {
 
   String? missingCompletionLocationTable;
 
+  final Map<String, Set<protocol.ElementKind>>
+  missingCompletionLocationTableEntries = {};
+
   @override
   void builtCandidate(CandidateSuggestion candidate) {
     featureMap[candidate] = cachedFeatures;
@@ -1911,6 +1961,16 @@ class MetricsSuggestionListener implements SuggestionListener {
       var childClass = className(child);
       missingCompletionLocation = '$parentClass/$childClass';
     }
+  }
+
+  @override
+  void missingElementKindEntryFor(
+    String completionLocation,
+    protocol.ElementKind elementKind,
+  ) {
+    missingCompletionLocationTableEntries
+        .putIfAbsent(completionLocation, () => {})
+        .add(elementKind);
   }
 
   @override

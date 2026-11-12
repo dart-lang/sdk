@@ -207,6 +207,12 @@ class FeatureComputer {
       return protocol.ElementKind.CONSTRUCTOR;
     } else if (kind == ElementKind.EXTENSION) {
       return protocol.ElementKind.EXTENSION;
+      // TODO(dantup): Enable this when regenerating relevance tables. Currently
+      //  `EXTENSION_TYPE` is not in `relevance_tables.g.dart`, so enabling it
+      //  would change relevance in locations where `UNKNOWN` has a non-zero
+      //  entry.
+      // } else if (kind == ElementKind.EXTENSION_TYPE) {
+      //   return protocol.ElementKind.EXTENSION_TYPE;
     } else if (kind == ElementKind.FIELD) {
       return protocol.ElementKind.FIELD;
     } else if (kind == ElementKind.FUNCTION) {
@@ -259,6 +265,12 @@ class FeatureComputer {
       return protocol.ElementKind.CONSTRUCTOR;
     } else if (kind == ElementKind.EXTENSION) {
       return protocol.ElementKind.EXTENSION;
+      // TODO(dantup): Enable this when regenerating relevance tables. Currently
+      //  `EXTENSION_TYPE` is not in `relevance_tables.g.dart`, so enabling it
+      //  would change relevance in locations where `UNKNOWN` has a non-zero
+      //  entry.
+      // } else if (kind == ElementKind.EXTENSION_TYPE) {
+      //   return protocol.ElementKind.EXTENSION_TYPE;
     } else if (kind == ElementKind.FIELD) {
       return protocol.ElementKind.FIELD;
     } else if (kind == ElementKind.FUNCTION) {
