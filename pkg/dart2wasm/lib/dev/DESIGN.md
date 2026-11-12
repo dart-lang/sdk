@@ -16,8 +16,8 @@ state-bearing elements (like classes, members, and statics) via the runtime.
 
 ```js
 rt = instantiate(wasm_dev_rt);
-app = instantiate(app_module, {wasm_dev_rt: rt});
-app.main();
+modules = app_modules.map((m) => instantiate(m, {wasm_dev_rt: rt}));
+modules[0].main();
 ```
 
 ## Static calls

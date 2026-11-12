@@ -64,6 +64,10 @@ if [ -z "$DART_FILE" ] || [ -z "$OUTPUT_FILE" ]; then
   exit 1
 fi
 
+# Delete any existing output files from previous compilations so stale modules
+# aren't left behind if compilation fails or produces fewer modules.
+rm -f "$OUTPUT_FILE"* "${OUTPUT_FILE%.wasm}_module"*.wasm*
+
 PLATFORM_ARG="--platform=$PLATFORM_FILENAME"
 DART2WASM_DEV_AOT_SNAPSHOT="$BIN_DIR/$SNAPSHOT_NAME.snapshot"
 DART2WASM_DEV_SRC="$SDK_DIR/pkg/dart2wasm/bin/dart2wasm_dev.dart"
