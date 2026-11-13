@@ -254,10 +254,10 @@ class DartRuntimeServiceVMBackend
   }
 
   @override
-  bool onStreamListen({
+  Future<bool> onStreamListen({
     required String streamId,
     required Map<String, Object?> params,
-  }) {
+  }) async {
     // The Service stream is implemented completely in Dart code. Don't try and
     // subscribe to a native service stream.
     if (streamId == EventStreams.kService) {
@@ -274,7 +274,7 @@ class DartRuntimeServiceVMBackend
   }
 
   @override
-  void onStreamCancel({required String streamId}) {
+  Future<void> onStreamCancel({required String streamId}) async {
     // The Service stream is implemented completely in Dart code. Don't try and
     // cancel a subscription to a native service stream.
     if (streamId == EventStreams.kService) {

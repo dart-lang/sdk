@@ -321,14 +321,22 @@ class EventStreamManager implements EventStreamMethods {
       // Tell the backend to start sending events for this stream if this is the
       // first listener.
       if (listeners == null || listeners.isEmpty) {
-        final success = await (_pendingStreamListens[streamId] ??=
-            Future<bool>.sync(
-              () => _backend.onStreamListen(streamId: streamId, params: params),
-            ).whenComplete(() {
-              // Use a block body so `remove` does not return the completing
-              // Future itself to `whenComplete`, which would deadlock.
-              _pendingStreamListens.remove(streamId);
-            }));
+        final pendingListen = _pendingStreamListens[streamId];
+        final bool success;
+        if (pendingListen != null) {
+          success = await pendingListen;
+        } else {
+          try {
+            final listenFuture = _backend.onStreamListen(
+              streamId: streamId,
+              params: params,
+            );
+            _pendingStreamListens[streamId] = listenFuture;
+            success = await listenFuture;
+          } finally {
+            unawaited(_pendingStreamListens.remove(streamId));
+          }
+        }
         if (!success) {
           client.logger.warning(
             'Attempted to subscribe to an invalid stream ID: $streamId.',
