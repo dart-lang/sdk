@@ -1794,9 +1794,17 @@ class CallSiteInliner : public ValueObject {
         continue;
       }
 
-      if (call->ArgumentCount() > target.NumParameters() ||
-          call->ArgumentCount() < target.num_fixed_parameters()) {
-        TRACE_INLINING(THR_Print("     Bailout: wrong parameter count\n"));
+      // The closure call may be unreachable at runtime and passed arguments
+      // may not match the parameters of the target (e.g. if the call is
+      // guarded by a type test which the compiler failed to evaluate
+      // statically). Inlining such call would result in incorrect binding of
+      // arguments to parameters, or instantiation of type parameters using
+      // a function type arguments vector of a wrong length.
+      const Array& arguments_descriptor =
+          Array::ZoneHandle(Z, call->GetArgumentsDescriptor());
+      if (!target.AreValidArguments(ArgumentsDescriptor(arguments_descriptor),
+                                    nullptr)) {
+        TRACE_INLINING(THR_Print("     Bailout: invalid arguments\n"));
         continue;
       }
 
@@ -1804,8 +1812,6 @@ class CallSiteInliner : public ValueObject {
       for (int i = 0; i < call->ArgumentCount(); ++i) {
         arguments.Add(call->ArgumentValueAt(i));
       }
-      const Array& arguments_descriptor =
-          Array::ZoneHandle(Z, call->GetArgumentsDescriptor());
       InlinedCallData call_data(call, arguments_descriptor,
                                 call->FirstArgIndex(), &arguments,
                                 call_info[call_idx].caller());
