@@ -3998,25 +3998,13 @@ class BytecodeGenerator extends RecursiveVisitor {
           asm.emitJump(store);
 
           asm.bind(error);
-          asm.emitPushConstant(cp.addName(v.cosmeticName!));
-          _genDirectCall(
-            throwLocalAssignedDuringInitialization,
-            objectTable.getArgDescHandle(1),
-            1,
-          );
-          asm.emitDrop1();
+          _genThrowLateLocalError(throwLocalAssignedDuringInitialization, v);
 
           asm.bind(store);
         }
         _genStoreVar(v);
       } else {
-        asm.emitPushConstant(cp.addName(v.cosmeticName!));
-        _genDirectCall(
-          throwLocalNotInitialized,
-          objectTable.getArgDescHandle(1),
-          1,
-        );
-        asm.emitDrop1();
+        _genThrowLateLocalError(throwLocalNotInitialized, v);
       }
 
       asm.bind(done);
@@ -4073,16 +4061,22 @@ class BytecodeGenerator extends RecursiveVisitor {
       asm.emitJump(done);
 
       asm.bind(error);
-      asm.emitPushConstant(cp.addName(v.cosmeticName!));
-      _genDirectCall(
-        throwLocalAlreadyInitialized,
-        objectTable.getArgDescHandle(1),
-        1,
-      );
-      asm.emitDrop1();
+      _genThrowLateLocalError(throwLocalAlreadyInitialized, v);
 
       asm.bind(done);
     }
+  }
+
+  // Generates a call that throws an error for the late local variable [v].
+  // The call has a synthetic source position, so breakpoints and single
+  // stepping do not stop at these error checks.
+  void _genThrowLateLocalError(Procedure target, Variable v) {
+    asm.emitPushConstant(cp.addName(v.cosmeticName!));
+    final savedFlags = asm.currentSourcePositionFlags;
+    asm.currentSourcePositionFlags |= SourcePositions.syntheticFlag;
+    _genDirectCall(target, objectTable.getArgDescHandle(1), 1);
+    asm.currentSourcePositionFlags = savedFlags;
+    asm.emitDrop1();
   }
 
   @override
