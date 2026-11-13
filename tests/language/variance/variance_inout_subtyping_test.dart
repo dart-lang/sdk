@@ -10,11 +10,7 @@ import 'dart:async';
 
 import "package:expect/expect.dart";
 
-class Invariant<inout T> {}
-
-class Upper {}
-class Middle extends Upper {}
-class Lower extends Middle {}
+import "variance_helper.dart";
 
 class A {
   Invariant<Middle> method1() {

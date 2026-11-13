@@ -6,19 +6,7 @@
 
 // SharedOptions=--enable-experiment=variance
 
-class Covariant<out T> {}
-class Contravariant<in T> {}
-class Invariant<inout T> {}
-class LegacyCovariant<T> {}
-
-class Multi<out T, inout U, in V> {}
-
-class Exactly<inout T> {}
-Exactly<T> exactly<T>(T x) => new Exactly<T>();
-
-class Upper {}
-class Middle extends Upper {}
-class Lower extends Middle {}
+import "variance_helper.dart";
 
 main() {
   bool condition = true;
