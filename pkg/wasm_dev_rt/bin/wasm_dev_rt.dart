@@ -29,9 +29,6 @@ WasmVoid defineStatic(WasmI32 id, WasmFuncRef function) {
   return WasmVoid();
 }
 
-@pragma('wasm:export', 'lookupStatic')
-WasmFuncRef lookupStatic(WasmI32 id) => rt.lookupStatic(id.toIntSigned());
-
 @pragma('wasm:export', 'classId')
 WasmI32 classId(WasmExternRef label) =>
     WasmI32.fromInt(rt.classId((label.toJS as JSString).toDart));

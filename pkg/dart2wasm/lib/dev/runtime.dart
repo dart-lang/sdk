@@ -12,6 +12,12 @@ const w.ValueType _eqRef = w.RefType.eq(nullable: false);
 class DevRuntime {
   final w.ModuleBuilder module;
 
+  late final w.Table staticFunctionsTable = module.tables.import(
+    'wasm_dev_rt',
+    'static-functions-table',
+    const w.RefType.func(nullable: true),
+    0,
+  );
   late final w.BaseFunction print = _import('print', [_jsString]);
   late final w.BaseFunction staticId = _import(
     'staticId',
@@ -22,11 +28,6 @@ class DevRuntime {
     w.NumType.i32,
     _funcRef,
   ]);
-  late final w.BaseFunction lookupStatic = _import(
-    'lookupStatic',
-    [w.NumType.i32],
-    [_funcRef],
-  );
   late final w.BaseFunction classId = _import(
     'classId',
     [_jsString],
