@@ -10,7 +10,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
 import 'package:analysis_server/src/lsp/lsp_packet_transformer.dart';
 import 'package:analysis_server/src/session_logger/process_id.dart';
-import 'package:analysis_server/src/session_logger/session_logger.dart';
+import 'package:analysis_server/src/session_logger/session_listener.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:language_server_protocol/json_parsing.dart';
 
@@ -24,8 +24,8 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
 
   final InstrumentationService _instrumentationService;
 
-  /// The session logger.
-  final SessionLogger? _sessionLogger;
+  /// The session listener.
+  final SessionListener? _sessionListener;
 
   /// Completer that will be signalled when the input stream is closed.
   final Completer<void> _closed = Completer();
@@ -41,7 +41,7 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
     this._input,
     this._output,
     this._instrumentationService, {
-    this._sessionLogger,
+    this._sessionListener,
   }) : _outgoingMessages = StreamController<String>(sync: true) {
     _outgoingMessages.stream.transform(LspPacketEncoder()).listen(_write);
   }
@@ -101,7 +101,7 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
     }
     _instrumentationService.logRequest(data);
     var json = jsonDecode(data) as Map<String, Object?>;
-    _sessionLogger?.logMessage(
+    _sessionListener?.logMessage(
       from: ProcessId.ide,
       to: ProcessId.server,
       message: json,
@@ -128,7 +128,7 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
     _outgoingMessages.add(jsonEncodedBody);
 
     _instrumentationService.logResponse(jsonEncodedBody);
-    _sessionLogger?.logMessage(
+    _sessionListener?.logMessage(
       from: ProcessId.server,
       to: ProcessId.ide,
       message: json,

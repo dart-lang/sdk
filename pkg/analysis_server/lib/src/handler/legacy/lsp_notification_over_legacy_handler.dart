@@ -104,13 +104,13 @@ class LspNotificationOverLegacyHandler {
     } catch (exception, stackTrace) {
       // Unlike the expected failure above, this is unexpected, so it is
       // recorded as an exception like `LspAnalysisServer.logException` does.
-      server.instrumentationService.logException(
-        CaughtException.withMessage(
-          'An error occurred while handling ${message.method} notification',
-          exception,
-          stackTrace,
-        ),
+      var caughtException = CaughtException.withMessage(
+        'An error occurred while handling ${message.method} notification',
+        exception,
+        stackTrace,
       );
+      server.instrumentationService.logException(caughtException);
+      server.sessionListener.logException(exception: caughtException);
     } finally {
       server.analyticsManager.handledNotificationMessage(
         notification: message,
