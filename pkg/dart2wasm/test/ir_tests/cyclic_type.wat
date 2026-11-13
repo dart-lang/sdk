@@ -64,7 +64,7 @@
     drop
   )
   (func $CyclicClass.initGlobalBox (result (ref $CyclicClass))
-    i32.const 122
+    i32.const 123
     i32.const 0
     call $"new CyclicClass.initGlobalBox (initializer)"
     unreachable

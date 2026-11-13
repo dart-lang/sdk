@@ -17,6 +17,8 @@ import 'wasm_annotations.dart';
 ///
 /// So far, we validate usages of:
 ///   * `Memory` and `MemoryAccessExtension`.
+///   * `WasmTable` and `WasmTableAccessExtension`.
+///   * `Global`, `MutableGlobal`, `GlobalGet`, and `GlobalSet`.
 ///   * `wasm:import`, `wasm:export`, and `wasm:weak-export` pragmas.
 void checkDartWasmApiUse(
   Iterable<Library> libraries,
@@ -101,29 +103,72 @@ abstract class _BaseVerifier extends RecursiveVisitor with KernelNodes {
 
   /// Checks whether the getter defines an external WebAssembly member that can
   /// only be used through intrinsics.
-  ExternType? _categorizeWasmExtern(Member getter) {
-    if (getter is Procedure &&
-        getter.isGetter &&
-        getter.isStatic &&
-        getter.isExternal) {
-      final type = getter.function.returnType;
+  ExternType? _categorizeWasmExtern(Member getter) =>
+      ExternType.of(this, getter);
 
-      if (type is InterfaceType && !type.isPotentiallyNullable) {
-        if (type.classNode == wasmMemoryClass) {
-          return ExternType.memory;
-        }
-        if (type.classNode == wasmGlobalClass ||
-            type.classNode == wasmMutableGlobalClass) {
-          return ExternType.global;
-        }
-      }
+  bool _isValidExternalFunctionType(DartType type) {
+    return type is FunctionType &&
+        !type.isPotentiallyNullable &&
+        type.typeParameters.isEmpty &&
+        type.namedParameters.isEmpty &&
+        type.requiredParameterCount == type.positionalParameters.length &&
+        type.positionalParameters.every(_isValidExternalValueType) &&
+        _isValidExternalReturnType(type.returnType);
+  }
+
+  bool _isValidExternalReturnType(DartType type) {
+    return (type is InterfaceType &&
+            type.classNode == wasmVoidClass &&
+            !type.isPotentiallyNullable) ||
+        _isValidExternalValueType(type);
+  }
+
+  bool _isValidExternalValueType(DartType type) {
+    if (type is! InterfaceType) return false;
+    final cls = type.classNode;
+    if (cls == wasmI8Class || cls == wasmI16Class) return false;
+    return _isValidExternalStorageType(type);
+  }
+
+  bool _isValidExternalStorageType(DartType type) {
+    if (type is! InterfaceType) return false;
+    final cls = type.classNode;
+    final isNullable = type.isPotentiallyNullable;
+    if (cls == wasmI8Class ||
+        cls == wasmI16Class ||
+        cls == wasmI32Class ||
+        cls == wasmI64Class ||
+        cls == wasmF32Class ||
+        cls == wasmF64Class ||
+        cls == wasmV128Class) {
+      return !isNullable;
     }
+    return _isValidExternalReferenceType(type);
+  }
 
-    return null;
+  bool _isValidExternalReferenceType(DartType type) {
+    if (type is! InterfaceType) return false;
+    final cls = type.classNode;
+    if (cls == wasmAnyRefClass ||
+        cls == wasmExternRefClass ||
+        cls == wasmI31RefClass ||
+        cls == wasmFuncRefClass ||
+        cls == wasmEqRefClass ||
+        cls == wasmStructRefClass ||
+        cls == wasmArrayRefClass) {
+      return true;
+    }
+    if (cls == wasmArrayClass || cls == immutableWasmArrayClass) {
+      return _isValidExternalStorageType(type.typeArguments.single);
+    }
+    if (cls == wasmFunctionClass) {
+      return _isValidExternalFunctionType(type.typeArguments.single);
+    }
+    return false;
   }
 }
 
-/// Verifies usages of `Memory` and `Global` externs.
+/// Verifies usages of `Memory`, `WasmTable`, and `Global` externs.
 mixin _ExternVerifierMixin on _BaseVerifier {
   @override
   void defaultMember(Member node) {
@@ -136,9 +181,37 @@ mixin _ExternVerifierMixin on _BaseVerifier {
           1,
           node.fileUri,
         );
-      } else if (parsed.shared && parsed.maxSize == null) {
+      } else {
+        _checkLimits(node, parsed.minSize, parsed.maxSize);
+        if (parsed.shared && parsed.maxSize == null) {
+          _diagnosticReporter.report(
+            diag.wasmSharedMemoryMissingMaximum,
+            node.fileOffset,
+            1,
+            node.fileUri,
+          );
+        }
+      }
+    } else if (_categorizeWasmExtern(node) == ExternType.table) {
+      final parsed = WasmTableType.readAnnotation(this, node);
+      if (parsed == null) {
         _diagnosticReporter.report(
-          diag.wasmSharedMemoryMissingMaximum,
+          diag.wasmExternTableMissingAnnotation,
+          node.fileOffset,
+          1,
+          node.fileUri,
+        );
+      } else {
+        _checkLimits(node, parsed.minSize, parsed.maxSize);
+      }
+
+      final returnType =
+          (node as Procedure).function.returnType as InterfaceType;
+      final elementType = returnType.typeArguments.single;
+      if (!elementType.isPotentiallyNullable ||
+          !_isValidExternalReferenceType(elementType)) {
+        _diagnosticReporter.report(
+          diag.wasmTableInvalidElementType.withArguments(type: elementType),
           node.fileOffset,
           1,
           node.fileUri,
@@ -150,8 +223,42 @@ mixin _ExternVerifierMixin on _BaseVerifier {
   }
 
   @override
+  void visitFunctionInvocation(FunctionInvocation node) {
+    final receiver = _unwrapDeferredLoadCheck(node.receiver);
+    if (receiver is StaticInvocation &&
+        receiver.target == wasmTableCallIndirect) {
+      _validateExternReceiverAndVisitArgs(receiver, .table);
+
+      final args = receiver.arguments;
+      final tableElementType = args.types[0];
+      final functionType = args.types[1];
+      final isValidTableType =
+          tableElementType is InterfaceType &&
+          (tableElementType.classNode == wasmFuncRefClass ||
+              (tableElementType.classNode == wasmFunctionClass &&
+                  tableElementType.typeArguments.single == functionType));
+      if (!isValidTableType || !_isValidExternalFunctionType(functionType)) {
+        _diagnosticReporter.report(
+          diag.wasmTableCallIndirectInvalidUsage,
+          receiver.fileOffset,
+          1,
+          _currentMember!.fileUri,
+        );
+      }
+
+      node.arguments.accept(this);
+      return;
+    }
+
+    super.visitFunctionInvocation(node);
+  }
+
+  @override
   void visitStaticInvocation(StaticInvocation node) {
     if (_validateMemoryAccessIntrinsic(node)) {
+      return;
+    }
+    if (_validateTableAccessIntrinsic(node)) {
       return;
     }
     if (_validateGlobalAccessIntrinsic(node)) {
@@ -169,8 +276,7 @@ mixin _ExternVerifierMixin on _BaseVerifier {
       final memory = args.positional[0];
       _checkNoTearOff(node, target);
 
-      if (memory is StaticGet &&
-          _categorizeWasmExtern(memory.target) == .memory) {
+      if (_isWasmExternRef(memory, .memory)) {
         for (final positional in args.positional.skip(1)) {
           positional.accept(this);
         }
@@ -208,6 +314,28 @@ mixin _ExternVerifierMixin on _BaseVerifier {
     return false;
   }
 
+  bool _validateTableAccessIntrinsic(StaticInvocation node) {
+    final target = node.target;
+    if (target.enclosingLibrary == wasmLibrary &&
+        target.name.text.startsWith('WasmTableAccessExtension|')) {
+      if (target == wasmTableCallIndirect) {
+        _diagnosticReporter.report(
+          diag.wasmTableCallIndirectInvalidUsage,
+          node.fileOffset,
+          1,
+          _currentMember!.fileUri,
+        );
+      } else {
+        _checkNoTearOff(node, target);
+      }
+
+      _validateExternReceiverAndVisitArgs(node, .table);
+      return true;
+    }
+
+    return false;
+  }
+
   bool _validateGlobalAccessIntrinsic(StaticInvocation node) {
     final target = node.target;
     if (target.enclosingLibrary == wasmLibrary &&
@@ -215,22 +343,45 @@ mixin _ExternVerifierMixin on _BaseVerifier {
             target.name.text.startsWith('GlobalSet|'))) {
       _checkNoTearOff(node, target);
 
-      final args = node.arguments;
-      final global = args.positional[0];
-      if (global is StaticGet &&
-          _categorizeWasmExtern(global.target) == .global) {
-        return true;
-      }
-
-      _diagnosticReporter.report(
-        diag.wasmExternInvalidTarget,
-        node.fileOffset,
-        0,
-        _currentMember!.fileUri,
-      );
+      _validateExternReceiverAndVisitArgs(node, .global);
+      return true;
     }
 
     return false;
+  }
+
+  void _validateExternReceiverAndVisitArgs(
+    StaticInvocation call,
+    ExternType expectedType,
+  ) {
+    final args = call.arguments;
+    if (_isWasmExternRef(args.positional[0], expectedType)) {
+      for (final positional in args.positional.skip(1)) {
+        positional.accept(this);
+      }
+      final getter =
+          (_unwrapDeferredLoadCheck(args.positional[0]) as StaticGet).target
+              as Procedure;
+      final returnType = getter.function.returnType as InterfaceType;
+      if (args.types.first != returnType.typeArguments.single) {
+        _diagnosticReporter.report(
+          diag.wasmExternInvalidTarget,
+          call.fileOffset,
+          0,
+          _currentMember!.fileUri,
+        );
+      }
+    } else {
+      _diagnosticReporter.report(
+        diag.wasmExternInvalidTarget,
+        call.fileOffset,
+        0,
+        _currentMember!.fileUri,
+      );
+      for (final positional in args.positional) {
+        positional.accept(this);
+      }
+    }
   }
 
   void _checkNoTearOff(StaticInvocation node, Procedure target) {
@@ -263,6 +414,33 @@ mixin _ExternVerifierMixin on _BaseVerifier {
     }
 
     super.visitStaticGet(node);
+  }
+
+  /// Unwraps a deferred library load check if [expr] was produced by accessing
+  /// a member through a deferred import prefix (e.g. `M.table[i] = v`,
+  /// `(M.memory).size`, or `M.table.callIndirect<...>(i)(...)`).
+  Expression _unwrapDeferredLoadCheck(Expression expr) {
+    if (expr case Let(value: CheckLibraryIsLoaded(), :final body)) {
+      return body;
+    }
+    return expr;
+  }
+
+  bool _isWasmExternRef(Expression expr, ExternType expectedType) {
+    expr = _unwrapDeferredLoadCheck(expr);
+    return expr is StaticGet &&
+        _categorizeWasmExtern(expr.target) == expectedType;
+  }
+
+  void _checkLimits(Member node, int minSize, int? maxSize) {
+    if (minSize < 0 || (maxSize != null && maxSize < minSize)) {
+      _diagnosticReporter.report(
+        diag.wasmInvalidLimits,
+        node.fileOffset,
+        1,
+        node.fileUri,
+      );
+    }
   }
 }
 
@@ -452,61 +630,6 @@ mixin _ImportExportVerifierMixin on _BaseVerifier {
     return util.hasWasmImportPragma(coreTypes, member) ||
         util.hasWasmExportPragma(coreTypes, member) ||
         util.hasWasmWeakExportPragma(coreTypes, member);
-  }
-
-  bool _isValidExternalFunctionType(DartType type) {
-    return type is FunctionType &&
-        !type.isPotentiallyNullable &&
-        type.typeParameters.isEmpty &&
-        type.namedParameters.isEmpty &&
-        type.requiredParameterCount == type.positionalParameters.length &&
-        type.positionalParameters.every(_isValidExternalValueType) &&
-        _isValidExternalReturnType(type.returnType);
-  }
-
-  bool _isValidExternalReturnType(DartType type) {
-    return (type is InterfaceType &&
-            type.classNode == wasmVoidClass &&
-            !type.isPotentiallyNullable) ||
-        _isValidExternalValueType(type);
-  }
-
-  bool _isValidExternalValueType(DartType type) {
-    if (type is! InterfaceType) return false;
-    final cls = type.classNode;
-    if (cls == wasmI8Class || cls == wasmI16Class) return false;
-    return _isValidExternalStorageType(type);
-  }
-
-  bool _isValidExternalStorageType(DartType type) {
-    if (type is! InterfaceType) return false;
-    final cls = type.classNode;
-    final isNullable = type.isPotentiallyNullable;
-    if (cls == wasmI8Class ||
-        cls == wasmI16Class ||
-        cls == wasmI32Class ||
-        cls == wasmI64Class ||
-        cls == wasmF32Class ||
-        cls == wasmF64Class ||
-        cls == wasmV128Class) {
-      return !isNullable;
-    }
-    if (cls == wasmAnyRefClass ||
-        cls == wasmExternRefClass ||
-        cls == wasmI31RefClass ||
-        cls == wasmFuncRefClass ||
-        cls == wasmEqRefClass ||
-        cls == wasmStructRefClass ||
-        cls == wasmArrayRefClass) {
-      return true;
-    }
-    if (cls == wasmArrayClass || cls == immutableWasmArrayClass) {
-      return _isValidExternalStorageType(type.typeArguments.single);
-    }
-    if (cls == wasmFunctionClass) {
-      return _isValidExternalFunctionType(type.typeArguments.single);
-    }
-    return false;
   }
 }
 

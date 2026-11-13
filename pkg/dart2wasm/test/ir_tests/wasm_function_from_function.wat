@@ -60,7 +60,7 @@
       return
     end
     global.get $"\"Too few arguments passed. Expe<...>\""
-    i32.const 106
+    i32.const 108
     local.get $var5
     struct.new $BoxedInt
     global.get $"\" instead.\""

@@ -29,11 +29,13 @@ final class MemoryType {
 /// Limits for the size of memories or tables in WebAssembly.
 @pragma("wasm:entry-point")
 final class Limits {
-  /// The minimum size for the memory instance (in units of WebAssembly pages).
+  /// The minimum size for the instance (in units of WebAssembly pages for
+  /// memories, or elements for tables).
   @pragma("wasm:entry-point")
   final int minimum;
 
-  /// An optional maximum size for the instance (in units of WebAsembly pages).
+  /// An optional maximum size for the instance (in units of WebAssembly pages
+  /// for memories, or elements for tables).
   @pragma("wasm:entry-point")
   final int? maximum;
 

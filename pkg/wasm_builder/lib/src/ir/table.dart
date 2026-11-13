@@ -47,6 +47,14 @@ class Table with Indexable, Exportable implements Serializable {
     final defType = type.containedDefType;
     if (defType != null) usedTypes.add(defType);
   }
+
+  void _printType(IrPrinter p) {
+    p.write('$minSize ');
+    if (maxSize case final max?) {
+      p.write('$max ');
+    }
+    p.writeValueType(type);
+  }
 }
 
 /// A table defined in a module.
@@ -74,8 +82,8 @@ class DefinedTable extends Table {
       p.writeExport(exportName);
     }
 
-    p.write(' $minSize ');
-    p.writeValueType(type);
+    p.write(' ');
+    _printType(p);
     p.write(')');
   }
 }
@@ -110,8 +118,8 @@ class ImportedTable extends Table implements Import {
     p.writeTableReference(this, alwaysPrint: true);
     p.write(' ');
     p.writeImport(module, name);
-    p.write(' $minSize ');
-    p.writeValueType(type);
+    p.write(' ');
+    _printType(p);
     p.write(')');
   }
 }

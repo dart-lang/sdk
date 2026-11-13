@@ -7,7 +7,37 @@ import 'package:kernel/ast.dart';
 import 'kernel_nodes.dart';
 import 'util.dart' as util;
 
-enum ExternType { memory, global }
+enum ExternType {
+  memory,
+  table,
+  global;
+
+  /// Checks whether [member] defines an external WebAssembly member that can
+  /// only be used through intrinsics, returning its [ExternType] if so.
+  static ExternType? of(KernelNodes nodes, Member member) {
+    if (member
+        case Procedure(
+          kind: ProcedureKind.Getter,
+          isStatic: true,
+          isExternal: true,
+          function: FunctionNode(returnType: final InterfaceType type),
+        )
+        when !type.isPotentiallyNullable) {
+      if (type.classNode == nodes.wasmMemoryClass) {
+        return ExternType.memory;
+      }
+      if (type.classNode == nodes.wasmTableClass) {
+        return ExternType.table;
+      }
+      if (type.classNode == nodes.wasmGlobalClass ||
+          type.classNode == nodes.wasmMutableGlobalClass) {
+        return ExternType.global;
+      }
+    }
+
+    return null;
+  }
+}
 
 final class WasmMemoryType({
   required final bool shared,
@@ -16,12 +46,12 @@ final class WasmMemoryType({
 }) {
   /// Read the `MemoryType` annotation on a member.
   static WasmMemoryType? readAnnotation(KernelNodes nodes, Member member) {
-    final memoryType = util.getPragma<InstanceConstant>(
+    final memoryType = util.getPragma<Constant>(
       nodes.coreTypes,
       member,
       'wasm:memory-type',
     );
-    if (memoryType == null ||
+    if (memoryType is! InstanceConstant ||
         memoryType.classNode != nodes.wasmMemoryTypeClass) {
       return null;
     }
@@ -39,19 +69,40 @@ final class WasmMemoryType({
       maxSize: maxSize,
     );
   }
+}
 
-  static (int, int?) _readLimits(KernelNodes nodes, InstanceConstant constant) {
-    final minimum =
-        (constant.fieldValues[nodes.wasmLimitsMinimum.fieldReference]
-                as IntConstant)
-            .value;
-    final maximumConstant =
-        constant.fieldValues[nodes.wasmLimitsMaximum.fieldReference];
-    final maximum = switch (maximumConstant) {
-      IntConstant(:final value) => value,
-      _ => null,
-    };
+final class WasmTableType({required final int minSize, final int? maxSize}) {
+  /// Read the `TableType` annotation on a member.
+  static WasmTableType? readAnnotation(KernelNodes nodes, Member member) {
+    final tableType = util.getPragma<Constant>(
+      nodes.coreTypes,
+      member,
+      'wasm:table-type',
+    );
+    if (tableType is! InstanceConstant ||
+        tableType.classNode != nodes.wasmTableTypeClass) {
+      return null;
+    }
 
-    return (minimum, maximum);
+    final limits =
+        tableType.fieldValues[nodes.wasmTableTypeLimits.fieldReference]
+            as InstanceConstant;
+    final (minSize, maxSize) = _readLimits(nodes, limits);
+    return WasmTableType(minSize: minSize, maxSize: maxSize);
   }
+}
+
+(int, int?) _readLimits(KernelNodes nodes, InstanceConstant constant) {
+  final minimum =
+      (constant.fieldValues[nodes.wasmLimitsMinimum.fieldReference]
+              as IntConstant)
+          .value;
+  final maximumConstant =
+      constant.fieldValues[nodes.wasmLimitsMaximum.fieldReference];
+  final maximum = switch (maximumConstant) {
+    IntConstant(:final value) => value,
+    _ => null,
+  };
+
+  return (minimum, maximum);
 }

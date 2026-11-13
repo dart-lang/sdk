@@ -88,9 +88,10 @@ js_util
 jsany
 jsexport
 jsobject
-lang
 lane
+lang
 libraries.json
+limits
 list.filled
 loadlibrary
 member(s)
@@ -128,6 +129,8 @@ planned
 pointer`s
 pragma
 pragma('vm:deeply
+pragma('wasm:memory
+pragma('wasm:table
 pragmas
 preexisting
 pubspec.yaml
@@ -154,6 +157,7 @@ super.namedconstructor
 superinterface
 supermixin
 t
+tabletype
 team
 tearoff
 this.namedconstructor
@@ -173,6 +177,7 @@ wasm:export
 wasm:import
 wasm:weak
 wasmfunction.fromfunction
+wasmtable.callindirect
 wasmv
 wasmvoid
 webassembly

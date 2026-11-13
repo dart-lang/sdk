@@ -38,90 +38,112 @@ external Memory get validExportedMemory;
 @pragma('wasm:import', 'env.global')
 external Global<WasmI32> get validImportedGlobal;
 
+@pragma('wasm:import', 'env.tbl')
+@pragma('wasm:table-type', TableType(limits: Limits(1)))
+external WasmTable<WasmFuncRef?> get validImportedTable;
+
+@pragma('wasm:export', 'exportedTbl')
+@pragma('wasm:table-type', TableType(limits: Limits(1)))
+external WasmTable<WasmFuncRef?> get validExportedTable;
+
 // Invalid `wasm:import` pragmas.
 @pragma('wasm:import')
 external WasmVoid importMissingArg();
 //                ^
-// [web] The 'wasm:import' pragma is only allowed on external static functions or memory getters, and must specify a '<module>.<name>' argument.
+// [web] The 'wasm:import' pragma is only allowed on external static functions, memory getters, or table getters, and must specify a '<module>.<name>' argument.
 
 @pragma('wasm:import', 'no_dot')
 external WasmVoid importWithoutDot();
 //                ^
-// [web] The 'wasm:import' pragma is only allowed on external static functions or memory getters, and must specify a '<module>.<name>' argument.
+// [web] The 'wasm:import' pragma is only allowed on external static functions, memory getters, or table getters, and must specify a '<module>.<name>' argument.
 
 @pragma('wasm:import', 123)
 external WasmVoid importNonStringArg();
 //                ^
-// [web] The 'wasm:import' pragma is only allowed on external static functions or memory getters, and must specify a '<module>.<name>' argument.
+// [web] The 'wasm:import' pragma is only allowed on external static functions, memory getters, or table getters, and must specify a '<module>.<name>' argument.
 
 @pragma('wasm:import', 'env.nonExternal')
 WasmVoid importOnNonExternal() => WasmVoid();
 //       ^
-// [web] The 'wasm:import' pragma is only allowed on external static functions or memory getters, and must specify a '<module>.<name>' argument.
+// [web] The 'wasm:import' pragma is only allowed on external static functions, memory getters, or table getters, and must specify a '<module>.<name>' argument.
 
 @pragma('wasm:import', 'env.getter')
 external WasmI32 get importOnNonMemoryGetter;
 //                   ^
-// [web] The 'wasm:import' pragma is only allowed on external static functions or memory getters, and must specify a '<module>.<name>' argument.
+// [web] The 'wasm:import' pragma is only allowed on external static functions, memory getters, or table getters, and must specify a '<module>.<name>' argument.
 
 @pragma('wasm:import', 'env.field')
 WasmI32? importOnField;
 //       ^
-// [web] The 'wasm:import' pragma is only allowed on external static functions or memory getters, and must specify a '<module>.<name>' argument.
+// [web] The 'wasm:import' pragma is only allowed on external static functions, memory getters, or table getters, and must specify a '<module>.<name>' argument.
 
 // Invalid `wasm:export` and `wasm:weak-export` pragmas.
 @pragma('wasm:export', 'extExport')
 external WasmVoid exportOnExternal();
 //                ^
-// [web] The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions, and 'wasm:export' is also allowed on external memory getters.
+// [web] The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions, and 'wasm:export' is also allowed on external memory or table getters.
 
 @pragma('wasm:weak-export', 'weakExportedMem')
 @pragma('wasm:memory-type', MemoryType(limits: Limits(1)))
 external Memory get weakExportOnMemoryGetter;
 //                  ^
-// [web] The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions, and 'wasm:export' is also allowed on external memory getters.
+// [web] The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions, and 'wasm:export' is also allowed on external memory or table getters.
 
 @pragma('wasm:import', 'env.mem')
 @pragma('wasm:export', 'exportedMem')
 @pragma('wasm:memory-type', MemoryType(limits: Limits(1)))
 external Memory get importAndExportOnMemoryGetter;
 //                  ^
-// [web] The 'wasm:import' pragma is only allowed on external static functions or memory getters, and must specify a '<module>.<name>' argument.
-// [web] The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions, and 'wasm:export' is also allowed on external memory getters.
+// [web] The 'wasm:import' pragma is only allowed on external static functions, memory getters, or table getters, and must specify a '<module>.<name>' argument.
+// [web] The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions, and 'wasm:export' is also allowed on external memory or table getters.
+
+@pragma('wasm:weak-export', 'weakExportedTbl')
+@pragma('wasm:table-type', TableType(limits: Limits(1)))
+external WasmTable<WasmFuncRef?> get weakExportOnTableGetter;
+//                                   ^
+// [web] The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions, and 'wasm:export' is also allowed on external memory or table getters.
+
+@pragma('wasm:import', 'env.tbl')
+@pragma('wasm:export', 'exportedTbl')
+@pragma('wasm:table-type', TableType(limits: Limits(1)))
+external WasmTable<WasmFuncRef?> get importAndExportOnTableGetter;
+//                                   ^
+// [web] The 'wasm:import' pragma is only allowed on external static functions, memory getters, or table getters, and must specify a '<module>.<name>' argument.
+// [web] The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions, and 'wasm:export' is also allowed on external memory or table getters.
 
 @pragma('wasm:export', 123)
 WasmVoid exportNonStringName() => WasmVoid();
 //       ^
-// [web] The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions, and 'wasm:export' is also allowed on external memory getters.
+// [web] The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions, and 'wasm:export' is also allowed on external memory or table getters.
 
 @pragma('wasm:export', 'nonMemGetter')
 WasmI32 get exportOnNonMemoryGetter => const WasmI32(0);
 //          ^
-// [web] The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions, and 'wasm:export' is also allowed on external memory getters.
+// [web] The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions, and 'wasm:export' is also allowed on external memory or table getters.
 
 @pragma('wasm:export', 'both1')
 @pragma('wasm:weak-export', 'both2')
 WasmVoid exportAndWeakExport() => WasmVoid();
 //       ^
-// [web] The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions, and 'wasm:export' is also allowed on external memory getters.
+// [web] The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions, and 'wasm:export' is also allowed on external memory or table getters.
 
 @pragma('wasm:import', 'env.both')
 @pragma('wasm:export', 'both')
 external WasmVoid importAndExport();
 //                ^
-// [web] The 'wasm:import' pragma is only allowed on external static functions or memory getters, and must specify a '<module>.<name>' argument.
-// [web] The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions, and 'wasm:export' is also allowed on external memory getters.
+// [web] The 'wasm:import' pragma is only allowed on external static functions, memory getters, or table getters, and must specify a '<module>.<name>' argument.
+// [web] The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions, and 'wasm:export' is also allowed on external memory or table getters.
 
 class C {
   @pragma('wasm:import', 'env.instanceImport')
   external WasmVoid instanceImport();
   //                ^
-  // [web] The 'wasm:import' pragma is only allowed on external static functions or memory getters, and must specify a '<module>.<name>' argument.
+  // [web] The 'wasm:import' pragma is only allowed on external static functions, memory getters, or table getters, and must specify a '<module>.<name>' argument.
 
   @pragma('wasm:export', 'instanceExport')
   WasmVoid instanceExport() => WasmVoid();
   //       ^
-  // [web] The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions, and 'wasm:export' is also allowed on external memory getters.
+  // [web] The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions, and 'wasm:export' is also allowed on external memory or table getters.
 }
 
 // Invalid signatures (type, optional, or named parameters).
