@@ -86,6 +86,7 @@ general/shadow_export: semiFuzzFailureOnForceRebuildBodies # Uses exports
 general/export_vs_prefix: semiFuzzFailureOnForceRebuildBodies # Uses exports
 
 # FUZZ FRAMEWORK FAILURES
+general/error_recovery/part_as_entry_points_wrong: SemiFuzzFailure # incremental compiler return less
 general/script_tag_in_part_file: SemiFuzzFailure # `#!/usr/bin/env dart` goes away
 inference/downwards_inference_on_list_literals_infer_if_value_types_match_context: semiFuzzFailureOnForceRebuildBodies # private field
 inference_update_1/horizontal_inference_extension_method: semiFuzzFailureOnForceRebuildBodies # Errors on split

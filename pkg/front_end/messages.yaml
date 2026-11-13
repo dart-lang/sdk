@@ -7247,12 +7247,30 @@ wasmImportOrExportInUserCode:
 wasmExternMemoryMissingAnnotation:
   parameters: none
   problemMessage: "This external getter returns a memory instance, but no annotation describing it was found"
-  correctionMessage: "Try adding a `@MemoryType()` or `@Import.memory()` annotation."
+  correctionMessage: "Try adding a `@pragma('wasm:memory-type', MemoryType(...))` annotation."
+
+wasmExternTableMissingAnnotation:
+  parameters: none
+  problemMessage: "This external getter returns a table instance, but no annotation describing it was found"
+  correctionMessage: "Try adding a `@pragma('wasm:table-type', TableType(...))` annotation."
+
+wasmTableInvalidElementType:
+  parameters:
+    Type type: The invalid element type.
+  problemMessage: "Type '#type' is not a valid Wasm table element type."
+
+wasmTableCallIndirectInvalidUsage:
+  parameters: none
+  problemMessage: "'WasmTable.callIndirect' must be invoked directly with a valid Wasm function type argument."
 
 wasmSharedMemoryMissingMaximum:
   parameters: none
   problemMessage: "A shared WebAssembly memory must specify a maximum size."
   correctionMessage: "Try specifying a maximum size."
+
+wasmInvalidLimits:
+  parameters: none
+  problemMessage: "WebAssembly limits must have a non-negative minimum and a maximum not less than the minimum."
 
 wasmConstantLaneOutOfRange:
   parameters:
@@ -7280,11 +7298,11 @@ wasmIntrinsicTearOff:
 
 wasmImportInvalidPragma:
   parameters: none
-  problemMessage: "The 'wasm:import' pragma is only allowed on external static functions or memory getters, and must specify a '<module>.<name>' argument."
+  problemMessage: "The 'wasm:import' pragma is only allowed on external static functions, memory getters, or table getters, and must specify a '<module>.<name>' argument."
 
 wasmExportInvalidPragma:
   parameters: none
-  problemMessage: "The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions, and 'wasm:export' is also allowed on external memory getters."
+  problemMessage: "The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions, and 'wasm:export' is also allowed on external memory or table getters."
 
 wasmImportOrExportInvalidSignature:
   parameters: none

@@ -128,7 +128,6 @@ void main([args = const <String>[]]) =>
         [
           SourceReportKind.kCoverage,
           SourceReportKind.kPossibleBreakpoints,
-          '_CallSites',
         ],
         scriptId: scriptId,
         tokenPos: func.location!.tokenPos!,
@@ -137,7 +136,6 @@ void main([args = const <String>[]]) =>
       ranges = coverage.ranges!;
       expect(ranges.length, 1);
       final range = ranges[0];
-      expect(coverage.json!['ranges'][0].containsKey('callSites'), true);
       expect(range.coverage, isNotNull);
       expect(range.possibleBreakpoints, isNotNull);
 

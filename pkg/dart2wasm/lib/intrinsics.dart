@@ -13,6 +13,7 @@ import 'dynamic_dispatchers.dart';
 import 'translator.dart';
 import 'types.dart';
 import 'util.dart';
+import 'wasm_annotations.dart';
 
 typedef CodeGenCallback = void Function(AstCodeGenerator);
 
@@ -472,6 +473,16 @@ enum StaticIntrinsic {
   wasmMemoryStoreInt16('dart:_wasm', null, 'MemoryAccessExtension|storeInt16'),
   wasmMemoryStoreInt32('dart:_wasm', null, 'MemoryAccessExtension|storeInt32'),
   wasmMemoryStoreInt64('dart:_wasm', null, 'MemoryAccessExtension|storeInt64'),
+  wasmTableIndex('dart:_wasm', null, 'WasmTableAccessExtension|[]'),
+  wasmTableIndexSet('dart:_wasm', null, 'WasmTableAccessExtension|[]='),
+  wasmTableSize('dart:_wasm', null, 'WasmTableAccessExtension|get#size'),
+  wasmTableGrow('dart:_wasm', null, 'WasmTableAccessExtension|grow'),
+  wasmTableFill('dart:_wasm', null, 'WasmTableAccessExtension|fill'),
+  wasmTableCallIndirect(
+    'dart:_wasm',
+    null,
+    'WasmTableAccessExtension|callIndirect',
+  ),
   boolEquals('dart:_boxed_bool', 'BoxedBool', '_equals'),
   boolAnd('dart:_boxed_bool', 'BoxedBool', '_and'),
   boolXor('dart:_boxed_bool', 'BoxedBool', '_xor'),
@@ -725,21 +736,6 @@ class Intrinsifier {
       b.array_len();
       b.i64_extend_i32_u();
       return w.NumType.i64;
-    }
-
-    // WasmTable.size
-    if (cls == translator.wasmTableClass) {
-      if (receiver is! StaticGet || receiver.target is! Field) {
-        throw "Table size not directly on a static field"
-            " at ${node.location}";
-      }
-      w.Table table = translator.getTable(
-        b.moduleBuilder,
-        receiver.target as Field,
-      )!;
-      assert(name == "size");
-      b.table_size(table);
-      return w.NumType.i32;
     }
 
     // int.bitlength
@@ -1021,29 +1017,6 @@ class Intrinsifier {
             default:
               throw 'Unknown WasmF64 member $name';
           }
-      }
-    }
-
-    // WasmTable.[] and WasmTable.[]=
-    if (cls == translator.wasmTableClass) {
-      if (receiver is! StaticGet || receiver.target is! Field) {
-        throw "Table indexing not directly on a static field"
-            " at ${node.location}";
-      }
-      w.Table table = translator.getTable(
-        b.moduleBuilder,
-        receiver.target as Field,
-      )!;
-      codeGen.translateExpression(node.arguments.positional[0], w.NumType.i32);
-      if (name == '[]') {
-        b.table_get(table);
-        return table.type;
-      } else {
-        assert(name == '[]=');
-        codeGen.translateExpression(node.arguments.positional[1], table.type);
-        b.table_set(table);
-        b.ref_null(w.HeapType.none);
-        return translator.topType;
       }
     }
 
@@ -1346,37 +1319,20 @@ class Intrinsifier {
       }
     }
 
-    if (_isIntrinsicMemoryOrGlobalGetter(node.target)) {
-      // External memory getters may only be invoked as a receiver to a
-      // MemoryAccessExtension call, which is intrinsified. When TFA detects
-      // that arguments to a memory access invocation throw unconditionally, the
+    if (ExternType.of(translator, node.target) != null) {
+      // External memory, table, or global getters may only be invoked as a
+      // receiver to a MemoryAccessExtension, WasmTableAccessExtension,
+      // GlobalGet, or GlobalSet call, which is intrinsified. When TFA detects
+      // that arguments to an access invocation throw unconditionally, the
       // receiver is wrapped in a throwing BlockExpression we need to handle.
       if (expectedType == translator.voidMarker) {
         return translator.voidMarker;
       } else {
-        throw StateError('Invalid memory getter invocation');
+        throw StateError('Invalid memory, table, or global getter invocation');
       }
     }
 
     return null;
-  }
-
-  bool _isIntrinsicMemoryOrGlobalGetter(Member member) {
-    if (member case Procedure(
-      kind: ProcedureKind.Getter,
-      isStatic: true,
-      isExternal: true,
-      function: FunctionNode(returnType: final InterfaceType type),
-    )) {
-      final classNode = type.classNode;
-
-      return !type.isPotentiallyNullable &&
-          (classNode == translator.wasmMemoryClass ||
-              classNode == translator.wasmGlobalClass ||
-              classNode == translator.wasmMutableGlobalClass);
-    }
-
-    return false;
   }
 
   int _getSimdLaneIndex(Expression argument, int numLanes, TreeNode node) {
@@ -3466,13 +3422,13 @@ class Intrinsifier {
         return w.NumType.i32;
 
       case StaticIntrinsic.wasmMemorySize:
-        final memory = _extractMemoryFromCall(node, b);
+        final memory = _translateMemoryReceiver(node);
         b.memory_size(memory);
         // Unsigned because memory sizes can't be negative.
         b.i64_extend_i32_u();
         return w.NumType.i64;
       case StaticIntrinsic.wasmMemoryGrow:
-        final memory = _extractMemoryFromCall(node, b);
+        final memory = _translateMemoryReceiver(node);
         codeGen.translateExpression(
           node.arguments.positional[1],
           w.NumType.i64,
@@ -3483,7 +3439,7 @@ class Intrinsifier {
         b.i64_extend_i32_s();
         return w.NumType.i64;
       case StaticIntrinsic.wasmMemoryFill:
-        final memory = _extractMemoryFromCall(node, b);
+        final memory = _translateMemoryReceiver(node);
         // The positional arguments in Dart are value, startOffset, length. The
         // stack for memory_fill needs to be [..., start, value, length] though.
         final [_, value, start, length] = node.arguments.positional;
@@ -3512,7 +3468,7 @@ class Intrinsifier {
       case StaticIntrinsic.wasmMemoryLoadUint8:
       case StaticIntrinsic.wasmMemoryLoadUint16:
       case StaticIntrinsic.wasmMemoryLoadUint32:
-        final (:memory, :align, :offset) = _extractMemoryOperands(node, b);
+        final (:memory, :align, :offset) = _translateMemoryOperands(node);
 
         codeGen.translateExpression(
           node.arguments.positional[1],
@@ -3557,7 +3513,7 @@ class Intrinsifier {
       case StaticIntrinsic.wasmMemoryStoreInt16:
       case StaticIntrinsic.wasmMemoryStoreInt32:
       case StaticIntrinsic.wasmMemoryStoreInt64:
-        final (:memory, :align, :offset) = _extractMemoryOperands(node, b);
+        final (:memory, :align, :offset) = _translateMemoryOperands(node);
 
         codeGen.translateExpression(
           node.arguments.positional[1],
@@ -3601,6 +3557,75 @@ class Intrinsifier {
 
         codeGen.translateExpression(value, global.type.type);
         translator.globals.writeGlobal(b, global);
+        return translator.voidMarker;
+      case StaticIntrinsic.wasmTableIndex:
+        final table = _translateTableReceiver(node);
+        codeGen.translateExpression(
+          node.arguments.positional[1],
+          w.NumType.i64,
+        );
+        b.i32_wrap_i64();
+        b.table_get(table);
+        return table.type;
+      case StaticIntrinsic.wasmTableIndexSet:
+        final table = _translateTableReceiver(node);
+        codeGen.translateExpression(
+          node.arguments.positional[1],
+          w.NumType.i64,
+        );
+        b.i32_wrap_i64();
+        codeGen.translateExpression(node.arguments.positional[2], table.type);
+        b.table_set(table);
+        b.ref_null(w.HeapType.none);
+        return translator.topType;
+      case StaticIntrinsic.wasmTableSize:
+        final table = _translateTableReceiver(node);
+        b.table_size(table);
+        // Unsigned because table sizes can't be negative.
+        b.i64_extend_i32_u();
+        return w.NumType.i64;
+      case StaticIntrinsic.wasmTableGrow:
+        final table = _translateTableReceiver(node);
+        // The positional arguments in Dart are delta, fillValue. The stack for
+        // table_grow needs to be [..., fillValue, delta] though.
+        final delta = b.addLocal(w.NumType.i32);
+        codeGen.translateExpression(
+          node.arguments.positional[1],
+          w.NumType.i64,
+        );
+        b.i32_wrap_i64();
+        b.local_set(delta);
+        codeGen.translateExpression(node.arguments.positional[2], table.type);
+        b.local_get(delta);
+        b.table_grow(table);
+        // Signed so that -1 (indicating errors) is preserved.
+        b.i64_extend_i32_s();
+        return w.NumType.i64;
+      case StaticIntrinsic.wasmTableFill:
+        final table = _translateTableReceiver(node);
+        codeGen.translateExpression(
+          node.arguments.positional[1],
+          w.NumType.i64,
+        );
+        b.i32_wrap_i64();
+        codeGen.translateExpression(node.arguments.positional[2], table.type);
+        codeGen.translateExpression(
+          node.arguments.positional[3],
+          w.NumType.i64,
+        );
+        b.i32_wrap_i64();
+        b.table_fill(table);
+        b.ref_null(w.HeapType.none);
+        return translator.topType;
+      case StaticIntrinsic.wasmTableCallIndirect:
+        // Validated to only be receiver of a FunctionInvocation, unless TFA
+        // simplified the FunctionInvocation because an argument throws
+        // unconditionally.
+        _translateDeferredLoadCheckIfNeeded(node.arguments.positional[0]);
+        codeGen.translateExpression(
+          node.arguments.positional[1],
+          translator.voidMarker,
+        );
         return translator.voidMarker;
     }
   }
@@ -3671,31 +3696,31 @@ class Intrinsifier {
       return translator.outputOrVoid(functionType.outputs);
     }
 
-    if (receiver is InstanceInvocation &&
-        receiver.interfaceTarget == translator.wasmTableCallIndirect) {
-      // Receiver is a WasmTable.callIndirect
-      assert(receiver.name.text == "callIndirect");
-      Expression tableExp = receiver.receiver;
-      if (tableExp is! StaticGet || tableExp.target is! Field) {
-        throw "Table callIndirect not directly on a static field"
-            " at ${node.location}";
-      }
-      w.Table table = translator.getTable(
-        b.moduleBuilder,
-        tableExp.target as Field,
-      )!;
+    // Check via `StaticIntrinsic.fromProcedure` rather than
+    // `translator.wasmTableCallIndirect` because `callIndirect` is tree-shaken
+    // by TFA when unused.
+    if (receiver
+        case StaticInvocation(:final target) ||
+            Let(body: StaticInvocation(:final target))
+        when StaticIntrinsic.fromProcedure(translator.coreTypes, target) ==
+            StaticIntrinsic.wasmTableCallIndirect) {
+      // Receiver is a WasmTableAccessExtension.callIndirect
+      final callIndirect =
+          _translateDeferredLoadCheckIfNeeded(receiver) as StaticInvocation;
+      final table = _translateTableReceiver(callIndirect);
       InterfaceType wasmFunctionType = InterfaceType(
         translator.wasmFunctionClass,
         Nullability.nonNullable,
-        receiver.arguments.types,
+        DartTypeList(callIndirect.arguments.types[1]),
       );
       w.RefType receiverType =
-          translator.translateType(wasmFunctionType) as w.RefType;
+          translator.translateExternalType(wasmFunctionType) as w.RefType;
       w.Local tableIndex = b.addLocal(w.NumType.i32);
       codeGen.translateExpression(
-        receiver.arguments.positional.single,
-        w.NumType.i32,
+        callIndirect.arguments.positional[1],
+        w.NumType.i64,
       );
+      b.i32_wrap_i64();
       b.local_set(tableIndex);
       w.FunctionType functionType = receiverType.heapType as w.FunctionType;
       assert(node.arguments.positional.length == functionType.inputs.length);
@@ -4306,32 +4331,65 @@ class Intrinsifier {
     return wasmType.unpacked;
   }
 
-  /// Extracts the memory instance for an intrinsic call on a memory extension.
-  w.Memory _extractMemoryFromCall(
-    Expression expr,
-    w.InstructionsBuilder builder,
-  ) {
-    // All validated memory calls look like MemoryAccessExtension|size(memory)
-    final memory =
-        (expr as StaticInvocation).arguments.positional[0] as StaticGet;
+  /// If [expr] is wrapped in a deferred library load check (produced when
+  /// accessing a member through a deferred import prefix and lowered by
+  /// `DeferredLoadingLowering` to `checkLibraryIsLoadedFromLoadId`), emits the
+  /// load check and returns the inner expression.
+  Expression _translateDeferredLoadCheckIfNeeded(Expression expr) {
+    if (expr
+        case Let(
+          value: final checkCall && StaticInvocation(:final target),
+          :final body,
+        )
+        when target == translator.checkLibraryIsLoadedFromLoadId) {
+      codeGen.translateExpression(checkCall, translator.voidMarker);
+      return body;
+    }
+    return expr;
+  }
+
+  /// Translates the receiver argument of a memory or table extension call
+  /// (emitting any deferred load check) and returns the underlying external
+  /// getter [Procedure].
+  Procedure _translateExternReceiver(StaticInvocation call) {
+    final receiver = _translateDeferredLoadCheckIfNeeded(
+      call.arguments.positional[0],
+    );
+    return (receiver as StaticGet).target as Procedure;
+  }
+
+  /// Translates the receiver of a memory extension call and returns the target
+  /// [w.Memory] instance.
+  w.Memory _translateMemoryReceiver(StaticInvocation call) {
+    // All validated memory calls pass the memory getter as the first argument,
+    // e.g. MemoryAccessExtension|get#size(memory).
     return translator.findMemory(
-      memory.target as Procedure,
-      builder.moduleBuilder,
+      _translateExternReceiver(call),
+      b.moduleBuilder,
     );
   }
 
   w.Global _extractGlobalFromCall(StaticInvocation call) {
     // A validator ensures that intrinsic extensions on globals are only called
     // with a direct reference to the global.
-    final global = call.arguments.positional[0] as StaticGet;
-    return translator.interopGlobal(global.target as Procedure);
+    return translator.interopGlobal(_translateExternReceiver(call));
   }
 
-  ({w.Memory memory, int offset, int align}) _extractMemoryOperands(
+  /// Translates the receiver of a table extension call and returns the target
+  /// [w.Table] instance.
+  w.Table _translateTableReceiver(StaticInvocation call) {
+    // All validated table calls pass the table getter as the first argument,
+    // e.g. WasmTableAccessExtension|get#size(table).
+    return translator.findTable(
+      _translateExternReceiver(call),
+      b.moduleBuilder,
+    );
+  }
+
+  ({w.Memory memory, int offset, int align}) _translateMemoryOperands(
     StaticInvocation call,
-    w.InstructionsBuilder builder,
   ) {
-    final memory = _extractMemoryFromCall(call, builder);
+    final memory = _translateMemoryReceiver(call);
     var align = 0;
     var offset = 0;
 

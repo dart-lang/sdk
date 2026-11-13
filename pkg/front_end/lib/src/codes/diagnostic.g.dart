@@ -12989,7 +12989,7 @@ Message _withArgumentsWasmConstantLaneOutOfRange({
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode wasmExportInvalidPragma = const MessageCode(
   "WasmExportInvalidPragma",
-  problemMessage: """The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions, and 'wasm:export' is also allowed on external memory getters.""",
+  problemMessage: """The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions, and 'wasm:export' is also allowed on external memory or table getters.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13008,8 +13008,14 @@ const MessageCode wasmExternInvalidTarget = const MessageCode(
 const MessageCode wasmExternMemoryMissingAnnotation = const MessageCode(
   "WasmExternMemoryMissingAnnotation",
   problemMessage: """This external getter returns a memory instance, but no annotation describing it was found""",
-  correctionMessage:
-      """Try adding a `@MemoryType()` or `@Import.memory()` annotation.""",
+  correctionMessage: """Try adding a `@pragma('wasm:memory-type', MemoryType(...))` annotation.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode wasmExternTableMissingAnnotation = const MessageCode(
+  "WasmExternTableMissingAnnotation",
+  problemMessage: """This external getter returns a table instance, but no annotation describing it was found""",
+  correctionMessage: """Try adding a `@pragma('wasm:table-type', TableType(...))` annotation.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13021,7 +13027,7 @@ const MessageCode wasmFunctionFromFunctionInvalidArgument = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode wasmImportInvalidPragma = const MessageCode(
   "WasmImportInvalidPragma",
-  problemMessage: """The 'wasm:import' pragma is only allowed on external static functions or memory getters, and must specify a '<module>.<name>' argument.""",
+  problemMessage: """The 'wasm:import' pragma is only allowed on external static functions, memory getters, or table getters, and must specify a '<module>.<name>' argument.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -13093,12 +13099,44 @@ const MessageCode wasmIntrinsicTearOff = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode wasmInvalidLimits = const MessageCode(
+  "WasmInvalidLimits",
+  problemMessage: """WebAssembly limits must have a non-negative minimum and a maximum not less than the minimum.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode wasmSharedMemoryMissingMaximum = const MessageCode(
   "WasmSharedMemoryMissingMaximum",
   problemMessage:
       """A shared WebAssembly memory must specify a maximum size.""",
   correctionMessage: """Try specifying a maximum size.""",
 );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode wasmTableCallIndirectInvalidUsage = const MessageCode(
+  "WasmTableCallIndirectInvalidUsage",
+  problemMessage: """'WasmTable.callIndirect' must be invoked directly with a valid Wasm function type argument.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function({required DartType type})>
+wasmTableInvalidElementType = const Template(
+  "WasmTableInvalidElementType",
+  withArguments: _withArgumentsWasmTableInvalidElementType,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsWasmTableInvalidElementType({required DartType type}) {
+  TypeLabeler labeler = new TypeLabeler();
+  var type_0 = labeler.labelType(type);
+  return new Message(
+    wasmTableInvalidElementType,
+    problemMessage:
+        """Type '${type_0}' is not a valid Wasm table element type.""" +
+        labeler.originMessages,
+    arguments: {'type': type},
+  );
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode weakReferenceMismatchReturnAndArgumentTypes =

@@ -4019,27 +4019,25 @@ static bool IsAtAsyncJump(ActivationFrame* top_frame) {
       !top_frame->function().IsAsyncGenerator()) {
     return false;
   }
+  const TokenPosition looking_for = top_frame->TokenPos();
   if (top_frame->IsInterpreted()) {
 #if defined(DART_DYNAMIC_MODULES)
+    // Match the compiled code behavior below: any pause at the token position
+    // of a yield point counts. The pause may happen at an earlier instruction
+    // with the same position, for example the loop header of an await for.
     const auto& bytecode = top_frame->bytecode();
     ASSERT(bytecode.HasSourcePositions());
-    const uword pc_offset = top_frame->pc() - bytecode.PayloadStart();
-    // pc_offset could equal to bytecode size if the last instruction is Throw.
-    ASSERT(pc_offset <= static_cast<uword>(bytecode.Size()));
     bytecode::BytecodeSourcePositionsIterator iter(zone, bytecode);
-    bool is_yield_point = false;
     while (iter.MoveNext()) {
-      if (pc_offset <= iter.PcOffset()) {
-        break;
+      if (iter.IsYieldPoint() && iter.TokenPos() == looking_for) {
+        return true;
       }
-      is_yield_point = iter.IsYieldPoint();
     }
-    return is_yield_point;
+    return false;
 #else
     UNREACHABLE();
 #endif
   } else {
-    const TokenPosition looking_for = top_frame->TokenPos();
     const auto& pc_descriptors =
         PcDescriptors::Handle(zone, top_frame->code().pc_descriptors());
     if (!pc_descriptors.IsNull()) {

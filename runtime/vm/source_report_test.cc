@@ -556,186 +556,6 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_Coverage_AllFunctions_ForceCompile) {
   EXPECT_SUBSTRING("\"scriptIndex\":2", result);
 }
 
-ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_SimpleCall) {
-  // WARNING: This MUST be big enough for the serialized JSON string.
-  const int kBufferSize = 2048;
-  char buffer[kBufferSize];
-  const char* kScript =
-      "helper0() {}\n"
-      "helper1() {}\n"
-      "main() {\n"
-      "  helper0();\n"
-      "}";
-
-  Library& lib = Library::Handle();
-  lib ^= ExecuteScript(kScript);
-  ASSERT(!lib.IsNull());
-  const Script& script =
-      Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
-
-  SourceReport report(SourceReport::kCallSites);
-  JSONStream js;
-  report.PrintJSON(&js, script);
-  const char* json_str = js.ToCString();
-  ASSERT(strlen(json_str) < kBufferSize);
-  ElideJSONSubstring("classes", json_str, buffer);
-  ElideJSONSubstring("libraries", buffer, buffer);
-  EXPECT_STREQ(
-      "{\"type\":\"SourceReport\",\"ranges\":["
-
-      // One range compiled with no callsites (helper0).
-      "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":11,\"compiled\":true,"
-      "\"callSites\":[]},"
-
-      // One range not compiled (helper1).
-      "{\"scriptIndex\":0,\"startPos\":13,\"endPos\":24,\"compiled\":false},"
-
-      // One range compiled with one callsite (main).
-      "{\"scriptIndex\":0,\"startPos\":26,\"endPos\":48,\"compiled\":true,"
-      "\"callSites\":["
-      "{\"name\":\"helper0\",\"tokenPos\":37,\"cacheEntries\":["
-      "{\"target\":{\"type\":\"@Function\",\"fixedId\":true,\"id\":\"\","
-      "\"name\":\"helper0\",\"owner\":{\"type\":\"@Library\",\"fixedId\":true,"
-      "\"id\":\"\",\"name\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\"},"
-      "\"_kind\":\"RegularFunction\",\"static\":true,\"const\":false,"
-      "\"implicit\":false,\"abstract\":false,"
-      "\"_intrinsic\":false,\"_native\":false,\"isGetter\":false,"
-      "\"isSetter\":false,\"location\":{\"type\":"
-      "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
-      "\"id\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"},"
-      "\"tokenPos\":0,\"endTokenPos\":11,\"line\":1,\"column\":1}},\"count\":1}"
-      "]}]}],"
-
-      // One script in the script table.
-      "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
-      "\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
-      buffer);
-}
-
-ISOLATE_UNIT_TEST_CASE(SourceReport_CallSites_PolymorphicCall) {
-  // WARNING: This MUST be big enough for the serialized JSON string.
-  const int kBufferSize = 4096;
-  char buffer[kBufferSize];
-  const char* kScript =
-      "class Common {\n"
-      "  func() {}\n"
-      "}\n"
-      "class Uncommon {\n"
-      "  func() {}\n"
-      "}\n"
-      "helper(arg) {\n"
-      "  arg.func();\n"
-      "}\n"
-      "main() {\n"
-      "  Common common = new Common();\n"
-      "  Uncommon uncommon = new Uncommon();\n"
-      "  helper(common);\n"
-      "  helper(common);\n"
-      "  helper(uncommon);\n"
-      "}";
-
-  Library& lib = Library::Handle();
-  lib ^= ExecuteScript(kScript);
-  ASSERT(!lib.IsNull());
-  const Script& script =
-      Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
-  const Function& helper = Function::Handle(
-      lib.LookupFunctionAllowPrivate(String::Handle(String::New("helper"))));
-
-  SourceReport report(SourceReport::kCallSites);
-  JSONStream js;
-  report.PrintJSON(&js, script, helper.token_pos(), helper.end_token_pos());
-  const char* json_str = js.ToCString();
-  ASSERT(strlen(json_str) < kBufferSize);
-  ElideJSONSubstring("classes", json_str, buffer);
-  ElideJSONSubstring("libraries", buffer, buffer);
-  EXPECT_STREQ(
-      "{\"type\":\"SourceReport\",\"ranges\":["
-
-      // One range...
-      "{\"scriptIndex\":0,\"startPos\":60,\"endPos\":88,\"compiled\":true,"
-
-      // With one call site...
-      "\"callSites\":[{\"name\":\"dyn:func\",\"tokenPos\":80,\"cacheEntries\":["
-
-      // First receiver: "Common", called twice.
-      "{\"receiver\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
-      "\"name\":\"Common\","
-      "\"location\":{\"type\":\"SourceLocation\","
-      "\"script\":{\"type\":\"@Script\","
-      "\"fixedId\":true,\"id\":\"\","
-      "\"uri\":\"file:\\/\\/\\/test-lib\","
-      "\"_kind\":\"kernel\"},\"tokenPos\":0,\"endTokenPos\":27,\"line\":1,"
-      "\"column\":1},"
-      "\"library\":{\"type\":\"@Library\",\"fixedId\":true,"
-      "\"id\":\"\",\"name\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\"}},"
-
-      "\"target\":{\"type\":\"@Function\",\"fixedId\":true,\"id\":\"\","
-      "\"name\":\"func\","
-      "\"owner\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
-      "\"name\":\"Common\","
-      "\"location\":{\"type\":\"SourceLocation\","
-      "\"script\":{\"type\":\"@Script\","
-      "\"fixedId\":true,\"id\":\"\","
-      "\"uri\":\"file:\\/\\/\\/test-lib\","
-      "\"_kind\":\"kernel\"},\"tokenPos\":0,\"endTokenPos\":27,\"line\":1,"
-      "\"column\":1},"
-      "\"library\":{\"type\":\"@Library\",\"fixedId\":true,"
-      "\"id\":\"\",\"name\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\"}"
-      "},\"_kind\":\"RegularFunction\","
-      "\"static\":false,\"const\":false,\"implicit\":false,\"abstract\":"
-      "false,\"_intrinsic\":false,"
-      "\"_native\":false,\"isGetter\":false,\"isSetter\":false,"
-      "\"location\":{\"type\":\"SourceLocation\","
-      "\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
-      "\"id\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\","
-      "\"_kind\":\"kernel\"},\"tokenPos\":17,\"endTokenPos\":25,\"line\":2,"
-      "\"column\":3}},"
-
-      "\"count\":2},"
-
-      // Second receiver: "Uncommon", called once.
-      "{\"receiver\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
-      "\"name\":\"Uncommon\","
-      "\"location\":{\"type\":\"SourceLocation\","
-      "\"script\":{\"type\":\"@Script\","
-      "\"fixedId\":true,\"id\":\"\","
-      "\"uri\":\"file:\\/\\/\\/test-lib\","
-      "\"_kind\":\"kernel\"},\"tokenPos\":29,\"endTokenPos\":58,\"line\":4,"
-      "\"column\":1},"
-      "\"library\":{\"type\":\"@Library\",\"fixedId\":true,"
-      "\"id\":\"\",\"name\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\"}},"
-
-      "\"target\":{\"type\":\"@Function\",\"fixedId\":true,\"id\":\"\","
-      "\"name\":\"func\","
-      "\"owner\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
-      "\"name\":\"Uncommon\","
-      "\"location\":{\"type\":\"SourceLocation\","
-      "\"script\":{\"type\":\"@Script\","
-      "\"fixedId\":true,\"id\":\"\","
-      "\"uri\":\"file:\\/\\/\\/test-lib\","
-      "\"_kind\":\"kernel\"},\"tokenPos\":29,\"endTokenPos\":58,\"line\":4,"
-      "\"column\":1},"
-      "\"library\":{\"type\":\"@Library\",\"fixedId\":true,"
-      "\"id\":\"\",\"name\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\"}"
-      "},\"_kind\":\"RegularFunction\","
-      "\"static\":false,\"const\":false,\"implicit\":false,\"abstract\":"
-      "false,\"_intrinsic\":false,"
-      "\"_native\":false,\"isGetter\":false,\"isSetter\":false,"
-      "\"location\":{\"type\":\"SourceLocation\","
-      "\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
-      "\"id\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\","
-      "\"_kind\":\"kernel\"},\"tokenPos\":48,\"endTokenPos\":56,\"line\":5,"
-      "\"column\":3}},"
-
-      "\"count\":1}]}]}],"
-
-      // One script in the script table.
-      "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
-      "\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
-      buffer);
-}
-
 ISOLATE_UNIT_TEST_CASE(SourceReport_MultipleReports) {
   // WARNING: This MUST be big enough for the serialized JSON string.
   const int kBufferSize = 2048;
@@ -753,7 +573,8 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_MultipleReports) {
   const Script& script =
       Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
 
-  SourceReport report(SourceReport::kCallSites | SourceReport::kCoverage);
+  SourceReport report(SourceReport::kCoverage |
+                      SourceReport::kPossibleBreakpoints);
   JSONStream js;
   report.PrintJSON(&js, script);
   const char* json_str = js.ToCString();
@@ -763,29 +584,18 @@ ISOLATE_UNIT_TEST_CASE(SourceReport_MultipleReports) {
   EXPECT_STREQ(
       "{\"type\":\"SourceReport\",\"ranges\":["
 
-      // One range compiled with no callsites (helper0).
+      // One range compiled with one hit (helper0).
       "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":11,\"compiled\":true,"
-      "\"callSites\":[],"
-      "\"coverage\":{\"hits\":[0],\"misses\":[]}},"
+      "\"coverage\":{\"hits\":[0],\"misses\":[]},"
+      "\"possibleBreakpoints\":[7,11]},"
 
       // One range not compiled (helper1).
       "{\"scriptIndex\":0,\"startPos\":13,\"endPos\":24,\"compiled\":false},"
 
-      // One range compiled with one callsite (main)m
+      // One range compiled with two hits (main).
       "{\"scriptIndex\":0,\"startPos\":26,\"endPos\":48,\"compiled\":true,"
-      "\"callSites\":[{\"name\":\"helper0\",\"tokenPos\":37,\"cacheEntries\":[{"
-      "\"target\":{\"type\":\"@Function\",\"fixedId\":true,\"id\":\"\","
-      "\"name\":\"helper0\",\"owner\":{\"type\":\"@Library\",\"fixedId\":true,"
-      "\"id\":\"\",\"name\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\"},\"_"
-      "kind\":\"RegularFunction\",\"static\":true,\"const\":false,\"implicit\":"
-      "false,\"abstract\":false,\"_"
-      "intrinsic\":false,\"_native\":false,\"isGetter\":false,"
-      "\"isSetter\":false,\"location\":{\"type\":"
-      "\"SourceLocation\",\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
-      "\"id\":\"\",\"uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"},"
-      "\"tokenPos\":0,\"endTokenPos\":11,\"line\":1,\"column\":1}},\"count\":1}"
-      "]}],\"coverage\":{"
-      "\"hits\":[26,37],\"misses\":[]}}],"
+      "\"coverage\":{\"hits\":[26,37],\"misses\":[]},"
+      "\"possibleBreakpoints\":[30,37,48]}],"
 
       // One script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","

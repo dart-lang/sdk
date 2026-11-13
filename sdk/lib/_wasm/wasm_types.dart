@@ -1079,30 +1079,88 @@ class WasmFunction<F extends Function> extends WasmFuncRef {
 @pragma("wasm:entry-point")
 class WasmVoid extends WasmBase {}
 
-/// A Wasm table.
+/// A [table type] in WebAssembly, describing the [Limits] for table instances.
+///
+/// [table type]: https://webassembly.github.io/spec/core/syntax/types.html#table-types
 @pragma("wasm:entry-point")
-class WasmTable<T> extends WasmBase {
-  /// Declare a table with the given size.
-  ///
-  /// Must be an initializer for a static field. The [size] argument must be
-  /// either a constant or a reference to a `static` `final` field with a
-  /// constant initializer.
-  external WasmTable(int size);
+final class TableType {
+  /// Minimum and optional maximum size for the table.
+  @pragma("wasm:entry-point")
+  final Limits limits;
 
+  const TableType({required this.limits});
+}
+
+/// An instance of a WebAssembly table available to this WebAssembly module.
+///
+/// ## Using tables
+///
+/// [WasmTableAccessExtension] provides methods to read and write table entries,
+/// query [WasmTableAccessExtension.size], [WasmTableAccessExtension.grow] or
+/// [WasmTableAccessExtension.fill] a table, and invoke functions stored in a
+/// table via [WasmTableAccessExtension.callIndirect].
+///
+/// As with [Memory], WebAssembly table instructions encode the target table
+/// statically. Every call to [WasmTableAccessExtension] must use the top-level
+/// getter defining the table directly as its receiver, and methods on
+/// [WasmTableAccessExtension] may not be torn off.
+///
+/// ## Obtaining table instances
+///
+/// To define a table instance, use a top-level `external` getter with a
+/// nullable WebAssembly reference element type and a [TableType] annotation:
+///
+/// ```
+/// @pragma('wasm:table-type', TableType(limits: Limits(1, 10)))
+/// external WasmTable<WasmFuncRef?> get myTable;
+/// ```
+///
+/// Defined tables can be exported with `@pragma('wasm:export', ...)` or
+/// imported from the host environment with `@pragma('wasm:import', ...)`:
+///
+/// ```
+/// @pragma('wasm:table-type', TableType(limits: Limits(1, 10)))
+/// @pragma('wasm:export', 'myTable')
+/// external WasmTable<WasmFuncRef?> get exportedTable;
+///
+/// @pragma('wasm:table-type', TableType(limits: Limits(1, 10)))
+/// @pragma('wasm:import', 'module.name')
+/// external WasmTable<WasmFuncRef?> get importedTable;
+/// ```
+@pragma("wasm:entry-point")
+final class WasmTable<T extends WasmBase?> extends WasmBase {
+  WasmTable._();
+}
+
+/// Operators accessing [WasmTable] instances in WebAssembly.
+extension WasmTableAccessExtension<T extends WasmBase?> on WasmTable<T> {
   /// Read from an entry in the table.
-  external T operator [](WasmI32 index);
+  @pragma("wasm:intrinsic")
+  external T operator [](int index);
 
   /// Write to an entry in the table.
-  external void operator []=(WasmI32 index, T value);
+  @pragma("wasm:intrinsic")
+  external void operator []=(int index, T value);
 
-  /// The size of the table.
-  external WasmI32 get size;
+  /// The size of the table (in elements).
+  @pragma("wasm:intrinsic")
+  external int get size;
+
+  /// Grow the table by [delta] elements initialized with [fillValue].
+  ///
+  /// Returns the old size (in elements), or `-1` if growing failed.
+  @pragma("wasm:intrinsic")
+  external int grow(int delta, T fillValue);
+
+  /// Fill [size] elements starting at [offset] with [fillValue].
+  @pragma("wasm:intrinsic")
+  external void fill(int offset, T fillValue, int size);
 
   /// Call a function stored in the table using the `call_indirect` Wasm
   /// instruction. The function value returned from this method must be
   /// called directly.
-  @pragma("wasm:entry-point")
-  external F callIndirect<F extends Function>(WasmI32 index);
+  @pragma("wasm:intrinsic")
+  external F callIndirect<F extends Function>(int index);
 }
 
 extension IntWasmInstructions on int {

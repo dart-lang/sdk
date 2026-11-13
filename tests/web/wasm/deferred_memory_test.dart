@@ -15,6 +15,7 @@ void main() async {
 
   write();
   Expect.equals(42, M.read());
+  Expect.equals(42, (M.memory).loadInt64(0).toInt());
 }
 
 void write() {

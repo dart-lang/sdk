@@ -1099,7 +1099,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     _add(ir.TableSet(table));
   }
 
-  /// Emit a `table.size` instruction.
+  /// Emit a `table.fill` instruction.
   void table_fill(ir.Table table) {
     assert(
       _verifyTypes(
@@ -1110,6 +1110,19 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     );
     assert(table.enclosingModule == module);
     _add(ir.TableFill(table));
+  }
+
+  /// Emit a `table.grow` instruction.
+  void table_grow(ir.Table table) {
+    assert(
+      _verifyTypes(
+        [table.type, ir.NumType.i32],
+        const [ir.NumType.i32],
+        trace: ['table.grow', table.name],
+      ),
+    );
+    assert(table.enclosingModule == module);
+    _add(ir.TableGrow(table));
   }
 
   /// Emit a `table.size` instruction.

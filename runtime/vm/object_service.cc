@@ -1103,33 +1103,6 @@ void ICData::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("_entries", Object::Handle(entries()));
 }
 
-void ICData::PrintToJSONArray(const JSONArray& jsarray,
-                              TokenPosition token_pos) const {
-  auto class_table = IsolateGroup::Current()->class_table();
-  Class& cls = Class::Handle();
-  Function& func = Function::Handle();
-
-  JSONObject jsobj(&jsarray);
-  jsobj.AddProperty("name", String::Handle(target_name()).ToCString());
-  jsobj.AddProperty("tokenPos", static_cast<intptr_t>(token_pos.Serialize()));
-  // TODO(rmacnak): Figure out how to stringify DeoptReasons().
-  // jsobj.AddProperty("deoptReasons", ...);
-
-  JSONArray cache_entries(&jsobj, "cacheEntries");
-  for (intptr_t i = 0; i < NumberOfChecks(); i++) {
-    JSONObject cache_entry(&cache_entries);
-    func = GetTargetAt(i);
-    intptr_t count = GetCountAt(i);
-    if (!is_static_call()) {
-      intptr_t cid = GetReceiverClassIdAt(i);
-      cls = class_table->At(cid);
-      cache_entry.AddProperty("receiver", cls);
-    }
-    cache_entry.AddProperty("target", func);
-    cache_entry.AddProperty("count", count);
-  }
-}
-
 void ICData::PrintImplementationFieldsImpl(
     const JSONArray& jsarr_fields) const {}
 

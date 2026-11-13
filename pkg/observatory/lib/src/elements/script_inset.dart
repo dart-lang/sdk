@@ -160,7 +160,9 @@ class ScriptInsetElement extends CustomElement implements Renderable {
   int? _endLine;
 
   Map /*<int, List<S.ServiceMap>>*/ _rangeMap = {};
-  Set _callSites = new Set<S.CallSite>();
+  // Lines with a covered or an uncovered position, from the coverage report.
+  final _hitLines = <int>{};
+  final _missLines = <int>{};
   Set _possibleBreakpointLines = new Set<int>();
   Map<int, ScriptLineProfile> _profileMap = {};
 
@@ -221,12 +223,12 @@ class ScriptInsetElement extends CustomElement implements Renderable {
 
   HTMLElement? container;
 
-  // Build _rangeMap and _callSites from a source report.
+  // Build _rangeMap, _hitLines and _missLines from a source report.
   Future _refreshSourceReport() async {
     if (noSource) return;
 
     var reports = [
-      S.Isolate.kCallSitesReport,
+      S.Isolate.kCoverageReport,
       S.Isolate.kPossibleBreakpointsReport,
     ];
     if (_includeProfile) {
@@ -244,7 +246,8 @@ class ScriptInsetElement extends CustomElement implements Renderable {
       script as S.Script,
     );
     _rangeMap.clear();
-    _callSites.clear();
+    _hitLines.clear();
+    _missLines.clear();
     _profileMap.clear();
     for (var range in sourceReport['ranges']) {
       int? startLine = _loadedScript!.tokenToLine(range['startPos']);
@@ -282,14 +285,15 @@ class ScriptInsetElement extends CustomElement implements Renderable {
           lineProfile.process(exclusiveTicks[i], inclusiveTicks[i]);
         }
       }
-      if (range['compiled']) {
-        var rangeCallSites = range['callSites'];
-        if (rangeCallSites != null) {
-          for (var callSiteMap in rangeCallSites) {
-            _callSites.add(
-              new S.CallSite.fromMap(callSiteMap, script as S.Script),
-            );
-          }
+      final coverage = range['coverage'];
+      if (coverage != null) {
+        for (final pos in coverage['hits']) {
+          final line = _loadedScript!.tokenToLine(pos);
+          if (line != null) _hitLines.add(line);
+        }
+        for (final pos in coverage['misses']) {
+          final line = _loadedScript!.tokenToLine(pos);
+          if (line != null) _missLines.add(line);
         }
       }
     }
@@ -334,7 +338,6 @@ class ScriptInsetElement extends CustomElement implements Renderable {
       addClassAnnotations();
       addFieldAnnotations();
       addFunctionAnnotations();
-      addCallSiteAnnotations();
     }
 
     addLocalVariableAnnotations();
@@ -631,14 +634,6 @@ class ScriptInsetElement extends CustomElement implements Renderable {
     }
   }
 
-  void addCallSiteAnnotations() {
-    for (var callSite in _callSites) {
-      _annotations.add(
-        new CallSiteAnnotation(_isolate, _objects, _r.queue, callSite),
-      );
-    }
-  }
-
   void addLocalVariableAnnotations() {
     S.Script script = _loadedScript as S.Script;
     // We have local variable information.
@@ -917,34 +912,16 @@ class ScriptInsetElement extends CustomElement implements Renderable {
       return e;
     }
     bool compiled = true;
-    bool hasCallInfo = false;
-    bool executed = false;
     for (var range in ranges) {
-      if (range['compiled']) {
-        for (var callSite in range['callSites']) {
-          var callLine = line!.script.tokenToLine(callSite['tokenPos']);
-          if (lineNumber == callLine) {
-            // The call site is on the current line.
-            hasCallInfo = true;
-            for (var cacheEntry in callSite['cacheEntries']) {
-              if (cacheEntry['count'] > 0) {
-                // If any call site on the line has been executed, we
-                // mark the line as executed.
-                executed = true;
-                break;
-              }
-            }
-          }
-        }
-      } else {
+      if (!range['compiled']) {
         // If any range isn't compiled, show the line as not compiled.
         // This is necessary so that nested functions appear to be uncompiled.
         compiled = false;
       }
     }
-    if (executed) {
+    if (_hitLines.contains(lineNumber)) {
       hitsExecuted(e);
-    } else if (hasCallInfo) {
+    } else if (_missLines.contains(lineNumber)) {
       hitsNotExecuted(e);
     } else if (compiled) {
       hitsCompiled(e);
@@ -1244,62 +1221,6 @@ class LocalVariableAnnotation extends Annotation {
     }
     element.style.fontWeight = "bold";
     element.title = "${value.shortName}";
-  }
-}
-
-class CallSiteAnnotation extends Annotation {
-  S.CallSite callSite;
-  int priority = 2;
-
-  CallSiteAnnotation(
-    M.IsolateRef isolate,
-    M.ObjectRepository objects,
-    RenderingQueue? queue,
-    this.callSite,
-  ) : super(isolate, objects, queue) {
-    line = callSite.line;
-    columnStart = callSite.column - 1; // Call site is 1-origin.
-    var tokenLength = callSite.script.guessTokenLength(line!, columnStart!);
-    if (tokenLength == null) {
-      tokenLength = callSite.name.length; // Approximate.
-      if (callSite.name.startsWith("get:") || callSite.name.startsWith("set:"))
-        tokenLength -= 4;
-    }
-    columnStop = columnStart! + tokenLength;
-  }
-
-  void applyStyleTo(element) {
-    if (element == null) {
-      return; // TODO(rmacnak): Handling overlapping annotations.
-    }
-    element.style.fontWeight = "bold";
-    element.title = "Call site: ${callSite.name}";
-
-    addInfoBox(element, () {
-      final HTMLElement details = table();
-      if (callSite.entries.isEmpty) {
-        details.append(row('Call of "${callSite.name}" did not execute'));
-      } else {
-        var r = row();
-        r.append(cell("Container"));
-        r.append(cell("Count"));
-        r.append(cell("Target"));
-        details.append(r);
-
-        for (var entry in callSite.entries) {
-          var r = row();
-          if (entry.receiver == null) {
-            r.append(cell(""));
-          } else {
-            r.append(cell(serviceRef(entry.receiver)));
-          }
-          r.append(cell(entry.count.toString()));
-          r.append(cell(serviceRef(entry.target)));
-          details.append(r);
-        }
-      }
-      return details;
-    });
   }
 }
 

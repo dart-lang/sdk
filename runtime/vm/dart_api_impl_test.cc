@@ -5221,7 +5221,9 @@ static Dart_Handle LoadScript(const char* url_str, const char* source) {
     return Dart_NewApiError(error);
   }
   TestCaseBase::AddToKernelBuffers(kernel_buffer);
-  return Dart_LoadScriptFromKernel(kernel_buffer, kernel_buffer_size);
+  return Dart_IsBytecode(kernel_buffer, kernel_buffer_size)
+             ? Dart_LoadScriptFromBytecode(kernel_buffer, kernel_buffer_size)
+             : Dart_LoadScriptFromKernel(kernel_buffer, kernel_buffer_size);
 }
 
 TEST_CASE(DartAPI_DebugName) {

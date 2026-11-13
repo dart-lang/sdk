@@ -256,7 +256,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     return members;
   }
 
-  ObjectHandle getScript(Uri uri, bool includeSourceInfo) {
+  ObjectHandle getScript(Uri uri, {bool includeSourceInfo = true}) {
     SourceFile? source;
     if (options.emitSourcePositions) {
       final astSource = astUriToSource[uri];
@@ -306,7 +306,7 @@ class BytecodeGenerator extends RecursiveVisitor {
       }
     }
     final name = objectTable.getPublicNameHandle(library.name ?? '');
-    final script = getScript(library.fileUri, true);
+    final script = getScript(library.fileUri);
     return new LibraryDeclaration(importUri, flags, name, script, classes);
   }
 
@@ -376,7 +376,10 @@ class BytecodeGenerator extends RecursiveVisitor {
       cls.name.startsWith('_') ? cls.enclosingLibrary : null,
       cls.name,
     );
-    final script = getScript(cls.fileUri, !cls.isAnonymousMixin);
+    final script = getScript(
+      cls.fileUri,
+      includeSourceInfo: !cls.isAnonymousMixin,
+    );
     final superType = objectTable.getHandle(cls.supertype?.asInterfaceType);
     final interfaces = objectTable.getNonNullHandles(
       cls.implementedTypes.map((t) => t.asInterfaceType).toList(),
@@ -419,7 +422,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
 
     final nameHandle = objectTable.getPublicNameHandle(topLevelClassName);
-    final script = getScript(library.fileUri, true);
+    final script = getScript(library.fileUri);
 
     final classDeclaration = new ClassDeclaration(
       nameHandle,
@@ -597,8 +600,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
     ObjectHandle? script;
     if (field.fileUri != (field.parent as FileUriNode).fileUri) {
-      final isInAnonymousMixin = enclosingClass?.isAnonymousMixin ?? false;
-      script = getScript(field.fileUri, !isInAnonymousMixin);
+      script = getScript(field.fileUri);
       flags |= FieldDeclaration.hasCustomScriptFlag;
     }
     return new FieldDeclaration(
@@ -736,11 +738,10 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
     ObjectHandle? script;
     if (member.fileUri != (member.parent as FileUriNode).fileUri) {
-      final isInAnonymousMixin = enclosingClass?.isAnonymousMixin ?? false;
       final isSynthetic =
           member is Procedure &&
           (member.isNoSuchMethodForwarder || member.isSyntheticForwarder);
-      script = getScript(member.fileUri, !isInAnonymousMixin && !isSynthetic);
+      script = getScript(member.fileUri, includeSourceInfo: !isSynthetic);
       flags |= FunctionDeclaration.hasCustomScriptFlag;
     }
 
@@ -3998,25 +3999,13 @@ class BytecodeGenerator extends RecursiveVisitor {
           asm.emitJump(store);
 
           asm.bind(error);
-          asm.emitPushConstant(cp.addName(v.cosmeticName!));
-          _genDirectCall(
-            throwLocalAssignedDuringInitialization,
-            objectTable.getArgDescHandle(1),
-            1,
-          );
-          asm.emitDrop1();
+          _genThrowLateLocalError(throwLocalAssignedDuringInitialization, v);
 
           asm.bind(store);
         }
         _genStoreVar(v);
       } else {
-        asm.emitPushConstant(cp.addName(v.cosmeticName!));
-        _genDirectCall(
-          throwLocalNotInitialized,
-          objectTable.getArgDescHandle(1),
-          1,
-        );
-        asm.emitDrop1();
+        _genThrowLateLocalError(throwLocalNotInitialized, v);
       }
 
       asm.bind(done);
@@ -4073,16 +4062,22 @@ class BytecodeGenerator extends RecursiveVisitor {
       asm.emitJump(done);
 
       asm.bind(error);
-      asm.emitPushConstant(cp.addName(v.cosmeticName!));
-      _genDirectCall(
-        throwLocalAlreadyInitialized,
-        objectTable.getArgDescHandle(1),
-        1,
-      );
-      asm.emitDrop1();
+      _genThrowLateLocalError(throwLocalAlreadyInitialized, v);
 
       asm.bind(done);
     }
+  }
+
+  // Generates a call that throws an error for the late local variable [v].
+  // The call has a synthetic source position, so breakpoints and single
+  // stepping do not stop at these error checks.
+  void _genThrowLateLocalError(Procedure target, Variable v) {
+    asm.emitPushConstant(cp.addName(v.cosmeticName!));
+    final savedFlags = asm.currentSourcePositionFlags;
+    asm.currentSourcePositionFlags |= SourcePositions.syntheticFlag;
+    _genDirectCall(target, objectTable.getArgDescHandle(1), 1);
+    asm.currentSourcePositionFlags = savedFlags;
+    asm.emitDrop1();
   }
 
   @override

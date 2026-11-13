@@ -14,6 +14,7 @@ import 'package:front_end/src/api_prototype/codes.dart'
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/src/find_type_visitor.dart';
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:linter/src/diagnostic.dart' as diag;
 import 'package:linter/src/rules/avoid_double_and_int_checks.dart';
@@ -183,7 +184,7 @@ class DryRunSummarizer {
     // format the CFE provides for those errors makes it hard to identify them
     // as interop-specific errors. Instead we rerun and collect any errors here.
     component.accept(
-      JsInteropChecks(
+      _DryRunJsInteropChecks(
         coreTypes,
         classHierarchy,
         reporter,
@@ -287,6 +288,70 @@ class DryRunSummarizer {
       print('Found incompatibilities with WebAssembly.\n');
       print(errors.join('\n'));
       return true;
+    }
+    return false;
+  }
+}
+
+class _DryRunJsInteropChecks extends JsInteropChecks {
+  _DryRunJsInteropChecks(
+    super.coreTypes,
+    super.hierarchy,
+    super.reporter,
+    super.nativeClasses, {
+    super.isDart2Wasm,
+  });
+
+  static bool _hasInvalidType(DartType type) =>
+      type.accept(_HasInvalidTypeVisitor());
+
+  @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    if (_hasInvalidType(node.declaredRepresentationType)) return;
+    super.visitExtensionTypeDeclaration(node);
+  }
+
+  @override
+  void visitProcedure(Procedure node) {
+    if (node.isExternal &&
+        _hasInvalidType(node.computeSignatureOrFunctionType())) {
+      return;
+    }
+    super.visitProcedure(node);
+  }
+
+  @override
+  void visitStaticInvocation(StaticInvocation node) {
+    if (node.arguments.types.any(_hasInvalidType)) {
+      node.visitChildren(this);
+      return;
+    }
+    super.visitStaticInvocation(node);
+  }
+}
+
+class _HasInvalidTypeVisitor extends FindTypeVisitor {
+  Set<Object>? _visitedParameters;
+
+  @override
+  bool visitInvalidType(InvalidType node) => true;
+
+  @override
+  bool visitExtensionType(ExtensionType node) =>
+      super.visitExtensionType(node) || node.extensionTypeErasure.accept(this);
+
+  @override
+  bool visitTypeParameterType(TypeParameterType node) {
+    if ((_visitedParameters ??= {}).add(node.parameter)) {
+      return node.bound.accept(this);
+    }
+    return false;
+  }
+
+  @override
+  bool visitStructuralParameterType(StructuralParameterType node) {
+    if ((_visitedParameters ??= {}).add(node.parameter)) {
+      return node.bound.accept(this);
     }
     return false;
   }

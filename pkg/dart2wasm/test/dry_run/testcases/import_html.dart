@@ -12,5 +12,17 @@ import 'dart:svg';
 import 'dart:web_audio';
 // DRY_RUN: 0, dart:web_gl
 import 'dart:web_gl';
+import 'dart:js_interop';
 
-void main() {}
+@JS()
+external Window get myWindow;
+
+// Referencing unavailable `dart:html` symbols verifies both that CFE errors
+// stay suppressed on stderr and that `InvalidType` triggers no cascading (2)
+// JS interop findings.
+void main() {
+  Window? w;
+  print(w);
+  print(window);
+  ((Window _) {}).toJS;
+}

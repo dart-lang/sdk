@@ -569,6 +569,7 @@ abstract mixin class Instruction implements Serializable {
             0x06 => I64TruncSatF64S.deserialize(d),
             0x07 => I64TruncSatF64U.deserialize(d),
             0x0B => MemoryFill.deserialize(d, memories),
+            0x0F => TableGrow.deserialize(d, tables),
             0x10 => TableSize.deserialize(d, tables),
             0x11 => TableFill.deserialize(d, tables),
             _ => throw "Invalid instruction byte: 0xFC $opcode",
@@ -1548,6 +1549,32 @@ class TableFill extends Instruction {
 
   @override
   String get name => 'table.fill';
+
+  @override
+  void printTo(IrPrinter p) {
+    p.write(name);
+    p.writeTableReference(table);
+  }
+}
+
+class TableGrow extends Instruction {
+  final Table table;
+
+  TableGrow(this.table);
+
+  static TableGrow deserialize(Deserializer d, Tables tables) {
+    return TableGrow(tables[d.readUnsigned()]);
+  }
+
+  @override
+  void serialize(Serializer s) {
+    s.writeByte(0xFC);
+    s.writeByte(0x0F);
+    s.writeUnsigned(table.index);
+  }
+
+  @override
+  String get name => 'table.grow';
 
   @override
   void printTo(IrPrinter p) {
