@@ -99,4 +99,27 @@ ZoneUnaryCallback<R, T> testAwaiterLink2<R, T>(
   return nested()();
 }
 
+ZoneUnaryCallback<R, T> testAwaiterLink3<R, T>(
+  Zone self,
+  ZoneDelegate parent,
+  Zone zone,
+  @pragma('vm:awaiter-link') R Function(T) f,
+) {
+  final obj = Object();
+  nested() {
+    final obj2 = Object();
+    final obj3 = Object();
+    register() {
+      print(obj);
+      print(obj2);
+      print(obj3);
+      return parent.registerUnaryCallback(zone, (T v) => f(v));
+    }
+
+    return register;
+  }
+
+  return nested()();
+}
+
 main() {}

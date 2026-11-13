@@ -138,8 +138,10 @@ class LocalVariables {
     final Variable? awaiterLinkVar = _currentFrame.awaiterLinkVar;
     if (awaiterLinkVar == null) return null;
     assert(isCaptured(awaiterLinkVar));
+    // The VM finds the variable by walking up from the context captured by
+    // the closure.
     return (
-      depth: getContextLevelOfVar(awaiterLinkVar),
+      depth: contextLevelAtEntry - getContextLevelOfVar(awaiterLinkVar),
       index: getVarIndexInContext(awaiterLinkVar),
     );
   }
@@ -260,6 +262,8 @@ class Frame {
   Variable? scratchVar;
   Variable? returnVar;
   Variable? suspendStateVar;
+  // Captured awaiter link variable used in this frame or in closures nested
+  // in it.
   Variable? awaiterLinkVar;
   Map<String, Variable>? syntheticVars;
   int frameSize = 0;
@@ -507,8 +511,23 @@ class _ScopeBuilder extends RecursiveVisitor {
         _currentFrame.capturesOnlyFinalNotLateVars = false;
       }
       if (v.isAwaiterLink) {
-        assert(_currentFrame.awaiterLinkVar == null);
-        _currentFrame.awaiterLinkVar = variable;
+        // As in the compiler, each closure between a use of a captured awaiter
+        // link variable and its declaration can have that variable as its
+        // awaiter link. It is ambiguous which one to follow if a closure
+        // could have several.
+        for (
+          Frame? frame = _currentFrame;
+          frame != v.frame;
+          frame = frame.parent
+        ) {
+          final Variable? existing = frame!.awaiterLinkVar;
+          if (existing != null && existing != variable) {
+            throw '${frame.function.location}: closure captures multiple '
+                "variables marked with @pragma('vm:awaiter-link'): "
+                '${existing.cosmeticName} and ${variable.cosmeticName}';
+          }
+          frame.awaiterLinkVar = variable;
+        }
       }
     }
   }
