@@ -2792,9 +2792,6 @@ class ICData : public CallSiteData {
 
   bool IsUsedAt(intptr_t i) const;
 
-  void PrintToJSONArray(const JSONArray& jsarray,
-                        TokenPosition token_pos) const;
-
   // Initialize the preallocated empty ICData entry arrays.
   static void Init();
 

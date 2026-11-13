@@ -18,7 +18,6 @@
 
 namespace dart {
 
-const char* SourceReport::kCallSitesStr = "_CallSites";
 const char* SourceReport::kCoverageStr = "Coverage";
 const char* SourceReport::kPossibleBreakpointsStr = "PossibleBreakpoints";
 const char* SourceReport::kProfileStr = "_Profile";
@@ -361,38 +360,6 @@ struct SourceReportCodeInfo : public ValueObject {
   const bool report_lines_;
 };
 
-void SourceReport::PrintCallSitesData(JSONObject* jsobj,
-                                      const SourceReportCodeInfo& info) {
-  JSONArray sites(jsobj, "callSites");
-  if (info.HasBytecode()) {
-    // TODO(sstrickl): Handle call site data for bytecode. The interpreter
-    // does not collect ICData, so there are no call site entries to report.
-    return;
-  }
-  ZoneGrowableArray<const ICData*>* ic_data_array =
-      new (zone()) ZoneGrowableArray<const ICData*>();
-  info.function.RestoreICDataMap(ic_data_array, /*clone_ic_data=*/false);
-  const PcDescriptors& descriptors =
-      PcDescriptors::Handle(zone(), info.Code().pc_descriptors());
-
-  PcDescriptors::Iterator iter(
-      descriptors,
-      UntaggedPcDescriptors::kIcCall | UntaggedPcDescriptors::kUnoptStaticCall);
-  while (iter.MoveNext()) {
-    HANDLESCOPE(thread());
-    ASSERT(iter.DeoptId() < ic_data_array->length());
-    const ICData* ic_data = (*ic_data_array)[iter.DeoptId()];
-    if (ic_data != nullptr) {
-      const TokenPosition& token_pos = iter.TokenPos();
-      if (!info.Contains(token_pos)) {
-        // Does not correspond to a valid source position.
-        continue;
-      }
-      ic_data->PrintToJSONArray(sites, token_pos);
-    }
-  }
-}
-
 void SourceReport::PrintCoverageData(JSONObject* jsobj,
                                      const SourceReportCodeInfo& info,
                                      bool report_branch_coverage) {
@@ -638,9 +605,6 @@ void SourceReport::VisitFunction(JSONArray* jsarr,
   if (is_compiled) {
     SourceReportCodeInfo info(script, script_index, func, *code_or_bytecode,
                               report_lines_);
-    if (IsReportRequested(kCallSites)) {
-      PrintCallSitesData(&range, info);
-    }
     if (IsReportRequested(kCoverage)) {
       PrintCoverageData(&range, info, /*report_branch_coverage=*/false);
     }
