@@ -89,6 +89,7 @@ cc/DerivedInduction: SkipByDesign # Building flow graph is not supported from by
 cc/Ffi_StructSinking: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/FlowGraph_PhiUnboxingHeuristic_*: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/FullSnapshot: SkipByDesign # JIT compilation is not supported from bytecode.
+cc/FunctionSourceFingerprint: SkipByDesign # Source fingerprints are not computed for functions declared in bytecode.
 cc/IRTest_*: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/Inliner_*: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/IsolateReload_ChangeInstanceFormat7: SkipByDesign # Bytecode doesn't support changing type parameters even in unused classes.
@@ -117,6 +118,7 @@ cc/TwoWayInduction: SkipByDesign # Building flow graph is not supported from byt
 cc/TypePropagator_*: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/WrapAroundAndDerived: SkipByDesign # Building flow graph is not supported from bytecode.
 dart/await_type_check_with_dynamic_loading_test: SkipByDesign # dart:mirrors is not supported.
+dart/cachable_idempotent_test: SkipByDesign # Interpreter does not cache vm:cachable-idempotent call sites.
 dart/isolates/closures_without_captured_variables_test: SkipByDesign # Interpreter does not do context trimming like optimizing compiler.
 dart/redirection_type_shuffling_test: SkipByDesign # dart:mirrors is not supported.
 dart/regress_52703_test: Pass, Slow
