@@ -144,9 +144,17 @@ class Declaration {
   final int column;
   final int codeOffset;
   final int codeLength;
-  final String? className;
-  final String? mixinName;
   final String? parameters;
+
+  /// The name of the containing element, if it is an [InstanceElement].
+  final String? containerName;
+
+  /// The name of the containing element if it is an interface element but not
+  /// a mixin or enum.
+  final String? className;
+
+  /// The name of the containing element if it is a mixin.
+  final String? mixinName;
 
   new(
     this.fileIndex,
@@ -158,6 +166,7 @@ class Declaration {
     this.column,
     this.codeOffset,
     this.codeLength,
+    this.containerName,
     this.className,
     this.mixinName,
     this.parameters,
@@ -1534,6 +1543,11 @@ class _FindLibraryDeclarations {
 
     var enclosing = element.enclosingElement;
 
+    String? containerName = switch (enclosing) {
+      InstanceElement() => enclosing.name,
+      _ => null,
+    };
+
     String? className;
     String? mixinName;
     if (enclosing is EnumElement) {
@@ -1607,6 +1621,7 @@ class _FindLibraryDeclarations {
         locationStart.columnNumber,
         fragmentImpl.codeOffset ?? 0,
         fragmentImpl.codeLength ?? 0,
+        containerName,
         className,
         mixinName,
         parameters,

@@ -171,12 +171,11 @@ abstract class CompletionMetricsComputer {
     var length = expectedCompletion.syntacticEntity.length;
     assert(offset >= 0);
     assert(length > 0);
+    assert(length >= prefixLength);
     var tokenEndOffset = offset + length;
-    if (length >= prefixLength) {
-      // Rather than removing the whole token, remove the characters after
-      // the given prefix length.
-      offset += prefixLength;
-    }
+    // Rather than removing the whole token, remove the characters after
+    // the given prefix length.
+    offset += prefixLength;
     if (overlay == OverlayMode.removeToken) {
       return content.substring(0, offset) + content.substring(tokenEndOffset);
     } else if (overlay == OverlayMode.removeRestOfFile) {
