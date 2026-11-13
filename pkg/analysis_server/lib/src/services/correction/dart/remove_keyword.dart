@@ -10,14 +10,29 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class RemoveKeyword extends ResolvedCorrectionProducer {
+  @override
+  final FixKind fixKind;
+
   /// The keyword to remove.
   final Keyword _keyword;
 
-  new awaitKeyword({required super.context}) : _keyword = Keyword.AWAIT;
+  new awaitKeyword({required super.context})
+    : _keyword = Keyword.AWAIT,
+      fixKind = DartFixKind.removeKeyword;
 
-  new covariantKeyword({required super.context}) : _keyword = Keyword.COVARIANT;
+  /// Removes the `await` keyword using [DartFixKind.removeKeywordAwait], which
+  /// has a higher priority than [DartFixKind.removeKeyword].
+  new awaitOnlyFutures({required super.context})
+    : _keyword = Keyword.AWAIT,
+      fixKind = DartFixKind.removeKeywordAwait;
 
-  new varKeyword({required super.context}) : _keyword = Keyword.VAR;
+  new covariantKeyword({required super.context})
+    : _keyword = Keyword.COVARIANT,
+      fixKind = DartFixKind.removeKeyword;
+
+  new varKeyword({required super.context})
+    : _keyword = Keyword.VAR,
+      fixKind = DartFixKind.removeKeyword;
 
   @override
   CorrectionApplicability get applicability =>
@@ -25,9 +40,6 @@ class RemoveKeyword extends ResolvedCorrectionProducer {
 
   @override
   List<String>? get fixArguments => [_keyword.lexeme];
-
-  @override
-  FixKind get fixKind => DartFixKind.removeKeyword;
 
   @override
   FixKind get multiFixKind => DartFixKind.removeKeywordMulti;
