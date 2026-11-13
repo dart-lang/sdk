@@ -24,7 +24,10 @@ class _BenchmarkIOManager extends CompilerPhaseInputOutputManager {
   }
 
   @override
-  Future<void> writeWasmSourceMap(String sourceMap, String moduleName) async {}
+  Future<void> writeWasmSourceMap(
+    Object? sourceMapJson,
+    String moduleName,
+  ) async {}
 
   @override
   Future<void> writeJsRuntime(String jsRuntime) async {}
