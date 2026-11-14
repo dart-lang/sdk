@@ -53,12 +53,14 @@ class FlowGraphBuilder {
   /// Finish building CFG.
   FlowGraph done() {
     assert(!hasOpenBlock);
+    assert(stack.isEmpty);
     graph.discoverBlocks();
     return graph;
   }
 
   /// Start filling [block] with instructions.
   void startBlock(Block block) {
+    assert(!hasOpenBlock);
     _last = block;
     if (_exceptionHandlers.isNotEmpty) {
       block.exceptionHandler = _exceptionHandlers.last;

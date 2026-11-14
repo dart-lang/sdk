@@ -712,9 +712,7 @@ final class ConstantPropagation extends Pass
     var recomputeControlFlow = false;
     for (final block in graph.preorder) {
       if (!_isReachable(block)) {
-        for (final instr in block) {
-          instr.removeInputsFromUseLists();
-        }
+        block.clearInstructions();
         recomputeControlFlow = true;
       }
     }

@@ -240,79 +240,79 @@ B11 = TargetBlock() idom:B5
   Return(v56)
 
 --- switchStatement
-B0 = EntryBlock() dominates:(B9, B34, B3, B8)
-  v6 = Constant(1)
-  v12 = Constant(2)
-  v18 = Constant(3)
-  v24 = Constant(4)
+B0 = EntryBlock() dominates:(B6, B34, B8, B5)
+  v3 = Constant(1)
+  v10 = Constant(2)
+  v16 = Constant(3)
+  v23 = Constant(4)
   v32 = Constant("1-2")
   v36 = Constant("3")
   v39 = Constant("3-4")
   v43 = Constant(null)
   v1 = Parameter(x)
-  v7 = Comparison int ==(v1, v6)
-  Branch(v7, true: B8, false: B9)
-B8 = TargetBlock() idom:B0
-  Goto(B3)
-B9 = TargetBlock() idom:B0 dominates:(B15, B14)
-  v13 = Comparison int ==(v1, v12)
-  Branch(v13, true: B14, false: B15)
-B14 = TargetBlock() idom:B9
-  Goto(B3)
-B3 = JoinBlock(B14, B8) idom:B0
+  v4 = Comparison int ==(v1, v3)
+  Branch(v4, true: B5, false: B6)
+B5 = TargetBlock() idom:B0
+  Goto(B8)
+B6 = TargetBlock() idom:B0 dominates:(B13, B12)
+  v11 = Comparison int ==(v1, v10)
+  Branch(v11, true: B12, false: B13)
+B12 = TargetBlock() idom:B6
+  Goto(B8)
+B8 = JoinBlock(B12, B5) idom:B0
   DirectCall print(v32)
   Goto(B34)
-B15 = TargetBlock() idom:B9 dominates:(B21, B30, B5, B20)
-  v19 = Comparison int ==(v1, v18)
-  Branch(v19, true: B20, false: B21)
-B20 = TargetBlock() idom:B15
+B13 = TargetBlock() idom:B6 dominates:(B19, B30, B28, B18)
+  v17 = Comparison int ==(v1, v16)
+  Branch(v17, true: B18, false: B19)
+B18 = TargetBlock() idom:B13
   DirectCall print(v36)
-  Goto(B5)
-B21 = TargetBlock() idom:B15 dominates:(B27, B26)
-  v25 = Comparison int ==(v1, v24)
-  Branch(v25, true: B26, false: B27)
-B26 = TargetBlock() idom:B21
-  Goto(B5)
-B5 = JoinBlock(B26, B20) idom:B15
+  Goto(B28)
+B19 = TargetBlock() idom:B13 dominates:(B26, B25)
+  v24 = Comparison int ==(v1, v23)
+  Branch(v24, true: B25, false: B26)
+B25 = TargetBlock() idom:B19
+  Goto(B28)
+B28 = JoinBlock(B25, B18) idom:B13
   DirectCall print(v39)
   Goto(B30)
-B27 = TargetBlock() idom:B21
+B26 = TargetBlock() idom:B19
   Goto(B30)
-B30 = JoinBlock(B27, B5) idom:B15
+B30 = JoinBlock(B26, B28) idom:B13
   Goto(B34)
-B34 = JoinBlock(B30, B3) idom:B0
+B34 = JoinBlock(B30, B8) idom:B0
   Return(v43)
 
 --- switchWithoutBreaks
-B0 = EntryBlock() dominates:(B9, B8)
-  v6 = Constant(1)
-  v12 = Constant(2)
-  v23 = Constant(InstanceConstant(const Color{_Enum.index: 0, _Enum._name: "red"}))
-  v29 = Constant(InstanceConstant(const Color{_Enum.index: 1, _Enum._name: "blue"}))
+B0 = EntryBlock() dominates:(B7, B6)
+  v4 = Constant(1)
+  v11 = Constant(2)
+  v21 = Constant(InstanceConstant(const Color{_Enum.index: 0, _Enum._name: "red"}))
+  v28 = Constant(InstanceConstant(const Color{_Enum.index: 1, _Enum._name: "blue"}))
   v38 = Constant(3)
   v40 = Constant(4)
   v1 = Parameter(x)
   v2 = Parameter(c)
-  v7 = Comparison int ==(v1, v6)
-  Branch(v7, true: B8, false: B9)
-B8 = TargetBlock() idom:B0 dominates:(B26, B25)
-  v24 = InterfaceCall Object.==(v23, v2)
-  Branch(v24, true: B25, false: B26)
-B25 = TargetBlock() idom:B8
-  Return(v6)
-B26 = TargetBlock() idom:B8 dominates:(B32, B31)
-  v30 = InterfaceCall Object.==(v29, v2)
-  Branch(v30, true: B31, false: B32)
-B31 = TargetBlock() idom:B26
-  Return(v12)
-B32 = TargetBlock() idom:B26
+  v5 = Comparison int ==(v1, v4)
+  Branch(v5, true: B6, false: B7)
+B6 = TargetBlock() idom:B0 dominates:(B24, B23)
+  v22 = InterfaceCall Object.==(v21, v2)
+  Branch(v22, true: B23, false: B24)
+B23 = TargetBlock() idom:B6
+  Return(v4)
+B24 = TargetBlock() idom:B6 dominates:(B31, B30)
+  v29 = InterfaceCall Object.==(v28, v2)
+  Branch(v29, true: B30, false: B31)
+B30 = TargetBlock() idom:B24
+  Return(v11)
+B31 = TargetBlock() idom:B24
   Unreachable(message: "Exhaustive switch not matched")
-B9 = TargetBlock() idom:B0 dominates:(B15, B14)
-  v13 = Comparison int ==(v1, v12)
-  Branch(v13, true: B14, false: B15)
-B14 = TargetBlock() idom:B9
+B7 = TargetBlock() idom:B0 dominates:(B14, B13)
+  v12 = Comparison int ==(v1, v11)
+  Branch(v12, true: B13, false: B14)
+B13 = TargetBlock() idom:B7
   Return(v38)
-B15 = TargetBlock() idom:B9
+B14 = TargetBlock() idom:B7
   Return(v40)
 
 --- tryBlocks

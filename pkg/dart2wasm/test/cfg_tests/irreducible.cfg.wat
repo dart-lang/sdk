@@ -23,7 +23,7 @@
     ;;   v34 = 🎯Constant(-1)
     i64.const -1
     local.set $var5
-    ;;   v8 = 🎯Comparison int ==(v1, v3)
+    ;;   v6 = 🎯Comparison int ==(v1, v3)
     local.get $var0
     local.get $var2
     i64.eq
@@ -31,7 +31,7 @@
     block $label0
       block $label1
         block $label2
-          ;;   🎯Branch(v8, true: B9, false: B10)
+          ;;   🎯Branch(v6, true: B7, false: B8)
           local.get $var6
           br_if $label2
           br $label1
@@ -64,7 +64,7 @@
       ;;   🎯Goto(B36)
       br $label0
     end $label0
-    ;; 🎯B36 = JoinBlock(B10, B42, B18, B9)
+    ;; 🎯B36 = JoinBlock(B8, B42, B18, B7)
     loop $label3
       ;;   v43 = 🎯Comparison int <(v37, v3)
       local.get $var7

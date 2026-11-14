@@ -59,7 +59,7 @@ abstract base class Instruction {
   }
 
   /// Returns true if this instruction is linked into a list of instructions
-  /// in a basic block (also imlplies inputs are linked in their use lists).
+  /// in a basic block (also implies inputs are linked in their use lists).
   bool get isInGraph => block != null;
 
   /// Number of explicit inputs.
@@ -441,6 +441,13 @@ abstract base class Block extends Instruction
       if (predecessors[i] == oldPredecessor) {
         predecessors[i] = newPredecessor;
       }
+    }
+  }
+
+  /// Remove all instructions from this block.
+  void clearInstructions() {
+    for (final instr in this) {
+      instr.removeFromGraph();
     }
   }
 
