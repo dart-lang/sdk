@@ -127,6 +127,10 @@ of 3.15 or greater. For more details, see
 
 - Added `jsThrow`, which throws an error without any Dart wrappers.
 
+- Added `WrappedPromiseError` to represent the error type produced by
+  `FutureOfJSAnyToJSPromise.toJS` and `FutureOfVoidToJSPromise.toJS` when they
+  wrap a Dart error.
+
 [#64558]: https://github.com/dart-lang/sdk/issues/64558
 
 #### `dart:typed_data`
