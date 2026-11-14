@@ -77,11 +77,9 @@ class ConvertToCascade extends ResolvedCorrectionProducer {
         if (index == 1) {
           previousOperator = _getTargetAndOperator(previous.expression)
               ?.operator;
-          if (previous.expression case AssignmentExpression(
-            :var rightHandSide,
-          )) {
-            initializer = rightHandSide;
-          }
+        }
+        if (previous.expression case AssignmentExpression(:var rightHandSide)) {
+          initializer = rightHandSide;
         }
       } else if (previous is VariableDeclarationStatement) {
         // Single variable declaration.
@@ -103,8 +101,13 @@ class ConvertToCascade extends ResolvedCorrectionProducer {
       var targetReplacement = expression is CascadeExpression ? '' : '.';
 
       await builder.addDartFileEdit(file, (builder) {
+        // Parentheses are needed when the initializer would otherwise absorb
+        // the cascade section that now follows it, and, for the first
+        // statement, when the initializer becomes the cascade target but
+        // binds more loosely than the cascade.
         if (initializer != null &&
-            initializer.precedence < Precedence.postfix) {
+            (_absorbsCascadeSection(initializer) ||
+                (index == 1 && initializer.precedence < Precedence.postfix))) {
           builder.addSimpleInsertion(initializer.offset, '(');
           builder.addSimpleInsertion(initializer.end, ')');
         }
@@ -116,6 +119,30 @@ class ConvertToCascade extends ResolvedCorrectionProducer {
         }
         builder.addSimpleReplacement(range.node(target), targetReplacement);
       });
+    }
+  }
+
+  /// Whether appending a cascade section to [expression] would make that
+  /// section part of [expression] rather than of the enclosing cascade.
+  ///
+  /// This happens when [expression] ends with an expression function body,
+  /// which extends as far to the right as possible and so absorbs a following
+  /// `..`. Anything that closes a bracket or ends a block terminates the body
+  /// first, which is why the walk below stops as soon as a child ends before
+  /// its parent does.
+  bool _absorbsCascadeSection(Expression expression) {
+    for (AstNode node = expression; ;) {
+      if (node case FunctionExpression(
+        body: ExpressionFunctionBody(semicolon: null),
+      )) {
+        return true;
+      }
+      AstNode? last;
+      for (var child in node.childEntities) {
+        if (child is AstNode) last = child;
+      }
+      if (last == null || last.end != node.end) return false;
+      node = last;
     }
   }
 

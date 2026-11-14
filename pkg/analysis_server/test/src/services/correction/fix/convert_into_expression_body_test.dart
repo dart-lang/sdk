@@ -20,6 +20,25 @@ class ConvertIntoExpressionBodyBulkTest extends BulkFixProcessorTest {
   @override
   String get lintCode => LintNames.prefer_expression_function_bodies;
 
+  Future<void> test_immediatelyInvoked_nested() async {
+    // The edits for the inner closure overlap with the edits for the outer
+    // one, so only the outer closure is converted in a single pass. The result
+    // still means the same thing: the body of the outer closure invokes the
+    // inner closure.
+    await resolveTestCode('''
+final x = () {
+  return () {
+    return 1;
+  }();
+}();
+''');
+    await assertHasFix('''
+final x = (() => () {
+    return 1;
+  }())();
+''');
+  }
+
   Future<void> test_singleFile() async {
     // See the discussion in https://dart-review.googlesource.com/c/sdk/+/217521
     // for the nested closure case (var f = () ...).
@@ -74,6 +93,61 @@ class A {
 class A {
   mmm() async => 42;
 }
+''');
+  }
+
+  Future<void> test_closure_cascadeSection_followedByCascade() async {
+    await resolveTestCode('''
+class C {
+  bool Function(String)? filter;
+  bool verbose = false;
+}
+
+void f(C c) {
+  c
+    ..filter = (s) {
+      return s.isNotEmpty;
+    }
+    ..verbose = true;
+}
+''');
+    await assertHasFix('''
+class C {
+  bool Function(String)? filter;
+  bool verbose = false;
+}
+
+void f(C c) {
+  c
+    ..filter = ((s) => s.isNotEmpty)
+    ..verbose = true;
+}
+''');
+  }
+
+  Future<void> test_closure_followedByPropertyAccess() async {
+    await resolveTestCode('''
+final x = () {
+  return 1;
+}.hashCode;
+''');
+    await assertHasFix('''
+final x = (() => 1).hashCode;
+''');
+  }
+
+  Future<void> test_closure_immediatelyInvoked() async {
+    await resolveTestCode('''
+int compute() => 42;
+
+final int x = () {
+  return compute();
+}();
+''');
+    await assertHasFix('''
+int compute() => 42;
+
+final int x = (() => compute())();
 ''');
   }
 }
