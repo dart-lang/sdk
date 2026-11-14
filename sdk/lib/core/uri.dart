@@ -3055,10 +3055,9 @@ final class _Uri implements _PlatformUri {
   /// Returns a new path that behaves the same as the input [path] when
   /// used as a URI or URI Reference path.
   ///
-  /// If [allowScheme] is `false` and the path starts with something that would
-  /// parse as a scheme, valid scheme-characters followed by a colon,
-  /// the colon is escaped to `%3A`. The `allowScheme` should be set to `true`
-  /// when the result will become the path of a URI with no scheme or authority.
+  /// If [allowScheme] is `false`, colons in the first path segment are escaped
+  /// to `%3A`. The `allowScheme` should be set to `true` when the result will
+  /// become the path of a URI with a scheme or authority.
   ///
   /// The result will contain no non-leading `..` segments. There may be
   /// any number of leading `..` segments if the [path] contains more `..`
@@ -3180,17 +3179,16 @@ final class _Uri implements _PlatformUri {
     return result;
   }
 
-  /// If [path] starts with a valid scheme, escape the percent.
+  /// Escapes colons in the first segment of a relative URI reference path.
   static String _escapeScheme(String path) {
-    if (path.length >= 2 && _isAlphabeticCharacter(path.codeUnitAt(0))) {
-      for (int i = 1; i < path.length; i++) {
-        int char = path.codeUnitAt(i);
-        if (char == _COLON) {
-          return "${path.substring(0, i)}%3A${path.substring(i + 1)}";
-        }
-        if (char > 127 || ((_charTables.codeUnitAt(char) & _schemeMask) == 0)) {
-          break;
-        }
+    for (int i = 0; i < path.length; i++) {
+      int char = path.codeUnitAt(i);
+      if (char == _SLASH) break;
+      if (char == _COLON) {
+        int end = path.indexOf("/", i + 1);
+        if (end < 0) end = path.length;
+        return path.substring(0, end).replaceAll(":", "%3A") +
+            path.substring(end);
       }
     }
     return path;
