@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: dead_code
+// ignore_for_file: dead_code, dead_code_catch_following_catch
 
 class A {
   int foo(int a, int b, int c) => a + b + c;
@@ -118,5 +118,58 @@ Map<int, String> unreachableMapLiteral() => {
 
 bool unreachableLogicExpr(bool c1, bool c2, bool c3) =>
     !(c1 && (c2 || (throw 'Bye') || c3));
+
+class B extends A {
+  final int x;
+  final int y;
+
+  B(this.x, this.y);
+  B.unreachableFieldInit() : x = (throw 'Bye'), y = 10;
+  B.unreachableRedirectingInit() : this(throw 'Bye', 20);
+}
+
+class C extends B {
+  C.unreachableSuperInit() : super(throw 'Bye', 30);
+}
+
+void unreachableSwitchExpr() {
+  switch (throw 'Bye') {
+    case 1:
+      print(1);
+    default:
+      print(2);
+  }
+}
+
+void unreachableCatchClause() {
+  try {
+    print(1);
+  } catch (e) {
+    print(2);
+  } on String catch (e) {
+    print(e);
+  }
+}
+
+int unreachableConditional1() => 1 + ((throw 'Bye') ? 2 : 3);
+
+void unreachableConditional2(bool c) {
+  bar(10, c ? (throw 'Bye') : 20, 30);
+}
+
+num unreachableConditional3(bool c) =>
+    1 + (c ? (throw 'Bye1') : (throw 'Bye2'));
+
+int unreachableRecordIndexGet() => ((throw 'Bye') as (int, String)).$1;
+
+String unreachableRecordNameGet() => ((throw 'Bye') as (int, {String b})).b;
+
+(int, String) unreachableRecordLiteral() => (1, throw 'Bye');
+
+void unreachableForInit() {
+  for (int i = (throw 'Bye'), j = 10; i < 5; ++i) {
+    print(j);
+  }
+}
 
 void main() {}
