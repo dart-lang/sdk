@@ -29,7 +29,7 @@ import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
-import 'package:analysis_server/src/session_logger/session_logger.dart';
+import 'package:analysis_server/src/session_logger/session_listener.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server_plugin/src/correction/performance.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -148,7 +148,7 @@ class LspAnalysisServer extends AnalysisServer {
     AnalyticsManager analyticsManager,
     CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder,
     InstrumentationService instrumentationService,
-    SessionLogger sessionLogger, {
+    SessionListener sessionListener, {
     http.Client? httpClient,
     ProcessRunner? processRunner,
     DiagnosticServer? diagnosticServer,
@@ -171,7 +171,7 @@ class LspAnalysisServer extends AnalysisServer {
          crashReportingAttachmentsBuilder,
          baseResourceProvider,
          instrumentationService,
-         sessionLogger,
+         sessionListener,
          httpClient,
          processRunner,
          LspNotificationManager(baseResourceProvider.pathContext),

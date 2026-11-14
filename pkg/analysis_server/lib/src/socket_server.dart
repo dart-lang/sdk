@@ -41,8 +41,8 @@ class SocketServer implements AbstractSocketServer {
 
   final InstrumentationService instrumentationService;
 
-  /// The session logger.
-  final SessionLogger sessionLogger;
+  /// The session listener.
+  final SessionLogger sessionListener;
 
   final RequestStatisticsHelper? requestStatistics;
 
@@ -71,7 +71,7 @@ class SocketServer implements AbstractSocketServer {
     this.sdkManager,
     this.crashReportingAttachmentsBuilder,
     this.instrumentationService,
-    this.sessionLogger,
+    this.sessionListener,
     this.requestStatistics,
     this.diagnosticServer,
     this.analyticsManager,
@@ -111,7 +111,7 @@ class SocketServer implements AbstractSocketServer {
       analyticsManager,
       crashReportingAttachmentsBuilder,
       instrumentationService,
-      sessionLogger,
+      sessionListener,
       requestStatistics: requestStatistics,
       diagnosticServer: diagnosticServer,
       detachableFileSystemManager: detachableFileSystemManager,

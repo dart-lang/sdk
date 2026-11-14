@@ -89,13 +89,13 @@ class ServerSetClientCapabilitiesHandler extends LegacyHandler {
         ContextRebuildReasons.clientCapabilitiesChanged,
       );
     } catch (exception, stackTrace) {
-      server.instrumentationService.logException(
-        CaughtException.withMessage(
-          'An error occurred while fetching the client configuration',
-          exception,
-          stackTrace,
-        ),
+      var caughtException = CaughtException.withMessage(
+        'An error occurred while fetching the client configuration',
+        exception,
+        stackTrace,
       );
+      server.instrumentationService.logException(caughtException);
+      server.sessionListener.logException(exception: caughtException);
     } finally {
       // LSP messages must not wait forever, so the gate is released whether the
       // client provided its configuration or not. Where it did not, the

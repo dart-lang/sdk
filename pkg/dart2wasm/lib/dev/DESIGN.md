@@ -24,7 +24,9 @@ modules[0].main();
 
 Statics (top-level functions, static methods, and constructors) are represented
 by a fully resolved label (like `package:foo/foo.dart::Foo.bar`). The runtime
-maps labels to IDs and IDs to functions. Each call looks up its target by ID.
+maps labels to IDs and IDs to functions in a Wasm table
+(`static-functions-table`). Each call invokes its target by ID using
+`call_indirect`.
 
 ```dart
 // package:foo/foo.dart
@@ -43,7 +45,7 @@ barId = rt.staticId('package:foo/foo.dart::Foo.bar');
 rt.defineStatic(barId, Foo.bar);
 
 // main
-rt.lookupStatic(barId)();
+rt.staticFunctionsTable[barId]();
 ```
 
 ## Instance calls
@@ -101,7 +103,7 @@ rt.endInstanceMemberDefinitions(worldGreeterId);
 
 // main
 o = {classId: worldGreeterId};
-rt.lookupStatic(worldGreeterNewId)(o);
+rt.staticFunctionsTable[worldGreeterNewId](o);
 rt.findTarget(o.classId, greetId, shape0Id)(o);
 
 // Greeter.greet
@@ -150,5 +152,5 @@ title = identical(title, sentinel) ? box('Dr.') : title;
 // greetAll
 rt.findTarget(g.classId, greetId, greetShapeId)(
     g, box('Jekyll'), sentinel, null);
-rt.lookupStatic(staticGreetId)(box('Jekyll'), sentinel, null);
+rt.staticFunctionsTable[staticGreetId](box('Jekyll'), sentinel, null);
 ```

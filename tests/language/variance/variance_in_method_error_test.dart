@@ -6,13 +6,7 @@
 
 // SharedOptions=--enable-experiment=variance
 
-typedef Inv<T> = void Function<X extends T>();
-typedef Cov<T> = T Function();
-typedef Contra<T> = void Function(T);
-
-class Covariant<out T> {}
-class Contravariant<in T> {}
-class Invariant<inout T> {}
+import "variance_helper.dart";
 
 class A<in T> {
   T method1() => throw "uncalled";
@@ -21,58 +15,58 @@ class A<in T> {
 //  ^
 // [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
 
-  void method2(Contra<T> x) {}
-  //           ^^^^^^^^^^^
+  void method2(ContraFunction<T> x) {}
+  //           ^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-  //                     ^
+  //                             ^
   // [cfe] Can't use 'in' type variable 'T' in an 'out' position.
 
-  Cov<T> method3() {
-//^^^^^^
+  CovFunction<T> method3() {
+//^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-//       ^
+//               ^
 // [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
     return () => throw "uncalled";
   }
 
-  void method4(Contra<Cov<T>> x) {}
-  //           ^^^^^^^^^^^^^^^^
+  void method4(ContraFunction<CovFunction<T>> x) {}
+  //           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-  //                          ^
+  //                                          ^
   // [cfe] Can't use 'in' type variable 'T' in an 'out' position.
 
-  void method5(Cov<Contra<T>> x) {}
-  //           ^^^^^^^^^^^^^^^^
+  void method5(CovFunction<ContraFunction<T>> x) {}
+  //           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-  //                          ^
+  //                                          ^
   // [cfe] Can't use 'in' type variable 'T' in an 'out' position.
 
-  Contra<Contra<T>> method6() => (Contra<T> x) {};
-//^^^^^^^^^^^^^^^^^
+  ContraFunction<ContraFunction<T>> method6() => (ContraFunction<T> x) {};
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-//                  ^
+//                                  ^
 // [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
 
-  Cov<Cov<T>> method7() {
-//^^^^^^^^^^^
+  CovFunction<CovFunction<T>> method7() {
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-//            ^
+//                            ^
 // [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
     return () {
       return () => throw "uncalled";
     };
   }
 
-  Inv<T> method8() => throw "uncalled";
-//^^^^^^
+  InvBoundFunction<T> method8() => throw "uncalled";
+//^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-//       ^
+//                    ^
 // [cfe] Can't use 'in' type variable 'T' in an 'inout' position in the return type.
 
-  void method9(Inv<T> x) {}
-  //           ^^^^^^^^
+  void method9(InvBoundFunction<T> x) {}
+  //           ^^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-  //                  ^
+  //                               ^
   // [cfe] Can't use 'in' type variable 'T' in an 'inout' position.
 
   Covariant<T> method10() => throw "uncalled";
@@ -128,8 +122,8 @@ class A<in T> {
   // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
   // [cfe] Can't use 'in' type variable 'T' in an 'inout' position.
 
-  void method19<X extends Cov<T>>() {}
-  //            ^^^^^^^^^^^^^^^^
+  void method19<X extends CovFunction<T>>() {}
+  //            ^^^^^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
   // [cfe] Can't use 'in' type variable 'T' in an 'inout' position.
 
@@ -138,10 +132,10 @@ class A<in T> {
   // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
   // [cfe] Can't use 'in' type variable 'T' in an 'inout' position.
 
-  void method21({required Contra<T> x}) {}
-  //             ^^^^^^^^^^^^^^^^^^^^
+  void method21({required ContraFunction<T> x}) {}
+  //             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-  //                                ^
+  //                                        ^
   // [cfe] Can't use 'in' type variable 'T' in an 'out' position.
 
   void method22({required Contravariant<T> x}) {}
@@ -156,8 +150,8 @@ class A<in T> {
   //                                                                ^
   // [cfe] Can't use 'in' type variable 'T' in an 'out' position.
 
-  void method24<X extends Contra<T>>() {}
-  //            ^^^^^^^^^^^^^^^^^^^
+  void method24<X extends ContraFunction<T>>() {}
+  //            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
   // [cfe] Can't use 'in' type variable 'T' in an 'inout' position.
 
@@ -174,58 +168,58 @@ mixin BMixin<in T> {
 //  ^
 // [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
 
-  void method2(Contra<T> x) {}
-  //           ^^^^^^^^^^^
+  void method2(ContraFunction<T> x) {}
+  //           ^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-  //                     ^
+  //                             ^
   // [cfe] Can't use 'in' type variable 'T' in an 'out' position.
 
-  Cov<T> method3() {
-//^^^^^^
+  CovFunction<T> method3() {
+//^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-//       ^
+//               ^
 // [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
     return () => throw "uncalled";
   }
 
-  void method4(Contra<Cov<T>> x) {}
-  //           ^^^^^^^^^^^^^^^^
+  void method4(ContraFunction<CovFunction<T>> x) {}
+  //           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-  //                          ^
+  //                                          ^
   // [cfe] Can't use 'in' type variable 'T' in an 'out' position.
 
-  void method5(Cov<Contra<T>> x) {}
-  //           ^^^^^^^^^^^^^^^^
+  void method5(CovFunction<ContraFunction<T>> x) {}
+  //           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-  //                          ^
+  //                                          ^
   // [cfe] Can't use 'in' type variable 'T' in an 'out' position.
 
-  Contra<Contra<T>> method6() => (Contra<T> x) {};
-//^^^^^^^^^^^^^^^^^
+  ContraFunction<ContraFunction<T>> method6() => (ContraFunction<T> x) {};
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-//                  ^
+//                                  ^
 // [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
 
-  Cov<Cov<T>> method7() {
-//^^^^^^^^^^^
+  CovFunction<CovFunction<T>> method7() {
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-//            ^
+//                            ^
 // [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
     return () {
       return () => throw "uncalled";
     };
   }
 
-  Inv<T> method8() => throw "uncalled";
-//^^^^^^
+  InvBoundFunction<T> method8() => throw "uncalled";
+//^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-//       ^
+//                    ^
 // [cfe] Can't use 'in' type variable 'T' in an 'inout' position in the return type.
 
-  void method9(Inv<T> x) {}
-  //           ^^^^^^^^
+  void method9(InvBoundFunction<T> x) {}
+  //           ^^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-  //                  ^
+  //                               ^
   // [cfe] Can't use 'in' type variable 'T' in an 'inout' position.
 
   Covariant<T> method10() => throw "uncalled";
@@ -281,8 +275,8 @@ mixin BMixin<in T> {
   // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
   // [cfe] Can't use 'in' type variable 'T' in an 'inout' position.
 
-  void method19<X extends Cov<T>>() {}
-  //            ^^^^^^^^^^^^^^^^
+  void method19<X extends CovFunction<T>>() {}
+  //            ^^^^^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
   // [cfe] Can't use 'in' type variable 'T' in an 'inout' position.
 
@@ -291,10 +285,10 @@ mixin BMixin<in T> {
   // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
   // [cfe] Can't use 'in' type variable 'T' in an 'inout' position.
 
-  void method21({required Contra<T> x}) {}
-  //             ^^^^^^^^^^^^^^^^^^^^
+  void method21({required ContraFunction<T> x}) {}
+  //             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-  //                                ^
+  //                                        ^
   // [cfe] Can't use 'in' type variable 'T' in an 'out' position.
 
   void method22({required Contravariant<T> x}) {}
@@ -309,8 +303,8 @@ mixin BMixin<in T> {
   //                                                                ^
   // [cfe] Can't use 'in' type variable 'T' in an 'out' position.
 
-  void method24<X extends Contra<T>>() {}
-  //            ^^^^^^^^^^^^^^^^^^^
+  void method24<X extends ContraFunction<T>>() {}
+  //            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
   // [cfe] Can't use 'in' type variable 'T' in an 'inout' position.
 
@@ -326,10 +320,10 @@ class B<in T> {
   // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
   //                ^
   // [cfe] Can't use 'in' type variable 'T' in an 'out' position.
-  Contra<A<T>> method2() {
-//^^^^^^^^^^^^
+  ContraFunction<A<T>> method2() {
+//^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
-//             ^
+//                     ^
 // [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
     throw "uncalled";
   }

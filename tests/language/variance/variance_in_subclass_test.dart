@@ -6,12 +6,7 @@
 
 // SharedOptions=--enable-experiment=variance
 
-typedef CovFunction<T> = T Function();
-typedef ContraFunction<T> = void Function(T);
-
-class Covariant<out T> {}
-class Contravariant<in T> {}
-mixin MContravariant<in T> {}
+import "variance_helper.dart";
 
 class A<in T> extends Contravariant<T> {}
 class B<in T> implements Contravariant<T> {}

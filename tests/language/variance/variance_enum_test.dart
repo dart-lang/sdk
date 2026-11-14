@@ -9,17 +9,7 @@
 
 import "package:expect/expect.dart";
 
-class Covariant<out T> {}
-
-class Contravariant<in T> {}
-
-class Invariant<inout T> {}
-
-mixin MCovariant<out T> {}
-
-mixin MContravariant<in T> {}
-
-mixin MInvariant<inout T> {}
+import "variance_helper.dart";
 
 enum OutEnum<out T> with MCovariant<T> implements Covariant<T> {
   a;

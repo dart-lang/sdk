@@ -8,36 +8,31 @@
 
 import "package:expect/expect.dart";
 
-typedef Cov<T> = T Function();
-typedef Contra<T> = void Function(T);
+import "variance_helper.dart";
 
-Cov<int> covFunction = () => 2;
-Contra<int> contraFunction = (int val) {};
-Cov<num> covFunctionNum = () => 2;
-Contra<num> contraFunctionNum = (num val) {};
-
-class Covariant<out T> {}
-class Contravariant<in T> {}
-class Invariant<inout T> {}
+CovFunction<int> covFunction = () => 2;
+ContraFunction<int> contraFunction = (int val) {};
+CovFunction<num> covFunctionNum = () => 2;
+ContraFunction<num> contraFunctionNum = (num val) {};
 
 class A<inout T> {
   void method1(T x) {}
-  void method2(Cov<T> x) {}
-  Contra<T> method3() {
+  void method2(CovFunction<T> x) {}
+  ContraFunction<T> method3() {
     return (T val) {
       Expect.equals(2, val);
     };
   }
 
   T? method4() => null;
-  void method5(Contra<T> x) {}
-  Cov<T?> method6() {
+  void method5(ContraFunction<T> x) {}
+  CovFunction<T?> method6() {
     return () => null;
   }
 
   T method7(T x) => x;
-  Contra<T> method8(Contra<T> x) => x;
-  Cov<T> method9(Cov<T> x) => x;
+  ContraFunction<T> method8(ContraFunction<T> x) => x;
+  CovFunction<T> method9(CovFunction<T> x) => x;
 
   T method10<S extends T>(S x) => x;
 
@@ -49,38 +44,38 @@ class A<inout T> {
   Invariant<T>? method16() => null;
 
   void method17(covariant T x) {}
-  void method18(covariant Contra<T> x) {}
-  void method19(covariant Cov<T> x) {}
+  void method18(covariant ContraFunction<T> x) {}
+  void method19(covariant CovFunction<T> x) {}
   void method20(covariant Contravariant<T> x) {}
   void method21(covariant Covariant<T> x) {}
 
   void method22<S extends Contravariant<T>>() {}
   void method23<S extends Covariant<T>>() {}
-  void method24<S extends Contra<T>>() {}
-  void method25<S extends Cov<T>>() {}
+  void method24<S extends ContraFunction<T>>() {}
+  void method25<S extends CovFunction<T>>() {}
 
-  void method26({Contra<T>? a, Cov<T>? b, T? c}) {}
+  void method26({ContraFunction<T>? a, CovFunction<T>? b, T? c}) {}
   void method27({Contravariant<T>? a, Covariant<T>? b}) {}
 }
 
 mixin BMixin<inout T> {
   void method1(T x) {}
-  void method2(Cov<T> x) {}
-  Contra<T> method3() {
+  void method2(CovFunction<T> x) {}
+  ContraFunction<T> method3() {
     return (T val) {
       Expect.equals(2, val);
     };
   }
 
   T? method4() => null;
-  void method5(Contra<T> x) {}
-  Cov<T?> method6() {
+  void method5(ContraFunction<T> x) {}
+  CovFunction<T?> method6() {
     return () => null;
   }
 
   T method7(T x) => x;
-  Contra<T> method8(Contra<T> x) => x;
-  Cov<T> method9(Cov<T> x) => x;
+  ContraFunction<T> method8(ContraFunction<T> x) => x;
+  CovFunction<T> method9(CovFunction<T> x) => x;
 
   T method10<S extends T>(S x) => x;
 
@@ -92,25 +87,25 @@ mixin BMixin<inout T> {
   Invariant<T>? method16() => null;
 
   void method17(covariant T x) {}
-  void method18(covariant Contra<T> x) {}
-  void method19(covariant Cov<T> x) {}
+  void method18(covariant ContraFunction<T> x) {}
+  void method19(covariant CovFunction<T> x) {}
   void method20(covariant Contravariant<T> x) {}
   void method21(covariant Covariant<T> x) {}
 
   void method22<S extends Contravariant<T>>() {}
   void method23<S extends Covariant<T>>() {}
-  void method24<S extends Contra<T>>() {}
-  void method25<S extends Cov<T>>() {}
+  void method24<S extends ContraFunction<T>>() {}
+  void method25<S extends CovFunction<T>>() {}
 
-  void method26({Contra<T>? a, Cov<T>? b, T? c}) {}
+  void method26({ContraFunction<T>? a, CovFunction<T>? b, T? c}) {}
   void method27({Contravariant<T>? a, Covariant<T>? b}) {}
 }
 
 class B with BMixin<num> {}
 
 class C<inout T> {
-  void method1(Contra<A<T>> x) {}
-  void method2(Cov<A<T>> x) {}
+  void method1(ContraFunction<A<T>> x) {}
+  void method2(CovFunction<A<T>> x) {}
   A<T> method3() {
     return A<T>();
   }
@@ -157,24 +152,24 @@ void testClass() {
 
   a.method2(() => 2);
 
-  Expect.type<Contra<int>>(a.method3());
-  Contra<int> method3Function = a.method3();
+  Expect.type<ContraFunction<int>>(a.method3());
+  ContraFunction<int> method3Function = a.method3();
   method3Function(2);
 
   Expect.isNull(a.method4());
 
   a.method5((int val) {});
 
-  Expect.type<Cov<int?>>(a.method6());
-  Cov<int?> method6Function = a.method6();
+  Expect.type<CovFunction<int?>>(a.method6());
+  CovFunction<int?> method6Function = a.method6();
   Expect.isNull(method6Function());
 
   Expect.equals(3, a.method7(3));
 
-  Expect.type<Contra<int>>(a.method8(contraFunction));
+  Expect.type<ContraFunction<int>>(a.method8(contraFunction));
   Expect.equals(contraFunction, a.method8(contraFunction));
 
-  Expect.type<Cov<int>>(a.method9(covFunction));
+  Expect.type<CovFunction<int>>(a.method9(covFunction));
   Expect.equals(covFunction, a.method9(covFunction));
 
   A<num> aa = new A();
@@ -195,8 +190,8 @@ void testClass() {
 
   a.method22<Contravariant<int>>();
   a.method23<Covariant<int>>();
-  a.method24<Contra<int>>();
-  a.method25<Cov<int>>();
+  a.method24<ContraFunction<int>>();
+  a.method25<CovFunction<int>>();
 
   a.method26();
   a.method27();
@@ -209,24 +204,24 @@ void testMixin() {
 
   b.method2(() => 2);
 
-  Expect.type<Contra<num>>(b.method3());
-  Contra<num> method3Function = b.method3();
+  Expect.type<ContraFunction<num>>(b.method3());
+  ContraFunction<num> method3Function = b.method3();
   method3Function(2);
 
   Expect.isNull(b.method4());
 
   b.method5((num val) {});
 
-  Expect.type<Cov<num?>>(b.method6());
-  Cov<num?> method6Function = b.method6();
+  Expect.type<CovFunction<num?>>(b.method6());
+  CovFunction<num?> method6Function = b.method6();
   Expect.isNull(method6Function());
 
   Expect.equals(3, b.method7(3));
 
-  Expect.type<Contra<num>>(b.method8(contraFunctionNum));
+  Expect.type<ContraFunction<num>>(b.method8(contraFunctionNum));
   Expect.equals(contraFunctionNum, b.method8(contraFunctionNum));
 
-  Expect.type<Cov<num>>(b.method9(covFunctionNum));
+  Expect.type<CovFunction<num>>(b.method9(covFunctionNum));
   Expect.equals(covFunctionNum, b.method9(covFunctionNum));
 
   Expect.type<num>(b.method10(3));
@@ -246,8 +241,8 @@ void testMixin() {
 
   b.method22<Contravariant<num>>();
   b.method23<Covariant<num>>();
-  b.method24<Contra<num>>();
-  b.method25<Cov<num>>();
+  b.method24<ContraFunction<num>>();
+  b.method25<CovFunction<num>>();
 
   b.method26();
   b.method27();

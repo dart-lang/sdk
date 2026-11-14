@@ -335,9 +335,7 @@ class ModuleCompiler {
   /// Expects the arguments on the stack.
   void callStatic(w.InstructionsBuilder b, String label, w.FunctionType type) {
     b.global_get(_staticId(label));
-    b.call(runtime.lookupStatic);
-    b.ref_cast(w.RefType.def(type, nullable: false));
-    b.call_ref(type);
+    b.call_indirect(type, runtime.staticFunctionsTable);
   }
 
   /// Defines [cls]'s superclass.

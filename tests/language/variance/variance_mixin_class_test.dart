@@ -9,11 +9,7 @@
 
 import "package:expect/expect.dart";
 
-class Covariant<out T> {}
-
-class Contravariant<in T> {}
-
-class Invariant<inout T> {}
+import "variance_helper.dart";
 
 mixin class OutMixinClass<out T> implements Covariant<T> {
   T? get value => null;
