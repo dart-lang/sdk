@@ -38,6 +38,8 @@ package:analyzer_testing/correction/assist_processor.dart:
     addTestSource (method: void Function(String))
     assertHasAssist (method: Future<SourceChange> Function(String, {int index}))
     assertNoAssist (method: Future<void> Function([int]))
+    registerAssist (method: void Function(CorrectionProducer<ParsedUnitResult> Function({required CorrectionProducerContext context})))
+    tearDown (method: Future<void> Function(), must call super)
 package:analyzer_testing/experiments/experiments.dart:
   experimentalFeaturesForTests (static getter: List<Feature>)
 package:analyzer_testing/mock_packages/mock_packages.dart:
@@ -128,8 +130,13 @@ dart:core:
   int (referenced)
 package:_fe_analyzer_shared/src/base/errors.dart:
   DiagnosticCode (referenced)
+package:analysis_server_plugin/edit/dart/correction_producer.dart:
+  CorrectionProducer (referenced)
+  CorrectionProducerContext (referenced)
 package:analyzer/dart/analysis/features.dart:
   Feature (referenced)
+package:analyzer/dart/analysis/results.dart:
+  ParsedUnitResult (referenced)
 package:analyzer/diagnostic/diagnostic.dart:
   Diagnostic (referenced)
 package:analyzer/file_system/file_system.dart:

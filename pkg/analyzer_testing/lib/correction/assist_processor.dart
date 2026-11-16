@@ -4,15 +4,18 @@
 
 import 'package:analysis_server_plugin/edit/assist/assist.dart';
 import 'package:analysis_server_plugin/edit/assist/dart_assist_context.dart';
+import 'package:analysis_server_plugin/src/correction/assist_generators.dart'; // ignore: implementation_imports
 import 'package:analysis_server_plugin/src/correction/assist_processor.dart'; // ignore: implementation_imports
 import 'package:analysis_server_plugin/src/correction/change_workspace.dart'; // ignore: implementation_imports
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart'; // ignore: implementation_imports
+import 'package:analysis_server_plugin/src/correction/fix_generators.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/test_utilities/platform.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/test_utilities/test_code_format.dart'; // ignore: implementation_imports
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_testing/src/selection_mixin.dart';
 import 'package:analyzer_testing/src/single_unit.dart';
 import 'package:analyzer_testing/src/test_instrumentation_service.dart';
+import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 /// A base class defining support for writing assist processor tests.
@@ -66,6 +69,18 @@ abstract class AssistProcessorTest extends SingleUnitTest with SelectionMixin {
         fail('Unexpected assist $kind in\n${assists.join('\n')}');
       }
     }
+  }
+
+  /// Registers the assist [generator] with the assist processor.
+  void registerAssist(ProducerGenerator generator) {
+    registeredAssistGenerators.registerGenerator(generator);
+  }
+
+  @mustCallSuper
+  @override
+  Future<void> tearDown() async {
+    registeredAssistGenerators.clear();
+    return super.tearDown();
   }
 
   /// Computes assists and verifies that there is an assist of the given kind.
