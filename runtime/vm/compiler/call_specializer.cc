@@ -2781,6 +2781,7 @@ class SimdLowering : public ValueObject {
       case MethodRecognizer::kInt32x4ShrS:
       case MethodRecognizer::kInt32x4ShrU:
       case MethodRecognizer::kInt32x4AndNot:
+      case MethodRecognizer::kInt32x4Negate:
         // TODO(riscv)
         return false;
       default:
@@ -3539,6 +3540,7 @@ bool CallSpecializer::TryInlineRecognizedMethod(
     case MethodRecognizer::kInt32x4BitXor:
     case MethodRecognizer::kInt32x4Not:
 #if !defined(TARGET_ARCH_IA32)
+    case MethodRecognizer::kInt32x4Negate:
     case MethodRecognizer::kInt32x4Equal:
     case MethodRecognizer::kInt32x4NotEqual:
     case MethodRecognizer::kInt32x4Shl:
