@@ -39,7 +39,10 @@ final class ContextField extends SyntheticField {
     : super(
         '#context-field:${variable.cosmeticName}',
         type: variable.type,
-        isFinal: variable.isFinal,
+        // Captured late final variables are tested explicitly for initialization, so
+        // context field value can change and not considered to be final.
+        // TODO: treat captured late final variables like late final fields.
+        isFinal: variable.isFinal && !variable.isLate,
         isLate: variable.isLate,
       );
 }

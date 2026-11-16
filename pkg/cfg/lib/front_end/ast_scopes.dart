@@ -22,7 +22,7 @@ final class AstContext(final ast.VariableContext _node) implements Context {
       _node.isCaptured(enableAsserts: enableAsserts);
 
   @override
-  late final List<Variable> variables = [...variables.cast<Variable>()];
+  late final List<Variable> variables = [..._node.variables.cast<Variable>()];
 }
 
 /// Wrapper for [ast.Scope].

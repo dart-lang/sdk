@@ -146,4 +146,36 @@ void instantiateClosures<T1, T2>(
   print(baz);
 }
 
+void lateLocalVar1(bool c1, bool c2) {
+  late int i;
+  if (c1) {
+    i = 10;
+  }
+  if (c2) {
+    print(i);
+  }
+}
+
+void lateLocalVar2(bool c1, bool c2) {
+  late final int i;
+  if (c1) {
+    i = 10;
+  }
+  if (c2) {
+    i = 20;
+  }
+  print(i);
+}
+
+void lateLocalVar3(bool c1, bool c2) {
+  int Function()? init;
+  late final int i = init?.call() ?? 10;
+  init = () {
+    init = null;
+    print(i);
+    return 20;
+  };
+  print(i);
+}
+
 void main() {}
