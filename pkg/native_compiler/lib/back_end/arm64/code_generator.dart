@@ -2365,7 +2365,6 @@ final class Arm64CodeGenerator extends CodeGenerator {
         resultReg,
         tagsReg,
         instanceSizeReg,
-        lengthReg,
         scratch1Reg,
         scratch2Reg,
         slowPath,
@@ -2373,6 +2372,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
         lengthFieldOffset: arrayKind.lengthFieldOffset(vmOffsets),
         dataFieldOffset: arrayKind.dataFieldOffset(vmOffsets),
         headerSize: headerSize,
+        lengthReg: lengthReg,
         initValueReg: (arrayKind == .fixedLengthList) ? nullReg : ZR,
       );
     }

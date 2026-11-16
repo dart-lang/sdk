@@ -956,8 +956,11 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     if (initializeFields) {
       // TODO: support compressed pointers.
       const maxUnrolledSize = 16 * wordSize;
+      final alignment = objectAlignment(wordSize);
+      assert(alignment == 2 * wordSize);
+      assert(roundUp(instanceSize, alignment) == instanceSize);
+      int offset = vmOffsets.Instance_first_field_offset;
       if (instanceSize <= maxUnrolledSize) {
-        int offset = vmOffsets.Instance_first_field_offset;
         for (; offset + 2 * wordSize <= instanceSize; offset += 2 * wordSize) {
           stp(initValueReg, initValueReg, pairAddress(resultReg, offset));
         }
@@ -967,12 +970,14 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
         }
         assert(offset == instanceSize);
       } else {
+        if (offset < roundUp(offset, alignment)) {
+          str(initValueReg, address(resultReg, offset));
+          offset += wordSize;
+        }
+        // Start with a 2-word aligned offset and fill by 2 words.
+        assert(roundUp(offset, alignment) == offset);
         final fieldReg = scratch1Reg;
-        addImmediate(
-          fieldReg,
-          resultReg,
-          vmOffsets.Instance_first_field_offset,
-        );
+        addImmediate(fieldReg, resultReg, offset);
 
         final loop = Label();
         bind(loop);
@@ -985,11 +990,8 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
             isPostIndexed: true,
           ),
         );
-        // There is at least two word (kAllocationRedZoneSize) gap at the end of page
-        // which makes it possible to initialize objects by two words at once and
-        // write slightly beyond the end.
         cmp(fieldReg, newTopReg);
-        b(loop, Condition.unsignedLess);
+        b(loop, .unsignedLess);
       }
     }
 
@@ -1001,7 +1003,6 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     Register resultReg,
     Register tagsReg,
     Register instanceSizeReg,
-    Register lengthReg,
     Register scratch1Reg,
     Register scratch2Reg,
     Label slowPath, {
@@ -1009,8 +1010,15 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     int? lengthFieldOffset,
     int? dataFieldOffset,
     int? headerSize,
+    Register? lengthReg,
     Register initValueReg = nullReg,
   }) {
+    assert(
+      !initializeFields ||
+          (lengthReg != null &&
+              lengthFieldOffset != null &&
+              headerSize != null),
+    );
     final endReg = scratch1Reg;
     final newTopReg = scratch2Reg;
     // Load Thread.top_ and Thread.end_.
@@ -1030,24 +1038,35 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
       // TODO: support compressed pointers.
       final fieldReg = scratch1Reg;
 
-      str(lengthReg, address(resultReg, lengthFieldOffset!));
+      str(lengthReg!, address(resultReg, lengthFieldOffset!));
       addImmediate(fieldReg, resultReg, headerSize!);
       if (dataFieldOffset != null) {
         str(fieldReg, address(resultReg, dataFieldOffset));
       }
 
+      final alignment = objectAlignment(wordSize);
+      assert(alignment == 2 * wordSize);
+      assert(headerSize % wordSize == 0);
+      if (headerSize < roundUp(headerSize, alignment)) {
+        str(
+          initValueReg,
+          WritebackRegOffsetAddress(fieldReg, wordSize, isPostIndexed: true),
+        );
+      }
+      // Start with a 2-word aligned offset and fill by 2 words.
+      final done = Label();
       final loop = Label();
+      cmp(fieldReg, newTopReg);
+      b(done, .equal);
       bind(loop);
       stp(
         initValueReg,
         initValueReg,
         WritebackRegOffsetAddress(fieldReg, 2 * wordSize, isPostIndexed: true),
       );
-      // There is at least two word (kAllocationRedZoneSize) gap at the end of page
-      // which makes it possible to initialize objects by two words at once and
-      // write slightly beyond the end.
       cmp(fieldReg, newTopReg);
-      b(loop, Condition.unsignedLess);
+      b(loop, .unsignedLess);
+      bind(done);
     }
 
     addImmediate(resultReg, resultReg, heapObjectTag);

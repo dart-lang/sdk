@@ -520,13 +520,74 @@ void main() {
         'ldp r0, r2, [thr, #${vmOffsets.Thread_top_offset}]\n'
         'add r3, r0, #0xa0\n'
         'cmp r2, r3\n'
-        'bls +32\n'
+        'bls +36\n'
         'str r3, [thr, #${vmOffsets.Thread_top_offset}]\n'
         'str r1, [r0]\n'
-        'add r2, r0, #0x8\n'
+        'str null, [r0, #8]\n'
+        'add r2, r0, #0x10\n'
         'stp null, null, [r2], #16 !\n'
         'cmp r2, r3\n'
         'bcc -8\n'
+        'add r0, r0, #0x1\n',
+      );
+    });
+    test('inlineArrayAllocation', () {
+      final slowPath = Label();
+      asm.inlineArrayAllocation(
+        R0,
+        R1,
+        R2,
+        R3,
+        R4,
+        slowPath,
+        initializeFields: true,
+        lengthFieldOffset: vmOffsets.TypedDataBase_length_offset,
+        dataFieldOffset: vmOffsets.PointerBase_data_offset,
+        headerSize: vmOffsets.TypedData_payload_offset,
+        lengthReg: R5,
+        initValueReg: ZR,
+      );
+      asm.bind(slowPath);
+      expectDisassembly(
+        'ldp r0, r3, [thr, #${vmOffsets.Thread_top_offset}]\n'
+        'adds r4, r0, r2\n'
+        'bcs +60\n'
+        'cmp r3, r4\n'
+        'bls +52\n'
+        'str r4, [thr, #${vmOffsets.Thread_top_offset}]\n'
+        'str r1, [r0]\n'
+        'str r5, [r0, #${vmOffsets.TypedDataBase_length_offset}]\n'
+        'add r3, r0, #0x${vmOffsets.TypedData_payload_offset.toRadixString(16)}\n'
+        'str r3, [r0, #${vmOffsets.PointerBase_data_offset}]\n'
+        'str zr, [r3], #8 !\n'
+        'cmp r3, r4\n'
+        'beq +16\n'
+        'stp zr, zr, [r3], #16 !\n'
+        'cmp r3, r4\n'
+        'bcc -8\n'
+        'add r0, r0, #0x1\n',
+      );
+    });
+    test('inlineArrayAllocation - no field initialization', () {
+      final slowPath = Label();
+      asm.inlineArrayAllocation(
+        R0,
+        R1,
+        R2,
+        R3,
+        R4,
+        slowPath,
+        initializeFields: false,
+      );
+      asm.bind(slowPath);
+      expectDisassembly(
+        'ldp r0, r3, [thr, #${vmOffsets.Thread_top_offset}]\n'
+        'adds r4, r0, r2\n'
+        'bcs +24\n'
+        'cmp r3, r4\n'
+        'bls +16\n'
+        'str r4, [thr, #${vmOffsets.Thread_top_offset}]\n'
+        'str r1, [r0]\n'
         'add r0, r0, #0x1\n',
       );
     });
