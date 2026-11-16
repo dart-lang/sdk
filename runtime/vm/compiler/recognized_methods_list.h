@@ -41,7 +41,7 @@ namespace dart {
   V(CoreLibrary, _GrowableList, get:_emptyList, GrowableArrayGetEmptyList,     \
     0x735785f0)                                                                \
   V(CoreLibrary, _Closure, get:_hash, Closure_hash, 0x6e92d1d5)                \
-  V(CoreLibrary, _Record, get:_fieldNames, Record_fieldNames, 0x68c8319e)      \
+  V(CoreLibrary, _Record, get:_fieldNames, Record_fieldNames, 0x6b0f9d90)      \
   V(CoreLibrary, _Record, get:_numFields, Record_numFields, 0x7ba4f393)        \
   V(CoreLibrary, _Record, get:_shape, Record_shape, 0x70c40933)                \
   V(CoreLibrary, _Record, _fieldAt, Record_fieldAt, 0xb47fa0b3)                \
@@ -523,6 +523,7 @@ namespace dart {
     0x45556523)                                                                \
   V(TypedDataLibrary, _Int32x4, ~, Int32x4Not, 0xad8370a8)                     \
   V(TypedDataLibrary, _Int32x4, andNot, Int32x4AndNot, 0x4a88a5d8)             \
+  V(TypedDataLibrary, _Int32x4, unary-, Int32x4Negate, 0x5d3cea2e)             \
   V(TypedDataLibrary, _Int32x4, equal, Int32x4Equal, 0xe12e0e16)               \
   V(TypedDataLibrary, _Int32x4, notEqual, Int32x4NotEqual, 0xafde9ab3)         \
   V(TypedDataLibrary, _Int32x4, <<, Int32x4Shl, 0xfc92031f)                    \

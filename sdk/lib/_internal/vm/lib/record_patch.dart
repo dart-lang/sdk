@@ -55,7 +55,7 @@ final class _Record implements Record {
   String toString() {
     StringBuffer buffer = StringBuffer("(");
     final int numFields = _numFields;
-    final _List fieldNames = _fieldNames;
+    final _Array fieldNames = _fieldNames;
     final int numPositionalFields = numFields - fieldNames.length;
     for (int i = 0; i < numFields; ++i) {
       if (i != 0) {
@@ -83,7 +83,7 @@ final class _Record implements Record {
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   @pragma("vm:idempotent")
-  external _List get _fieldNames;
+  external _Array get _fieldNames;
 
   // Currently compiler does not take into account aliasing
   // between access to record fields via _fieldAt and

@@ -110,7 +110,7 @@ class _SuiteOptions {
         'concurrency',
         help: 'Number of test scripts to run concurrently',
         abbr: 'j',
-        defaultsTo: '6',
+        defaultsTo: '${Platform.numberOfProcessors ~/ 2}',
       )
       ..addOption(
         'retries',
@@ -218,9 +218,11 @@ Future<List<TestResult>> _executeTestSuite({
       if (index >= testFiles.length) break;
       final testFile = testFiles[index++];
       final testName = _getTestName(testFile, dwdsDir);
-      print('Starting test: $testName');
+      print('Start: $testName');
 
       final result = await _runTestScript(testFile, testName, options: options);
+
+      print('Finish: $testName');
 
       results.add(result);
       _completedResults.add(result);
@@ -248,6 +250,7 @@ Future<TestResult> _runTestScript(
       final process = await Process.start(Platform.resolvedExecutable, [
         'test',
         '--timeout=${timeout.inSeconds}s',
+        '--concurrency=1', // This harness is already using all the cores.
         testFile.path,
       ]);
       active.process = process;

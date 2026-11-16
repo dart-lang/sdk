@@ -4652,6 +4652,12 @@ DEFINE_EMIT(Int32x4NotEqual,
   __ notps(left, left);
 }
 
+DEFINE_EMIT(Int32x4Negate, (XmmRegister result, XmmRegister value)) {
+  ASSERT(result != value);
+  __ pxor(result, result);
+  __ subpl(result, value);
+}
+
 DEFINE_EMIT(Int32x4Shift,
             (SameAsFirstInput,
              XmmRegister value,
@@ -4707,6 +4713,7 @@ DEFINE_EMIT(Int32x4Shift,
   SIMPLE(Float64x2Min)                                                         \
   SIMPLE(Float64x2Max)                                                         \
   SIMPLE(Int32x4NotEqual)                                                      \
+  SIMPLE(Int32x4Negate)                                                        \
   CASE(Float32x4Shuffle)                                                       \
   CASE(Int32x4Shuffle)                                                         \
   ____(Simd32x4Shuffle)                                                        \

@@ -1,0 +1,168 @@
+--- foo
+B0 = EntryBlock()
+  v1 = Constant(null)
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v1)   # RA: (R0)
+
+--- nestedTry
+B0 = EntryBlock() dominates:(B6, B30, B5)
+  v3 = Constant(0)
+  v25 = Constant(3)
+  v39 = Constant(null)
+  v1 = Parameter(a)   # RA: param[0] <- ()
+  v2 = Parameter(b)   # RA: param[1] <- ()
+  ParallelMove output(param[1] -> vloc:R1, param[0] -> vloc:R0)
+  ParallelMove spill(R1 -> stack[1])
+  TryEntry(try-body: B5, catch-block: B6)
+B5 = TargetBlock() exception-handler:B6 idom:B0 dominates:(B11, B17, B10)
+  ExceptionalInput(x, v3)   # RA: (-)
+  ExceptionalInput(x, v1)   # RA: (R0)
+  TryEntry(try-body: B10, catch-block: B11)
+B10 = TargetBlock() exception-handler:B11 idom:B5
+  ExceptionalInput(x, v1)   # RA: (R0)
+  DirectCall foo()   # RA: R0 <- () temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0], stack[1]]}
+  ParallelMove output(stack[1] -> R1)
+  ExceptionalInput(x, v2)   # RA: (R1)
+  DirectCall foo()   # RA: R0 <- () temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0], stack[1]]}
+  ParallelMove output(stack[1] -> R1)
+  Goto(B17)
+B11 = CatchBlock()   # RA: () SAFEPT{live: [], objects: [stack[0]]} exception-handler:B6 idom:B5
+  v41 = Parameter(x)   # RA: catch[x] <- ()
+  Parameter(#exception)   # RA: R0 <- ()
+  Parameter(#stackTrace)   # RA: R1 <- ()
+  ParallelMove output(catch[x] -> vloc:R2)
+  DirectCall print(v41)   # RA: R0 <- (R2) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0]]}
+  ExceptionalInput(x, v25)   # RA: (-)
+  DirectCall foo()   # RA: R0 <- () temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0]]}
+  ParallelMove input(IntConstant(3) -> R1)
+  Goto(B17)
+B17 = JoinBlock(B11, B10) exception-handler:B6 idom:B5
+  Phi(v25, v2)   # RA: R1 <- (-, R1)
+  DirectCall foo()   # RA: R0 <- () temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0]]}
+  Goto(B30)
+B6 = CatchBlock()   # RA: () SAFEPT{live: [], objects: [stack[0]]} idom:B0
+  v43 = Parameter(x)   # RA: catch[x] <- ()
+  Parameter(#exception)   # RA: R0 <- ()
+  Parameter(#stackTrace)   # RA: R1 <- ()
+  ParallelMove output(catch[x] -> vloc:R2)
+  DirectCall print(v43)   # RA: R0 <- (R2) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0]]}
+  Goto(B30)
+B30 = JoinBlock(B6, B17) idom:B0
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v39)   # RA: (R0)
+
+--- loopInTry
+B0 = EntryBlock() dominates:(B7, B27, B6)
+  v2 = Constant(0)
+  v4 = Constant(0.0)
+  Constant(1.5)
+  Constant(1)
+  v38 = Constant(null)
+  v49 = Constant(UnboxedDoubleConstant(0.0))
+  v50 = Constant(UnboxedIntConstant(0))
+  v52 = Constant(UnboxedDoubleConstant(1.5))
+  v54 = Constant(UnboxedIntConstant(1))
+  v1 = Parameter(n)   # RA: param[0] <- ()
+  ParallelMove output(param[0] -> vloc:R0)
+  TryEntry(try-body: B6, catch-block: B7)
+B6 = TargetBlock() exception-handler:B7 idom:B0 dominates:(B9)
+  ExceptionalInput(d, v4)   # RA: (-)
+  ExceptionalInput(i, v2)   # RA: (-)
+  ParallelMove input(UnboxedDoubleConstant(0.0) -> V0, UnboxedIntConstant(0) -> R1)
+  Goto(B9)
+B9 = JoinBlock(B6, B14) exception-handler:B7 idom:B6 dominates:(B15, B14) loop-header (depth:1 body:(B9, B14) back-edges:(B14))
+  v43 = Phi(v49, v19)   # RA: V0 <- (-, V0)
+  v41 = Phi(v50, v24)   # RA: R1 <- (-, R0)
+  ParallelMove output(R1 -> stack[2], V0 -> stack[5])
+  v51 = UnboxInt(v1)   # RA: R2 <- (R0)
+  CompareAndBranch int <(v41, v51, true: B14, false: B15)   # RA: (R1, R2)
+B14 = TargetBlock() exception-handler:B7 idom:B9 in-loop:B9
+  ParallelMove input(UnboxedDoubleConstant(1.5) -> vloc:V1)
+  v19 = BinaryDoubleOp +(v43, v52)   # RA: V0 <- (V0, V1)
+  ParallelMove output(V0 -> stack[5])
+  ParallelMove input(vloc:V0 -> V0)
+  v53 = BoxDouble(v19)   # RA: R0 <- (V0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [V0], objects: [stack[0], stack[1]]}
+  ParallelMove output(R0 -> vloc:R0)
+  ExceptionalInput(d, v53)   # RA: (R0)
+  DirectCall foo()   # RA: R0 <- () temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0], stack[1]]}
+  ParallelMove output(stack[2] -> R1)
+  v24 = BinaryIntOp +(v41, v54)   # RA: R1 <- (R1, -)
+  ParallelMove output(R1 -> stack[2], R1 -> R0)
+  ParallelMove input(vloc:R0 -> R1)
+  v55 = BoxInt(v24)   # RA: R0 <- (R1) temps: [R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [R1], objects: [stack[0], stack[1]]}
+  ParallelMove output(R0 -> vloc:R0)
+  ExceptionalInput(i, v55)   # RA: (R0)
+  ParallelMove output(stack[2] -> R0, stack[5] -> V0)
+  ParallelMove input(param[0] -> R0, R0 -> R1)
+  Goto(B9)
+B15 = TargetBlock() exception-handler:B7 idom:B9
+  Goto(B27)
+B7 = CatchBlock()   # RA: () SAFEPT{live: [], objects: [stack[0], stack[1]]} idom:B0
+  v42 = Parameter(d)   # RA: catch[d] <- ()
+  v40 = Parameter(i)   # RA: catch[i] <- ()
+  Parameter(#exception)   # RA: R0 <- ()
+  Parameter(#stackTrace)   # RA: R1 <- ()
+  ParallelMove output(catch[i] -> vloc:R2, catch[d] -> vloc:R0)
+  ParallelMove spill(R0 -> stack[4])
+  DirectCall print(v40)   # RA: R0 <- (R2) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0], stack[1], stack[4]]}
+  ParallelMove output(stack[4] -> R1)
+  DirectCall print(v42)   # RA: R0 <- (R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0], stack[1]]}
+  Goto(B27)
+B27 = JoinBlock(B7, B15) idom:B0
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v38)   # RA: (R0)
+
+--- catchParameterLiveAcrossAssignment
+B0 = EntryBlock() dominates:(B5, B13, B4)
+  Constant(1)
+  v24 = Constant(2)
+  v39 = Constant(null)
+  v48 = Constant(UnboxedIntConstant(1))
+  v1 = Parameter(a)   # RA: param[0] <- ()
+  ParallelMove output(param[0] -> vloc:R0)
+  TryEntry(try-body: B4, catch-block: B5)
+B4 = TargetBlock() exception-handler:B5 idom:B0
+  ExceptionalInput(x, v1)   # RA: (R0)
+  DirectCall foo()   # RA: R0 <- () temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0]]}
+  ParallelMove output(param[0] -> R1)
+  v47 = UnboxInt(v1)   # RA: R0 <- (R1)
+  v10 = BinaryIntOp +(v47, v48)   # RA: R1 <- (R0, -)
+  ParallelMove input(vloc:R1 -> R1)
+  v49 = BoxInt(v10)   # RA: R0 <- (R1) temps: [R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [R1], objects: [stack[0]]}
+  ParallelMove output(R0 -> vloc:R0)
+  ExceptionalInput(x, v49)   # RA: (R0)
+  DirectCall foo()   # RA: R0 <- () temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0]]}
+  Goto(B13)
+B5 = CatchBlock()   # RA: () SAFEPT{live: [], objects: [stack[0]]} idom:B0 dominates:(B22, B27, B21)
+  v41 = Parameter(x)   # RA: catch[x] <- ()
+  Parameter(#exception)   # RA: R0 <- ()
+  Parameter(#stackTrace)   # RA: R1 <- ()
+  ParallelMove output(catch[x] -> vloc:R2)
+  ParallelMove spill(R2 -> stack[1])
+  TryEntry(try-body: B21, catch-block: B22)
+B21 = TargetBlock() exception-handler:B22 idom:B5
+  ExceptionalInput(x, v41)   # RA: (R2)
+  ExceptionalInput(x, v24)   # RA: (-)
+  DirectCall foo()   # RA: R0 <- () temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0], stack[1]]}
+  Goto(B27)
+B22 = CatchBlock()   # RA: () SAFEPT{live: [], objects: [stack[0], stack[1]]} idom:B5
+  v42 = Parameter(x)   # RA: catch[x] <- ()
+  Parameter(#exception)   # RA: R0 <- ()
+  Parameter(#stackTrace)   # RA: R1 <- ()
+  ParallelMove output(catch[x] -> vloc:R2)
+  DirectCall print(v42)   # RA: R0 <- (R2) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0], stack[1]]}
+  Goto(B27)
+B27 = JoinBlock(B22, B21) idom:B5
+  ParallelMove output(stack[1] -> R0)
+  DirectCall print(v41)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0]]}
+  Goto(B13)
+B13 = JoinBlock(B27, B4) idom:B0
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v39)   # RA: (R0)
+
+--- main
+B0 = EntryBlock()
+  v1 = Constant(null)
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v1)   # RA: (R0)
+

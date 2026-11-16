@@ -15,6 +15,10 @@ import 'package:cfg/utils/bit_vector.dart';
 /// Remove [LoadLocal] and [StoreLocal] instructions.
 /// Insert [Phi] instructions to [JoinBlock] and
 /// [Parameter] instructions to [CatchBlock] in order to resolve data flow.
+///
+/// Data flow into catch block [Parameter]s is represented by
+/// [ExceptionalInput] instructions which are inserted at the beginning
+/// of try blocks and at assignments to local variables inside try blocks.
 final class SSAComputation extends Pass {
   SSAComputation() : super('SSAComputation');
 
@@ -122,6 +126,27 @@ final class SSAComputation extends Pass {
           variableValues[variableIndex] = null;
         }
       }
+      // Save values of variables incoming into the try block
+      // for the exception handler.
+      if (_isTryBody(block)) {
+        Instruction insertionPoint = block;
+        for (final instr in block.exceptionHandler!) {
+          if (instr is! Parameter) break;
+          if (instr.hasExceptionalInputs) {
+            final ei = ExceptionalInput(
+              graph,
+              block.sourcePosition,
+              instr.variable,
+              variableValues[instr.variable.index] ??
+                  graph.getConstant(ConstantValue(UndefinedConstant())),
+            );
+            ei.insertAfter(insertionPoint);
+            insertionPoint = ei;
+          }
+        }
+      }
+      // Computed lazily on the first assignment in the block.
+      late final trackedVariables = _computeTrackedVariables(block);
       for (final instr in block) {
         switch (instr) {
           case Parameter():
@@ -129,7 +154,17 @@ final class SSAComputation extends Pass {
           case Phi():
             variableValues[instr.variable.index] = instr;
           case StoreLocal():
-            variableValues[instr.variable.index] = instr.value;
+            final variableIndex = instr.variable.index;
+            variableValues[variableIndex] = instr.value;
+            if (trackedVariables != null && trackedVariables[variableIndex]) {
+              // Save new value of the variable for the exception handler.
+              ExceptionalInput(
+                graph,
+                instr.sourcePosition,
+                instr.variable,
+                instr.value,
+              ).insertBefore(instr);
+            }
             instr.removeFromGraph();
           case LoadLocal():
             instr.replaceUsesWith(
@@ -138,7 +173,6 @@ final class SSAComputation extends Pass {
             );
             instr.removeFromGraph();
         }
-        // TODO(alexmarkov): add implicit uses if instr.canThrow
       }
       // JoinBlock can be the only successor for a block (edge-split form).
       if (block.successors.length == 1) {
@@ -164,5 +198,32 @@ final class SSAComputation extends Pass {
         workList.add((dominated.first, variableValues));
       }
     }
+  }
+
+  /// Returns true if [block] is the first block of a try body.
+  bool _isTryBody(Block block) {
+    if (block is! TargetBlock) return false;
+    final last = block.predecessors.single.lastInstruction;
+    return last is TryEntry && last.tryBody == block;
+  }
+
+  /// Variables with [Parameter]s in the exception handler of [block] or
+  /// any of its outer exception handlers.
+  BitVector? _computeTrackedVariables(Block block) {
+    BitVector? tracked;
+    for (
+      var handler = block.exceptionHandler;
+      handler != null;
+      handler = handler.exceptionHandler
+    ) {
+      for (final instr in handler) {
+        if (instr is! Parameter) break;
+        if (instr.hasExceptionalInputs) {
+          tracked ??= BitVector(graph.localVariables.length);
+          tracked.add(instr.variable.index);
+        }
+      }
+    }
+    return tracked;
   }
 }

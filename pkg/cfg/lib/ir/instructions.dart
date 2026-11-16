@@ -40,7 +40,7 @@ abstract base class Instruction {
   Instruction? previous;
 
   /// Values implicitly used by this instruction
-  /// e.g. for exception handling and deoptimization).
+  /// e.g. for debugging and deoptimization.
   UsesArray? implicitInputs;
 
   /// Create a new instruction.
@@ -538,6 +538,16 @@ final class CatchBlock extends Block {
     required this.isSynthetic,
   });
 
+  /// Returns the [Parameter] of this catch block corresponding to
+  /// [variable], or null if there is no such parameter.
+  Parameter? findParameter(LocalVariable variable) {
+    for (final instr in this) {
+      if (instr is! Parameter) return null;
+      if (instr.variable == variable) return instr;
+    }
+    return null;
+  }
+
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitCatchBlock(this);
 }
@@ -917,6 +927,15 @@ final class Parameter extends Definition with NoThrow, Pure {
   bool get isFunctionParameter => block is EntryBlock;
   bool get isCatchParameter => block is CatchBlock;
 
+  /// Whether this is a catch block parameter which holds the value of
+  /// a local variable (as opposed to the exception object and stack trace).
+  /// Values of such parameters are provided by [ExceptionalInput]
+  /// instructions.
+  bool get hasExceptionalInputs =>
+      isCatchParameter &&
+      !variable.isExceptionVariable &&
+      !variable.isStackTraceVariable;
+
   @override
   CType get type => (isFunctionParameter && variable.isCovariant)
       ? const TopType()
@@ -959,6 +978,42 @@ final class StoreLocal extends Instruction with NoThrow, HasSideEffects {
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitStoreLocal(this);
+}
+
+/// Save [value] of the local [variable] for the exception handlers.
+///
+/// Each local variable which is assigned inside a try block and is live
+/// at the entry of the corresponding catch block has a dedicated slot
+/// holding the current value of the variable for exception handlers.
+/// The slot is shared by all [ExceptionalInput] instructions and all
+/// catch block [Parameter]s of the same [variable].
+///
+/// [ExceptionalInput] instructions are created when converting the flow graph
+/// to SSA form. They are inserted into try blocks at assignments to
+/// [variable] and at the beginning of try blocks (to save the value of
+/// [variable] incoming into the try block). Each [ExceptionalInput]
+/// is located in a block with an exception handler.
+///
+/// The value of a catch block [Parameter] corresponding to [variable] is
+/// the value saved by the last [ExceptionalInput] (or the value of
+/// a catch block [Parameter] of a nested try block) executed before the
+/// exception was thrown.
+final class ExceptionalInput extends Instruction with NoThrow, HasSideEffects {
+  final LocalVariable variable;
+
+  ExceptionalInput(
+    super.graph,
+    super.sourcePosition,
+    this.variable,
+    Definition value,
+  ) : super(inputCount: 1) {
+    setInputAt(0, value);
+  }
+
+  Definition get value => inputDefAt(0);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitExceptionalInput(this);
 }
 
 /// Load value from a field.
@@ -1114,6 +1169,8 @@ final class StoreStaticField extends StoreField {
 enum ArrayKind {
   // Built-in fixed-length List.
   fixedLengthList,
+  // Record objects (elements are record fields).
+  record,
   // String objects with 1-byte and 2-byte characters.
   oneByteString,
   twoByteString,

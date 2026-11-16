@@ -4,6 +4,7 @@
 
 import 'package:native_compiler/back_end/locations.dart';
 import 'package:native_compiler/back_end/safepoint.dart';
+import 'package:native_compiler/passes/unboxing.dart';
 import 'package:cfg/ir/instructions.dart';
 import 'package:cfg/ir/types.dart';
 import 'package:cfg/ir/visitor.dart';
@@ -56,36 +57,24 @@ const anyFpuRegister = AnyFpuRegister();
 const anyCpuLocation = AnyLocation(RegisterClass.cpu);
 const anyFpuLocation = AnyLocation(RegisterClass.fpu);
 
-RegisterClass registerClass(Definition def) => switch (def.type) {
-  DoubleType() || SimdType() => RegisterClass.fpu,
-  _ => RegisterClass.cpu,
-};
+ValueClass valueClass(Definition def, Unboxing unboxing) {
+  if (unboxing.hasUnboxedResult(def)) {
+    return switch (def.type) {
+      IntType() => .int64,
+      DoubleType() => .float64,
+      SimdType() => .simd128,
+      _ => throw 'Unexpected unboxed type ${def.type}',
+    };
+  }
+  return .object;
+}
 
-Constraint anyRegister(Definition def) => switch (registerClass(def)) {
-  RegisterClass.cpu => anyCpuRegister,
-  RegisterClass.fpu => anyFpuRegister,
-};
-
-Constraint anyLocation(Definition def) => switch (registerClass(def)) {
-  RegisterClass.cpu => anyCpuLocation,
-  RegisterClass.fpu => anyFpuLocation,
-};
-
-Constraint? registerOrImmediate(Register reg, Definition def) =>
-    def is Constant ? null : reg;
-
-Constraint? anyRegisterOrImmediate(Definition def) =>
-    def is Constant ? null : anyRegister(def);
-
-Constraint? anyLocationOrImmediate(Definition def) =>
-    def is Constant ? null : anyLocation(def);
-
-Constraint? anyFpuRegisterOrZero(Definition def) =>
-    (def is Constant && def.value.isZero) ? null : anyFpuRegister;
+RegisterClass registerClass(Definition def, Unboxing unboxing) =>
+    valueClass(def, unboxing).registerClass;
 
 /// Base class to define register allocation contraints for
 /// inputs/outputs/temporaries of the IR instructions.
-abstract base class const Constraints()
+abstract base class Constraints(final Unboxing unboxing)
     implements InstructionVisitor<InstructionConstraints?> {
   int getNumberOfRegisters();
   List<Register> getAllocatableRegisters();
@@ -95,6 +84,30 @@ abstract base class const Constraints()
 
   InstructionConstraints? getConstraints(Instruction instr) =>
       instr.accept(this);
+
+  Constraint anyRegister(Definition def) =>
+      switch (registerClass(def, unboxing)) {
+        .cpu => anyCpuRegister,
+        .fpu => anyFpuRegister,
+      };
+
+  Constraint anyLocation(Definition def) =>
+      switch (registerClass(def, unboxing)) {
+        .cpu => anyCpuLocation,
+        .fpu => anyFpuLocation,
+      };
+
+  Constraint? registerOrImmediate(Register reg, Definition def) =>
+      def is Constant ? null : reg;
+
+  Constraint? anyRegisterOrImmediate(Definition def) =>
+      def is Constant ? null : anyRegister(def);
+
+  Constraint? anyLocationOrImmediate(Definition def) =>
+      def is Constant ? null : anyLocation(def);
+
+  Constraint? anyFpuRegisterOrZero(Definition def) =>
+      (def is Constant && def.value.isZero) ? null : anyFpuRegister;
 
   @override
   InstructionConstraints? visitEntryBlock(EntryBlock instr) => null;

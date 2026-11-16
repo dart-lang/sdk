@@ -26,6 +26,7 @@ import 'package:native_compiler/back_end/stack_frame.dart';
 ///        -------------------------------------------------------------+
 ///  0     [suspend state (only for async/async*/sync* functions)]      |
 ///        [shadow space for optional parameters]                       |
+///        [catch slots (values of local variables for catch blocks)]   |
 ///  |     [spill slot 0]                                               | Allocated frame
 ///  V     ...                                                          | (frameSizeInSlots)
 ///        [spill slot M]                                               |
@@ -37,8 +38,6 @@ import 'package:native_compiler/back_end/stack_frame.dart';
 /// Stack slots are numbered in the order of growing stack, starting with the
 /// slot immediately following fixed frame. This numbering matches the
 /// bit numbering in the stack maps used by safepoints.
-///
-/// TODO: add catch block entry parameters area.
 final class Arm64StackFrame extends StackFrame {
   /// Stack frame alignment in stack slots (words).
   static const int frameSizeAlignmentInSlots = 2;
@@ -75,14 +74,16 @@ final class Arm64StackFrame extends StackFrame {
   }
 
   @override
-  int spillSlotSizeInWords(RegisterClass registerClass, bool isSimdValue) =>
-      isSimdValue ? 2 : 1;
+  int spillSlotSizeInWords(ValueClass valueClass) => switch (valueClass) {
+    .object || .int64 || .float64 => 1,
+    .simd128 => 2,
+  };
 
   @override
-  int spillSlotAlignmentInWords(
-    RegisterClass registerClass,
-    bool isSimdValue,
-  ) => isSimdValue ? 2 : 1;
+  int spillSlotAlignmentInWords(ValueClass valueClass) => switch (valueClass) {
+    .object || .int64 || .float64 => 1,
+    .simd128 => 2,
+  };
 
   @override
   int argumentsStackSlots(Instruction instr) {
@@ -217,5 +218,13 @@ final class Arm64StackFrame extends StackFrame {
   void recordReservedLocations(Safepoint safepoint) {
     // TODO: unboxed parameters
     safepoint.addLiveStackSlots(0, _reservedStackSlots, isObjectPointer: true);
+    // TODO: unboxed catch slots
+    for (final slot in catchSlots) {
+      safepoint.addLiveStackSlots(
+        slot.stackSlotIndex,
+        1,
+        isObjectPointer: true,
+      );
+    }
   }
 }

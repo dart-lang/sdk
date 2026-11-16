@@ -61,7 +61,10 @@ final class Unboxing extends Pass {
       SimdOp() => true,
       LoadArrayElement() => inputIndex == 1,
       StoreArrayElement() =>
-        inputIndex == 1 || (inputIndex == 2 && instr.kind != .fixedLengthList),
+        inputIndex == 1 ||
+            (inputIndex == 2 &&
+                instr.kind != .fixedLengthList &&
+                instr.kind != .record),
       CopyArrayElements() =>
         inputIndex == 1 || inputIndex == 3 || inputIndex == 4,
       StoreExternalField() =>
@@ -86,7 +89,8 @@ final class Unboxing extends Pass {
       IndexCheck() ||
       SimdOp() => true,
       UnaryDoubleOp() => instr.type is! BoolType,
-      LoadArrayElement() => instr.kind != .fixedLengthList,
+      LoadArrayElement() =>
+        instr.kind != .fixedLengthList && instr.kind != .record,
       LoadExternalArrayElement() => instr.type is IntType,
       LoadExternalField() => objectLayout.isUnboxedField(instr.field),
       LoadInstanceField() => objectLayout.isUnboxedField(instr.field),

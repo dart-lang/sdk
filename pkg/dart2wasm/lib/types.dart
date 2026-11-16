@@ -36,6 +36,18 @@ class InterfaceTypeEnvironment {
   int lookup(TypeParameter typeParameter) => _typeOffsets[typeParameter]!;
 }
 
+/// Interface for code generators that can emit runtime `_Type` objects.
+abstract interface class TypeCodeGenerator {
+  w.InstructionsBuilder get b;
+
+  /// Pushes the `_Type` object for a function or class type parameter to the
+  /// stack and returns the value type of the object.
+  ///
+  /// The value left on the stack must be a non-nullable `_Type`
+  /// ([Types.nonNullableTypeType]).
+  w.ValueType instantiateTypeParameter(TypeParameter parameter);
+}
+
 /// Helper class for building runtime types.
 class Types {
   final Translator translator;
@@ -189,7 +201,7 @@ class Types {
 
   /// Allocates a `WasmArray<_Type>` from [types] and pushes it to the
   /// stack.
-  void _makeTypeArray(AstCodeGenerator codeGen, Iterable<DartType> types) {
+  void _makeTypeArray(TypeCodeGenerator codeGen, Iterable<DartType> types) {
     if (types.every(isTypeConstant)) {
       translator.constants.instantiateConstant(
         codeGen.b,
@@ -204,14 +216,14 @@ class Types {
     }
   }
 
-  void _makeInterfaceType(AstCodeGenerator codeGen, InterfaceType type) {
+  void _makeInterfaceType(TypeCodeGenerator codeGen, InterfaceType type) {
     final b = codeGen.b;
     b.i32_const(encodedNullability(type));
     b.i32_const(translator.classInfo[type.classNode]!.classId);
     _makeTypeArray(codeGen, type.typeArguments);
   }
 
-  void _makeRecordType(AstCodeGenerator codeGen, RecordType type) {
+  void _makeRecordType(TypeCodeGenerator codeGen, RecordType type) {
     codeGen.b.i32_const(encodedNullability(type));
 
     final names = translator.constants.makeArrayOf(
@@ -274,14 +286,17 @@ class Types {
     return FutureOrType(s, declaredNullability);
   }
 
-  void _makeFutureOrType(AstCodeGenerator codeGen, FutureOrType type) {
+  void _makeFutureOrType(TypeCodeGenerator codeGen, FutureOrType type) {
     final b = codeGen.b;
     b.i32_const(encodedNullability(type));
     makeType(codeGen, type.typeArgument);
-    codeGen.call(translator.createNormalizedFutureOrType.reference);
+    translator.callReference(
+      translator.createNormalizedFutureOrType.reference,
+      b,
+    );
   }
 
-  void _makeFunctionType(AstCodeGenerator codeGen, FunctionType type) {
+  void _makeFunctionType(TypeCodeGenerator codeGen, FunctionType type) {
     int typeParameterOffset = computeFunctionTypeParameterOffset(type);
     final b = codeGen.b;
     b.i32_const(encodedNullability(type));
@@ -303,54 +318,71 @@ class Types {
     b.i64_const(type.requiredParameterCount);
 
     // WasmArray<_NamedParameter> namedParameters
+    _makeNamedParameterArray(codeGen, type);
+  }
+
+  /// Allocates a `WasmArray<_NamedParameter>` for the named parameters of
+  /// [type] and pushes it to the stack.
+  void _makeNamedParameterArray(TypeCodeGenerator codeGen, FunctionType type) {
+    final b = codeGen.b;
     if (type.namedParameters.every((n) => isTypeConstant(n.type))) {
       translator.constants.instantiateConstant(
         b,
         translator.constants.makeNamedParametersArray(type),
         namedParametersExpectedType,
       );
-    } else {
-      Class namedParameterClass = translator.namedParameterClass;
-      Constructor namedParameterConstructor =
-          namedParameterClass.constructors.single;
-      List<Expression> expressions = [];
-      for (NamedType n in type.namedParameters) {
-        expressions.add(
-          isTypeConstant(n.type)
-              ? ConstantExpression(
-                  translator.constants.makeNamedParameterConstant(n),
-                  namedParameterType,
-                )
-              : ConstructorInvocation(
-                  namedParameterConstructor,
-                  Arguments(
-                    ExpressionList(
-                      ConstantExpression(
-                        translator.symbols.symbolForNamedParameter(n.name),
-                      ),
-                      TypeLiteral(n.type),
-                      BoolLiteral(n.isRequired),
-                    ),
-                  ),
-                ),
-        );
-      }
-      w.ValueType namedParametersListType = codeGen.makeArrayFromExpressions(
-        expressions,
-        namedParameterType,
-      );
-      translator.convertType(
-        b,
-        namedParametersListType,
-        namedParametersExpectedType,
-      );
+      return;
     }
+    final arrayType = translator.makeArray(
+      b,
+      translator.arrayTypeForDartType(namedParameterType, mutable: true),
+      type.namedParameters.length,
+      (elementType, i) =>
+          _makeNamedParameter(codeGen, type.namedParameters[i], elementType),
+    );
+    translator.convertType(b, arrayType, namedParametersExpectedType);
+  }
+
+  /// Pushes a `_NamedParameter` object for [n] to the stack.
+  void _makeNamedParameter(
+    TypeCodeGenerator codeGen,
+    NamedType n,
+    w.ValueType expectedType,
+  ) {
+    final b = codeGen.b;
+    if (isTypeConstant(n.type)) {
+      translator.constants.instantiateConstant(
+        b,
+        translator.constants.makeNamedParameterConstant(n),
+        expectedType,
+      );
+      return;
+    }
+    final constructor =
+        translator.namedParameterClass.constructors.single.reference;
+    final signature = translator.signatureForDirectCall(constructor);
+    // `_NamedParameter(Symbol name, _Type type, bool isRequired)`
+    assert(signature.inputs.length == 3);
+    translator.constants.instantiateConstant(
+      b,
+      translator.symbols.symbolForNamedParameter(n.name),
+      signature.inputs[0],
+    );
+    translator.convertType(b, makeType(codeGen, n.type), signature.inputs[1]);
+    translator.constants.instantiateConstant(
+      b,
+      BoolConstant(n.isRequired),
+      signature.inputs[2],
+    );
+    translator.convertType(
+      b,
+      translator.callReference(constructor, b).single,
+      expectedType,
+    );
   }
 
   /// Makes a `_Type` object on the stack.
-  /// TODO(joshualitt): Refactor this logic to remove the dependency on
-  /// CodeGenerator.
-  w.ValueType makeType(AstCodeGenerator codeGen, DartType type) {
+  w.ValueType makeType(TypeCodeGenerator codeGen, DartType type) {
     // Always ensure type is normalized before making a type.
     type = normalize(type);
     final b = codeGen.b;
@@ -375,7 +407,7 @@ class Types {
     if (type is TypeParameterType) {
       codeGen.instantiateTypeParameter(type.parameter);
       if (type.declaredNullability == Nullability.nullable) {
-        codeGen.call(translator.typeAsNullable.reference);
+        translator.callReference(translator.typeAsNullable.reference, b);
       }
       return nonNullableTypeType;
     }
@@ -436,7 +468,7 @@ class Types {
   /// the stack as a (ref null #Top) and leaves the result on the stack as an
   /// i32.
   void emitIsTest(
-    AstCodeGenerator codeGen,
+    TypeCodeGenerator codeGen,
     DartType testedAgainstType,
     DartType operandType, [
     Location? location,
@@ -478,22 +510,34 @@ class Types {
         final typeArguments = testedAgainstType.typeArguments;
         if (checkOnlyNullAssignability) {
           b.i32_const(encodedNullability(testedAgainstType));
-          codeGen.call(translator.isNullabilityCheck.reference);
+          translator.callReference(translator.isNullabilityCheck.reference, b);
         } else {
           b.i32_const(encodedNullability(testedAgainstType));
           b.i32_const(typeClassInfo.classId);
           if (typeArguments.isEmpty) {
-            codeGen.call(translator.isInterfaceSubtype0.reference);
+            translator.callReference(
+              translator.isInterfaceSubtype0.reference,
+              b,
+            );
           } else if (typeArguments.length == 1) {
             makeType(codeGen, typeArguments[0]);
-            codeGen.call(translator.isInterfaceSubtype1.reference);
+            translator.callReference(
+              translator.isInterfaceSubtype1.reference,
+              b,
+            );
           } else if (typeArguments.length == 2) {
             makeType(codeGen, typeArguments[0]);
             makeType(codeGen, typeArguments[1]);
-            codeGen.call(translator.isInterfaceSubtype2.reference);
+            translator.callReference(
+              translator.isInterfaceSubtype2.reference,
+              b,
+            );
           } else {
             _makeTypeArray(codeGen, typeArguments);
-            codeGen.call(translator.isInterfaceSubtype.reference);
+            translator.callReference(
+              translator.isInterfaceSubtype.reference,
+              b,
+            );
           }
         }
       } else {
@@ -503,9 +547,9 @@ class Types {
             typeClassInfo.struct,
             translator.fieldIndex[translator.typeIsDeclaredNullableField]!,
           );
-          codeGen.call(translator.isNullabilityCheck.reference);
+          translator.callReference(translator.isNullabilityCheck.reference, b);
         } else {
-          codeGen.call(translator.isSubtype.reference);
+          translator.callReference(translator.isSubtype.reference, b);
         }
       }
     }
@@ -524,12 +568,15 @@ class Types {
       } else {
         b.ref_null(w.HeapType.none);
       }
-      codeGen.call(translator.verifyOptimizedTypeCheck.reference);
+      translator.callReference(
+        translator.verifyOptimizedTypeCheck.reference,
+        b,
+      );
     }
   }
 
   w.ValueType emitAsCheck(
-    AstCodeGenerator codeGen,
+    TypeCodeGenerator codeGen,
     DartType testedAgainstType,
     DartType operandType,
     w.RefType boxedOperandType, [
@@ -575,21 +622,36 @@ class Types {
       b.i32_const(encodedNullability(testedAgainstType));
       b.i32_const(typeClassInfo.classId);
       if (typeArguments.isEmpty) {
-        outputsToDrop = codeGen.call(translator.asInterfaceSubtype0.reference);
+        outputsToDrop = translator.callReference(
+          translator.asInterfaceSubtype0.reference,
+          b,
+        );
       } else if (typeArguments.length == 1) {
         makeType(codeGen, typeArguments[0]);
-        outputsToDrop = codeGen.call(translator.asInterfaceSubtype1.reference);
+        outputsToDrop = translator.callReference(
+          translator.asInterfaceSubtype1.reference,
+          b,
+        );
       } else if (typeArguments.length == 2) {
         makeType(codeGen, typeArguments[0]);
         makeType(codeGen, typeArguments[1]);
-        outputsToDrop = codeGen.call(translator.asInterfaceSubtype2.reference);
+        outputsToDrop = translator.callReference(
+          translator.asInterfaceSubtype2.reference,
+          b,
+        );
       } else {
         _makeTypeArray(codeGen, typeArguments);
-        outputsToDrop = codeGen.call(translator.asInterfaceSubtype.reference);
+        outputsToDrop = translator.callReference(
+          translator.asInterfaceSubtype.reference,
+          b,
+        );
       }
     } else {
       makeType(codeGen, testedAgainstType);
-      outputsToDrop = codeGen.call(translator.asSubtype.reference);
+      outputsToDrop = translator.callReference(
+        translator.asSubtype.reference,
+        b,
+      );
     }
     for (final _ in outputsToDrop) {
       b.drop();
