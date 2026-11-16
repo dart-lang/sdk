@@ -1383,6 +1383,10 @@ void ARMDecoder::DecodeSIMDDataProcessing(Instr* instr) {
                (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&
                (instr->Bit(7) == 1) && (instr->Bits(16, 4) == 9)) {
       Format(instr, "vnegqs 'qd, 'qm");
+    } else if ((instr->Bits(8, 4) == 3) && (instr->Bit(4) == 0) &&
+               (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&
+               (instr->Bit(7) == 1) && (instr->Bits(16, 4) == 9)) {
+      Format(instr, "vnegqi 'qd, 'qm");
     } else if ((instr->Bits(7, 5) == 10) && (instr->Bit(4) == 0) &&
                (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&
                (instr->Bits(16, 4) == 11)) {
