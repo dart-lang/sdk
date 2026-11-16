@@ -227,6 +227,10 @@ DART_EXPORT Dart_Handle Dart_CompileAll() {
     return result;
   }
   CHECK_CALLBACK_STATE(T);
+  if (T->isolate_group()->modular_aot_mode()) {
+    // Everything is precompiled into module snapshots already.
+    return Api::Success();
+  }
   const Error& error = Error::Handle(T->zone(), Library::CompileAll());
   if (!error.IsNull()) {
     return Api::NewHandle(T, error.ptr());

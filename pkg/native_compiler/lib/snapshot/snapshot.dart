@@ -64,6 +64,7 @@ enum PredefinedClusters {
   libraryRefs,
   libraries,
   privateNames,
+  qualifiedPrivateNames,
   scripts,
   classRefs,
   classes,
@@ -388,6 +389,9 @@ class SnapshotSerializer {
                 : PredefinedClusters.functionRefs),
     ),
     PrivateName() => getPredefinedCluster(PredefinedClusters.privateNames),
+    QualifiedPrivateName() => getPredefinedCluster(
+      PredefinedClusters.qualifiedPrivateNames,
+    ),
     Script() => getPredefinedCluster(PredefinedClusters.scripts),
     ArgumentsShape() => getPredefinedCluster(
       PredefinedClusters.argumentsDescriptorRefs,
@@ -483,6 +487,7 @@ class SnapshotSerializer {
         .oneByteStrings => OneByteStringSerializationCluster(),
         .twoByteStrings => TwoByteStringSerializationCluster(),
         .privateNames => PrivateNameSerializationCluster(),
+        .qualifiedPrivateNames => QualifiedPrivateNameSerializationCluster(),
         .functions => FunctionSerializationCluster(),
         .ints => IntSerializationCluster(),
         .doubles => DoubleSerializationCluster(),
@@ -652,10 +657,24 @@ final class ScriptSerializationCluster extends SerializationCluster {
 const topLevelClassName = '##topLevel';
 
 extension on ast.Class {
-  Object? get mangledName => isTopLevel
+  Name? get mangledName => isTopLevel
       ? null
-      : (name.startsWith('_') ? PrivateName(name, enclosingLibrary) : name);
+      : Name(name, name.startsWith('_') ? enclosingLibrary : null);
   bool get isTopLevel => name == topLevelClassName;
+
+  /// Returns number of native fields in instances of [this].
+  /// Native fields are inherited from
+  /// `dart:nativewrappers::NativeFieldWrapperClassN` classes.
+  int getNumNativeFields(ast.Library nativewrappersLibrary) {
+    const prefix = 'NativeFieldWrapperClass';
+    for (ast.Class? c = this; c != null; c = c.superclass) {
+      if (c.enclosingLibrary == nativewrappersLibrary &&
+          c.name.startsWith(prefix)) {
+        return int.parse(c.name.substring(prefix.length));
+      }
+    }
+    return 0;
+  }
 }
 
 final class ClassRefSerializationCluster extends SerializationCluster {
@@ -734,7 +753,9 @@ final class ClassSerializationCluster extends SerializationCluster {
           serializer.functionRegistry.getFunction(field, isInitializer: true),
       ],
     ]);
-    final fields = getListConstant(cls.fields);
+    final fields = getListConstant(
+      cls.isTopLevel ? library.fields : cls.fields,
+    );
     final interfaces = getListConstant([
       for (final sup in cls.implementedTypes) sup.asInterfaceType,
     ]);
@@ -801,9 +822,6 @@ final class ClassSerializationCluster extends SerializationCluster {
               objectLayout.getFieldOffset(typeArgsField) ~/ compressedWordSize;
         }
       }
-      final numNativeFields = (cls.enclosingLibrary == nativewrappersLibrary)
-          ? 1
-          : 0;
       serializer.writeRefId(fields.name);
       serializer.writeRefId(fields.functions);
       serializer.writeRefId(fields.fields);
@@ -816,7 +834,7 @@ final class ClassSerializationCluster extends SerializationCluster {
       serializer.writeInt(unalignedInstanceSize);
       serializer.writeInt(typeArgsFieldOffset);
       serializer.writeInt(getNumberOfInstantiatorTypeArguments(cls));
-      serializer.writeInt(numNativeFields);
+      serializer.writeInt(cls.getNumNativeFields(nativewrappersLibrary));
       serializer.writeUint(cls.fileOffset + 1);
       serializer.writeUint(cls.fileEndOffset + 1);
       // TODO: ImplementedBit, HasPragmaBit, IsIsolateUnsendableBit, IsDeeplyImmutableBit
@@ -1022,14 +1040,11 @@ extension on CFunction {
     TearOffFunction() => FunctionKind.ImplicitClosureFunction,
   };
 
-  Name get _mangledConstructorName {
-    final className = member.enclosingClass!.name;
-    return Name(
-      "$className.${member.name.text}",
-      member.name.library ??
-          (className.startsWith('_') ? member.enclosingLibrary : null),
-    );
-  }
+  Name get _mangledConstructorName => Name.constructor(
+    member.enclosingClass!.mangledName!,
+    member.name.text,
+    member.name.library,
+  );
 
   Object get mangledName => switch (this) {
     LocalFunction(:final ast.FunctionDeclaration localFunction) =>
@@ -1388,21 +1403,21 @@ class FunctionSignature(
       other is FunctionSignature && super == (other);
 }
 
+typedef _FunctionFields = ({
+  Object name,
+  ast.Class owner,
+  ast.FunctionType signature,
+  Object? /*ClosureData|???*/ data,
+  ast.ListConstant positionalParameterNames,
+  int startFileOffset,
+  int endFileOffset,
+  int kindTags,
+  String? nativeName,
+});
+
 final class FunctionSerializationCluster extends SerializationCluster {
   final List<CFunction> _objects = [];
-  final List<
-    ({
-      Object name,
-      ast.Class owner,
-      ast.FunctionType signature,
-      Object? /*ClosureData|???*/ data,
-      ast.ListConstant positionalParameterNames,
-      int startFileOffset,
-      int endFileOffset,
-      int kindTags,
-    })
-  >
-  _fields = [];
+  final List<_FunctionFields> _fields = [];
 
   @override
   void trace(SnapshotSerializer serializer, Object object) {
@@ -1455,6 +1470,12 @@ final class FunctionSerializationCluster extends SerializationCluster {
     final startFileOffset = functionNode?.fileOffset ?? 0;
     final endFileOffset = functionNode?.fileEndOffset ?? 0;
 
+    final coreTypes = GlobalContext.instance.coreTypes;
+    final String? nativeName =
+        (member.isExternal && function is! ClosureFunction)
+        ? getExternalName(coreTypes, member)
+        : null;
+
     final data = switch (function) {
       // TODO: implicit_static_closure
       LocalFunction() => ClosureData(
@@ -1472,7 +1493,6 @@ final class FunctionSerializationCluster extends SerializationCluster {
     };
 
     var kindTags = 0;
-    final coreTypes = GlobalContext.instance.coreTypes;
     final vmOffsets = serializer.objectLayout.vmOffsets;
     switch (function) {
       case LocalFunction():
@@ -1510,7 +1530,7 @@ final class FunctionSerializationCluster extends SerializationCluster {
                 ? (1 << vmOffsets.Function_kIsExtensionTypeMemberBitPos)
                 : 0);
         if (member.isExternal) {
-          if (getExternalName(coreTypes, member) == null) {
+          if (nativeName == null) {
             kindTags |=
                 (1 << vmOffsets.Function_kExternalBitPos) |
                 (member.isFfiNative(coreTypes)
@@ -1531,7 +1551,9 @@ final class FunctionSerializationCluster extends SerializationCluster {
     kindTags |=
         (kind.index << vmOffsets.Function_kKindBitsPos) |
         (modifier << vmOffsets.Function_kModifierBitsPos) |
-        ((member.isInstanceMember || member is ast.Constructor)
+        // Constructor tear-offs are static closures.
+        ((member.isInstanceMember ||
+                (member is ast.Constructor && function is! TearOffFunction))
             ? 0
             : (1 << vmOffsets.Function_kStaticBitPos));
 
@@ -1540,6 +1562,7 @@ final class FunctionSerializationCluster extends SerializationCluster {
     serializer.push(signature);
     serializer.push(data);
     serializer.push(positionalParameterNames);
+    serializer.push(nativeName);
     _fields.add((
       name: name,
       owner: owner,
@@ -1549,6 +1572,7 @@ final class FunctionSerializationCluster extends SerializationCluster {
       startFileOffset: startFileOffset,
       endFileOffset: endFileOffset,
       kindTags: kindTags,
+      nativeName: nativeName,
     ));
   }
 
@@ -1577,6 +1601,10 @@ final class FunctionSerializationCluster extends SerializationCluster {
       serializer.writeUint(fields.startFileOffset + 1);
       serializer.writeUint(fields.endFileOffset + 1);
       serializer.writeUint(fields.kindTags);
+      final nativeName = fields.nativeName;
+      if (nativeName != null) {
+        serializer.writeRefId(nativeName);
+      }
     }
   }
 
@@ -1664,6 +1692,30 @@ final class PrivateNameSerializationCluster extends SerializationCluster {
       serializer.assignRef(name);
       serializer.writeRefId(name.library);
       serializer.writeRefId(name.text);
+    }
+  }
+}
+
+final class QualifiedPrivateNameSerializationCluster
+    extends SerializationCluster {
+  final List<QualifiedPrivateName> _objects = [];
+
+  @override
+  void trace(SnapshotSerializer serializer, Object object) {
+    final name = object as QualifiedPrivateName;
+    _objects.add(name);
+    serializer.push(name.className);
+    serializer.push(name.name);
+  }
+
+  @override
+  void writePreLoad(SnapshotSerializer serializer) {
+    serializer.writeUint(PredefinedClusters.qualifiedPrivateNames.index);
+    serializer.writeUint(_objects.length);
+    for (final name in _objects) {
+      serializer.assignRef(name);
+      serializer.writeRefId(name.className);
+      serializer.writeRefId(name.name);
     }
   }
 }

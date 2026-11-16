@@ -3621,6 +3621,7 @@ class UntaggedArray : public UntaggedInstance {
   friend class MarkingVisitor;
   friend class FastObjectCopy;  // For initializing fields.
   friend class module_snapshot::Deserializer;
+  friend class module_snapshot::FunctionDeserializationCluster;
   friend class module_snapshot::ListDeserializationCluster;
   friend void UpdateLengthField(intptr_t, ObjectPtr, ObjectPtr);  // length_
 };
