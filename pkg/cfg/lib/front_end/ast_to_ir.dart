@@ -2376,7 +2376,7 @@ class LocalVariableIndexer {
         .getThisVariable(function.member);
     if (function.hasFunctionTypeParameters) {
       functionTypeParameters = builder.declareLocalVariable(
-        '#functionTypeParameters',
+        LocalVariable.functionTypeParametersVariableName,
         null,
         const TypeParametersType(),
       );

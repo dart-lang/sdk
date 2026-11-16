@@ -240,8 +240,8 @@ bool isNullNamed({int? x}) => x == null;
 @pragma('wasm:cfg')
 bool callIsNullNamed() => isNullNamed();
 
-// Not compiled via CFG (generic functions are unsupported). The type argument
-// determines the result.
+// Not compiled via CFG (`is T` is unsupported). The type argument determines
+// the result.
 @pragma('wasm:never-inline')
 bool isA<T>(Object? o) => o is T;
 
@@ -304,6 +304,41 @@ String callDescribeGenericOptionalDefault(int x) =>
 @pragma('wasm:cfg')
 String callDescribeGenericNamed(int x, String s) =>
     describeGenericNamed<int>(x, suffix: s);
+
+// The type parameter is a separate wasm parameter before the value parameter.
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+T cfgIdentity<T>(T x) => x;
+
+// Type arguments that are type parameters of the caller.
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+String forwardTypeNames<A, B>() => typeNames<B, A>();
+
+// Type arguments that are built at runtime from type parameters of the caller.
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+String forwardCompositeTypeNames<A, B>() => typeNames<List<A>, B Function(A)>();
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+String forwardNamedParameterTypeNames<A>() =>
+    typeNames<void Function({A a, int b}), A>();
+
+// A nullable type parameter and a constant type argument.
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+String forwardNullableTypeNames<A>() => typeNames<A?, int>();
+
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+bool forwardIsA<T>(Object? o) => isA<T>(o);
+
+// Type parameters combined with value and named arguments.
+@pragma('wasm:never-inline')
+@pragma('wasm:cfg')
+String forwardDescribeGenericNamed<T>(T value, String s) =>
+    describeGenericNamed<T>(value, suffix: s);
 
 void main() {
   final int0 = int.parse('0');
@@ -417,4 +452,24 @@ void main() {
     'x $String y z',
     describeGenericNamed<String>('y', suffix: 'z', prefix: 'x'),
   );
+
+  // Type arguments that depend on type parameters of the caller.
+  Expect.equals(5, cfgIdentity<int>(int5));
+  Expect.equals('$String, $int', forwardTypeNames<int, String>());
+  Expect.equals(
+    typeNames<List<int>, String Function(int)>(),
+    forwardCompositeTypeNames<int, String>(),
+  );
+  Expect.equals(
+    typeNames<void Function({String a, int b}), String>(),
+    forwardNamedParameterTypeNames<String>(),
+  );
+  Expect.equals(typeNames<String?, int>(), forwardNullableTypeNames<String>());
+  Expect.equals(typeNames<int?, int>(), forwardNullableTypeNames<int?>());
+  Expect.isTrue(forwardIsA<int>(int1));
+  Expect.isFalse(forwardIsA<int>(stringValue));
+  Expect.isFalse(forwardIsA<int>(nullValue));
+  Expect.isTrue(forwardIsA<int?>(nullValue));
+  Expect.equals('p $int 1 a', forwardDescribeGenericNamed<int>(int1, 'a'));
+  Expect.equals('p $String y z', forwardDescribeGenericNamed<String>('y', 'z'));
 }

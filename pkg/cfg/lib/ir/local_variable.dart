@@ -12,6 +12,8 @@ import 'package:cfg/ir/types.dart';
 class LocalVariable {
   static const String exceptionVariableName = '#exception';
   static const String stackTraceVariableName = '#stackTrace';
+  static const String functionTypeParametersVariableName =
+      '#functionTypeParameters';
 
   /// Name of the variable.
   final String name;
@@ -41,6 +43,8 @@ class LocalVariable {
       declaration == null && name == exceptionVariableName;
   bool get isStackTraceVariable =>
       declaration == null && name == stackTraceVariableName;
+  bool get isFunctionTypeParametersVariable =>
+      declaration == null && name == functionTypeParametersVariableName;
 
   @override
   String toString() => name;

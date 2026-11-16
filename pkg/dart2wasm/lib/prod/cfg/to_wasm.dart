@@ -15,13 +15,21 @@ import '../../intrinsics.dart';
 import '../../param_info.dart';
 import '../../reference_extensions.dart';
 import '../../translator.dart';
+import '../../types.dart';
 
 /// Translates a [FlowGraph] (CFG IR) to WebAssembly bytecode for the
 /// production compiler.
 final class ProdCfgToWasm extends CfgToWasm {
   final Translator translator;
-  final List<w.Local> paramLocals;
   final EntryPoint kind;
+  final List<w.Local> paramLocals;
+
+  /// The locals holding the type arguments built for each [TypeArguments]
+  /// instruction.
+  ///
+  /// Each list has one element per type argument. The element is `null` for
+  /// constant type arguments, which are instantiated where they are used.
+  final Map<TypeArguments, List<w.Local?>> typeArgumentLocals = {};
 
   @override
   late final ProdWasmInstructionLowerer lowerer = ProdWasmInstructionLowerer(
@@ -74,7 +82,8 @@ final class ProdCfgToWasm extends CfgToWasm {
 }
 
 final class ProdWasmInstructionLowerer
-    extends WasmInstructionLowerer<ProdCfgToWasm> {
+    extends WasmInstructionLowerer<ProdCfgToWasm>
+    implements TypeCodeGenerator {
   ProdWasmInstructionLowerer(super.gen);
 
   Translator get translator => gen.translator;
@@ -89,6 +98,10 @@ final class ProdWasmInstructionLowerer
       Constant() =>
         !gen.isUndefined(instr) ||
             instr.inputUses.every((u) => u.getInstruction(gen.graph) is Phi),
+      // TODO(dart2wasm): Support class type parameters.
+      TypeParameters(:final kind) =>
+        kind == TypeParametersKind.functionTypeParameters,
+      TypeArguments() => true,
       Return() => true,
       Unreachable() => true,
       Branch() => true,
@@ -147,11 +160,6 @@ final class ProdWasmInstructionLowerer
     }
     final member = target.member;
     if (member is! ast.Procedure || member.isInstanceMember) return false;
-    // TODO(nshahan): Support type arguments that depend on type parameters
-    // (`TypeArguments` instruction).
-    if (instr.hasTypeArguments && instr.typeArguments is! Constant) {
-      return false;
-    }
     // TODO(nshahan): Support intrinsics and external effects (see
     // `CodeGenerator.visitStaticInvocation`).
     if (member.isExternal ||
@@ -165,7 +173,17 @@ final class ProdWasmInstructionLowerer
   @override
   void visitParameter(Parameter instr) {
     assert(instr.isFunctionParameter);
-    final paramLocal = gen.paramLocals[instr.variable.index];
+    // The CFG passes all function type arguments in a single parameter, but
+    // the wasm function has a separate `_Type` parameter for each of them.
+    // Uses of the type parameters load them directly from those wasm
+    // parameters in [instantiateTypeParameter].
+    if (instr.variable.isFunctionTypeParametersVariable) return;
+    final typeParameterCount =
+        gen.graph.function.numberOfFunctionTypeParameters;
+    final wasmIndex = typeParameterCount == 0
+        ? instr.variable.index
+        : instr.variable.index - 1 + typeParameterCount;
+    final paramLocal = gen.paramLocals[wasmIndex];
     final expectedType = gen.translateType(instr.type);
     if (translator.needsConversion(paramLocal.type, expectedType)) {
       final convertedLocal = b.addLocal(expectedType);
@@ -176,6 +194,46 @@ final class ProdWasmInstructionLowerer
     } else {
       gen.locals[instr] = paramLocal;
     }
+  }
+
+  @override
+  void visitTypeParameters(TypeParameters instr) {
+    // Nothing to do here. Currently only function type parameters are
+    // loaded from their wasm parameter local when needed for TypeArgument
+    // instructions.
+    //
+    // Other instructions uses are not yet supported.
+  }
+
+  @override
+  void visitTypeArguments(TypeArguments instr) {
+    // Build each non-constant type argument once and store it in a local, so
+    // all users of this instruction can share it.
+    final locals = <w.Local?>[];
+    final typeType = translator.types.nonNullableTypeType;
+    for (final typeArgument in instr.types) {
+      if (translator.types.isTypeConstant(typeArgument)) {
+        locals.add(null);
+      } else {
+        final local = b.addLocal(typeType);
+        translator.types.makeType(this, typeArgument);
+        b.local_set(local);
+        locals.add(local);
+      }
+    }
+    gen.typeArgumentLocals[instr] = locals;
+  }
+
+  @override
+  w.ValueType instantiateTypeParameter(ast.TypeParameter parameter) {
+    final index = gen.member.function!.typeParameters.indexOf(parameter);
+    if (index < 0) {
+      throw UnsupportedError('Type parameter $parameter is not in scope.');
+    }
+    final local = gen.paramLocals[index];
+    b.local_get(local);
+    translator.convertType(b, local.type, translator.types.nonNullableTypeType);
+    return translator.types.nonNullableTypeType;
   }
 
   @override
@@ -275,26 +333,37 @@ final class ProdWasmInstructionLowerer
     int signatureOffset = 0;
 
     // Push the type arguments. They are passed as a single input but each type
-    // argument is a separate function parameter.
+    // argument is passed as a separate function parameter, typed as a
+    // non-nullable `_Type`.
     if (instr.hasTypeArguments) {
-      final typeArguments =
-          (instr.typeArguments as Constant).value.constant
-              as TypeArgumentsConstant;
-      assert(typeArguments.types.length == paramInfo.typeParamCount);
-      for (int i = 0; i < typeArguments.types.length; ++i) {
-        // TODO(nshahan): Support type arguments that depend on type parameters
-        // (`TypeArguments` instruction).
-        assert(translator.types.isTypeConstant(typeArguments.types[i]));
-        translator.constants.instantiateConstant(
-          b,
-          ast.TypeLiteralConstant(typeArguments.types[i]),
-          signature.inputs[i],
-        );
+      final typeArgumentsDef = instr.typeArguments!;
+      final List<ast.DartType> types;
+      switch (typeArgumentsDef) {
+        case Constant(value: ConstantValue(:TypeArgumentsConstant constant)):
+          // All type arguments are constant.
+          types = constant.types;
+          for (int i = 0; i < types.length; ++i) {
+            _pushConstantType(types[i]);
+          }
+        case TypeArguments():
+          // Some type arguments depend on type parameters.
+          types = typeArgumentsDef.types;
+          final locals = gen.typeArgumentLocals[typeArgumentsDef]!;
+          for (int i = 0; i < types.length; ++i) {
+            final local = locals[i];
+            // [visitTypeArguments] stored those in locals with `null` element
+            // placeholders where constant types should be pushed instead.
+            local == null ? _pushConstantType(types[i]) : b.local_get(local);
+          }
+
+        default:
+          throw StateError('Unexpected type arguments: $typeArgumentsDef');
       }
+      assert(types.length == paramInfo.typeParamCount);
       // The CFG instruction packs all type arguments together into the input
       // at offset 0. Positional parameters start after that.
       inputOffset = 1;
-      signatureOffset = typeArguments.types.length;
+      signatureOffset = types.length;
     }
 
     // Push the provided positional arguments.
@@ -345,5 +414,14 @@ final class ProdWasmInstructionLowerer
         );
       }
     }
+  }
+
+  /// Pushes the constant `_Type` for [type], loaded from its constant global.
+  void _pushConstantType(ast.DartType type) {
+    translator.constants.instantiateConstant(
+      b,
+      ast.TypeLiteralConstant(type),
+      translator.types.nonNullableTypeType,
+    );
   }
 }
