@@ -1490,7 +1490,15 @@ class AstToIr extends ast.RecursiveVisitor {
 
       final exceptionVariable = catchClause.exception;
       if (exceptionVariable != null) {
+        assert(exceptionVariable.type == guardType);
         builder.addLoadLocal(exceptionLocal);
+        if (guardCType is! TopType && guardCType is! ObjectType) {
+          builder.addTypeCast(
+            guardCType,
+            typeParameters: _typeParametersForType(guardType),
+            isChecked: false,
+          );
+        }
         _writeVariable(exceptionVariable);
       }
 
