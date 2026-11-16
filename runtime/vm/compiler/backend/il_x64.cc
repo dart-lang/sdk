@@ -4211,6 +4211,7 @@ Condition DoubleTestOpInstr::EmitConditionCode(FlowGraphCompiler* compiler,
   V(Int32x4BitOr, orps)                                                        \
   V(Int32x4BitXor, xorps)                                                      \
   V(Int32x4Equal, pcmpeqd)                                                     \
+  V(Int32x4GreaterThan, pcmpgtd)                                               \
   V(Float32x4Equal, cmppseq)                                                   \
   V(Float32x4NotEqual, cmppsneq)                                               \
   V(Float32x4LessThan, cmppslt)                                                \
@@ -4228,6 +4229,14 @@ DEFINE_EMIT(SimdBinaryOp,
     case SimdOpInstr::kInt32x4AndNot:
       __ orps(left, right);
       __ xorps(left, right);
+      break;
+    case SimdOpInstr::kInt32x4GreaterThanOrEqual:
+      // TODO(dartbug.com/64170): Use pminsd for fewer instructions when
+      // SSE4.1 is available.
+      __ movaps(FpuTMP, right);  // FpuTMP = b
+      __ pcmpgtd(FpuTMP, left);  // FpuTMP = b > a
+      __ pcmpeqd(left, left);    // left = all ones
+      __ pxor(left, FpuTMP);     // left = ~(b > a) = a >= b
       break;
     case SimdOpInstr::kFloat32x4Scale:
       __ cvtsd2ss(left, left);
@@ -4680,6 +4689,7 @@ DEFINE_EMIT(Int32x4Shift,
   ____(Int32x4Shift)                                                           \
   SIMD_OP_SIMPLE_BINARY(CASE)                                                  \
   CASE(Int32x4AndNot)                                                          \
+  CASE(Int32x4GreaterThanOrEqual)                                              \
   CASE(Float32x4Scale)                                                         \
   CASE(Float32x4ShuffleMix)                                                    \
   CASE(Int32x4ShuffleMix)                                                      \

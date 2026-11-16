@@ -2388,6 +2388,18 @@ class SimdLowering : public ValueObject {
       case MethodRecognizer::kInt32x4NotEqual:
         Int32x4Compare(Token::kNE);
         return true;
+      case MethodRecognizer::kInt32x4GreaterThan:
+        Int32x4Compare(Token::kGT);
+        return true;
+      case MethodRecognizer::kInt32x4GreaterThanOrEqual:
+        Int32x4Compare(Token::kGTE);
+        return true;
+      case MethodRecognizer::kInt32x4LessThan:
+        Int32x4Compare(Token::kLT);
+        return true;
+      case MethodRecognizer::kInt32x4LessThanOrEqual:
+        Int32x4Compare(Token::kLTE);
+        return true;
       case MethodRecognizer::kInt32x4FromInts:
         UnboxScalar(0, kUnboxedInt32, 4);
         UnboxScalar(1, kUnboxedInt32, 4);
@@ -3533,6 +3545,10 @@ bool CallSpecializer::TryInlineRecognizedMethod(
     case MethodRecognizer::kInt32x4ShrS:
     case MethodRecognizer::kInt32x4ShrU:
     case MethodRecognizer::kInt32x4AndNot:
+    case MethodRecognizer::kInt32x4GreaterThan:
+    case MethodRecognizer::kInt32x4GreaterThanOrEqual:
+    case MethodRecognizer::kInt32x4LessThan:
+    case MethodRecognizer::kInt32x4LessThanOrEqual:
 #endif
       return InlineSimdOp(flow_graph, is_dynamic_call, call, receiver, kind,
                           graph_entry, entry, last, result);

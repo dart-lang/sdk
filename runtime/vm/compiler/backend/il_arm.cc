@@ -4738,6 +4738,12 @@ DEFINE_EMIT(Simd32x4BinaryOp,
     case SimdOpInstr::kInt32x4AndNot:
       __ vbicq(result, left, right);
       break;
+    case SimdOpInstr::kInt32x4GreaterThan:
+      __ vcgtqi(compiler::kFourBytes, result, left, right);
+      break;
+    case SimdOpInstr::kInt32x4GreaterThanOrEqual:
+      __ vcgeqi(compiler::kFourBytes, result, left, right);
+      break;
     default:
       UNREACHABLE();
   }
@@ -5285,6 +5291,8 @@ DEFINE_EMIT(Int32x4Shift,
   CASE(Int32x4Equal)                                                           \
   CASE(Int32x4NotEqual)                                                        \
   CASE(Int32x4AndNot)                                                          \
+  CASE(Int32x4GreaterThan)                                                     \
+  CASE(Int32x4GreaterThanOrEqual)                                              \
   ____(Simd32x4BinaryOp)                                                       \
   CASE(Float64x2Add)                                                           \
   CASE(Float64x2Sub)                                                           \
