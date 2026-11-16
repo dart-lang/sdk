@@ -1781,11 +1781,19 @@ bool Instruction::IsDominatedBy(Instruction* dom) {
   BlockEntryInstr* block = GetBlock();
   BlockEntryInstr* dom_block = dom->GetBlock();
 
-  if (dom->IsPhi()) {
-    dom = dom_block;
-  }
-
   if (block == dom_block) {
+    // Phis and Parameters reside in initial definitions and are not properly
+    // linked with the rest of the block so the loop below will not handle
+    // them correctly. Constants almost always reside in initial definitions as
+    // well, but some legacy optimization passes can still create constants
+    // inside block bodies, so we do an additional check, to pass it
+    // a constant must either be the first instruction in the block or
+    // reside in initial definitions.
+    if (dom->IsPhi() || dom->IsParameter() ||
+        (dom->IsConstant() && dom->previous() == dom_block)) {
+      return true;
+    }
+
     if ((block == dom) || (this == block->last_instruction())) {
       return true;
     }
@@ -3263,13 +3271,17 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
         }
       }
 
-      // If we find a single initializing store then it *must* by construction
-      // dominate the load.
+      // A single initializing store is not guaranteed to dominate the load
+      // due to issues in CFE lowerings (see dartbug.com/64923). Paths which
+      // bypass the store are unreachable at runtime, so it is enough to check
+      // that the stored value dominates the load.
       if (initializing_store != nullptr) {
         ASSERT(initializing_store->is_initialization() ||
                orig_instance->IsAllocateContext());
-        ASSERT(IsDominatedBy(initializing_store));
-        return initializing_store->value()->definition();
+        Definition* value = initializing_store->value()->definition();
+        if (IsDominatedBy(value)) {
+          return value;
+        }
       }
     }
   }

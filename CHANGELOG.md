@@ -1,3 +1,13 @@
+## 3.14.1
+
+This is a patch release that:
+
+- Fixes an AOT compiler crash (`linearscan.cc: unreachable code`) when a
+  `final` local assigned in a pattern `switch` is captured by a closure.
+  (issue [#64917])
+
+[#64917]: https://github.com/dart-lang/sdk/issues/64917
+
 ## 3.14.0
 
 **Released on:** Unreleased
