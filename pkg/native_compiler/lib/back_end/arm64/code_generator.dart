@@ -2110,7 +2110,18 @@ final class Arm64CodeGenerator extends CodeGenerator {
       _asm.fieldAddress(resultReg, vmOffsets.Closure_length_and_flags_offset),
     );
     _asm.str(ZR, _asm.fieldAddress(resultReg, vmOffsets.Closure_hash_offset));
-    // TODO: initialize delayed type arguments.
+    if (closureLayout.hasDelayedTypeArgs) {
+      _asm.loadConstant(fieldReg, ConstantValue(UnsetTypeArgumentsConstant()));
+      _asm.str(
+        fieldReg,
+        _asm.fieldAddress(
+          resultReg,
+          vmOffsets.Closure_elementsStartOffset +
+              closureLayout.delayedTypeArgsIndex *
+                  objectLayout.compressedWordSize,
+        ),
+      );
+    }
     _asm.bind(done);
   }
 

@@ -304,6 +304,30 @@ class TypeArgumentsConstant(final List<ast.DartType> types)
   ast.DartType getType(StaticTypeContext context) => const ast.DynamicType();
 }
 
+/// Special value of closure type arguments indicating that
+/// generic closure was not instantiated yet.
+class UnsetTypeArgumentsConstant extends ast.AuxiliaryConstant {
+  @override
+  void visitChildren(ast.Visitor v) {}
+
+  @override
+  void toTextInternal(ast_printer.AstPrinter printer) {
+    printer.write('#unset-type-args');
+  }
+
+  @override
+  String toString() => toStringInternal();
+
+  @override
+  int get hashCode => 2029;
+
+  @override
+  bool operator ==(Object other) => other is UnsetTypeArgumentsConstant;
+
+  @override
+  ast.DartType getType(StaticTypeContext context) => const ast.DynamicType();
+}
+
 /// Synthetic sentinel value which is used represent the uninitialized
 /// value of a late local variable, late or static field or
 /// a value of an optional parameter which was not passed.

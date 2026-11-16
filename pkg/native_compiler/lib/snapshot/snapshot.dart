@@ -171,6 +171,7 @@ class SnapshotSerializer {
     addBaseObject(true);
     addBaseObject(false);
     addBaseObject(SentinelConstant());
+    addBaseObject(UnsetTypeArgumentsConstant());
     addBaseObject(const ast.DynamicType());
     addBaseObject(const ast.VoidType());
     addBaseObject(const ast.NullType());
@@ -1199,18 +1200,21 @@ final class ClosureSerializationCluster extends SerializationCluster {
   void trace(SnapshotSerializer serializer, Object object) {
     final closure = object as ast.Constant;
     _objects.add(closure);
-    final (target, typeArgs) = switch (closure) {
-      ast.TearOffConstant() => (closure.target, SentinelConstant()),
-      ast.InstantiationConstant() => (
+    final target = switch (closure) {
+      ast.TearOffConstant() => closure.target,
+      ast.InstantiationConstant() =>
         (closure.tearOffConstant as ast.TearOffConstant).target,
-        TypeArgumentsConstant(closure.types),
-      ),
       _ => throw 'Unexpected closure ${closure.runtimeType} $closure',
     };
     final function = serializer.functionRegistry.getFunction(
       target,
       isTearOff: true,
     ) as TearOffFunction;
+    final typeArgs = function.hasFunctionTypeParameters
+        ? (closure is ast.InstantiationConstant
+              ? TypeArgumentsConstant(closure.types)
+              : UnsetTypeArgumentsConstant())
+        : null;
     _fields.add((function: function, typeArgs: typeArgs));
     serializer.push(function);
     serializer.push(typeArgs);
@@ -1253,7 +1257,7 @@ final class ClosureSerializationCluster extends SerializationCluster {
       if (hasDelayedTypeArgs) {
         serializer.writeRefId(fields.typeArgs);
       } else {
-        assert(fields.typeArgs == SentinelConstant());
+        assert(fields.typeArgs == null);
       }
     }
   }

@@ -957,11 +957,7 @@ class ClosureDeserializationCluster : public DeserializationCluster {
           ((length == 1) && UntaggedClosure::HasDelayedTypeArgumentsBit::decode(
                                 length_and_flags)));
       if (length > 0) {
-        // TODO(alexmarkov): use sentinel for uninitialized type arguments.
-        ObjectPtr type_args = d.ReadRef();
-        closure->untag()->data()[0] = type_args == Object::sentinel().ptr()
-                                          ? Object::empty_type_arguments().ptr()
-                                          : type_args;
+        closure->untag()->data()[0] = d.ReadRef();
       }
     }
   }
@@ -2395,6 +2391,7 @@ void Deserializer::Deserialize() {
   AddBaseObject(Bool::True());
   AddBaseObject(Bool::False());
   AddBaseObject(Object::sentinel());
+  AddBaseObject(Object::empty_type_arguments());
   AddBaseObject(Object::dynamic_type());
   AddBaseObject(Object::void_type());
   AddBaseObject(Type::Handle(zone(), object_store->null_type()));
