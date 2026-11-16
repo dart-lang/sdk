@@ -153,7 +153,6 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     // Sending periodic data again sends both session and analysis data.
     await manager.sendPeriodicData();
     analytics.assertEvents([
-      _ExpectedEvent.session(),
       _ExpectedEvent.contextStructure(
         eventData: {
           'immediateFileCount': 1,
@@ -169,6 +168,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
           'numberOfPackagesInWorkspace': _IsPercentiles(),
         },
       ),
+      _ExpectedEvent.session(),
     ]);
 
     // Subsequent periodic data sends do not send them again, but shutdown
@@ -176,7 +176,6 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     await manager.sendPeriodicData();
     await manager.shutdown();
     analytics.assertEvents([
-      _ExpectedEvent.session(eventData: {'duration': 0}),
       _ExpectedEvent.contextStructure(
         eventData: {
           'immediateFileCount': 1,
@@ -192,6 +191,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
           'numberOfPackagesInWorkspace': _IsPercentiles(),
         },
       ),
+      _ExpectedEvent.session(eventData: {'duration': 0}),
       _ExpectedEvent.session(eventData: {'duration': greaterThanOrEqualTo(0)}),
     ]);
   }
@@ -216,7 +216,6 @@ class AnalyticsManagerTest with ResourceProviderMixin {
 
     await manager.shutdown();
     analytics.assertEvents([
-      _ExpectedEvent.session(),
       _ExpectedEvent.contextStructure(
         eventData: {
           'immediateFileCount': 1,
@@ -232,6 +231,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
           'numberOfPackagesInWorkspace': _IsPercentiles(),
         },
       ),
+      _ExpectedEvent.session(),
     ]);
   }
 
@@ -412,12 +412,12 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     _completeAnalysis();
     await manager.shutdown();
     analytics.assertEvents([
+      _ExpectedEvent.contextStructure(),
       _ExpectedEvent.session(
         eventData: {
           'parameters': 'closingLabels,onlyAnalyzeProjectsWithOpenFiles,suggestFromUnimportedLibraries',
         },
       ),
-      _ExpectedEvent.contextStructure(),
     ]);
   }
 
@@ -512,6 +512,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     _completeAnalysis();
     await manager.shutdown();
     analytics.assertEvents([
+      _ExpectedEvent.contextStructure(),
       _ExpectedEvent.session(
         eventData: {
           'flags': arguments.join(','),
@@ -520,7 +521,6 @@ class AnalyticsManagerTest with ResourceProviderMixin {
           'duration': greaterThan(0),
         },
       ),
-      _ExpectedEvent.contextStructure(),
     ]);
   }
 
@@ -554,6 +554,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     _completeAnalysis();
     await manager.shutdown();
     analytics.assertEvents([
+      _ExpectedEvent.contextStructure(),
       _ExpectedEvent.session(
         eventData: {
           'flags': arguments.join(','),
@@ -562,7 +563,6 @@ class AnalyticsManagerTest with ResourceProviderMixin {
           'duration': greaterThan(0),
         },
       ),
-      _ExpectedEvent.contextStructure(),
     ]);
   }
 

@@ -408,6 +408,7 @@ abstract class AnalysisServer {
       unlinkedUnitStore,
       analysisPerformanceLogger,
       analysisDriverScheduler,
+      analyticsManager,
       instrumentationService,
       sessionListener,
       enableBlazeWatcher: enableBlazeWatcher,
@@ -1227,7 +1228,7 @@ abstract class AnalysisServer {
       collectContextData(collectedData, this);
       performanceLogger!.logMap(collectedData);
     }
-    if (!analyticsManager.needsAnslysisCompleteCall()) {
+    if (!analyticsManager.needsAnslysisCompleteCall) {
       return;
     }
     var packagesFileMap = <String, File?>{};
