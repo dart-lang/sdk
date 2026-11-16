@@ -952,6 +952,8 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
 
     final externalCallCpIndex = cp.addExternalCall();
+    // As in the compiler, the call is at the end of the function.
+    _recordSourcePosition(function.fileEndOffset);
     asm.emitExternalCall(externalCallCpIndex);
   }
 
