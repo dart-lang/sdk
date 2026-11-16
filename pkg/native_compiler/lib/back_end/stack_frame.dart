@@ -34,11 +34,11 @@ abstract base class StackFrame {
     return _maxArgumentsStackSlots;
   }
 
-  /// Size of the spill slot with given [registerClass].
-  int spillSlotSizeInWords(RegisterClass registerClass, bool isSimdValue);
+  /// Size of the spill slot with given [valueClass].
+  int spillSlotSizeInWords(ValueClass valueClass);
 
-  /// Alignment of the spill slot with given [registerClass].
-  int spillSlotAlignmentInWords(RegisterClass registerClass, bool isSimdValue);
+  /// Alignment of the spill slot with given [valueClass].
+  int spillSlotAlignmentInWords(ValueClass valueClass);
 
   /// Number of arguments stack slots required for [instr].
   int argumentsStackSlots(Instruction instr);
@@ -74,12 +74,12 @@ abstract base class StackFrame {
   void recordReservedLocations(Safepoint safepoint);
 
   /// Allocate a new spill slot.
-  SpillSlot allocateSpillSlot(RegisterClass registerClass, bool isSimdValue) {
+  SpillSlot allocateSpillSlot(ValueClass valueClass) {
     assert(!_finalized);
-    final size = spillSlotSizeInWords(registerClass, isSimdValue);
-    final alignment = spillSlotAlignmentInWords(registerClass, isSimdValue);
+    final size = spillSlotSizeInWords(valueClass);
+    final alignment = spillSlotAlignmentInWords(valueClass);
     _usedSpillSlots = roundUp(_usedSpillSlots, alignment);
-    final slot = isSimdValue
+    final slot = valueClass == .simd128
         ? SimdSpillSlot(_usedSpillSlots)
         : SpillSlot(_usedSpillSlots);
     _usedSpillSlots += size;

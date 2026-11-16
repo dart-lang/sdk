@@ -74,14 +74,16 @@ final class Arm64StackFrame extends StackFrame {
   }
 
   @override
-  int spillSlotSizeInWords(RegisterClass registerClass, bool isSimdValue) =>
-      isSimdValue ? 2 : 1;
+  int spillSlotSizeInWords(ValueClass valueClass) => switch (valueClass) {
+    .object || .int64 || .float64 => 1,
+    .simd128 => 2,
+  };
 
   @override
-  int spillSlotAlignmentInWords(
-    RegisterClass registerClass,
-    bool isSimdValue,
-  ) => isSimdValue ? 2 : 1;
+  int spillSlotAlignmentInWords(ValueClass valueClass) => switch (valueClass) {
+    .object || .int64 || .float64 => 1,
+    .simd128 => 2,
+  };
 
   @override
   int argumentsStackSlots(Instruction instr) {

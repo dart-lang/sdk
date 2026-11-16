@@ -15,7 +15,6 @@ import 'package:cfg/ir/instructions.dart';
 import 'package:cfg/ir/ir_to_text.dart';
 import 'package:cfg/ir/liveness_analysis.dart';
 import 'package:cfg/ir/local_variable.dart';
-import 'package:cfg/ir/types.dart';
 import 'package:cfg/passes/pass.dart';
 import 'package:native_compiler/utils/interval_list.dart';
 
@@ -86,12 +85,6 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
 
   LinearScanRegisterAllocator(super.backEndState, this.constraints);
 
-  RegisterClass registerClass(Definition instr) =>
-      (instr.type is DoubleType || instr.type is SimdType) &&
-          backEndState.unboxing.hasUnboxedResult(instr)
-      ? RegisterClass.fpu
-      : RegisterClass.cpu;
-
   int instructionPos(Instruction instr) => _instructionPos[instr.id];
   int blockStartPos(Block block) => instructionPos(block);
   int blockEndPos(Block block) => instructionPos(block.lastInstruction);
@@ -103,28 +96,18 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
 
   LiveRange liveRangeFor(Definition instr) {
     assert(hasLiveRange(instr));
-    final result = _liveRanges[instr.id];
-    if (result != null) {
-      return result;
-    }
-    final isUnboxed = backEndState.unboxing.hasUnboxedResult(instr);
-    final isSimdValue = isUnboxed && instr.type is SimdType;
-    return _liveRanges[instr.id] = LiveRange(
-      registerClass(instr),
-      isObjectPointer: !isUnboxed,
-      isSimdValue: isSimdValue,
+    return _liveRanges[instr.id] ??= LiveRange(
+      valueClass(instr, backEndState.unboxing),
     );
   }
 
   LiveRange regLiveRange(PhysicalRegister r) => (r is Register)
       ? (_cpuRegLiveRanges[r.index] ??= LiveRange(
-          RegisterClass.cpu,
-          isObjectPointer: false,
+          RegisterClass.cpu.rawValueClass,
           isPhysical: true,
         ))
       : (_fpuRegLiveRanges[r.index] ??= LiveRange(
-          RegisterClass.fpu,
-          isObjectPointer: false,
+          RegisterClass.fpu.rawValueClass,
           isPhysical: true,
         ));
 
@@ -278,7 +261,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
               if (inputConstr != null) {
                 _processConstantInput(
                   instr,
-                  input.value,
+                  input,
                   pos,
                   inputConstr,
                   operandId,
@@ -373,6 +356,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
     OperandId operandId,
     Safepoint? safepoint,
   ) {
+    assert(constr.registerClass == liveRange.registerClass);
     if (constr is PhysicalRegister) {
       regLiveRange(constr).addInterval(pos, pos + 1);
       final loc = liveRange.addUse(pos - 1, constr);
@@ -391,23 +375,25 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
   // TODO: allocate constants to registers.
   void _processConstantInput(
     Instruction instr,
-    ConstantValue value,
+    Constant input,
     int pos,
     Constraint constr,
     OperandId operandId,
     Safepoint? safepoint,
   ) {
+    final value = input.value;
+    final constValueClass = valueClass(input, backEndState.unboxing);
+    assert(constr.registerClass == constValueClass.registerClass);
     if (constr is PhysicalRegister) {
       _insertMoveBefore(instr, ParallelMoveStage.input, null, constr, value);
       regLiveRange(constr).addInterval(pos, pos + 1);
       _operandLocations[operandId] = constr;
-      safepoint?.addLiveLocation(constr, isObjectPointer: !value.isUnboxed);
-    } else {
-      final liveRange = LiveRange(
-        constr.registerClass,
-        isObjectPointer: !value.isUnboxed,
-        // TODO: SIMD constants
+      safepoint?.addLiveLocation(
+        constr,
+        isObjectPointer: constValueClass == .object,
       );
+    } else {
+      final liveRange = LiveRange(constValueClass);
       _liveRanges.add(liveRange);
       liveRange.addInterval(pos - 1, pos);
       final loc = liveRange.addUse(pos - 1, constr);
@@ -421,7 +407,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
       regLiveRange(constr).addInterval(pos, pos + 1);
       _operandLocations[operandId] = constr;
     } else {
-      final liveRange = LiveRange(constr.registerClass, isObjectPointer: false);
+      final liveRange = LiveRange(constr.registerClass.rawValueClass);
       _liveRanges.add(liveRange);
       liveRange.addInterval(pos - 1, pos + 1);
       final loc = liveRange.addUse(pos, constr);
@@ -437,6 +423,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
     OperandId operandId,
   ) {
     assert(instr is! ControlFlowInstruction);
+    assert(constr.registerClass == liveRange.registerClass);
     if (constr is PhysicalRegister) {
       regLiveRange(constr).addInterval(pos, pos + 1);
       _operandLocations[operandId] = constr;
@@ -882,8 +869,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
     var spillSlot = range.spillSlot;
     if (spillSlot == null) {
       spillSlot = range.spillSlot = backEndState.stackFrame.allocateSpillSlot(
-        range.registerClass,
-        range.isSimdValue,
+        range.valueClass,
       );
       for (LiveRange? r = range; r != null; r = r.splitNext) {
         recordLiveRangeAtSafepoints(r, spillSlot);
@@ -1173,10 +1159,8 @@ class UsePosition {
 class LiveRange {
   static const int maxUseIndex = 0xffffffff;
 
-  static const int registerClassMask = 1 << 0;
-  static const int isObjectPointerFlag = 1 << 1;
+  static const int valueClassMask = 0x3;
   static const int isPhysicalFlag = 1 << 2;
-  static const int isSimdValueFlag = 1 << 3;
 
   int _flags;
 
@@ -1210,31 +1194,20 @@ class LiveRange {
   // uses.length - index in [uses].
   int currentUse = 1;
 
-  LiveRange(
-    RegisterClass registerClass, {
-    required bool isObjectPointer,
-    bool isPhysical = false,
-    bool isSimdValue = false,
-  }) : assert((registerClass.index & registerClassMask) == registerClass.index),
-       assert(registerClass == .cpu || !isObjectPointer),
-       _flags =
-           registerClass.index |
-           (isObjectPointer ? isObjectPointerFlag : 0) |
-           (isPhysical ? isPhysicalFlag : 0) |
-           (isSimdValue ? isSimdValueFlag : 0);
+  LiveRange(ValueClass valueClass, {bool isPhysical = false})
+    : assert((valueClass.index & valueClassMask) == valueClass.index),
+      _flags = valueClass.index | (isPhysical ? isPhysicalFlag : 0);
 
-  RegisterClass get registerClass =>
-      RegisterClass.values[_flags & registerClassMask];
+  ValueClass get valueClass => ValueClass.values[_flags & valueClassMask];
+
+  RegisterClass get registerClass => valueClass.registerClass;
 
   // Whether this live range is an object pointer and should be scanned by GC.
-  bool get isObjectPointer => (_flags & isObjectPointerFlag) != 0;
+  bool get isObjectPointer => valueClass == .object;
 
   // Whether this live range represents a blocked physical register
   // or an allocatable/splittable/spillable live range.
   bool get isPhysical => (_flags & isPhysicalFlag) != 0;
-
-  // Whether this live range is an unboxed SIMD value.
-  bool get isSimdValue => (_flags & isSimdValueFlag) != 0;
 
   /// Add interval [start, end) to this live range.
   ///
@@ -1298,11 +1271,10 @@ class LiveRange {
   void tryMerge(LiveRange other) {
     assert(mergedTo == null && other.mergedTo == null);
     assert(!intervals.isEmpty && !other.intervals.isEmpty);
+    assert(!isPhysical && !other.isPhysical);
     if (this == other ||
-        this.intersects(other) ||
-        this.registerClass != other.registerClass ||
-        this.isObjectPointer != other.isObjectPointer ||
-        this.isSimdValue != other.isSimdValue) {
+        this.valueClass != other.valueClass ||
+        this.intersects(other)) {
       return;
     }
     intervals.merge(other.intervals);
@@ -1344,11 +1316,7 @@ class LiveRange {
     assert(!isPhysical);
     assert(mergedTo == null);
     assert(splitNext == null || end <= splitNext!.start);
-    final sibling = LiveRange(
-      registerClass,
-      isObjectPointer: isObjectPointer,
-      isSimdValue: isSimdValue,
-    );
+    final sibling = LiveRange(valueClass);
     sibling.splitFrom = splitParent;
     sibling.splitNext = splitNext;
     sibling.intervals = intervals.splitAt(pos);

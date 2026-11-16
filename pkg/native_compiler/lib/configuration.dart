@@ -82,9 +82,10 @@ abstract base class Configuration(
     CodeConsumer consumeGeneratedCode,
   );
 
-  Constraints createConstraints(StackFrame stackFrame) => switch (targetCPU) {
-    TargetCPU.arm64 => Arm64Constraints(stackFrame),
-  };
+  Constraints createConstraints(Unboxing unboxing, StackFrame stackFrame) =>
+      switch (targetCPU) {
+        TargetCPU.arm64 => Arm64Constraints(unboxing, stackFrame),
+      };
 
   StackFrame createStackFrame(CFunction function) => switch (targetCPU) {
     TargetCPU.arm64 => Arm64StackFrame(function),
@@ -173,7 +174,7 @@ final class DevelopmentCompilerConfiguration extends Configuration {
     backEndState.unboxing = unboxing;
     backEndState.stackFrame = stackFrame;
     backEndState.consumeGeneratedCode = consumeGeneratedCode;
-    final constraints = createConstraints(stackFrame);
+    final constraints = createConstraints(unboxing, stackFrame);
 
     void Function(Pass)? afterPass;
     if (printFlowGraphFor(function)) {

@@ -36,7 +36,7 @@ final class Arm64Constraints extends Constraints {
 
   List<Constraint?>? _parameters;
 
-  Arm64Constraints(this.stackFrame);
+  Arm64Constraints(super.unboxing, this.stackFrame);
 
   @override
   int getNumberOfRegisters() => numberOfRegisters;
@@ -99,13 +99,13 @@ final class Arm64Constraints extends Constraints {
       } else {
         paramConstraint = stackFrame.getParameterSlot(
           paramIndex,
-          registerClass(instr),
+          registerClass(instr, unboxing),
         );
       }
     } else {
       paramConstraint = stackFrame.getParameterSlot(
         paramIndex,
-        registerClass(instr),
+        registerClass(instr, unboxing),
       );
     }
     final parameters = (_parameters ??= List<Constraint?>.filled(

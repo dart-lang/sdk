@@ -15,7 +15,27 @@ enum RegisterClass {
   cpu,
 
   /// Floating-point / SIMD registers.
-  fpu,
+  fpu;
+
+  /// Value class of a "raw" value in this kind of registers.
+  /// Used by temporaries or when blocking a physical register.
+  ValueClass get rawValueClass => switch (this) {
+    cpu => .int64,
+    fpu => .float64,
+  };
+}
+
+/// Class of the value which affects how it is allocated and moved.
+enum ValueClass {
+  object,
+  int64,
+  float64,
+  simd128;
+
+  RegisterClass get registerClass => switch (this) {
+    object || int64 => .cpu,
+    float64 || simd128 => .fpu,
+  };
 }
 
 /// Register allocation constraint for one input/output/temporary
