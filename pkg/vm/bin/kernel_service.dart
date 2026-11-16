@@ -998,11 +998,20 @@ Future _processLoadRequest(request) async {
         if (generator == null) {
           throw 'Cannot generate bytecode as dynamic modules are disabled.';
         }
+        final component = compilerResult.component!;
+        final libraries = component.libraries
+            .where((lib) => !loadedLibraries.contains(lib))
+            .toList();
+        if (nativeAssetsComponent != null) {
+          // As when serializing kernel, include the native assets library,
+          // which the VM looks up by its URI.
+          final nativeAssetsLibrary = nativeAssetsComponent.libraries.single;
+          component.libraries.add(nativeAssetsLibrary..parent = component);
+          libraries.add(nativeAssetsLibrary);
+        }
         bytes = generator(
-          compilerResult.component!,
-          compilerResult.component!.libraries
-              .where((lib) => !loadedLibraries.contains(lib))
-              .toList(),
+          component,
+          libraries,
           compilerResult.coreTypes!,
           compilerResult.classHierarchy!,
           compiler.options.target!,

@@ -952,6 +952,8 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
 
     final externalCallCpIndex = cp.addExternalCall();
+    // As in the compiler, the call is at the end of the function.
+    _recordSourcePosition(function.fileEndOffset);
     asm.emitExternalCall(externalCallCpIndex);
   }
 
@@ -1783,7 +1785,12 @@ class BytecodeGenerator extends RecursiveVisitor {
       if (negated) {
         value = !value;
       }
-      asm.emitSourcePosition();
+      // As in the compiler, a jump on a bool literal, which is only generated
+      // when keeping unreachable code, is not a pause point, as bool literals
+      // have no source position in kernel.
+      if (condition is! BoolLiteral) {
+        asm.emitSourcePosition();
+      }
       if (value) {
         asm.emitJumpIfTrue(dest);
       } else {
@@ -4789,7 +4796,10 @@ class BytecodeGenerator extends RecursiveVisitor {
 
       if (options.emitLocalVarInfo &&
           !asm.isUnreachable &&
-          node.cosmeticName != null) {
+          node.cosmeticName != null &&
+          // As in compiled code, synthesized variables are not visible in the
+          // debugger.
+          !node.isSynthesized) {
         _declareLocalVariable(node, maxInitializerPosition + 1);
       }
 

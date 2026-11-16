@@ -623,6 +623,7 @@ class BytecodeAssembler {
 
   @pragma('vm:prefer-inline')
   void emitExternalCall(int rd) {
+    emitSourcePositionForCall();
     _emitInstructionD(Opcode.kExternalCall, rd);
   }
 

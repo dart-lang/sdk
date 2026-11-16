@@ -2505,7 +2505,12 @@ void BytecodeReaderHelper::ReadClassDeclaration(const Class& cls) {
   }
 
   if ((flags & kHasAnnotationsFlag) != 0) {
-    ReadAnnotations(cls, cls, has_pragma);
+    // As in the kernel loader, annotations of the top-level class are those
+    // of its library.
+    const auto& declaration = Object::Handle(
+        Z, cls.IsTopLevel() ? static_cast<ObjectPtr>(cls.library())
+                            : static_cast<ObjectPtr>(cls.ptr()));
+    ReadAnnotations(cls, declaration, has_pragma);
   }
 
   const intptr_t members_offset = reader_.ReadUInt();
@@ -2554,6 +2559,12 @@ void BytecodeReaderHelper::ReadLibraryDeclaration(const Library& library,
   const auto& script = Script::CheckedHandle(Z, ReadObject());
 
   library.SetLoadInProgress();
+
+  if (library.url() == Symbols::vm_ffi_native_assets().ptr()) {
+    // As in the kernel loader, the native assets library is looked up by
+    // its URI.
+    IG->object_store()->set_native_assets_library(library);
+  }
 
   const intptr_t num_classes = reader_.ReadUInt();
   ASSERT(num_classes > 0);
