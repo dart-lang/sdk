@@ -746,6 +746,7 @@ class Assembler : public AssemblerBase {
   void vnegs(SRegister sd, SRegister sm, Condition cond = AL);
   void vnegd(DRegister dd, DRegister dm, Condition cond = AL);
   void vnegqs(QRegister qd, QRegister qm);
+  void vnegqi(QRegister qd, QRegister qm);
   void vsqrts(SRegister sd, SRegister sm, Condition cond = AL);
   void vsqrtd(DRegister dd, DRegister dm, Condition cond = AL);
 

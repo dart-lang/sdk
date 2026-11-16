@@ -528,6 +528,13 @@ namespace dart {
   V(TypedDataLibrary, _Int32x4, <<, Int32x4Shl, 0xfc92031f)                    \
   V(TypedDataLibrary, _Int32x4, >>, Int32x4ShrS, 0xf0fc5fc4)                   \
   V(TypedDataLibrary, _Int32x4, >>>, Int32x4ShrU, 0xedd3f6c6)                  \
+  V(TypedDataLibrary, _Int32x4, greaterThan, Int32x4GreaterThan,               \
+    0xb38eff5f)                                                                \
+  V(TypedDataLibrary, _Int32x4, greaterThanOrEqual,                            \
+    Int32x4GreaterThanOrEqual, 0x6af4ba6f)                                     \
+  V(TypedDataLibrary, _Int32x4, lessThan, Int32x4LessThan, 0x3a1ac9c5)         \
+  V(TypedDataLibrary, _Int32x4, lessThanOrEqual, Int32x4LessThanOrEqual,       \
+    0x9b8cf408)                                                                \
   V(TypedDataLibrary, _Int32x4, get:x, Int32x4GetX, 0x55b951d5)                \
   V(TypedDataLibrary, _Int32x4, get:y, Int32x4GetY, 0x434aacf8)                \
   V(TypedDataLibrary, _Int32x4, get:z, Int32x4GetZ, 0x7916188e)                \

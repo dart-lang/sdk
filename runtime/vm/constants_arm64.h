@@ -1076,6 +1076,7 @@ enum SIMDTwoRegOp {
   VNEGS = SIMDTwoRegFixed | B30 | B29 | B23 | B15 | B14 | B13 | B12,
   VABSD = SIMDTwoRegFixed | B30 | B23 | B22 | B15 | B14 | B13 | B12,
   VNEGD = SIMDTwoRegFixed | B30 | B29 | B23 | B22 | B15 | B14 | B13 | B12,
+  VNEGW = SIMDTwoRegFixed | B30 | B29 | B23 | B15 | B13 | B12,
   VSQRTS = SIMDTwoRegFixed | B30 | B29 | B23 | B16 | B15 | B14 | B13 | B12,
   VSQRTD =
           SIMDTwoRegFixed | B30 | B29 | B23 | B22 | B16 | B15 | B14 | B13 | B12,

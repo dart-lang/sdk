@@ -315,7 +315,13 @@ class _ScopeBuilder extends ast.RecursiveVisitor {
 
   @override
   void visitVariableGet(ast.VariableGet node) {
-    _useVariable(node.variable);
+    final variable = node.variable;
+    _useVariable(variable);
+    if (variable.isLate) {
+      // Reading from a late variable may trigger initializer.
+      // Visit initializer as we may need to capture its initializer function.
+      variable.initializer?.accept(this);
+    }
   }
 
   @override

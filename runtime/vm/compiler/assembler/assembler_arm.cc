@@ -1449,6 +1449,11 @@ void Assembler::vnegqs(QRegister qd, QRegister qm) {
               qd, Q0, qm);
 }
 
+void Assembler::vnegqi(QRegister qd, QRegister qm) {
+  EmitSIMDqqq(B24 | B23 | B21 | B20 | B19 | B16 | B9 | B8 | B7, kSWord, qd, Q0,
+              qm);
+}
+
 void Assembler::vrecpeqs(QRegister qd, QRegister qm) {
   EmitSIMDqqq(B24 | B23 | B21 | B20 | B19 | B17 | B16 | B10 | B8, kSWord, qd,
               Q0, qm);

@@ -8886,6 +8886,18 @@ SimdOpInstr* SimdOpInstr::CreateFromCall(Zone* zone,
     case MethodRecognizer::kInt32x4BitXor:
       op = new (zone) SimdOpInstr(KindForOperator(kind), call->deopt_id());
       break;
+    case MethodRecognizer::kInt32x4LessThanOrEqual:
+      op = new (zone) SimdOpInstr(SimdOpInstr::kInt32x4GreaterThanOrEqual,
+                                  call->deopt_id());
+      op->SetInputAt(0, call->ArgumentValueAt(1)->CopyWithType(zone));
+      op->SetInputAt(1, new (zone) Value(receiver));
+      return op;
+    case MethodRecognizer::kInt32x4LessThan:
+      op = new (zone)
+          SimdOpInstr(SimdOpInstr::kInt32x4GreaterThan, call->deopt_id());
+      op->SetInputAt(0, call->ArgumentValueAt(1)->CopyWithType(zone));
+      op->SetInputAt(1, new (zone) Value(receiver));
+      return op;
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
     case MethodRecognizer::kFloat32x4GreaterThan:
       // cmppsgt does not exist, cmppsnlt gives wrong NaN result, need to flip

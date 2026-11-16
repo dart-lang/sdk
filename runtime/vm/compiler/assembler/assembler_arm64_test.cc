@@ -6008,6 +6008,41 @@ ASSEMBLER_TEST_RUN(Vnegd, test) {
       "ret\n");
 }
 
+ASSEMBLER_TEST_GENERATE(Vnegw, assembler) {
+  __ fldrq(V0, Address(R0, 0));
+  __ vnegw(V1, V0);
+  __ fstrq(V1, Address(R0, 16));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Vnegw, test) {
+  typedef void (*VnegwCode)(intptr_t) DART_UNUSED;
+  struct {
+    int32_t values[4];
+    int32_t result[4];
+  } buffer;
+  auto check = [&](const int32_t (&values)[4], const int32_t (&expected)[4]) {
+    for (intptr_t i = 0; i < 4; i++) {
+      buffer.values[i] = values[i];
+      buffer.result[i] = static_cast<int32_t>(0xAAAAAAAA);
+    }
+    EXECUTE_TEST_CODE_INTPTR_INTPTR(VnegwCode, test->entry(),
+                                    reinterpret_cast<intptr_t>(&buffer));
+    for (intptr_t i = 0; i < 4; i++) {
+      EXPECT_EQ(expected[i], buffer.result[i]);
+    }
+  };
+  check({5, -6, 7, -8}, {-5, 6, -7, 8});
+  check({0, -1, kMaxInt32, 1}, {0, 1, -kMaxInt32, -1});
+  check({kMinInt32, kMinInt32 + 1, kMaxInt32, 0},
+        {kMinInt32, kMaxInt32, -kMaxInt32, 0});
+  EXPECT_DISASSEMBLY(
+      "fldrq v0, [r0]\n"
+      "vnegw v1, v0\n"
+      "fstrq v1, [r0, #16]\n"
+      "ret\n");
+}
+
 ASSEMBLER_TEST_GENERATE(Vadds, assembler) {
   __ LoadDImmediate(V0, 0.0);
   __ LoadDImmediate(V1, 1.0);

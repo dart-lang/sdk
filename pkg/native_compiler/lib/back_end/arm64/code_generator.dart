@@ -1539,10 +1539,10 @@ final class Arm64CodeGenerator extends CodeGenerator {
         _callRuntime(RuntimeEntry.ReThrow, 3);
         _asm.breakpoint();
         break;
-      default:
-        _asm.unimplemented(
-          'Unimplemented: code generation for Throw with ${instr.kind}',
-        );
+      case .lateLocalNotInitialized:
+      case .lateLocalAlreadyInitialized:
+      case .lateLocalAssignedDuringInitialization:
+        throw 'Unexpected Throw ${instr.kind} - should be lowered.';
     }
   }
 

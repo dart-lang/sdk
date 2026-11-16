@@ -1023,7 +1023,7 @@ class _Cookie implements Cookie {
   String _value;
   DateTime? expires;
   int? maxAge;
-  String? domain;
+  String? _domain;
   String? _path;
   bool httpOnly = false;
   bool secure = false;
@@ -1036,6 +1036,13 @@ class _Cookie implements Cookie {
 
   String get name => _name;
   String get value => _value;
+
+  String? get domain => _domain;
+
+  set domain(String? newDomain) {
+    _validateDomain(newDomain);
+    _domain = newDomain;
+  }
 
   String? get path => _path;
 
@@ -1356,6 +1363,37 @@ class _Cookie implements Cookie {
         "Invalid character in cookie path, code unit: '${path.codeUnitAt(errorAt)}'",
         path,
         errorAt,
+      );
+    }
+  }
+
+  static void _validateDomain(String? domain) {
+    if (domain == null) return;
+    // domain-value = <subdomain>, as defined in RFC 1034 section 3.5 and
+    // enhanced by RFC 1123 section 2.1, so only ASCII letters, digits, '-'
+    // and '.' can occur. A leading '.' is ignored (RFC 6265 section 5.2.3)
+    // and the domain must not end with a '.'.
+    for (int i = domain.startsWith('.') ? 1 : 0; i < domain.length; i++) {
+      int codeUnit = domain.codeUnitAt(i);
+      bool isValid =
+          (codeUnit >= _CharCode.LETTER_a && codeUnit <= _CharCode.LETTER_z) ||
+          (codeUnit >= _CharCode.LETTER_A && codeUnit <= _CharCode.LETTER_Z) ||
+          (codeUnit >= _CharCode.ZERO && codeUnit <= _CharCode.NINE) ||
+          codeUnit == _CharCode.MINUS ||
+          codeUnit == _CharCode.DOT;
+      if (!isValid) {
+        throw FormatException(
+          "Invalid character in cookie domain, code unit: '$codeUnit'",
+          domain,
+          i,
+        );
+      }
+    }
+    if (domain.endsWith('.')) {
+      throw FormatException(
+        "Cookie domain must not end with '.'",
+        domain,
+        domain.length - 1,
       );
     }
   }

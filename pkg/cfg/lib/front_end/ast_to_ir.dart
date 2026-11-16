@@ -942,7 +942,10 @@ class AstToIr extends ast.RecursiveVisitor {
   void _readVariable(ast.Variable v) {
     if (_isCaptured(v)) {
       builder.push(localVarIndexer.contextDef(scopes.getVariableContext(v)));
-      builder.addLoadInstanceField(localVarIndexer.contextField(v));
+      builder.addLoadInstanceField(
+        localVarIndexer.contextField(v),
+        type: v.isLate ? const LateValueType() : null,
+      );
     } else {
       builder.addLoadLocal(localVarIndexer.variableForDeclaration(v));
     }
