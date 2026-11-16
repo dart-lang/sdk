@@ -1,0 +1,25 @@
+# The initial version of this list was compiled by Gemini, checking itsallwidgets and
+# most starred GH repos for those that had been modified relatively recently/used
+# modern SDK versions, had no analysis errors after running `pub get` and did not
+# pin non-current Flutter SDK versions.
+
+# Official Flutter apps and samples
+https://github.com/flutter/devtools@b5d49e4efde5657fca4aa107553d361350b70089
+https://github.com/flutter/samples@c6e58ab16342017bafed959d45a03e5180b21ed6
+https://github.com/flutter/genui@27f5846441693fba6da224e3770453f269a7121c
+https://github.com/flutter/games@86079a3992cbc9264a0304298fd159636711631b
+
+# Pure Dart
+https://github.com/dart-lang/pub-dev@ab2b1cff099501a544a2bb112af5b4d16b210cf3
+https://github.com/dart-lang/dart_style@ca3e7b68aebebca4e796d061973a8b6741f6b071
+
+# Community Flutter apps and frameworks
+https://github.com/kevmoo/slide_puzzle@3b45a7cd5982deea15c75e0693d34aa4f8aadb62
+https://github.com/flame-engine/flame@ed5c6ab13eea369081f37c0e05cddc9c5c05416b
+https://github.com/rrousselGit/riverpod@7c7a20b92819ebe8844ba183c415e00c4d574c2d
+https://github.com/ImranR98/Obtainium@35c3e7fea4f341a716eca4bb3fc625319ce965ab
+https://github.com/wanghongenpin/proxypin@d1cd8955eb6ca6fbc212d7bee4cbba0b51c32434
+https://github.com/TomBursch/kitchenowl@14d0cf34b2cf5c3acd8f16a1d03e1de77ebc0cac
+https://github.com/openfoodfacts/smooth-app@3e87ab45edf62bc7575a20b952b06adf93899688
+https://github.com/gokadzev/Musify@52bd36828763b2d2be6e404b1ad3e867b22fcea7
+https://github.com/X-Wei/flutter_catalog@194564165ff45a1f56c922f859466a34d71d26c5
