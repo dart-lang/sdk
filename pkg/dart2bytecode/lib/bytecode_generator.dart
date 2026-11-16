@@ -4796,7 +4796,10 @@ class BytecodeGenerator extends RecursiveVisitor {
 
       if (options.emitLocalVarInfo &&
           !asm.isUnreachable &&
-          node.cosmeticName != null) {
+          node.cosmeticName != null &&
+          // As in compiled code, synthesized variables are not visible in the
+          // debugger.
+          !node.isSynthesized) {
         _declareLocalVariable(node, maxInitializerPosition + 1);
       }
 
