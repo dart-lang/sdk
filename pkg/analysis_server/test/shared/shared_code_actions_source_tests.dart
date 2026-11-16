@@ -6,12 +6,16 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analysis_server/src/lsp/extensions/code_action.dart';
+import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 
 import '../lsp/code_actions_mixin.dart';
 import '../lsp/request_helpers_mixin.dart';
 import '../lsp/server_abstract.dart';
 import '../tool/lsp_spec/matchers.dart';
+import '../utils/test_code_extensions.dart';
 import 'shared_test_interface.dart';
 
 /// Shared tests used by both LSP + Legacy server tests and/or integration.
@@ -388,5 +392,43 @@ mixin SharedSourceCodeActionsTests
     );
     expect(await ofKind(CodeActionKind('source.foo')), isEmpty);
     expect(await ofKind(CodeActionKind.Refactor), isEmpty);
+  }
+
+  /// Source actions should come last in case editors show them in the main
+  /// CodeActions list.
+  ///
+  /// https://github.com/dart-lang/sdk/issues/64939
+  Future<void> test_sortedLast() async {
+    failTestOnErrorDiagnostic = false;
+
+    // Include fixes so we can ensure we appear after them.
+    setSupportedCodeActionKinds([
+      CodeActionKind.Source,
+      CodeActionKind.QuickFix,
+    ]);
+    registerBuiltInFixGenerators();
+
+    var code = TestCode.parseNormalized('String x = 1^;');
+    createFile(testFilePath, code.code);
+    await initializeServer();
+
+    var actions = await getCodeActions(
+      testFileUri,
+      position: code.position.position,
+    );
+
+    var titles = actions.map((action) => action.title).toList();
+
+    expect(
+      titles,
+      containsAllInOrder([
+        // Fixes
+        'Change \'String\' to \'int\' type annotation',
+        'Add cast',
+        // Source
+        'Sort Members',
+        'Organize Imports',
+      ]),
+    );
   }
 }
