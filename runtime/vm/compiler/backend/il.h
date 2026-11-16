@@ -784,7 +784,7 @@ class Cids : public ZoneObject {
 
   bool is_empty() const { return cid_ranges_.is_empty(); }
 
-  void Sort(int compare(CidRange* const* a, CidRange* const* b)) {
+  void Sort(bool compare(CidRange* const& a, CidRange* const& b)) {
     cid_ranges_.Sort(compare);
   }
 

@@ -596,9 +596,7 @@ void ProgramVisitor::NormalizeAndDedupCompressedStackMaps(Thread* thread) {
       // the most often used CSMs will have the lowest offsets, which means
       // they will be smaller when LEB128 encoded.
       collected_entries_.Sort(
-          [](StackMapEntry* const* e1, StackMapEntry* const* e2) {
-            return static_cast<int>((*e2)->UsageCount() - (*e1)->UsageCount());
-          });
+          [](auto& a, auto& b) { return a->UsageCount() > b->UsageCount(); });
       MallocWriteStream stream(128);
       // Encode the entries and record their offset in the payload. Sorting the
       // entries may have changed their indices, so update those as well.

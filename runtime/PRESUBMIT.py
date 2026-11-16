@@ -16,9 +16,12 @@ USE_PYTHON3 = True
 # bit_cast and bit_copy.
 # pthread_detach (and therefore std::thread::detach) have a bug that can
 # result in crashes. https://sourceware.org/bugzilla/show_bug.cgi?id=19951
+# qsort is not guaranteed to be a stable sort, and unstable sorting can cause
+# non-reproducible builds.
 BANNED_FUNCTIONS = [
     ['\\bmemcpy\\(', 'memcpy'],
     ['\\bpthread_detach\\(', 'pthread_detach'],
+    ['\\bqsort\\(', 'qsort'],
 ]
 
 

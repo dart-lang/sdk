@@ -190,11 +190,11 @@ bool SelectorRow::Finalize() {
   }
 
   struct IntervalSorter {
-    static int Compare(const Interval* a, const Interval* b) {
-      if (a->begin() != b->begin()) {
-        return a->begin() - b->begin();
+    static bool Compare(const Interval& a, const Interval& b) {
+      if (a.begin() != b.begin()) {
+        return a.begin() < b.begin();
       }
-      return b->length() - a->length();
+      return b.length() < a.length();
     }
   };
 
@@ -242,10 +242,10 @@ void SelectorRow::FillTable(ClassTable* class_table, const Array& entries) {
 
   // Sort by depth.
   struct IntervalSorter {
-    static int Compare(const CidInterval* a, const CidInterval* b) {
-      ASSERT(a == b || a->depth() != b->depth() ||
-             !a->range().Overlap(b->range()));
-      return a->depth() - b->depth();
+    static bool Compare(const CidInterval& a, const CidInterval& b) {
+      ASSERT(&a == &b || a.depth() != b.depth() ||
+             !a.range().Overlap(b.range()));
+      return a.depth() < b.depth();
     }
   };
   class_ranges_.Sort(IntervalSorter::Compare);
@@ -622,8 +622,8 @@ void DispatchTableGenerator::ComputeSelectorOffsets() {
 
   // Sort the table rows according to popularity, descending.
   struct PopularitySorter {
-    static int Compare(SelectorRow* const* a, SelectorRow* const* b) {
-      return (*b)->CallCount() - (*a)->CallCount();
+    static bool Compare(SelectorRow* const& a, SelectorRow* const& b) {
+      return a->CallCount() > b->CallCount();
     }
   };
   table_rows_.Sort(PopularitySorter::Compare);
@@ -636,9 +636,9 @@ void DispatchTableGenerator::ComputeSelectorOffsets() {
 
   // Sort the table rows according to popularity / size, descending.
   struct PopularitySizeRatioSorter {
-    static int Compare(SelectorRow* const* a, SelectorRow* const* b) {
-      return (*b)->CallCount() * (*a)->total_size() -
-             (*a)->CallCount() * (*b)->total_size();
+    static bool Compare(SelectorRow* const& a, SelectorRow* const& b) {
+      return a->CallCount() * b->total_size() >
+             b->CallCount() * a->total_size();
     }
   };
   table_rows_.Sort(PopularitySizeRatioSorter::Compare);
@@ -651,8 +651,8 @@ void DispatchTableGenerator::ComputeSelectorOffsets() {
 
   // Sort the table rows according to size, descending.
   struct SizeSorter {
-    static int Compare(SelectorRow* const* a, SelectorRow* const* b) {
-      return (*b)->total_size() - (*a)->total_size();
+    static bool Compare(SelectorRow* const& a, SelectorRow* const& b) {
+      return a->total_size() > b->total_size();
     }
   };
   table_rows_.Sort(SizeSorter::Compare);

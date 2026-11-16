@@ -6207,8 +6207,8 @@ void SwitchHelper::PrepareForOptimizedSwitch() {
 
   // Sort expressions by their integer value.
   sorted_expressions_.Sort(
-      [](SwitchExpression* const* a, SwitchExpression* const* b) {
-        return (*a)->integer().CompareWith((*b)->integer());
+      [](SwitchExpression* const& a, SwitchExpression* const& b) {
+        return a->integer().CompareWith(b->integer()) < 0;
       });
 
   // Check that there are no duplicate case expressions.

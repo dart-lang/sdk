@@ -1520,10 +1520,10 @@ class MachOSymbolTable : public MachOCommand {
       return base + section_offset_or_value;
     }
 
-    static int Compare(const Symbol* a, const Symbol* b) {
-      ASSERT(a != nullptr && a->name != nullptr);
-      ASSERT(b != nullptr && b->name != nullptr);
-      return strcmp(a->name, b->name);
+    static bool Compare(const Symbol& a, const Symbol& b) {
+      ASSERT(a.name != nullptr);
+      ASSERT(b.name != nullptr);
+      return strcmp(a.name, b.name) < 0;
     }
 
     // The index of the name in the symbol table's string table.
@@ -3110,16 +3110,10 @@ void MachOHeader::FinalizeDwarfSections() {
   }
 }
 
-static int SortCommand(MachOCommand* const* a, MachOCommand* const* b) {
-  ASSERT((*a)->order() != kNoOrder);
-  ASSERT((*b)->order() != kNoOrder);
-  if ((*a)->order() < (*b)->order()) {
-    return -1;
-  } else if ((*a)->order() > (*b)->order()) {
-    return 1;
-  } else {
-    return 0;
-  }
+static bool SortCommand(MachOCommand* const& a, MachOCommand* const& b) {
+  ASSERT(a->order() != kNoOrder);
+  ASSERT(b->order() != kNoOrder);
+  return a->order() < b->order();
 }
 
 void MachOHeader::FinalizeCommands() {

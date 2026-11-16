@@ -263,13 +263,7 @@ void HierarchyInfo::BuildRangesFor(ClassTable* table,
   if (cids.is_empty()) return;
 
   // Sort all collected cids.
-  intptr_t* cids_array = cids.data();
-
-  qsort(cids_array, cids.length(), sizeof(intptr_t),
-        [](const void* a, const void* b) {
-          return static_cast<int>(*static_cast<const intptr_t*>(a) -
-                                  *static_cast<const intptr_t*>(b));
-        });
+  cids.Sort([](auto& a, auto& b) { return a < b; });
 
   // Build ranges of all the cids.
   CidCheckerForRanges checker(thread(), table, dst_klass, include_abstract,
@@ -382,9 +376,7 @@ class GuaranteedBaseClassComputeHelper final : public SubtypeVisitor {
     for (; !cls.IsNull(); cls = cls.SuperClass()) {
       cids.Add(cls.id());
     }
-    cids.Sort([](const intptr_t* a, const intptr_t* b) {
-      return static_cast<int>(*a) - static_cast<int>(*b);
-    });
+    cids.Sort([](auto& a, auto& b) { return a < b; });
     for (intptr_t cid : cids) {
       if (!ranges->is_empty() && ranges->Last().cid_end + 1 == cid) {
         ranges->Last().cid_end = cid;
@@ -782,21 +774,19 @@ bool Value::Equals(const Value& other) const {
   return definition() == other.definition();
 }
 
-static int OrderById(CidRange* const* a, CidRange* const* b) {
-  // Negative if 'a' should sort before 'b'.
-  ASSERT((*a)->IsSingleCid());
-  ASSERT((*b)->IsSingleCid());
-  return (*a)->cid_start - (*b)->cid_start;
+static bool OrderById(CidRange* const& a, CidRange* const& b) {
+  ASSERT(a->IsSingleCid());
+  ASSERT(b->IsSingleCid());
+  return a->cid_start < b->cid_start;
 }
 
-static int OrderByFrequencyThenId(CidRange* const* a, CidRange* const* b) {
-  const TargetInfo* target_info_a = static_cast<const TargetInfo*>(*a);
-  const TargetInfo* target_info_b = static_cast<const TargetInfo*>(*b);
-  // Negative if 'a' should sort before 'b'.
-  if (target_info_b->count != target_info_a->count) {
-    return (target_info_b->count - target_info_a->count);
+static bool OrderByFrequencyThenId(CidRange* const& a, CidRange* const& b) {
+  const TargetInfo* target_info_a = static_cast<const TargetInfo*>(a);
+  const TargetInfo* target_info_b = static_cast<const TargetInfo*>(b);
+  if (target_info_a->count != target_info_b->count) {
+    return (target_info_a->count > target_info_b->count);
   } else {
-    return (*a)->cid_start - (*b)->cid_start;
+    return a->cid_start < b->cid_start;
   }
 }
 

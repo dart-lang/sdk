@@ -59,7 +59,7 @@ class ObjectSet : public ZoneObject {
   }
 
   void SortRegions() {
-    regions_.Sort(CompareRegions);
+    regions_.Sort([](auto& a, auto& b) { return a->start() < b->start(); });
     sorted_ = true;
   }
 
@@ -82,19 +82,6 @@ class ObjectSet : public ZoneObject {
   }
 
  private:
-  static int CompareRegions(ObjectSetRegion* const* a,
-                            ObjectSetRegion* const* b) {
-    const uword a_start = (*a)->start();
-    const uword b_start = (*b)->start();
-    if (a_start < b_start) {
-      return -1;
-    } else if (a_start == b_start) {
-      return 0;
-    } else {
-      return 1;
-    }
-  }
-
   bool FindRegion(uword addr, ObjectSetRegion** region) const {
     ASSERT(sorted_);
     intptr_t lo = 0;

@@ -104,10 +104,6 @@ void InlineExitCollector::Union(const InlineExitCollector* other) {
   exits_.AddArray(other->exits_);
 }
 
-int InlineExitCollector::LowestBlockIdFirst(const Data* a, const Data* b) {
-  return (a->exit_block->block_id() - b->exit_block->block_id());
-}
-
 void InlineExitCollector::RemoveUnreachableExits(FlowGraph* callee_graph) {
   const GrowableArray<BlockEntryInstr*>& postorder = callee_graph->postorder();
   int j = 0;
@@ -131,7 +127,9 @@ void InlineExitCollector::SortExits() {
   for (int i = 0; i < exits_.length(); ++i) {
     exits_[i].exit_block = exits_[i].exit_return->GetBlock();
   }
-  exits_.Sort(LowestBlockIdFirst);
+  exits_.Sort([](auto& a, auto& b) {
+    return a.exit_block->block_id() < b.exit_block->block_id();
+  });
 }
 
 Definition* InlineExitCollector::JoinReturns(BlockEntryInstr** exit_block,

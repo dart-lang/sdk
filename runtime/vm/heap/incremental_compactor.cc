@@ -196,11 +196,8 @@ bool GCIncrementalCompactor::SelectEvacuationCandidates(PageSpace* old_space) {
 
       state.pages.Add({page, live_bytes});
     }
-    state.pages.Sort([](const LiveBytes* a, const LiveBytes* b) -> int {
-      if (a->live_bytes < b->live_bytes) return -1;
-      if (a->live_bytes > b->live_bytes) return 1;
-      return 0;
-    });
+    state.pages.Sort(
+        [](auto& a, auto& b) { return a.live_bytes < b.live_bytes; });
 
     intptr_t num_candidates = 0;
     intptr_t cumulative_live_bytes = 0;
