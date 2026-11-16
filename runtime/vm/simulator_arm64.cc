@@ -3664,6 +3664,16 @@ void Simulator::DecodeSIMDTwoReg(Instr* instr) {
     } else {
       UnimplementedInstruction(instr);
     }
+  } else if ((U == 1) && (op == 0xb)) {
+    if (sz == 2) {
+      // Format(instr, "vnegw 'vd, 'vn");
+      for (int i = 0; i < 4; i++) {
+        const uint32_t vn_val = static_cast<uint32_t>(get_vregisters(vn, i));
+        set_vregisters(vd, i, static_cast<int32_t>(0u - vn_val));
+      }
+    } else {
+      UnimplementedInstruction(instr);
+    }
   } else if ((U == 1) && (op == 0x1f)) {
     if (sz == 2) {
       // Format(instr, "vsqrts 'vd, 'vn");

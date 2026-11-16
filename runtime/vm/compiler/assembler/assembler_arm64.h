@@ -1526,6 +1526,7 @@ class Assembler : public AssemblerBase {
   void vabsd(VRegister vd, VRegister vn) { EmitSIMDTwoRegOp(VABSD, vd, vn); }
   void vnegs(VRegister vd, VRegister vn) { EmitSIMDTwoRegOp(VNEGS, vd, vn); }
   void vnegd(VRegister vd, VRegister vn) { EmitSIMDTwoRegOp(VNEGD, vd, vn); }
+  void vnegw(VRegister vd, VRegister vn) { EmitSIMDTwoRegOp(VNEGW, vd, vn); }
   void vsqrts(VRegister vd, VRegister vn) { EmitSIMDTwoRegOp(VSQRTS, vd, vn); }
   void vsqrtd(VRegister vd, VRegister vn) { EmitSIMDTwoRegOp(VSQRTD, vd, vn); }
   void vrecpes(VRegister vd, VRegister vn) {
