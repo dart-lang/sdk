@@ -694,6 +694,52 @@ void buildThreadLocalGetValue(
   builder.addTypeCast(const TopType(), isChecked: false);
 }
 
+/// Build IR for _Record._numFields getter.
+void buildRecordNumFields(FlowGraphBuilder builder, ObjectLayout objectLayout) {
+  // return _shape & RecordShape::kNumFieldsMask;
+  builder.addLoadInstanceField(objectLayout.Record_shape);
+  builder.addIntConstant(objectLayout.vmOffsets.RecordShape_kNumFieldsMask);
+  builder.addBinaryIntOp(.bitAnd);
+}
+
+/// Build IR for _Record._fieldNames getter.
+void buildRecordFieldNames(
+  FlowGraphBuilder builder,
+  ObjectLayout objectLayout,
+  ast.Class arrayClass,
+) {
+  final vmOffsets = objectLayout.vmOffsets;
+  final record = builder.pop();
+
+  // return ObjectStore::record_field_names[
+  //   (_shape >> RecordShape::kFieldNamesIndexShift) &
+  //       RecordShape::kFieldNamesIndexMask];
+  builder.addLoadExternalField(
+    objectLayout.Thread_isolateGroup,
+    hasObject: false,
+  );
+  builder.addLoadExternalField(
+    objectLayout.IsolateGroup_objectStore,
+    hasObject: true,
+  );
+  builder.addLoadExternalField(
+    objectLayout.ObjectStore_recordFieldNames,
+    hasObject: true,
+  );
+
+  builder.push(record);
+  builder.addLoadInstanceField(objectLayout.Record_shape);
+  builder.addIntConstant(vmOffsets.RecordShape_kFieldNamesIndexShift);
+  builder.addBinaryIntOp(.shiftRight);
+  builder.addIntConstant(vmOffsets.RecordShape_kFieldNamesIndexMask);
+  builder.addBinaryIntOp(.bitAnd);
+
+  builder.addLoadArrayElement(
+    .fixedLengthList,
+    StaticType(GlobalContext.instance.coreTypes.nonNullableRawType(arrayClass)),
+  );
+}
+
 /// Build IR for unimplemented methods marked with 'vm:recognized' pragma.
 void buildUnimplementedMethod(
   FlowGraphBuilder builder,
@@ -725,6 +771,7 @@ extension on ArrayKind {
     .float64x2List || .float64x2ListView || .float64x2ByteData => 'Float64x2',
     .int32x4List || .int32x4ListView || .int32x4ByteData => 'Int32x4',
     .fixedLengthList ||
+    .record ||
     .oneByteString ||
     .twoByteString => throw 'ArrayKind.elementName is not defined for $this',
   };
@@ -769,6 +816,7 @@ extension on ArrayKind {
     .float64x2ByteData => const Float64x2Type(),
     .int32x4List || .int32x4ListView || .int32x4ByteData => const Int32x4Type(),
     .fixedLengthList ||
+    .record ||
     .oneByteString ||
     .twoByteString => throw 'ArrayKind.elementType is not defined for $this',
   };
@@ -1332,6 +1380,44 @@ final class VmRecognizedMethods(
       'set:_callback',
     ): (FlowGraphBuilder builder) {
       buildInstanceSetter(builder, objectLayout.FinalizerImpl_callback);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Record',
+      'get:_shape',
+    ): (FlowGraphBuilder builder) {
+      buildInstanceGetter(builder, objectLayout.Record_shape);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Record',
+      'get:_numFields',
+    ): (FlowGraphBuilder builder) {
+      buildRecordNumFields(builder, objectLayout);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Record',
+      'get:_fieldNames',
+    ): (FlowGraphBuilder builder) {
+      buildRecordFieldNames(
+        builder,
+        objectLayout,
+        index.getClass('dart:core', '_Array'),
+      );
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Record',
+      '_fieldAt',
+    ): (FlowGraphBuilder builder) {
+      buildArrayElementGetter(
+        builder,
+        .record,
+        null,
+        const TopType(),
+        checkIndex: false,
+      );
     },
 
     // dart:_compact_hash

@@ -724,6 +724,46 @@ void main() {
         'ldar r2, [r3]\n',
       );
     });
+    test('storeRelease', () {
+      asm.storeRelease(R2, R1, 0, OperandSize.s32);
+      asm.storeRelease(R2, R1, 42, OperandSize.s32);
+      asm.storeRelease(R2, R1, 4231, OperandSize.s32);
+      asm.storeRelease(R2, R1, 0, OperandSize.s64);
+      asm.storeRelease(R2, R1, 42, OperandSize.s64);
+      asm.storeRelease(R2, R1, 4231, OperandSize.s64);
+      asm.storeRelease(R2, R1, 0, OperandSize.s32, R3);
+      asm.storeRelease(R2, R1, 42, OperandSize.s32, R3);
+      asm.storeRelease(R2, R1, 4231, OperandSize.s32, R3);
+      asm.storeRelease(R2, R1, 0, OperandSize.s64, R3);
+      asm.storeRelease(R2, R1, 42, OperandSize.s64, R3);
+      asm.storeRelease(R2, R1, 4231, OperandSize.s64, R3);
+      expectDisassembly(
+        'stlrw r2, [r1]\n'
+        'add r17, r1, #0x2a\n'
+        'stlrw r2, [r17]\n'
+        'movz r17, #0x1087\n'
+        'add r17, r1, r17\n'
+        'stlrw r2, [r17]\n'
+        'stlr r2, [r1]\n'
+        'add r17, r1, #0x2a\n'
+        'stlr r2, [r17]\n'
+        'movz r17, #0x1087\n'
+        'add r17, r1, r17\n'
+        'stlr r2, [r17]\n'
+        'stlrw r2, [r1]\n'
+        'add r3, r1, #0x2a\n'
+        'stlrw r2, [r3]\n'
+        'movz r3, #0x1087\n'
+        'add r3, r1, r3\n'
+        'stlrw r2, [r3]\n'
+        'stlr r2, [r1]\n'
+        'add r3, r1, #0x2a\n'
+        'stlr r2, [r3]\n'
+        'movz r3, #0x1087\n'
+        'add r3, r1, r3\n'
+        'stlr r2, [r3]\n',
+      );
+    });
     test('combineHashes', () {
       asm.combineHashes(R0, R7);
       expectDisassembly(

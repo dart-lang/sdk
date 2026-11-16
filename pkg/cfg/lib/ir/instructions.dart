@@ -1114,6 +1114,8 @@ final class StoreStaticField extends StoreField {
 enum ArrayKind {
   // Built-in fixed-length List.
   fixedLengthList,
+  // Record objects (elements are record fields).
+  record,
   // String objects with 1-byte and 2-byte characters.
   oneByteString,
   twoByteString,

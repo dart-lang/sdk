@@ -195,6 +195,10 @@ class ObjectLayout {
     'dart:core',
     '_Closure',
   );
+  late final ast.Class _recordClass = _libraryIndex.getClass(
+    'dart:core',
+    '_Record',
+  );
   late final ast.Class _abstractTypeClass = _libraryIndex.getClass(
     'dart:core',
     '_AbstractType',
@@ -320,6 +324,13 @@ class ObjectLayout {
     'hash',
     _coreTypes.intNonNullableRawType,
     vmOffsets.Closure_hash_offset,
+  );
+  late final CField Record_shape = _createBuiltinField(
+    _recordClass,
+    'shape',
+    _coreTypes.intNonNullableRawType,
+    vmOffsets.Record_shape_offset,
+    isFinal: true,
   );
   late final CField AbstractType_hash = _createBuiltinField(
     _abstractTypeClass,
@@ -571,6 +582,31 @@ class ObjectLayout {
     'finalizers',
     _coreTypes.listNullableRawType,
     vmOffsets.Isolate_finalizers_offset,
+  );
+  late final ast.Class _isolateGroupClass = ast.Class(
+    name: '#IsolateGroup',
+    supertype: ast.Supertype(_coreTypes.objectClass, ast.DartTypeList.empty),
+    fileUri: ast.dummyUri,
+  )..parent = _vmLibrary;
+  late final CField IsolateGroup_objectStore = _createBuiltinField(
+    _isolateGroupClass,
+    'objectStore',
+    _coreTypes.intNonNullableRawType, // Address.
+    vmOffsets.IsolateGroup_object_store_offset,
+    isUnboxed: true,
+    isFinal: true,
+  );
+  late final ast.Class _objectStoreClass = ast.Class(
+    name: '#ObjectStore',
+    supertype: ast.Supertype(_coreTypes.objectClass, ast.DartTypeList.empty),
+    fileUri: ast.dummyUri,
+  )..parent = _vmLibrary;
+  late final CField ObjectStore_recordFieldNames = _createBuiltinField(
+    _objectStoreClass,
+    'recordFieldNames',
+    _coreTypes.nonNullableRawType(_arrayClass),
+    vmOffsets.ObjectStore_record_field_names_offset,
+    memoryOrder: .acquireRelease,
   );
   late final ast.Class _timelineStreamClass = ast.Class(
     name: '#TimelineStream',

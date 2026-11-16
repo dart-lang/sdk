@@ -1155,6 +1155,21 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     }
   }
 
+  void storeRelease(
+    Register value,
+    Register base,
+    int offset, [
+    OperandSize sz = OperandSize.s64,
+    Register scratch = temp2Reg,
+  ]) {
+    if (offset != 0) {
+      addImmediate(scratch, base, offset, .s64, scratch);
+      stlr(value, scratch, sz);
+    } else {
+      stlr(value, base, sz);
+    }
+  }
+
   @override
   void combineHashes(Register hash, Register other) {
     // hash += other
