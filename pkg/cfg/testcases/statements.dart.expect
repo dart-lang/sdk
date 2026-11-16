@@ -317,12 +317,16 @@ B14 = TargetBlock() idom:B7
 
 --- tryBlocks
 B0 = EntryBlock() dominates:(B4, B24, B3)
-  Constant(1)
-  Constant(2)
+  v1 = Constant(1)
+  v6 = Constant(2)
   v11 = Constant(3)
   v35 = Constant(null)
   TryEntry(try-body: B3, catch-block: B4)
 B3 = TargetBlock() exception-handler:B4 idom:B0
+  ExceptionalInput(x, v1)
+  ExceptionalInput(x, v6)
+  ExceptionalInput(x, v6)
+  ExceptionalInput(x, v11)
   DirectCall print(v11)
   Goto(B24)
 B4 = CatchBlock() idom:B0

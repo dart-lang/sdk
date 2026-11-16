@@ -14,6 +14,7 @@ import 'package:cfg/ir/constant_value.dart';
 import 'package:cfg/ir/instructions.dart';
 import 'package:cfg/ir/ir_to_text.dart';
 import 'package:cfg/ir/liveness_analysis.dart';
+import 'package:cfg/ir/local_variable.dart';
 import 'package:cfg/ir/types.dart';
 import 'package:cfg/passes/pass.dart';
 import 'package:native_compiler/utils/interval_list.dart';
@@ -129,6 +130,8 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
 
   @override
   void run() {
+    reserveCatchSlots();
+
     numberInstructions();
 
     final liveness = SSALivenessAnalysis(graph);
@@ -156,6 +159,24 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
     backEndState.safepoints = _safepoints;
     backEndState.operandLocations = _operandLocations;
     backEndState.stackFrame.finalize();
+  }
+
+  /// Reserve stack slots for local variables which are passed to
+  /// catch blocks via [ExceptionalInput] instructions.
+  void reserveCatchSlots() {
+    final variables = <LocalVariable>{};
+    for (final block in backEndState.codeGenBlockOrder) {
+      if (block is! CatchBlock) continue;
+      for (final instr in block) {
+        if (instr is! Parameter) break;
+        if (instr.hasExceptionalInputs) {
+          variables.add(instr.variable);
+        }
+      }
+    }
+    if (variables.isNotEmpty) {
+      backEndState.stackFrame.reserveCatchSlots(variables);
+    }
   }
 
   /// Number instructions in the linearized control flow.
@@ -295,7 +316,8 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
           liveRange.defineAt(
             instructionPos(instr) +
                 ((resultConstr is PhysicalRegister ||
-                        resultConstr is ParameterStackLocation)
+                        resultConstr is ParameterStackLocation ||
+                        resultConstr is CatchSlotLocation)
                     ? 1
                     : 0),
           );
@@ -427,21 +449,25 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
           loc,
         );
       }
-    } else if (constr is ParameterStackLocation) {
-      if (!graph.function.isSuspendable) {
+    } else if (constr is ParameterStackLocation ||
+        constr is CatchSlotLocation) {
+      final location = constr as StackLocation;
+      if (location is ParameterStackLocation && !graph.function.isSuspendable) {
         // Lock spill slot to the parameter location on the stack,
         // unless the current function is suspendable
         // (suspend/resume does not preserve parameters on the stack).
+        // Catch slots are not used as spill slots as they can be
+        // overwritten by subsequent [ExceptionalInput] instructions.
         assert(liveRange.splitFrom == null);
-        liveRange.spillSlot = constr;
+        liveRange.spillSlot = location;
       }
-      _operandLocations[operandId] = constr;
+      _operandLocations[operandId] = location;
       if (instr.hasUses) {
         final loc = liveRange.addUse(pos + 1, constr);
         _insertMoveBefore(
           _nextInstruction(instr),
           ParallelMoveStage.output,
-          constr,
+          location,
           loc,
         );
       }

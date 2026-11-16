@@ -92,6 +92,12 @@ final class Arm64CodeGenerator extends CodeGenerator {
     if (function.isSuspendable) {
       _asm.str(nullReg, _asm.address(FP, stackFrame.suspendStateOffsetFromFP));
     }
+    // Catch slots are always included into stack maps,
+    // so they should be initialized.
+    for (final slot in stackFrame.catchSlots) {
+      // TODO: unboxed catch slots
+      _asm.str(nullReg, _asm.address(FP, stackFrame.offsetFromFP(slot)));
+    }
   }
 
   /// Load positional required and optional arguments into argument registers,
@@ -839,11 +845,6 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitParameter(Parameter instr) {
-    if (instr.isCatchParameter &&
-        !instr.variable.isExceptionVariable &&
-        !instr.variable.isStackTraceVariable) {
-      _asm.unimplemented('Unimplemented: code generation for catch Parameter');
-    }
     // No-op.
   }
 
@@ -852,6 +853,26 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitStoreLocal(StoreLocal instr) => throw 'Unexpected StoreLocal';
+
+  @override
+  void visitExceptionalInput(ExceptionalInput instr) {
+    final slot = stackFrame.getCatchSlot(instr.variable);
+    final value = instr.value;
+    if (value is Constant) {
+      generateLoadConstant(value.value, slot);
+      return;
+    }
+    final from = inputLoc(instr, 0);
+    switch (from) {
+      case Register():
+        generateMove(from, slot);
+      case StackLocation():
+        generateMove(from, tempReg);
+        generateMove(tempReg, slot);
+      default:
+        throw 'Unexpected location $from';
+    }
+  }
 
   @override
   void visitLoadInstanceField(LoadInstanceField instr) {

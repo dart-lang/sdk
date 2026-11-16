@@ -4,6 +4,7 @@
 
 import 'package:cfg/ir/functions.dart';
 import 'package:cfg/ir/instructions.dart';
+import 'package:cfg/ir/local_variable.dart';
 import 'package:cfg/utils/misc.dart';
 import 'package:native_compiler/back_end/locations.dart';
 import 'package:native_compiler/back_end/safepoint.dart';
@@ -15,6 +16,9 @@ abstract base class StackFrame {
   int _usedSpillSlots = 0;
   int _maxArgumentsStackSlots = 0;
   bool _finalized = false;
+
+  /// Slots holding values of local variables for exception handlers.
+  final Map<LocalVariable, CatchSlotLocation> _catchSlots = {};
 
   StackFrame(this.function);
 
@@ -89,6 +93,33 @@ abstract base class StackFrame {
       _maxArgumentsStackSlots = stackSlots;
     }
   }
+
+  /// Reserved slots holding values of local variables for exception handlers.
+  Iterable<CatchSlotLocation> get catchSlots => _catchSlots.values;
+
+  /// Reserve slots holding values of the given local [variables]
+  /// for exception handlers.
+  ///
+  /// Catch slots hold tagged values and are always included into
+  /// stack maps (see [recordReservedLocations]), so they should be
+  /// initialized when entering the function.
+  ///
+  /// Should be called before any spill slot is allocated.
+  void reserveCatchSlots(Iterable<LocalVariable> variables) {
+    assert(!_finalized);
+    assert(_catchSlots.isEmpty);
+    for (final variable in variables) {
+      assert(!_catchSlots.containsKey(variable));
+      // TODO: unboxed catch slots
+      _catchSlots[variable] = CatchSlotLocation(variable, _usedSpillSlots++);
+    }
+  }
+
+  /// Returns slot holding value of the local [variable]
+  /// for exception handlers.
+  CatchSlotLocation getCatchSlot(LocalVariable variable) =>
+      _catchSlots[variable] ??
+      (throw 'Catch slot is not reserved for variable $variable');
 
   /// Finish stack frame allocation.
   /// No new spill slots can be allocated past this point.

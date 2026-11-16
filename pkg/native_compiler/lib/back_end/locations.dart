@@ -4,6 +4,7 @@
 
 import 'package:cfg/ir/constant_value.dart' show ConstantValue;
 import 'package:cfg/ir/instructions.dart' show MoveOp;
+import 'package:cfg/ir/local_variable.dart' show LocalVariable;
 
 /// A generic operand of a machine instruction.
 abstract interface class Operand;
@@ -104,6 +105,29 @@ final class ParameterStackLocation extends StackLocation implements Constraint {
 
   @override
   String toString() => 'param[$paramIndex]';
+}
+
+/// Constraint and location for the slot in the stack frame which holds
+/// the value of a local variable for exception handlers.
+///
+/// The slot is written by `ExceptionalInput` instructions and read by
+/// the corresponding catch block parameters.
+final class CatchSlotLocation extends StackLocation implements Constraint {
+  /// Local variable (used for printing only).
+  final LocalVariable variable;
+
+  /// Index of the stack slot in frame.
+  @override
+  final int stackSlotIndex;
+
+  const CatchSlotLocation(this.variable, this.stackSlotIndex)
+    : assert(stackSlotIndex >= 0);
+
+  @override
+  RegisterClass get registerClass => RegisterClass.cpu;
+
+  @override
+  String toString() => 'catch[${variable.name}]';
 }
 
 /// Location which can be allocated by register allocator.

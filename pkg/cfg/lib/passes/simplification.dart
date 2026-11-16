@@ -195,6 +195,9 @@ final class Simplification extends Pass
   Instruction visitStoreLocal(StoreLocal instr) => instr;
 
   @override
+  Instruction visitExceptionalInput(ExceptionalInput instr) => instr;
+
+  @override
   Instruction visitLoadInstanceField(LoadInstanceField instr) => instr;
 
   @override

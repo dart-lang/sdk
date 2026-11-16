@@ -118,6 +118,9 @@ final class IrToText extends VoidInstructionVisitor {
       case StoreLocal():
         _currentLine.write(instr.variable.name);
         _currentLine.write(', ');
+      case ExceptionalInput():
+        _currentLine.write(instr.variable.name);
+        _currentLine.write(', ');
       case LoadField():
         _currentLine.write(instr.field);
         if (instr.inputCount > 0) {

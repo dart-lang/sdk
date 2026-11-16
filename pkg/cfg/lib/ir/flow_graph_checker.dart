@@ -354,6 +354,23 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
   }
 
   @override
+  void visitExceptionalInput(ExceptionalInput instr) {
+    assert(graph.inSSAForm);
+    final variable = instr.variable;
+    assert(variable == graph.localVariables[variable.index]);
+    // There should be a catch block parameter corresponding to the
+    // variable in one of the enclosing exception handlers.
+    CatchBlock? handler = instr.block!.exceptionHandler;
+    while (handler != null) {
+      if (handler.findParameter(variable) != null) {
+        break;
+      }
+      handler = handler.exceptionHandler;
+    }
+    assert(handler != null);
+  }
+
+  @override
   void visitLoadInstanceField(LoadInstanceField instr) {}
 
   @override
