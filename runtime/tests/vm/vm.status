@@ -111,6 +111,8 @@ cc/Profiler_SourcePositionOptimized: SkipByDesign # Tests profiling of optimized
 cc/RangeAnalysis_*: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/ReachabilityFence_*: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/SecondExit*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/SourceReport_Coverage_LibrariesAlreadyCompiled: SkipByDesign # Classes in bytecode are finalized when loaded.
+cc/SourceReport_Coverage_UnusedClass_NoForceCompile: SkipByDesign # Classes in bytecode are finalized when loaded.
 cc/StackMapGC: SkipByDesign # JIT compilation is not supported from bytecode.
 cc/StreamingFlowGraphBuilder_*: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/TryCatchOptimizer_DeadParameterElimination_*: SkipByDesign # Building flow graph is not supported from bytecode.

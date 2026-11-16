@@ -1783,7 +1783,12 @@ class BytecodeGenerator extends RecursiveVisitor {
       if (negated) {
         value = !value;
       }
-      asm.emitSourcePosition();
+      // As in the compiler, a jump on a bool literal, which is only generated
+      // when keeping unreachable code, is not a pause point, as bool literals
+      // have no source position in kernel.
+      if (condition is! BoolLiteral) {
+        asm.emitSourcePosition();
+      }
       if (value) {
         asm.emitJumpIfTrue(dest);
       } else {
