@@ -524,6 +524,7 @@ namespace dart {
   V(TypedDataLibrary, _Int32x4, ~, Int32x4Not, 0xad8370a8)                     \
   V(TypedDataLibrary, _Int32x4, andNot, Int32x4AndNot, 0x4a88a5d8)             \
   V(TypedDataLibrary, _Int32x4, unary-, Int32x4Negate, 0x5d3cea2e)             \
+  V(TypedDataLibrary, _Int32x4, abs, Int32x4Abs, 0x4451c29c)                   \
   V(TypedDataLibrary, _Int32x4, equal, Int32x4Equal, 0xe12e0e16)               \
   V(TypedDataLibrary, _Int32x4, notEqual, Int32x4NotEqual, 0xafde9ab3)         \
   V(TypedDataLibrary, _Int32x4, <<, Int32x4Shl, 0xfc92031f)                    \

@@ -2782,6 +2782,7 @@ class SimdLowering : public ValueObject {
       case MethodRecognizer::kInt32x4ShrU:
       case MethodRecognizer::kInt32x4AndNot:
       case MethodRecognizer::kInt32x4Negate:
+      case MethodRecognizer::kInt32x4Abs:
         // TODO(riscv)
         return false;
       default:
@@ -3551,6 +3552,7 @@ bool CallSpecializer::TryInlineRecognizedMethod(
     case MethodRecognizer::kInt32x4GreaterThanOrEqual:
     case MethodRecognizer::kInt32x4LessThan:
     case MethodRecognizer::kInt32x4LessThanOrEqual:
+    case MethodRecognizer::kInt32x4Abs:
 #endif
       return InlineSimdOp(flow_graph, is_dynamic_call, call, receiver, kind,
                           graph_entry, entry, last, result);
