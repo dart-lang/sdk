@@ -282,14 +282,11 @@ class PropertyElementResolver with ScopeHelpers {
     required DotShorthandContextResolutionImpl shorthandContext,
   }) {
     if (shorthandContext case ValidDotShorthandContextResolutionImpl(
-      lookupType: var context,
+      :var declaration,
     )) {
       // Find constructor tearoffs.
-      var element = context.lookUpConstructor(
-        node.name.lexeme,
-        _definingLibrary,
-      );
-      if (element != null) {
+      var element = declaration.getNamedConstructor(node.name.lexeme);
+      if (element != null && element.isAccessibleIn(_definingLibrary)) {
         if (!element.isFactory) {
           var enclosingElement = element.enclosingElement;
           if (enclosingElement is ClassElementImpl &&
@@ -303,7 +300,7 @@ class PropertyElementResolver with ScopeHelpers {
         // Infer type parameters.
         var elementToInfer = _typeAnalyzer.inferenceHelper
             .constructorElementToInfer(
-              typeElement: context.element,
+              typeElement: declaration,
               constructorName: node.name,
               definingLibrary: _typeAnalyzer.definingLibrary,
             );
@@ -326,14 +323,13 @@ class PropertyElementResolver with ScopeHelpers {
       }
 
       // Didn't find any constructor tearoffs, look for static getters.
-      var contextElement = context.element;
       var result = _resolveTargetInterfaceElement(
-        typeReference: contextElement,
+        typeReference: declaration,
         isCascaded: false,
         propertyName: node.name,
         hasRead: true,
         hasWrite: false,
-        dotShorthandContext: shorthandContext,
+        isDotShorthand: true,
         readPosition: ReadPosition.of(node),
       );
       return _dotShorthandReadResolution(result);
@@ -342,11 +338,7 @@ class PropertyElementResolver with ScopeHelpers {
     if (shorthandContext is MissingDotShorthandContextResolutionImpl) {
       diagnosticReporter.report(diag.dotShorthandMissingContext.at(node));
     } else if (shorthandContext is InvalidDotShorthandContextResolutionImpl) {
-      _lookupFailureReporter.reportReadFailure(
-        domain: DotShorthandLookupDomain.invalid(shorthandContext),
-        name: node.name,
-        foundInstead: null,
-      );
+      _typeAnalyzer.reportDotShorthandLookupInInvalidContext(node.name);
     }
     return InvalidNamedReadResolutionImpl(recoveryElement: null);
   }
@@ -1069,7 +1061,7 @@ class PropertyElementResolver with ScopeHelpers {
             propertyName: node.name,
             hasRead: true,
             hasWrite: true,
-            dotShorthandContext: null,
+            isDotShorthand: false,
             readPosition: ReadPosition.other,
           );
           return _propertyReadWriteTargetResult(result);
@@ -1687,7 +1679,7 @@ class PropertyElementResolver with ScopeHelpers {
         propertyName: name,
         hasRead: hasRead,
         hasWrite: hasWrite,
-        dotShorthandContext: null,
+        isDotShorthand: false,
         readPosition: readPosition,
       );
     } else if (element is ExtensionElementImpl) {
@@ -1862,7 +1854,7 @@ class PropertyElementResolver with ScopeHelpers {
     required Token propertyName,
     required bool hasRead,
     required bool hasWrite,
-    required ValidDotShorthandContextResolutionImpl? dotShorthandContext,
+    required bool isDotShorthand,
     required ReadPosition readPosition,
   }) {
     if (isCascaded) {
@@ -1903,8 +1895,8 @@ class PropertyElementResolver with ScopeHelpers {
         isReadFailure = true;
         readElementRecovery = element;
         _lookupFailureReporter.reportReadFailure(
-          domain: dotShorthandContext != null
-              ? DotShorthandLookupDomain.declaration(dotShorthandContext)
+          domain: isDotShorthand
+              ? DotShorthandLookupDomain.declaration(typeReference)
               : StaticLookupDomain(typeReference),
           name: propertyName,
           foundInstead:

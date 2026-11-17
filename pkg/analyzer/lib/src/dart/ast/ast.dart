@@ -16083,9 +16083,9 @@ final class DotShorthandConstructorInvocationImpl
 
 /// The result of selecting the static namespace for a dot shorthand.
 ///
-/// A valid result identifies both the contextual input and the normalized
-/// interface type used for lookup. An invalid result means that no usable
-/// static namespace was available.
+/// A valid result identifies the declaration whose static namespace is
+/// searched. A missing or invalid result means that no usable static namespace
+/// was available.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class DotShorthandContextResolution {}
@@ -34677,33 +34677,21 @@ sealed class InvalidAssignmentTarget implements AssignmentTarget {
   InvalidWriteResolution? get write;
 }
 
-/// An unusable dot-shorthand context: there is a context type, but it has no
+/// An unusable dot-shorthand context: there is a context type, but it doesn't
+/// denote an interface declaration accessible in this library, so there is no
 /// static namespace that can be searched.
+///
+/// For example, the context is a function type, or a private class of another
+/// library.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class InvalidDotShorthandContextResolution
-    implements DotShorthandContextResolution {
-  /// The contextual type supplied to the maximal dot-shorthand expression.
-  DartType get contextType;
-
-  /// The normalized [contextType] whose static namespace would be searched.
-  ///
-  /// It is not an interface type, such as a function type, or it is an
-  /// interface type whose declaration is not accessible, such as a private
-  /// class of another library.
-  DartType get lookupType;
-}
+    implements DotShorthandContextResolution {}
 
 final class InvalidDotShorthandContextResolutionImpl
     extends DotShorthandContextResolutionImpl
     implements InvalidDotShorthandContextResolution {
-  @override
-  final TypeImpl contextType;
-
-  @override
-  final TypeImpl lookupType;
-
-  new({required this.contextType, required this.lookupType});
+  const new();
 }
 
 /// An invalid assignment target whose source is an ordinary value expression.
@@ -62423,30 +62411,23 @@ enum V1Projection {
   }
 }
 
-/// A usable dot-shorthand context.
+/// A usable dot-shorthand context: the context type denotes an interface
+/// declaration, whose static namespace is searched.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ValidDotShorthandContextResolution
     implements DotShorthandContextResolution {
-  /// The contextual type supplied to the maximal dot-shorthand expression.
-  DartType get contextType;
-
-  /// The normalized interface type whose static namespace is searched.
-  ///
-  /// The declaration that owns the namespace is [InterfaceType.element].
-  InterfaceType get lookupType;
+  /// The interface declaration whose static namespace is searched.
+  InterfaceElement get declaration;
 }
 
 final class ValidDotShorthandContextResolutionImpl
     extends DotShorthandContextResolutionImpl
     implements ValidDotShorthandContextResolution {
   @override
-  final TypeImpl contextType;
+  final InterfaceElementImpl declaration;
 
-  @override
-  final InterfaceTypeImpl lookupType;
-
-  new({required this.contextType, required this.lookupType});
+  new({required this.declaration});
 }
 
 /// A successful index read resolution.
