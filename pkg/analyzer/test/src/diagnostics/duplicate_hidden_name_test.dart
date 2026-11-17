@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class DuplicateHiddenNameTest extends PubPackageResolutionTest {
-  test_library_hidden() async {
+  test_library_export() async {
     newFile('$testPackageLibPath/lib1.dart', r'''
 class A {}
 class B {}
@@ -28,7 +28,21 @@ export 'lib1.dart' hide A, B, A;
 ''');
   }
 
-  test_part_hidden() async {
+  test_library_import() async {
+    newFile('$testPackageLibPath/lib1.dart', r'''
+class A {}
+class B {}
+class C {}
+''');
+    await resolveTestCodeWithDiagnostics(r'''
+import 'lib1.dart' hide A, B, A;
+//                            ^
+// [diag.duplicateHiddenName] Duplicate hidden name.
+void f(C c) {}
+''');
+  }
+
+  test_part_export() async {
     var a = getFile('$testPackageLibPath/a.dart');
     var b = getFile('$testPackageLibPath/b.dart');
 
@@ -45,7 +59,25 @@ export 'dart:math' hide pi, Random, pi;
     });
   }
 
-  test_part_nested_hidden() async {
+  test_part_import() async {
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
+part of 'a.dart';
+import 'dart:math' hide pi, Random, pi;
+//                                  ^^
+// [diag.duplicateHiddenName] Duplicate hidden name.
+var x = e;
+''',
+    });
+  }
+
+  test_part_nested_export() async {
     var a = getFile('$testPackageLibPath/a.dart');
     var b = getFile('$testPackageLibPath/b.dart');
     var c = getFile('$testPackageLibPath/c.dart');
@@ -63,6 +95,29 @@ part of 'b.dart';
 export 'dart:math' hide pi, Random, pi;
 //                                  ^^
 // [diag.duplicateHiddenName] Duplicate hidden name.
+''',
+    });
+  }
+
+  test_part_nested_import() async {
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    var c = getFile('$testPackageLibPath/c.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
+part of 'a.dart';
+part 'c.dart';
+''',
+      c: r'''
+part of 'b.dart';
+import 'dart:math' hide pi, Random, pi;
+//                                  ^^
+// [diag.duplicateHiddenName] Duplicate hidden name.
+var x = e;
 ''',
     });
   }
