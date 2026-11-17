@@ -1,5 +1,7 @@
 ## 0.4.6-dev
 
+- Add `AssistProcessorTest.registerAssist` to support testing quick assists in
+  analyzer plugins.
 - Require version `14.8.0-dev` of the `analyzer` package.
 - Require version `0.14.21-dev` of the `analyzer_plugin` package.
 - Require version `0.3.27-dev` of the `analysis_server_plugin` package.
