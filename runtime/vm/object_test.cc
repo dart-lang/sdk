@@ -5100,6 +5100,42 @@ REPEAT_512(FINALIZER_NATIVE_CROSS_GEN_TEST_CASE)
 
 #undef REPEAT_512
 
+// Isolate.kill with Isolate.immediate can interrupt the Dart code that adds a
+// finalizer to the isolate's list, or an entry to a native finalizer's set,
+// after the length was updated but before the element was stored. Shutting
+// down the isolate must skip such slots instead of crashing. Both tests below
+// leave that state behind; the isolate shutdown at the end of each test runs
+// Isolate::RunAndCleanupFinalizersOnShutdown.
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_ShutdownSkipsUnfilledFinalizerSlot) {
+  // The isolate's list of finalizers counts a slot that was never stored.
+  const auto& finalizers =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  finalizers.Add(Object::null_object());
+  thread->isolate()->set_finalizers(finalizers);
+}
+
+ISOLATE_UNIT_TEST_CASE(NativeFinalizer_ShutdownSkipsUnfilledEntrySlot) {
+  // A native finalizer whose set of entries counts a key that was never
+  // stored.
+  const auto& finalizer = NativeFinalizer::Handle(NativeFinalizer::New());
+  finalizer.set_isolate(thread->isolate());
+  const auto& data = Array::Handle(Array::New(2));
+  const auto& index =
+      TypedData::Handle(TypedData::New(kTypedDataUint32ArrayCid, 2));
+  const auto& entries =
+      Set::Handle(Set::New(kSetCid, data, index, /*hash_mask=*/0,
+                           /*used_data=*/1, /*deleted_keys=*/0));
+  finalizer.set_all_entries(entries);
+  const auto& weak_reference = WeakReference::Handle(WeakReference::New());
+  weak_reference.set_target(finalizer);
+
+  const auto& finalizers =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  finalizers.Add(weak_reference);
+  thread->isolate()->set_finalizers(finalizers);
+}
+
 TEST_CASE(IsIsolateUnsendable) {
   Zone* const zone = Thread::Current()->zone();
 
