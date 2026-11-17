@@ -267,10 +267,6 @@ abstract class AnalysisServer {
     searchEngine,
   );
 
-  /// The paths of files for which [ResolvedUnitResult] was produced since
-  /// the last idle state.
-  final Set<String> filesResolvedSinceLastIdle = {};
-
   /// A completer for [lspInitialized].
   final Completer<lsp.InitializedStateMessageHandler> _lspInitializedCompleter =
       Completer<lsp.InitializedStateMessageHandler>();
@@ -1155,10 +1151,6 @@ abstract class AnalysisServer {
     );
   }
 
-  /// Notify the flutter widget properties support that the file with the
-  /// given [path] was changed - added, updated, or removed.
-  void notifyFlutterWidgetDescriptions(String path) {}
-
   /// Prevents the scheduler from processing new messages until [operation]
   /// completes.
   ///
@@ -1655,7 +1647,6 @@ abstract class CommonServerContextManagerCallbacks
   @override
   @mustCallSuper
   void broadcastWatchEvent(WatchEvent event) {
-    analysisServer.notifyFlutterWidgetDescriptions(event.path);
     analysisServer.pluginManager.broadcastWatchEvent(event);
   }
 
@@ -1679,7 +1670,6 @@ abstract class CommonServerContextManagerCallbacks
     }
 
     if (result is ResolvedUnitResult) {
-      analysisServer.filesResolvedSinceLastIdle.add(path);
       handleResolvedUnitResult(result);
     }
   }
