@@ -11,6 +11,7 @@ import 'package:_fe_analyzer_shared/src/scanner/characters.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/xxh64.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as pkg_path;
 
 /// Byte offset of the checksum field in the file header.
 @visibleForTesting
@@ -25,6 +26,9 @@ const _FilePageIndex _allocationBitmapFirstPageIndex = _FilePageIndex(3);
 /// The number of entries to evict from a single table chunk (page) when
 /// it becomes full.
 const int _bucketEvictionCount = 16;
+
+/// The extension of the files created by [SingleFileByteStore.inDirectory].
+const String _cacheFileExtension = '.bin';
 
 /// The number of data pages represented by one allocation bitmap chunk.
 const int _dataPagesPerAllocationChunk = pageSize * 8;
@@ -178,9 +182,9 @@ class FileStorage implements Storage {
 /// the cache, discarding all table entries, data page allocations, etc.
 ///
 /// The storage constructor leaves ownership with the caller;
-/// [SingleFileByteStore.file] owns its file until [close]. This instance is the
-/// only byte store in its process accessing the file. Multiple processes can
-/// keep live instances:
+/// [SingleFileByteStore.inDirectory] owns its file until [close]. This instance
+/// is the only byte store in its process accessing the file. Multiple processes
+/// can keep live instances:
 /// committed reads, commits, and recovery hold exclusive storage access and
 /// reread the header and invalidate metadata when its commit ID changes. Pending
 /// values are private to each instance; the last committed batch wins for a key.
@@ -199,9 +203,10 @@ class SingleFileByteStore implements ByteStore {
 
   /// The file owned by this store, which is closed on [close].
   ///
-  /// This is only set if the store was created via [SingleFileByteStore.file].
-  /// If the store was created via [SingleFileByteStore.new], this is `null` and
-  /// the caller is responsible for closing their own file.
+  /// This is only set if the store was created via
+  /// [SingleFileByteStore.inDirectory]. If the store was created via
+  /// [SingleFileByteStore.new], this is `null` and the caller is responsible
+  /// for closing their own file.
   RandomAccessFile? _ownedFile;
   bool _closed = false;
 
@@ -334,21 +339,47 @@ class SingleFileByteStore implements ByteStore {
     _withExclusiveAccess((_) {});
   }
 
-  /// Opens or creates the cache at [path], owning its file until [close].
+  /// Opens or creates the cache in [directoryPath], owning its file until
+  /// [close]. The file is closed if initialization fails.
+  ///
+  /// The file name encodes the format version and every configuration value
+  /// that the header must match, so stores with incompatible configurations
+  /// never share a file. Otherwise, two processes with different
+  /// configurations, such as two SDK versions running at the same time, would
+  /// reset the file on almost every access by the other.
+  ///
+  /// Other cache files in [directoryPath] that were not modified for
+  /// [staleFileAge] are deleted, so that configurations that are no longer
+  /// used do not keep their disk space forever. Opening a file and committing
+  /// to it update its modification time, so files that are still in use are
+  /// kept. The directory must exist; it is shared only with other stores
+  /// opened by this method.
   ///
   /// Uses the same configuration and recovery rules as [SingleFileByteStore].
-  /// The file is closed if initialization fails. The parent directory must exist.
-  factory file(
-    String path, {
+  factory inDirectory(
+    String directoryPath, {
     required int filePageCountLog2,
     required int tableSlotCountLog2,
     required int bufferPoolCapacityLog2,
     required int maxPendingValueBytes,
     required int maxPendingEntryCount,
+    Duration staleFileAge = const Duration(days: 30),
   }) {
+    // Stores that would reject each other's valid header must use different
+    // files, so encode the format version and everything that
+    // `_readCompatibleHeader` compares, directly or via derived values.
+    var fileName =
+        'v${_Header._formatVersion}'
+        '-page$pageSize'
+        '-file$filePageCountLog2'
+        '-table$tableSlotCountLog2'
+        '$_cacheFileExtension';
+    var path = pkg_path.join(directoryPath, fileName);
+
     var file = File(path).openSync(mode: FileMode.append);
+    SingleFileByteStore store;
     try {
-      return SingleFileByteStore(
+      store = SingleFileByteStore(
         FileStorage(file),
         filePageCountLog2: filePageCountLog2,
         tableSlotCountLog2: tableSlotCountLog2,
@@ -360,11 +391,24 @@ class SingleFileByteStore implements ByteStore {
       file.closeSync();
       rethrow;
     }
+
+    // A store that is only read does not commit, so mark the file as used.
+    var now = DateTime.now();
+    try {
+      File(path).setLastModifiedSync(now);
+    } on FileSystemException catch (_) {}
+
+    _deleteStaleFiles(
+      Directory(directoryPath),
+      keep: fileName,
+      modifiedBefore: now.subtract(staleFileAge),
+    );
+    return store;
   }
 
-  /// The path opened by [SingleFileByteStore.file], or null if storage was
-  /// supplied by constructing this object using the [SingleFileByteStore.new]
-  /// constructor.
+  /// The path opened by [SingleFileByteStore.inDirectory], or null if storage
+  /// was supplied by constructing this object using the
+  /// [SingleFileByteStore.new] constructor.
   String? get filePath => _ownedFile?.path;
 
   int get pendingEntryCount => _pendingValues.length;
@@ -965,6 +1009,41 @@ class SingleFileByteStore implements ByteStore {
   static void _checkKey(String key) {
     if (!_ValueHeader.isValidKey(key)) throw ArgumentError.value(key, 'key');
   }
+
+  /// Deletes cache files in [directory], other than [keep], last modified
+  /// before [modifiedBefore].
+  ///
+  /// The caller has just marked [keep] as used, but that can fail, so [keep]
+  /// is still excluded explicitly.
+  ///
+  /// Failures are ignored: a file can disappear concurrently, and on Windows
+  /// a file that another process has open cannot be deleted.
+  static void _deleteStaleFiles(
+    Directory directory, {
+    required String keep,
+    required DateTime modifiedBefore,
+  }) {
+    try {
+      for (var entity in directory.listSync()) {
+        if (entity is! File) continue;
+        var name = entity.uri.pathSegments.last;
+        if (name == keep ||
+            !name.startsWith('v') ||
+            !name.endsWith(_cacheFileExtension)) {
+          continue;
+        }
+        try {
+          if (entity.lastModifiedSync().isBefore(modifiedBefore)) {
+            entity.deleteSync();
+          }
+        } on FileSystemException {
+          // Try again next time.
+        }
+      }
+    } on FileSystemException {
+      // Try again next time.
+    }
+  }
 }
 
 /// Synchronous random-access storage. Use [withExclusiveAccess] to coordinate
@@ -1412,7 +1491,7 @@ class _CapacityException implements Exception {}
 
 /// The decoded file header, independent of the buffer it was read from.
 ///
-/// Header bytes 0..7 contain the magic `DARTBS01`; byte 8 is the active
+/// Header bytes 0..7 contain the magic `DARTBSTR`; byte 8 is the active
 /// [selectorSlot] (0 or 1), and byte 9 is the format version.
 /// Bytes 10 and 11 hold the base-two logarithms of the physical page count and
 /// table slot count. Bytes 12..15 hold the page size and 16..19 the chunk count,
@@ -1440,7 +1519,7 @@ class _Header {
 
   static const int _formatVersion = 1;
   static const List<int> _headerMagic = [
-    0x44, 0x41, 0x52, 0x54, 0x42, 0x53, 0x30, 0x31, // DARTBS01.
+    0x44, 0x41, 0x52, 0x54, 0x42, 0x53, 0x54, 0x52, // DARTBSTR.
   ];
 
   final int filePageCountLog2;

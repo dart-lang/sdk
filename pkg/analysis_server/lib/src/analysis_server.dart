@@ -749,24 +749,30 @@ abstract class AnalysisServer {
         ? resourceProvider.baseProvider
         : resourceProvider;
     if (baseProvider is PhysicalResourceProvider) {
-      var stateLocation = resourceProvider.getStateLocation('.analysis-driver');
-      if (stateLocation != null) {
-        ByteStore fileByteStore;
-        if (options.useSingleFileByteStore) {
-          fileByteStore = _singleFileByteStore = SingleFileByteStore.file(
-            stateLocation.parent.getFile('cache_v001.bin').path,
-            filePageCountLog2: 22, // 4 GiB, including metadata.
-            tableSlotCountLog2: 19, // 524,288 entries.
-            bufferPoolCapacityLog2: 12, // 4 MiB of cached pages.
-            maxPendingValueBytes: M,
-            maxPendingEntryCount: 64,
-          );
-        } else {
+      ByteStore? fileByteStore;
+      if (options.useSingleFileByteStore) {
+        var folder = resourceProvider.getStateLocation('.analysis-cache');
+        if (folder != null) {
+          fileByteStore = _singleFileByteStore =
+              SingleFileByteStore.inDirectory(
+                folder.path,
+                filePageCountLog2: 22, // 4 GiB, including metadata.
+                tableSlotCountLog2: 19, // 524,288 entries.
+                bufferPoolCapacityLog2: 12, // 4 MiB of cached pages.
+                maxPendingValueBytes: M,
+                maxPendingEntryCount: 64,
+              );
+        }
+      } else {
+        var folder = resourceProvider.getStateLocation('.analysis-driver');
+        if (folder != null) {
           fileByteStore = _fileByteStore = EvictingFileByteStore(
-            stateLocation.path,
+            folder.path,
             fileCacheSize,
           );
         }
+      }
+      if (fileByteStore != null) {
         var timingByteStore = _timingByteStore = TimingByteStore(fileByteStore);
         return _memoryCachingByteStore = MemoryCachingByteStore(
           timingByteStore,

@@ -16,6 +16,7 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FileStorageTest);
     defineReflectiveTests(SingleFileByteStoreFileTest);
+    defineReflectiveTests(SingleFileByteStoreInDirectoryTest);
     defineReflectiveTests(SingleFileByteStoreTest);
   });
 }
@@ -68,10 +69,18 @@ class FileStorageTest {
 
 @reflectiveTest
 class SingleFileByteStoreFileTest {
+  late Directory directory;
   late _TestFile file;
+  late _TestFileSource fileSource;
 
   void setUp() {
+    directory = Directory.systemTemp.createTempSync('byte_store_');
     file = _TestFile();
+    fileSource = _TestFileSource(file);
+  }
+
+  void tearDown() {
+    directory.deleteSync(recursive: true);
   }
 
   void test_close_closesFileWhenFlushFails() {
@@ -123,49 +132,22 @@ class SingleFileByteStoreFileTest {
     expect(file.closeCount, 0);
   }
 
-  void test_constructor_file_closesFileWhenInitializationFails() {
+  void test_inDirectory_closesFileWhenInitializationFails() {
     file.failLock = true;
     expect(_open, throwsA(isA<FileSystemException>()));
     expect(file.closeCount, 1);
   }
 
-  void test_constructor_file_closesFileWhenLengthReadFails() {
+  void test_inDirectory_closesFileWhenLengthReadFails() {
     file.failLength = true;
     expect(_open, throwsA(isA<FileSystemException>()));
     expect(file.closeCount, 1);
   }
 
-  void test_constructor_file_reopensValuesCommittedByClose() {
-    var directory = Directory.systemTemp.createTempSync('byte_store_');
-    addTearDown(() => directory.deleteSync(recursive: true));
-    var path = '${directory.path}/cache';
-
-    SingleFileByteStore open() {
-      var store = SingleFileByteStore.file(
-        path,
-        filePageCountLog2: 11,
-        tableSlotCountLog2: 7,
-        bufferPoolCapacityLog2: 2,
-        maxPendingValueBytes: 1024,
-        maxPendingEntryCount: 64,
-      );
-      addTearDown(store.close);
-      return store;
-    }
-
-    var store = open();
-    expect(store.filePath, path);
-    store.putGet('key', Uint8List.fromList([1, 2, 3]));
-    store.close();
-
-    store = open();
-    expect(store.get('key'), [1, 2, 3]);
-  }
-
   SingleFileByteStore _open() {
     return IOOverrides.runZoned(
-      () => SingleFileByteStore.file(
-        'cache',
+      () => SingleFileByteStore.inDirectory(
+        directory.path,
         filePageCountLog2: 11,
         tableSlotCountLog2: 7,
         bufferPoolCapacityLog2: 2,
@@ -173,10 +155,147 @@ class SingleFileByteStoreFileTest {
         maxPendingEntryCount: 64,
       ),
       createFile: (path) {
-        expect(path, 'cache');
-        return _TestFileSource(file);
+        expect(
+          path,
+          '${directory.path}${Platform.pathSeparator}'
+          'v1-page1024-file11-table7.bin',
+        );
+        return fileSource;
       },
     );
+  }
+}
+
+@reflectiveTest
+class SingleFileByteStoreInDirectoryTest {
+  late Directory directory;
+  final List<SingleFileByteStore> _stores = [];
+
+  void setUp() {
+    directory = Directory.systemTemp.createTempSync('byte_store_');
+  }
+
+  void tearDown() {
+    for (var store in _stores) {
+      store.close();
+    }
+    directory.deleteSync(recursive: true);
+  }
+
+  void test_deletesStaleCacheFiles() {
+    _createFile('v1-page1024-file12-table7.bin', age: const Duration(days: 31));
+    _createFile('v0-page512-file12-table7.bin', age: const Duration(days: 31));
+    _createFile('v1-page1024-file13-table7.bin', age: const Duration(days: 29));
+    _createFile('notes.txt', age: const Duration(days: 31));
+    _createFile('other.bin', age: const Duration(days: 31));
+    _createFile('v1-notes.txt', age: const Duration(days: 31));
+
+    _open(filePageCountLog2: 11);
+    expect(directory.listSync().map((e) => e.uri.pathSegments.last).sorted(), [
+      'notes.txt',
+      'other.bin',
+      'v1-notes.txt',
+      'v1-page1024-file11-table7.bin',
+      'v1-page1024-file13-table7.bin',
+    ]);
+  }
+
+  void test_differentConfigurations_useSeparateFiles() {
+    var store11 = _open(filePageCountLog2: 11);
+    store11.putGet('key', Uint8List.fromList([1, 2, 3]));
+    store11.close();
+
+    var store12 = _open(filePageCountLog2: 12);
+    expect(store12.filePath, isNot(store11.filePath));
+    expect(store12.get('key'), isNull);
+    store12.putGet('key', Uint8List.fromList([4, 5, 6]));
+    store12.close();
+
+    store11 = _open(filePageCountLog2: 11);
+    expect(store11.get('key'), [1, 2, 3]);
+  }
+
+  void test_fileName() {
+    var store = _open(filePageCountLog2: 11);
+    expect(
+      store.filePath,
+      '${directory.path}${Platform.pathSeparator}'
+      'v1-page1024-file11-table7.bin',
+    );
+  }
+
+  void test_markAsUsedFails_keepsOwnFile() {
+    // Create a valid store file.
+    var store = _open(filePageCountLog2: 11);
+    store.putGet('key', Uint8List.fromList([1, 2, 3]));
+    store.close();
+
+    // Make it stale.
+    var file = File(store.filePath!);
+    file.setLastModifiedSync(DateTime.now().subtract(const Duration(days: 31)));
+
+    // Reopen it, but fail to mark it as used.
+    store = IOOverrides.runZoned(
+      () => _open(filePageCountLog2: 11),
+      createFile: (path) {
+        expect(path, file.path);
+        return _SetLastModifiedFailingFile(file);
+      },
+    );
+
+    // Still stale, but not deleted as such.
+    expect(file.existsSync(), isTrue);
+    var age = DateTime.now().difference(file.lastModifiedSync());
+    expect(age, greaterThan(const Duration(days: 30)));
+    expect(store.get('key'), [1, 2, 3]);
+  }
+
+  void test_marksOwnFileAsUsed() {
+    // Create a valid store file.
+    var store = _open(filePageCountLog2: 11);
+    store.putGet('key', Uint8List.fromList([1, 2, 3]));
+    store.close();
+
+    // Make it stale.
+    var file = File(store.filePath!);
+    file.setLastModifiedSync(DateTime.now().subtract(const Duration(days: 31)));
+
+    // Reopening without a commit marks it as used.
+    store = _open(filePageCountLog2: 11);
+    var age = DateTime.now().difference(file.lastModifiedSync());
+    expect(age, lessThan(const Duration(days: 1)));
+
+    // The file was not reset, which would also update its modification time.
+    expect(store.get('key'), [1, 2, 3]);
+  }
+
+  void test_reopensValuesCommittedByClose() {
+    var store = _open(filePageCountLog2: 11);
+    store.putGet('key', Uint8List.fromList([1, 2, 3]));
+    store.close();
+
+    store = _open(filePageCountLog2: 11);
+    expect(store.get('key'), [1, 2, 3]);
+  }
+
+  File _createFile(String name, {required Duration age}) {
+    var file = File('${directory.path}${Platform.pathSeparator}$name')
+      ..writeAsBytesSync([0]);
+    file.setLastModifiedSync(DateTime.now().subtract(age));
+    return file;
+  }
+
+  SingleFileByteStore _open({required int filePageCountLog2}) {
+    var store = SingleFileByteStore.inDirectory(
+      directory.path,
+      filePageCountLog2: filePageCountLog2,
+      tableSlotCountLog2: 7,
+      bufferPoolCapacityLog2: 2,
+      maxPendingValueBytes: 1024,
+      maxPendingEntryCount: 64,
+    );
+    _stores.add(store);
+    return store;
   }
 }
 
@@ -995,6 +1114,27 @@ class _MemoryStorage implements Storage {
   }
 }
 
+/// A real [File] whose [setLastModifiedSync] simulates a file-system
+/// exception.
+class _SetLastModifiedFailingFile implements File {
+  final File _file;
+
+  new(this._file);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  RandomAccessFile openSync({FileMode mode = FileMode.read}) {
+    return _file.openSync(mode: mode);
+  }
+
+  @override
+  void setLastModifiedSync(DateTime time) {
+    throw const FileSystemException('Simulated set last modified failure');
+  }
+}
+
 /// A mock [RandomAccessFile] backed by an in-memory byte list.
 ///
 /// [setPositionSync] moves the cursor. [readIntoSync] copies at most two bytes
@@ -1126,7 +1266,10 @@ class _TestFile implements RandomAccessFile {
   }
 }
 
-/// Supplies a controlled handle when the owning constructor opens a file.
+/// Supplies a controlled handle when [SingleFileByteStore.inDirectory] opens
+/// its file.
+///
+/// [setLastModifiedSync] does nothing.
 class _TestFileSource implements File {
   final _TestFile handle;
 
@@ -1140,4 +1283,7 @@ class _TestFileSource implements File {
     expect(mode, FileMode.append);
     return handle;
   }
+
+  @override
+  void setLastModifiedSync(DateTime time) {}
 }
