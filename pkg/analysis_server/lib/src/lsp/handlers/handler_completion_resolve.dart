@@ -10,6 +10,7 @@ import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/utilities/element_location2.dart';
+import 'package:analysis_server/src/utilities/extensions/analysis_session.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -149,7 +150,7 @@ class CompletionResolveHandler
           Either2<MarkupContent, String>? documentation;
           if (element != null) {
             var formats = clientCapabilities.completionDocumentationFormats;
-            var dartDocInfo = server.getDartdocDirectiveInfoForSession(session);
+            var dartDocInfo = session.dartdocDirectiveInfo;
             var dartDocComputer = DartDocumentationComputer(dartDocInfo);
             var dartDoc = dartDocComputer.computePreferred(
               element,

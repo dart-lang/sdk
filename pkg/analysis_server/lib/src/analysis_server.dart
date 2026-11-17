@@ -73,7 +73,6 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as analysis;
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_byte_store.dart'
     show EvictingFileByteStore;
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
@@ -84,7 +83,6 @@ import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/analysis/single_file_byte_store.dart';
 import 'package:analyzer/src/dart/analysis/status.dart' as analysis;
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
-import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/file_system/timing_resource_provider.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -901,18 +899,6 @@ abstract class AnalysisServer {
       return analysisDriver.currentSession;
     }
     return null;
-  }
-
-  DartdocDirectiveInfo getDartdocDirectiveInfoFor(ResolvedUnitResult result) {
-    return getDartdocDirectiveInfoForSession(result.session);
-  }
-
-  DartdocDirectiveInfo getDartdocDirectiveInfoForSession(
-    AnalysisSession session,
-  ) {
-    var analysisContext = session.analysisContext;
-    analysisContext as DriverBasedAnalysisContext;
-    return analysisContext.driver.dartdocDirectiveInfo;
   }
 
   /// Gets the current version number of a document.

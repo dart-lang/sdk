@@ -8,6 +8,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
+import 'package:analysis_server/src/utilities/extensions/analysis_session.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 
 /// The handler for the `analysis.getHover` request.
@@ -42,7 +43,7 @@ class AnalysisGetHoverHandler extends LegacyHandler {
     // Prepare the hovers.
     var hovers = <HoverInformation>[];
     var computer = DartUnitHoverComputer(
-      server.getDartdocDirectiveInfoFor(result),
+      result.session.dartdocDirectiveInfo,
       unit,
       params.offset,
     );
