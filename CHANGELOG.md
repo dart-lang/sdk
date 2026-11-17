@@ -1,5 +1,7 @@
 ## 3.14.1
 
+**Released on:** 2026-11-17
+
 This is a patch release that:
 
 - Fixes an AOT compiler crash (`linearscan.cc: unreachable code`) when a
