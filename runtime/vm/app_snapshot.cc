@@ -2692,13 +2692,11 @@ class CodeSerializationCluster : public SerializationCluster {
   // there is no way to identify which specific Code object (out of those
   // which point to the specific instructions range) actually corresponds
   // to a particular frame.
-  static int CompareCodeOrderInfo(CodeOrderInfo const* a,
-                                  CodeOrderInfo const* b) {
-    if (a->not_discarded < b->not_discarded) return -1;
-    if (a->not_discarded > b->not_discarded) return 1;
-    if (a->instructions_id < b->instructions_id) return -1;
-    if (a->instructions_id > b->instructions_id) return 1;
-    return 0;
+  static bool CompareCodeOrderInfo(CodeOrderInfo const& a,
+                                   CodeOrderInfo const& b) {
+    if (a.not_discarded < b.not_discarded) return true;
+    if (a.not_discarded > b.not_discarded) return false;
+    return a.instructions_id < b.instructions_id;
   }
 
   static void Insert(Serializer* s,
@@ -8656,11 +8654,8 @@ void Serializer::PrepareInstructions(
 
     // Sort stack maps by usage so that most commonly used stack maps are
     // together at the start of the Data object.
-    stack_maps.Sort([](StackMapInfo* const* a, StackMapInfo* const* b) {
-      if ((*a)->use_count < (*b)->use_count) return 1;
-      if ((*a)->use_count > (*b)->use_count) return -1;
-      return 0;
-    });
+    stack_maps.Sort(
+        [](auto& a, auto& b) { return a->use_count > b->use_count; });
 
     // Build Data object.
     MallocWriteStream pc_mapping(4 * KB);
@@ -8956,17 +8951,6 @@ void Serializer::WriteVersionAndFeatures() {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-static int CompareClusters(SerializationCluster* const* a,
-                           SerializationCluster* const* b) {
-  if ((*a)->size() > (*b)->size()) {
-    return -1;
-  } else if ((*a)->size() < (*b)->size()) {
-    return 1;
-  } else {
-    return 0;
-  }
-}
-
 #define CID_CLUSTER(Type)                                                      \
   reinterpret_cast<Type##SerializationCluster*>(clusters_by_cid_[k##Type##Cid])
 
@@ -9374,7 +9358,8 @@ void Serializer::PrintSnapshotSizes() {
       clusters_by_size.Add(new (zone_) FakeSerializationCluster(
           "InstructionsTable", instructions_table_len_, 0, memory_size));
     }
-    clusters_by_size.Sort(CompareClusters);
+    clusters_by_size.Sort(
+        [](auto& a, auto& b) { return a->size() > b->size(); });
     double total_size =
         static_cast<double>(bytes_written() + GetDataSize() + text_size);
     double cumulative_fraction = 0.0;

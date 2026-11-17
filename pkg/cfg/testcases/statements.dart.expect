@@ -442,6 +442,26 @@ B2 = CatchBlock() idom:B0
   Parameter(#stackTrace)
   Return(v12)
 
+--- tryOnTypedCatchVariable
+B0 = EntryBlock() dominates:(B2, B1)
+  v4 = Constant(1)
+  v24 = Constant(0)
+  TryEntry(try-body: B1, catch-block: B2)
+B1 = TargetBlock() exception-handler:B2 idom:B0
+  DirectCall print(v4)
+  Return(v24)
+B2 = CatchBlock() idom:B0 dominates:(B13, B12)
+  v8 = Parameter(#exception)
+  v9 = Parameter(#stackTrace)
+  v11 = TypeTest(v8, int)
+  Branch(v11, true: B12, false: B13)
+B12 = TargetBlock() idom:B2
+  v16 = TypeCast(v8, int, unchecked)
+  v19 = BinaryIntOp +(v16, v4)
+  Return(v19)
+B13 = TargetBlock() idom:B2
+  Throw(v8, v9)
+
 --- main
 B0 = EntryBlock()
   v1 = Constant("hey")

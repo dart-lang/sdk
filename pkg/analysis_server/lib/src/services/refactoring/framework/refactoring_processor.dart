@@ -42,6 +42,8 @@ class RefactoringProcessor {
     ConvertSelectedFormalParametersToNamed.commandName:
         ConvertSelectedFormalParametersToNamed.new,
     ExtractLocalVariable.commandName: ExtractLocalVariable.new,
+    ExtractLocalVariableAllOccurrences.commandName:
+        ExtractLocalVariableAllOccurrences.new,
     ExtractMethod.commandName: ExtractMethod.new,
     ExtractWidget.commandName: ExtractWidget.new,
     InlineLocalVariable.commandName: InlineLocalVariable.new,

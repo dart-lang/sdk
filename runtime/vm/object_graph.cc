@@ -116,11 +116,7 @@ class ObjectSlots {
       }
 
       // We sort the slots, so we'll visit the slots in memory order.
-      slots->Sort([](const ObjectSlot* a, const ObjectSlot* b) {
-        if (a->offset < b->offset) return -1;
-        if (a->offset > b->offset) return 1;
-        return 0;
-      });
+      slots->Sort([](auto& a, auto& b) { return a.offset < b.offset; });
 
       // As optimization as well as to support variable-length data, we remember
       // whether this class has only pure tagged pointers in it, then we can
@@ -870,7 +866,7 @@ void HeapSnapshotWriter::SetupImagePageBoundaries() {
     image_page = image_page->next();
   }
 
-  ranges.Sort(CompareImagePageRanges);
+  ranges.Sort([](auto& a, auto& b) { return a.start < b.start; });
   intptr_t image_page_count;
   ranges.StealBuffer(&image_page_ranges_, &image_page_count);
   image_page_hi_ = image_page_count - 1;

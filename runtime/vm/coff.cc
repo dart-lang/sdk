@@ -53,13 +53,12 @@ struct SharedUnwindInfo {
   uint32_t xdata_offset = 0;
 };
 
-int CompareFunctionUnwindRange(const FunctionUnwindRange* a,
-                               const FunctionUnwindRange* b) {
-  if (a->begin < b->begin) return -1;
-  if (a->begin > b->begin) return 1;
-  if (a->end < b->end) return -1;
-  if (a->end > b->end) return 1;
-  return 0;
+bool CompareFunctionUnwindRange(const FunctionUnwindRange& a,
+                                const FunctionUnwindRange& b) {
+  if (a.begin == b.begin) {
+    return a.end < b.end;
+  }
+  return a.begin < b.begin;
 }
 
 }  // namespace

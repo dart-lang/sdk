@@ -626,7 +626,7 @@ void GCCompactor::SetupImagePageBoundaries() {
     image_page = image_page->next();
   }
 
-  ranges.Sort(CompareImagePageRanges);
+  ranges.Sort([](auto& a, auto& b) { return a.start < b.start; });
   intptr_t image_page_count;
   ranges.StealBuffer(&image_page_ranges_, &image_page_count);
   image_page_hi_ = image_page_count - 1;

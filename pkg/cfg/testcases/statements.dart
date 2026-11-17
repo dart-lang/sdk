@@ -180,6 +180,15 @@ void throwAfterTry() {
   throw 'Done!';
 }
 
+int tryOnTypedCatchVariable() {
+  try {
+    print(1);
+  } on int catch (e) {
+    return e + 1;
+  }
+  return 0;
+}
+
 void main() {
   print('hey');
 }

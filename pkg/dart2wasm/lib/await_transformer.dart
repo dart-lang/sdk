@@ -459,7 +459,7 @@ class _AwaitTransformer extends Transformer {
       // TODO (omersa): We could mark [TreeNode]s with `await`s and only do this
       catch_.exception ??= CatchVariable(
         name: '#exception',
-        type: InterfaceType(coreTypes.objectClass, Nullability.nonNullable),
+        type: catch_.guard,
         isSynthesized: true,
       )..parent = catch_;
       catch_.stackTrace ??= CatchVariable(

@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_parser.dart';
 import 'package:analysis_server/src/session_logger/process_id.dart';
 import 'package:analysis_server/src/session_logger/session_listener.dart';
@@ -201,6 +202,9 @@ class ContextManagerImpl implements ContextManager {
   /// The scheduler used to create analysis contexts, and report status.
   final AnalysisDriverScheduler _scheduler;
 
+  /// The object through which analytics are to be sent.
+  final AnalyticsManager _analyticsManager;
+
   /// The current set of analysis contexts, or `null` if the context roots have
   /// not yet been set.
   AnalysisContextCollectionImpl? _collection;
@@ -285,6 +289,7 @@ class ContextManagerImpl implements ContextManager {
     this._unlinkedUnitStore,
     this._performanceLog,
     this._scheduler,
+    this._analyticsManager,
     this._instrumentationService,
     this._sessionListener, {
     this.callbacks = const NoopContextManagerCallbacks(),
@@ -711,6 +716,7 @@ class ContextManagerImpl implements ContextManager {
       Future<void> performContextRebuild() async {
         await _destroyAnalysisContexts();
         _fileContentCache.invalidateAll();
+        _analyticsManager.analysisReason = reason;
 
         var watchers = <ResourceWatcher>[];
         var collection = _collection = AnalysisContextCollectionImpl(

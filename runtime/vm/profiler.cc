@@ -1471,7 +1471,7 @@ void CodeLookupTable::Build(Thread* thread) {
   thread->CheckForSafepoint();
 
   // Sort by entry.
-  code_objects_.Sort(CodeDescriptor::Compare);
+  code_objects_.Sort([](auto& a, auto& b) { return a->Start() < b->Start(); });
 
 #if defined(DEBUG)
   if (length() <= 1) {
@@ -1641,11 +1641,7 @@ class PerfettoPerfSampleWriter : public ValueObject {
       });
     });
 
-    mappings_.Sort([](auto a, auto b) -> int {
-      if ((*a)->start < (*b)->start) return -1;
-      if ((*a)->start > (*b)->start) return 1;
-      return 0;
-    });
+    mappings_.Sort([](auto& a, auto& b) { return a->start < b->start; });
 
     // Remove duplicated mappings.
     intptr_t j = 0;

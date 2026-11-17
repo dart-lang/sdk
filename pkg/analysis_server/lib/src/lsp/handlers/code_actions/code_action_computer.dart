@@ -367,10 +367,14 @@ class CodeActionComputer with HandlerHelperMixin<AnalysisServer> {
     }
 
     return success([
-      ...sourceActions,
       ...sorter.sort(fixActions),
       ...sorter.sort(assistActions),
       ...refactorActions,
+      // Source actions come last for editors that show them in the lightbulb
+      // menu, since the LSP spec does not state that they should not show up
+      // there.
+      // https://github.com/dart-lang/sdk/issues/64939
+      ...sourceActions,
     ]);
   }
 

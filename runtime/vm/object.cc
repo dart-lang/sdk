@@ -13710,8 +13710,8 @@ void Script::set_line_starts(const TypedData& value) const {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
-static int LowestFirst(const intptr_t* a, const intptr_t* b) {
-  return *a - *b;
+static bool LowestFirst(const intptr_t& a, const intptr_t& b) {
+  return a < b;
 }
 
 static ArrayPtr SortAndDeduplicate(GrowableArray<intptr_t>* source) {
@@ -17681,18 +17681,15 @@ struct CidCount {
   CidCount(intptr_t cid_, intptr_t count_, Function* f_)
       : cid(cid_), count(count_), function(f_) {}
 
-  static int HighestCountFirst(const CidCount* a, const CidCount* b);
+  static bool HighestCountFirst(const CidCount& a, const CidCount& b);
 
   intptr_t cid;
   intptr_t count;
   Function* function;
 };
 
-int CidCount::HighestCountFirst(const CidCount* a, const CidCount* b) {
-  if (a->count > b->count) {
-    return -1;
-  }
-  return (a->count < b->count) ? 1 : 0;
+bool CidCount::HighestCountFirst(const CidCount& a, const CidCount& b) {
+  return a.count > b.count;
 }
 
 ICDataPtr ICData::AsUnaryClassChecksSortedByCount() const {

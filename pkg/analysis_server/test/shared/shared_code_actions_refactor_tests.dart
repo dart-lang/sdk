@@ -777,6 +777,8 @@ mixin SharedExtractVariableRefactorCodeActionsTests
         ClientCapabilitiesHelperMixin {
   final convertMethodToGetterTitle = 'Convert Method to Getter';
   final extractVariableTitle = 'Extract Local Variable';
+  final extractVariableAllOccurrencesTitle =
+      'Extract All Occurrences as Local Variable';
   final inlineMethodTitle = 'Inline Method';
 
   Future<void> test_appliesCorrectEdits() async {
@@ -1008,6 +1010,64 @@ class A {
       expectedContent,
       command: ConvertMethodToGetter.commandName,
       title: convertMethodToGetterTitle,
+    );
+  }
+
+  Future<void> test_multipleOccurrences_allOccurrencesCommand() async {
+    const content = '''
+void f() {
+  foo([!1 + 2!]);
+  foo(1 + 2);
+  var x = 1 + 2;
+}
+
+void foo(int arg) {}
+''';
+    const expectedContent = '''
+void f() {
+  var arg = 1 + 2;
+  foo(arg);
+  foo(arg);
+  var x = arg;
+}
+
+void foo(int arg) {}
+''';
+
+    await verifyCodeActionLiteralEdits(
+      content,
+      expectedContent,
+      command: ExtractLocalVariableAllOccurrences.commandName,
+      title: extractVariableAllOccurrencesTitle,
+    );
+  }
+
+  Future<void> test_multipleOccurrences_singleCommand() async {
+    const content = '''
+void f() {
+  foo([!1 + 2!]);
+  foo(1 + 2);
+  var x = 1 + 2;
+}
+
+void foo(int arg) {}
+''';
+    const expectedContent = '''
+void f() {
+  var arg = 1 + 2;
+  foo(arg);
+  foo(1 + 2);
+  var x = 1 + 2;
+}
+
+void foo(int arg) {}
+''';
+
+    await verifyCodeActionLiteralEdits(
+      content,
+      expectedContent,
+      command: ExtractLocalVariable.commandName,
+      title: extractVariableTitle,
     );
   }
 }

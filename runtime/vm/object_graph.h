@@ -269,16 +269,6 @@ class HeapSnapshotWriter : public ThreadStackResource {
     uword start;
     uword end;
   };
-  static int CompareImagePageRanges(const ImagePageRange* a,
-                                    const ImagePageRange* b) {
-    if (a->start < b->start) {
-      return -1;
-    } else if (a->start == b->start) {
-      return 0;
-    } else {
-      return 1;
-    }
-  }
   intptr_t image_page_hi_ = 0;
   ImagePageRange* image_page_ranges_ = nullptr;
 

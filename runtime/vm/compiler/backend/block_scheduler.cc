@@ -98,8 +98,6 @@ struct Edge {
   Edge(BlockEntryInstr* source, BlockEntryInstr* target, double weight)
       : source(source), target(target), weight(weight) {}
 
-  static int LowestWeightFirst(const Edge* a, const Edge* b);
-
   BlockEntryInstr* source;
   BlockEntryInstr* target;
   double weight;
@@ -123,13 +121,6 @@ struct Chain : public ZoneObject {
   Link* last;
   intptr_t length;
 };
-
-int Edge::LowestWeightFirst(const Edge* a, const Edge* b) {
-  if (a->weight < b->weight) {
-    return -1;
-  }
-  return (a->weight > b->weight) ? 1 : 0;
-}
 
 // Combine two chains by adding the shorter chain's links to the longer
 // chain.
@@ -198,7 +189,7 @@ void BlockScheduler::ReorderBlocksJIT(FlowGraph* flow_graph) {
   }
 
   // Handle each edge in turn.  The edges are sorted by increasing weight.
-  edges.Sort(Edge::LowestWeightFirst);
+  edges.Sort([](auto& a, auto& b) { return a.weight < b.weight; });
   while (!edges.is_empty()) {
     Edge edge = edges.RemoveLast();
     Chain* source_chain = chains[edge.source->postorder_number()];
