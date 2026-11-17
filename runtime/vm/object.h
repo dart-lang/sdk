@@ -11094,6 +11094,8 @@ class OneByteString : public AllStatic {
     return String::RoundedAllocationSize(UnroundedSize(len));
   }
 
+  // The payload is not guaranteed to be zero initialized. The caller must
+  // write every code unit before the string is used.
   static OneByteStringPtr New(intptr_t len, Heap::Space space);
   static OneByteStringPtr New(const char* c_string,
                               Heap::Space space = Heap::kNew) {
@@ -11235,6 +11237,8 @@ class TwoByteString : public AllStatic {
     return String::RoundedAllocationSize(UnroundedSize(len));
   }
 
+  // The payload is not guaranteed to be zero initialized. The caller must
+  // write every code unit before the string is used.
   static TwoByteStringPtr New(intptr_t len, Heap::Space space);
   static TwoByteStringPtr New(const uint16_t* characters,
                               intptr_t len,

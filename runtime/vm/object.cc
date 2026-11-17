@@ -2496,7 +2496,8 @@ void Object::InitializeObject(uword address,
   // pointer fields is inclusive (the address of the last field to initialize).
   ASSERT(ptr_field_end < end);
   bool needs_init = true;
-  if (IsTypedDataBaseClassId(class_id) || class_id == kArrayCid) {
+  if (IsTypedDataBaseClassId(class_id) || class_id == kArrayCid ||
+      class_id == kOneByteStringCid || class_id == kTwoByteStringCid) {
     // If the size is greater than both Heap::kNewAllocatableSize and
     // kAllocatablePageSize, the object must have been allocated to a new
     // large page, which must already have been zero initialized by the OS.
