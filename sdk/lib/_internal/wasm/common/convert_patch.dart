@@ -1891,7 +1891,7 @@ class _JsonStringDecoderSink extends StringConversionSinkBase {
     final parser = _stringParser;
     parser.setNewChunk(chunk, end);
     parser.parse(start);
-    if (isLast) parser.close();
+    if (isLast) close();
   }
 
   void add(String chunk) {
