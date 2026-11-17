@@ -24,6 +24,9 @@ part "symbol_patch.dart";
 external Object? extractTypeArguments<T>(T instance, Function extract);
 
 /// The returned string is a [_OneByteString] with uninitialized content.
+///
+/// The content is not guaranteed to be zero, so the caller must write every
+/// code unit before the string is used.
 @pragma("vm:recognized", "asm-intrinsic")
 @pragma("vm:external-name", "Internal_allocateOneByteString")
 @pragma("vm:exact-result-type", "dart:core#_OneByteString")
@@ -61,6 +64,9 @@ String createOneByteStringFromCharacters(Uint8List bytes, int start, int end) {
 }
 
 /// The returned string is a [_TwoByteString] with uninitialized content.
+///
+/// The content is not guaranteed to be zero, so the caller must write every
+/// code unit before the string is used.
 @pragma("vm:recognized", "asm-intrinsic")
 @pragma("vm:external-name", "Internal_allocateTwoByteString")
 @pragma("vm:exact-result-type", "dart:core#_TwoByteString")

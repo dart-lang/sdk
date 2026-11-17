@@ -4267,6 +4267,42 @@ ASSEMBLER_TEST_RUN(Vabsqs, test) {
   }
 }
 
+ASSEMBLER_TEST_GENERATE(Vabsqi, assembler) {
+  if (TargetCPUFeatures::neon_supported()) {
+    __ LoadUnboxedSimd128(Q0, R0, 0);
+    __ vabsqi(Q1, Q0);
+    __ StoreUnboxedSimd128(Q1, R0, 16);
+  }
+  __ Ret();
+}
+
+ASSEMBLER_TEST_RUN(Vabsqi, test) {
+  EXPECT(test != nullptr);
+  if (TargetCPUFeatures::neon_supported()) {
+    typedef void (*VabsqiCode)(intptr_t) DART_UNUSED;
+    struct {
+      int32_t values[4];
+      int32_t result[4];
+    } buffer;
+    auto check = [&](const int32_t (&values)[4], const int32_t (&expected)[4]) {
+      for (intptr_t i = 0; i < 4; i++) {
+        buffer.values[i] = values[i];
+        buffer.result[i] = static_cast<int32_t>(0xAAAAAAAA);
+      }
+      EXECUTE_TEST_CODE_INTPTR_INTPTR(VabsqiCode, test->entry(),
+                                      reinterpret_cast<intptr_t>(&buffer));
+      for (intptr_t i = 0; i < 4; i++) {
+        EXPECT_EQ(expected[i], buffer.result[i]);
+      }
+    };
+    check({5, -6, 7, -8}, {5, 6, 7, 8});
+    check({-5, 6, -7, 8}, {5, 6, 7, 8});
+    check({0, -1, kMaxInt32, 1}, {0, 1, kMaxInt32, 1});
+    check({kMinInt32, kMinInt32 + 1, kMaxInt32, 0},
+          {kMinInt32, kMaxInt32, kMaxInt32, 0});
+  }
+}
+
 ASSEMBLER_TEST_GENERATE(Vnegqs, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
     __ LoadSImmediate(S4, 1.0);

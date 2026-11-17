@@ -1435,6 +1435,17 @@ abstract class SubtypeTest<T, E> {
     isSubtype("Null", "(int, String)?");
     isNotSubtype("(int, String)?", "Record");
 
+    // Records against typedef types.
+    isSubtype("(int, String)", "Id<(int, String)>");
+    isSubtype("(int, String)", "Id<(num, Object)>");
+    isSubtype("(int, {String foo})", "Id<(num, {Object foo})>");
+    isSubtype("(int, String)", "Id<(num, Object)?>");
+    isSubtype("(int, String)", "Id<(num, Object)>?");
+    isSubtype("(int, String)", "Id<Record>");
+    isSubtype("(int, String)", "Id<Object>");
+    isNotSubtype("(num, Object)", "Id<(int, String)>");
+    isNotSubtype("(int, String)?", "Id<(num, Object)>");
+
     // Tests for extension types.
     isSubtype("Never", "NullableExtensionType");
     isSubtype("Never", "NonNullableExtensionType");

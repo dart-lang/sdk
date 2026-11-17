@@ -2156,6 +2156,7 @@ final class _Int32x4 implements Int32x4 {
   @pragma("vm:recognized", "other")
   Int32x4 operator -() => Int32x4(-x, -y, -z, -w);
 
+  @pragma("vm:recognized", "other")
   Int32x4 abs() => Int32x4(x.abs(), y.abs(), z.abs(), w.abs());
 
   @pragma("vm:recognized", "other")

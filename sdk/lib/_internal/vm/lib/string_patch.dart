@@ -1305,7 +1305,8 @@ final class _OneByteString extends _StringBase {
   }
 
   // Allocates a string of given length, expecting its content to be
-  // set using _setAt.
+  // set using _setAt. The content is not guaranteed to be zero initialized,
+  // so every code unit must be written before the string is used.
   @pragma("vm:exact-result-type", _OneByteString)
   @pragma("vm:prefer-inline")
   static _OneByteString _allocate(int length) {
@@ -1352,7 +1353,8 @@ final class _TwoByteString extends _StringBase {
   }
 
   // Allocates a string of given length, expecting its content to be
-  // set using _setAt.
+  // set using _setAt. The content is not guaranteed to be zero initialized,
+  // so every code unit must be written before the string is used.
   @pragma("vm:exact-result-type", _TwoByteString)
   @pragma("vm:prefer-inline")
   static _TwoByteString _allocate(int length) {

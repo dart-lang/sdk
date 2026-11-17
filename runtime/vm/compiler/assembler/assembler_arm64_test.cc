@@ -5930,6 +5930,42 @@ ASSEMBLER_TEST_RUN(Vabsd, test) {
       "ret\n");
 }
 
+ASSEMBLER_TEST_GENERATE(Vabsw, assembler) {
+  __ fldrq(V0, Address(R0, 0));
+  __ vabsw(V1, V0);
+  __ fstrq(V1, Address(R0, 16));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Vabsw, test) {
+  typedef void (*VabswCode)(intptr_t) DART_UNUSED;
+  struct {
+    int32_t values[4];
+    int32_t result[4];
+  } buffer;
+  auto check = [&](const int32_t (&values)[4], const int32_t (&expected)[4]) {
+    for (intptr_t i = 0; i < 4; i++) {
+      buffer.values[i] = values[i];
+      buffer.result[i] = static_cast<int32_t>(0xAAAAAAAA);
+    }
+    EXECUTE_TEST_CODE_INTPTR_INTPTR(VabswCode, test->entry(),
+                                    reinterpret_cast<intptr_t>(&buffer));
+    for (intptr_t i = 0; i < 4; i++) {
+      EXPECT_EQ(expected[i], buffer.result[i]);
+    }
+  };
+  check({5, -6, 7, -8}, {5, 6, 7, 8});
+  check({-5, 6, -7, 8}, {5, 6, 7, 8});
+  check({0, -1, kMaxInt32, 1}, {0, 1, kMaxInt32, 1});
+  check({kMinInt32, kMinInt32 + 1, kMaxInt32, 0},
+        {kMinInt32, kMaxInt32, kMaxInt32, 0});
+  EXPECT_DISASSEMBLY(
+      "fldrq v0, [r0]\n"
+      "vabsw v1, v0\n"
+      "fstrq v1, [r0, #16]\n"
+      "ret\n");
+}
+
 ASSEMBLER_TEST_GENERATE(Vnegs, assembler) {
   __ LoadDImmediate(V1, 42.0);
   __ LoadDImmediate(V2, -84.0);

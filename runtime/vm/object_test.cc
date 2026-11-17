@@ -7761,6 +7761,33 @@ ISOLATE_UNIT_TEST_CASE(AbstractType_NormalizeFutureOrType) {
         normalized_future_or(type_nullable_int, Nullability::kNullable));
     EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got);
   }
+
+  // R is nullable if it is a nullable FutureOr, even if its own type argument
+  // is not nullable.
+
+  {
+    const auto& type_nullable_future_or_int = Type::Handle(
+        CreateFutureOrType(Type::Handle(object_store->non_nullable_int_type()),
+                           Nullability::kNullable));
+    const auto& expected = Type::Handle(CreateFutureOrType(
+        type_nullable_future_or_int, Nullability::kNonNullable));
+    const auto& got = AbstractType::Handle(normalized_future_or(
+        type_nullable_future_or_int, Nullability::kNullable));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got);
+  }
+
+  //   else S?
+
+  {
+    const auto& type_future_or_int = Type::Handle(
+        CreateFutureOrType(Type::Handle(object_store->non_nullable_int_type()),
+                           Nullability::kNonNullable));
+    const auto& expected = Type::Handle(
+        CreateFutureOrType(type_future_or_int, Nullability::kNullable));
+    const auto& got = AbstractType::Handle(
+        normalized_future_or(type_future_or_int, Nullability::kNullable));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got);
+  }
 }
 
 TEST_CASE(AbstractType_InstantiatedFutureOrIsNormalized) {
@@ -7948,6 +7975,18 @@ FutureOr<T?> bar<T>() { return null; }
         CreateFutureOrType(type_non_nullable_int, Nullability::kNullable));
     const auto& got = AbstractType::Handle(
         instantiate_future_or(nullable_future_or_T, type_non_nullable_int));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got);
+  }
+
+  // FutureOr<T>?[FutureOr<int>?] = FutureOr<FutureOr<int>?>
+
+  {
+    const auto& type_nullable_future_or_int = Type::Handle(
+        CreateFutureOrType(type_non_nullable_int, Nullability::kNullable));
+    const auto& expected = Type::Handle(CreateFutureOrType(
+        type_nullable_future_or_int, Nullability::kNonNullable));
+    const auto& got = AbstractType::Handle(instantiate_future_or(
+        nullable_future_or_T, type_nullable_future_or_int));
     EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got);
   }
 }

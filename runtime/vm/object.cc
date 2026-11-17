@@ -2496,7 +2496,8 @@ void Object::InitializeObject(uword address,
   // pointer fields is inclusive (the address of the last field to initialize).
   ASSERT(ptr_field_end < end);
   bool needs_init = true;
-  if (IsTypedDataBaseClassId(class_id) || class_id == kArrayCid) {
+  if (IsTypedDataBaseClassId(class_id) || class_id == kArrayCid ||
+      class_id == kOneByteStringCid || class_id == kTwoByteStringCid) {
     // If the size is greater than both Heap::kNewAllocatableSize and
     // kAllocatablePageSize, the object must have been allocated to a new
     // large page, which must already have been zero initialized by the OS.
@@ -6307,10 +6308,11 @@ bool Class::IsSubtypeOf(const Class& cls,
         }
       }
       // Check T0 <: Future<S1> when T0 is FutureOr<S0> is already done.
-      // Check T0 <: S1.
+      // Check T0 <: S1. If T0 is nullable, Null <: T1 was checked above, so
+      // only the non-nullable part of T0 needs to be a subtype of S1.
       if (other_type_arg.HasTypeClass() &&
-          Class::IsSubtypeOf(this_class, type_arguments, nullability,
-                             other_type_arg, space,
+          Class::IsSubtypeOf(this_class, type_arguments,
+                             Nullability::kNonNullable, other_type_arg, space,
                              function_type_equivalence)) {
         TRACE_TYPE_CHECKS_VERBOSE(
             "   - result: true (right is FutureOr, subtype of arg)\n");
@@ -21479,7 +21481,10 @@ bool Instance::NullIsAssignableTo(const AbstractType& other) {
     return true;
   }
   if (other.IsFutureOrType()) {
-    return NullIsAssignableTo(AbstractType::Handle(other.UnwrapFutureOr()));
+    // Unwrap only one level, as a nested FutureOr may be nullable.
+    const auto& type_args = TypeArguments::Handle(other.arguments());
+    return NullIsAssignableTo(
+        AbstractType::Handle(type_args.TypeAtNullSafe(0)));
   }
   // Since the TAVs are not available, for non-nullable type parameters
   // this returns a conservative approximation of "not assignable" .
@@ -21864,7 +21869,10 @@ bool AbstractType::IsStrictlyNonNullable() const {
     return bound.IsStrictlyNonNullable();
   }
   if (IsFutureOrType()) {
-    return AbstractType::Handle(zone, UnwrapFutureOr()).IsStrictlyNonNullable();
+    // Unwrap only one level, as a nested FutureOr may be nullable.
+    const auto& type_args = TypeArguments::Handle(zone, arguments());
+    return AbstractType::Handle(zone, type_args.TypeAtNullSafe(0))
+        .IsStrictlyNonNullable();
   }
   return true;
 }
@@ -21906,8 +21914,11 @@ AbstractTypePtr AbstractType::SetInstantiatedNullability(
 AbstractTypePtr AbstractType::NormalizeFutureOrType(Heap::Space space) const {
   if (IsFutureOrType()) {
     Zone* zone = Thread::Current()->zone();
+    // The type argument is already normalized, so only unwrap one level. A
+    // nested FutureOr may be nullable, which affects the result.
+    const auto& type_args = TypeArguments::Handle(zone, arguments());
     const AbstractType& unwrapped_type =
-        AbstractType::Handle(zone, UnwrapFutureOr());
+        AbstractType::Handle(zone, type_args.TypeAtNullSafe(0));
     const classid_t cid = unwrapped_type.type_class_id();
     if (cid == kDynamicCid || cid == kVoidCid) {
       return unwrapped_type.ptr();
@@ -22385,6 +22396,15 @@ bool AbstractType::IsSubtypeOf(
         return true;
       }
     }
+    // Left nullable:
+    //   if T0 is X0? then:
+    //     T0 <: T1 iff X0 <: T1 and Null <: T1
+    // The bound of X0 is checked below, so check Null <: T1 first.
+    if (type_param.IsNullable() && !Instance::NullIsAssignableTo(other)) {
+      TRACE_TYPE_CHECKS_VERBOSE(
+          "   - result: false (nullable type parameter)\n");
+      return false;
+    }
     const AbstractType& bound = AbstractType::Handle(zone, type_param.bound());
     ASSERT(bound.IsFinalized());
     if (bound.IsSubtypeOf(other, space, function_type_equivalence)) {
@@ -22508,6 +22528,26 @@ bool AbstractType::IsSubtypeOfFutureOr(
         AbstractType::Handle(zone, other_type_arguments.TypeAtNullSafe(0));
     if (other_type_arg.IsTopType()) {
       return true;
+    }
+    // Trying to answer T0 <: FutureOr<T1> where T0 is nullable.
+    // This requires Null <: FutureOr<T1> and NonNullable(T0) <: T1.
+    if (IsNullable()) {
+      if (!Instance::NullIsAssignableTo(other)) {
+        return false;
+      }
+      auto& non_nullable = AbstractType::Handle(zone);
+      if (IsFunctionType()) {
+        non_nullable = FunctionType::Cast(*this).ToNullability(
+            Nullability::kNonNullable, space);
+      } else if (IsRecordType()) {
+        non_nullable = RecordType::Cast(*this).ToNullability(
+            Nullability::kNonNullable, space);
+      } else {
+        non_nullable = TypeParameter::Cast(*this).ToNullability(
+            Nullability::kNonNullable, space);
+      }
+      return non_nullable.IsSubtypeOf(other_type_arg, space,
+                                      function_type_equivalence);
     }
     // Retry the IsSubtypeOf check after unwrapping type arg of FutureOr.
     if (IsSubtypeOf(other_type_arg, space, function_type_equivalence)) {
