@@ -1549,6 +1549,7 @@ class _JsonStringDecoderSink extends StringConversionSinkBase {
   }
 
   void addSlice(String chunk, int start, int end, bool isLast) {
+    RangeError.checkValidRange(start, end, chunk.length);
     _parser.chunk = chunk;
     _parser.chunkEnd = end;
     _parser.parse(start);
@@ -1679,6 +1680,7 @@ class _JsonUtf8DecoderSink extends ByteConversionSink {
   }
 
   void addSlice(List<int> chunk, int start, int end, bool isLast) {
+    RangeError.checkValidRange(start, end, chunk.length);
     _addChunk(chunk, start, end);
     if (isLast) close();
   }

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:convert";
+import "dart:typed_data";
 
 import "package:expect/expect.dart";
 
@@ -18,12 +19,26 @@ void main() {
   Expect.throwsFormatException(() => decodeWindows('[1, 2', 2));
   Expect.throwsFormatException(() => decodeWindows('[1, 2]]', 3));
 
+  final bytes = Uint8List.fromList(utf8.encode('[1,2]'));
+  final view = Uint8List.sublistView(bytes, 0, 3);
+  Expect.throwsRangeError(() => newSink().addSlice('[1]', 0, 4, false));
+  Expect.throwsRangeError(
+    () => newSink().asUtf8Sink(false).addSlice(view, 0, 5, false),
+  );
+  Expect.throwsRangeError(
+    () => newSink().asUtf8Sink(false).addSlice(bytes, 0, 6, false),
+  );
+
   final long = '[${List.filled(200000, '1').join(',')}]';
   final sw = Stopwatch()..start();
   final value = decodeWindows(long, 16) as List;
   Expect.equals(200000, value.length);
   Expect.isTrue(sw.elapsed < const Duration(seconds: 10), 'took ${sw.elapsed}');
 }
+
+StringConversionSink newSink() => json.decoder.startChunkedConversion(
+  ChunkedConversionSink<Object?>.withCallback((_) {}),
+);
 
 Object? decodeWindows(String source, int window) {
   Object? result;

@@ -988,7 +988,7 @@ class Types with StandardBounds {
         return performSubtypeCheck(sStructuralParameterType.bound, tNullType);
 
       case (IntersectionType sIntersectionType, NullType tNullType):
-        return performMutualSubtypesCheck(sIntersectionType.right, tNullType);
+        return performSubtypeCheck(sIntersectionType.right, tNullType);
 
       case (TypedefType sTypedefType, NullType tNullType):
         return performSubtypeCheck(sTypedefType.unalias, tNullType);

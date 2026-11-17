@@ -1106,8 +1106,6 @@ class LspAnalysisServer extends AnalysisServer {
       changeForPlugins,
       precomputedNewContentForChange: precomputedNewContentForChange,
     );
-
-    notifyFlutterWidgetDescriptions(path);
   }
 
   /// Computes analysis roots for the set of open files.

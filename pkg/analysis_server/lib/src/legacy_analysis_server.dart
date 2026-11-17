@@ -328,6 +328,10 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// notifications should be sent.
   Map<AnalysisService, Set<String>> analysisServices = {};
 
+  /// The paths of files for which [ResolvedUnitResult] was produced since
+  /// the last idle state.
+  final Set<String> _filesResolvedSinceLastIdle = {};
+
   /// The most recently registered set of client capabilities. The default is to
   /// have no registered requests and no additional capabilities.
   ///
@@ -861,11 +865,6 @@ class LegacyAnalysisServer extends AnalysisServer {
     sendLspNotifications = true;
   }
 
-  @override
-  void notifyFlutterWidgetDescriptions(String path) {
-    flutterWidgetDescriptions.flush();
-  }
-
   /// Send the given LSP [notification] to the client.
   @override
   void sendLspNotification(lsp.NotificationMessage notification) {
@@ -1237,7 +1236,7 @@ class LegacyAnalysisServer extends AnalysisServer {
       // analyzed. Add it to driver to which it should have been added.
       contextManager.getDriverFor(file)?.addFile(file);
 
-      notifyFlutterWidgetDescriptions(file);
+      flutterWidgetDescriptions.flush();
 
       // TODO(scheglov): implement other cases
     });
@@ -1302,7 +1301,7 @@ class LegacyAnalysisServer extends AnalysisServer {
         sendAnalysisNotificationAnalyzedFiles(this);
       }
       _scheduleAnalysisImplementedNotification();
-      filesResolvedSinceLastIdle.clear();
+      _filesResolvedSinceLastIdle.clear();
     }
     // Only send status when subscribed.
     if (!serverServices.contains(ServerService.STATUS)) {
@@ -1331,7 +1330,7 @@ class LegacyAnalysisServer extends AnalysisServer {
       return;
     }
 
-    var toSend = subscribed.intersection(filesResolvedSinceLastIdle);
+    var toSend = subscribed.intersection(_filesResolvedSinceLastIdle);
     if (toSend.isEmpty) {
       return;
     }
@@ -1387,6 +1386,12 @@ class ServerContextManagerCallbacks
   }
 
   @override
+  void broadcastWatchEvent(WatchEvent event) {
+    analysisServer.flutterWidgetDescriptions.flush();
+    super.broadcastWatchEvent(event);
+  }
+
+  @override
   void flushResults(List<String> files) {
     sendAnalysisNotificationFlushResults(analysisServer, files);
   }
@@ -1394,6 +1399,7 @@ class ServerContextManagerCallbacks
   @override
   void handleResolvedUnitResult(ResolvedUnitResult result) {
     var path = result.path;
+    analysisServer._filesResolvedSinceLastIdle.add(path);
 
     var unit = result.unit;
     if (analysisServer._hasAnalysisServiceSubscription(
