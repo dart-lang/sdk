@@ -2525,6 +2525,6 @@ class _CallDispatcher implements CallDispatcher {
 }
 
 extension on Subject<SoundnessError> {
-  Subject<int> get address => has2('address', (e) => e.address);
-  Subject<String> get message => has2('message', (e) => e.message);
+  Subject<int> get address => has('address', (e) => e.address);
+  Subject<String> get message => has('message', (e) => e.message);
 }

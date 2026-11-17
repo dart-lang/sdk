@@ -97,7 +97,7 @@ void main() {
 
     await check(sandbox.hotReload()).throws<HotReloadRejectedException>(
       .it()
-        ..has2(
+        ..has(
           'message',
           (it) => it.message,
         ).contains('Enum class cannot be redefined'),
