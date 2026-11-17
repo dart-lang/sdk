@@ -1,1 +1,7 @@
 file:/tools/OWNERS_ECOSYSTEM
+
+# Allow owners of internal SDK APIs to update call sites.
+per-file lib/src/tools/language_server.dart=file:/pkg/analysis_server/OWNERS #{LAST_RESORT_SUGGESTION}
+per-file lib/src/tools/language_server.dart=file:/pkg/analyzer/OWNERS #{LAST_RESORT_SUGGESTION}
+per-file lib/src/tools/frontend_server_*.dart=file:/pkg/frontend_server/OWNERS #{LAST_RESORT_SUGGESTION}
+per-file lib/src/tools/vm_service/*=file:/pkg/dart_runtime_service/OWNERS #{LAST_RESORT_SUGGESTION}
