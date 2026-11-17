@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
@@ -32,8 +31,7 @@ ErrorOr<T>? Function() appendToken<T>(
 
 /// A base class for the legacy refactoring commands (EXTRACT_WIDGET, etc.) that
 /// need to create [Refactoring]s from client-supplied arguments.
-abstract class AbstractRefactorCommandHandler
-    extends SimpleEditCommandHandler<AnalysisServer>
+abstract class AbstractRefactorCommandHandler extends SimpleEditCommandHandler
     with PositionalArgCommandHandler {
   new(super.server);
 

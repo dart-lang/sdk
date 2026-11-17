@@ -9,11 +9,10 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/simple_edit_handler.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/operations/fix_all_in_file.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 
-class FixAllCommandHandler extends SimpleEditCommandHandler<LspAnalysisServer> {
+class FixAllCommandHandler extends SimpleEditCommandHandler {
   new(super.server);
 
   @override

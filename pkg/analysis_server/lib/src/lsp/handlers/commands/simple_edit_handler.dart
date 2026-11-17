@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -14,8 +13,8 @@ import 'package:analyzer/diagnostic/diagnostic.dart' as engine;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
-abstract class SimpleEditCommandHandler<S extends AnalysisServer>
-    extends CommandHandler<ExecuteCommandParams, void, S> {
+abstract class SimpleEditCommandHandler
+    extends CommandHandler<ExecuteCommandParams, void> {
   new(super.server);
 
   String get commandName;

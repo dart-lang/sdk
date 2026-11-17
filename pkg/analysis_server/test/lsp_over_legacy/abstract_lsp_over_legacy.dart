@@ -355,6 +355,10 @@ abstract class SharedLspOverLegacyTest extends LspOverLegacyTest
   final Set<String> _priorityFiles = {};
 
   @override
+  String get analysisOptionsPath =>
+      pathContext.join(projectFolderPath, 'analysis_options.yaml');
+
+  @override
   Future<void> closeFile(Uri uri) async {
     // closeFile should both remove the overlay and remove from priority files,
     // since that's equivalent of what the LSP document handlers do and shared

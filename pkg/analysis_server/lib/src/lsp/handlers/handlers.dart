@@ -36,10 +36,9 @@ Iterable<T> convert<T, E>(Iterable<E> items, T? Function(E) converter) {
   return items.map(converter).where((item) => item != null).cast<T>();
 }
 
-abstract class CommandHandler<P, R, S extends AnalysisServer>
-    with Handler<R>, HandlerHelperMixin {
+abstract class CommandHandler<P, R> with Handler<R>, HandlerHelperMixin {
   @override
-  final S server;
+  final AnalysisServer server;
 
   new(this.server);
 
