@@ -9,6 +9,8 @@
   `import`, `export`, or `part` directive of a library without a `library` directive was returned, and a doc comment
   before a `library` directive that is not the first directive was ignored.
   See https://github.com/dart-lang/sdk/issues/64700.
+* Dartdoc templates in comments on `import`, `export`, `part`, and `part of` directives are no longer collected for
+  macro expansion. Templates in documentation comments on `library` directives, declarations, and members remain supported.
 
 ## 14.7.0
 

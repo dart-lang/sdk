@@ -272,7 +272,7 @@ class DartdocDirectiveInfo {
   static DartdocDirectiveInfo extractFromUnit(CompilationUnit unit) {
     var result = DartdocDirectiveInfo();
 
-    for (var directive in unit.directives) {
+    for (var directive in unit.directives.whereType<LibraryDirective>()) {
       var comment = directive.documentationComment;
       var rawText = getCommentNodeRawText(comment);
       result.extractTemplate(rawText);

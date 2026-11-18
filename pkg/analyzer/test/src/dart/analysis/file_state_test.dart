@@ -54,7 +54,7 @@ class DartdocInfoTest extends PubPackageResolutionTest {
     // Ask for the file, will extract templates.
     fileStateFor(testFile);
 
-    // We should have templates here now.
+    // Get the extracted template information.
     var info = driverFor(testFile).dartdocDirectiveInfo;
 
     // Apply these templates.
@@ -139,6 +139,99 @@ class A {
       definition,
       '{@macro foo}',
       'Body of the template.',
+    );
+  }
+
+  test_directive_export() async {
+    await expectDocumentation(
+      '''
+/// {@template foo}
+/// Body of the template.
+/// {@endtemplate}
+export 'dart:async';
+''',
+      '{@macro foo}',
+      '{@macro foo}',
+    );
+  }
+
+  test_directive_import() async {
+    await expectDocumentation(
+      '''
+/// {@template foo}
+/// Body of the template.
+/// {@endtemplate}
+import 'dart:async';
+''',
+      '{@macro foo}',
+      '{@macro foo}',
+    );
+  }
+
+  test_directive_import_afterLibrary() async {
+    await expectDocumentation(
+      '''
+library;
+
+/// {@template foo}
+/// Body of the template.
+/// {@endtemplate}
+import 'dart:async';
+''',
+      '{@macro foo}',
+      '{@macro foo}',
+    );
+  }
+
+  test_directive_library_named() async {
+    await expectDocumentation(
+      '''
+/// {@template foo}
+/// Body of the template.
+/// {@endtemplate}
+library test;
+''',
+      '{@macro foo}',
+      'Body of the template.',
+    );
+  }
+
+  test_directive_library_unnamed() async {
+    await expectDocumentation(
+      '''
+/// {@template foo}
+/// Body of the template.
+/// {@endtemplate}
+library;
+''',
+      '{@macro foo}',
+      'Body of the template.',
+    );
+  }
+
+  test_directive_part() async {
+    await expectDocumentation(
+      '''
+/// {@template foo}
+/// Body of the template.
+/// {@endtemplate}
+part 'a.dart';
+''',
+      '{@macro foo}',
+      '{@macro foo}',
+    );
+  }
+
+  test_directive_partOf() async {
+    await expectDocumentation(
+      '''
+/// {@template foo}
+/// Body of the template.
+/// {@endtemplate}
+part of 'a.dart';
+''',
+      '{@macro foo}',
+      '{@macro foo}',
     );
   }
 
