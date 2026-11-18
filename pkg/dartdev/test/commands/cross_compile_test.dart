@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:code_assets/code_assets.dart';
 import 'package:dartdev/src/commands/compile.dart'
@@ -213,6 +214,9 @@ void defineCrossCompileTests() {
       true,
       reason: 'Executable not found: ${exeFile.path}',
     );
+    // Also when cross-compiling on a Linux host, whose `dartcliruntime` only
+    // runs programs compiled for the host.
+    expect(_ElfValidator.architecture(exeFile), target.architecture);
 
     if (target != Target.current) return;
 
@@ -256,4 +260,70 @@ void defineCrossCompileTests() {
     'Build cli fails on invalid target architecture',
     crossBuildFailureTest(invalidArchTarget),
   );
+}
+
+/// Copied from
+/// `dart-lang/native/pkgs/code_assets/lib/src/code_assets/elf_validator.dart`
+/// to avoid importing `package:code_assets/src/...` internals.
+abstract final class _ElfValidator {
+  // The identification and machine values come from the System V ABI machine
+  // table and the RISC-V ELF psABI:
+  // https://gabi.xinuos.com/elf/a-emachine.html
+  // https://github.com/riscv-non-isa/riscv-elf-psabi-doc/blob/master/riscv-elf.adoc
+  static const _magic = [0x7f, 0x45, 0x4c, 0x46];
+  static const _classOffset = 4;
+  static const _class32 = 1;
+  static const _class64 = 2;
+  static const _dataOffset = 5;
+  static const _dataLittleEndian = 1;
+  static const _dataBigEndian = 2;
+  static const _machineOffset = 18;
+  static const _machineX86 = 3;
+  static const _machineArm = 40;
+  static const _machineX64 = 62;
+  static const _machineArm64 = 183;
+  static const _machineRiscV = 243;
+
+  // The identification and the machine field occupy the first 20 bytes.
+  static const _minLength = 20;
+
+  static Architecture? architecture(File file) {
+    final Uint8List head;
+    final raf = file.openSync();
+    try {
+      head = raf.readSync(_minLength);
+    } finally {
+      raf.closeSync();
+    }
+
+    if (head.length < _minLength || !_hasMagic(head)) {
+      return null;
+    }
+    final elfClass = head[_classOffset];
+    final elfData = head[_dataOffset];
+    if ((elfClass != _class32 && elfClass != _class64) ||
+        (elfData != _dataLittleEndian && elfData != _dataBigEndian)) {
+      return null;
+    }
+
+    final machine = ByteData.sublistView(head).getUint16(
+      _machineOffset,
+      elfData == _dataLittleEndian ? Endian.little : Endian.big,
+    );
+    return switch (machine) {
+      _machineX86 => Architecture.ia32,
+      _machineArm => Architecture.arm,
+      _machineX64 => Architecture.x64,
+      _machineArm64 => Architecture.arm64,
+      _machineRiscV =>
+        elfClass == _class32 ? Architecture.riscv32 : Architecture.riscv64,
+      _ => null,
+    };
+  }
+
+  static bool _hasMagic(Uint8List head) =>
+      head[0] == _magic[0] &&
+      head[1] == _magic[1] &&
+      head[2] == _magic[2] &&
+      head[3] == _magic[3];
 }

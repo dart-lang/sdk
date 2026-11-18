@@ -393,6 +393,29 @@ base class _CustomHashMap<K, V> extends _HashMap<K, V> {
     return null;
   }
 
+  @override
+  V update(K key, V Function(V value) update, {V Function()? ifAbsent}) {
+    final hashCode = _hashCode(key);
+    final buckets = _buckets;
+    final length = buckets.length;
+    final index = hashCode & (length - 1);
+    var entry = buckets[index];
+    while (entry != null) {
+      if (hashCode == entry.hashCode &&
+          _equals(unsafeCast<K>(entry.key), unsafeCast<K>(key))) {
+        return entry.value = update(unsafeCast<V>(entry.value));
+      }
+      entry = entry.next;
+    }
+    if (ifAbsent != null) {
+      V newValue = ifAbsent();
+      _addEntry(buckets, index, length, key, newValue, hashCode);
+      return newValue;
+    } else {
+      throw ArgumentError.value(key, "key", "Key not in map.");
+    }
+  }
+
   Set<K> _newKeySet() => _CustomHashSet<K>(_equals, _hashCode, _validKey);
 }
 

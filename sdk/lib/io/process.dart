@@ -299,10 +299,13 @@ abstract interface class Process {
   /// completes with an exception.
   ///
   /// Using an absolute path for [executable] is recommended since resolving
-  /// the [executable] path is platform-specific. On Fuchsia, Mac and Windows,
+  /// the [executable] path is platform-specific. On Fuchsia and Windows,
   /// both any `PATH` set in the [environment] map parameter and the path set in
   /// [workingDirectory] parameter are ignored for the purposes of resolving
-  /// the [executable] path.
+  /// the [executable] path. On Mac, a relative [executable] path containing
+  /// a `/` (e.g. `./tool` or `bin/tool`) is resolved against
+  /// [workingDirectory], while an [executable] which is just a file name
+  /// (e.g. `tool`) is looked up using the `PATH` of the parent process.
   ///
   /// Use [workingDirectory] to set the working directory for the process. Note
   /// that the change of directory occurs before executing the process on some
@@ -383,10 +386,13 @@ abstract interface class Process {
   /// process run is [executable] with the specified [arguments].
   ///
   /// Using an absolute path for [executable] is recommended since resolving
-  /// the [executable] path is platform-specific. On Fuchsia, Mac and Windows,
+  /// the [executable] path is platform-specific. On Fuchsia and Windows,
   /// both any `PATH` set in the [environment] map parameter and the path set in
   /// [workingDirectory] parameter are ignored for the purposes of resolving
-  /// the [executable] path.
+  /// the [executable] path. On Mac, a relative [executable] path containing
+  /// a `/` (e.g. `./tool` or `bin/tool`) is resolved against
+  /// [workingDirectory], while an [executable] which is just a file name
+  /// (e.g. `tool`) is looked up using the `PATH` of the parent process.
   ///
   /// Use [workingDirectory] to set the working directory for the process. Note
   /// that the change of directory occurs before executing the process on some
