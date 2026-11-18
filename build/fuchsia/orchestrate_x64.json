@@ -1,0 +1,8 @@
+{
+  "emulator": {
+    "comment": "Relative paths are resolved relative to the build directory (e.g. out/ReleaseFuchsiaX64/gen/dart_test) because orchestrate is run with CWD set to --out-dir.",
+    "device": "x64-emu-recommended",
+    "ffx_path": "../../../../third_party/fuchsia/sdk/linux/tools/x64/ffx",
+    "local_pb": "../../../../third_party/fuchsia/images/terminal/x64/"
+  }
+}
