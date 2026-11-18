@@ -11,7 +11,6 @@ import 'package:analysis_server/src/lsp/channel/lsp_channel.dart';
 import 'package:analysis_server/src/lsp/lsp_packet_transformer.dart';
 import 'package:analysis_server/src/session_logger/process_id.dart';
 import 'package:analysis_server/src/session_logger/session_listener.dart';
-import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:language_server_protocol/json_parsing.dart';
 
 /// Instances of the class [LspByteStreamServerChannel] implement an
@@ -21,8 +20,6 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
   final Stream<void> _input;
 
   final IOSink _output;
-
-  final InstrumentationService _instrumentationService;
 
   /// The session listener.
   final SessionListener? _sessionListener;
@@ -37,12 +34,8 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
   /// automatically wrapped with LSP headers and written to the output stream.
   final StreamController<String> _outgoingMessages;
 
-  new(
-    this._input,
-    this._output,
-    this._instrumentationService, {
-    this._sessionListener,
-  }) : _outgoingMessages = StreamController<String>(sync: true) {
+  new(this._input, this._output, {this._sessionListener})
+    : _outgoingMessages = StreamController<String>(sync: true) {
     _outgoingMessages.stream.transform(LspPacketEncoder()).listen(_write);
   }
 
@@ -99,7 +92,6 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
     if (_closed.isCompleted) {
       return;
     }
-    _instrumentationService.logRequest(data);
     var json = jsonDecode(data) as Map<String, Object?>;
     _sessionListener?.logMessage(
       from: ProcessId.ide,
@@ -127,7 +119,6 @@ class LspByteStreamServerChannel implements LspServerCommunicationChannel {
     var jsonEncodedBody = jsonEncode(json);
     _outgoingMessages.add(jsonEncodedBody);
 
-    _instrumentationService.logResponse(jsonEncodedBody);
     _sessionListener?.logMessage(
       from: ProcessId.server,
       to: ProcessId.ide,

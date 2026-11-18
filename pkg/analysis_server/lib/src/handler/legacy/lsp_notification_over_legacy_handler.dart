@@ -45,9 +45,6 @@ class LspNotificationOverLegacyHandler {
       // The client sent something that is not a valid `lsp.notification`. That
       // is a client error rather than a server failure, and there is no
       // response to report it in, so it is only logged.
-      server.instrumentationService.logError(
-        "The 'lsp.notification' notification was not valid: $exception",
-      );
       server.sessionListener.logException(
         exception:
             "The 'lsp.notification' notification was not valid: $exception",
@@ -60,10 +57,6 @@ class LspNotificationOverLegacyHandler {
     var lspNotificationJson = params.lspNotification;
     if (lspNotificationJson is! Map<String, Object?> ||
         !NotificationMessage.canParse(lspNotificationJson, reporter)) {
-      server.instrumentationService.logError(
-        "The 'lspNotification' parameter was not a valid LSP notification:\n"
-        "${reporter.errors.join('\n')}",
-      );
       server.sessionListener.logException(
         exception:
             "The 'lspNotification' parameter was not a valid LSP notification:\n"
@@ -109,7 +102,6 @@ class LspNotificationOverLegacyHandler {
         exception,
         stackTrace,
       );
-      server.instrumentationService.logException(caughtException);
       server.sessionListener.logException(exception: caughtException);
     } finally {
       server.analyticsManager.handledNotificationMessage(
@@ -128,9 +120,6 @@ class LspNotificationOverLegacyHandler {
   /// `LspAnalysisServer.showErrorMessageToUser`) but that is LSP-only, so
   /// logging is the closest the legacy protocol has to offer.
   void _logError(NotificationMessage message, String error) {
-    server.instrumentationService.logError(
-      'An error occurred while handling ${message.method} notification: $error',
-    );
     server.sessionListener.logException(
       exception:
           'An error occurred while handling ${message.method} notification: $error',

@@ -8,7 +8,6 @@ import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
-import 'package:analyzer_testing/src/test_instrumentation_service.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -45,7 +44,6 @@ var a = new A();
     var analysisContext = contextFor2(testFile);
     var changeWorkspace = await workspace;
     var processor = BulkFixProcessor.withAdditionalLints(
-      TestInstrumentationService(),
       changeWorkspace,
       byteStore: MemoryByteStore(),
       additionalLintCodes: [LintNames.unnecessary_new],
@@ -135,7 +133,6 @@ var b = new B();
     // so without this the assertion below would hold even for a processor that
     // wrongly analyzed `package2`.
     var processor = BulkFixProcessor.withAdditionalLints(
-      TestInstrumentationService(),
       DartChangeWorkspace([context1.currentSession, context2.currentSession]),
       byteStore: MemoryByteStore(),
       additionalLintCodes: [LintNames.unnecessary_new],
@@ -169,7 +166,6 @@ var a = new A();
     var analysisContext = contextFor2(testFile);
     var changeWorkspace = await workspace;
     var processor = BulkFixProcessor.withAdditionalLints(
-      TestInstrumentationService(),
       changeWorkspace,
       byteStore: MemoryByteStore(),
       additionalLintCodes: [LintNames.unnecessary_new],
@@ -198,7 +194,6 @@ var a = new A();
     var analysisContext = contextFor2(testFile);
     var changeWorkspace = await workspace;
     var processor = BulkFixProcessor.withAdditionalLints(
-      TestInstrumentationService(),
       changeWorkspace,
       byteStore: MemoryByteStore(),
       additionalLintCodes: ['some_fake_lint_that_doesnt_exist'],
@@ -226,7 +221,6 @@ var a = new A();
     var analysisContext = contextFor2(testFile);
     var changeWorkspace = await workspace;
     var processor = BulkFixProcessor.withAdditionalLints(
-      TestInstrumentationService(),
       changeWorkspace,
       byteStore: MemoryByteStore(),
       additionalLintCodes: [LintNames.unnecessary_new],
@@ -320,7 +314,6 @@ var a = new A();
     var changeWorkspace = await workspace;
     var token = CancelableToken();
     var processor = BulkFixProcessor(
-      TestInstrumentationService(),
       changeWorkspace,
       byteStore: MemoryByteStore(),
       cancellationToken: token,

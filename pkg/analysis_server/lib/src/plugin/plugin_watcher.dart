@@ -265,10 +265,6 @@ class PluginWatcher implements DriverWatcher {
       var folderName = '${contextRoot.root.path}_$pubspecHash';
       var sharedPluginFolder = manager.pluginStateFolder(folderName);
 
-      manager.instrumentationService.logInfo(
-        "Creating shared plugin folder at '${sharedPluginFolder.path}' for "
-        "context root: '${contextRoot.root.path}' group $i",
-      );
       manager.sessionListener.logInfo(
         "Creating shared plugin folder at '${sharedPluginFolder.path}' for "
         "context root: '${contextRoot.root.path}' group $i",
@@ -290,10 +286,6 @@ class PluginWatcher implements DriverWatcher {
         entrypointFile.writeAsStringSync(newEntrypointContent);
       }
 
-      manager.instrumentationService.logInfo(
-        'Adding ${groupConfigurations.length} analyzer plugins for '
-        "context root: '${contextRoot.root.path}' group $i",
-      );
       manager.sessionListener.logInfo(
         'Adding ${groupConfigurations.length} analyzer plugins for '
         "context root: '${contextRoot.root.path}' group $i",

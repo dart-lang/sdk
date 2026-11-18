@@ -20,7 +20,6 @@ import 'package:analysis_server/src/utilities/sdk.dart';
 import 'package:analyzer/dart/analysis/context_root.dart' as analyzer;
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/glob.dart';
@@ -95,9 +94,6 @@ class PluginManager {
 
   /// The object used to manage the receiving and sending of notifications.
   final AbstractNotificationManager _notificationManager;
-
-  /// The instrumentation service that is being used by the analysis server.
-  final InstrumentationService instrumentationService;
 
   /// The session listener that is being used by the analysis server.
   final SessionListener sessionListener;
@@ -174,7 +170,6 @@ class PluginManager {
     this._byteStorePath,
     this._sdkPath,
     this._notificationManager,
-    this.instrumentationService,
     this.sessionListener, {
     this._processRunner = const ProcessRunner(),
     @visibleForTesting String? dartVersion,
@@ -228,7 +223,6 @@ class PluginManager {
           null,
           null,
           _notificationManager,
-          instrumentationService,
           sessionListener,
           isLegacy: isLegacyPlugin,
         );
@@ -241,12 +235,10 @@ class PluginManager {
         pluginFiles.execution.path,
         pluginFiles.packageConfig.path,
         _notificationManager,
-        instrumentationService,
         sessionListener,
         isLegacy: isLegacyPlugin,
       );
       try {
-        instrumentationService.logInfo('Starting plugin "$pluginIsolate"');
         sessionListener.logInfo('Starting plugin "$pluginIsolate"');
         var session = await pluginIsolate.start(_byteStorePath, _sdkPath);
         unawaited(
@@ -462,7 +454,6 @@ class PluginManager {
             exception,
             stackTrace,
           );
-          instrumentationService.logException(silentException);
           sessionListener.logException(exception: silentException);
         }
       }
@@ -635,7 +626,6 @@ class PluginManager {
         try {
           await pluginIsolate.stop();
         } catch (exception, stackTrace) {
-          instrumentationService.logException(exception, stackTrace);
           sessionListener.logException(
             exception: exception,
             stackTrace: stackTrace,
@@ -657,9 +647,6 @@ class PluginManager {
   /// snapshot keeps a consistent image, and a new process never sees a
   /// partially written one.
   ProcessResult _compileAotSnapshot(File entrypoint) {
-    instrumentationService.logInfo(
-      'Running "dart compile aot-snapshot $entrypoint".',
-    );
     sessionListener.logInfo('Running "dart compile aot-snapshot $entrypoint".');
 
     var stopwatch = Stopwatch()..start();
@@ -700,9 +687,6 @@ class PluginManager {
     }
     stopwatch.stop();
 
-    instrumentationService.logInfo(
-      'Running "dart compile aot-snapshot" took ${stopwatch.elapsed}.',
-    );
     sessionListener.logInfo(
       'Running "dart compile aot-snapshot" took ${stopwatch.elapsed}.',
     );
@@ -721,10 +705,6 @@ class PluginManager {
         pluginFolder: pluginFolder,
       );
       if (aotSnapshotFile != null) {
-        instrumentationService.logInfo(
-          'Using existing plugin AOT snapshot at '
-          "'${aotSnapshotFile.path}'",
-        );
         sessionListener.logInfo(
           'Using existing plugin AOT snapshot at '
           "'${aotSnapshotFile.path}'",
@@ -735,7 +715,6 @@ class PluginManager {
       var exception =
           'Exception while checking an existing plugin AOT snapshot: '
           '"$error"\n$stackTrace';
-      instrumentationService.logException(exception);
       sessionListener.logException(exception: exception);
     }
 
@@ -759,7 +738,6 @@ class PluginManager {
       buffer.writeln('  stdout = ${aotResult.stdout}');
       buffer.writeln('  stderr = $stderr');
       var exceptionReason = buffer.toString();
-      instrumentationService.logError(exceptionReason);
       sessionListener.logException(exception: exceptionReason);
       throw PluginException(exceptionReason);
     }
@@ -933,7 +911,6 @@ class PluginManager {
     try {
       if (file.exists) file.delete();
     } catch (e) {
-      instrumentationService.logInfo('Could not delete "$file": $e.');
       sessionListener.logInfo('Could not delete "$file": $e.');
     }
   }
@@ -957,9 +934,6 @@ class PluginManager {
         }
       }
     } catch (e) {
-      instrumentationService.logInfo(
-        'Could not delete stale temporary files in "$binFolder": $e.',
-      );
       sessionListener.logInfo(
         'Could not delete stale temporary files in "$binFolder": $e.',
       );
@@ -1034,9 +1008,6 @@ class PluginManager {
       temporary.renameSync(destination.path);
     } on FileSystemException catch (e) {
       if (!destination.exists) rethrow;
-      instrumentationService.logInfo(
-        'Could not replace "$destination": $e. Using the existing file.',
-      );
       sessionListener.logInfo(
         'Could not replace "$destination": $e. Using the existing file.',
       );
@@ -1066,9 +1037,6 @@ class PluginManager {
     String pubCommand, {
     required Folder workingDirectory,
   }) {
-    instrumentationService.logInfo(
-      'Running "pub $pubCommand" in "${workingDirectory.path}".',
-    );
     sessionListener.logInfo(
       'Running "pub $pubCommand" in "${workingDirectory.path}".',
     );
@@ -1084,9 +1052,6 @@ class PluginManager {
     );
     stopwatch.stop();
 
-    instrumentationService.logInfo(
-      'Running "pub $pubCommand" took ${stopwatch.elapsed}.',
-    );
     sessionListener.logInfo(
       'Running "pub $pubCommand" took ${stopwatch.elapsed}.',
     );

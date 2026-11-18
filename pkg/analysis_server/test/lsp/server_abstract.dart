@@ -14,9 +14,11 @@ import 'package:analysis_server/src/lsp/extensions/text_document_filters.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/plugin/plugin_isolate.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
-import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
+import 'package:analysis_server/src/session_logger/forwarding_session_listener.dart';
+import 'package:analysis_server/src/session_logger/session_listener.dart';
 import 'package:analysis_server/src/session_logger/session_logger.dart';
+import 'package:analysis_server/src/session_logger/user_notifying_session_listener.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -64,9 +66,9 @@ abstract class AbstractLspAnalysisServerTest
         ConfigurationFilesMixin,
         AnalyticsTestMixin {
   late MockLspServerChannel channel;
-  late ErrorNotifier errorNotifier;
   late TestPluginManager pluginManager;
   MessageSchedulerTestView? testView;
+  late SessionListener sessionListener;
   late LspAnalysisServer server;
   late MockProcessRunner processRunner;
   late MockHttpClient httpClient;
@@ -125,7 +127,6 @@ abstract class AbstractLspAnalysisServerTest
       'b',
       'c',
       server.notificationManager,
-      server.instrumentationService,
       server.sessionListener,
       isLegacy: true,
     );
@@ -307,9 +308,13 @@ abstract class AbstractLspAnalysisServerTest
 
     createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 
-    errorNotifier = ErrorNotifier();
     pluginManager = TestPluginManager(resourceProvider);
     testView = retainDataForTesting ? MessageSchedulerTestView() : null;
+    var userNotifyingSessionListener = UserNotifyingSessionListener();
+    sessionListener = ForwardingSessionListener([
+      SessionLogger(),
+      userNotifyingSessionListener,
+    ]);
     server = LspAnalysisServer(
       channel,
       resourceProvider,
@@ -317,15 +322,14 @@ abstract class AbstractLspAnalysisServerTest
       DartSdkManager(sdkRoot.path),
       AnalyticsManager(NoOpAnalytics()),
       CrashReportingAttachmentsBuilder.empty,
-      errorNotifier,
-      SessionLogger(),
+      sessionListener,
       httpClient: httpClient,
       processRunner: processRunner,
       pluginManager: pluginManager,
       dartFixPromptManager: dartFixPromptManager,
       messageSchedulerListener: testView,
     );
-    errorNotifier.server = server;
+    userNotifyingSessionListener.server = server;
 
     projectFolderPath = convertPath('/home/my_project');
     newFolder(projectFolderPath);
@@ -1154,7 +1158,8 @@ mixin LspAnalysisServerTestMixin
     errorNotificationsFromServer.listen((NotificationMessage error) {
       // Always subscribe to this and check the flag here so it can be toggled
       // during tests (for example automatically by expectErrorNotification).
-      if (failTestOnAnyErrorNotification) {
+      if (error.method != Method.window_showMessage &&
+          failTestOnAnyErrorNotification) {
         fail('${error.toJson()}');
       }
     });

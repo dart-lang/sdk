@@ -589,6 +589,39 @@ td.pre {
   overflow-x: auto;
 }
 
+/* Collapsed borders do not stick with the header, and rows scrolled behind
+   it show through, so borders are separate, and drawn once per line. */
+table.sticky-header {
+  display: block;
+  max-height: 75vh;
+  overflow: auto;
+  border-collapse: separate;
+}
+
+table.sticky-header thead {
+  position: sticky;
+  top: 0;
+}
+
+table.sticky-header th, table.sticky-header td {
+  padding: 4px 8px;
+  border-width: 0 1px 1px 0;
+}
+
+table.sticky-header thead tr:first-child > * {
+  border-top-width: 1px;
+}
+
+table.sticky-header thead tr:first-child > :first-child,
+table.sticky-header tbody td:first-child {
+  border-left-width: 1px;
+}
+
+table.sticky-header th {
+  white-space: nowrap;
+  background-color: #fff;
+}
+
 .footer {
   padding-top: 3rem;
   padding-bottom: 3rem;

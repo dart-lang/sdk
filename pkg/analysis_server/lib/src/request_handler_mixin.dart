@@ -7,6 +7,7 @@ import 'dart:convert';
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/plugin/plugin_isolate.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 
@@ -37,7 +38,7 @@ mixin RequestHandlerMixin<T extends AnalysisServer> {
         var error = response.error;
         if (error != null) {
           // TODO(brianwilkerson): Report the error to the plugin manager.
-          server.instrumentationService.logPluginError(
+          AnalysisEngine.instance.instrumentationService.logPluginError(
             pluginInfo.data,
             error.code.name,
             error.message,
@@ -48,7 +49,7 @@ mixin RequestHandlerMixin<T extends AnalysisServer> {
         }
       } on TimeoutException {
         // TODO(brianwilkerson): Report the timeout to the plugin manager.
-        server.instrumentationService.logPluginTimeout(
+        AnalysisEngine.instance.instrumentationService.logPluginTimeout(
           pluginInfo.data,
           JsonEncoder().convert(
             requestParameters?.toRequest('-').toJson() ?? {},
@@ -56,7 +57,7 @@ mixin RequestHandlerMixin<T extends AnalysisServer> {
         );
       } catch (exception, stackTrace) {
         // TODO(brianwilkerson): Report the exception to the plugin manager.
-        server.instrumentationService.logPluginException(
+        AnalysisEngine.instance.instrumentationService.logPluginException(
           pluginInfo.data,
           exception,
           stackTrace,

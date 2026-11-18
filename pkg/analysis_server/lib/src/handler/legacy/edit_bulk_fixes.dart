@@ -70,7 +70,6 @@ class EditBulkFixes extends LegacyHandler {
         collection.contexts.map((c) => c.currentSession).toList(),
       );
       var processor = BulkFixProcessor(
-        server.instrumentationService,
         workspace,
         byteStore: server.byteStore,
         codes: codes,

@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analysis_server/src/session_logger/session_listener.dart';
-import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/util/platform_info.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
@@ -33,8 +32,8 @@ class PubApi {
     _failedRetryInitialDelaySeconds = value;
   }
 
-  final InstrumentationService instrumentationService;
   final SessionListener sessionListener;
+
   final http.Client httpClient;
 
   /// The Base URL for hosted Pub packages, excluding the trailing slash.
@@ -51,12 +50,8 @@ class PubApi {
         ' (+https://github.com/dart-lang/sdk)',
   };
 
-  new(
-    this.instrumentationService,
-    this.sessionListener,
-    http.Client? httpClient,
-    String? envPubHostedUrl,
-  ) : httpClient = httpClient != null
+  new(this.sessionListener, http.Client? httpClient, String? envPubHostedUrl)
+    : httpClient = httpClient != null
           ? _NoCloseHttpClient(httpClient)
           : http.Client(),
       pubHostedUrl = _validPubHostedUrl(envPubHostedUrl);
@@ -116,15 +111,10 @@ class PubApi {
       try {
         var response = await httpClient.get(Uri.parse(url), headers: _headers);
         if (response.statusCode == 200) {
-          instrumentationService.logInfo('Pub API request successful for $url');
           sessionListener.logInfo('Pub API request successful for $url');
           return jsonDecode(response.body) as Map<String, Object?>?;
         } else if (response.statusCode >= 400 && response.statusCode < 500) {
           // Do not retry 4xx responses.
-          instrumentationService.logError(
-            'Pub API returned ${response.statusCode} ${response.reasonPhrase} '
-            'for $url. Not retrying.',
-          );
           sessionListener.logException(
             exception:
                 'Pub API returned ${response.statusCode} ${response.reasonPhrase} '
@@ -132,10 +122,6 @@ class PubApi {
           );
           return null;
         }
-        instrumentationService.logError(
-          'Pub API returned ${response.statusCode} ${response.reasonPhrase} '
-          'for $url on attempt $requestCount',
-        );
         sessionListener.logException(
           exception:
               'Pub API returned ${response.statusCode} ${response.reasonPhrase} '
@@ -143,23 +129,16 @@ class PubApi {
         );
       } catch (e) {
         if (e is! IOException && e is! FormatException) {
-          instrumentationService.logError(
-            'Error calling pub API for $url. Not retrying. $e',
-          );
           sessionListener.logException(
             exception: 'Error calling pub API for $url. Not retrying. $e',
           );
           return null;
         }
-        instrumentationService.logError('Error calling pub API for $url: $e');
         sessionListener.logException(
           exception: 'Error calling pub API for $url: $e',
         );
       }
       if (requestCount >= maxFailedRequests) {
-        instrumentationService.logInfo(
-          'Pub API request failed after $requestCount requests',
-        );
         sessionListener.logInfo(
           'Pub API request failed after $requestCount requests',
         );

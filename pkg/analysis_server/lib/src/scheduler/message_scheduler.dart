@@ -293,11 +293,6 @@ final class MessageScheduler {
       var attachments = server.crashReportingAttachmentsBuilder.forException(
         error,
       );
-      server.instrumentationService.logException(
-        fatalException,
-        null,
-        attachments,
-      );
       server.sessionListener.logException(
         exception: fatalException,
         attachments: attachments,

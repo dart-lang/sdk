@@ -21,7 +21,6 @@ import 'package:analysis_server/src/services/correction/fix_internal.dart'
     show registerBuiltInFixGenerators;
 import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:dartpad/src/dartpad_config.dart';
@@ -56,7 +55,6 @@ class LanguageServer {
       DartSdkManager(config.dartSdkPath),
       AnalyticsManager(const NoOpAnalytics()),
       CrashReportingAttachmentsBuilder.empty,
-      InstrumentationService.NULL_SERVICE,
       SessionLogger(),
       httpClient: null,
       processRunner: null,
@@ -72,6 +70,10 @@ class LanguageServer {
     });
   }
 
+  Future<void> get closed => _closed.future;
+
+  Stream<Map<String, Object?>> get messages => _output.stream;
+
   Future<void> close() async {
     // Shutdown can still emit messages, so keep the channel open until it
     // completes.
@@ -81,10 +83,6 @@ class LanguageServer {
       _closed.complete();
     }
   }
-
-  Future<void> get closed => _closed.future;
-
-  Stream<Map<String, Object?>> get messages => _output.stream;
 
   Future<void> handle(Map<String, Object?> m) async => _input.add(m);
 }
@@ -99,15 +97,15 @@ final class _LspServerCommunicationChannel
   _LspServerCommunicationChannel(this._input, this._output);
 
   @override
+  Future<void> get closed => _closed.future;
+
+  @override
   Future<void> close() async {
     if (!_closing) {
       _closing = true;
       await _output.close();
     }
   }
-
-  @override
-  Future<void> get closed => _closed.future;
 
   @override
   StreamSubscription<void> listen(
@@ -127,13 +125,6 @@ final class _LspServerCommunicationChannel
     );
   }
 
-  void _send(lsp.Message m) {
-    if (_closing) {
-      return;
-    }
-    _output.add(m.toJson());
-  }
-
   @override
   void sendNotification(lsp.NotificationMessage m) => _send(m);
 
@@ -142,4 +133,11 @@ final class _LspServerCommunicationChannel
 
   @override
   void sendResponse(lsp.ResponseMessage m) => _send(m);
+
+  void _send(lsp.Message m) {
+    if (_closing) {
+      return;
+    }
+    _output.add(m.toJson());
+  }
 }

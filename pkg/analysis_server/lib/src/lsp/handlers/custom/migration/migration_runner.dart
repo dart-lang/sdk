@@ -399,7 +399,6 @@ class MigrationRunner({
       // TODO(kallentu): Use an IterativeBulkFixProcessor to loop until code
       // stabilizes.
       var processor = BulkFixProcessor.withAdditionalLints(
-        server.instrumentationService,
         workspace,
         byteStore: server.byteStore,
         builder: builder,

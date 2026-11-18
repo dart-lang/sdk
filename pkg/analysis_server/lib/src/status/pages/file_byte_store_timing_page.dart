@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/src/status/diagnostics.dart';
 import 'package:analysis_server/src/status/pages.dart';
+import 'package:analysis_server/src/utilities/timing_byte_store.dart';
 
 class FileByteStoreTimingPage extends DiagnosticPageWithNav
     with PerformanceChartMixin {
@@ -13,21 +14,18 @@ class FileByteStoreTimingPage extends DiagnosticPageWithNav
     : super(
         site,
         'file-byte-store-timing',
-        'FileByteStore timing',
-        description: 'FileByteStore timing statistics.',
+        'Byte store timing',
+        description: 'On-disk byte store timing statistics.',
         indentInNav: true,
       );
 
   @override
   Future<void> generateContent(Map<String, String> params) async {
-    h3('FileByteStore Timings');
+    h3('Byte Store Timings');
 
-    var byteStoreTimings = server.byteStoreTimings
-        ?.where(
-          (timing) => timing.readCount != 0 || timing.readTime != Duration.zero,
-        )
-        .toList();
-    if (byteStoreTimings == null || byteStoreTimings.isEmpty) {
+    var timingByteStore = server.timingByteStore;
+    var total = timingByteStore?.total;
+    if (timingByteStore == null || total == null || total.isEmpty) {
       p(
         'There are currently no timings. '
         'Try refreshing after the server has performed initial analysis.',
@@ -35,32 +33,120 @@ class FileByteStoreTimingPage extends DiagnosticPageWithNav
       return;
     }
 
-    buf.writeln('<table>');
-    buf.writeln(
-      '<tr><th>Files Read</th><th>Time Taken</th><th>&nbsp;</th></tr>',
+    p(
+      'Operations on the on-disk byte store, for values not in the memory '
+      'cache. Put time includes any writing that the store does '
+      'synchronously. Periods without operations are not shown, and empty '
+      'cells are zero.',
     );
-    for (var i = 0; i < byteStoreTimings.length; i++) {
-      var timing = byteStoreTimings[i];
-      if (timing.readCount == 0) {
-        continue;
-      }
 
-      var nextTiming = i + 1 < byteStoreTimings.length
-          ? byteStoreTimings[i + 1]
-          : null;
-      var duration = (nextTiming?.time ?? DateTime.now()).difference(
-        timing.time,
+    var periods = timingByteStore.periods.where((period) => !period.isEmpty);
+
+    h4('Since startup');
+    _writeTable('Period', [
+      for (var period in periods)
+        if (period.isMilestone)
+          (
+            label:
+                '${escape(period.reason)} &rarr; '
+                '${escape(period.endReason ?? 'now')}',
+            duration: period.duration,
+            timings: period,
+          ),
+      if (timingByteStore.recentTotal case var recentTotal
+          when !recentTotal.isEmpty)
+        (label: 'All recent periods', duration: null, timings: recentTotal),
+      (label: '<b>Total</b>', duration: null, timings: total),
+    ]);
+
+    h4('Recent periods, newest first');
+    if (timingByteStore.droppedPeriodCount case var count when count > 0) {
+      p(
+        '$count earlier periods are included only in the '
+        '"All recent periods" and "Total" rows above.',
       );
-      var description =
-          'Between <em>${timing.reason}</em> and <em>${nextTiming?.reason ?? 'now'} (${printMilliseconds(duration.inMilliseconds)})</em>.';
+    }
+    var recent = periods.where((period) => !period.isMilestone).toList();
+    if (recent.isEmpty) {
+      p('There are no recent periods yet.');
+      return;
+    }
+    _writeTable('Started', [
+      for (var period in recent.reversed)
+        (
+          // Almost all periods are analysis, so only others are marked.
+          label: switch (period.reason) {
+            'analysis' => _formatTime(period.startTime),
+            var reason => '${_formatTime(period.startTime)} ${escape(reason)}',
+          },
+          duration: period.duration,
+          timings: period,
+        ),
+    ]);
+  }
+
+  /// Writes a table with a row for each of [rows], with [labelHeader] over
+  /// the column of their labels.
+  ///
+  /// The table scrolls within a limited height, with the header kept visible.
+  void _writeTable(
+    String labelHeader,
+    List<({String label, Duration? duration, ByteStoreTimings timings})> rows,
+  ) {
+    buf.writeln('<table class="sticky-header">');
+    buf.writeln('<thead>');
+    buf.writeln(
+      '<tr><th rowspan="2">$labelHeader</th>'
+      '<th rowspan="2">Duration (ms)</th>'
+      '<th colspan="5">Lookups</th><th colspan="4">Puts</th></tr>',
+    );
+    buf.writeln(
+      '<tr><th>count</th><th>not found</th><th>bytes</th>'
+      '<th>ms</th><th>max ms</th>'
+      '<th>count</th><th>bytes</th><th>ms</th><th>max ms</th></tr>',
+    );
+    buf.writeln('</thead>');
+    buf.writeln('<tbody>');
+    for (var (:label, :duration, :timings) in rows) {
+      var lookups = timings.lookups;
+      var puts = timings.puts;
       buf.writeln(
-        '<tr>'
-        '<td class="right">${timing.readCount} files</td>'
-        '<td class="right">${printMilliseconds(timing.readTime.inMilliseconds)}</td>'
-        '<td>$description</td>'
+        '<tr><td>$label</td>'
+        '${_numberCell(duration?.inMilliseconds ?? 0)}'
+        '${_numberCell(lookups.count)}'
+        '${_numberCell(timings.notFoundCount)}'
+        '${_bytesCell(lookups.bytes)}'
+        '${_timeCell(lookups.elapsed)}'
+        '${_timeCell(lookups.max)}'
+        '${_numberCell(puts.count)}'
+        '${_bytesCell(puts.bytes)}'
+        '${_timeCell(puts.elapsed)}'
+        '${_timeCell(puts.max)}'
         '</tr>',
       );
     }
+    buf.writeln('</tbody>');
     buf.writeln('</table>');
+  }
+
+  static String _bytesCell(int bytes) =>
+      _cell(bytes == 0 ? '' : printBytes(bytes));
+
+  static String _cell(String text) => '<td class="right nowrap">$text</td>';
+
+  /// Formats [time] as `HH:mm:ss.SSS`.
+  static String _formatTime(DateTime time) {
+    String digits(int value, int width) => '$value'.padLeft(width, '0');
+    return '${digits(time.hour, 2)}:${digits(time.minute, 2)}:'
+        '${digits(time.second, 2)}.${digits(time.millisecond, 3)}';
+  }
+
+  static String _numberCell(int value) => _cell(value == 0 ? '' : '$value');
+
+  static String _timeCell(Duration duration) {
+    var microseconds = duration.inMicroseconds;
+    return _cell(
+      microseconds == 0 ? '' : (microseconds / 1000).toStringAsFixed(3),
+    );
   }
 }

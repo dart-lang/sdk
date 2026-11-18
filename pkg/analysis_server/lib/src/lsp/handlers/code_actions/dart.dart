@@ -26,6 +26,7 @@ import 'package:analysis_server_plugin/src/correction/fix_processor.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart'
     show InconsistentAnalysisException;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 /// Produces [CodeActionLiteral]s from Dart source commands, fixes, assists and
@@ -137,7 +138,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
       if (token.isCancellationRequested) return const [];
 
       var context = DartAssistContext(
-        server.instrumentationService,
+        AnalysisEngine.instance.instrumentationService,
         workspace,
         libraryResult,
         unitResult,
@@ -235,7 +236,8 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
           continue;
         }
         var context = DartFixContext(
-          instrumentationService: server.instrumentationService,
+          instrumentationService:
+              AnalysisEngine.instance.instrumentationService,
           workspace: workspace,
           libraryResult: libraryResult,
           unitResult: unitResult,

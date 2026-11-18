@@ -59,7 +59,6 @@ abstract class AbstractFixAllOperation extends TemporaryOverlayOperation
     }
 
     var processor = IterativeBulkFixProcessor(
-      instrumentationService: server.instrumentationService,
       byteStore: server.byteStore,
       applyTemporaryOverlayEdits: applyTemporaryOverlayEdits,
       applyOverlays: applyOverlays,

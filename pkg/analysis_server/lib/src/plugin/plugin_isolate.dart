@@ -16,6 +16,7 @@ import 'package:analysis_server/src/session_logger/session_listener.dart';
 import 'package:analyzer/dart/analysis/context_root.dart' as analyzer;
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/util/platform_info.dart';
 import 'package:analyzer_plugin/channel/channel.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
@@ -53,7 +54,8 @@ class PluginIsolate {
   final AbstractNotificationManager _notificationManager;
 
   /// The instrumentation service that is being used by the analysis server.
-  final InstrumentationService _instrumentationService;
+  final InstrumentationService _instrumentationService =
+      AnalysisEngine.instance.instrumentationService;
 
   /// The session listener that is to be used by the isolate.
   final SessionListener sessionListener;
@@ -83,7 +85,6 @@ class PluginIsolate {
     this.executionPath,
     this.packageConfigPath,
     this._notificationManager,
-    this._instrumentationService,
     this.sessionListener, {
     required this.isLegacy,
   }) {
