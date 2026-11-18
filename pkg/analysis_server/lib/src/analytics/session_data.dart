@@ -126,6 +126,14 @@ class SessionData {
   /// The parameters passed on initialize.
   String initializeParams = '';
 
+  /// The name of the LSP client, from the `clientInfo` passed on initialize
+  /// and mapped to a fixed list, or an empty string if no name was provided.
+  String lspClientName = '';
+
+  /// The version of the LSP client, from the `clientInfo` passed on
+  /// initialize, or an empty string if it isn't reported.
+  String lspClientVersion = '';
+
   /// The name of the client that started the server.
   final String clientId;
 
