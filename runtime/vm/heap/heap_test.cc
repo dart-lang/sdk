@@ -778,6 +778,44 @@ ISOLATE_UNIT_TEST_CASE(WeakSmi) {
   EXPECT(old_finalizer.value() == Smi::New(42));
 }
 
+// The scavenger visits WeakReference::type_arguments_ and
+// FinalizerEntry::token_ separately from the other fields. When these
+// objects are old and the fields still point to new space after a scavenge,
+// the objects must be added back to the remembered set.
+ISOLATE_UNIT_TEST_CASE(WeakReferenceAndFinalizerEntry_OldRemembered) {
+  WeakReference& weak_ref =
+      WeakReference::Handle(WeakReference::New(Heap::kOld));
+  FinalizerEntry& entry = FinalizerEntry::Handle(
+      FinalizerEntry::New(FinalizerBase::Handle(), Heap::kOld));
+  {
+    HANDLESCOPE(thread);
+    // A target that is not otherwise reachable.
+    weak_ref.set_target(String::Handle(String::New("target", Heap::kNew)));
+    // Canonical type arguments are old, so use non-canonical ones.
+    weak_ref.ptr()->untag()->set_type_arguments(
+        TypeArguments::New(1, Heap::kNew));
+    entry.set_token(String::Handle(String::New("token", Heap::kNew)));
+  }
+
+  // Copies the type arguments and token within new space.
+  GCTestHelper::CollectNewSpace();
+  EXPECT(weak_ref.target() == Object::null());
+  EXPECT(weak_ref.ptr()->untag()->type_arguments()->IsNewObject());
+  EXPECT(weak_ref.ptr()->untag()->IsRemembered());
+  EXPECT(Object::Handle(entry.token()).IsNew());
+  EXPECT(entry.ptr()->untag()->IsRemembered());
+
+  // Promotes the type arguments and token.
+  GCTestHelper::CollectNewSpace();
+  const auto& type_args =
+      TypeArguments::Handle(weak_ref.ptr()->untag()->type_arguments());
+  EXPECT(type_args.IsOld());
+  EXPECT_EQ(1, type_args.Length());
+  const auto& token = Object::Handle(entry.token());
+  EXPECT(token.IsOld());
+  EXPECT(String::Cast(token).Equals("token"));
+}
+
 enum Generation {
   kNew,
   kOld,
