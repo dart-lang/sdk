@@ -105,12 +105,7 @@ class StatusPage extends DiagnosticPageWithNav {
       h3('File Byte Store');
       if (byteStoreStats.singleFileStorePath case var path?) {
         buf.writeln(formatOption('Single-file cache path', path));
-        buf.writeln(
-          formatOption(
-            'Pending entries',
-            byteStoreStats.singleFilePendingEntryCount ?? 0,
-          ),
-        );
+        buf.writeln('<a href="file-byte-store-timing">Statistics</a>');
       } else if (byteStoreStats.usesFileByteStore) {
         buf.writeln(
           formatOption(

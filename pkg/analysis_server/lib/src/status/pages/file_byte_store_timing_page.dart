@@ -30,6 +30,7 @@ class FileByteStoreTimingPage extends DiagnosticPageWithNav
         'There are currently no timings. '
         'Try refreshing after the server has performed initial analysis.',
       );
+      _writeSingleFileStatistics();
       return;
     }
 
@@ -69,20 +70,89 @@ class FileByteStoreTimingPage extends DiagnosticPageWithNav
     var recent = periods.where((period) => !period.isMilestone).toList();
     if (recent.isEmpty) {
       p('There are no recent periods yet.');
+    } else {
+      _writeTable('Started', [
+        for (var period in recent.reversed)
+          (
+            // Almost all periods are analysis, so only others are marked.
+            label: switch (period.reason) {
+              'analysis' => _formatTime(period.startTime),
+              var reason =>
+                '${_formatTime(period.startTime)} ${escape(reason)}',
+            },
+            duration: period.duration,
+            timings: period,
+          ),
+      ]);
+    }
+
+    _writeSingleFileStatistics();
+  }
+
+  /// Writes the statistics of the single-file store, if it is used.
+  void _writeSingleFileStatistics() {
+    var stats = server.byteStoreStats;
+    var path = stats?.singleFileStorePath;
+    if (stats == null || path == null) {
       return;
     }
-    _writeTable('Started', [
-      for (var period in recent.reversed)
-        (
-          // Almost all periods are analysis, so only others are marked.
-          label: switch (period.reason) {
-            'analysis' => _formatTime(period.startTime),
-            var reason => '${_formatTime(period.startTime)} ${escape(reason)}',
-          },
-          duration: period.duration,
-          timings: period,
-        ),
-    ]);
+
+    h4('Single-file store');
+    buf.writeln(formatOption('Path', escape(path)));
+    var dataBytes = stats.singleFileDataBytes ?? 0;
+    var usedDataBytes = dataBytes - (stats.singleFileFreeDataBytes ?? 0);
+    buf.writeln(
+      formatOption(
+        'Used data space',
+        '${printBytes(usedDataBytes)} of ${printBytes(dataBytes)} '
+            '(${printPercentage(usedDataBytes / dataBytes)})',
+      ),
+    );
+    buf.writeln(
+      formatOption(
+        'Resets that discarded the cache',
+        stats.singleFileResetCount ?? 0,
+      ),
+    );
+    buf.writeln(
+      formatOption('Pending entries', stats.singleFilePendingEntryCount ?? 0),
+    );
+    buf.writeln(formatOption('Commits', stats.singleFileCommitCount ?? 0));
+    buf.writeln(
+      formatOption(
+        'Committed entries',
+        '${stats.singleFileCommittedEntryCount ?? 0} '
+            '(${printBytes(stats.singleFileCommittedValueBytes ?? 0)})',
+      ),
+    );
+    buf.writeln(
+      formatOption(
+        'Entries evicted for space',
+        stats.singleFileEvictedForSpaceEntryCount ?? 0,
+      ),
+    );
+    buf.writeln(
+      formatOption(
+        'Entries evicted from full table buckets',
+        stats.singleFileEvictedFromFullBucketEntryCount ?? 0,
+      ),
+    );
+    buf.writeln(
+      formatOption(
+        'Batches discarded for lack of space',
+        stats.singleFileCapacityDiscardedBatchCount ?? 0,
+      ),
+    );
+    buf.writeln(
+      formatOption(
+        'Oversized values ignored',
+        '${stats.singleFileOversizedValueCount ?? 0} '
+            '(${printBytes(stats.singleFileOversizedValueBytes ?? 0)})',
+      ),
+    );
+    buf.writeln(
+      formatOption('Bucket rebuilds', stats.singleFileBucketRebuildCount ?? 0),
+    );
   }
 
   /// Writes a table with a row for each of [rows], with [labelHeader] over
