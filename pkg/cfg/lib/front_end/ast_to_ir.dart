@@ -153,60 +153,14 @@ class AstToIr extends ast.RecursiveVisitor {
       _hasTypeParametersInScope = true;
       switch (typeParametersStyle) {
         case .separateFunctionAndClassTypeParameters:
+          // Class type parameters are built first as they may be needed
+          // to instantiate default function type arguments.
+          if (function.hasClassTypeParameters) {
+            _buildClassTypeParameters();
+          }
           if (function.hasFunctionTypeParameters ||
               function.hasEnclosingFunctionTypeParameters) {
-            var inputCount = 0;
-            if (function.hasFunctionTypeParameters) {
-              ++inputCount;
-              builder.addLoadLocal(localVarIndexer.functionTypeParameters);
-            }
-            if (function.hasEnclosingFunctionTypeParameters) {
-              ++inputCount;
-              builder.addLoadLocal(localVarIndexer.closure);
-              builder.addLoadInstanceField(
-                CField(
-                  ClosureField(_currentClosureLayout.functionTypeArgsIndex),
-                ),
-              );
-            }
-            functionTypeParameters = builder.addTypeParameters(
-              .functionTypeParameters,
-              inputCount,
-            );
-          }
-          if (function.hasClassTypeParameters) {
-            if (function.hasReceiverParameter) {
-              builder.addLoadLocal(localVarIndexer.receiver);
-              classTypeParameters = builder.addTypeParameters(
-                .classTypeParameters,
-                1,
-              );
-            } else if (_isCaptured(localVarIndexer.receiverDeclaration!)) {
-              // Read captured receiver. Load context from closure
-              // as contexts are not defined yet.
-              final variable = localVarIndexer.receiverDeclaration!;
-              builder.addLoadLocal(localVarIndexer.closure);
-              builder.addLoadInstanceField(
-                CField(
-                  ClosureField(
-                    _currentClosureLayout.firstContextIndex +
-                        scopes
-                            .getCapturedContexts(
-                              function.functionNode!,
-                              enableAsserts: enableAsserts,
-                            )
-                            .indexOf(scopes.getVariableContext(variable)),
-                  ),
-                ),
-              );
-              builder.addLoadInstanceField(
-                localVarIndexer.contextField(variable),
-              );
-              classTypeParameters = builder.addTypeParameters(
-                .classTypeParameters,
-                1,
-              );
-            }
+            _buildFunctionTypeParameters();
           }
       }
     }
@@ -276,6 +230,145 @@ class AstToIr extends ast.RecursiveVisitor {
       ], typeParameters: _typeParametersForType(emittedValueType));
       builder.addEnterSuspendableFunction();
     }
+  }
+
+  /// Build [TypeParameters] for class type parameters.
+  void _buildClassTypeParameters() {
+    assert(typeParametersStyle == .separateFunctionAndClassTypeParameters);
+    if (function.hasReceiverParameter) {
+      builder.addLoadLocal(localVarIndexer.receiver);
+    } else {
+      final variable = localVarIndexer.receiverDeclaration!;
+      if (!_isCaptured(variable)) {
+        return;
+      }
+      // Read captured receiver. Load context from closure
+      // as contexts are not defined yet.
+      final contextIndex = scopes
+          .getCapturedContexts(
+            function.functionNode!,
+            enableAsserts: enableAsserts,
+          )
+          .indexOf(scopes.getVariableContext(variable));
+      if (contextIndex < 0) {
+        // Receiver is not captured by the current closure.
+        return;
+      }
+      builder.addLoadLocal(localVarIndexer.closure);
+      builder.addLoadInstanceField(
+        CField(
+          ClosureField(_currentClosureLayout.firstContextIndex + contextIndex),
+        ),
+      );
+      builder.addLoadInstanceField(localVarIndexer.contextField(variable));
+    }
+    classTypeParameters = builder.addTypeParameters(.classTypeParameters, 1);
+  }
+
+  /// Build [TypeParameters] for function type parameters.
+  void _buildFunctionTypeParameters() {
+    assert(typeParametersStyle == .separateFunctionAndClassTypeParameters);
+    Definition? parentTypeArguments;
+    if (function.hasEnclosingFunctionTypeParameters) {
+      builder.addLoadLocal(localVarIndexer.closure);
+      parentTypeArguments = builder.addLoadInstanceField(
+        CField(ClosureField(_currentClosureLayout.functionTypeArgsIndex)),
+      );
+      builder.pop();
+    }
+    if (function.hasOptionalFunctionTypeParameters) {
+      _buildDefaultFunctionTypeArguments(parentTypeArguments);
+    }
+    var inputCount = 0;
+    if (function.hasFunctionTypeParameters) {
+      ++inputCount;
+      builder.addLoadLocal(localVarIndexer.functionTypeParameters);
+    }
+    if (parentTypeArguments != null) {
+      ++inputCount;
+      builder.push(parentTypeArguments);
+    }
+    functionTypeParameters = builder.addTypeParameters(
+      .functionTypeParameters,
+      inputCount,
+    );
+  }
+
+  /// Generic closures can be called with or without function type arguments.
+  /// If function type arguments are not passed, the corresponding parameter
+  /// is set to [UnsetTypeArgumentsConstant] and should be replaced with
+  /// delayed type arguments (if closure was instantiated) or
+  /// default type arguments.
+  ///
+  /// Default types of function type parameters may depend on
+  /// class type parameters and type parameters of the enclosing functions
+  /// ([parentTypeArguments]), but they never depend on the type parameters
+  /// of this function.
+  void _buildDefaultFunctionTypeArguments(Definition? parentTypeArguments) {
+    assert(typeParametersStyle == .separateFunctionAndClassTypeParameters);
+    assert(function.hasOptionalFunctionTypeParameters);
+    assert(_currentClosureLayout.hasDelayedTypeArgs);
+    final typeArgsVar = localVarIndexer.functionTypeParameters;
+    final defaultTypes = [
+      for (final typeParam in function.functionNode!.typeParameters)
+        typeParam.defaultType,
+    ];
+
+    final notPassedBlock = builder.newTargetBlock();
+    final passedBlock = builder.newTargetBlock();
+    final delayedBlock = builder.newTargetBlock();
+    final defaultBlock = builder.newTargetBlock();
+    final doneBlock = builder.newJoinBlock();
+
+    // Check if function type arguments were passed.
+    builder.addLoadLocal(typeArgsVar);
+    builder.addConstant(ConstantValue(UnsetTypeArgumentsConstant()));
+    builder.addComparison(.equal);
+    builder.addBranch(notPassedBlock, passedBlock);
+
+    // Check if closure was instantiated (has delayed type arguments).
+    builder.startBlock(notPassedBlock);
+    builder.addLoadLocal(localVarIndexer.closure);
+    final delayedTypeArguments = builder.addLoadInstanceField(
+      CField(ClosureField(_currentClosureLayout.delayedTypeArgsIndex)),
+    );
+    builder.addConstant(ConstantValue(UnsetTypeArgumentsConstant()));
+    builder.addComparison(.equal);
+    builder.addBranch(defaultBlock, delayedBlock);
+
+    // Use delayed type arguments.
+    builder.startBlock(delayedBlock);
+    builder.push(delayedTypeArguments);
+    builder.addStoreLocal(typeArgsVar);
+    builder.addGoto(doneBlock);
+
+    // Use default type arguments.
+    builder.startBlock(defaultBlock);
+    // Default types can only refer to the type parameters of
+    // the enclosing functions, so they can be instantiated
+    // using type arguments of the enclosing functions.
+    // Temporarily set [functionTypeParameters] to the type parameters
+    // of the enclosing functions.
+    assert(functionTypeParameters == null);
+    if (parentTypeArguments != null) {
+      builder.push(parentTypeArguments);
+      functionTypeParameters = builder.addTypeParameters(
+        .functionTypeParameters,
+        1,
+      );
+    }
+    builder.addTypeArguments(
+      defaultTypes,
+      typeParameters: _typeParametersForTypes(defaultTypes),
+    );
+    functionTypeParameters = null;
+    builder.addStoreLocal(typeArgsVar);
+    builder.addGoto(doneBlock);
+
+    builder.startBlock(passedBlock);
+    builder.addGoto(doneBlock);
+
+    builder.startBlock(doneBlock);
   }
 
   void _buildImplicitGetter(ast.Field node) {
