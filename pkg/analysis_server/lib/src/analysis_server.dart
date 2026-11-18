@@ -476,6 +476,7 @@ abstract class AnalysisServer {
       singleFileOversizedValueBytes: singleFileStatistics?.oversizedValueBytes,
       singleFileOversizedValueCount: singleFileStatistics?.oversizedValueCount,
       singleFileResetCount: singleFileStatistics?.resetCount,
+      singleFileTableSlotCount: singleFileByteStore?.tableSlotCount,
     );
   }
 
@@ -1561,6 +1562,7 @@ class AnalysisServerByteStoreStats {
   final int? singleFilePendingEntryCount;
   final int? singleFileResetCount;
   final String? singleFileStorePath;
+  final int? singleFileTableSlotCount;
   final int storeHitCount;
   final int storeMissCount;
   final int? writeBytes;
@@ -1605,6 +1607,7 @@ class AnalysisServerByteStoreStats {
     this.singleFilePendingEntryCount,
     this.singleFileResetCount,
     this.singleFileStorePath,
+    this.singleFileTableSlotCount,
     this.writeBytes,
     this.writeCount,
   });

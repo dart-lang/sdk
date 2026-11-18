@@ -19,6 +19,7 @@ import 'package:analysis_server/src/status/pages/analysis_options_page.dart';
 import 'package:analysis_server/src/status/pages/analysis_performance_log_page.dart';
 import 'package:analysis_server/src/status/pages/assists_page.dart';
 import 'package:analysis_server/src/status/pages/ast_page.dart';
+import 'package:analysis_server/src/status/pages/byte_store_page.dart';
 import 'package:analysis_server/src/status/pages/client_page.dart';
 import 'package:analysis_server/src/status/pages/code_completion_page.dart';
 import 'package:analysis_server/src/status/pages/collect_report_page.dart';
@@ -30,7 +31,6 @@ import 'package:analysis_server/src/status/pages/environment_variables_page.dart
 import 'package:analysis_server/src/status/pages/exception_page.dart';
 import 'package:analysis_server/src/status/pages/exceptions_page.dart';
 import 'package:analysis_server/src/status/pages/feedback_page.dart';
-import 'package:analysis_server/src/status/pages/file_byte_store_timing_page.dart';
 import 'package:analysis_server/src/status/pages/file_io_timing_page.dart';
 import 'package:analysis_server/src/status/pages/fixes_page.dart';
 import 'package:analysis_server/src/status/pages/legacy_plugins_page.dart';
@@ -676,6 +676,7 @@ table.row-groups tbody + tbody tr:first-child > * {
   final List<String> lastPrintedLines;
 
   new(this.socketServer, this.lastPrintedLines) : super('Analysis Server') {
+    pages.add(ByteStorePage(this));
     pages.add(CommunicationsPage(this));
     pages.add(ContextsPage(this));
     pages.add(EnvironmentVariablesPage(this));
@@ -733,7 +734,6 @@ table.row-groups tbody + tbody tr:first-child > * {
     // (Nested)
     pages.add(AnalysisDriverPage(this));
     pages.add(AssistsPage(this));
-    pages.add(FileByteStoreTimingPage(this));
     pages.add(FileIoTimingPage(this));
     pages.add(CodeCompletionPage(this));
     pages.add(FixesPage(this));
