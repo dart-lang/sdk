@@ -246,10 +246,25 @@ class LspAnalysisServerMemoryUsageTest
 mixin ServerMemoryUsageMixin {
   late int _vmServicePort;
 
+  /// Returns the memory retained by the server: heap and external memory of
+  /// all its isolate groups, measured after a full garbage collection.
+  ///
+  /// Without the collection, the result includes garbage that the VM has not
+  /// collected yet. So, it depends on when the last collection happened, and
+  /// varies by hundreds of megabytes between runs of the same code.
   Future<int> getMemoryUsage() async {
     var uri = Uri.parse('ws://127.0.0.1:$_vmServicePort/ws');
     var service = await ServiceProtocol.connect(uri);
     var vm = await service.call('getVM');
+
+    // With `gc: true`, the VM performs a full garbage collection first.
+    var isolateRefs = vm['isolates'] as List<Object?>;
+    for (var isolateRef in isolateRefs.cast<Map<Object?, Object?>>()) {
+      await service.call('getAllocationProfile', {
+        'isolateId': isolateRef['id'],
+        'gc': true,
+      });
+    }
 
     var total = 0;
 
