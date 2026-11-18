@@ -86,7 +86,7 @@ vars = {
   "clang_version": "git_revision:32e6b5082d000a0da4a5af148d63f30d29e95a18",
 
   # https://chrome-infra-packages.appspot.com/p/gn/gn
-  "gn_version": "git_revision:938087829fcbcc8fd87835ee301dd522c7637685",
+  "gn_version": "git_revision:cf3236d32b53df18d2b2da8c57814b8d2713c03c",
 
   # Update from https://chrome-infra-packages.appspot.com/p/fuchsia/sdk/core
   "fuchsia_sdk_version": "version:34.20261112.4.1",
