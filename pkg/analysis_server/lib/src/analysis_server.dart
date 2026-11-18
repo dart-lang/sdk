@@ -283,7 +283,7 @@ abstract class AnalysisServer {
   /// for processing.
   final MessageScheduler messageScheduler;
 
-  /// A [TimingByteStore] that records timings for reads from the byte store.
+  /// A [TimingByteStore] that records operations on the on-disk byte store.
   TimingByteStore? _timingByteStore;
 
   /// The file byte store created by [createByteStore], if any.
@@ -470,10 +470,6 @@ abstract class AnalysisServer {
     );
   }
 
-  /// A list of timings for the byte store, or `null` if timing is not being
-  /// tracked.
-  List<ByteStoreTimings>? get byteStoreTimings => _timingByteStore?.timings;
-
   /// The workspace folders to request resource-scoped configuration for, in
   /// addition to the global configuration.
   ///
@@ -595,6 +591,9 @@ abstract class AnalysisServer {
   @protected
   bool get supportsShowMessageRequest;
 
+  /// The timings of the on-disk byte store, or `null` if there is none.
+  TimingByteStore? get timingByteStore => _timingByteStore;
+
   /// Resource operations measured since this server was created.
   TimingResourceProvider get timingResourceProvider =>
       resourceProvider.baseProvider as TimingResourceProvider;
@@ -625,7 +624,7 @@ abstract class AnalysisServer {
       supportsShowMessageRequest ? showUserPrompt : null;
 
   void afterContextsCreated() {
-    _timingByteStore?.newTimings('after contexts created');
+    _timingByteStore?.startPeriod('contexts created', isMilestone: true);
     _isFirstAnalysisSinceContextsBuilt = true;
   }
 
@@ -1076,10 +1075,17 @@ abstract class AnalysisServer {
     if (!status.isWorking) {
       _singleFileByteStore?.flush();
     }
-    if (_isFirstAnalysisSinceContextsBuilt && !status.isWorking) {
-      _timingByteStore?.newTimings('initial analysis completed');
-      _isFirstAnalysisSinceContextsBuilt = false;
-      _dartFixPrompt.triggerCheck();
+    if (_isFirstAnalysisSinceContextsBuilt) {
+      if (!status.isWorking) {
+        _timingByteStore?.startPeriod(
+          'initial analysis completed',
+          isMilestone: true,
+        );
+        _isFirstAnalysisSinceContextsBuilt = false;
+        _dartFixPrompt.triggerCheck();
+      }
+    } else {
+      _timingByteStore?.startPeriod(status.isWorking ? 'analysis' : 'idle');
     }
     analyticsManager.analysisStatusChanged(
       isWorking: status.isWorking,

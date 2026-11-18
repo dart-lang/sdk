@@ -17,6 +17,7 @@ import 'package:analysis_server/src/scheduler/scheduler_tracking_listener.dart';
 import 'package:analysis_server/src/status/diagnostics.dart';
 import 'package:analysis_server/src/status/utilities/library_cycle_extensions.dart';
 import 'package:analysis_server/src/utilities/profiling.dart';
+import 'package:analysis_server/src/utilities/timing_byte_store.dart';
 import 'package:analysis_server_plugin/src/correction/performance.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
@@ -152,38 +153,41 @@ void _collectFileByteStoreTimingData(
   Map<String, Object?> collectedData,
   AnalysisServer server,
 ) {
-  var byteStoreTimings = server.byteStoreTimings
-      ?.where(
-        (timing) => timing.readCount != 0 || timing.readTime != Duration.zero,
-      )
-      .toList();
-  if (byteStoreTimings != null && byteStoreTimings.isNotEmpty) {
-    var performance = [];
-    collectedData['byteStoreTimings'] = performance;
-    for (var i = 0; i < byteStoreTimings.length; i++) {
-      var timing = byteStoreTimings[i];
-      if (timing.readCount == 0) {
-        continue;
-      }
-
-      var nextTiming = i + 1 < byteStoreTimings.length
-          ? byteStoreTimings[i + 1]
-          : null;
-      var duration = (nextTiming?.time ?? DateTime.now()).difference(
-        timing.time,
-      );
-      var value = duration.inMilliseconds;
-      var description =
-          'Between ${timing.reason} and ${nextTiming?.reason ?? 'now'} '
-          '(${'$value ms'}).';
-
-      var itemData = {};
-      performance.add(itemData);
-      itemData['file_reads'] = timing.readCount;
-      itemData['time'] = timing.readTime.inMilliseconds;
-      itemData['description'] = description;
-    }
+  var timingByteStore = server.timingByteStore;
+  if (timingByteStore == null) {
+    return;
   }
+
+  Map<String, Object> timingsData(ByteStoreTimings timings) {
+    var lookups = timings.lookups;
+    var puts = timings.puts;
+    return {
+      'lookups': lookups.count,
+      'lookups_not_found': timings.notFoundCount,
+      'lookup_bytes': lookups.bytes,
+      'lookup_us': lookups.elapsed.inMicroseconds,
+      'lookup_max_us': lookups.max.inMicroseconds,
+      'puts': puts.count,
+      'put_bytes': puts.bytes,
+      'put_us': puts.elapsed.inMicroseconds,
+      'put_max_us': puts.max.inMicroseconds,
+    };
+  }
+
+  collectedData['byteStoreTimings'] = {
+    'periods': [
+      for (var period in timingByteStore.periods)
+        if (!period.isEmpty)
+          {
+            'description':
+                '${period.reason} -> ${period.endReason ?? 'now'} '
+                '(${period.duration.inMilliseconds} ms)',
+            ...timingsData(period),
+          },
+    ],
+    'dropped_periods': timingByteStore.droppedPeriodCount,
+    'total': timingsData(timingByteStore.total),
+  };
 }
 
 void _collectGeneralData(

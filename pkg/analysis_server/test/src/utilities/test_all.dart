@@ -17,6 +17,7 @@ import 'selection_coverage_test.dart' as selection_coverage;
 import 'selection_test.dart' as selection;
 import 'source_change_merger_test.dart' as source_change_merger;
 import 'strings_test.dart' as strings;
+import 'timing_byte_store_test.dart' as timing_byte_store;
 
 void main() {
   defineReflectiveSuite(() {
@@ -33,5 +34,6 @@ void main() {
     selection.main();
     source_change_merger.main();
     strings.main();
+    timing_byte_store.main();
   });
 }
