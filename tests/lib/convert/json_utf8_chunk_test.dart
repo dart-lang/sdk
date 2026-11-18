@@ -33,7 +33,9 @@ void jsonTest(testName, expect, action(sink), [bool allowMalformed = false]) {
 }
 
 void jsonParse(testName, check, action, [bool allowMalformed = false]) {
+  var called = false;
   var sink = new ChunkedConversionSink.withCallback((values) {
+    called = true;
     var value = values[0];
     check(value);
   });
@@ -46,6 +48,7 @@ void jsonParse(testName, check, action, [bool allowMalformed = false]) {
     print("Source: ${e.source} @ ${e.offset}");
     Expect.fail("Unexpected throw($testName): $e\n$s");
   }
+  Expect.isTrue(called, "$testName: no result");
 }
 
 void testStrings() {
@@ -206,7 +209,9 @@ void jsonMalformedTest(name, expect, codes) {
     var tag = "Malform:$name-$expect";
     {
       // Allowing malformed, expect [expect]
+      var called = false;
       var sink = new ChunkedConversionSink.withCallback((values) {
+        called = true;
         var value = values[0];
         Expect.equals(expect, value, tag);
       });
@@ -218,6 +223,7 @@ void jsonMalformedTest(name, expect, codes) {
       } catch (e, s) {
         Expect.fail("Unexpected throw ($tag): $e\n$s");
       }
+      Expect.isTrue(called, "$tag: no result");
     }
     {
       // Not allowing malformed, expect throw.

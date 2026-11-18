@@ -1357,7 +1357,18 @@ final class ClosureDataSerializationCluster extends SerializationCluster {
   }
 }
 
-/// FunctionType which doesn't have an implicit closure/receiver parameter.
+/// Signature of a function which differs from a plain FunctionType:
+///
+/// - It may not have an implicit closure/receiver parameter
+///   ([hasImplicitParameter] is false).
+///
+/// - It may be a signature of a closure nested in generic functions
+///   ([numParentTypeArguments] > 0). In such case type parameters of
+///   the signature follow type parameters of the enclosing functions
+///   in the function type arguments vector.
+///
+/// Plain FunctionType is used for signatures with implicit parameter and
+/// without parent type arguments.
 class FunctionSignature(
   super.positionalParameters,
   super.returnType,
@@ -1365,12 +1376,15 @@ class FunctionSignature(
   super.namedParameters,
   super.typeParameters,
   super.requiredParameterCount,
+  required final bool hasImplicitParameter,
+  required final int numParentTypeArguments,
 }) extends ast.FunctionType {
   static ast.FunctionType from(
     ast.FunctionType ft, {
     required bool hasImplicitParameter,
+    int numParentTypeArguments = 0,
   }) {
-    if (hasImplicitParameter) return ft;
+    if (hasImplicitParameter && numParentTypeArguments == 0) return ft;
     if (ft.typeParameters.isNotEmpty) {
       final fresh = ast_type_algebra.getFreshStructuralParameters(
         ft.typeParameters,
@@ -1388,6 +1402,8 @@ class FunctionSignature(
         ),
         typeParameters: fresh.freshTypeParameters,
         requiredParameterCount: ft.requiredParameterCount,
+        hasImplicitParameter: hasImplicitParameter,
+        numParentTypeArguments: numParentTypeArguments,
       );
     }
     return FunctionSignature(
@@ -1396,15 +1412,21 @@ class FunctionSignature(
       ft.declaredNullability,
       namedParameters: ft.namedParameters,
       requiredParameterCount: ft.requiredParameterCount,
+      hasImplicitParameter: hasImplicitParameter,
+      numParentTypeArguments: numParentTypeArguments,
     );
   }
 
   @override
-  int get hashCode => super.hashCode ^ 123;
+  int get hashCode =>
+      Object.hash(super.hashCode, hasImplicitParameter, numParentTypeArguments);
 
   @override
   bool operator ==(Object other) =>
-      other is FunctionSignature && super == (other);
+      other is FunctionSignature &&
+      hasImplicitParameter == other.hasImplicitParameter &&
+      numParentTypeArguments == other.numParentTypeArguments &&
+      super == (other);
 }
 
 typedef _FunctionFields = ({
@@ -1462,6 +1484,9 @@ final class FunctionSerializationCluster extends SerializationCluster {
         functionNode!.computeThisFunctionType(.nonNullable),
         hasImplicitParameter:
             function.hasReceiverParameter || function.hasClosureParameter,
+        numParentTypeArguments: (function is LocalFunction)
+            ? function.numberOfEnclosingFunctionTypeParameters
+            : 0,
       ),
     };
     final positionalParameterNames = getListConstant([
@@ -2223,6 +2248,9 @@ final class FunctionTypeSerializationCluster extends SerializationCluster {
   >
   _fields = [];
 
+  static bool _hasImplicitParameter(ast.FunctionType type) =>
+      (type is! FunctionSignature) || type.hasImplicitParameter;
+
   @override
   void trace(SnapshotSerializer serializer, Object object) {
     final type = object as ast.FunctionType;
@@ -2240,7 +2268,7 @@ final class FunctionTypeSerializationCluster extends SerializationCluster {
         ? TypeParameters.fromStructuralParameters(type.typeParameters)
         : null;
     final parameterTypes = getListConstant([
-      if (type is! FunctionSignature)
+      if (_hasImplicitParameter(type))
         const ast.DynamicType(), // implicit receiver/closure parameter
       ...type.positionalParameters,
       for (final np in type.namedParameters) np.type,
@@ -2286,7 +2314,7 @@ final class FunctionTypeSerializationCluster extends SerializationCluster {
       serializer.writeRefId(fields.parameterTypes);
       serializer.writeRefId(fields.parameterNames);
       final vmOffsets = serializer.objectLayout.vmOffsets;
-      final numImplicitParams = (type is! FunctionSignature) ? 1 : 0;
+      final numImplicitParams = _hasImplicitParameter(type) ? 1 : 0;
       final numFixedParams = numImplicitParams + type.requiredParameterCount;
       final numOptionalParams = type.namedParameters.isNotEmpty
           ? type.namedParameters.length
@@ -2456,9 +2484,14 @@ final class TypeParameterTypeSerializationCluster extends SerializationCluster {
           final functionType = _structuralParameterOwner[type.parameter]!;
           owner = functionType;
           indexInOwner = functionType.typeParameters.indexOf(type.parameter);
-          // Function types which are not signatures do not have
-          // parent type arguments.
-          indexInTAV = indexInOwner;
+          // Type parameters of closures nested in generic functions
+          // follow type parameters of the enclosing functions.
+          // Other function types do not have parent type arguments.
+          indexInTAV =
+              indexInOwner +
+              ((functionType is FunctionSignature)
+                  ? functionType.numParentTypeArguments
+                  : 0);
           break;
         default:
           throw 'Unexpected type parameter ${type.runtimeType} $type';

@@ -73,7 +73,6 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as analysis;
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_byte_store.dart'
     show EvictingFileByteStore;
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
@@ -84,7 +83,6 @@ import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/analysis/single_file_byte_store.dart';
 import 'package:analyzer/src/dart/analysis/status.dart' as analysis;
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
-import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/file_system/timing_resource_provider.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -751,24 +749,30 @@ abstract class AnalysisServer {
         ? resourceProvider.baseProvider
         : resourceProvider;
     if (baseProvider is PhysicalResourceProvider) {
-      var stateLocation = resourceProvider.getStateLocation('.analysis-driver');
-      if (stateLocation != null) {
-        ByteStore fileByteStore;
-        if (options.useSingleFileByteStore) {
-          fileByteStore = _singleFileByteStore = SingleFileByteStore.file(
-            stateLocation.parent.getFile('cache_v001.bin').path,
-            filePageCountLog2: 22, // 4 GiB, including metadata.
-            tableSlotCountLog2: 19, // 524,288 entries.
-            bufferPoolCapacityLog2: 12, // 4 MiB of cached pages.
-            maxPendingValueBytes: M,
-            maxPendingEntryCount: 64,
-          );
-        } else {
+      ByteStore? fileByteStore;
+      if (options.useSingleFileByteStore) {
+        var folder = resourceProvider.getStateLocation('.analysis-cache');
+        if (folder != null) {
+          fileByteStore = _singleFileByteStore =
+              SingleFileByteStore.inDirectory(
+                folder.path,
+                filePageCountLog2: 22, // 4 GiB, including metadata.
+                tableSlotCountLog2: 19, // 524,288 entries.
+                bufferPoolCapacityLog2: 12, // 4 MiB of cached pages.
+                maxPendingValueBytes: M,
+                maxPendingEntryCount: 64,
+              );
+        }
+      } else {
+        var folder = resourceProvider.getStateLocation('.analysis-driver');
+        if (folder != null) {
           fileByteStore = _fileByteStore = EvictingFileByteStore(
-            stateLocation.path,
+            folder.path,
             fileCacheSize,
           );
         }
+      }
+      if (fileByteStore != null) {
         var timingByteStore = _timingByteStore = TimingByteStore(fileByteStore);
         return _memoryCachingByteStore = MemoryCachingByteStore(
           timingByteStore,
@@ -901,18 +905,6 @@ abstract class AnalysisServer {
       return analysisDriver.currentSession;
     }
     return null;
-  }
-
-  DartdocDirectiveInfo getDartdocDirectiveInfoFor(ResolvedUnitResult result) {
-    return getDartdocDirectiveInfoForSession(result.session);
-  }
-
-  DartdocDirectiveInfo getDartdocDirectiveInfoForSession(
-    AnalysisSession session,
-  ) {
-    var analysisContext = session.analysisContext;
-    analysisContext as DriverBasedAnalysisContext;
-    return analysisContext.driver.dartdocDirectiveInfo;
   }
 
   /// Gets the current version number of a document.

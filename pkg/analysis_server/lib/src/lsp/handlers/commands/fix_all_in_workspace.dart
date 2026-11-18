@@ -8,12 +8,11 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/simple_edit_handler.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/operations/fix_all_in_workspace.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 
 abstract class AbstractFixAllInWorkspaceCommandHandler
-    extends SimpleEditCommandHandler<LspAnalysisServer> {
+    extends SimpleEditCommandHandler {
   new(super.server);
 
   /// Whether to require confirmation from the user to apply these changes.

@@ -1562,6 +1562,25 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     nullSafetyDeadCodeVerifier.maybeRewriteFirstDeadNode(oldNode, newNode);
   }
 
+  /// Reports that [name] can't be looked up, because the context of the dot
+  /// shorthand being resolved is an [InvalidDotShorthandContextResolution].
+  ///
+  /// The diagnostic describes the context type, which the AST doesn't record,
+  /// so this must be invoked while that context is still the current one.
+  void reportDotShorthandLookupInInvalidContext(Token name) {
+    var contextType = getDotShorthandContext().unwrapTypeSchemaView<TypeImpl>();
+    // A declaration that makes the context invalid is not accessible, so it is
+    // private to another library.
+    var declaration = _dotShorthandContextDeclaration(contextType);
+    lookupFailureReporter.reportReadFailure(
+      domain: declaration != null
+          ? DotShorthandLookupDomain.privateDeclaration(declaration)
+          : DotShorthandLookupDomain.noDeclaration(contextType),
+      name: name,
+      foundInstead: null,
+    );
+  }
+
   PatternResult resolveAssignedVariablePattern({
     required AssignedVariablePatternImpl node,
     required SharedMatchContext context,
@@ -5044,6 +5063,16 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     return true;
   }
 
+  /// The interface declaration that the dot-shorthand context type
+  /// [contextType] denotes, or `null` if it doesn't denote one.
+  InterfaceElementImpl? _dotShorthandContextDeclaration(TypeImpl contextType) {
+    var baseType = typeSystem.futureOrBase(contextType);
+    if (baseType is InterfaceTypeImpl) {
+      return baseType.element;
+    }
+    return null;
+  }
+
   TypeImpl _finishFunctionBodyInference() {
     var flow = flowAnalysis.flow;
 
@@ -5313,26 +5342,18 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
 
   /// Resolves the context shared by every canonical dot-shorthand head.
   ///
-  /// The surrounding context is preserved separately from the normalized
-  /// interface type used for static namespace lookup. Operation-specific
-  /// resolvers consume this result instead of repeating context normalization.
+  /// Operation-specific resolvers consume this result instead of repeating
+  /// context normalization.
   DotShorthandContextResolutionImpl _resolveDotShorthandContext() {
     var contextType = getDotShorthandContext().unwrapTypeSchemaView<TypeImpl>();
-    var lookupType = typeSystem.futureOrBase(contextType);
-    if (lookupType is InterfaceTypeImpl &&
-        lookupType.element.isAccessibleIn(definingLibrary)) {
-      return ValidDotShorthandContextResolutionImpl(
-        contextType: contextType,
-        lookupType: lookupType,
-      );
-    }
     if (contextType is UnknownInferredType) {
       return const MissingDotShorthandContextResolutionImpl();
     }
-    return InvalidDotShorthandContextResolutionImpl(
-      contextType: contextType,
-      lookupType: lookupType,
-    );
+    var declaration = _dotShorthandContextDeclaration(contextType);
+    if (declaration != null && declaration.isAccessibleIn(definingLibrary)) {
+      return ValidDotShorthandContextResolutionImpl(declaration: declaration);
+    }
+    return const InvalidDotShorthandContextResolutionImpl();
   }
 
   void _resolveDotShorthandNameExpression(
@@ -5474,9 +5495,9 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     InternalExecutableElement? element;
     InterfaceElementImpl? interfaceElement;
     if (shorthandContext case ValidDotShorthandContextResolutionImpl(
-      lookupType: InterfaceTypeImpl(:var element),
+      :var declaration,
     )) {
-      interfaceElement = element;
+      interfaceElement = declaration;
     }
     if (interfaceElement != null) {
       element =
@@ -5560,18 +5581,14 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
         case MissingDotShorthandContextResolutionImpl():
           diagnosticReporter.report(diag.dotShorthandMissingContext.at(node));
         case InvalidDotShorthandContextResolutionImpl():
+          reportDotShorthandLookupInInvalidContext(head.name);
+        case ValidDotShorthandContextResolutionImpl(:var declaration):
           lookupFailureReporter.reportReadFailure(
-            domain: DotShorthandLookupDomain.invalid(shorthandContext),
-            name: head.name,
-            foundInstead: null,
-          );
-        case ValidDotShorthandContextResolutionImpl(:var lookupType):
-          lookupFailureReporter.reportReadFailure(
-            domain: DotShorthandLookupDomain.declaration(shorthandContext),
+            domain: DotShorthandLookupDomain.declaration(declaration),
             name: head.name,
             foundInstead:
                 element ??
-                lookupType.element.getMemberForFailedLookup(
+                declaration.getMemberForFailedLookup(
                   Name(definingLibrary.uri, head.name.lexeme),
                 ),
           );

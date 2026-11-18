@@ -33,20 +33,18 @@ class ConstructorInvocationResolver {
     required TypeImpl contextType,
     required DotShorthandContextResolutionImpl shorthandContext,
   }) {
-    var dotShorthandContextType = switch (shorthandContext) {
-      MissingDotShorthandContextResolutionImpl() => InvalidTypeImpl.instance,
-      InvalidDotShorthandContextResolutionImpl() => InvalidTypeImpl.instance,
-      ValidDotShorthandContextResolutionImpl(:var lookupType) => lookupType,
+    var declaration = switch (shorthandContext) {
+      MissingDotShorthandContextResolutionImpl() => null,
+      InvalidDotShorthandContextResolutionImpl() => null,
+      ValidDotShorthandContextResolutionImpl(:var declaration) => declaration,
     };
 
-    if (shorthandContext case ValidDotShorthandContextResolutionImpl(
-      lookupType: InterfaceTypeImpl(element: var contextElement),
-    )) {
+    if (declaration != null) {
       // This branch will be true if we're resolving an explicitly marked
       // const constructor invocation. Other shorthand constructor invocations
       // already have an element selected from the parsed invocation head.
       if (node.element == null) {
-        if (contextElement.getNamedConstructor(node.name.lexeme)
+        if (declaration.getNamedConstructor(node.name.lexeme)
             case ConstructorElementImpl element?
             when element.isAccessibleIn(_typeAnalyzer.definingLibrary)) {
           node.element = element;
@@ -54,7 +52,7 @@ class ConstructorInvocationResolver {
           _typeAnalyzer.diagnosticReporter.report(
             diag.constWithUndefinedConstructor
                 .withArguments(
-                  className: contextElement.displayName,
+                  className: declaration.displayName,
                   constructorName: node.name.lexeme,
                 )
                 .at(node.name),
@@ -64,8 +62,8 @@ class ConstructorInvocationResolver {
 
       var typeArguments = node.typeArguments;
       var constructorElement = node.element;
-      if (contextElement is ClassElementImpl &&
-          contextElement.isAbstract &&
+      if (declaration is ClassElementImpl &&
+          declaration.isAbstract &&
           constructorElement != null &&
           !constructorElement.isFactory) {
         _typeAnalyzer.diagnosticReporter.report(
@@ -75,7 +73,7 @@ class ConstructorInvocationResolver {
         _typeAnalyzer.diagnosticReporter.report(
           diag.wrongNumberOfTypeArgumentsDotShorthandConstructor
               .withArguments(
-                className: contextElement.displayName,
+                className: declaration.displayName,
                 constructorName: node.name.lexeme,
               )
               .at(typeArguments),
@@ -90,7 +88,7 @@ class ConstructorInvocationResolver {
     _resolveDotShorthandConstructorInvocation(
       node,
       contextType: contextType,
-      dotShorthandContextType: dotShorthandContextType,
+      declaration: declaration,
     );
   }
 
@@ -151,13 +149,13 @@ class ConstructorInvocationResolver {
   void _resolveDotShorthandConstructorInvocation(
     DotShorthandConstructorInvocation2Impl node, {
     required TypeImpl contextType,
-    required TypeImpl dotShorthandContextType,
+    required InterfaceElementImpl? declaration,
   }) {
     var whyNotPromotedArguments = <WhyNotPromotedGetter>[];
     _typeAnalyzer.elementResolver.visitDotShorthandConstructorInvocation2(node);
     var elementToInfer = _typeAnalyzer.inferenceHelper
         .constructorElementToInfer(
-          typeElement: dotShorthandContextType.element,
+          typeElement: declaration,
           constructorName: node.name,
           definingLibrary: _typeAnalyzer.definingLibrary,
         );

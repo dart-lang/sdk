@@ -28,6 +28,7 @@ import 'package:analysis_server/src/services/completion/yaml/yaml_completion_gen
 import 'package:analysis_server/src/services/snippets/dart_snippet_request.dart';
 import 'package:analysis_server/src/services/snippets/snippet_manager.dart';
 import 'package:analysis_server/src/utilities/element_location2.dart';
+import 'package:analysis_server/src/utilities/extensions/analysis_session.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/dart/element/element.dart' show Element;
@@ -411,9 +412,7 @@ class CompletionHandler
       libraryFragment: unit.libraryFragment,
       offset: offset,
       unit: unit.parsedUnit,
-      dartdocDirectiveInfo: server.getDartdocDirectiveInfoForSession(
-        analysisSession,
-      ),
+      dartdocDirectiveInfo: analysisSession.dartdocDirectiveInfo,
     );
     var target = completionRequest.target;
     var targetPrefix = completionRequest.targetPrefix;

@@ -31,6 +31,8 @@ library;
 
 import 'dart:typed_data';
 
+import 'package:debug_info/debug_info.dart' show BytesReader, BytesWriter;
+
 /// Information about source files and symbol names referenced in a Wasm module.
 class DebugInfoTables {
   final Map<Uri, int> _fileIndices = {};
@@ -90,11 +92,9 @@ abstract interface class DebugInfoSerializer {
 ///   [DebugInfoSerializer].
 ///
 /// For more details, see library documentation.
-class DebugInfoReader {
-  final Uint8List _bytes;
+class DebugInfoReader extends BytesReader {
   final DebugInfoTables? _debugInfoTables;
 
-  int _byteOffset = 0;
   int _offset = 0;
   int _fileIndex = 0;
   int _line = 0;
@@ -102,7 +102,7 @@ class DebugInfoReader {
   int _nameIndex = -1;
   bool _hasSourcePosition = false;
 
-  DebugInfoReader(this._bytes, [this._debugInfoTables]);
+  DebugInfoReader(super.bytes, [this._debugInfoTables]);
 
   /// The offset of the current mapping.
   ///
@@ -156,7 +156,7 @@ class DebugInfoReader {
   bool moveUntil(int targetOffset) {
     bool moved = false;
     while (true) {
-      final byteOffset = _byteOffset;
+      final savedByteOffset = byteOffset;
       final offset = _offset;
       final fileIndex = _fileIndex;
       final line = _line;
@@ -166,7 +166,7 @@ class DebugInfoReader {
 
       if (!moveNext()) return moved;
       if (_offset > targetOffset) {
-        _byteOffset = byteOffset;
+        byteOffset = savedByteOffset;
         _offset = offset;
         _fileIndex = fileIndex;
         _line = line;
@@ -182,8 +182,8 @@ class DebugInfoReader {
   /// Advances to the next source mapping. Returns `false` if there are no more
   /// mappings.
   bool moveNext() {
-    if (_byteOffset >= _bytes.length) return false;
-    final op = _bytes[_byteOffset++];
+    if (isAtEnd) return false;
+    final op = readByte();
 
     if (op < _Opcode.specialSameLineMax) {
       final deltaOffset = op >> 4;
@@ -205,21 +205,21 @@ class DebugInfoReader {
 
     switch (op) {
       case _Opcode.changeLineCol:
-        _offset += _readVarint();
-        _line += _readZigZag();
-        _col += _readZigZag();
+        _offset += readVarint();
+        _line += readZigZag();
+        _col += readZigZag();
         _hasSourcePosition = true;
         return true;
       case _Opcode.setUnmapped:
-        _offset += _readVarint();
+        _offset += readVarint();
         _hasSourcePosition = false;
         return true;
       case _Opcode.setAll:
-        _offset += _readVarint();
-        _fileIndex = _readVarint();
-        _line = _readVarint();
-        _col = _readVarint();
-        final rawName = _readVarint();
+        _offset += readVarint();
+        _fileIndex = readVarint();
+        _line = readVarint();
+        _col = readVarint();
+        final rawName = readVarint();
         _nameIndex = rawName == 0 ? -1 : rawName - 1;
         _hasSourcePosition = true;
         return true;
@@ -227,34 +227,11 @@ class DebugInfoReader {
         throw StateError('Invalid debug info bytecode opcode: $op');
     }
   }
-
-  int _readVarint() {
-    int result = 0;
-    int shift = 0;
-    while (true) {
-      final byte = _bytes[_byteOffset++];
-      result |= (byte & 0x7F) << shift;
-      if ((byte & 0x80) == 0) break;
-      shift += 7;
-    }
-    return result;
-  }
-
-  int _readZigZag() {
-    final value = _readVarint();
-    return (value >>> 1) ^ -(value & 1);
-  }
 }
 
 /// Compact mapping of wasm instructions to debug information.
-class DebugInfoWriter {
-  static final Uint8List _emptyBuffer = Uint8List(0);
-  static const int _initialCapacity = 32;
-
+class DebugInfoWriter extends BytesWriter {
   final DebugInfoTables? debugInfoTables;
-
-  Uint8List _buffer = _emptyBuffer;
-  int _length = 0;
 
   // Last flushed entry (baseline for delta encoding).
   int _lastOffset = -1;
@@ -273,26 +250,10 @@ class DebugInfoWriter {
   int _pendingNameIndex = -1;
   bool _pendingHasSourcePosition = false;
 
-  Uint8List? _built;
-
   DebugInfoWriter([this.debugInfoTables]);
 
-  bool get isEmpty =>
-      _built != null ? _built!.isEmpty : (_length == 0 && !_hasPending);
-
-  void _addByte(int byte) {
-    if (_length == _buffer.length) {
-      final newCapacity = _buffer.isEmpty
-          ? _initialCapacity
-          : _buffer.length * 2;
-      final newBuffer = Uint8List(newCapacity);
-      if (_length > 0) {
-        newBuffer.setRange(0, _length, _buffer);
-      }
-      _buffer = newBuffer;
-    }
-    _buffer[_length++] = byte;
-  }
+  @override
+  bool get isEmpty => super.isEmpty && !_hasPending;
 
   /// Sets the source position for the code at [offset].
   ///
@@ -391,18 +352,18 @@ class DebugInfoWriter {
     assert(deltaOffset >= 0);
 
     if (!_pendingHasSourcePosition) {
-      _addByte(_Opcode.setUnmapped);
-      _writeVarint(deltaOffset);
+      addByte(_Opcode.setUnmapped);
+      writeVarint(deltaOffset);
     } else if (_lastOffset == -1 ||
         !_lastHasSourcePosition ||
         _lastFileIndex != _pendingFileIndex ||
         _lastNameIndex != _pendingNameIndex) {
-      _addByte(_Opcode.setAll);
-      _writeVarint(deltaOffset);
-      _writeVarint(_pendingFileIndex);
-      _writeVarint(_pendingLine);
-      _writeVarint(_pendingCol);
-      _writeVarint(_pendingNameIndex == -1 ? 0 : _pendingNameIndex + 1);
+      addByte(_Opcode.setAll);
+      writeVarint(deltaOffset);
+      writeVarint(_pendingFileIndex);
+      writeVarint(_pendingLine);
+      writeVarint(_pendingCol);
+      writeVarint(_pendingNameIndex == -1 ? 0 : _pendingNameIndex + 1);
     } else {
       final deltaLine = _pendingLine - _lastLine;
       final deltaCol = _pendingCol - _lastCol;
@@ -411,21 +372,21 @@ class DebugInfoWriter {
           deltaOffset <= _SpecialOp.sameLineOffsetMax &&
           deltaCol >= _SpecialOp.sameLineColMin &&
           deltaCol <= _SpecialOp.sameLineColMax) {
-        _addByte((deltaOffset << 4) | (deltaCol + _SpecialOp.sameLineColBias));
+        addByte((deltaOffset << 4) | (deltaCol + _SpecialOp.sameLineColBias));
       } else if (deltaLine == 1 &&
           deltaOffset <= _SpecialOp.nextLineOffsetMax &&
           deltaCol >= _SpecialOp.nextLineColMin &&
           deltaCol <= _SpecialOp.nextLineColMax) {
-        _addByte(
+        addByte(
           _Opcode.specialNextLineBase |
               (deltaOffset << 3) |
               (deltaCol + _SpecialOp.nextLineColBias),
         );
       } else {
-        _addByte(_Opcode.changeLineCol);
-        _writeVarint(deltaOffset);
-        _writeZigZag(deltaLine);
-        _writeZigZag(deltaCol);
+        addByte(_Opcode.changeLineCol);
+        writeVarint(deltaOffset);
+        writeZigZag(deltaLine);
+        writeZigZag(deltaCol);
       }
     }
 
@@ -437,31 +398,10 @@ class DebugInfoWriter {
     _lastHasSourcePosition = _pendingHasSourcePosition;
   }
 
-  void _writeVarint(int value) {
-    assert(value >= 0);
-    while (value >= 0x80) {
-      _addByte((value & 0x7F) | 0x80);
-      value >>= 7;
-    }
-    _addByte(value & 0x7F);
-  }
-
-  void _writeZigZag(int value) {
-    final encoded = (value << 1) ^ (value >> 63);
-    _writeVarint(encoded);
-  }
-
+  @override
   Uint8List build() {
-    if (_built != null) return _built!;
     _flushPending();
-    if (_length == 0) {
-      return _built = _emptyBuffer;
-    }
-    final result = Uint8List(_length);
-    result.setRange(0, _length, _buffer);
-    _buffer = _emptyBuffer;
-    _length = 0;
-    return _built = result;
+    return super.build();
   }
 
   DebugInfoReader get reader => DebugInfoReader(build(), debugInfoTables);

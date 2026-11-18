@@ -23,7 +23,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 /// A command handler that executes commands used to implement refactorings
 /// that can describe their inputs (either via the original Dart protocol or
 /// the updated Interactive Forms protocol).
-class RefactorCommandExecutor extends SimpleEditCommandHandler<AnalysisServer>
+class RefactorCommandExecutor extends SimpleEditCommandHandler
     with RefactorCommandHandlerMixin<void> {
   @override
   final String commandName;

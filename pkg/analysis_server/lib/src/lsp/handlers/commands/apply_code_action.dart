@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/code_action_computer.dart';
@@ -23,8 +22,7 @@ import 'package:language_server_protocol/json_parsing.dart';
 /// This command is only intended to be used by executing a command produced by
 /// the server in the same session and therefore the arguments are not specified
 /// and can easily change - the server only needs to be consistent with itself.
-class ApplyCodeActionCommandHandler
-    extends SimpleEditCommandHandler<AnalysisServer> {
+class ApplyCodeActionCommandHandler extends SimpleEditCommandHandler {
   new(super.server);
 
   @override

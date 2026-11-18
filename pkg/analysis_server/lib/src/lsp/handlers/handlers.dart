@@ -16,7 +16,6 @@ import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/request_handler_mixin.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
@@ -36,10 +35,9 @@ Iterable<T> convert<T, E>(Iterable<E> items, T? Function(E) converter) {
   return items.map(converter).where((item) => item != null).cast<T>();
 }
 
-abstract class CommandHandler<P, R, S extends AnalysisServer>
-    with Handler<R>, HandlerHelperMixin {
+abstract class CommandHandler<P, R> with Handler<R>, HandlerHelperMixin {
   @override
-  final S server;
+  final AnalysisServer server;
 
   new(this.server);
 
@@ -130,10 +128,6 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
     'File is not being analyzed',
     path,
   );
-
-  DartdocDirectiveInfo getDartdocDirectiveInfoFor(ResolvedUnitResult result) {
-    return server.getDartdocDirectiveInfoFor(result);
-  }
 
   ErrorOr<LineInfo> getLineInfo(String path) {
     var lineInfo = server.getLineInfo(path);

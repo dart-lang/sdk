@@ -1375,8 +1375,7 @@ library
                 leftParenthesis: ( @48
                 rightParenthesis: ) @49
               shorthandContext: ValidDotShorthandContextResolution
-                contextType: A
-                lookupType: A
+                declaration: <testLibrary>::@class::A
               element: <testLibrary>::@class::A::@constructor::new
               staticType: A
           constantInitializer: expression_1
@@ -1454,8 +1453,7 @@ library
                 leftParenthesis: ( @42
                 rightParenthesis: ) @43
               shorthandContext: ValidDotShorthandContextResolution
-                contextType: A
-                lookupType: A
+                declaration: <testLibrary>::@class::A
               element: <testLibrary>::@class::A::@constructor::new
               staticType: A
           constantInitializer: expression_1
@@ -1499,6 +1497,336 @@ library
 ''');
   }
 
+  test_const_dotShorthand_constructor_implicit_unknownTypeInContext() async {
+    var library = await buildLibrary(r'''
+class A<T> {
+  const A(B<T> b);
+}
+
+class B<T> {
+  static const B<int> foo = B();
+  const B();
+  static B<int> bar() => B();
+}
+
+const a = A(.new());
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          typeParameters
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
+              element: #E0 T
+          constructors
+            #F3 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 21
+              formalParameters
+                #F4 requiredPositional isOriginDeclaration b (nameOffset:28) (firstTokenOffset:23) (offset:28)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::b
+        #F5 class B (nameOffset:41) (firstTokenOffset:35) (offset:41)
+          element: <testLibrary>::@class::B
+          typeParameters
+            #F6 T (nameOffset:43) (firstTokenOffset:43) (offset:43)
+              element: #E1 T
+          fields
+            #F7 hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:70) (firstTokenOffset:70) (offset:70)
+              element: <testLibrary>::@class::B::@field::foo
+              constantInitializer2: expression_0
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: B @76
+                      element: <testLibrary>::@class::B
+                      type: B<int>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@class::B::@constructor::new
+                      substitution: {T: int}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @77
+                    rightParenthesis: ) @78
+                  staticType: B<int>
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: B @76
+                      element: <testLibrary>::@class::B
+                      type: B<int>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@class::B::@constructor::new
+                      substitution: {T: int}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @77
+                    rightParenthesis: ) @78
+                  staticType: B<int>
+              inducedGetter: #F8
+          constructors
+            #F9 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:83) (offset:89)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+              typeNameOffset: 89
+          getters
+            #F8 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:70)
+              element: <testLibrary>::@class::B::@getter::foo
+              inducingVariable: #F7
+          methods
+            #F10 isComplete isOriginDeclaration isStatic bar (nameOffset:110) (firstTokenOffset:96) (offset:110)
+              element: <testLibrary>::@class::B::@method::bar
+      topLevelVariables
+        #F11 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:133) (firstTokenOffset:133) (offset:133)
+          element: <testLibrary>::@topLevelVariable::a
+          constantInitializer2: expression_2
+            ConstructorInvocation
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
+                  name: A @137
+                  element: <testLibrary>::@class::A
+                  type: A<dynamic>
+                element: SubstitutedConstructorElementImpl
+                  baseElement: <testLibrary>::@class::A::@constructor::new
+                  substitution: {T: dynamic}
+              argumentList: ArgumentList
+                leftParenthesis: ( @138
+                arguments2
+                  DotShorthandConstructorInvocation2
+                    period: . @139
+                    name: new @140
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @143
+                      rightParenthesis: ) @144
+                    shorthandContext: ValidDotShorthandContextResolution
+                      declaration: <testLibrary>::@class::B
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@class::B::@constructor::new
+                      substitution: {T: dynamic}
+                    staticType: B<dynamic>
+                rightParenthesis: ) @145
+              staticType: A<dynamic>
+          constantInitializer: expression_3
+            InstanceCreationExpression
+              constructorName: ConstructorName
+                type: NamedType
+                  name: A @137
+                  element: <testLibrary>::@class::A
+                  type: A<dynamic>
+                element: SubstitutedConstructorElementImpl
+                  baseElement: <testLibrary>::@class::A::@constructor::new
+                  substitution: {T: dynamic}
+              argumentList: ArgumentList
+                leftParenthesis: ( @138
+                arguments
+                  DotShorthandConstructorInvocation
+                    period: . @139
+                    constructorName: SimpleIdentifier
+                      token: new @140
+                      element: SubstitutedConstructorElementImpl
+                        baseElement: <testLibrary>::@class::B::@constructor::new
+                        substitution: {T: dynamic}
+                      staticType: null
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @143
+                      rightParenthesis: ) @144
+                    staticType: B<dynamic>
+                rightParenthesis: ) @145
+              staticType: A<dynamic>
+          inducedGetter: #F12
+      getters
+        #F12 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:133)
+          element: <testLibrary>::@getter::a
+          inducingVariable: #F11
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+      constructors
+        hasEnclosingTypeParameterReference isConst isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+          formalParameters
+            #E2 requiredPositional b
+              firstFragment: #F4
+              type: B<T>
+    isSimplyBounded class B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F5
+      typeParameters
+        #E1 T
+          firstFragment: #F6
+      fields
+        hasInitializer isConst isOriginDeclaration isStatic foo
+          reference: <testLibrary>::@class::B::@field::foo
+          firstFragment: #F7
+          type: B<int>
+          constantInitializer2: expression_0
+          constantInitializer: expression_1
+          getter: <testLibrary>::@class::B::@getter::foo
+      constructors
+        hasEnclosingTypeParameterReference isConst isOriginDeclaration new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F9
+      getters
+        isOriginVariable isStatic foo
+          reference: <testLibrary>::@class::B::@getter::foo
+          firstFragment: #F8
+          returnType: B<int>
+          variable: <testLibrary>::@class::B::@field::foo
+      methods
+        isOriginDeclaration isStatic bar
+          reference: <testLibrary>::@class::B::@method::bar
+          firstFragment: #F10
+          returnType: B<int>
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: #F11
+      type: A<dynamic>
+      constantInitializer2: expression_2
+      constantInitializer: expression_3
+      getter: <testLibrary>::@getter::a
+  getters
+    isOriginVariable isStatic a
+      reference: <testLibrary>::@getter::a
+      firstFragment: #F12
+      returnType: A<dynamic>
+      variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_const_dotShorthand_constructor_implicit_unknownTypeInContext_noDeclaration() async {
+    var library = await buildLibrary(r'''
+import 'dart:async';
+
+class A<T> {
+  const A(FutureOr<T> b);
+}
+
+const a = A(.new());
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      libraryImports
+        dart:async
+      classes
+        #F1 class A (nameOffset:28) (firstTokenOffset:22) (offset:28)
+          element: <testLibrary>::@class::A
+          typeParameters
+            #F2 T (nameOffset:30) (firstTokenOffset:30) (offset:30)
+              element: #E0 T
+          constructors
+            #F3 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:37) (offset:43)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 43
+              formalParameters
+                #F4 requiredPositional isOriginDeclaration b (nameOffset:57) (firstTokenOffset:45) (offset:57)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::b
+      topLevelVariables
+        #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:70) (firstTokenOffset:70) (offset:70)
+          element: <testLibrary>::@topLevelVariable::a
+          constantInitializer2: expression_0
+            ConstructorInvocation
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
+                  name: A @74
+                  element: <testLibrary>::@class::A
+                  type: A<InvalidType>
+                element: SubstitutedConstructorElementImpl
+                  baseElement: <testLibrary>::@class::A::@constructor::new
+                  substitution: {T: InvalidType}
+              argumentList: ArgumentList
+                leftParenthesis: ( @75
+                arguments2
+                  DotShorthandMethodInvocation
+                    period: . @76
+                    name: new @77
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @80
+                      rightParenthesis: ) @81
+                    shorthandContext: InvalidDotShorthandContextResolution
+                    resolution: InvalidInvocationResolution
+                      type: InvalidType
+                      recovery: <null>
+                    staticType: InvalidType
+                rightParenthesis: ) @82
+              staticType: A<InvalidType>
+          constantInitializer: expression_1
+            InstanceCreationExpression
+              constructorName: ConstructorName
+                type: NamedType
+                  name: A @74
+                  element: <testLibrary>::@class::A
+                  type: A<InvalidType>
+                element: SubstitutedConstructorElementImpl
+                  baseElement: <testLibrary>::@class::A::@constructor::new
+                  substitution: {T: InvalidType}
+              argumentList: ArgumentList
+                leftParenthesis: ( @75
+                arguments
+                  DotShorthandInvocation
+                    period: . @76
+                    memberName: SimpleIdentifier
+                      token: new @77
+                      element: <null>
+                      staticType: InvalidType
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @80
+                      rightParenthesis: ) @81
+                    staticInvokeType: InvalidType
+                    staticType: InvalidType
+                rightParenthesis: ) @82
+              staticType: A<InvalidType>
+          inducedGetter: #F6
+      getters
+        #F6 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:70)
+          element: <testLibrary>::@getter::a
+          inducingVariable: #F5
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+      constructors
+        hasEnclosingTypeParameterReference isConst isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+          formalParameters
+            #E1 requiredPositional b
+              firstFragment: #F4
+              type: FutureOr<T>
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: #F5
+      type: A<InvalidType>
+      constantInitializer2: expression_0
+      constantInitializer: expression_1
+      getter: <testLibrary>::@getter::a
+  getters
+    isOriginVariable isStatic a
+      reference: <testLibrary>::@getter::a
+      firstFragment: #F6
+      returnType: A<InvalidType>
+      variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
   test_const_dotShorthand_invalid_methodInvocation() async {
     var library = await buildLibrary(r'''
 class A {
@@ -1534,8 +1862,7 @@ library
                 leftParenthesis: ( @60
                 rightParenthesis: ) @61
               shorthandContext: ValidDotShorthandContextResolution
-                contextType: A
-                lookupType: A
+                declaration: <testLibrary>::@class::A
               resolution: ExecutableInvocationResolution
                 element: <testLibrary>::@class::A::@method::method
                 invokeType: A Function()
@@ -1584,6 +1911,336 @@ library
       reference: <testLibrary>::@getter::a
       firstFragment: #F5
       returnType: A
+      variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_const_dotShorthand_invalid_methodInvocation_unknownTypeInContext() async {
+    var library = await buildLibrary(r'''
+class A<T> {
+  const A(B<T> b);
+}
+
+class B<T> {
+  static const B<int> foo = B();
+  const B();
+  static B<int> bar() => B();
+}
+
+const a = A(.bar());
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          typeParameters
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
+              element: #E0 T
+          constructors
+            #F3 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 21
+              formalParameters
+                #F4 requiredPositional isOriginDeclaration b (nameOffset:28) (firstTokenOffset:23) (offset:28)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::b
+        #F5 class B (nameOffset:41) (firstTokenOffset:35) (offset:41)
+          element: <testLibrary>::@class::B
+          typeParameters
+            #F6 T (nameOffset:43) (firstTokenOffset:43) (offset:43)
+              element: #E1 T
+          fields
+            #F7 hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:70) (firstTokenOffset:70) (offset:70)
+              element: <testLibrary>::@class::B::@field::foo
+              constantInitializer2: expression_0
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: B @76
+                      element: <testLibrary>::@class::B
+                      type: B<int>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@class::B::@constructor::new
+                      substitution: {T: int}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @77
+                    rightParenthesis: ) @78
+                  staticType: B<int>
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: B @76
+                      element: <testLibrary>::@class::B
+                      type: B<int>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@class::B::@constructor::new
+                      substitution: {T: int}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @77
+                    rightParenthesis: ) @78
+                  staticType: B<int>
+              inducedGetter: #F8
+          constructors
+            #F9 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:83) (offset:89)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+              typeNameOffset: 89
+          getters
+            #F8 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:70)
+              element: <testLibrary>::@class::B::@getter::foo
+              inducingVariable: #F7
+          methods
+            #F10 isComplete isOriginDeclaration isStatic bar (nameOffset:110) (firstTokenOffset:96) (offset:110)
+              element: <testLibrary>::@class::B::@method::bar
+      topLevelVariables
+        #F11 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:133) (firstTokenOffset:133) (offset:133)
+          element: <testLibrary>::@topLevelVariable::a
+          constantInitializer2: expression_2
+            ConstructorInvocation
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
+                  name: A @137
+                  element: <testLibrary>::@class::A
+                  type: A<int>
+                element: SubstitutedConstructorElementImpl
+                  baseElement: <testLibrary>::@class::A::@constructor::new
+                  substitution: {T: int}
+              argumentList: ArgumentList
+                leftParenthesis: ( @138
+                arguments2
+                  DotShorthandMethodInvocation
+                    period: . @139
+                    name: bar @140
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @143
+                      rightParenthesis: ) @144
+                    shorthandContext: ValidDotShorthandContextResolution
+                      declaration: <testLibrary>::@class::B
+                    resolution: ExecutableInvocationResolution
+                      element: <testLibrary>::@class::B::@method::bar
+                      invokeType: B<int> Function()
+                      type: B<int>
+                    staticType: B<int>
+                rightParenthesis: ) @145
+              staticType: A<int>
+          constantInitializer: expression_3
+            InstanceCreationExpression
+              constructorName: ConstructorName
+                type: NamedType
+                  name: A @137
+                  element: <testLibrary>::@class::A
+                  type: A<int>
+                element: SubstitutedConstructorElementImpl
+                  baseElement: <testLibrary>::@class::A::@constructor::new
+                  substitution: {T: int}
+              argumentList: ArgumentList
+                leftParenthesis: ( @138
+                arguments
+                  DotShorthandInvocation
+                    period: . @139
+                    memberName: SimpleIdentifier
+                      token: bar @140
+                      element: <testLibrary>::@class::B::@method::bar
+                      staticType: B<int> Function()
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @143
+                      rightParenthesis: ) @144
+                    staticInvokeType: B<int> Function()
+                    staticType: B<int>
+                rightParenthesis: ) @145
+              staticType: A<int>
+          inducedGetter: #F12
+      getters
+        #F12 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:133)
+          element: <testLibrary>::@getter::a
+          inducingVariable: #F11
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+      constructors
+        hasEnclosingTypeParameterReference isConst isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+          formalParameters
+            #E2 requiredPositional b
+              firstFragment: #F4
+              type: B<T>
+    isSimplyBounded class B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F5
+      typeParameters
+        #E1 T
+          firstFragment: #F6
+      fields
+        hasInitializer isConst isOriginDeclaration isStatic foo
+          reference: <testLibrary>::@class::B::@field::foo
+          firstFragment: #F7
+          type: B<int>
+          constantInitializer2: expression_0
+          constantInitializer: expression_1
+          getter: <testLibrary>::@class::B::@getter::foo
+      constructors
+        hasEnclosingTypeParameterReference isConst isOriginDeclaration new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F9
+      getters
+        isOriginVariable isStatic foo
+          reference: <testLibrary>::@class::B::@getter::foo
+          firstFragment: #F8
+          returnType: B<int>
+          variable: <testLibrary>::@class::B::@field::foo
+      methods
+        isOriginDeclaration isStatic bar
+          reference: <testLibrary>::@class::B::@method::bar
+          firstFragment: #F10
+          returnType: B<int>
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: #F11
+      type: A<int>
+      constantInitializer2: expression_2
+      constantInitializer: expression_3
+      getter: <testLibrary>::@getter::a
+  getters
+    isOriginVariable isStatic a
+      reference: <testLibrary>::@getter::a
+      firstFragment: #F12
+      returnType: A<int>
+      variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_const_dotShorthand_invalid_methodInvocation_unknownTypeInContext_noDeclaration() async {
+    var library = await buildLibrary(r'''
+import 'dart:async';
+
+class A<T> {
+  const A(FutureOr<T> b);
+}
+
+const a = A(.bar());
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      libraryImports
+        dart:async
+      classes
+        #F1 class A (nameOffset:28) (firstTokenOffset:22) (offset:28)
+          element: <testLibrary>::@class::A
+          typeParameters
+            #F2 T (nameOffset:30) (firstTokenOffset:30) (offset:30)
+              element: #E0 T
+          constructors
+            #F3 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:37) (offset:43)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 43
+              formalParameters
+                #F4 requiredPositional isOriginDeclaration b (nameOffset:57) (firstTokenOffset:45) (offset:57)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::b
+      topLevelVariables
+        #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:70) (firstTokenOffset:70) (offset:70)
+          element: <testLibrary>::@topLevelVariable::a
+          constantInitializer2: expression_0
+            ConstructorInvocation
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
+                  name: A @74
+                  element: <testLibrary>::@class::A
+                  type: A<InvalidType>
+                element: SubstitutedConstructorElementImpl
+                  baseElement: <testLibrary>::@class::A::@constructor::new
+                  substitution: {T: InvalidType}
+              argumentList: ArgumentList
+                leftParenthesis: ( @75
+                arguments2
+                  DotShorthandMethodInvocation
+                    period: . @76
+                    name: bar @77
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @80
+                      rightParenthesis: ) @81
+                    shorthandContext: InvalidDotShorthandContextResolution
+                    resolution: InvalidInvocationResolution
+                      type: InvalidType
+                      recovery: <null>
+                    staticType: InvalidType
+                rightParenthesis: ) @82
+              staticType: A<InvalidType>
+          constantInitializer: expression_1
+            InstanceCreationExpression
+              constructorName: ConstructorName
+                type: NamedType
+                  name: A @74
+                  element: <testLibrary>::@class::A
+                  type: A<InvalidType>
+                element: SubstitutedConstructorElementImpl
+                  baseElement: <testLibrary>::@class::A::@constructor::new
+                  substitution: {T: InvalidType}
+              argumentList: ArgumentList
+                leftParenthesis: ( @75
+                arguments
+                  DotShorthandInvocation
+                    period: . @76
+                    memberName: SimpleIdentifier
+                      token: bar @77
+                      element: <null>
+                      staticType: InvalidType
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @80
+                      rightParenthesis: ) @81
+                    staticInvokeType: InvalidType
+                    staticType: InvalidType
+                rightParenthesis: ) @82
+              staticType: A<InvalidType>
+          inducedGetter: #F6
+      getters
+        #F6 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:70)
+          element: <testLibrary>::@getter::a
+          inducingVariable: #F5
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+      constructors
+        hasEnclosingTypeParameterReference isConst isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+          formalParameters
+            #E1 requiredPositional b
+              firstFragment: #F4
+              type: FutureOr<T>
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: #F5
+      type: A<InvalidType>
+      constantInitializer2: expression_0
+      constantInitializer: expression_1
+      getter: <testLibrary>::@getter::a
+  getters
+    isOriginVariable isStatic a
+      reference: <testLibrary>::@getter::a
+      firstFragment: #F6
+      returnType: A<InvalidType>
       variable: <testLibrary>::@topLevelVariable::a
 ''');
   }
@@ -1651,8 +2308,7 @@ library
               period: . @64
               name: a @65
               shorthandContext: ValidDotShorthandContextResolution
-                contextType: A
-                lookupType: A
+                declaration: <testLibrary>::@class::A
               resolution: GetterInvocationResolution
                 element: <testLibrary>::@class::A::@getter::a
                 type: A
@@ -1705,6 +2361,320 @@ library
       reference: <testLibrary>::@getter::a
       firstFragment: #F6
       returnType: A
+      variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_const_dotShorthand_property_unknownTypeInContext() async {
+    var library = await buildLibrary(r'''
+class A<T> {
+  const A(B<T> b);
+}
+
+class B<T> {
+  static const B<int> foo = B();
+  const B();
+  static B<int> bar() => B();
+}
+
+const a = A(.foo);
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          typeParameters
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
+              element: #E0 T
+          constructors
+            #F3 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:15) (offset:21)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 21
+              formalParameters
+                #F4 requiredPositional isOriginDeclaration b (nameOffset:28) (firstTokenOffset:23) (offset:28)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::b
+        #F5 class B (nameOffset:41) (firstTokenOffset:35) (offset:41)
+          element: <testLibrary>::@class::B
+          typeParameters
+            #F6 T (nameOffset:43) (firstTokenOffset:43) (offset:43)
+              element: #E1 T
+          fields
+            #F7 hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:70) (firstTokenOffset:70) (offset:70)
+              element: <testLibrary>::@class::B::@field::foo
+              constantInitializer2: expression_0
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: B @76
+                      element: <testLibrary>::@class::B
+                      type: B<int>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@class::B::@constructor::new
+                      substitution: {T: int}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @77
+                    rightParenthesis: ) @78
+                  staticType: B<int>
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: B @76
+                      element: <testLibrary>::@class::B
+                      type: B<int>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@class::B::@constructor::new
+                      substitution: {T: int}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @77
+                    rightParenthesis: ) @78
+                  staticType: B<int>
+              inducedGetter: #F8
+          constructors
+            #F9 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:83) (offset:89)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+              typeNameOffset: 89
+          getters
+            #F8 isComplete isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:70)
+              element: <testLibrary>::@class::B::@getter::foo
+              inducingVariable: #F7
+          methods
+            #F10 isComplete isOriginDeclaration isStatic bar (nameOffset:110) (firstTokenOffset:96) (offset:110)
+              element: <testLibrary>::@class::B::@method::bar
+      topLevelVariables
+        #F11 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:133) (firstTokenOffset:133) (offset:133)
+          element: <testLibrary>::@topLevelVariable::a
+          constantInitializer2: expression_2
+            ConstructorInvocation
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
+                  name: A @137
+                  element: <testLibrary>::@class::A
+                  type: A<int>
+                element: SubstitutedConstructorElementImpl
+                  baseElement: <testLibrary>::@class::A::@constructor::new
+                  substitution: {T: int}
+              argumentList: ArgumentList
+                leftParenthesis: ( @138
+                arguments2
+                  DotShorthandNameExpression
+                    period: . @139
+                    name: foo @140
+                    shorthandContext: ValidDotShorthandContextResolution
+                      declaration: <testLibrary>::@class::B
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@class::B::@getter::foo
+                      type: B<int>
+                    staticType: B<int>
+                rightParenthesis: ) @143
+              staticType: A<int>
+          constantInitializer: expression_3
+            InstanceCreationExpression
+              constructorName: ConstructorName
+                type: NamedType
+                  name: A @137
+                  element: <testLibrary>::@class::A
+                  type: A<int>
+                element: SubstitutedConstructorElementImpl
+                  baseElement: <testLibrary>::@class::A::@constructor::new
+                  substitution: {T: int}
+              argumentList: ArgumentList
+                leftParenthesis: ( @138
+                arguments
+                  DotShorthandPropertyAccess
+                    period: . @139
+                    propertyName: SimpleIdentifier
+                      token: foo @140
+                      element: <testLibrary>::@class::B::@getter::foo
+                      staticType: B<int>
+                    staticType: B<int>
+                rightParenthesis: ) @143
+              staticType: A<int>
+          inducedGetter: #F12
+      getters
+        #F12 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:133)
+          element: <testLibrary>::@getter::a
+          inducingVariable: #F11
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+      constructors
+        hasEnclosingTypeParameterReference isConst isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+          formalParameters
+            #E2 requiredPositional b
+              firstFragment: #F4
+              type: B<T>
+    isSimplyBounded class B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F5
+      typeParameters
+        #E1 T
+          firstFragment: #F6
+      fields
+        hasInitializer isConst isOriginDeclaration isStatic foo
+          reference: <testLibrary>::@class::B::@field::foo
+          firstFragment: #F7
+          type: B<int>
+          constantInitializer2: expression_0
+          constantInitializer: expression_1
+          getter: <testLibrary>::@class::B::@getter::foo
+      constructors
+        hasEnclosingTypeParameterReference isConst isOriginDeclaration new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F9
+      getters
+        isOriginVariable isStatic foo
+          reference: <testLibrary>::@class::B::@getter::foo
+          firstFragment: #F8
+          returnType: B<int>
+          variable: <testLibrary>::@class::B::@field::foo
+      methods
+        isOriginDeclaration isStatic bar
+          reference: <testLibrary>::@class::B::@method::bar
+          firstFragment: #F10
+          returnType: B<int>
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: #F11
+      type: A<int>
+      constantInitializer2: expression_2
+      constantInitializer: expression_3
+      getter: <testLibrary>::@getter::a
+  getters
+    isOriginVariable isStatic a
+      reference: <testLibrary>::@getter::a
+      firstFragment: #F12
+      returnType: A<int>
+      variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_const_dotShorthand_property_unknownTypeInContext_noDeclaration() async {
+    var library = await buildLibrary(r'''
+import 'dart:async';
+
+class A<T> {
+  const A(FutureOr<T> b);
+}
+
+const a = A(.foo);
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      libraryImports
+        dart:async
+      classes
+        #F1 class A (nameOffset:28) (firstTokenOffset:22) (offset:28)
+          element: <testLibrary>::@class::A
+          typeParameters
+            #F2 T (nameOffset:30) (firstTokenOffset:30) (offset:30)
+              element: #E0 T
+          constructors
+            #F3 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:37) (offset:43)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 43
+              formalParameters
+                #F4 requiredPositional isOriginDeclaration b (nameOffset:57) (firstTokenOffset:45) (offset:57)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::b
+      topLevelVariables
+        #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:70) (firstTokenOffset:70) (offset:70)
+          element: <testLibrary>::@topLevelVariable::a
+          constantInitializer2: expression_0
+            ConstructorInvocation
+              constructorReference: ConstructorReference2
+                typeReference: ConstructorTypeReference
+                  name: A @74
+                  element: <testLibrary>::@class::A
+                  type: A<InvalidType>
+                element: SubstitutedConstructorElementImpl
+                  baseElement: <testLibrary>::@class::A::@constructor::new
+                  substitution: {T: InvalidType}
+              argumentList: ArgumentList
+                leftParenthesis: ( @75
+                arguments2
+                  DotShorthandNameExpression
+                    period: . @76
+                    name: foo @77
+                    shorthandContext: InvalidDotShorthandContextResolution
+                    resolution: InvalidNamedReadResolution
+                      recoveryElement: <null>
+                    staticType: InvalidType
+                rightParenthesis: ) @80
+              staticType: A<InvalidType>
+          constantInitializer: expression_1
+            InstanceCreationExpression
+              constructorName: ConstructorName
+                type: NamedType
+                  name: A @74
+                  element: <testLibrary>::@class::A
+                  type: A<InvalidType>
+                element: SubstitutedConstructorElementImpl
+                  baseElement: <testLibrary>::@class::A::@constructor::new
+                  substitution: {T: InvalidType}
+              argumentList: ArgumentList
+                leftParenthesis: ( @75
+                arguments
+                  DotShorthandPropertyAccess
+                    period: . @76
+                    propertyName: SimpleIdentifier
+                      token: foo @77
+                      element: <null>
+                      staticType: InvalidType
+                    staticType: InvalidType
+                rightParenthesis: ) @80
+              staticType: A<InvalidType>
+          inducedGetter: #F6
+      getters
+        #F6 isComplete isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:70)
+          element: <testLibrary>::@getter::a
+          inducingVariable: #F5
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+      constructors
+        hasEnclosingTypeParameterReference isConst isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+          formalParameters
+            #E1 requiredPositional b
+              firstFragment: #F4
+              type: FutureOr<T>
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
+      reference: <testLibrary>::@topLevelVariable::a
+      firstFragment: #F5
+      type: A<InvalidType>
+      constantInitializer2: expression_0
+      constantInitializer: expression_1
+      getter: <testLibrary>::@getter::a
+  getters
+    isOriginVariable isStatic a
+      reference: <testLibrary>::@getter::a
+      firstFragment: #F6
+      returnType: A<InvalidType>
       variable: <testLibrary>::@topLevelVariable::a
 ''');
   }

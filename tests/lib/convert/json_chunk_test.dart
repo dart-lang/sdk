@@ -9,12 +9,15 @@ import "package:expect/expect.dart";
 import "dart:convert";
 
 jsonTest(testName, expect, action(sink)) {
+  var called = false;
   var sink = new ChunkedConversionSink.withCallback((values) {
+    called = true;
     var value = values[0];
     Expect.equals(expect, value, "$testName:$value");
   });
   var decoderSink = json.decoder.startChunkedConversion(sink);
   action(decoderSink);
+  Expect.isTrue(called, "$testName: no result");
 }
 
 jsonThrowsTest(testName, action(sink)) {
