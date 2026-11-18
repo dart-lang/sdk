@@ -424,6 +424,23 @@ class SingleFileByteStoreTest {
     expect(store.get('new_key'), _value(20));
   }
 
+  void test_flush_callsOnFlush() {
+    var flushedBytes = <int>[];
+    store.onFlush = (valueBytes, elapsed) {
+      expect(elapsed, greaterThanOrEqualTo(Duration.zero));
+      flushedBytes.add(valueBytes);
+    };
+
+    store.putGet('a', _value(10));
+    store.putGet('b', _value(20));
+    store.flush();
+    expect(flushedBytes, [30]);
+
+    // Nothing pending, so no flush.
+    store.flush();
+    expect(flushedBytes, [30]);
+  }
+
   void test_flush_continuesDataReclamationAfterReopening() {
     var firstKey = _keyForSlot(10);
     var secondKey = _keyForSlot(90);
@@ -986,12 +1003,15 @@ class SingleFileByteStoreTest {
 
   void test_putGet_flushesWhenEntryLimitIsReached() {
     _open(maxPendingEntryCount: 2);
+    var flushedBytes = <int>[];
+    store.onFlush = (valueBytes, _) => flushedBytes.add(valueBytes);
     store.putGet('a', _value(10));
     expect(
       store.putGet('b', _value(20, startByte: 1)),
       _value(20, startByte: 1),
     );
     expect(store.pendingEntryCount, 0);
+    expect(flushedBytes, [30]);
 
     _open();
     expect(store.get('a'), _value(10));

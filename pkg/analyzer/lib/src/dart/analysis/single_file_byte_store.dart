@@ -251,6 +251,13 @@ class SingleFileByteStore implements ByteStore {
   /// Cumulative statistics for this instance.
   final _Statistics statistics = ._();
 
+  /// Called after each [flush] that had pending values, with their total bytes
+  /// and the duration of the flush, including waiting for the lock.
+  ///
+  /// Flushes happen both when [flush] is invoked, and inside [putGet] when
+  /// pending values reach a limit, so this is the only way to observe all.
+  void Function(int valueBytes, Duration elapsed)? onFlush;
+
   /// Flush the queue when its values reach this many bytes.
   /// A single larger value is committed immediately.
   final int _maxPendingValueBytes;
@@ -475,6 +482,8 @@ class SingleFileByteStore implements ByteStore {
   void flush() {
     _checkOpen();
     if (_pendingValues.isEmpty) return;
+    var timer = Stopwatch()..start();
+    var valueBytes = _pendingValueBytes;
     _withExclusiveAccess((header) {
       try {
         header = _prepareCapacity(header);
@@ -497,6 +506,7 @@ class SingleFileByteStore implements ByteStore {
       _pendingValues.clear();
       _pendingValueBytes = 0;
     });
+    onFlush?.call(valueBytes, timer.elapsed);
   }
 
   /// Returns the pending or committed value, or null if absent or corrupt.

@@ -159,18 +159,23 @@ void _collectFileByteStoreTimingData(
   }
 
   Map<String, Object> timingsData(ByteStoreTimings timings) {
-    var lookups = timings.lookups;
+    var gets = timings.gets;
     var puts = timings.puts;
+    var flushes = timings.flushes;
     return {
-      'lookups': lookups.count,
-      'lookups_not_found': timings.notFoundCount,
-      'lookup_bytes': lookups.bytes,
-      'lookup_us': lookups.elapsed.inMicroseconds,
-      'lookup_max_us': lookups.max.inMicroseconds,
-      'puts': puts.count,
+      'get_count': gets.count,
+      'get_not_found': timings.notFoundCount,
+      'get_bytes': gets.bytes,
+      'get_us': gets.elapsed.inMicroseconds,
+      'get_max_us': gets.max.inMicroseconds,
+      'put_count': puts.count,
       'put_bytes': puts.bytes,
       'put_us': puts.elapsed.inMicroseconds,
       'put_max_us': puts.max.inMicroseconds,
+      'flush_count': flushes.count,
+      'flush_bytes': flushes.bytes,
+      'flush_us': flushes.elapsed.inMicroseconds,
+      'flush_max_us': flushes.max.inMicroseconds,
     };
   }
 
@@ -187,6 +192,27 @@ void _collectFileByteStoreTimingData(
     ],
     'dropped_periods': timingByteStore.droppedPeriodCount,
     'total': timingsData(timingByteStore.total),
+    // The path is not included, because it might include the user name.
+    if (server.byteStoreStats case var stats?
+        when stats.singleFileStorePath != null)
+      'single_file_store': {
+        'data_bytes': stats.singleFileDataBytes,
+        'free_data_bytes': stats.singleFileFreeDataBytes,
+        'reset_count': stats.singleFileResetCount,
+        'pending_entry_count': stats.singleFilePendingEntryCount,
+        'commit_count': stats.singleFileCommitCount,
+        'committed_entry_count': stats.singleFileCommittedEntryCount,
+        'committed_value_bytes': stats.singleFileCommittedValueBytes,
+        'evicted_for_space_entry_count':
+            stats.singleFileEvictedForSpaceEntryCount,
+        'evicted_from_full_bucket_entry_count':
+            stats.singleFileEvictedFromFullBucketEntryCount,
+        'capacity_discarded_batch_count':
+            stats.singleFileCapacityDiscardedBatchCount,
+        'oversized_value_count': stats.singleFileOversizedValueCount,
+        'oversized_value_bytes': stats.singleFileOversizedValueBytes,
+        'bucket_rebuild_count': stats.singleFileBucketRebuildCount,
+      },
   };
 }
 

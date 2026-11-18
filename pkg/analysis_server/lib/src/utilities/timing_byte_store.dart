@@ -3,9 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection';
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:meta/meta.dart';
 
 /// Totals for one kind of [ByteStore] operation.
 class ByteStoreOperationTimings {
@@ -53,12 +55,18 @@ class ByteStoreTimings {
   final DateTime startTime;
 
   /// Calls to [ByteStore.get].
-  final ByteStoreOperationTimings lookups = ._();
+  final ByteStoreOperationTimings gets = ._();
 
   /// Calls to [ByteStore.putGet]. The time includes any writing that the store
-  /// does before returning, such as a commit when its pending values reach a
-  /// limit, but not writing it defers or does elsewhere.
+  /// does before returning, except reported [flushes], so that the times of
+  /// operations add up. It does not include writing that the store defers or
+  /// does elsewhere.
   final ByteStoreOperationTimings puts = ._();
+
+  /// Flushes of pending values to storage, reported by the store using
+  /// [TimingByteStore.recordFlush], with [ByteStoreOperationTimings.bytes] of
+  /// the values, including flushes that happen inside [puts].
+  final ByteStoreOperationTimings flushes = ._();
 
   final bool _isMilestone;
 
@@ -74,18 +82,19 @@ class ByteStoreTimings {
   /// What ended this period, or `null` if it is current.
   String? get endReason => _endReason;
 
-  bool get isEmpty => lookups.count == 0 && puts.count == 0;
+  bool get isEmpty => gets.count == 0 && puts.count == 0 && flushes.count == 0;
 
   /// Whether this period starts at a milestone, such as initial analysis,
   /// and so is kept forever.
   bool get isMilestone => _isMilestone;
 
-  /// The number of [lookups] that did not find a value.
+  /// The number of [gets] that did not find a value.
   int get notFoundCount => _notFoundCount;
 
   void _add(ByteStoreTimings other) {
-    lookups._add(other.lookups);
+    gets._add(other.gets);
     puts._add(other.puts);
+    flushes._add(other.flushes);
     _notFoundCount += other._notFoundCount;
   }
 }
@@ -101,7 +110,7 @@ class TimingByteStore implements ByteStore {
 
   final ByteStore _store;
 
-  final Stopwatch _stopwatch = Stopwatch()..start();
+  final Stopwatch _stopwatch;
 
   final List<ByteStoreTimings> _periods = [];
 
@@ -111,9 +120,14 @@ class TimingByteStore implements ByteStore {
   int _droppedPeriodCount = 0;
   int _recentPeriodCount = 0;
 
+  /// The total time of reported flushes, used to exclude the flushes that
+  /// happen inside [putGet] from its time.
+  int _flushMicroseconds = 0;
+
   late ByteStoreTimings _current;
 
-  new(this._store) {
+  new(this._store, {@visibleForTesting Stopwatch? stopwatch})
+    : _stopwatch = (stopwatch ?? Stopwatch())..start() {
     _startPeriod('startup', isMilestone: true);
   }
 
@@ -150,7 +164,7 @@ class TimingByteStore implements ByteStore {
   Uint8List? get(String key) {
     var startMicroseconds = _stopwatch.elapsedMicroseconds;
     var result = _store.get(key);
-    _current.lookups._record(
+    _current.gets._record(
       bytes: result?.length ?? 0,
       microseconds: _stopwatch.elapsedMicroseconds - startMicroseconds,
     );
@@ -163,12 +177,29 @@ class TimingByteStore implements ByteStore {
   @override
   Uint8List putGet(String key, Uint8List bytes) {
     var startMicroseconds = _stopwatch.elapsedMicroseconds;
+    var startFlushMicroseconds = _flushMicroseconds;
     var result = _store.putGet(key, bytes);
+    var elapsedMicroseconds =
+        _stopwatch.elapsedMicroseconds - startMicroseconds;
+    var flushMicroseconds = _flushMicroseconds - startFlushMicroseconds;
     _current.puts._record(
       bytes: bytes.length,
-      microseconds: _stopwatch.elapsedMicroseconds - startMicroseconds,
+      // The store measures flushes on its own, so rounding can make them
+      // slightly longer than the whole put.
+      microseconds: math.max(0, elapsedMicroseconds - flushMicroseconds),
     );
     return result;
+  }
+
+  /// Records a flush of [valueBytes] of pending values that took [elapsed],
+  /// into the current period.
+  ///
+  /// The wrapped store calls this, because it flushes on its own, including
+  /// inside [putGet], when this wrapper cannot see it.
+  void recordFlush(int valueBytes, Duration elapsed) {
+    var microseconds = elapsed.inMicroseconds;
+    _current.flushes._record(bytes: valueBytes, microseconds: microseconds);
+    _flushMicroseconds += microseconds;
   }
 
   @override

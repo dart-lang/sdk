@@ -782,6 +782,7 @@ abstract class AnalysisServer {
       }
       if (fileByteStore != null) {
         var timingByteStore = _timingByteStore = TimingByteStore(fileByteStore);
+        _singleFileByteStore?.onFlush = timingByteStore.recordFlush;
         return _memoryCachingByteStore = MemoryCachingByteStore(
           timingByteStore,
           memoryCacheSize,

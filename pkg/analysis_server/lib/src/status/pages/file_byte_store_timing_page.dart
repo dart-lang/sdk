@@ -8,6 +8,29 @@ import 'package:analysis_server/src/status/diagnostics.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analysis_server/src/utilities/timing_byte_store.dart';
 
+String _bytesCell(int bytes) => _cell(bytes == 0 ? '' : printBytes(bytes));
+
+String _cell(String text, {int rowSpan = 1}) {
+  var rowSpanAttribute = rowSpan == 1 ? '' : ' rowspan="$rowSpan"';
+  return '<td class="right nowrap"$rowSpanAttribute>$text</td>';
+}
+
+/// Formats [time] as `HH:mm:ss.SSS`.
+String _formatTime(DateTime time) {
+  String digits(int value, int width) => '$value'.padLeft(width, '0');
+  return '${digits(time.hour, 2)}:${digits(time.minute, 2)}:'
+      '${digits(time.second, 2)}.${digits(time.millisecond, 3)}';
+}
+
+String _numberCell(int value) => _cell(value == 0 ? '' : '$value');
+
+String _timeCell(Duration duration) {
+  var microseconds = duration.inMicroseconds;
+  return _cell(
+    microseconds == 0 ? '' : (microseconds / 1000).toStringAsFixed(3),
+  );
+}
+
 class FileByteStoreTimingPage extends DiagnosticPageWithNav
     with PerformanceChartMixin {
   new(DiagnosticsSite site)
@@ -40,6 +63,14 @@ class FileByteStoreTimingPage extends DiagnosticPageWithNav
       'synchronously. Periods without operations are not shown, and empty '
       'cells are zero.',
     );
+    // Only stores that keep values pending report flushes.
+    if (total.flushes.count > 0) {
+      p(
+        'Flushes write pending values to disk, both when puts reach a limit, '
+        'and when analysis becomes idle. Their time is not included into put '
+        'time, so the times of operations add up.',
+      );
+    }
 
     var periods = timingByteStore.periods.where((period) => !period.isEmpty);
 
@@ -47,7 +78,7 @@ class FileByteStoreTimingPage extends DiagnosticPageWithNav
     _writeTable('Period', [
       for (var period in periods)
         if (period.isMilestone)
-          (
+          _Row(
             label:
                 '${escape(period.reason)} &rarr; '
                 '${escape(period.endReason ?? 'now')}',
@@ -56,8 +87,8 @@ class FileByteStoreTimingPage extends DiagnosticPageWithNav
           ),
       if (timingByteStore.recentTotal case var recentTotal
           when !recentTotal.isEmpty)
-        (label: 'All recent periods', duration: null, timings: recentTotal),
-      (label: '<b>Total</b>', duration: null, timings: total),
+        _Row(label: 'All recent periods', duration: null, timings: recentTotal),
+      _Row(label: '<b>Total</b>', duration: null, timings: total),
     ]);
 
     h4('Recent periods, newest first');
@@ -73,7 +104,7 @@ class FileByteStoreTimingPage extends DiagnosticPageWithNav
     } else {
       _writeTable('Started', [
         for (var period in recent.reversed)
-          (
+          _Row(
             // Almost all periods are analysis, so only others are marked.
             label: switch (period.reason) {
               'analysis' => _formatTime(period.startTime),
@@ -155,68 +186,82 @@ class FileByteStoreTimingPage extends DiagnosticPageWithNav
     );
   }
 
-  /// Writes a table with a row for each of [rows], with [labelHeader] over
-  /// the column of their labels.
+  /// Writes a table with a group of lines for each of [rows], one line for
+  /// each operation, and [labelHeader] over the column of their labels.
   ///
+  /// Each group is a separate `tbody`, shaded and separated as a whole.
   /// The table scrolls within a limited height, with the header kept visible.
-  void _writeTable(
-    String labelHeader,
-    List<({String label, Duration? duration, ByteStoreTimings timings})> rows,
-  ) {
-    buf.writeln('<table class="sticky-header">');
-    buf.writeln('<thead>');
+  void _writeTable(String labelHeader, List<_Row> rows) {
+    buf.writeln('<table class="sticky-header row-groups">');
     buf.writeln(
-      '<tr><th rowspan="2">$labelHeader</th>'
-      '<th rowspan="2">Duration (ms)</th>'
-      '<th colspan="5">Lookups</th><th colspan="4">Puts</th></tr>',
+      '<thead><tr><th>$labelHeader</th><th>Duration (ms)</th>'
+      '<th>Operation</th><th>count</th><th>not found</th><th>bytes</th>'
+      '<th>ms</th><th>max ms</th></tr></thead>',
     );
-    buf.writeln(
-      '<tr><th>count</th><th>not found</th><th>bytes</th>'
-      '<th>ms</th><th>max ms</th>'
-      '<th>count</th><th>bytes</th><th>ms</th><th>max ms</th></tr>',
-    );
-    buf.writeln('</thead>');
-    buf.writeln('<tbody>');
-    for (var (:label, :duration, :timings) in rows) {
-      var lookups = timings.lookups;
-      var puts = timings.puts;
-      buf.writeln(
-        '<tr><td>$label</td>'
-        '${_numberCell(duration?.inMilliseconds ?? 0)}'
-        '${_numberCell(lookups.count)}'
-        '${_numberCell(timings.notFoundCount)}'
-        '${_bytesCell(lookups.bytes)}'
-        '${_timeCell(lookups.elapsed)}'
-        '${_timeCell(lookups.max)}'
-        '${_numberCell(puts.count)}'
-        '${_bytesCell(puts.bytes)}'
-        '${_timeCell(puts.elapsed)}'
-        '${_timeCell(puts.max)}'
-        '</tr>',
-      );
+    for (var row in rows) {
+      var operations = row.operations;
+      buf.writeln('<tbody>');
+      for (var (index, operation) in operations.indexed) {
+        buf.write('<tr>');
+        if (index == 0) {
+          var rowSpan = operations.length;
+          var rowSpanAttribute = rowSpan == 1 ? '' : ' rowspan="$rowSpan"';
+          buf.write('<td$rowSpanAttribute>${row.label}</td>');
+          var milliseconds = row.duration?.inMilliseconds ?? 0;
+          buf.write(
+            _cell(milliseconds == 0 ? '' : '$milliseconds', rowSpan: rowSpan),
+          );
+        }
+        buf.writeln(
+          '<td class="${operation.cssClass}">${operation.name}</td>'
+          '${_numberCell(operation.timings.count)}'
+          '${_numberCell(operation.notFoundCount)}'
+          '${_bytesCell(operation.timings.bytes)}'
+          '${_timeCell(operation.timings.elapsed)}'
+          '${_timeCell(operation.timings.max)}</tr>',
+        );
+      }
+      buf.writeln('</tbody>');
     }
-    buf.writeln('</tbody>');
     buf.writeln('</table>');
   }
+}
 
-  static String _bytesCell(int bytes) =>
-      _cell(bytes == 0 ? '' : printBytes(bytes));
+/// One kind of operation of a period, shown as a line.
+class _Operation {
+  final String name;
 
-  static String _cell(String text) => '<td class="right nowrap">$text</td>';
+  final ByteStoreOperationTimings timings;
 
-  /// Formats [time] as `HH:mm:ss.SSS`.
-  static String _formatTime(DateTime time) {
-    String digits(int value, int width) => '$value'.padLeft(width, '0');
-    return '${digits(time.hour, 2)}:${digits(time.minute, 2)}:'
-        '${digits(time.second, 2)}.${digits(time.millisecond, 3)}';
-  }
+  /// The number of `get` calls that did not find a value, zero for other
+  /// operations.
+  final int notFoundCount;
 
-  static String _numberCell(int value) => _cell(value == 0 ? '' : '$value');
+  new(this.name, this.timings, {this.notFoundCount = 0});
 
-  static String _timeCell(Duration duration) {
-    var microseconds = duration.inMicroseconds;
-    return _cell(
-      microseconds == 0 ? '' : (microseconds / 1000).toStringAsFixed(3),
-    );
+  /// The CSS class that colors the [name].
+  String get cssClass => 'operation-$name';
+}
+
+/// A period, or a total, shown as a group of lines, one for each operation.
+class _Row {
+  /// The label, as HTML.
+  final String label;
+
+  /// The wall-clock duration, or `null` for a total.
+  final Duration? duration;
+
+  final ByteStoreTimings timings;
+
+  new({required this.label, required this.duration, required this.timings});
+
+  /// The operations that happened, each shown as a line.
+  List<_Operation> get operations {
+    return [
+      if (timings.gets.count > 0)
+        _Operation('get', timings.gets, notFoundCount: timings.notFoundCount),
+      if (timings.puts.count > 0) _Operation('put', timings.puts),
+      if (timings.flushes.count > 0) _Operation('flush', timings.flushes),
+    ];
   }
 }

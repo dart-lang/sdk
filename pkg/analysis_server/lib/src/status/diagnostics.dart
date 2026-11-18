@@ -613,13 +613,41 @@ table.sticky-header thead tr:first-child > * {
 }
 
 table.sticky-header thead tr:first-child > :first-child,
-table.sticky-header tbody td:first-child {
+table.sticky-header tbody tr:first-child > :first-child {
   border-left-width: 1px;
 }
 
 table.sticky-header th {
   white-space: nowrap;
   background-color: #fff;
+}
+
+/* Each tbody is a group of related rows, so groups are shaded and separated,
+   rather than individual rows. */
+.markdown-body table.row-groups tbody tr {
+  background-color: #fff;
+}
+
+.markdown-body table.row-groups tbody:nth-of-type(even) tr {
+  background-color: #f6f8fa;
+}
+
+table.row-groups tbody + tbody tr:first-child > * {
+  border-top: 1px solid #959da5;
+}
+
+/* Byte store operations, to follow one operation across periods: harmless
+   reads, cheap queuing of writes, and costly writing to disk. */
+.operation-get {
+  color: #1a7f37;
+}
+
+.operation-put {
+  color: #57606a;
+}
+
+.operation-flush {
+  color: #bc4c00;
 }
 
 .footer {
