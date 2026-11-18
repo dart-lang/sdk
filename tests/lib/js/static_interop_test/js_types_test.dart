@@ -1230,8 +1230,8 @@ Future<void> asyncTests() async {
       await Future<JSAny?>(() => throw Exception()).toJS.toDart;
       Expect.fail('Expected future to throw.');
     } catch (e) {
-      Expect.isTrue(WrappedPromiseError.isA(e as JSObject));
-      final jsError = WrappedPromiseError.asA(e)!;
+      Expect.isTrue(e.isA<WrappedPromiseError>());
+      final jsError = e as WrappedPromiseError;
       Expect.isTrue(jsError.instanceof(globalContext['Error'] as JSFunction));
       Expect.isTrue(jsError.error.toDart is Exception);
       StackTrace.fromString(jsError.stack);
@@ -1298,8 +1298,8 @@ Future<void> asyncTests() async {
       await f;
       Expect.fail('Expected future to throw.');
     } catch (e) {
-      Expect.isTrue(WrappedPromiseError.isA(e as JSObject));
-      final jsError = WrappedPromiseError.asA(e)!;
+      Expect.isTrue(e.isA<WrappedPromiseError>());
+      final jsError = e as WrappedPromiseError;
       Expect.isTrue(jsError.instanceof(globalContext['Error'] as JSFunction));
       Expect.isTrue(jsError.error.toDart is Exception);
       StackTrace.fromString(jsError.stack);
