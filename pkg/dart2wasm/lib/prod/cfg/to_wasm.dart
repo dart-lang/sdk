@@ -67,6 +67,27 @@ final class ProdCfgToWasm extends CfgToWasm {
     return true;
   }
 
+  /// Returns the wasm local holding the incoming value for the SSA [instr]
+  /// Parameter.
+  w.Local wasmParameter(Parameter instr) {
+    assert(instr.isFunctionParameter);
+    assert(!instr.variable.isFunctionTypeParametersVariable);
+    final typeParameterCount = graph.function.numberOfFunctionTypeParameters;
+    final wasmIndex = typeParameterCount == 0
+        ? instr.variable.index
+        : instr.variable.index - 1 + typeParameterCount;
+    return paramLocals[wasmIndex];
+  }
+
+  @override
+  w.Local? functionParameterLocal(Parameter instr) {
+    final paramLocal = wasmParameter(instr);
+    final expectedType = translateType(instr.type);
+    return translator.needsConversion(paramLocal.type, expectedType)
+        ? null
+        : paramLocal;
+  }
+
   @override
   w.ValueType translateType(CType type) {
     if (type is TopType) {
@@ -174,26 +195,18 @@ final class ProdWasmInstructionLowerer
   @override
   void visitParameter(Parameter instr) {
     assert(instr.isFunctionParameter);
+    assert(instr.hasUses);
     // The CFG passes all function type arguments in a single parameter, but
     // the wasm function has a separate `_Type` parameter for each of them.
     // Uses of the type parameters load them directly from those wasm
     // parameters in [instantiateTypeParameter].
     if (instr.variable.isFunctionTypeParametersVariable) return;
-    final typeParameterCount =
-        gen.graph.function.numberOfFunctionTypeParameters;
-    final wasmIndex = typeParameterCount == 0
-        ? instr.variable.index
-        : instr.variable.index - 1 + typeParameterCount;
-    final paramLocal = gen.paramLocals[wasmIndex];
-    final expectedType = gen.translateType(instr.type);
-    if (translator.needsConversion(paramLocal.type, expectedType)) {
-      final convertedLocal = b.addLocal(expectedType);
+    final paramLocal = gen.wasmParameter(instr);
+    final local = gen.getLocal(instr);
+    if (local != paramLocal) {
       b.local_get(paramLocal);
-      translator.convertType(b, paramLocal.type, expectedType);
-      b.local_set(convertedLocal);
-      gen.locals[instr] = convertedLocal;
-    } else {
-      gen.locals[instr] = paramLocal;
+      gen.convertType(paramLocal.type, local.type);
+      b.local_set(local);
     }
   }
 
@@ -268,17 +281,11 @@ final class ProdWasmInstructionLowerer
     final info = translator.classInfo[field.enclosingClass!]!;
     final fieldIndex = translator.fieldIndex[field]!;
     final objectLocal = gen.getLocal(instr.object);
-    final resultLocal = gen.getLocal(instr);
 
     b.local_get(objectLocal);
-    translator.convertType(b, objectLocal.type, info.nonNullableType);
+    gen.convertType(objectLocal.type, info.nonNullableType);
     b.struct_get(info.struct, fieldIndex);
-    translator.convertType(
-      b,
-      info.struct.fields[fieldIndex].type.unpacked,
-      resultLocal.type,
-    );
-    b.local_set(resultLocal);
+    storeResult(instr, info.struct.fields[fieldIndex].type.unpacked);
   }
 
   @override
@@ -291,10 +298,9 @@ final class ProdWasmInstructionLowerer
     final valueLocal = gen.getLocal(instr.value);
 
     b.local_get(objectLocal);
-    translator.convertType(b, objectLocal.type, info.nonNullableType);
+    gen.convertType(objectLocal.type, info.nonNullableType);
     b.local_get(valueLocal);
-    translator.convertType(
-      b,
+    gen.convertType(
       valueLocal.type,
       info.struct.fields[fieldIndex].type.unpacked,
     );
@@ -310,21 +316,12 @@ final class ProdWasmInstructionLowerer
 
     final outputs = translator.callReference(reference, b);
 
-    if (!instr.hasUses) {
-      // Cleanup stack if results of the call are not used.
-      for (int i = 0; i < outputs.length; ++i) {
-        b.drop();
-      }
-      return;
-    }
-
-    // `callReference` emitted `unreachable` because the call never returns.
+    // Either the call never returns (`callReference` emitted `unreachable`) or
+    // it produces no Wasm value (e.g. returns `WasmVoid`).
     if (outputs.isEmpty) return;
 
     assert(outputs.length == 1);
-    final resultLocal = gen.getLocal(instr);
-    translator.convertType(b, outputs.single, resultLocal.type);
-    b.local_set(resultLocal);
+    storeResult(instr, outputs.single);
   }
 
   /// Pushes the arguments of [instr] onto the stack in the order and with the
