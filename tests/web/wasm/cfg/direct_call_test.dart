@@ -240,9 +240,9 @@ bool isNullNamed({int? x}) => x == null;
 @pragma('wasm:cfg')
 bool callIsNullNamed() => isNullNamed();
 
-// Not compiled via CFG (`is T` is unsupported). The type argument determines
-// the result.
+// The type argument determines the result.
 @pragma('wasm:never-inline')
+@pragma('wasm:cfg')
 bool isA<T>(Object? o) => o is T;
 
 @pragma('wasm:never-inline')

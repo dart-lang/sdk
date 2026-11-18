@@ -106,6 +106,7 @@ final class ProdWasmInstructionLowerer
       Unreachable() => true,
       Branch() => true,
       Goto() => true,
+      TypeTest() => true,
       Comparison(:final op) => switch (op) {
         ComparisonOpcode.intEqual ||
         ComparisonOpcode.intNotEqual ||
@@ -234,6 +235,21 @@ final class ProdWasmInstructionLowerer
     b.local_get(local);
     translator.convertType(b, local.type, translator.types.nonNullableTypeType);
     return translator.types.nonNullableTypeType;
+  }
+
+  @override
+  void visitTypeTest(TypeTest instr) {
+    if (!instr.hasUses) return;
+    final operand = instr.operand;
+    final operandLocal = gen.getLocal(operand);
+    final operandType = operand.type.dartType;
+    final boxedOperandType = operandType.isPotentiallyNullable
+        ? translator.topType
+        : translator.topTypeNonNullable;
+    b.local_get(operandLocal);
+    translator.convertType(b, operandLocal.type, boxedOperandType);
+    translator.types.emitIsTest(this, instr.testedType.dartType, operandType);
+    b.local_set(gen.getLocal(instr));
   }
 
   @override
