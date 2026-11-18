@@ -78,6 +78,102 @@ ForStatement
 ''');
   }
 
+  test_async_metadata_closure() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A(Object? o);
+}
+
+void f(x) async {
+  await for (@A(() {}) var a in x) {}
+//              ^^^^^
+// [diag.constWithNonConstantArgument] Arguments of a constant creation must be constant expressions.
+//                         ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+}
+''');
+
+    var node = result.findNode.singleForStatement;
+    assertResolvedNodeText(node, r'''
+ForStatement
+  awaitKeyword: await
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithDeclaration
+    loopVariable: DeclaredIdentifier
+      metadata
+        Annotation
+          atSign: @
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A
+                element: <testLibrary>::@class::A
+                type: A
+              element: <testLibrary>::@class::A::@constructor::new
+            argumentList: ArgumentList
+              leftParenthesis: (
+              arguments2
+                FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+                  declaredFragment: <testLibraryFragment> null@null
+                    element: null@null
+                      type: Null Function()
+                  correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::o
+                  staticType: Null Function()
+              rightParenthesis: )
+            staticType: A
+          name: SimpleIdentifier
+            token: A
+            element: <testLibrary>::@class::A
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: (
+            arguments
+              FunctionExpression
+                parameters: FormalParameterList
+                  leftParenthesis: (
+                  rightParenthesis: )
+                body: BlockFunctionBody
+                  block: Block
+                    leftBracket: {
+                    rightBracket: }
+                declaredFragment: <testLibraryFragment> null@null
+                  element: null@null
+                    type: Null Function()
+                correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::o
+                staticType: Null Function()
+            rightParenthesis: )
+          element: <testLibrary>::@class::A::@constructor::new
+      keyword: var
+      name: a
+      declaredFragment: isPublic a@80
+        element: hasImplicitType isPublic
+          type: dynamic
+    inKeyword: in
+    iterable2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: dynamic
+      staticType: dynamic
+    iterable(v1): SimpleIdentifier
+      token: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      staticType: dynamic
+  rightParenthesis: )
+  body2: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
   test_async_scope_afterLoop_uses_outer_despite_loopVariable() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Stream<int> x, int i) async {
@@ -692,6 +788,228 @@ ForStatement
           element: v@38
           staticType: int
         semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_sync_metadata_closure() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A(Object? o);
+}
+
+void f(x) {
+  for (@A(() {}) var a in x) {}
+//        ^^^^^
+// [diag.constWithNonConstantArgument] Arguments of a constant creation must be constant expressions.
+//                   ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+}
+''');
+
+    var node = result.findNode.singleForStatement;
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithDeclaration
+    loopVariable: DeclaredIdentifier
+      metadata
+        Annotation
+          atSign: @
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A
+                element: <testLibrary>::@class::A
+                type: A
+              element: <testLibrary>::@class::A::@constructor::new
+            argumentList: ArgumentList
+              leftParenthesis: (
+              arguments2
+                FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: BlockFunctionBody
+                    block: Block
+                      leftBracket: {
+                      rightBracket: }
+                  declaredFragment: <testLibraryFragment> null@null
+                    element: null@null
+                      type: Null Function()
+                  correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::o
+                  staticType: Null Function()
+              rightParenthesis: )
+            staticType: A
+          name: SimpleIdentifier
+            token: A
+            element: <testLibrary>::@class::A
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: (
+            arguments
+              FunctionExpression
+                parameters: FormalParameterList
+                  leftParenthesis: (
+                  rightParenthesis: )
+                body: BlockFunctionBody
+                  block: Block
+                    leftBracket: {
+                    rightBracket: }
+                declaredFragment: <testLibraryFragment> null@null
+                  element: null@null
+                    type: Null Function()
+                correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::o
+                staticType: Null Function()
+            rightParenthesis: )
+          element: <testLibrary>::@class::A::@constructor::new
+      keyword: var
+      name: a
+      declaredFragment: isPublic a@68
+        element: hasImplicitType isPublic
+          type: dynamic
+    inKeyword: in
+    iterable2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: dynamic
+      staticType: dynamic
+    iterable(v1): SimpleIdentifier
+      token: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      staticType: dynamic
+  rightParenthesis: )
+  body2: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_sync_metadata_forElement() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A(Object? o);
+}
+
+void f(x) {
+  for (@A([for (var i in []) i]) var a in x) {}
+//         ^^^^^^^^^^^^^^^^^^^
+// [diag.constEvalForElement] Constant expressions don't support 'for' elements.
+//                                   ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+}
+''');
+
+    var node = result.findNode.singleForStatement;
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithDeclaration
+    loopVariable: DeclaredIdentifier
+      metadata
+        Annotation
+          atSign: @
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A
+                element: <testLibrary>::@class::A
+                type: A
+              element: <testLibrary>::@class::A::@constructor::new
+            argumentList: ArgumentList
+              leftParenthesis: (
+              arguments2
+                ListLiteral
+                  leftBracket: [
+                  elements2
+                    ForElement
+                      forKeyword: for
+                      leftParenthesis: (
+                      forLoopParts: ForEachPartsWithDeclaration
+                        loopVariable: DeclaredIdentifier
+                          keyword: var
+                          name: i
+                          declaredFragment: isPublic i@67
+                            element: hasImplicitType isPublic
+                              type: dynamic
+                        inKeyword: in
+                        iterable2: ListLiteral
+                          leftBracket: [
+                          rightBracket: ]
+                          staticType: List<dynamic>
+                      rightParenthesis: )
+                      body2: UnqualifiedNameExpression
+                        name: i
+                        resolution: VariableReadResolution
+                          element: i@67
+                          type: dynamic
+                        staticType: dynamic
+                      body(v1): SimpleIdentifier
+                        token: i
+                        element: i@67
+                        staticType: dynamic
+                  rightBracket: ]
+                  correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::o
+                  staticType: List<dynamic>
+              rightParenthesis: )
+            staticType: A
+          name: SimpleIdentifier
+            token: A
+            element: <testLibrary>::@class::A
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: (
+            arguments
+              ListLiteral
+                leftBracket: [
+                elements
+                  ForElement
+                    forKeyword: for
+                    leftParenthesis: (
+                    forLoopParts: ForEachPartsWithDeclaration
+                      loopVariable: DeclaredIdentifier
+                        keyword: var
+                        name: i
+                        declaredFragment: isPublic i@67
+                          element: hasImplicitType isPublic
+                            type: dynamic
+                      inKeyword: in
+                      iterable: ListLiteral
+                        leftBracket: [
+                        rightBracket: ]
+                        staticType: List<dynamic>
+                    rightParenthesis: )
+                    body: SimpleIdentifier
+                      token: i
+                      element: i@67
+                      staticType: dynamic
+                rightBracket: ]
+                correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::o
+                staticType: List<dynamic>
+            rightParenthesis: )
+          element: <testLibrary>::@class::A::@constructor::new
+      keyword: var
+      name: a
+      declaredFragment: isPublic a@84
+        element: hasImplicitType isPublic
+          type: dynamic
+    inKeyword: in
+    iterable2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: dynamic
+      staticType: dynamic
+    iterable(v1): SimpleIdentifier
+      token: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      staticType: dynamic
+  rightParenthesis: )
+  body2: Block
+    leftBracket: {
     rightBracket: }
 ''');
   }
@@ -1861,6 +2179,172 @@ ForStatement
 ''');
   }
 
+  test_async_metadata_closure() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A(Object? o);
+}
+
+void f(x) async {
+  await for (@A(() {}) var [a] in x) {}
+//              ^^^^^
+// [diag.constWithNonConstantArgument] Arguments of a constant creation must be constant expressions.
+//                          ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+}
+''');
+
+    var node = result.findNode.singleForStatement;
+    assertResolvedNodeText(node, r'''
+ForStatement
+  awaitKeyword: await
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    metadata
+      Annotation
+        atSign: @
+        expression: ConstructorInvocation
+          constructorReference: ConstructorReference2
+            typeReference: ConstructorTypeReference
+              name: A
+              element: <testLibrary>::@class::A
+              type: A
+            element: <testLibrary>::@class::A::@constructor::new
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              FunctionExpression
+                parameters: FormalParameterList
+                  leftParenthesis: (
+                  rightParenthesis: )
+                body: BlockFunctionBody
+                  block: Block
+                    leftBracket: {
+                    rightBracket: }
+                declaredFragment: <testLibraryFragment> null@null
+                  element: null@null
+                    type: Null Function()
+                correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::o
+                staticType: Null Function()
+            rightParenthesis: )
+          staticType: A
+        name: SimpleIdentifier
+          token: A
+          element: <testLibrary>::@class::A
+          staticType: null
+        arguments: ArgumentList
+          leftParenthesis: (
+          arguments
+            FunctionExpression
+              parameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+              declaredFragment: <testLibraryFragment> null@null
+                element: null@null
+                  type: Null Function()
+              correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::o
+              staticType: Null Function()
+          rightParenthesis: )
+        element: <testLibrary>::@class::A::@constructor::new
+    keyword: var
+    pattern: ListPattern
+      leftBracket: [
+      elements
+        DeclaredVariablePattern
+          name: a
+          declaredFragment: isPublic a@81
+            element: hasImplicitType isPublic
+              type: dynamic
+          matchedValueType: dynamic
+      rightBracket: ]
+      matchedValueType: dynamic
+      requiredType: List<dynamic>
+    inKeyword: in
+    iterable2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: dynamic
+      staticType: dynamic
+    iterable(v1): SimpleIdentifier
+      token: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      staticType: dynamic
+  rightParenthesis: )
+  body2: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_async_pattern_map_key_closure() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(x) async {
+  await for (var {() {}: a} in x) {}
+//                ^^^^^
+// [diag.nonConstantMapPatternKey] Key expressions in map patterns must be constants.
+//                       ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+}
+''');
+
+    var node = result.findNode.singleForStatement;
+    assertResolvedNodeText(node, r'''
+ForStatement
+  awaitKeyword: await
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    keyword: var
+    pattern: MapPattern
+      leftBracket: {
+      elements
+        MapPatternEntry
+          key2: FunctionExpression
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+            declaredFragment: <testLibraryFragment> null@null
+              element: null@null
+                type: Null Function()
+            staticType: Null Function()
+          separator: :
+          value: DeclaredVariablePattern
+            name: a
+            declaredFragment: isPublic a@43
+              element: hasImplicitType isPublic
+                type: dynamic
+            matchedValueType: dynamic
+      rightBracket: }
+      matchedValueType: dynamic
+      requiredType: Map<dynamic, dynamic>
+    inKeyword: in
+    iterable2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: dynamic
+      staticType: dynamic
+    iterable(v1): SimpleIdentifier
+      token: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      staticType: dynamic
+  rightParenthesis: )
+  body2: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
   test_async_pattern_patternVariable_typed() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Stream<int> x) async {
@@ -2713,6 +3197,558 @@ ForStatement
           element: a@36
           staticType: int
         semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_sync_metadata_closure() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A(Object? o);
+}
+
+void f(x) {
+  for (@A(() {}) var [a] in x) {}
+//        ^^^^^
+// [diag.constWithNonConstantArgument] Arguments of a constant creation must be constant expressions.
+//                    ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+}
+''');
+
+    var node = result.findNode.singleForStatement;
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    metadata
+      Annotation
+        atSign: @
+        expression: ConstructorInvocation
+          constructorReference: ConstructorReference2
+            typeReference: ConstructorTypeReference
+              name: A
+              element: <testLibrary>::@class::A
+              type: A
+            element: <testLibrary>::@class::A::@constructor::new
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              FunctionExpression
+                parameters: FormalParameterList
+                  leftParenthesis: (
+                  rightParenthesis: )
+                body: BlockFunctionBody
+                  block: Block
+                    leftBracket: {
+                    rightBracket: }
+                declaredFragment: <testLibraryFragment> null@null
+                  element: null@null
+                    type: Null Function()
+                correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::o
+                staticType: Null Function()
+            rightParenthesis: )
+          staticType: A
+        name: SimpleIdentifier
+          token: A
+          element: <testLibrary>::@class::A
+          staticType: null
+        arguments: ArgumentList
+          leftParenthesis: (
+          arguments
+            FunctionExpression
+              parameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+              declaredFragment: <testLibraryFragment> null@null
+                element: null@null
+                  type: Null Function()
+              correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::o
+              staticType: Null Function()
+          rightParenthesis: )
+        element: <testLibrary>::@class::A::@constructor::new
+    keyword: var
+    pattern: ListPattern
+      leftBracket: [
+      elements
+        DeclaredVariablePattern
+          name: a
+          declaredFragment: isPublic a@69
+            element: hasImplicitType isPublic
+              type: dynamic
+          matchedValueType: dynamic
+      rightBracket: ]
+      matchedValueType: dynamic
+      requiredType: List<dynamic>
+    inKeyword: in
+    iterable2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: dynamic
+      staticType: dynamic
+    iterable(v1): SimpleIdentifier
+      token: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      staticType: dynamic
+  rightParenthesis: )
+  body2: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_sync_metadata_forElement() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A(Object? o);
+}
+
+void f(x) {
+  for (@A([for (var i in []) i]) var [a] in x) {}
+//         ^^^^^^^^^^^^^^^^^^^
+// [diag.constEvalForElement] Constant expressions don't support 'for' elements.
+//                                    ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+}
+''');
+
+    var node = result.findNode.singleForStatement;
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    metadata
+      Annotation
+        atSign: @
+        expression: ConstructorInvocation
+          constructorReference: ConstructorReference2
+            typeReference: ConstructorTypeReference
+              name: A
+              element: <testLibrary>::@class::A
+              type: A
+            element: <testLibrary>::@class::A::@constructor::new
+          argumentList: ArgumentList
+            leftParenthesis: (
+            arguments2
+              ListLiteral
+                leftBracket: [
+                elements2
+                  ForElement
+                    forKeyword: for
+                    leftParenthesis: (
+                    forLoopParts: ForEachPartsWithDeclaration
+                      loopVariable: DeclaredIdentifier
+                        keyword: var
+                        name: i
+                        declaredFragment: isPublic i@67
+                          element: hasImplicitType isPublic
+                            type: dynamic
+                      inKeyword: in
+                      iterable2: ListLiteral
+                        leftBracket: [
+                        rightBracket: ]
+                        staticType: List<dynamic>
+                    rightParenthesis: )
+                    body2: UnqualifiedNameExpression
+                      name: i
+                      resolution: VariableReadResolution
+                        element: i@67
+                        type: dynamic
+                      staticType: dynamic
+                    body(v1): SimpleIdentifier
+                      token: i
+                      element: i@67
+                      staticType: dynamic
+                rightBracket: ]
+                correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::o
+                staticType: List<dynamic>
+            rightParenthesis: )
+          staticType: A
+        name: SimpleIdentifier
+          token: A
+          element: <testLibrary>::@class::A
+          staticType: null
+        arguments: ArgumentList
+          leftParenthesis: (
+          arguments
+            ListLiteral
+              leftBracket: [
+              elements
+                ForElement
+                  forKeyword: for
+                  leftParenthesis: (
+                  forLoopParts: ForEachPartsWithDeclaration
+                    loopVariable: DeclaredIdentifier
+                      keyword: var
+                      name: i
+                      declaredFragment: isPublic i@67
+                        element: hasImplicitType isPublic
+                          type: dynamic
+                    inKeyword: in
+                    iterable: ListLiteral
+                      leftBracket: [
+                      rightBracket: ]
+                      staticType: List<dynamic>
+                  rightParenthesis: )
+                  body: SimpleIdentifier
+                    token: i
+                    element: i@67
+                    staticType: dynamic
+              rightBracket: ]
+              correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::o
+              staticType: List<dynamic>
+          rightParenthesis: )
+        element: <testLibrary>::@class::A::@constructor::new
+    keyword: var
+    pattern: ListPattern
+      leftBracket: [
+      elements
+        DeclaredVariablePattern
+          name: a
+          declaredFragment: isPublic a@85
+            element: hasImplicitType isPublic
+              type: dynamic
+          matchedValueType: dynamic
+      rightBracket: ]
+      matchedValueType: dynamic
+      requiredType: List<dynamic>
+    inKeyword: in
+    iterable2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: dynamic
+      staticType: dynamic
+    iterable(v1): SimpleIdentifier
+      token: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      staticType: dynamic
+  rightParenthesis: )
+  body2: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_sync_pattern_list_relational_closure() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(x) {
+  for (var [== (() {})] in x) {}
+//          ^^^^^^^^^^
+// [diag.refutablePatternInIrrefutableContext] Refutable patterns can't be used in an irrefutable context.
+//              ^^^^^
+// [diag.nonConstantRelationalPatternExpression] The relational pattern expression must be a constant.
+}
+''');
+
+    var node = result.findNode.singleForStatement;
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    keyword: var
+    pattern: ListPattern
+      leftBracket: [
+      elements
+        RelationalPattern
+          operator: ==
+          operand2: ParenthesizedExpression
+            leftParenthesis: (
+            expression2: FunctionExpression
+              parameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+              declaredFragment: <testLibraryFragment> null@null
+                element: null@null
+                  type: Null Function()
+              staticType: Null Function()
+            rightParenthesis: )
+            staticType: Null Function()
+          element: dart:core::@class::Object::@method::==
+          matchedValueType: dynamic
+      rightBracket: ]
+      matchedValueType: dynamic
+      requiredType: List<dynamic>
+    inKeyword: in
+    iterable2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: dynamic
+      staticType: dynamic
+    iterable(v1): SimpleIdentifier
+      token: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      staticType: dynamic
+  rightParenthesis: )
+  body2: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_sync_pattern_map_key_closure() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(x) {
+  for (var {() {}: a} in x) {}
+//          ^^^^^
+// [diag.nonConstantMapPatternKey] Key expressions in map patterns must be constants.
+//                 ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+}
+''');
+
+    var node = result.findNode.singleForStatement;
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    keyword: var
+    pattern: MapPattern
+      leftBracket: {
+      elements
+        MapPatternEntry
+          key2: FunctionExpression
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+            declaredFragment: <testLibraryFragment> null@null
+              element: null@null
+                type: Null Function()
+            staticType: Null Function()
+          separator: :
+          value: DeclaredVariablePattern
+            name: a
+            declaredFragment: isPublic a@31
+              element: hasImplicitType isPublic
+                type: dynamic
+            matchedValueType: dynamic
+      rightBracket: }
+      matchedValueType: dynamic
+      requiredType: Map<dynamic, dynamic>
+    inKeyword: in
+    iterable2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: dynamic
+      staticType: dynamic
+    iterable(v1): SimpleIdentifier
+      token: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      staticType: dynamic
+  rightParenthesis: )
+  body2: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_sync_pattern_map_key_closure_assignsVariable() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(x, Object? v) {
+  if (v is int) {
+    for (var {() { v = 0; }: a} in x) {
+//            ^^^^^^^^^^^^^
+// [diag.nonConstantMapPatternKey] Key expressions in map patterns must be constants.
+//                           ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+      v;
+    }
+  }
+}
+''');
+
+    var node = result.findNode.singleForStatement;
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    keyword: var
+    pattern: MapPattern
+      leftBracket: {
+      elements
+        MapPatternEntry
+          key2: FunctionExpression
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                statements2
+                  ExpressionStatement
+                    expression2: DirectAssignment
+                      target: UnqualifiedNameAssignmentTarget
+                        name: v
+                        read: <null>
+                        write: VariableWriteResolution
+                          element: <testLibrary>::@function::f::@formalParameter::v
+                          acceptedType: Object?
+                      operator: =
+                      value: IntegerLiteral
+                        literal: 0
+                        correspondingParameter: <null>
+                        staticType: int
+                      staticType: int
+                    expression(v1): AssignmentExpression
+                      leftHandSide: SimpleIdentifier
+                        token: v
+                        element: <testLibrary>::@function::f::@formalParameter::v
+                        staticType: null
+                      operator: =
+                      rightHandSide: IntegerLiteral
+                        literal: 0
+                        correspondingParameter: <null>
+                        staticType: int
+                      readElement: <null>
+                      readType: null
+                      writeElement: <testLibrary>::@function::f::@formalParameter::v
+                      writeType: Object?
+                      element: <null>
+                      staticType: int
+                    semicolon: ;
+                rightBracket: }
+            declaredFragment: <testLibraryFragment> null@null
+              element: null@null
+                type: Null Function()
+            staticType: Null Function()
+          separator: :
+          value: DeclaredVariablePattern
+            name: a
+            declaredFragment: isPublic a@70
+              element: hasImplicitType isPublic
+                type: dynamic
+            matchedValueType: dynamic
+      rightBracket: }
+      matchedValueType: dynamic
+      requiredType: Map<dynamic, dynamic>
+    inKeyword: in
+    iterable2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: dynamic
+      staticType: dynamic
+    iterable(v1): SimpleIdentifier
+      token: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      staticType: dynamic
+  rightParenthesis: )
+  body2: Block
+    leftBracket: {
+    statements2
+      ExpressionStatement
+        expression2: UnqualifiedNameExpression
+          name: v
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::v
+            type: Object?
+          staticType: Object?
+        expression(v1): SimpleIdentifier
+          token: v
+          element: <testLibrary>::@function::f::@formalParameter::v
+          staticType: Object?
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_sync_pattern_map_key_forElement() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(x) {
+  for (var {[for (var i in []) i]: a} in x) {}
+//          ^^^^^^^^^^^^^^^^^^^^^
+// [diag.nonConstantMapPatternKey] Key expressions in map patterns must be constants.
+//                                 ^
+// [diag.unusedLocalVariable] The value of the local variable 'a' isn't used.
+}
+''');
+
+    var node = result.findNode.singleForStatement;
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    keyword: var
+    pattern: MapPattern
+      leftBracket: {
+      elements
+        MapPatternEntry
+          key2: ListLiteral
+            leftBracket: [
+            elements2
+              ForElement
+                forKeyword: for
+                leftParenthesis: (
+                forLoopParts: ForEachPartsWithDeclaration
+                  loopVariable: DeclaredIdentifier
+                    keyword: var
+                    name: i
+                    declaredFragment: isPublic i@34
+                      element: hasImplicitType isPublic
+                        type: dynamic
+                  inKeyword: in
+                  iterable2: ListLiteral
+                    leftBracket: [
+                    rightBracket: ]
+                    staticType: List<dynamic>
+                rightParenthesis: )
+                body2: UnqualifiedNameExpression
+                  name: i
+                  resolution: VariableReadResolution
+                    element: i@34
+                    type: dynamic
+                  staticType: dynamic
+                body(v1): SimpleIdentifier
+                  token: i
+                  element: i@34
+                  staticType: dynamic
+            rightBracket: ]
+            staticType: List<dynamic>
+          separator: :
+          value: DeclaredVariablePattern
+            name: a
+            declaredFragment: isPublic a@47
+              element: hasImplicitType isPublic
+                type: dynamic
+            matchedValueType: dynamic
+      rightBracket: }
+      matchedValueType: dynamic
+      requiredType: Map<dynamic, dynamic>
+    inKeyword: in
+    iterable2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: dynamic
+      staticType: dynamic
+    iterable(v1): SimpleIdentifier
+      token: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      staticType: dynamic
+  rightParenthesis: )
+  body2: Block
+    leftBracket: {
     rightBracket: }
 ''');
   }
