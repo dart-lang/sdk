@@ -53,6 +53,10 @@ Future<void> main(List<String> args) async {
           await _runPubGet(dir);
         }
       }
+
+      // TODO(dantup): For DevTools to analyze cleanly, we need to run
+      //  `dt generate-code`. Currently this must be done manually, but we
+      //  should handle it here if we plan to keep DevTools in the corpus.
     }
   }
 }
@@ -103,6 +107,8 @@ Future<CloneResult> _clone(String repo) async {
     result = await _runGit([
       'clone',
       '--filter=blob:none',
+      '-c',
+      'core.longpaths=true', // Allow long paths on Windows
       if (revision != null) '--no-checkout',
       '$repoUrl.git',
       cloneDir,
@@ -125,8 +131,10 @@ bool _hasPubspec(FileSystemEntity f) =>
 Future<ProcessResult> _runGit(List<String> args, [String? workingDirectory]) =>
     Process.run('git', args, workingDirectory: workingDirectory);
 
-Future<ProcessResult> _runPub(String dir) async =>
-    await Process.run('flutter', ['pub', 'get'], workingDirectory: dir);
+Future<ProcessResult> _runPub(String dir) async {
+  var binName = Platform.isWindows ? 'flutter.bat' : 'flutter';
+  return await Process.run(binName, ['pub', 'get'], workingDirectory: dir);
+}
 
 Future<void> _runPubGet(FileSystemEntity dir) async {
   if (_hasPubspec(dir)) {

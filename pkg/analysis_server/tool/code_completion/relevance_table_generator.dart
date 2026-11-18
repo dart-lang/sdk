@@ -20,6 +20,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/diagnostic.dart';
@@ -322,11 +323,11 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// The compilation unit in which data is currently being collected.
   late CompilationUnit unit;
 
-  /// A list of the identifier and keyword tokens in the compilation unit being
+  /// A set of the identifier and keyword tokens in the compilation unit being
   /// analyzed.
   ///
   /// Used to find tokens that are not included in the tables but should be.
-  final List<Token> _identifiersAndKeywords = [];
+  final Set<Token> _identifiersAndKeywords = {};
 
   /// The library containing the compilation unit being visited.
   late LibraryElement enclosingLibrary;
@@ -544,7 +545,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     // No other completions are valid here.
     _unrecorded(node.caseKeyword);
     _recordDataForNode(
-      'CaseClause_guardedPattern',
+      'CaseClause_pattern',
       node.guardedPattern,
       allowedKeywords: patternKeywords,
     );
@@ -633,7 +634,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitCommentReference(CommentReference node) {
-    _recordDataForNode('CommentReference_expression', node.expression);
+    _recordDataForNode('CommentReference_identifier', node.expression);
     super.visitCommentReference(node);
   }
 
@@ -701,13 +702,17 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     // The type name must always be the same as the enclosing class.
     if (node.typeName?.token case var name?) _unrecorded(name);
     if (node.name case var name?) _recordDeclaration(name);
-    var factoryKeyword = node.factoryKeyword;
-    if (factoryKeyword != null &&
-        factoryKeyword != node.firstTokenAfterCommentAndMetadata) {
-      _unrecorded(factoryKeyword);
+
+    for (var keyword in [node.newKeyword, node.factoryKeyword]) {
+      if (keyword != null &&
+          keyword != node.firstTokenAfterCommentAndMetadata) {
+        _unrecorded(keyword);
+      }
     }
 
-    _recordDataForNode('ConstructorDeclaration_returnType', node.typeName!);
+    if (node.typeName case var typeName?) {
+      _recordDataForNode('ConstructorDeclaration_returnType', typeName);
+    }
     for (var initializer in node.initializers) {
       _recordDataForNode('ConstructorDeclaration_initializer', initializer);
     }
@@ -722,6 +727,9 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+    if (node.thisKeyword != null) {
+      _recordMember(node.fieldName.token);
+    }
     _recordDataForNode(
       'ConstructorFieldInitializer_expression',
       node.expression,
@@ -760,14 +768,14 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
-    // There are no completions.
+    _recordDataForNode('VariableDeclarationList_type', node.type);
     _recordDeclaration(node.name);
     super.visitDeclaredIdentifier(node);
   }
 
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
-    // There are no completions.
+    _recordDataForNode('DeclaredVariablePattern_type', node.type);
     _recordDeclaration(node.name);
     super.visitDeclaredVariablePattern(node);
   }
@@ -868,6 +876,15 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       node.implementsClause,
       allowedKeywords: [Keyword.IMPLEMENTS],
     );
+
+    for (var member in node.body.members) {
+      _recordDataForNode(
+        'EnumDeclaration_member',
+        member,
+        allowedKeywords: memberKeywords,
+      );
+    }
+
     super.visitEnumDeclaration(node);
   }
 
@@ -943,7 +960,11 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     if (node.name case var name?) {
       _recordDeclaration(name);
     }
-    _recordDataForNode('ExtensionDeclaration_onClause', node.onClause);
+    _recordKeyword(
+      'ExtensionDeclaration_onClause',
+      node.onClause,
+      allowedKeywords: [Keyword.ON],
+    );
     if (node.body case BlockClassBody body) {
       for (var member in body.members) {
         _recordDataForNode(
@@ -964,7 +985,11 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitExtensionOverride(ExtensionOverride node) {
-    // There are no completions.
+    // If there's a prefix, it's handled by the surrounding context and we still
+    // need to handle the member.
+    if (node.importPrefix != null) {
+      _recordMember(node.name);
+    }
     super.visitExtensionOverride(node);
   }
 
@@ -1058,6 +1083,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitForElement(ForElement node) {
+    if (node.awaitKeyword != null) _unrecorded(node.forKeyword);
     _recordDataForNode('ForElement_forLoopParts', node.forLoopParts);
     _recordDataForNode('ForElement_body', node.body);
     super.visitForElement(node);
@@ -1079,7 +1105,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       _recordDataForNode(
         'FormalParameterList_parameter',
         parameter,
-        allowedKeywords: [Keyword.COVARIANT],
+        allowedKeywords: [Keyword.COVARIANT, Keyword.REQUIRED],
       );
     }
     super.visitFormalParameterList(node);
@@ -1138,6 +1164,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitForStatement(ForStatement node) {
+    if (node.awaitKeyword != null) _unrecorded(node.forKeyword);
     _recordDataForNode('ForStatement_forLoopParts', node.forLoopParts);
     _recordDataForNode(
       'ForStatement_body',
@@ -1398,7 +1425,11 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitLibraryDirective(LibraryDirective node) {
-    // There are no completions.
+    if (node.name case var name?) {
+      for (var token in name.tokens) {
+        _recordDeclaration(token);
+      }
+    }
     super.visitLibraryDirective(node);
   }
 
@@ -1545,6 +1576,9 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitNamedArgument(NamedArgument node) {
     // Named expressions only occur in argument lists and are handled there.
+    // The label token (`name:`) uses fixed `Relevance.[required]namedArgument`
+    // score rather than relevance tables.
+    _unrecorded(node.name);
     super.visitNamedArgument(node);
   }
 
@@ -1720,6 +1754,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
     // There are no completions.
+    if (node.constKeyword case var keyword?) _unrecorded(keyword);
     super.visitPrimaryConstructorDeclaration(node);
   }
 
@@ -1964,7 +1999,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitSwitchExpressionCase(SwitchExpressionCase node) {
     _recordDataForNode(
-      'SwitchExpressionCase_guardedPattern',
+      'SwitchPatternCase_pattern',
       node.guardedPattern,
       allowedKeywords: patternKeywords,
     );
@@ -1981,7 +2016,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     // No other completions are valid here.
     _unrecorded(node.keyword);
     _recordDataForNode(
-      'SwitchPatternCase_guardedPattern',
+      'SwitchPatternCase_pattern',
       node.guardedPattern,
       allowedKeywords: patternKeywords,
     );
@@ -2144,7 +2179,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitWildcardPattern(WildcardPattern node) {
-    // There are no completions.
+    _recordDataForNode('WildcardPattern_type', node.type);
     _unrecorded(node.name);
     super.visitWildcardPattern(node);
   }
@@ -2176,8 +2211,15 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       var parent = node.parent;
       if (parent is Annotation) {
         return 'annotation';
+      } else if (parent is DotShorthandConstructorInvocation) {
+        if (parent.staticType.isWidgetType) {
+          return 'widgetConstructor';
+        }
+        return 'constructor';
+      } else if (parent is DotShorthandInvocation) {
+        return 'method';
       } else if (parent is EnumConstantArguments) {
-        return 'enumConstant';
+        return 'enumConstantArguments';
       } else if (parent is ExtensionOverride) {
         return 'extensionOverride';
       } else if (parent is FunctionExpressionInvocation) {
@@ -2221,25 +2263,34 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   /// Return the element associated with the left-most identifier that is a
-  /// child of the [node].
-  Element? _leftMostElement(AstNode node) => _leftMostIdentifier(node)?.element;
-
-  /// Return the left-most child of the [node] if it is a simple identifier, or
-  /// `null` if the left-most child is not a simple identifier. Comments and
-  /// annotations are ignored for this purpose.
-  SimpleIdentifier? _leftMostIdentifier(AstNode node) {
+  /// child of the [node], or `null` if the left-most token is not an
+  /// identifier reference (for example, a keyword, literal, or declared name).
+  /// Comments and annotations are ignored for this purpose.
+  Element? _leftMostElement(AstNode node) {
     AstNode? currentNode = node;
-    while (currentNode != null && currentNode is! SimpleIdentifier) {
+    while (currentNode != null) {
+      // For unqualified `Foo()` return the constructor rather than descending
+      // to `NamedType` (which resolves to the class).
+      if (currentNode is InstanceCreationExpression &&
+          currentNode.keyword == null &&
+          currentNode.constructorName.type.importPrefix == null) {
+        return currentNode.constructorName.element;
+      }
+
       var firstChild = _firstChild(currentNode);
       if (firstChild is AstNode) {
         currentNode = firstChild;
       } else {
-        currentNode = null;
+        return switch (currentNode) {
+          AssignedVariablePattern() => currentNode.element,
+          ExtensionOverride() => currentNode.element,
+          ImportPrefixReference() => currentNode.element,
+          NamedType() => currentNode.element,
+          SimpleIdentifier() when !currentNode.inDeclarationContext() =>
+            currentNode.writeOrReadElement,
+          _ => null,
+        };
       }
-    }
-    if (currentNode is SimpleIdentifier &&
-        !currentNode.inDeclarationContext()) {
-      return currentNode;
     }
     return null;
   }
@@ -2247,9 +2298,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// Return the element kind of the element associated with the left-most
   /// identifier that is a child of the [node].
   ElementKind? _leftMostKind(AstNode node) {
-    if (node is InstanceCreationExpression) {
-      return featureComputer.computeElementKind2(node.constructorName.element!);
-    }
     var element = _leftMostElement(node);
     if (element == null) {
       return null;
@@ -2285,7 +2333,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     // Skip past the null-aware operator if present. This is making the
     // assumption that the probability of the next token is not dependent on the
     // presence or absence of the null-aware operator.
-    var token = node?.beginToken;
+    var token = node != null ? _leftMostToken(node) : null;
     if (node is MapLiteralEntry && node.keyQuestion == token) {
       token = token?.next;
     } else if (node is NullAwareElement && node.question == token) {
@@ -2293,18 +2341,20 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     }
     _identifiersAndKeywords.remove(token);
     _recordElementKind(context, node);
-    _recordKeyword(context, node, allowedKeywords: allowedKeywords);
+    _recordKeywordToken(context, token, allowedKeywords: allowedKeywords);
     // Record data for all of the keywords in a formal parameter. This is
     // contrary to the way other strings of keywords are handled, and probably
     // needs a good justification (or needs to be changed).
-    if (node is FormalParameter && token!.isKeyword) {
+    if (node is FormalParameter && token != null && token.isKeyword) {
       token = token.next;
-      do {
-        _identifiersAndKeywords.remove(token);
-        _recordElementKind(context, node);
-        _recordKeyword(context, node, allowedKeywords: allowedKeywords);
-        token = token?.next;
-      } while (token != null && token.isKeyword);
+      while (token != null && token.isKeyword && token != node.name) {
+        _recordKeywordToken(context, token, allowedKeywords: allowedKeywords);
+        token = token.next;
+      }
+      if (node.type case var type?) {
+        _identifiersAndKeywords.remove(_leftMostToken(type));
+        _recordElementKind(context, type);
+      }
     }
   }
 
@@ -2344,21 +2394,30 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }) {
     if (node != null) {
       var token = _leftMostToken(node);
-      if (token != null && token.isKeyword) {
-        _identifiersAndKeywords.remove(token);
-        var keyword = token.keyword!;
-        if (keyword == Keyword.NEW) {
-          // We don't suggest `new`, so we don't care about the frequency with
-          // which it is used.
-          return;
-        } else if (keyword.isBuiltInOrPseudo &&
-            !allowedKeywords.contains(keyword)) {
-          // These keywords can be used as identifiers, so determine whether
-          // it is being used as a keyword or an identifier.
-          return;
-        }
-        recordKeyword(context, token);
+      _recordKeywordToken(context, token, allowedKeywords: allowedKeywords);
+    }
+  }
+
+  /// Record that [token] occurred in the given context.
+  void _recordKeywordToken(
+    String context,
+    Token? token, {
+    List<Keyword> allowedKeywords = noKeywords,
+  }) {
+    if (token != null && token.isKeyword) {
+      _identifiersAndKeywords.remove(token);
+      var keyword = token.keyword!;
+      if (keyword == Keyword.NEW) {
+        // We don't suggest `new`, so we don't care about the frequency with
+        // which it is used.
+        return;
+      } else if (keyword.isBuiltInOrPseudo &&
+          !allowedKeywords.contains(keyword)) {
+        // These keywords can be used as identifiers, so determine whether
+        // it is being used as a keyword or an identifier.
+        return;
       }
+      recordKeyword(context, token);
     }
   }
 
