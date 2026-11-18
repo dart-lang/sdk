@@ -329,11 +329,8 @@ class LspServerClient {
     var inputStream = _extractDevToolsLine(process.stdout);
     var outputStream = process.stdin;
 
-    channel = LspByteStreamServerChannel(
-      inputStream,
-      outputStream,
-      instrumentationService ?? InstrumentationLogAdapter(PrintableLogger()),
-    )..listen(_serverToClient.add, onDone: () => _serverToClient.close());
+    channel = LspByteStreamServerChannel(inputStream, outputStream)
+      ..listen(_serverToClient.add, onDone: () => _serverToClient.close());
   }
 
   /// Checks the first line in the [input], and if it is the DevTools URI

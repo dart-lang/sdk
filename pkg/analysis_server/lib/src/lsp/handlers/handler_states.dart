@@ -201,9 +201,6 @@ class InitializingStateMessageHandler extends ServerStateMessageHandler {
   ErrorOr<Object?> handleUnknownMessage(IncomingMessage message) {
     // Silently drop non-requests.
     if (message is! RequestMessage) {
-      server.instrumentationService.logInfo(
-        'Ignoring ${message.method} message while initializing',
-      );
       server.sessionListener.logInfo(
         'Ignoring ${message.method} message while initializing',
       );
@@ -226,9 +223,6 @@ class ShuttingDownStateMessageHandler extends ServerStateMessageHandler {
   FutureOr<ErrorOr<Object?>> handleUnknownMessage(IncomingMessage message) {
     // Silently drop non-requests.
     if (message is! RequestMessage) {
-      server.instrumentationService.logInfo(
-        'Ignoring ${message.method} message while shutting down',
-      );
       server.sessionListener.logInfo(
         'Ignoring ${message.method} message while shutting down',
       );
@@ -252,9 +246,6 @@ class UninitializedStateMessageHandler extends ServerStateMessageHandler {
   FutureOr<ErrorOr<Object?>> handleUnknownMessage(IncomingMessage message) {
     // Silently drop non-requests.
     if (message is! RequestMessage) {
-      server.instrumentationService.logInfo(
-        'Ignoring ${message.method} message while uninitialized',
-      );
       server.sessionListener.logInfo(
         'Ignoring ${message.method} message while uninitialized',
       );

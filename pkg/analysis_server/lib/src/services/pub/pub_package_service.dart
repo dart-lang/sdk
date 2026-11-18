@@ -12,7 +12,6 @@ import 'package:analysis_server/src/services/pub/pub_api.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
 import 'package:analysis_server/src/session_logger/session_listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/instrumentation/service.dart';
 import 'package:meta/meta.dart';
 
 /// Information about Pub packages that can be converted to/from JSON and
@@ -144,7 +143,6 @@ class PubPackage {
 ///
 /// Expensive results are cached to disk using [resourceProvider].
 class PubPackageService {
-  final InstrumentationService _instrumentationService;
   final SessionListener _sessionListener;
 
   /// The [PubApi] used by this service.
@@ -175,13 +173,7 @@ class PubPackageService {
   final _pubspecPackageVersions =
       <String, Map<String, PubOutdatedPackageDetails>>{};
 
-  new(
-    this._instrumentationService,
-    this._sessionListener,
-    this.resourceProvider,
-    this.api,
-    this._command,
-  );
+  new(this._sessionListener, this.resourceProvider, this.api, this._command);
 
   /// Gets the last set of package results from the Pub API or an empty List if
   /// no results.
@@ -348,7 +340,6 @@ class PubPackageService {
         return null;
       }
     } catch (e) {
-      _instrumentationService.logError('Error reading pub cache file: $e');
       _sessionListener.logException(
         exception: 'Error reading pub cache file: $e',
       );
@@ -384,7 +375,6 @@ class PubPackageService {
       this.packageCache = packageCache;
       writeDiskCache();
     } catch (e) {
-      _instrumentationService.logError('Failed to fetch packages from Pub: $e');
       _sessionListener.logException(
         exception: 'Failed to fetch packages from Pub: $e',
       );

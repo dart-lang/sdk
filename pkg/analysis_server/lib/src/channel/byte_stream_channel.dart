@@ -12,7 +12,6 @@ import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/session_logger/process_id.dart';
 import 'package:analysis_server/src/session_logger/session_listener.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
-import 'package:analyzer/instrumentation/instrumentation.dart';
 
 /// Instances of the class [ByteStreamClientChannel] implement a
 /// [ClientCommunicationChannel] that uses a stream and a sink (typically,
@@ -72,9 +71,6 @@ class ByteStreamClientChannel implements ClientCommunicationChannel {
 /// [ServerCommunicationChannel] that uses a stream and a sink to communicate
 /// with clients.
 abstract class ByteStreamServerChannel implements ServerCommunicationChannel {
-  /// The instrumentation service that is to be used by this analysis server.
-  final InstrumentationService _instrumentationService;
-
   /// The session listener.
   final SessionListener _sessionListener;
 
@@ -98,11 +94,7 @@ abstract class ByteStreamServerChannel implements ServerCommunicationChannel {
     ),
   );
 
-  new(
-    this._instrumentationService,
-    this._sessionListener, {
-    this._requestStatistics,
-  }) {
+  new(this._sessionListener, {this._requestStatistics}) {
     _requestStatistics?.serverChannel = this;
   }
 
@@ -135,7 +127,6 @@ abstract class ByteStreamServerChannel implements ServerCommunicationChannel {
     var jsonEncoding = json.encode(jsonMap);
     _outputLine(jsonEncoding);
     if (!identical(notification.event, 'server.log')) {
-      _instrumentationService.logNotification(jsonEncoding);
       _sessionListener.logMessage(
         from: ProcessId.server,
         to: ProcessId.ide,
@@ -155,7 +146,6 @@ abstract class ByteStreamServerChannel implements ServerCommunicationChannel {
     var jsonMap = request.toJson();
     var jsonEncoding = json.encode(jsonMap);
     _outputLine(jsonEncoding);
-    _instrumentationService.logRequest(jsonEncoding);
     _sessionListener.logMessage(
       from: ProcessId.server,
       to: ProcessId.ide,
@@ -174,7 +164,6 @@ abstract class ByteStreamServerChannel implements ServerCommunicationChannel {
     var jsonMap = response.toJson();
     var jsonEncoding = json.encode(jsonMap);
     _outputLine(jsonEncoding);
-    _instrumentationService.logResponse(jsonEncoding);
     _sessionListener.logMessage(
       from: ProcessId.server,
       to: ProcessId.ide,
@@ -226,7 +215,6 @@ abstract class ByteStreamServerChannel implements ServerCommunicationChannel {
     if (_closed.isCompleted) {
       return;
     }
-    _instrumentationService.logRequest(data);
     // Parse the string as a JSON descriptor and process the resulting
     // structure as a request, a response or a notification.
     var message = _parseClientMessage(data);
@@ -260,7 +248,6 @@ class InputOutputByteStreamServerChannel extends ByteStreamServerChannel {
   new(
     this._input,
     this._output,
-    super._instrumentationService,
     super._sessionListener, {
     super.requestStatistics,
   });
@@ -280,11 +267,7 @@ class StdinStdoutLineStreamServerChannel extends ByteStreamServerChannel {
   @override
   late final Stream<String> _lines = _linesFromIsolate.cast();
 
-  new(
-    super._instrumentationService,
-    super._sessionLogger, {
-    super.requestStatistics,
-  }) {
+  new(super._sessionLogger, {super.requestStatistics}) {
     Isolate.spawn(_stdinInAnIsolate, _linesFromIsolate.sendPort);
   }
 

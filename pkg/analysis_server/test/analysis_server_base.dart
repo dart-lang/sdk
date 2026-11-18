@@ -10,11 +10,11 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/session_logger/session_logger.dart';
+import 'package:analysis_server/src/session_logger/session_logger_sink.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart' as analysis;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -68,6 +68,7 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
   );
   late final MockServerChannel serverChannel;
   MessageSchedulerTestView? testView;
+  late final SessionLogger sessionLogger;
   late final LegacyAnalysisServer server;
 
   DartFixPromptManager? dartFixPromptManager;
@@ -182,6 +183,8 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
     serverChannel.notifications.listen(processNotification);
 
     testView = retainDataForTesting ? MessageSchedulerTestView() : null;
+    sessionLogger = SessionLogger();
+    (sessionLogger.sink as SessionLoggerInMemorySink).startCapture();
     server = LegacyAnalysisServer(
       serverChannel,
       resourceProvider,
@@ -189,8 +192,7 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
       DartSdkManager(sdkRoot.path),
       AnalyticsManager(NoOpAnalytics()),
       CrashReportingAttachmentsBuilder.empty,
-      InstrumentationService.NULL_SERVICE,
-      SessionLogger(),
+      sessionLogger,
       dartFixPromptManager: dartFixPromptManager,
       providedByteStore: _byteStore,
       pluginManager: pluginManager,

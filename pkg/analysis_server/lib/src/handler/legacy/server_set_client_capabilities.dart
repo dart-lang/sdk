@@ -94,7 +94,6 @@ class ServerSetClientCapabilitiesHandler extends LegacyHandler {
         exception,
         stackTrace,
       );
-      server.instrumentationService.logException(caughtException);
       server.sessionListener.logException(exception: caughtException);
     } finally {
       // LSP messages must not wait forever, so the gate is released whether the

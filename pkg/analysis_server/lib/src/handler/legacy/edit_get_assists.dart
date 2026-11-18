@@ -17,6 +17,7 @@ import 'package:analysis_server_plugin/src/correction/assist_processor.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/src/exception/exception.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 
@@ -97,7 +98,7 @@ class EditGetAssistsHandler extends LegacyHandler
     if (libraryResult != null) {
       var unitResult = libraryResult.unitWithPath(file)!;
       var context = DartAssistContext(
-        server.instrumentationService,
+        AnalysisEngine.instance.instrumentationService,
         DartChangeWorkspace(await server.currentSessions),
         libraryResult,
         unitResult,

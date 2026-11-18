@@ -42,7 +42,6 @@ Future<void> scheduleImplementedNotification(
           exception,
           stackTrace,
         );
-        server.instrumentationService.logException(caughtException);
         server.sessionListener.logException(exception: caughtException);
       }
     }
@@ -205,7 +204,6 @@ void _sendNotification(LegacyAnalysisServer server, void Function() f) {
       exception,
       stackTrace,
     );
-    server.instrumentationService.logException(caughtException);
     server.sessionListener.logException(exception: caughtException);
   }
 }

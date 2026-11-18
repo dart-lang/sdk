@@ -146,7 +146,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     await initialize();
 
     var error = await expectErrorNotification(() {
-      errorNotifier.logException(Exception('dummy exception'));
+      sessionListener.logException(exception: Exception('dummy exception'));
     });
 
     expect(error, isNotNull);

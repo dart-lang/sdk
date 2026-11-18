@@ -26,7 +26,6 @@ class LspStdioAnalysisServer {
     var serverChannel = LspByteStreamServerChannel(
       stdin,
       stdout.nonBlocking,
-      socketServer.instrumentationService,
       sessionListener: socketServer.sessionListener,
     );
     socketServer.createAnalysisServer(serverChannel);

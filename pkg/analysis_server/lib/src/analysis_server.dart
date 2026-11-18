@@ -68,7 +68,6 @@ import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as analysis;
@@ -197,9 +196,6 @@ abstract class AnalysisServer {
   /// server.
   final RecentBuffer<ServerException> exceptions = RecentBuffer(10);
 
-  /// The instrumentation service that is to be used by this analysis server.
-  InstrumentationService instrumentationService;
-
   /// The session listener that is to be used by this analysis server.
   SessionListener sessionListener;
 
@@ -309,7 +305,6 @@ abstract class AnalysisServer {
     this.analyticsManager,
     this.crashReportingAttachmentsBuilder,
     ResourceProvider baseResourceProvider,
-    this.instrumentationService,
     this.sessionListener,
     http.Client? httpClient,
     ProcessRunner? processRunner,
@@ -332,7 +327,6 @@ abstract class AnalysisServer {
        ),
        pubPackageService = _createPubPackageService(
          baseResourceProvider: baseResourceProvider,
-         instrumentationService: instrumentationService,
          sessionListener: sessionListener,
          httpClient: httpClient,
          processRunner: processRunner,
@@ -351,7 +345,6 @@ abstract class AnalysisServer {
       resourceProvider.byteStorePath,
       sdkManager.defaultSdkDirectory,
       notificationManager,
-      instrumentationService,
       sessionListener,
       processRunner: processRunner ?? ProcessRunner(environment: environment),
     );
@@ -403,7 +396,6 @@ abstract class AnalysisServer {
       analysisPerformanceLogger,
       analysisDriverScheduler,
       analyticsManager,
-      instrumentationService,
       sessionListener,
       enableBlazeWatcher: enableBlazeWatcher,
       withFineDependencies: options.withFineDependencies,
@@ -413,11 +405,7 @@ abstract class AnalysisServer {
         dartFixPromptManager ??
         DartFixPromptManager(
           this,
-          UserPromptPreferences(
-            resourceProvider,
-            instrumentationService,
-            sessionListener,
-          ),
+          UserPromptPreferences(resourceProvider, sessionListener),
         );
   }
 
@@ -792,7 +780,6 @@ abstract class AnalysisServer {
     //  without a flag and for both protocols.
     surveyManager = SurveyManager(
       this,
-      instrumentationService,
       sessionListener,
       analyticsManager.analytics,
     );
@@ -1000,7 +987,6 @@ abstract class AnalysisServer {
     } on InconsistentAnalysisException {
       return null;
     } catch (exception, stackTrace) {
-      instrumentationService.logException(exception, stackTrace);
       sessionListener.logException(
         exception: exception,
         stackTrace: stackTrace,
@@ -1037,7 +1023,6 @@ abstract class AnalysisServer {
       );
       return value is ResolvedUnitResult ? value : null;
     } catch (exception, stackTrace) {
-      instrumentationService.logException(exception, stackTrace);
       sessionListener.logException(
         exception: exception,
         stackTrace: stackTrace,
@@ -1138,11 +1123,6 @@ abstract class AnalysisServer {
     );
 
     // TODO(39284): should this exception be silent?
-    instrumentationService.logException(
-      SilentException.wrapInMessage(message, result.exception),
-      null,
-      attachments,
-    );
     sessionListener.logException(
       exception: SilentException.wrapInMessage(message, result.exception),
       attachments: attachments,
@@ -1335,7 +1315,6 @@ abstract class AnalysisServer {
         performance: performance,
       );
     } catch (exception, stackTrace) {
-      instrumentationService.logException(exception, stackTrace);
       sessionListener.logException(
         exception: exception,
         stackTrace: stackTrace,
@@ -1370,7 +1349,6 @@ abstract class AnalysisServer {
         performance: performance,
       );
     } catch (exception, stackTrace) {
-      instrumentationService.logException(exception, stackTrace);
       sessionListener.logException(
         exception: exception,
         stackTrace: stackTrace,
@@ -1473,7 +1451,6 @@ abstract class AnalysisServer {
         );
       }
     } catch (exception, stackTrace) {
-      instrumentationService.logException(exception, stackTrace);
       sessionListener.logException(
         exception: exception,
         stackTrace: stackTrace,
@@ -1484,14 +1461,12 @@ abstract class AnalysisServer {
 
   static PubPackageService _createPubPackageService({
     required ResourceProvider baseResourceProvider,
-    required InstrumentationService instrumentationService,
     required SessionListener sessionListener,
     required http.Client? httpClient,
     required ProcessRunner? processRunner,
     required Map<String, String>? environment,
   }) {
     var pubApi = PubApi(
-      instrumentationService,
       sessionListener,
       httpClient,
       platform.environment['PUB_HOSTED_URL'],
@@ -1507,7 +1482,6 @@ abstract class AnalysisServer {
         platform.environment[PubCommand.disablePubCommandEnvironmentKey];
     var pubCommand = processRunner != null && disablePubCommandVariable == null
         ? PubCommand(
-            instrumentationService,
             sessionListener,
             baseResourceProvider.pathContext,
             processRunner,
@@ -1515,7 +1489,6 @@ abstract class AnalysisServer {
         : null;
 
     return PubPackageService(
-      instrumentationService,
       sessionListener,
       baseResourceProvider,
       pubApi,

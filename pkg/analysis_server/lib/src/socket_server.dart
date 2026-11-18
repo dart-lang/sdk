@@ -11,11 +11,10 @@ import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
-import 'package:analysis_server/src/session_logger/session_logger.dart';
+import 'package:analysis_server/src/session_logger/session_listener.dart';
 import 'package:analysis_server/src/status/performance_logger.dart';
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 
 abstract class AbstractSocketServer {
@@ -39,10 +38,8 @@ class SocketServer implements AbstractSocketServer {
 
   final CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder;
 
-  final InstrumentationService instrumentationService;
-
   /// The session listener.
-  final SessionLogger sessionListener;
+  final SessionListener sessionListener;
 
   final RequestStatisticsHelper? requestStatistics;
 
@@ -70,7 +67,6 @@ class SocketServer implements AbstractSocketServer {
     this.analysisServerOptions,
     this.sdkManager,
     this.crashReportingAttachmentsBuilder,
-    this.instrumentationService,
     this.sessionListener,
     this.requestStatistics,
     this.diagnosticServer,
@@ -110,7 +106,6 @@ class SocketServer implements AbstractSocketServer {
       sdkManager,
       analyticsManager,
       crashReportingAttachmentsBuilder,
-      instrumentationService,
       sessionListener,
       requestStatistics: requestStatistics,
       diagnosticServer: diagnosticServer,

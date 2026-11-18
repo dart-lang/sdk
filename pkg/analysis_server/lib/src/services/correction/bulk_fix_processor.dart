@@ -24,7 +24,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/analysis_options/analysis_options.dart';
@@ -32,6 +31,7 @@ import 'package:analyzer/src/analysis_rule/rule_context.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/string_source.dart';
@@ -156,9 +156,6 @@ class BulkFixProcessor {
       .map((rule) => rule.name)
       .toSet();
 
-  /// The service used to report errors when building fixes.
-  final InstrumentationService _instrumentationService;
-
   /// Information about the workspace containing the libraries in which changes
   /// will be produced.
   final DartChangeWorkspace _workspace;
@@ -206,7 +203,6 @@ class BulkFixProcessor {
   /// fixed. If [codes] include lint codes, they will be enabled for fixing even
   /// if they are not enabled in the analysis options.
   new(
-    this._instrumentationService,
     this._workspace, {
     required this._byteStore,
     ChangeBuilder? builder,
@@ -220,7 +216,6 @@ class BulkFixProcessor {
   /// diagnostics and additionally for [additionalLintCodes] in libraries in
   /// the [_workspace].
   new withAdditionalLints(
-    this._instrumentationService,
     this._workspace, {
     required this._byteStore,
     ChangeBuilder? builder,
@@ -622,7 +617,7 @@ class BulkFixProcessor {
 
     DartFixContext fixContext(Diagnostic diagnostic) {
       return DartFixContext(
-        instrumentationService: _instrumentationService,
+        instrumentationService: AnalysisEngine.instance.instrumentationService,
         workspace: _workspace,
         libraryResult: libraryResult,
         unitResult: unitResult,
@@ -1072,8 +1067,6 @@ class IterativeBulkFixProcessor {
   /// `pkg/dartdev/lib/src/commands/fix.dart`).
   static const _maxPassCount = 4;
 
-  final InstrumentationService _instrumentationService;
-
   final void Function(SourceFileEdit) _applyTemporaryOverlayEdits;
   final Future<void> Function() _applyOverlays;
   final List<String>? _diagnosticCodes;
@@ -1088,7 +1081,6 @@ class IterativeBulkFixProcessor {
   final CancellationToken? _cancellationToken;
 
   new({
-    required this._instrumentationService,
     required this._byteStore,
     required this._applyTemporaryOverlayEdits,
     required this._applyOverlays,
@@ -1149,7 +1141,6 @@ class IterativeBulkFixProcessor {
       contexts.map((context) => context.currentSession).toList(),
     );
     var processor = BulkFixProcessor(
-      _instrumentationService,
       workspace,
       byteStore: _byteStore,
       codes: _diagnosticCodes,

@@ -8,7 +8,6 @@ import 'dart:io' as io;
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -55,7 +54,6 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
       '/byteStore',
       '',
       notificationManager,
-      InstrumentationService.NULL_SERVICE,
       SessionLogger(),
     );
   }
@@ -397,7 +395,6 @@ class PluginManagerLegacyTest with ResourceProviderMixin, _ContextRoot {
       resourceProvider.convertPath('/byteStore'),
       resourceProvider.convertPath('/sdk'),
       TestNotificationManager(),
-      InstrumentationService.NULL_SERVICE,
       SessionLogger(),
     );
   }
@@ -614,7 +611,6 @@ class PluginManagerTest with ResourceProviderMixin, _ContextRoot {
       resourceProvider.convertPath('/byteStore'),
       resourceProvider.convertPath('/sdk'),
       TestNotificationManager(),
-      InstrumentationService.NULL_SERVICE,
       SessionLogger(),
       processRunner: processRunner,
     );
@@ -1018,7 +1014,6 @@ environment:
     resourceProvider.convertPath('/byteStore'),
     resourceProvider.convertPath('/sdk'),
     TestNotificationManager(),
-    InstrumentationService.NULL_SERVICE,
     SessionLogger(),
     processRunner: processRunner,
     dartVersion: dartVersion,

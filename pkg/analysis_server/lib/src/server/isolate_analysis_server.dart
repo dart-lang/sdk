@@ -28,7 +28,6 @@ class IsolateAnalysisServer {
     var serverChannel = InputOutputByteStreamServerChannel(
       serverIsolateChannel.stream,
       IOSink(serverIsolateChannel.sink),
-      socketServer.instrumentationService,
       socketServer.sessionListener,
       requestStatistics: socketServer.requestStatistics,
     );

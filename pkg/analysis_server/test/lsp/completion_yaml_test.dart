@@ -231,8 +231,7 @@ name: foo
 version: 1.0.0
 
 environment:
-  sdk: 
-''';
+  sdk: $eol''';
     var expectedInserted = '''
 name: foo
 version: 1.0.0

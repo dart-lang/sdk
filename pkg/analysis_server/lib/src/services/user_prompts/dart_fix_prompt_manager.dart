@@ -119,7 +119,6 @@ class DartFixPromptManager {
 
     var workspace = DartChangeWorkspace(sessions);
     var processor = BulkFixProcessor(
-      server.instrumentationService,
       workspace,
       byteStore: server.byteStore,
       cancellationToken: token,
@@ -138,9 +137,6 @@ class DartFixPromptManager {
     var sw = Stopwatch()..start();
     var fixesAvailable = await bulkFixesAvailable(token);
     sw.stop();
-    server.instrumentationService.logInfo(
-      'Checking whether to prompt about "dart fix" took ${sw.elapsed}',
-    );
     server.sessionListener.logInfo(
       'Checking whether to prompt about "dart fix" took ${sw.elapsed}',
     );
@@ -224,9 +220,6 @@ class DartFixPromptManager {
   void triggerCheck() {
     unawaited(
       _performCheckAndPrompt().catchError((e) {
-        server.instrumentationService.logError(
-          'Failed to perform bulk "dart fix" check: $e',
-        );
         server.sessionListener.logException(
           exception: 'Failed to perform bulk "dart fix" check: $e',
         );

@@ -65,11 +65,7 @@ abstract class BulkFixProcessorTest extends SingleUnitTest {
     File? file,
   }) async {
     var analysisContext = contextFor2(file ?? testFile);
-    var processor = BulkFixProcessor(
-      TestInstrumentationService(),
-      await workspace,
-      byteStore: _byteStore,
-    );
+    var processor = BulkFixProcessor(await workspace, byteStore: _byteStore);
     var fixes = (await processor.fixPubspec([analysisContext])).edits;
     var edits = [for (var fix in fixes) ...fix.edits];
     var result = SourceEdit.applySequence(normalizeSource(original), edits);
@@ -78,11 +74,7 @@ abstract class BulkFixProcessorTest extends SingleUnitTest {
 
   Future<void> assertFormat(String expectedCode) async {
     var analysisContext = contextFor2(testFile);
-    processor = BulkFixProcessor(
-      TestInstrumentationService(),
-      await workspace,
-      byteStore: _byteStore,
-    );
+    processor = BulkFixProcessor(await workspace, byteStore: _byteStore);
     await processor.formatCode([analysisContext]);
     var change = processor.builder.sourceChange;
     var fileEdits = change.edits;
@@ -115,11 +107,7 @@ abstract class BulkFixProcessorTest extends SingleUnitTest {
 
   Future<void> assertOrganize(String expectedCode) async {
     var analysisContext = contextFor2(testFile);
-    processor = BulkFixProcessor(
-      TestInstrumentationService(),
-      await workspace,
-      byteStore: _byteStore,
-    );
+    processor = BulkFixProcessor(await workspace, byteStore: _byteStore);
     await processor.organizeDirectives([analysisContext]);
     var change = processor.builder.sourceChange;
     var fileEdits = change.edits;
@@ -135,7 +123,6 @@ abstract class BulkFixProcessorTest extends SingleUnitTest {
   }) async {
     var analysisContext = contextFor2(testFile);
     var processor = BulkFixProcessor(
-      TestInstrumentationService(),
       await workspace,
       codes: codes,
       byteStore: _byteStore,
@@ -152,11 +139,7 @@ abstract class BulkFixProcessorTest extends SingleUnitTest {
   /// [testFile].
   Future<bool> computeHasFixes() async {
     var analysisContext = contextFor2(testFile);
-    processor = BulkFixProcessor(
-      TestInstrumentationService(),
-      await workspace,
-      byteStore: _byteStore,
-    );
+    processor = BulkFixProcessor(await workspace, byteStore: _byteStore);
     return processor.hasFixes([analysisContext]);
   }
 
