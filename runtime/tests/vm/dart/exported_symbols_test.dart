@@ -369,15 +369,13 @@ main() {
     "Dart_WriteCallbackStub",
     "Dart_WriteHeapSnapshot",
     "Dart_WriteProfileToTimeline",
-    if (isAOTRuntime) ...[
-      "Dart_LoadELF",
-      "Dart_LoadELF_Memory",
-      "Dart_LoadMachODylib",
-      "Dart_LoadMachODylib_Memory",
-      "Dart_UnloadELF",
-      "Dart_UnloadMachODylib",
-      if (!Platform.isMacOS) ...["Dart_LoadELF_Fd", "Dart_LoadMachODylib_Fd"],
-    ],
+    "Dart_LoadELF",
+    "Dart_LoadELF_Memory",
+    "Dart_LoadMachODylib",
+    "Dart_LoadMachODylib_Memory",
+    "Dart_UnloadELF",
+    "Dart_UnloadMachODylib",
+    if (!Platform.isMacOS) ...["Dart_LoadELF_Fd", "Dart_LoadMachODylib_Fd"],
   ];
 
   Expect.setEquals(expectedSymbols, symbols);

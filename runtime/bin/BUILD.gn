@@ -964,9 +964,15 @@ dart_executable("dartvm") {
     extra_deps += [ ":dart_kernel_platform_cc" ]
   }
   if (dart_runtime_mode == "release") {
-    extra_deps += [ ":native_assets_api_product" ]
+    extra_deps += [
+      ":native_assets_api_product",
+      ":shared_object_loaders_product",
+    ]
   } else {
-    extra_deps += [ ":native_assets_api" ]
+    extra_deps += [
+      ":native_assets_api",
+      ":shared_object_loaders",
+    ]
   }
 }
 
@@ -1272,6 +1278,11 @@ executable("run_vm_tests") {
   ]
   if (dart_support_perfetto) {
     deps += [ "//third_party/perfetto:libprotozero" ]  # for timeline_test
+  }
+  if (dart_target_arch == "ia32" || dart_target_arch == "x86") {
+    # snapshot_utils.cc is compiled without DART_PRECOMPILER and
+    # needs shared object loaders.
+    deps += [ ":shared_object_loaders" ]
   }
 
   if (is_win) {
