@@ -4309,6 +4309,7 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
     return {
       ...super.flagsForTesting,
       'isExplicitlyCovariant': isExplicitlyCovariant,
+      'isFromResolution': isFromResolution,
       'isOriginDeclaration': isOriginDeclaration,
       'isOriginMixinApplicationClassConstructor':
           isOriginMixinApplicationClassConstructor,
@@ -4340,6 +4341,23 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   set isExplicitlyCovariant(bool value) {
     setFlag(
       _FragmentStorageFlag.formalParameterFragment_isExplicitlyCovariant,
+      value,
+    );
+  }
+
+  /// Whether this fragment was created by binding the resolved unit, rather
+  /// than by linking, so it is not part of the library element model.
+  @generated
+  bool get isFromResolution {
+    return hasFlag(
+      _FragmentStorageFlag.formalParameterFragment_isFromResolution,
+    );
+  }
+
+  @generated
+  set isFromResolution(bool value) {
+    setFlag(
+      _FragmentStorageFlag.formalParameterFragment_isFromResolution,
       value,
     );
   }
@@ -12300,6 +12318,7 @@ enum _FormalParameterElementFlags {
   hasDefaultValue(element: _ElementFlagSource.computed),
   isCovariant(element: _ElementFlagSource.stored),
   isExplicitlyCovariant(fragment: true),
+  isFromResolution(fragment: true),
   isOriginDeclaration(fragment: true),
   isOriginMixinApplicationClassConstructor(fragment: true),
   isOriginOtherFragmentOfEnclosing(fragment: true);
@@ -12353,6 +12372,7 @@ enum _FragmentStorageFlag {
   fieldFragment_isOriginExtensionTypeRecoveryRepresentation,
   fieldFragment_isPromotable,
   formalParameterFragment_isExplicitlyCovariant,
+  formalParameterFragment_isFromResolution,
   formalParameterFragment_isOriginDeclaration,
   formalParameterFragment_isOriginMixinApplicationClassConstructor,
   formalParameterFragment_isOriginOtherFragmentOfEnclosing,

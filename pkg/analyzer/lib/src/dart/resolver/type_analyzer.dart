@@ -5796,11 +5796,13 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       );
       defaultValue = popRewrite()!;
 
-      // Resolution can replace the parsed expression with a canonical V2
-      // expression. Keep the element model on that resolved expression so
-      // constant evaluation and other element consumers don't observe the
-      // detached parser node.
-      fragment.constantInitializer2 = defaultValue;
+      // Fragments from resolution hold the parsed node, which scope analysis
+      // and this analysis may replace; move them to the final node. Linked
+      // fragments hold a detached default value, and replacing it would
+      // retain the whole resolved unit.
+      if (fragment.isFromResolution) {
+        fragment.constantInitializer2 = defaultValue;
+      }
     }
   }
 
