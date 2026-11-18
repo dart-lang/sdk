@@ -100,10 +100,6 @@
         local.get $var2
         ;;   v38 = Phi(v39, v28, 🎯v39, v3)
         i64.const 0
-        ;;   v40 = Phi(v2, v40, 🎯v35, v2)
-        local.get $var9
-        local.set $var9
-        ;;   v38 = Phi(v39, v28, 🎯v39, v3)
         local.set $var8
         ;;   v37 = Phi(v3, v15, 🎯v3, v15)
         local.set $var7
@@ -114,10 +110,6 @@
       local.get $var3
       ;;   v38 = Phi(v39, 🎯v28, v39, v3)
       local.get $var4
-      ;;   v40 = Phi(v2, 🎯v40, v35, v2)
-      local.get $var9
-      local.set $var9
-      ;;   v38 = Phi(v39, 🎯v28, v39, v3)
       local.set $var8
       ;;   v37 = Phi(v3, 🎯v15, v3, v15)
       local.set $var7

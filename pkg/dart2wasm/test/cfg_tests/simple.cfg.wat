@@ -12,13 +12,9 @@
     local.set $var2
     ;;   v1 = 🎯Parameter(n)
     block $label0
-      ;;   v25 = Phi(🎯v2, v19)
-      local.get $var1
       ;;   v24 = Phi(🎯v2, v15)
       local.get $var1
       local.set $var3
-      ;;   v25 = Phi(🎯v2, v19)
-      local.set $var1
       ;;   🎯Goto(B5)
       br $label0
     end $label0
@@ -45,13 +41,6 @@
         local.get $var1
         local.get $var2
         i64.add
-        local.set $var1
-        ;;   v25 = Phi(v2, 🎯v19)
-        local.get $var1
-        ;;   v24 = Phi(v2, 🎯v15)
-        local.get $var3
-        local.set $var3
-        ;;   v25 = Phi(v2, 🎯v19)
         local.set $var1
         ;;   🎯Goto(B5)
         br $label1

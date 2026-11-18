@@ -11,9 +11,7 @@
     block $label0
       ;;   🎯for (int i = 0; i < n; i++) {    file:///.../cfg_source_positions.dart:25
       local.get $var1
-      local.get $var1
       local.set $var3
-      local.set $var1
       br $label0
     end $label0
     loop $label1
@@ -38,12 +36,6 @@
         local.get $var1
         local.get $var2
         i64.add
-        local.set $var1
-        local.get $var1
-        ;;     sum = sum 🎯+ i;               file:///.../cfg_source_positions.dart:26
-        local.get $var3
-        local.set $var3
-        ;;   for (int i = 0; i < n; i🎯++) {  file:///.../cfg_source_positions.dart:25
         local.set $var1
         ;;   🎯for (int i = 0; i < n; i++) {
         br $label1

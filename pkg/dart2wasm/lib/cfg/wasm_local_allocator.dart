@@ -45,6 +45,15 @@ final class WasmLocalAllocator {
     return b.locals[index];
   }
 
+  /// Whether copying [inputDef] into [phi] is a no-op because both share the
+  /// same Wasm local.
+  bool isPhiMoveNoOp(Phi phi, Definition inputDef) {
+    if (isUndefined(inputDef)) return false;
+    final phiLocalIndex = _localIndices[phi.id];
+    assert(phiLocalIndex >= 0);
+    return _localIndices[inputDef.id] == phiLocalIndex;
+  }
+
   /// Returns the Wasm value type used to represent [def].
   w.ValueType wasmTypeOf(Definition def) {
     if (def is Parameter && def.isFunctionParameter) {
@@ -205,7 +214,39 @@ final class WasmLocalAllocator {
       final paramLocal = functionParameterLocal(def);
       if (paramLocal != null) return paramLocal.index;
     }
-    return pool.allocate(wasmTypeOf(def));
+
+    final wasmType = wasmTypeOf(def);
+    final coalesced = _tryCoalescePhiLocal(def, wasmType, pool);
+    if (coalesced >= 0) return coalesced;
+    return pool.allocate(wasmType);
+  }
+
+  /// Tries to reuse a free local already assigned to a related [Phi] (or [Phi]
+  /// input) so that the edge copy becomes a no-op.
+  int _tryCoalescePhiLocal(
+    Definition def,
+    w.ValueType wasmType,
+    _WasmLocalPool pool,
+  ) {
+    for (final use in def.inputUses) {
+      final user = use.getInstruction(graph);
+      if (user is Phi) {
+        final phiLocalIndex = _localIndices[user.id];
+        if (phiLocalIndex >= 0 && pool.tryAllocate(phiLocalIndex, wasmType)) {
+          return phiLocalIndex;
+        }
+      }
+    }
+    if (def is Phi) {
+      for (var i = 0, n = def.inputCount; i < n; ++i) {
+        final inputLocalIndex = _localIndices[def.inputDefAt(i).id];
+        if (inputLocalIndex >= 0 &&
+            pool.tryAllocate(inputLocalIndex, wasmType)) {
+          return inputLocalIndex;
+        }
+      }
+    }
+    return -1;
   }
 
   bool _needsLocal(Definition def) {
@@ -276,6 +317,15 @@ final class _WasmLocalPool {
     _allocatedList.add(localIndex);
     // We avoid an O(N) pass over the free list to find [localIndex] and remove
     // it. Instead, [allocate] will drop the stale entry instead of reusing it.
+  }
+
+  /// Allocates [localIndex] if it is a free reusable local of [type].
+  bool tryAllocate(int localIndex, w.ValueType type) {
+    if (localIndex < _firstReusableLocalIndex) return false;
+    if (_allocated[localIndex]) return false;
+    if (_b.locals[localIndex].type != type) return false;
+    markAllocated(localIndex);
+    return true;
   }
 
   int allocate(w.ValueType type) {

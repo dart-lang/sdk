@@ -124,8 +124,9 @@ abstract base class CfgToWasm {
       Phi? lastPhi;
       for (final phi in to.phis) {
         if (!phi.hasUses) continue;
-        setDebugPosition(phi, inputIndex: predIndex);
         final inputDef = phi.inputDefAt(predIndex);
+        if (localAllocator.isPhiMoveNoOp(phi, inputDef)) continue;
+        setDebugPosition(phi, inputIndex: predIndex);
         final phiLocal = getLocal(phi);
         if (isUndefined(inputDef)) {
           // This value will never be observed. Reset value to default to not
@@ -142,6 +143,8 @@ abstract base class CfgToWasm {
       if (lastPhi == null) return;
       for (Instruction? instr = lastPhi; instr is Phi; instr = instr.previous) {
         if (!instr.hasUses) continue;
+        final inputDef = instr.inputDefAt(predIndex);
+        if (localAllocator.isPhiMoveNoOp(instr, inputDef)) continue;
         setDebugPosition(instr, inputIndex: predIndex);
         final phiLocal = getLocal(instr);
         b.local_set(phiLocal);
