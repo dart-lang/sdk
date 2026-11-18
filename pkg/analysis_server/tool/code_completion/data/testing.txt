@@ -1,0 +1,14 @@
+# The initial version of this list was compiled by Gemini, checking itsallwidgets and
+# most starred GH repos for those that had been modified relatively recently/used
+# modern SDK versions, had no analysis errors after running `pub get` and did not
+# pin non-current Flutter SDK versions.
+
+# Flutter apps
+https://github.com/simplezhli/flutter_deer@7b86fd00560c5001378396433d3a95dee3119116
+https://github.com/finamp-app/finamp@e94a458bbe0668af4fbe4a576cf1206e0233362f
+https://github.com/gskinnerTeam/flutter-wonderous-app@30ccc36a276223ebbb85dbb290d6ff2facf001ed
+https://github.com/saber-notes/saber@c85af406e6d954402cc7c6d718a8f240f54408b2
+https://github.com/krille-chan/fluffychat@6a0fda5835ad47f251a45a4c1c4d6c26490ec4f0
+
+# Pure Dart
+https://github.com/dart-lang/shelf@b175e9f1407994c751c1c1c976c3c80e2971e85c

@@ -263,13 +263,7 @@ void HierarchyInfo::BuildRangesFor(ClassTable* table,
   if (cids.is_empty()) return;
 
   // Sort all collected cids.
-  intptr_t* cids_array = cids.data();
-
-  qsort(cids_array, cids.length(), sizeof(intptr_t),
-        [](const void* a, const void* b) {
-          return static_cast<int>(*static_cast<const intptr_t*>(a) -
-                                  *static_cast<const intptr_t*>(b));
-        });
+  cids.Sort([](auto& a, auto& b) { return a < b; });
 
   // Build ranges of all the cids.
   CidCheckerForRanges checker(thread(), table, dst_klass, include_abstract,
@@ -382,9 +376,7 @@ class GuaranteedBaseClassComputeHelper final : public SubtypeVisitor {
     for (; !cls.IsNull(); cls = cls.SuperClass()) {
       cids.Add(cls.id());
     }
-    cids.Sort([](const intptr_t* a, const intptr_t* b) {
-      return static_cast<int>(*a) - static_cast<int>(*b);
-    });
+    cids.Sort([](auto& a, auto& b) { return a < b; });
     for (intptr_t cid : cids) {
       if (!ranges->is_empty() && ranges->Last().cid_end + 1 == cid) {
         ranges->Last().cid_end = cid;
@@ -782,21 +774,19 @@ bool Value::Equals(const Value& other) const {
   return definition() == other.definition();
 }
 
-static int OrderById(CidRange* const* a, CidRange* const* b) {
-  // Negative if 'a' should sort before 'b'.
-  ASSERT((*a)->IsSingleCid());
-  ASSERT((*b)->IsSingleCid());
-  return (*a)->cid_start - (*b)->cid_start;
+static bool OrderById(CidRange* const& a, CidRange* const& b) {
+  ASSERT(a->IsSingleCid());
+  ASSERT(b->IsSingleCid());
+  return a->cid_start < b->cid_start;
 }
 
-static int OrderByFrequencyThenId(CidRange* const* a, CidRange* const* b) {
-  const TargetInfo* target_info_a = static_cast<const TargetInfo*>(*a);
-  const TargetInfo* target_info_b = static_cast<const TargetInfo*>(*b);
-  // Negative if 'a' should sort before 'b'.
-  if (target_info_b->count != target_info_a->count) {
-    return (target_info_b->count - target_info_a->count);
+static bool OrderByFrequencyThenId(CidRange* const& a, CidRange* const& b) {
+  const TargetInfo* target_info_a = static_cast<const TargetInfo*>(a);
+  const TargetInfo* target_info_b = static_cast<const TargetInfo*>(b);
+  if (target_info_a->count != target_info_b->count) {
+    return (target_info_a->count > target_info_b->count);
   } else {
-    return (*a)->cid_start - (*b)->cid_start;
+    return a->cid_start < b->cid_start;
   }
 }
 
@@ -1781,11 +1771,19 @@ bool Instruction::IsDominatedBy(Instruction* dom) {
   BlockEntryInstr* block = GetBlock();
   BlockEntryInstr* dom_block = dom->GetBlock();
 
-  if (dom->IsPhi()) {
-    dom = dom_block;
-  }
-
   if (block == dom_block) {
+    // Phis and Parameters reside in initial definitions and are not properly
+    // linked with the rest of the block so the loop below will not handle
+    // them correctly. Constants almost always reside in initial definitions as
+    // well, but some legacy optimization passes can still create constants
+    // inside block bodies, so we do an additional check, to pass it
+    // a constant must either be the first instruction in the block or
+    // reside in initial definitions.
+    if (dom->IsPhi() || dom->IsParameter() ||
+        (dom->IsConstant() && dom->previous() == dom_block)) {
+      return true;
+    }
+
     if ((block == dom) || (this == block->last_instruction())) {
       return true;
     }
@@ -3263,13 +3261,17 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
         }
       }
 
-      // If we find a single initializing store then it *must* by construction
-      // dominate the load.
+      // A single initializing store is not guaranteed to dominate the load
+      // due to issues in CFE lowerings (see dartbug.com/64923). Paths which
+      // bypass the store are unreachable at runtime, so it is enough to check
+      // that the stored value dominates the load.
       if (initializing_store != nullptr) {
         ASSERT(initializing_store->is_initialization() ||
                orig_instance->IsAllocateContext());
-        ASSERT(IsDominatedBy(initializing_store));
-        return initializing_store->value()->definition();
+        Definition* value = initializing_store->value()->definition();
+        if (IsDominatedBy(value)) {
+          return value;
+        }
       }
     }
   }
@@ -8874,6 +8876,18 @@ SimdOpInstr* SimdOpInstr::CreateFromCall(Zone* zone,
     case MethodRecognizer::kInt32x4BitXor:
       op = new (zone) SimdOpInstr(KindForOperator(kind), call->deopt_id());
       break;
+    case MethodRecognizer::kInt32x4LessThanOrEqual:
+      op = new (zone) SimdOpInstr(SimdOpInstr::kInt32x4GreaterThanOrEqual,
+                                  call->deopt_id());
+      op->SetInputAt(0, call->ArgumentValueAt(1)->CopyWithType(zone));
+      op->SetInputAt(1, new (zone) Value(receiver));
+      return op;
+    case MethodRecognizer::kInt32x4LessThan:
+      op = new (zone)
+          SimdOpInstr(SimdOpInstr::kInt32x4GreaterThan, call->deopt_id());
+      op->SetInputAt(0, call->ArgumentValueAt(1)->CopyWithType(zone));
+      op->SetInputAt(1, new (zone) Value(receiver));
+      return op;
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
     case MethodRecognizer::kFloat32x4GreaterThan:
       // cmppsgt does not exist, cmppsnlt gives wrong NaN result, need to flip

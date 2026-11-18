@@ -64,12 +64,17 @@ abstract class AstCodeGenerator
         ExpressionVisitor1DefaultMixin<w.ValueType, w.ValueType>,
         ExpressionVisitor1ExperimentExclusionMixin<w.ValueType, w.ValueType>,
         StatementVisitorExperimentExclusionMixin<void>
-    implements InitializerVisitor<void>, StatementVisitor<void>, CodeGenerator {
+    implements
+        InitializerVisitor<void>,
+        StatementVisitor<void>,
+        CodeGenerator,
+        TypeCodeGenerator {
   final Translator translator;
   final w.FunctionType functionType;
   final Member enclosingMember;
 
   // To be initialized in `generate()`
+  @override
   late w.InstructionsBuilder b;
   late final List<w.Local> paramLocals;
   late final w.Label? returnLabel;
@@ -3265,6 +3270,7 @@ abstract class AstCodeGenerator
 
   /// Pushes the `_Type` object for a function or class type parameter to the
   /// stack and returns the value type of the object.
+  @override
   w.ValueType instantiateTypeParameter(TypeParameter parameter) {
     w.ValueType resultType;
 

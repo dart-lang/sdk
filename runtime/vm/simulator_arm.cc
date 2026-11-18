@@ -3179,12 +3179,26 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
       for (int i = 0; i < 4; i++) {
         s8d.f32[i] = fabsf(s8m.f32[i]);
       }
+    } else if ((instr->Bits(8, 4) == 3) && (instr->Bit(4) == 0) &&
+               (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&
+               (instr->Bit(7) == 0) && (instr->Bits(16, 4) == 9)) {
+      // Format(instr, "vabsqi 'qd, 'qm");
+      for (int i = 0; i < 4; i++) {
+        s8d.u32[i] = s8m.i32[i] < 0 ? (0u - s8m.u32[i]) : s8m.u32[i];
+      }
     } else if ((instr->Bits(8, 4) == 7) && (instr->Bit(4) == 0) &&
                (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&
                (instr->Bit(7) == 1) && (instr->Bits(16, 4) == 9)) {
       // Format(instr, "vnegqs 'qd, 'qm");
       for (int i = 0; i < 4; i++) {
         s8d.f32[i] = -s8m.f32[i];
+      }
+    } else if ((instr->Bits(8, 4) == 3) && (instr->Bit(4) == 0) &&
+               (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&
+               (instr->Bit(7) == 1) && (instr->Bits(16, 4) == 9)) {
+      // Format(instr, "vnegqi 'qd, 'qm");
+      for (int i = 0; i < 4; i++) {
+        s8d.u32[i] = 0u - s8m.u32[i];
       }
     } else if ((instr->Bits(7, 5) == 10) && (instr->Bit(4) == 0) &&
                (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&

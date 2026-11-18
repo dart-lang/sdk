@@ -315,29 +315,35 @@ testFile
   FIELD f
     offset: 16 2:7
     codeOffset: 12 + 5
+    containerName: C
     className: C
   CONSTRUCTOR new
     offset: 21 3:3
     codeOffset: 21 + 4
+    containerName: C
     className: C
     parameters: ()
   CONSTRUCTOR named
     offset: 30 4:5
     codeOffset: 28 + 10
+    containerName: C
     className: C
     parameters: ()
   GETTER g
     offset: 49 5:11
     codeOffset: 41 + 15
+    containerName: C
     className: C
   SETTER s
     offset: 68 6:12
     codeOffset: 59 + 16
+    containerName: C
     className: C
     parameters: (dynamic _)
   METHOD m
     offset: 83 7:8
     codeOffset: 78 + 11
+    containerName: C
     className: C
     parameters: ()
 ''',
@@ -467,12 +473,15 @@ testFile
   ENUM_CONSTANT a
     offset: 11 2:3
     codeOffset: 11 + 1
+    containerName: E
   ENUM_CONSTANT bb
     offset: 14 2:6
     codeOffset: 14 + 2
+    containerName: E
   ENUM_CONSTANT ccc
     offset: 18 2:10
     codeOffset: 18 + 3
+    containerName: E
 ''',
     );
   }
@@ -529,16 +538,20 @@ testFile
   FIELD f
     offset: 27 2:7
     codeOffset: 23 + 5
+    containerName: E
   GETTER g
     offset: 40 3:11
     codeOffset: 32 + 15
+    containerName: E
   SETTER s
     offset: 59 4:12
     codeOffset: 50 + 16
+    containerName: E
     parameters: (dynamic _)
   METHOD m
     offset: 74 5:8
     codeOffset: 69 + 11
+    containerName: E
     parameters: ()
 ''',
     );
@@ -572,20 +585,24 @@ testFile
   CONSTRUCTOR new
     offset: 15 1:16
     codeOffset: 15 + 9
+    containerName: E
     className: E
     parameters: (int it)
   GETTER g
     offset: 37 2:11
     codeOffset: 29 + 15
+    containerName: E
     className: E
   SETTER s
     offset: 56 3:12
     codeOffset: 47 + 16
+    containerName: E
     className: E
     parameters: (dynamic _)
   METHOD m
     offset: 71 4:8
     codeOffset: 66 + 11
+    containerName: E
     className: E
     parameters: ()
 ''',
@@ -688,19 +705,23 @@ testFile
   FIELD f
     offset: 16 2:7
     codeOffset: 12 + 5
+    containerName: M
     mixinName: M
   GETTER g
     offset: 29 3:11
     codeOffset: 21 + 15
+    containerName: M
     mixinName: M
   SETTER s
     offset: 48 4:12
     codeOffset: 39 + 16
+    containerName: M
     mixinName: M
     parameters: (dynamic _)
   METHOD m
     offset: 63 5:8
     codeOffset: 58 + 11
+    containerName: M
     mixinName: M
     parameters: ()
 ''',
@@ -786,10 +807,12 @@ testFile
   GETTER g
     offset: 20 2:11
     codeOffset: 12 + 15
+    containerName: C
     className: C
   METHOD m
     offset: 35 3:8
     codeOffset: 30 + 26
+    containerName: C
     className: C
     parameters: (int a, double b)
   FUNCTION f
@@ -869,16 +892,19 @@ testFile
   METHOD m1
     offset: 24 2:8
     codeOffset: 19 + 30
+    containerName: A
     className: A
     parameters: (Map<int, String> a)
   METHOD m2
     offset: 57 3:8
     codeOffset: 52 + 26
+    containerName: A
     className: A
     parameters: (Map<T, U> a)
   METHOD m3
     offset: 86 4:8
     codeOffset: 81 + 50
+    containerName: A
     className: A
     parameters: (Map<Map<T2, U2>, Map<U1, T>> a)
 ''',
@@ -1351,11 +1377,13 @@ testFile
   CONSTRUCTOR bar
     offset: 18 2:7
     codeOffset: 14 + 26
+    containerName: Foo
     className: Foo
     parameters: ()
   METHOD bar
     offset: 48 5:8
     codeOffset: 43 + 24
+    containerName: Foo
     className: Foo
     parameters: ()
 ''',
@@ -11146,6 +11174,11 @@ class NoMatchABCDEF {}
           '    codeOffset: ${declaration.codeOffset} + '
           '${declaration.codeLength}',
         );
+
+        var containerName = declaration.containerName;
+        if (containerName != null) {
+          buffer.writeln('    containerName: $containerName');
+        }
 
         var className = declaration.className;
         if (className != null) {

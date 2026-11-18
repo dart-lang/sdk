@@ -3827,9 +3827,11 @@ static void GetQueuedMicrotasks(Thread* thread, JSONStream* js) {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 static const char* const report_enum_names[] = {
-    SourceReport::kCallSitesStr,           SourceReport::kCoverageStr,
-    SourceReport::kPossibleBreakpointsStr, SourceReport::kProfileStr,
-    SourceReport::kBranchCoverageStr,      nullptr,
+    SourceReport::kCoverageStr,
+    SourceReport::kPossibleBreakpointsStr,
+    SourceReport::kProfileStr,
+    SourceReport::kBranchCoverageStr,
+    nullptr,
 };
 #endif
 
@@ -3856,9 +3858,7 @@ static void GetSourceReport(Thread* thread, JSONStream* js) {
   const char** riter = reports;
   intptr_t report_set = 0;
   while (*riter != nullptr) {
-    if (strcmp(*riter, SourceReport::kCallSitesStr) == 0) {
-      report_set |= SourceReport::kCallSites;
-    } else if (strcmp(*riter, SourceReport::kCoverageStr) == 0) {
+    if (strcmp(*riter, SourceReport::kCoverageStr) == 0) {
       report_set |= SourceReport::kCoverage;
     } else if (strcmp(*riter, SourceReport::kPossibleBreakpointsStr) == 0) {
       report_set |= SourceReport::kPossibleBreakpoints;

@@ -29,7 +29,7 @@ class IsolateAnalysisServer {
       serverIsolateChannel.stream,
       IOSink(serverIsolateChannel.sink),
       socketServer.instrumentationService,
-      socketServer.sessionLogger,
+      socketServer.sessionListener,
       requestStatistics: socketServer.requestStatistics,
     );
     socketServer.createAnalysisServer(serverChannel);

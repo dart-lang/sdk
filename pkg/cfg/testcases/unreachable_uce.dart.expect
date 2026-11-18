@@ -1,0 +1,35 @@
+--- unreachableSwitchCase
+B0 = EntryBlock()
+  Constant(0)
+  v9 = Constant(1)
+  Constant(true)
+  Return(v9)
+
+--- unreachableSwitchCase2
+B0 = EntryBlock()
+  Constant(0)
+  v4 = Constant(2)
+  Return(v4)
+
+--- reachableSwitchCaseViaBackwardContinue
+B0 = EntryBlock() dominates:(B7, B19, B6)
+  Constant(0)
+  v13 = Constant(2)
+  v17 = Constant(1)
+  v22 = Constant(3)
+  v1 = Parameter(c)
+  Branch(v1, true: B6, false: B7)
+B6 = TargetBlock() idom:B0
+  DirectCall print(v17)
+  Goto(B19)
+B7 = TargetBlock() idom:B0
+  DirectCall print(v13)
+  Goto(B19)
+B19 = JoinBlock(B7, B6) idom:B0
+  Return(v22)
+
+--- main
+B0 = EntryBlock()
+  v1 = Constant(null)
+  Return(v1)
+

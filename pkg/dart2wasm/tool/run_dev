@@ -66,7 +66,12 @@ while [ $# -gt 0 ]; do
       ;;
 
     *.wasm)
-      WASM_FILE="$(get_realpath "$1")"
+      if [ -z "$WASM_FILE" ]; then
+        WASM_FILE="$(get_realpath "$1")"
+      else
+        echo "Unexpected argument $1"
+        exit 1
+      fi
       shift
       ;;
 
@@ -78,4 +83,14 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-exec "$SHELL_BIN" "${SHELL_OPTIONS[@]}" "${EXTRA_JS_FILES[@]}" "$RUN_WASM_DEV" $SHELL_ARG_SEPERATOR "$DEV_RT_MJS" "$DEV_RT_WASM" "$WASM_FILE" -- "$@"
+if [ -z "$WASM_FILE" ]; then
+  echo "Expected <file.wasm>"
+  exit 1
+fi
+
+# The main module comes first, followed by any additional library modules (whose
+# instantiation order does not matter).
+shopt -s nullglob
+WASM_FILES=("$WASM_FILE" "${WASM_FILE%.wasm}_module"*.wasm)
+
+exec "$SHELL_BIN" "${SHELL_OPTIONS[@]}" "${EXTRA_JS_FILES[@]}" "$RUN_WASM_DEV" $SHELL_ARG_SEPERATOR "$DEV_RT_MJS" "$DEV_RT_WASM" "${WASM_FILES[@]}" -- "$@"

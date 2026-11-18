@@ -12,6 +12,6 @@ library from "package:foo/main.dart" as main {
 //      ^
 //
 
-  part lib.dart;
+  part lib.dart /* not included */;
   static method main() → dynamic {}
 }

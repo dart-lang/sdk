@@ -6,9 +6,7 @@
 
 // SharedOptions=--enable-experiment=variance
 
-class Covariant<out T> {}
-class Contravariant<in T> {}
-class Invariant<inout T> {}
+import "variance_helper.dart";
 
 void covariantListInfer<T>(Covariant<List<T>> x) {}
 void contravariantListInfer<T>(Contravariant<List<T>> x) {}

@@ -1,0 +1,3 @@
+part 'part_of_self_2.dart';
+
+part of 'part_of_self_2.dart';

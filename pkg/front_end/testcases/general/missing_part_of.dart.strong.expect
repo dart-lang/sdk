@@ -8,7 +8,7 @@ library;
 //
 import self as self;
 
-part missing_part_of_part.dart;
+part missing_part_of_part.dart /* not included */;
 
 library;
 import self as self2;

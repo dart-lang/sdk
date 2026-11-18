@@ -1458,13 +1458,13 @@ bool FlowGraphSerializer::IsWritten(const Object& obj) {
 }
 
 bool FlowGraphSerializer::HasEnclosingTypes(const Object& obj) {
-  if (num_free_fun_type_params_ == 0) return false;
+  if (all_enclosing_types_written_) return false;
   if (obj.IsAbstractType()) {
-    return !AbstractType::Cast(obj).IsInstantiated(kFunctions,
-                                                   num_free_fun_type_params_);
+    return !AbstractType::Cast(obj).IsInstantiated(kFunctions, kAllFree,
+                                                   enclosing_function_types_);
   } else if (obj.IsTypeArguments()) {
-    return !TypeArguments::Cast(obj).IsInstantiated(kFunctions,
-                                                    num_free_fun_type_params_);
+    return !TypeArguments::Cast(obj).IsInstantiated(kFunctions, kAllFree,
+                                                    enclosing_function_types_);
   } else {
     UNREACHABLE();
   }
@@ -1476,13 +1476,13 @@ bool FlowGraphSerializer::WriteObjectWithEnclosingTypes(const Object& obj) {
     // Reset assigned object id so it could be written
     // while writing enclosing types.
     heap()->SetObjectId(obj.ptr(), -1);
-    WriteEnclosingTypes(obj, num_free_fun_type_params_);
+    WriteEnclosingTypes(obj, enclosing_function_types_);
     Write<bool>(false);
     // Can write any type parameters after all enclosing types are written.
-    const intptr_t saved_num_free_fun_type_params = num_free_fun_type_params_;
-    num_free_fun_type_params_ = 0;
+    const bool saved_all_enclosing_types_written = all_enclosing_types_written_;
+    all_enclosing_types_written_ = true;
     Write<const Object&>(obj);
-    num_free_fun_type_params_ = saved_num_free_fun_type_params;
+    all_enclosing_types_written_ = saved_all_enclosing_types_written;
     return true;
   } else {
     Write<bool>(false);
@@ -1492,42 +1492,42 @@ bool FlowGraphSerializer::WriteObjectWithEnclosingTypes(const Object& obj) {
 
 void FlowGraphSerializer::WriteEnclosingTypes(
     const Object& obj,
-    intptr_t num_free_fun_type_params) {
+    FunctionTypeMapping* enclosing_function_types) {
   if (obj.IsType()) {
     const auto& type = Type::Cast(obj);
     if (type.arguments() != TypeArguments::null()) {
       const auto& type_args = TypeArguments::Handle(Z, type.arguments());
-      WriteEnclosingTypes(type_args, num_free_fun_type_params);
+      WriteEnclosingTypes(type_args, enclosing_function_types);
     }
   } else if (obj.IsRecordType()) {
     const auto& rec = RecordType::Cast(obj);
     auto& elem = AbstractType::Handle(Z);
     for (intptr_t i = 0, n = rec.NumFields(); i < n; ++i) {
       elem = rec.FieldTypeAt(i);
-      WriteEnclosingTypes(elem, num_free_fun_type_params);
+      WriteEnclosingTypes(elem, enclosing_function_types);
     }
   } else if (obj.IsFunctionType()) {
     const auto& sig = FunctionType::Cast(obj);
-    const intptr_t num_parent_type_args = sig.NumParentTypeArguments();
-    if (num_free_fun_type_params > num_parent_type_args) {
-      num_free_fun_type_params = num_parent_type_args;
-    }
+    // Type parameters of this function type are bound inside it.
+    FunctionTypeMapping scope(Z, &enclosing_function_types, sig, sig);
     AbstractType& elem = AbstractType::Handle(Z, sig.result_type());
-    WriteEnclosingTypes(elem, num_free_fun_type_params);
+    WriteEnclosingTypes(elem, enclosing_function_types);
     for (intptr_t i = 0, n = sig.NumParameters(); i < n; ++i) {
       elem = sig.ParameterTypeAt(i);
-      WriteEnclosingTypes(elem, num_free_fun_type_params);
+      WriteEnclosingTypes(elem, enclosing_function_types);
     }
     if (sig.IsGeneric()) {
       const TypeParameters& type_params =
           TypeParameters::Handle(Z, sig.type_parameters());
       WriteEnclosingTypes(TypeArguments::Handle(Z, type_params.bounds()),
-                          num_free_fun_type_params);
+                          enclosing_function_types);
     }
   } else if (obj.IsTypeParameter()) {
     const auto& tp = TypeParameter::Cast(obj);
     if (tp.IsFunctionTypeParameter() &&
-        (tp.index() < num_free_fun_type_params)) {
+        ((enclosing_function_types == nullptr) ||
+         !enclosing_function_types->Contains(
+             tp.parameterized_function_type()))) {
       const auto& owner =
           FunctionType::Handle(Z, tp.parameterized_function_type());
       if (!IsWritten(owner)) {
@@ -1540,7 +1540,7 @@ void FlowGraphSerializer::WriteEnclosingTypes(
     auto& elem = AbstractType::Handle(Z);
     for (intptr_t i = 0, n = type_args.Length(); i < n; ++i) {
       elem = type_args.TypeAt(i);
-      WriteEnclosingTypes(elem, num_free_fun_type_params);
+      WriteEnclosingTypes(elem, enclosing_function_types);
     }
   }
 }
@@ -1642,11 +1642,10 @@ void FlowGraphSerializer::WriteObjectImpl(const Object& x,
       if (WriteObjectWithEnclosingTypes(type)) {
         break;
       }
-      const intptr_t saved_num_free_fun_type_params = num_free_fun_type_params_;
-      const intptr_t num_parent_type_args = type.NumParentTypeArguments();
-      if (num_free_fun_type_params_ > num_parent_type_args) {
-        num_free_fun_type_params_ = num_parent_type_args;
-      }
+      // Type parameters of this function type are bound inside it.
+      FunctionTypeMapping* const saved_enclosing_function_types =
+          enclosing_function_types_;
+      FunctionTypeMapping scope(Z, &enclosing_function_types_, type, type);
       Write<int8_t>(static_cast<int8_t>(type.nullability()));
       Write<uint32_t>(type.packed_parameter_counts());
       Write<uint16_t>(type.packed_type_parameter_counts());
@@ -1655,7 +1654,7 @@ void FlowGraphSerializer::WriteObjectImpl(const Object& x,
       Write<const AbstractType&>(AbstractType::Handle(Z, type.result_type()));
       Write<const Array&>(Array::Handle(Z, type.parameter_types()));
       Write<const Array&>(Array::Handle(Z, type.named_parameter_names()));
-      num_free_fun_type_params_ = saved_num_free_fun_type_params;
+      enclosing_function_types_ = saved_enclosing_function_types;
       break;
     }
     case kICDataCid: {
@@ -1805,8 +1804,8 @@ void FlowGraphSerializer::WriteObjectImpl(const Object& x,
       if (WriteObjectWithEnclosingTypes(tp)) {
         break;
       }
-      Write<intptr_t>(tp.base());
-      Write<intptr_t>(tp.index());
+      Write<intptr_t>(tp.index_in_owner());
+      Write<intptr_t>(tp.index_in_tav());
       Write<int8_t>(static_cast<int8_t>(tp.nullability()));
       if (tp.IsFunctionTypeParameter()) {
         Write<bool>(true);
@@ -1950,7 +1949,7 @@ const Object& FlowGraphDeserializer::ReadObjectImpl(intptr_t cid,
       }
       const Nullability nullability = static_cast<Nullability>(Read<int8_t>());
       auto& result =
-          FunctionType::ZoneHandle(Z, FunctionType::New(0, nullability));
+          FunctionType::ZoneHandle(Z, FunctionType::New(nullability));
       SetObjectAt(object_index, result);
       result.set_packed_parameter_counts(Read<uint32_t>());
       result.set_packed_type_parameter_counts(Read<uint16_t>());
@@ -2120,8 +2119,8 @@ const Object& FlowGraphDeserializer::ReadObjectImpl(intptr_t cid,
       if (!enc_type.IsNull()) {
         return enc_type;
       }
-      const intptr_t base = Read<intptr_t>();
-      const intptr_t index = Read<intptr_t>();
+      const intptr_t index_in_owner = Read<intptr_t>();
+      const intptr_t index_in_tav = Read<intptr_t>();
       const Nullability nullability = static_cast<Nullability>(Read<int8_t>());
       const Object* owner = nullptr;
       if (Read<bool>()) {
@@ -2130,7 +2129,8 @@ const Object& FlowGraphDeserializer::ReadObjectImpl(intptr_t cid,
         owner = &Read<const Class&>();
       }
       auto& tp = TypeParameter::ZoneHandle(
-          Z, TypeParameter::New(*owner, base, index, nullability));
+          Z, TypeParameter::New(*owner, index_in_owner, index_in_tav,
+                                nullability));
       SetObjectAt(object_index, tp);
       tp.SetIsFinalized();
       tp ^= tp.Canonicalize(thread());

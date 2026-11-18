@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:cfg/ir/constant_value.dart';
 import 'package:cfg/ir/flow_graph.dart';
 import 'package:cfg/ir/instructions.dart';
 import 'package:cfg/ir/ir_to_text.dart';
@@ -15,6 +14,7 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'ir_log.dart';
 import 'utils.dart';
+import 'wasm_local_allocator.dart';
 
 /// Translates a [FlowGraph] (CFG IR) to WebAssembly bytecode.
 abstract base class CfgToWasm {
@@ -24,7 +24,7 @@ abstract base class CfgToWasm {
 
   Map<Instruction, InstructionTextPosition>? _textPositions;
 
-  final Map<Definition, w.Local> locals = {};
+  late final WasmLocalAllocator localAllocator;
   final Map<Block, w.Label> _blockLabels = {};
   final Map<Block, w.Label> _loopContinueLabels = {};
 
@@ -43,6 +43,12 @@ abstract base class CfgToWasm {
       graph.isReducible,
       'CFG should have been lowered to reducible control flow',
     );
+    localAllocator = WasmLocalAllocator(
+      graph,
+      b,
+      translateType: translateType,
+      functionParameterLocal: functionParameterLocal,
+    );
     _generateSubtree(graph.entryBlock, lowerer);
 
     b.end();
@@ -58,10 +64,29 @@ abstract base class CfgToWasm {
     }
 
     for (final instr in u) {
-      if (instr is! ControlFlowInstruction) {
-        setDebugPosition(instr);
-        instr.accept(lowerer);
+      assert(instr is! Block);
+      if (instr is Phi) {
+        // Predecessors move phi inputs into the phi's Wasm local in
+        // `assignPhis`.
+        assert(u is JoinBlock);
+        continue;
       }
+      if (instr is ControlFlowInstruction) {
+        // This must be the last instruction in the block and is handled
+        // specially below.
+        assert(u.lastInstruction == instr);
+        break;
+      }
+      if (instr is Definition &&
+          !instr.hasUses &&
+          !instr.hasSideEffects &&
+          !instr.canThrow) {
+        // Unused pure non-throwing instruction has no observable effect.
+        assert(!localAllocator.hasLocal(instr));
+        continue;
+      }
+      setDebugPosition(instr);
+      instr.accept(lowerer);
     }
 
     final children = u.dominatedBlocks.toList()
@@ -98,8 +123,10 @@ abstract base class CfgToWasm {
 
       Phi? lastPhi;
       for (final phi in to.phis) {
-        setDebugPosition(phi, inputIndex: predIndex);
+        if (!phi.hasUses) continue;
         final inputDef = phi.inputDefAt(predIndex);
+        if (localAllocator.isPhiMoveNoOp(phi, inputDef)) continue;
+        setDebugPosition(phi, inputIndex: predIndex);
         final phiLocal = getLocal(phi);
         if (isUndefined(inputDef)) {
           // This value will never be observed. Reset value to default to not
@@ -113,7 +140,11 @@ abstract base class CfgToWasm {
         lastPhi = phi;
       }
 
+      if (lastPhi == null) return;
       for (Instruction? instr = lastPhi; instr is Phi; instr = instr.previous) {
+        if (!instr.hasUses) continue;
+        final inputDef = instr.inputDefAt(predIndex);
+        if (localAllocator.isPhiMoveNoOp(instr, inputDef)) continue;
         setDebugPosition(instr, inputIndex: predIndex);
         final phiLocal = getLocal(instr);
         b.local_set(phiLocal);
@@ -144,8 +175,7 @@ abstract base class CfgToWasm {
   /// Whether [def] is the undefined constant, i.e. a placeholder for a value
   /// which is never observed on the given path.
   @nonVirtual
-  bool isUndefined(Definition def) =>
-      def is Constant && def.value.constant is UndefinedConstant;
+  bool isUndefined(Definition def) => WasmLocalAllocator.isUndefined(def);
 
   /// Updates the current debug position in the emitted wasm bytecode stream.
   ///
@@ -206,20 +236,12 @@ abstract base class CfgToWasm {
   }
 
   @nonVirtual
-  w.Local getLocal(Definition def) {
-    return locals[def] ??= _allocateLocal(def);
-  }
+  w.Local getLocal(Definition def) => localAllocator.localOf(def);
 
-  w.Local _allocateLocal(Definition def) {
-    var wasmType = translateType(def.type);
-    if (def is Phi) {
-      // `Phi` locals are initialized inside the target `block` and read after
-      // its `end` (where Wasm resets non-defaultable local initialization), and
-      // may also be assigned `ref.null` for `UndefinedConstant` inputs.
-      wasmType = wasmType.withNullability(true);
-    }
-    return b.addLocal(wasmType);
-  }
+  /// Returns the incoming Wasm parameter local for function parameter [instr]
+  /// if it can be used directly (not shared via [WasmLocalAllocator]'s reusable
+  /// pool), or `null` if a separate local must be allocated.
+  w.Local? functionParameterLocal(Parameter instr);
 
   w.ValueType translateType(CType type);
 
@@ -232,6 +254,11 @@ abstract base class CfgToWasm {
   }
 }
 
+/// Lowers individual CFG instructions to Wasm bytecode.
+///
+/// Code generation for an instruction has to consume all inputs and be done
+/// with them before writing the result (as inputs and result may share the
+/// same Wasm local).
 abstract base class WasmInstructionLowerer<T extends CfgToWasm>
     extends DefaultInstructionVisitor<void> {
   final T gen;
@@ -240,6 +267,19 @@ abstract base class WasmInstructionLowerer<T extends CfgToWasm>
 
   @nonVirtual
   w.InstructionsBuilder get b => gen.b;
+
+  /// Stores the top-of-stack value (of [stackType]) into [instr]'s Wasm local,
+  /// or drops it if [instr] has no uses.
+  @nonVirtual
+  void storeResult(Definition instr, w.ValueType stackType) {
+    if (instr.hasUses) {
+      final resultLocal = gen.getLocal(instr);
+      gen.convertType(stackType, resultLocal.type);
+      b.local_set(resultLocal);
+    } else {
+      b.drop();
+    }
+  }
 
   @override
   @nonVirtual
@@ -266,7 +306,7 @@ abstract base class WasmInstructionLowerer<T extends CfgToWasm>
   @override
   @nonVirtual
   void visitConstant(Constant instr) {
-    if (!instr.hasUses) return;
+    assert(instr.hasUses);
     if (instr.value.isTypeArgumentsConstant) {
       // Any use of of a [TypeArgumentsConstant] in the SSA graph will need to
       // handle it there, for example passing the individual type arguments
@@ -283,9 +323,9 @@ abstract base class WasmInstructionLowerer<T extends CfgToWasm>
       assert(instr.inputUses.every((u) => u.getInstruction(gen.graph) is Phi));
       return;
     }
-    final local = gen.getLocal(instr);
-    instantiateConstant(instr, local.type);
-    b.local_set(local);
+    final expectedType = gen.localAllocator.wasmTypeOf(instr);
+    instantiateConstant(instr, expectedType);
+    storeResult(instr, expectedType);
   }
 
   void instantiateConstant(Constant instr, w.ValueType expectedType);
@@ -310,10 +350,6 @@ abstract base class WasmInstructionLowerer<T extends CfgToWasm>
   @override
   @nonVirtual
   void visitComparison(Comparison instr) {
-    final leftLocal = gen.getLocal(instr.left);
-    final rightLocal = gen.getLocal(instr.right);
-    final resultLocal = gen.getLocal(instr);
-
     switch (instr.op) {
       case ComparisonOpcode.equal:
       case ComparisonOpcode.notEqual:
@@ -323,36 +359,26 @@ abstract base class WasmInstructionLowerer<T extends CfgToWasm>
             instr.op == ComparisonOpcode.notEqual ||
             instr.op == ComparisonOpcode.notIdentical;
         if (instr.right.type is NullType) {
-          if (leftLocal.type.nullable) {
-            b.local_get(leftLocal);
-            b.ref_is_null();
-            if (isNegated) b.i32_eqz();
-          } else {
-            b.i32_const(isNegated ? 1 : 0);
-          }
-          b.local_set(resultLocal);
+          _emitEqualsNull(instr.left, isNegated: isNegated);
+          storeResult(instr, w.NumType.i32);
           return;
         }
         if (instr.left.type is NullType) {
-          if (rightLocal.type.nullable) {
-            b.local_get(rightLocal);
-            b.ref_is_null();
-            if (isNegated) b.i32_eqz();
-          } else {
-            b.i32_const(isNegated ? 1 : 0);
-          }
-          b.local_set(resultLocal);
+          _emitEqualsNull(instr.right, isNegated: isNegated);
+          storeResult(instr, w.NumType.i32);
           return;
         }
         if (!instr.left.type.canBeNum && !instr.right.type.canBeNum) {
           const eqRefType = w.RefType.eq(nullable: true);
+          final leftLocal = gen.getLocal(instr.left);
+          final rightLocal = gen.getLocal(instr.right);
           b.local_get(leftLocal);
           gen.convertType(leftLocal.type, eqRefType);
           b.local_get(rightLocal);
           gen.convertType(rightLocal.type, eqRefType);
           b.ref_eq();
           if (isNegated) b.i32_eqz();
-          b.local_set(resultLocal);
+          storeResult(instr, w.NumType.i32);
           return;
         }
         throw UnimplementedError(
@@ -362,8 +388,8 @@ abstract base class WasmInstructionLowerer<T extends CfgToWasm>
         break;
     }
 
-    b.local_get(leftLocal);
-    b.local_get(rightLocal);
+    b.local_get(gen.getLocal(instr.left));
+    b.local_get(gen.getLocal(instr.right));
 
     switch (instr.op) {
       case ComparisonOpcode.intEqual:
@@ -394,7 +420,22 @@ abstract base class WasmInstructionLowerer<T extends CfgToWasm>
         throw UnimplementedError('Comparison ${instr.op}');
     }
 
-    b.local_set(resultLocal);
+    storeResult(instr, w.NumType.i32);
+  }
+
+  void _emitEqualsNull(Definition operand, {required bool isNegated}) {
+    if (operand.type is NullType) {
+      b.i32_const(isNegated ? 0 : 1);
+      return;
+    }
+    final local = gen.getLocal(operand);
+    if (local.type.nullable) {
+      b.local_get(local);
+      b.ref_is_null();
+      if (isNegated) b.i32_eqz();
+    } else {
+      b.i32_const(isNegated ? 1 : 0);
+    }
   }
 
   @override
@@ -402,7 +443,6 @@ abstract base class WasmInstructionLowerer<T extends CfgToWasm>
   void visitBinaryIntOp(BinaryIntOp instr) {
     final leftLocal = gen.getLocal(instr.left);
     final rightLocal = gen.getLocal(instr.right);
-    final resultLocal = gen.getLocal(instr);
 
     switch (instr.op) {
       case BinaryIntOpcode.add:
@@ -483,14 +523,13 @@ abstract base class WasmInstructionLowerer<T extends CfgToWasm>
         throw UnimplementedError('BinaryIntOp ${instr.op}');
     }
 
-    b.local_set(resultLocal);
+    storeResult(instr, w.NumType.i64);
   }
 
   @override
   @nonVirtual
   void visitUnaryIntOp(UnaryIntOp instr) {
     final operandLocal = gen.getLocal(instr.operand);
-    final resultLocal = gen.getLocal(instr);
 
     switch (instr.op) {
       case UnaryIntOpcode.neg:
@@ -505,14 +544,13 @@ abstract base class WasmInstructionLowerer<T extends CfgToWasm>
         throw UnimplementedError('UnaryIntOp ${instr.op}');
     }
 
-    b.local_set(resultLocal);
+    storeResult(instr, w.NumType.i64);
   }
 
   @override
   @nonVirtual
   void visitUnaryBoolOp(UnaryBoolOp instr) {
     final operandLocal = gen.getLocal(instr.operand);
-    final resultLocal = gen.getLocal(instr);
 
     switch (instr.op) {
       case UnaryBoolOpcode.not:
@@ -521,19 +559,17 @@ abstract base class WasmInstructionLowerer<T extends CfgToWasm>
         b.i32_eqz();
     }
 
-    b.local_set(resultLocal);
+    storeResult(instr, w.NumType.i32);
   }
 
   @override
   @nonVirtual
   void visitTypeCast(TypeCast instr) {
     assert(!instr.isChecked);
-    if (!instr.hasUses) return;
+    assert(instr.hasUses);
     final operandLocal = gen.getLocal(instr.operand);
-    final resultLocal = gen.getLocal(instr);
     b.local_get(operandLocal);
-    gen.convertType(operandLocal.type, resultLocal.type);
-    b.local_set(resultLocal);
+    storeResult(instr, operandLocal.type);
   }
 
   @override

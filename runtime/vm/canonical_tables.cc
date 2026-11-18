@@ -46,8 +46,10 @@ bool MetadataMapTraits::IsMatch(const Object& a, const Object& b) {
     const Object& owner_b = Object::Handle(Field::Cast(b).Owner());
     return IsMatch(owner_a, owner_b);
   } else if (a.IsTypeParameter() && b.IsTypeParameter()) {
-    if (TypeParameter::Cast(a).index() != TypeParameter::Cast(b).index() ||
-        TypeParameter::Cast(a).base() != TypeParameter::Cast(b).base()) {
+    if (TypeParameter::Cast(a).index_in_owner() !=
+            TypeParameter::Cast(b).index_in_owner() ||
+        TypeParameter::Cast(a).index_in_tav() !=
+            TypeParameter::Cast(b).index_in_tav()) {
       return false;
     }
     return TypeParameter::Cast(a).parameterized_class_id() ==

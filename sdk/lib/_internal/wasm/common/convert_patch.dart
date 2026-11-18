@@ -1882,6 +1882,7 @@ class _JsonStringDecoderSink extends StringConversionSinkBase {
   }
 
   void addSlice(String chunk, int start, int end, bool isLast) {
+    RangeErrorUtils.checkValidRange(start, end, chunk.length);
     if (start != 0) {
       chunk = chunk.substring(start, end);
       end -= start;
@@ -1890,7 +1891,7 @@ class _JsonStringDecoderSink extends StringConversionSinkBase {
     final parser = _stringParser;
     parser.setNewChunk(chunk, end);
     parser.parse(start);
-    if (isLast) parser.close();
+    if (isLast) close();
   }
 
   void add(String chunk) {
@@ -2078,6 +2079,7 @@ class _JsonUtf8DecoderSink extends ByteConversionSink {
   ) => _JsonUtf8Parser(_JsonListener(reviver), allowMalformed);
 
   void addSlice(List<int> chunk, int start, int end, bool isLast) {
+    RangeErrorUtils.checkValidRange(start, end, chunk.length);
     _addChunk(chunk, start, end);
     if (isLast) close();
   }
@@ -2889,13 +2891,17 @@ WasmArray<WasmI8> _makeI8ArrayFromWasmI8ArrayBase(
   final WasmArray<WasmI8> bytes = WasmArray(length);
   final WasmArray<WasmI8> listData = codeUnits.data;
   final listDataOffset = codeUnits.offsetInBytes;
-  for (int i = 0; i < length; i++) {
-    int b = listData.readSigned(listDataOffset + start + i);
-    if ((b & ~0xFF) != 0) {
-      // Replace invalid byte values by FF, which is also invalid.
-      b = 0xFF;
+  if (codeUnits is I8List) {
+    for (int i = 0; i < length; i++) {
+      int b = listData.readSigned(listDataOffset + start + i);
+      if (b < 0) {
+        // Replace invalid byte values by FF, which is also invalid.
+        b = 0xFF;
+      }
+      bytes.write(i, b);
     }
-    bytes.write(i, b);
+  } else {
+    bytes.copy(0, listData, listDataOffset + start, length);
   }
   return bytes;
 }

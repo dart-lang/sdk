@@ -121,7 +121,11 @@ The *instantiator type arguments* are those of the receiver, possibly prefixed b
 
 The *function type arguments* are the concatenation of the type argument vectors explicitly passed (or inferred) to each enclosing generic function in the current context, from the outermost to the innermost function.
 
-A `TypeParameter` object specifies whether it is declared by a class (it is then a *class type parameter*) or by a function (it is then a *function type parameter*), thereby selecting the vector to use for its instantiation. The index value then identifies the type argument from that specific vector to be used to substitute the type parameter. To complete the instantiation, a normalization step is applied after the substitution.
+A `TypeParameter` object specifies whether it is declared by a class (it is then a *class type parameter*) or by a function (it is then a *function type parameter*), thereby selecting the vector to use for its instantiation. A `TypeParameter` refers to its owner (a class or a `FunctionType`) and has two indices: `index_in_owner` identifies the type parameter among the type parameters declared by its owner, and `index_in_tav` identifies the type argument from that specific vector to be used to substitute the type parameter. To complete the instantiation, a normalization step is applied after the substitution.
+
+`FunctionType` objects do not depend on the context where they are used. The number of type parameters declared by the enclosing generic functions (*parent type arguments*) is only kept for closure functions (`Function::NumParentTypeArguments()`, stored in `ClosureData`). The `index_in_tav` of a type parameter declared by a signature of a closure function is the number of parent type arguments of the closure function plus `index_in_owner`. For type parameters of all other function types (including function types which are not signatures) `index_in_tav` is the same as `index_in_owner`.
+
+A function type parameter is *bound* if it is referenced from inside its owner `FunctionType`, and *free* otherwise. Only free function type parameters are substituted with type arguments from the function type arguments vector. When traversing types, the VM keeps track of the enclosing function types (see `FunctionTypeMapping`) in order to determine which type parameters are bound. Type parameters of function types which are not signatures are always bound.
 
 The virtual method to instantiate an `AbstractType` is declared as follows:
 ```c++
@@ -130,10 +134,9 @@ The virtual method to instantiate an `AbstractType` is declared as follows:
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
       Heap::Space space,
-      FunctionTypeMapping* function_type_mapping = nullptr,
-      intptr_t num_parent_type_args_adjustment = 0) const;
+      FunctionTypeMapping* function_type_mapping = nullptr) const;
 ```
-Note how both instantiators explained above are passed in, `instantiator_type_arguments` and `function_type_arguments`. Note also that an integer `num_free_fun_type_params` is provided. Its value indicates how many type arguments in the `function_type_arguments` vector are considered to be free variables and are therefore available to substitute type parameters with an index below this value. Type parameters with an index equal or above that value remain uninstantiated.
+Note how both instantiators explained above are passed in, `instantiator_type_arguments` and `function_type_arguments`. Note also that an integer `num_free_fun_type_params` is provided. Its value indicates how many type arguments in the `function_type_arguments` vector are considered to be free variables and are therefore available to substitute free type parameters with an `index_in_tav` below this value. Type parameters with an `index_in_tav` equal or above that value, as well as bound type parameters, remain uninstantiated. Bound type parameters are replaced with the corresponding type parameters of the new (instantiated) owner function type, using `function_type_mapping`.
 Here is an example:
 ```dart
 class C<T> {
@@ -165,7 +168,7 @@ Instead of implementing three different traversals, the kind of type equality is
 
 Types read from kernel files (produced by the Common Front End) need finalization before being used in the VM runtime. Finalization currently assigns indices to type parameters.
 
-The index of function type parameters can be assigned immediately upon loading of the type parameter from the kernel file. This is possible because enclosing generic functions are always loaded prior to inner generic functions. Therefore the number of type parameters declared in the  enclosing scope is known. The picture is more complicated with class type parameters. Classes can reference each other and a clear order is not defined in the kernel file. Clusters of classes must be fully loaded before type arguments can be flattened, which in turn determines the indices of class type parameters.
+The indices of function type parameters can be assigned immediately upon loading of the type parameter from the kernel file. This is possible because enclosing generic functions are always loaded prior to inner generic functions. Therefore the number of type parameters declared in the  enclosing scope is known. The picture is more complicated with class type parameters. Classes can reference each other and a clear order is not defined in the kernel file. Clusters of classes must be fully loaded before type arguments can be flattened, which in turn determines the indices of class type parameters.
 
 As a last step of finalization, types and type argument vectors get canonicalized not only to minimize memory usage but also to optimize type tests. Indeed, previously tested types can be entered in test caches to speed up further tests. Since types are canonical, using their heap address as an identifier works (different addresses imply unequal types).
 

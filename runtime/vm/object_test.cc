@@ -5100,6 +5100,42 @@ REPEAT_512(FINALIZER_NATIVE_CROSS_GEN_TEST_CASE)
 
 #undef REPEAT_512
 
+// Isolate.kill with Isolate.immediate can interrupt the Dart code that adds a
+// finalizer to the isolate's list, or an entry to a native finalizer's set,
+// after the length was updated but before the element was stored. Shutting
+// down the isolate must skip such slots instead of crashing. Both tests below
+// leave that state behind; the isolate shutdown at the end of each test runs
+// Isolate::RunAndCleanupFinalizersOnShutdown.
+
+ISOLATE_UNIT_TEST_CASE(Finalizer_ShutdownSkipsUnfilledFinalizerSlot) {
+  // The isolate's list of finalizers counts a slot that was never stored.
+  const auto& finalizers =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  finalizers.Add(Object::null_object());
+  thread->isolate()->set_finalizers(finalizers);
+}
+
+ISOLATE_UNIT_TEST_CASE(NativeFinalizer_ShutdownSkipsUnfilledEntrySlot) {
+  // A native finalizer whose set of entries counts a key that was never
+  // stored.
+  const auto& finalizer = NativeFinalizer::Handle(NativeFinalizer::New());
+  finalizer.set_isolate(thread->isolate());
+  const auto& data = Array::Handle(Array::New(2));
+  const auto& index =
+      TypedData::Handle(TypedData::New(kTypedDataUint32ArrayCid, 2));
+  const auto& entries =
+      Set::Handle(Set::New(kSetCid, data, index, /*hash_mask=*/0,
+                           /*used_data=*/1, /*deleted_keys=*/0));
+  finalizer.set_all_entries(entries);
+  const auto& weak_reference = WeakReference::Handle(WeakReference::New());
+  weak_reference.set_target(finalizer);
+
+  const auto& finalizers =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  finalizers.Add(weak_reference);
+  thread->isolate()->set_finalizers(finalizers);
+}
+
 TEST_CASE(IsIsolateUnsendable) {
   Zone* const zone = Thread::Current()->zone();
 
@@ -7497,7 +7533,7 @@ ISOLATE_UNIT_TEST_CASE(FunctionType_IsSubtypeOfNonNullableObject) {
       IsolateGroup::Current()->object_store()->non_nullable_object_type());
 
   auto& type_function_int_nullary =
-      FunctionType::Handle(FunctionType::New(0, Nullability::kNonNullable));
+      FunctionType::Handle(FunctionType::New(Nullability::kNonNullable));
   type_function_int_nullary.set_result_type(Type::Handle(Type::IntType()));
   FinalizeAndCanonicalize(&type_function_int_nullary);
 
@@ -7725,6 +7761,33 @@ ISOLATE_UNIT_TEST_CASE(AbstractType_NormalizeFutureOrType) {
         normalized_future_or(type_nullable_int, Nullability::kNullable));
     EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got);
   }
+
+  // R is nullable if it is a nullable FutureOr, even if its own type argument
+  // is not nullable.
+
+  {
+    const auto& type_nullable_future_or_int = Type::Handle(
+        CreateFutureOrType(Type::Handle(object_store->non_nullable_int_type()),
+                           Nullability::kNullable));
+    const auto& expected = Type::Handle(CreateFutureOrType(
+        type_nullable_future_or_int, Nullability::kNonNullable));
+    const auto& got = AbstractType::Handle(normalized_future_or(
+        type_nullable_future_or_int, Nullability::kNullable));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got);
+  }
+
+  //   else S?
+
+  {
+    const auto& type_future_or_int = Type::Handle(
+        CreateFutureOrType(Type::Handle(object_store->non_nullable_int_type()),
+                           Nullability::kNonNullable));
+    const auto& expected = Type::Handle(
+        CreateFutureOrType(type_future_or_int, Nullability::kNullable));
+    const auto& got = AbstractType::Handle(
+        normalized_future_or(type_future_or_int, Nullability::kNullable));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got);
+  }
 }
 
 TEST_CASE(AbstractType_InstantiatedFutureOrIsNormalized) {
@@ -7912,6 +7975,18 @@ FutureOr<T?> bar<T>() { return null; }
         CreateFutureOrType(type_non_nullable_int, Nullability::kNullable));
     const auto& got = AbstractType::Handle(
         instantiate_future_or(nullable_future_or_T, type_non_nullable_int));
+    EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got);
+  }
+
+  // FutureOr<T>?[FutureOr<int>?] = FutureOr<FutureOr<int>?>
+
+  {
+    const auto& type_nullable_future_or_int = Type::Handle(
+        CreateFutureOrType(type_non_nullable_int, Nullability::kNullable));
+    const auto& expected = Type::Handle(CreateFutureOrType(
+        type_nullable_future_or_int, Nullability::kNonNullable));
+    const auto& got = AbstractType::Handle(instantiate_future_or(
+        nullable_future_or_T, type_nullable_future_or_int));
     EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT(expected, got);
   }
 }

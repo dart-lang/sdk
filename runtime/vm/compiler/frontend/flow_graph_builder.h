@@ -65,7 +65,6 @@ class InlineExitCollector : public ZoneObject {
 
   DartReturnInstr* ReturnAt(intptr_t i) const { return exits_[i].exit_return; }
 
-  static int LowestBlockIdFirst(const Data* a, const Data* b);
   void SortExits();
   void RemoveUnreachableExits(FlowGraph* callee_graph);
 

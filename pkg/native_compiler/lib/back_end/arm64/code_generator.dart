@@ -92,6 +92,12 @@ final class Arm64CodeGenerator extends CodeGenerator {
     if (function.isSuspendable) {
       _asm.str(nullReg, _asm.address(FP, stackFrame.suspendStateOffsetFromFP));
     }
+    // Catch slots are always included into stack maps,
+    // so they should be initialized.
+    for (final slot in stackFrame.catchSlots) {
+      // TODO: unboxed catch slots
+      _asm.str(nullReg, _asm.address(FP, stackFrame.offsetFromFP(slot)));
+    }
   }
 
   /// Load positional required and optional arguments into argument registers,
@@ -839,11 +845,6 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitParameter(Parameter instr) {
-    if (instr.isCatchParameter &&
-        !instr.variable.isExceptionVariable &&
-        !instr.variable.isStackTraceVariable) {
-      _asm.unimplemented('Unimplemented: code generation for catch Parameter');
-    }
     // No-op.
   }
 
@@ -852,6 +853,26 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitStoreLocal(StoreLocal instr) => throw 'Unexpected StoreLocal';
+
+  @override
+  void visitExceptionalInput(ExceptionalInput instr) {
+    final slot = stackFrame.getCatchSlot(instr.variable);
+    final value = instr.value;
+    if (value is Constant) {
+      generateLoadConstant(value.value, slot);
+      return;
+    }
+    final from = inputLoc(instr, 0);
+    switch (from) {
+      case Register():
+        generateMove(from, slot);
+      case StackLocation():
+        generateMove(from, tempReg);
+        generateMove(tempReg, slot);
+      default:
+        throw 'Unexpected location $from';
+    }
+  }
 
   @override
   void visitLoadInstanceField(LoadInstanceField instr) {
@@ -1220,20 +1241,28 @@ final class Arm64CodeGenerator extends CodeGenerator {
   void visitLoadExternalField(LoadExternalField instr) {
     final valueReg = outputReg(instr);
     final objectReg = instr.hasObject ? inputReg(instr, 0) : threadReg;
-    _asm.ldr(
-      valueReg,
-      _asm.address(objectReg, objectLayout.getFieldOffset(instr.field)),
-    );
+    final field = instr.field;
+    final fieldOffset = objectLayout.getFieldOffset(field);
+    switch (objectLayout.getFieldMemoryOrder(field)) {
+      case .relaxed:
+        _asm.ldr(valueReg, _asm.address(objectReg, fieldOffset));
+      case .acquireRelease:
+        _asm.loadAcquire(valueReg, objectReg, fieldOffset);
+    }
   }
 
   @override
   void visitStoreExternalField(StoreExternalField instr) {
     final objectReg = instr.hasObject ? inputReg(instr, 0) : threadReg;
     final valueReg = instr.hasObject ? inputReg(instr, 1) : inputReg(instr, 0);
-    _asm.str(
-      valueReg,
-      _asm.address(objectReg, objectLayout.getFieldOffset(instr.field)),
-    );
+    final field = instr.field;
+    final fieldOffset = objectLayout.getFieldOffset(field);
+    switch (objectLayout.getFieldMemoryOrder(field)) {
+      case .relaxed:
+        _asm.str(valueReg, _asm.address(objectReg, fieldOffset));
+      case .acquireRelease:
+        _asm.storeRelease(valueReg, objectReg, fieldOffset);
+    }
   }
 
   Address _computeArrayElementAddress(
@@ -1372,6 +1401,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
         _asm.str(inputReg(instr, 2), elementAddr, sz);
     }
 
+    assert(instr.kind != .record);
     if (instr.kind == .fixedLengthList &&
         !_canSkipWriteBarrier(instr.array, instr.value)) {
       assert(temporaryReg(instr, 2) == WriteBarrierStub.slotReg);
@@ -1411,7 +1441,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
     final lengthReg = inputReg(instr, 4);
     final scratch1Reg = temporaryReg(instr, 0);
 
-    assert(instr.kind != .fixedLengthList);
+    assert(instr.kind != .fixedLengthList && instr.kind != .record);
     final OperandSize sz = instr.kind.elementSize(objectLayout);
     final dataFieldOffset = instr.kind.dataFieldOffset(vmOffsets);
     final done = Label();
@@ -1539,10 +1569,10 @@ final class Arm64CodeGenerator extends CodeGenerator {
         _callRuntime(RuntimeEntry.ReThrow, 3);
         _asm.breakpoint();
         break;
-      default:
-        _asm.unimplemented(
-          'Unimplemented: code generation for Throw with ${instr.kind}',
-        );
+      case .lateLocalNotInitialized:
+      case .lateLocalAlreadyInitialized:
+      case .lateLocalAssignedDuringInitialization:
+        throw 'Unexpected Throw ${instr.kind} - should be lowered.';
     }
   }
 
@@ -2110,7 +2140,18 @@ final class Arm64CodeGenerator extends CodeGenerator {
       _asm.fieldAddress(resultReg, vmOffsets.Closure_length_and_flags_offset),
     );
     _asm.str(ZR, _asm.fieldAddress(resultReg, vmOffsets.Closure_hash_offset));
-    // TODO: initialize delayed type arguments.
+    if (closureLayout.hasDelayedTypeArgs) {
+      _asm.loadConstant(fieldReg, ConstantValue(UnsetTypeArgumentsConstant()));
+      _asm.str(
+        fieldReg,
+        _asm.fieldAddress(
+          resultReg,
+          vmOffsets.Closure_elementsStartOffset +
+              closureLayout.delayedTypeArgsIndex *
+                  objectLayout.compressedWordSize,
+        ),
+      );
+    }
     _asm.bind(done);
   }
 
@@ -2267,7 +2308,8 @@ final class Arm64CodeGenerator extends CodeGenerator {
           _callRuntime(RuntimeEntry.AllocateTypedData, 2);
           _asm.ldr(resultReg, RegOffsetAddress(stackPointerReg, 2 * wordSize));
           break;
-        case .int8ListView ||
+        case .record ||
+            .int8ListView ||
             .uint8ListView ||
             .uint8ClampedListView ||
             .int16ListView ||
@@ -2365,7 +2407,6 @@ final class Arm64CodeGenerator extends CodeGenerator {
         resultReg,
         tagsReg,
         instanceSizeReg,
-        lengthReg,
         scratch1Reg,
         scratch2Reg,
         slowPath,
@@ -2373,6 +2414,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
         lengthFieldOffset: arrayKind.lengthFieldOffset(vmOffsets),
         dataFieldOffset: arrayKind.dataFieldOffset(vmOffsets),
         headerSize: headerSize,
+        lengthReg: lengthReg,
         initValueReg: (arrayKind == .fixedLengthList) ? nullReg : ZR,
       );
     }
@@ -3358,7 +3400,7 @@ extension on ComparisonOpcode {
 
 extension on ArrayKind {
   OperandSize elementSize(ObjectLayout objectLayout) => switch (this) {
-    .fixedLengthList =>
+    .fixedLengthList || .record =>
       (objectLayout.compressedWordSize == 8
           ? .s64
           : ((objectLayout.compressedWordSize == 4)
@@ -3385,6 +3427,7 @@ extension on ArrayKind {
   /// Returns true if array elements should be accessed indirectly through `data` field.
   bool get indirectElements => switch (this) {
     .fixedLengthList ||
+    .record ||
     .oneByteString ||
     .twoByteString ||
     .int8List ||
@@ -3433,6 +3476,7 @@ extension on ArrayKind {
   /// Returns true if this array uses unscaled offset in bytes for indexing.
   bool get unscaledIndex => switch (this) {
     .fixedLengthList ||
+    .record ||
     .oneByteString ||
     .twoByteString ||
     .int8List ||
@@ -3482,6 +3526,7 @@ extension on ArrayKind {
   /// Should be used only if array allows direct access to its elements.
   int dataOffset(VMOffsets vmOffsets) => switch (this) {
     .fixedLengthList => vmOffsets.Array_data_offset,
+    .record => vmOffsets.Record_elementsStartOffset,
     .oneByteString => vmOffsets.OneByteString_data_offset,
     .twoByteString => vmOffsets.TwoByteString_data_offset,
     .int8List ||
@@ -3529,6 +3574,7 @@ extension on ArrayKind {
 
   int lengthFieldOffset(VMOffsets vmOffsets) => switch (this) {
     .fixedLengthList => vmOffsets.Array_length_offset,
+    .record => throw "Record doesn't have length field",
     .oneByteString || .twoByteString => vmOffsets.String_length_offset,
     .int8List ||
     .uint8List ||
@@ -3576,6 +3622,7 @@ extension on ArrayKind {
   /// Offset of the `data` field which provides indirect access to array elements.
   int? dataFieldOffset(VMOffsets vmOffsets) => switch (this) {
     .fixedLengthList ||
+    .record ||
     .oneByteString ||
     .twoByteString => null, // No 'data' field.
     .int8List ||
@@ -3630,6 +3677,7 @@ extension on ArrayKind {
 
   ClassId get classId => switch (this) {
     .fixedLengthList => ClassId.ArrayCid,
+    .record => ClassId.RecordCid,
     .oneByteString => ClassId.OneByteStringCid,
     .twoByteString => ClassId.TwoByteStringCid,
     .int8List => ClassId.TypedDataInt8ArrayCid,

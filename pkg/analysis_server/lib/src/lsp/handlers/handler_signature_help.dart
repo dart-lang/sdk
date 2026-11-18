@@ -11,6 +11,7 @@ import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
+import 'package:analysis_server/src/utilities/extensions/analysis_session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 
@@ -66,7 +67,7 @@ class SignatureHelpHandler
       var offset = toOffset(unit.lineInfo, pos);
       return offset.mapResultSync((offset) {
         var formats = clientCapabilities.signatureHelpDocumentationFormats;
-        var dartDocInfo = server.getDartdocDirectiveInfoFor(unit);
+        var dartDocInfo = unit.session.dartdocDirectiveInfo;
 
         // First check if we're in a type args list and if so build some
         // signature help for that.

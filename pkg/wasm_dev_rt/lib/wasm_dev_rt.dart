@@ -16,6 +16,10 @@ int staticId(String label) {
   final id = statics.length;
   statics.add(StaticInfo(label));
   staticIds[label] = id;
+  final size = staticFunctionsTable.size;
+  if (id == size) {
+    staticFunctionsTable.grow(size == 0 ? 16 : size, null);
+  }
   return id;
 }
 
@@ -24,22 +28,17 @@ int staticId(String label) {
 /// Statics are defined once.
 void defineStatic(int id, WasmFuncRef function) {
   final info = statics[id];
-  if (info.function != null) {
+  if (info.isDefined) {
     throw StateError('Static ${info.label} is already defined');
   }
-  info.function = FunctionInfo(function);
+  info.isDefined = true;
+  staticFunctionsTable[id] = function;
 }
 
-/// Returns static [id]'s function.
-// TODO: Check the caller's arguments against the parameter shape.
-WasmFuncRef lookupStatic(int id) {
-  final info = statics[id];
-  final function = info.function;
-  if (function == null) {
-    throw StateError('Static ${info.label} is not defined');
-  }
-  return function.ref;
-}
+/// Maps a static's ID to its function.
+@pragma('wasm:table-type', TableType(limits: Limits(0)))
+@pragma('wasm:export', 'static-functions-table')
+external WasmTable<WasmFuncRef?> get staticFunctionsTable;
 
 /// Maps a static's ID to its info.
 final List<StaticInfo> statics = [];
@@ -50,8 +49,8 @@ final Map<String, int> staticIds = {};
 final class StaticInfo {
   final String label;
 
-  /// The static's function, or `null` if it hasn't been defined.
-  FunctionInfo? function;
+  /// Whether the static's function has been defined.
+  bool isDefined = false;
 
   // TODO: Store the parameter shape.
   StaticInfo(this.label);

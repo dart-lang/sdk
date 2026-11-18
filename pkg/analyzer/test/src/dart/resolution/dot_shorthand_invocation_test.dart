@@ -90,8 +90,7 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: <testLibrary>::@class::C
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::member
     invokeType: C Function()
@@ -149,8 +148,7 @@ DotShorthandMethodInvocation
         staticType: int
     rightParenthesis: )
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C<dynamic>
-    lookupType: C<dynamic>
+    declaration: <testLibrary>::@class::C
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::member
     invokeType: C<dynamic> Function(int)
@@ -217,8 +215,7 @@ DotShorthandMethodInvocation
         staticType: int
     rightParenthesis: )
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: <testLibrary>::@class::C
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::member
     invokeType: C Function(int)
@@ -277,8 +274,7 @@ ReceiverPropertyExtraction
             leftParenthesis: (
             rightParenthesis: )
           shorthandContext: ValidDotShorthandContextResolution
-            contextType: C
-            lookupType: C
+            declaration: <testLibrary>::@class::C
           element: <testLibrary>::@class::C::@constructor::new
           correspondingParameter: SubstitutedFormalParameterElementImpl
             baseElement: <testLibrary>::@class::C::@method::make::@formalParameter::value
@@ -286,8 +282,7 @@ ReceiverPropertyExtraction
           staticType: C
       rightParenthesis: )
     shorthandContext: ValidDotShorthandContextResolution
-      contextType: C
-      lookupType: C
+      declaration: <testLibrary>::@class::C
     resolution: ExecutableInvocationResolution
       element: <testLibrary>::@class::C::@method::make
       invokeType: C Function(C)
@@ -371,8 +366,7 @@ ReceiverMethodInvocation
       leftParenthesis: (
       rightParenthesis: )
     shorthandContext: ValidDotShorthandContextResolution
-      contextType: C
-      lookupType: C
+      declaration: <testLibrary>::@class::C
     resolution: ExecutableInvocationResolution
       element: <testLibrary>::@class::C::@method::member
       invokeType: C Function()
@@ -438,8 +432,7 @@ ReceiverPropertyExtraction
       leftParenthesis: (
       rightParenthesis: )
     shorthandContext: ValidDotShorthandContextResolution
-      contextType: C
-      lookupType: C
+      declaration: <testLibrary>::@class::C
     resolution: ExecutableInvocationResolution
       element: <testLibrary>::@class::C::@method::member
       invokeType: C Function()
@@ -501,8 +494,7 @@ DotShorthandMethodInvocation
         staticType: int
     rightParenthesis: )
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: <testLibrary>::@class::C
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::member
     invokeType: C Function(int)
@@ -635,8 +627,7 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: <testLibrary>::@class::C
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::instances
     invokeType: List<C> Function()
@@ -765,8 +756,6 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: InvalidDotShorthandContextResolution
-    contextType: C Function()
-    lookupType: C Function()
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -805,8 +794,6 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: InvalidDotShorthandContextResolution
-    contextType: FutureOr<C Function()>
-    lookupType: C Function()
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -885,8 +872,7 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: <testLibrary>::@class::C
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -926,8 +912,7 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: <testLibrary>::@class::C
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -969,8 +954,7 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: <testLibrary>::@class::C
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -1010,8 +994,7 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: <testLibrary>::@extensionType::C
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@extensionType::C::@method::one
     invokeType: C Function()
@@ -1053,8 +1036,7 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: <testLibrary>::@class::C
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::member
     invokeType: C Function()
@@ -1096,8 +1078,7 @@ CallInvocation
       leftParenthesis: (
       rightParenthesis: )
     shorthandContext: ValidDotShorthandContextResolution
-      contextType: C
-      lookupType: C
+      declaration: <testLibrary>::@class::C
     resolution: ExecutableInvocationResolution
       element: <testLibrary>::@class::C::@method::member
       invokeType: C Function()
@@ -1154,8 +1135,7 @@ CallInvocation
       leftParenthesis: (
       rightParenthesis: )
     shorthandContext: ValidDotShorthandContextResolution
-      contextType: C
-      lookupType: C
+      declaration: <testLibrary>::@class::C
     resolution: ExecutableInvocationResolution
       element: <testLibrary>::@class::C::@method::member
       invokeType: C Function()
@@ -1225,8 +1205,7 @@ CallInvocation
       leftParenthesis: (
       rightParenthesis: )
     shorthandContext: ValidDotShorthandContextResolution
-      contextType: C
-      lookupType: C
+      declaration: <testLibrary>::@class::C
     resolution: ExecutableInvocationResolution
       element: <testLibrary>::@class::C::@method::member
       invokeType: C Function()
@@ -1283,8 +1262,7 @@ CallInvocation
       leftParenthesis: (
       rightParenthesis: )
     shorthandContext: ValidDotShorthandContextResolution
-      contextType: C
-      lookupType: C
+      declaration: <testLibrary>::@class::C
     resolution: ExecutableInvocationResolution
       element: <testLibrary>::@class::C::@method::member
       invokeType: C Function()
@@ -1382,8 +1360,7 @@ CallInvocation
             leftParenthesis: (
             rightParenthesis: )
           shorthandContext: ValidDotShorthandContextResolution
-            contextType: C
-            lookupType: C
+            declaration: <testLibrary>::@class::C
           resolution: ExecutableInvocationResolution
             element: <testLibrary>::@class::C::@method::one
             invokeType: C Function()
@@ -1392,8 +1369,7 @@ CallInvocation
           staticType: C
       rightParenthesis: )
     shorthandContext: ValidDotShorthandContextResolution
-      contextType: C
-      lookupType: C
+      declaration: <testLibrary>::@class::C
     resolution: ExecutableInvocationResolution
       element: <testLibrary>::@class::C::@method::member
       invokeType: C Function(C)
@@ -1470,8 +1446,7 @@ DotShorthandMethodInvocation
           leftParenthesis: (
           rightParenthesis: )
         shorthandContext: ValidDotShorthandContextResolution
-          contextType: C
-          lookupType: C
+          declaration: <testLibrary>::@class::C
         resolution: ExecutableInvocationResolution
           element: <testLibrary>::@class::C::@method::one
           invokeType: C Function()
@@ -1480,8 +1455,7 @@ DotShorthandMethodInvocation
         staticType: C
     rightParenthesis: )
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: <testLibrary>::@class::C
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::member
     invokeType: C Function(C)
@@ -1539,8 +1513,7 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: FutureOr<C>
-    lookupType: C
+    declaration: <testLibrary>::@class::C
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::member
     invokeType: C Function()
@@ -1585,8 +1558,7 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: FutureOr<FutureOr<C>>
-    lookupType: C
+    declaration: <testLibrary>::@class::C
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::member
     invokeType: C Function()
@@ -1638,8 +1610,7 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: CMixin
-    lookupType: CMixin
+    declaration: <testLibrary>::@mixin::CMixin
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@mixin::CMixin::@method::mixinOne
     invokeType: CMixin Function()
@@ -1695,8 +1666,7 @@ DotShorthandMethodInvocation
                 leftParenthesis: (
                 rightParenthesis: )
               shorthandContext: ValidDotShorthandContextResolution
-                contextType: C<dynamic>
-                lookupType: C<dynamic>
+                declaration: <testLibrary>::@class::C
               resolution: ExecutableInvocationResolution
                 element: <testLibrary>::@class::C::@method::member
                 invokeType: C<int> Function()
@@ -1707,8 +1677,7 @@ DotShorthandMethodInvocation
               staticType: C<int>
           rightParenthesis: )
         shorthandContext: ValidDotShorthandContextResolution
-          contextType: C<C<dynamic>>
-          lookupType: C<C<dynamic>>
+          declaration: <testLibrary>::@class::C
         element: SubstitutedConstructorElementImpl
           baseElement: <testLibrary>::@class::C::@constructor::new
           substitution: {T: C<dynamic>}
@@ -1718,8 +1687,7 @@ DotShorthandMethodInvocation
         staticType: C<C<dynamic>>
     rightParenthesis: )
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C<C<C<dynamic>>>
-    lookupType: C<C<C<dynamic>>>
+    declaration: <testLibrary>::@class::C
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::memberType
     invokeType: C<C<C<dynamic>>> Function(C<C<dynamic>>)
@@ -1900,10 +1868,6 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: InvalidDotShorthandContextResolution
-    contextType: _Private
-      alias: package:test/a.dart::@typeAlias::Public
-    lookupType: _Private
-      alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -1932,10 +1896,6 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: InvalidDotShorthandContextResolution
-    contextType: _Private
-      alias: package:test/a.dart::@typeAlias::Public
-    lookupType: _Private
-      alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -1986,10 +1946,6 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: InvalidDotShorthandContextResolution
-    contextType: _Private
-      alias: package:test/a.dart::@typeAlias::Public
-    lookupType: _Private
-      alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -2035,10 +1991,7 @@ DotShorthandConstructorInvocation2
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: _Private
-      alias: <testLibrary>::@typeAlias::Public
-    lookupType: _Private
-      alias: <testLibrary>::@typeAlias::Public
+    declaration: <testLibrary>::@class::_Private
   element: <testLibrary>::@class::_Private::@constructor::new
   correspondingParameter: <null>
   staticType: _Private
@@ -2081,10 +2034,7 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: _Private
-      alias: <testLibrary>::@typeAlias::Public
-    lookupType: _Private
-      alias: <testLibrary>::@typeAlias::Public
+    declaration: <testLibrary>::@class::_Private
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::_Private::@method::instance
     invokeType: _Private Function()
@@ -2137,10 +2087,6 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: InvalidDotShorthandContextResolution
-    contextType: _Private
-      alias: package:test/a.dart::@typeAlias::Public
-    lookupType: _Private
-      alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -2192,10 +2138,6 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: InvalidDotShorthandContextResolution
-    contextType: _Private
-      alias: package:test/a.dart::@typeAlias::Public
-    lookupType: _Private
-      alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -2242,10 +2184,7 @@ DotShorthandConstructorInvocation2
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: _Private
-      alias: <testLibrary>::@typeAlias::Public
-    lookupType: _Private
-      alias: <testLibrary>::@typeAlias::Public
+    declaration: <testLibrary>::@enum::_Private
   element: <testLibrary>::@enum::_Private::@constructor::a
   correspondingParameter: <null>
   staticType: _Private
@@ -2289,10 +2228,7 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: _Private
-      alias: <testLibrary>::@typeAlias::Public
-    lookupType: _Private
-      alias: <testLibrary>::@typeAlias::Public
+    declaration: <testLibrary>::@enum::_Private
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@enum::_Private::@method::instance
     invokeType: _Private Function()
@@ -2352,10 +2288,6 @@ DotShorthandMethodInvocation
         staticType: int
     rightParenthesis: )
   shorthandContext: InvalidDotShorthandContextResolution
-    contextType: _Private
-      alias: package:test/a.dart::@typeAlias::Public
-    lookupType: _Private
-      alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -2394,10 +2326,6 @@ DotShorthandMethodInvocation
         staticType: int
     rightParenthesis: )
   shorthandContext: InvalidDotShorthandContextResolution
-    contextType: _Private
-      alias: package:test/a.dart::@typeAlias::Public
-    lookupType: _Private
-      alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -2453,10 +2381,6 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: InvalidDotShorthandContextResolution
-    contextType: _Private
-      alias: package:test/a.dart::@typeAlias::Public
-    lookupType: _Private
-      alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -2505,10 +2429,7 @@ DotShorthandConstructorInvocation2
         staticType: int
     rightParenthesis: )
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: _Private
-      alias: <testLibrary>::@typeAlias::Public
-    lookupType: _Private
-      alias: <testLibrary>::@typeAlias::Public
+    declaration: <testLibrary>::@extensionType::_Private
   element: <testLibrary>::@extensionType::_Private::@constructor::new
   correspondingParameter: <null>
   staticType: _Private
@@ -2556,10 +2477,7 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: _Private
-      alias: <testLibrary>::@typeAlias::Public
-    lookupType: _Private
-      alias: <testLibrary>::@typeAlias::Public
+    declaration: <testLibrary>::@extensionType::_Private
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@extensionType::_Private::@method::instance
     invokeType: _Private Function()
@@ -2612,10 +2530,6 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: InvalidDotShorthandContextResolution
-    contextType: _Private
-      alias: package:test/a.dart::@typeAlias::Public
-    lookupType: _Private
-      alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -2662,10 +2576,7 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: _Private
-      alias: <testLibrary>::@typeAlias::Public
-    lookupType: _Private
-      alias: <testLibrary>::@typeAlias::Public
+    declaration: <testLibrary>::@mixin::_Private
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@mixin::_Private::@method::instance
     invokeType: _Private Function()
@@ -2712,8 +2623,7 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: <testLibrary>::@class::C
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::member
     invokeType: C Function({required int x})
@@ -2757,8 +2667,7 @@ DotShorthandMethodInvocation
         literal: "String"
     rightParenthesis: )
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C<bool>
-    lookupType: C<bool>
+    declaration: <testLibrary>::@class::C
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::foo
     invokeType: C<String> Function(String)
@@ -2812,8 +2721,7 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C<bool>
-    lookupType: C<bool>
+    declaration: <testLibrary>::@class::C
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::member
     invokeType: C<int> Function()
@@ -2849,8 +2757,7 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: int
-    lookupType: int
+    declaration: dart:core::@class::int
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -2885,8 +2792,7 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: int
-    lookupType: int
+    declaration: dart:core::@class::int
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>

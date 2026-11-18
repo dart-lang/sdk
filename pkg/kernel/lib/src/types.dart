@@ -728,7 +728,7 @@ class Types with StandardBounds {
         return performSubtypeCheck(sFutureOrType, tTypedefType.unalias);
 
       case (RecordType sRecordType, TypedefType tTypedefType):
-        return performMutualSubtypesCheck(sRecordType, tTypedefType.unalias);
+        return performSubtypeCheck(sRecordType, tTypedefType.unalias);
 
       case (ExtensionType sExtensionType, TypedefType tTypedefType):
         return performSubtypeCheck(sExtensionType, tTypedefType.unalias);
@@ -988,7 +988,7 @@ class Types with StandardBounds {
         return performSubtypeCheck(sStructuralParameterType.bound, tNullType);
 
       case (IntersectionType sIntersectionType, NullType tNullType):
-        return performMutualSubtypesCheck(sIntersectionType.right, tNullType);
+        return performSubtypeCheck(sIntersectionType.right, tNullType);
 
       case (TypedefType sTypedefType, NullType tNullType):
         return performSubtypeCheck(sTypedefType.unalias, tNullType);

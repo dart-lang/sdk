@@ -2223,9 +2223,7 @@ package:analyzer/dart/ast/ast.dart:
   InvalidAssignmentTarget (class extends Object implements AssignmentTarget, sealed (immediate subtypes: InvalidExpressionAssignmentTarget, InvalidExtensionOverrideAssignmentTarget, InvalidSuperAssignmentTarget), experimental):
     read (getter: InvalidReadResolution?)
     write (getter: InvalidWriteResolution?)
-  InvalidDotShorthandContextResolution (class extends Object implements DotShorthandContextResolution, abstract, final, experimental):
-    contextType (getter: DartType)
-    lookupType (getter: DartType)
+  InvalidDotShorthandContextResolution (class extends Object implements DotShorthandContextResolution, abstract, final, experimental)
   InvalidExpressionAssignmentTarget (class extends Object implements InvalidAssignmentTarget, abstract, final, experimental):
     expression (getter: Expression)
   InvalidExtensionOverrideAssignmentTarget (class extends Object implements InvalidAssignmentTarget, abstract, final, experimental):
@@ -2924,8 +2922,7 @@ package:analyzer/dart/ast/ast.dart:
   UriBasedDirective (class extends Object implements Directive, sealed (immediate subtypes: NamespaceDirective, PartDirective, UriBasedDirectiveImpl)):
     uri (getter: StringLiteral)
   ValidDotShorthandContextResolution (class extends Object implements DotShorthandContextResolution, abstract, final, experimental):
-    contextType (getter: DartType)
-    lookupType (getter: InterfaceType)
+    declaration (getter: InterfaceElement)
   ValidIndexReadResolution (class extends Object implements IndexReadResolution, abstract, final, experimental)
   ValidIndexWriteResolution (class extends Object implements IndexWriteResolution, abstract, final, experimental)
   ValidInvocationResolution (class extends Object implements InvocationResolution, abstract, final, experimental)

@@ -23,7 +23,7 @@ class StdioAnalysisServer {
   Future<void> serveStdio() {
     var serverChannel = StdinStdoutLineStreamServerChannel(
       socketServer.instrumentationService,
-      socketServer.sessionLogger,
+      socketServer.sessionListener,
       requestStatistics: socketServer.requestStatistics,
     );
     socketServer.createAnalysisServer(serverChannel);

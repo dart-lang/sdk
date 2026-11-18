@@ -278,9 +278,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
     }
 
     constructor_initialized_field_offsets.Sort(
-        [](const intptr_t* a, const intptr_t* b) {
-          return static_cast<int>(*a) - static_cast<int>(*b);
-        });
+        [](auto& a, auto& b) { return a < b; });
     constructor_initialized_field_offsets.Add(-1);
 
     auto& kernel_data = TypedDataView::Handle(Z);

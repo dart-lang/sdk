@@ -2212,6 +2212,9 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeIndentation();
     writeWord('part');
     writeWord(node.partUri);
+    if (!node.isIncluded) {
+      writeWord('/* not included */');
+    }
     endLine(";");
   }
 

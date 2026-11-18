@@ -127,9 +127,9 @@ static void WriteHeaderRelaxed(ObjectPtr obj, uword header) {
       .store(header, std::memory_order_relaxed);
 }
 
-class ScavengerVisitor : public ObjectPointerVisitor,
-                         public PredicateObjectPointerVisitor,
-                         public MallocAllocated {
+class ScavengerVisitor final : public ObjectPointerVisitor,
+                               public PredicateObjectPointerVisitor,
+                               public MallocAllocated {
  public:
   explicit ScavengerVisitor(IsolateGroup* isolate_group,
                             Scavenger* scavenger,
@@ -205,14 +205,24 @@ class ScavengerVisitor : public ObjectPointerVisitor,
     view->untag()->RecomputeDataFieldForInternalTypedData();
   }
 
-  void VisitPointers(ObjectPtr* first, ObjectPtr* last) override {
+  DART_FORCE_INLINE void VisitPointers(ObjectPtr* first,
+                                       ObjectPtr* last) override {
 #if !defined(TARGET_ARCH_IA32)
     // Pointers embedded in Instructions are not aligned.
     ASSERT(Utils::IsAligned(first, sizeof(*first)));
     ASSERT(Utils::IsAligned(last, sizeof(*last)));
 #endif
-    for (ObjectPtr* current = first; current <= last; current++) {
-      ScavengePointer(current);
+    ObjectPtr visiting_object = visiting_old_object_;
+    if (visiting_object == nullptr) {
+      // Visiting new or root: never update remembered set.
+      for (ObjectPtr* current = first; current <= last; current++) {
+        ScavengePointer(current);
+      }
+    } else if (PredicateVisitPointers(first, last)) {
+      // Visiting old: update the store buffer as needed.
+      if (visiting_object->untag()->TryAcquireRememberedBit()) {
+        thread_->StoreBufferAddObjectGC(visiting_object);
+      }
     }
   }
 
@@ -235,17 +245,28 @@ class ScavengerVisitor : public ObjectPointerVisitor,
     return has_new_target;
   }
 
-  void VisitCompressedPointers(uword heap_base,
-                               CompressedObjectPtr* first,
-                               CompressedObjectPtr* last) override {
-    if (PredicateVisitCompressedPointers(heap_base, first, last)) {
-      // Update the store buffer as needed.
-      ObjectPtr visiting_object = visiting_old_object_;
-      if (visiting_object != nullptr &&
-          visiting_object->untag()->TryAcquireRememberedBit()) {
+  DART_FORCE_INLINE void VisitCompressedPointers(
+      uword heap_base,
+      CompressedObjectPtr* first,
+      CompressedObjectPtr* last) override {
+    ObjectPtr visiting_object = visiting_old_object_;
+    if (visiting_object == nullptr) {
+      // Visiting new or root: never update remembered set.
+      for (CompressedObjectPtr* current = first; current <= last; current++) {
+        ScavengeCompressedPointer(heap_base, current);
+      }
+    } else if (PredicateVisitCompressedPointers(heap_base, first, last)) {
+      // Visiting old: update the store buffer as needed.
+      if (visiting_object->untag()->TryAcquireRememberedBit()) {
         thread_->StoreBufferAddObjectGC(visiting_object);
       }
     }
+  }
+#else
+  DART_FORCE_INLINE void VisitCompressedPointers(uword heap_base,
+                                                 CompressedObjectPtr* first,
+                                                 CompressedObjectPtr* last) {
+    VisitPointers(first, last);
   }
 #endif
 
@@ -267,6 +288,7 @@ class ScavengerVisitor : public ObjectPointerVisitor,
 
     LongJumpScope jump(thread_);
     if (DART_SETJMP(*jump.Set()) == 0) {
+      ASSERT(visiting_old_object_ == nullptr);
       scavenger_->IterateRoots(this);
     } else {
       ASSERT(scavenger_->abort_);
@@ -389,16 +411,16 @@ class ScavengerVisitor : public ObjectPointerVisitor,
     return new_obj->IsNewObject();
   }
 
+  // Only used when no remembered set update is needed (visiting a root or a
+  // new-space object), so old-space referents are not dereferenced.
   DART_FORCE_INLINE
   void ScavengePointer(ObjectPtr* p) {
-    if (PredicateScavengePointer(p)) {
-      // Update the store buffer as needed.
-      ObjectPtr visiting_object = visiting_old_object_;
-      if (visiting_object != nullptr &&
-          visiting_object->untag()->TryAcquireRememberedBit()) {
-        thread_->StoreBufferAddObjectGC(visiting_object);
-      }
+    // ScavengePointer cannot be called recursively.
+    ObjectPtr obj = *p;
+    if (obj->IsImmediateOrOldObject()) {
+      return;
     }
+    *p = ScavengeObject(obj);
   }
 
   DART_FORCE_INLINE
@@ -421,16 +443,15 @@ class ScavengerVisitor : public ObjectPointerVisitor,
     return new_obj->IsNewObject();
   }
 
+  // See ScavengePointer. Tests the tag bits before decompressing.
   DART_FORCE_INLINE
   void ScavengeCompressedPointer(uword heap_base, CompressedObjectPtr* p) {
-    if (PredicateScavengeCompressedPointer(heap_base, p)) {
-      // Update the store buffer as needed.
-      ObjectPtr visiting_object = visiting_old_object_;
-      if (visiting_object != nullptr &&
-          visiting_object->untag()->TryAcquireRememberedBit()) {
-        thread_->StoreBufferAddObjectGC(visiting_object);
-      }
+    // ScavengePointer cannot be called recursively.
+    CompressedObjectPtr obj = *p;
+    if (obj.IsImmediateOrOldObject()) {
+      return;
     }
+    *p = ScavengeObject(obj.Decompress(heap_base));
   }
 
   DART_FORCE_INLINE
@@ -445,77 +466,82 @@ class ScavengerVisitor : public ObjectPointerVisitor,
     // Read the header word of the object and determine if the object has
     // already been copied.
     uword header = ReadHeaderRelaxed(obj);
-    ObjectPtr new_obj;
     if (IsForwarding(header)) {
       // Get the new location of the object.
-      new_obj = ForwardedObj(header);
-    } else {
-      intptr_t size = obj->untag()->HeapSize(header);
-      ASSERT(Heap::IsAllocatableInNewSpace(size));
-      uword new_addr = 0;
-      // Check whether object should be promoted.
-      if (!Page::Of(obj)->IsSurvivor(raw_addr)) {
-        // Not a survivor of a previous scavenge. Just copy the object into the
-        // to space.
+      return ForwardedObj(header);
+    }
+    return CopyOrPromote(obj, raw_addr, header);
+  }
+
+  // Kept out of line so the forwarding check above is inlined into the
+  // pointer visiting loops without bloating them.
+  DART_NOINLINE
+  ObjectPtr CopyOrPromote(ObjectPtr obj, uword raw_addr, uword header) {
+    intptr_t size = obj->untag()->HeapSize(header);
+    ASSERT(Heap::IsAllocatableInNewSpace(size));
+    uword new_addr = 0;
+    // Check whether object should be promoted.
+    if (!Page::Of(obj)->IsSurvivor(raw_addr)) {
+      // Not a survivor of a previous scavenge. Just copy the object into the
+      // to space.
+      new_addr = TryAllocateCopy(size);
+    }
+    if (new_addr == 0) {
+      // This object is a survivor of a previous scavenge. Attempt to promote
+      // the object. (Or, unlikely, to-space was exhausted by fragmentation.)
+      new_addr = page_space_->TryAllocatePromoLocked(freelist_, size);
+      if (new_addr == 0) [[unlikely]] {
+        // Promotion did not succeed. Copy into the to space instead.
+        scavenger_->failed_to_promote_ = true;
         new_addr = TryAllocateCopy(size);
-      }
-      if (new_addr == 0) {
-        // This object is a survivor of a previous scavenge. Attempt to promote
-        // the object. (Or, unlikely, to-space was exhausted by fragmentation.)
-        new_addr = page_space_->TryAllocatePromoLocked(freelist_, size);
+        // To-space was exhausted by fragmentation and old-space could not
+        // grow.
         if (new_addr == 0) [[unlikely]] {
-          // Promotion did not succeed. Copy into the to space instead.
-          scavenger_->failed_to_promote_ = true;
-          new_addr = TryAllocateCopy(size);
-          // To-space was exhausted by fragmentation and old-space could not
-          // grow.
-          if (new_addr == 0) [[unlikely]] {
-            AbortScavenge();
-          }
+          AbortScavenge();
         }
       }
-      ASSERT(new_addr != 0);
-      // Copy the object to the new location.
-      objcpy(reinterpret_cast<void*>(new_addr),
-             reinterpret_cast<void*>(raw_addr), size);
+    }
+    ASSERT(new_addr != 0);
+    // Copy the object to the new location.
+    objcpy(reinterpret_cast<void*>(new_addr), reinterpret_cast<void*>(raw_addr),
+           size);
 
-      new_obj = UntaggedObject::FromAddr(new_addr);
+    ObjectPtr new_obj = UntaggedObject::FromAddr(new_addr);
+    if (new_obj->IsOldObject()) {
+      // Promoted: update age/barrier tags.
+      uword tags = static_cast<uword>(header);
+      tags = UntaggedObject::OldAndNotRememberedBit::update(true, tags);
+      tags = UntaggedObject::NewOrEvacuationCandidateBit::update(false, tags);
+      new_obj->untag()->tags_.store(tags, std::memory_order_relaxed);
+    }
+
+    intptr_t cid = UntaggedObject::ClassIdTag::decode(header);
+    if (IsTypedDataClassId(cid)) {
+      static_cast<TypedDataPtr>(new_obj)->untag()->RecomputeDataField();
+    }
+
+    // Try to install forwarding address.
+    uword forwarding_header = ForwardingHeader(new_obj);
+    if (InstallForwardingPointer(raw_addr, &header, forwarding_header)) {
       if (new_obj->IsOldObject()) {
-        // Promoted: update age/barrier tags.
-        uword tags = static_cast<uword>(header);
-        tags = UntaggedObject::OldAndNotRememberedBit::update(true, tags);
-        tags = UntaggedObject::NewOrEvacuationCandidateBit::update(false, tags);
-        new_obj->untag()->tags_.store(tags, std::memory_order_relaxed);
+        // If promotion succeeded then we need to remember it so that it can
+        // be traversed later.
+        promoted_list_.Push(new_obj);
+        bytes_promoted_ += size;
       }
-
-      intptr_t cid = UntaggedObject::ClassIdTag::decode(header);
-      if (IsTypedDataClassId(cid)) {
-        static_cast<TypedDataPtr>(new_obj)->untag()->RecomputeDataField();
-      }
-
-      // Try to install forwarding address.
-      uword forwarding_header = ForwardingHeader(new_obj);
-      if (InstallForwardingPointer(raw_addr, &header, forwarding_header)) {
-        if (new_obj->IsOldObject()) {
-          // If promotion succeeded then we need to remember it so that it can
-          // be traversed later.
-          promoted_list_.Push(new_obj);
-          bytes_promoted_ += size;
-        }
+    } else {
+      ASSERT(IsForwarding(header));
+      if (new_obj->IsOldObject()) {
+        // Abandon as a free list element.
+        FreeListElement::AsElement(new_addr, size);
+        Page::Of(new_addr)->sub_live_bytes(size);
+        bytes_promoted_ -= size;
       } else {
-        ASSERT(IsForwarding(header));
-        if (new_obj->IsOldObject()) {
-          // Abandon as a free list element.
-          FreeListElement::AsElement(new_addr, size);
-          Page::Of(new_addr)->sub_live_bytes(size);
-          bytes_promoted_ -= size;
-        } else {
-          // Undo to-space allocation.
-          tail_->Unallocate(new_addr, size);
-        }
-        // Use the winner's forwarding target.
-        new_obj = ForwardedObj(header);
+        // Undo to-space allocation.
+        tail_->Unallocate(new_addr, size);
       }
+      // Use the winner's forwarding target.
+      new_obj = ForwardedObj(header);
     }
 
     return new_obj;
@@ -1218,6 +1244,7 @@ void Scavenger::IterateStoreBuffers(ScavengerVisitor* visitor) {
     store_buffer->PushBlock(pending, StoreBuffer::kIgnoreThreshold);
     visitor->set_pending(nullptr);
   }
+  visitor->VisitingOldObject(nullptr);
 }
 
 void Scavenger::IterateRememberedCards(ScavengerVisitor* visitor) {
@@ -1333,6 +1360,7 @@ void ScavengerVisitor::ProcessPromotedList() {
       thread_->MarkingStackAddObject(obj);
     }
   }
+  VisitingOldObject(nullptr);
 }
 
 void ScavengerVisitor::ProcessWeakPropertiesScoped() {
@@ -1355,6 +1383,7 @@ void ScavengerVisitor::ProcessWeakPropertiesScoped() {
       weak_property_list_.Push(weak_property);
     }
   });
+  VisitingOldObject(nullptr);
 }
 
 void Scavenger::UpdateMaxHeapCapacity() {
@@ -1399,12 +1428,9 @@ intptr_t ScavengerVisitor::ProcessObject(ObjectPtr obj) {
   } else if (cid == kWeakReferenceCid) [[unlikely]] {
     WeakReferencePtr weak_reference = static_cast<WeakReferencePtr>(obj);
     if (!IsScavengeSurvivor(weak_reference->untag()->target())) {
-#if !defined(DART_COMPRESSED_POINTERS)
-      ScavengePointer(&weak_reference->untag()->type_arguments_);
-#else
-      ScavengeCompressedPointer(weak_reference->heap_base(),
-                                &weak_reference->untag()->type_arguments_);
-#endif
+      VisitCompressedPointers(weak_reference->heap_base(),
+                              &weak_reference->untag()->type_arguments_,
+                              &weak_reference->untag()->type_arguments_);
       weak_reference_list_.Push(weak_reference);
       return WeakReference::InstanceSize();
     }
@@ -1414,15 +1440,12 @@ intptr_t ScavengerVisitor::ProcessObject(ObjectPtr obj) {
     return WeakArray::InstanceSize(Smi::Value(weak_array->untag()->length()));
   } else if (cid == kFinalizerEntryCid) [[unlikely]] {
     FinalizerEntryPtr finalizer_entry = static_cast<FinalizerEntryPtr>(obj);
-#if !defined(DART_COMPRESSED_POINTERS)
-    ScavengePointer(&finalizer_entry->untag()->token_);
-    ScavengePointer(&finalizer_entry->untag()->next_);
-#else
-    ScavengeCompressedPointer(finalizer_entry->heap_base(),
-                              &finalizer_entry->untag()->token_);
-    ScavengeCompressedPointer(finalizer_entry->heap_base(),
-                              &finalizer_entry->untag()->next_);
-#endif
+    VisitCompressedPointers(finalizer_entry->heap_base(),
+                            &finalizer_entry->untag()->token_,
+                            &finalizer_entry->untag()->token_);
+    VisitCompressedPointers(finalizer_entry->heap_base(),
+                            &finalizer_entry->untag()->next_,
+                            &finalizer_entry->untag()->next_);
     finalizer_entry_list_.Push(finalizer_entry);
     return FinalizerEntry::InstanceSize();
   }

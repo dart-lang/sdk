@@ -25,14 +25,12 @@ struct SourceReportCodeInfo;
 class SourceReport {
  public:
   enum ReportKind {
-    kCallSites = 0x1,
     kCoverage = 0x2,
     kPossibleBreakpoints = 0x4,
     kProfile = 0x8,
     kBranchCoverage = 0x10,
   };
 
-  static const char* kCallSitesStr;
   static const char* kCoverageStr;
   static const char* kPossibleBreakpointsStr;
   static const char* kProfileStr;
@@ -41,7 +39,7 @@ class SourceReport {
   enum CompileMode { kNoCompile, kForceCompile };
 
   // report_set is a bitvector indicating which reports to generate
-  // (e.g. kCallSites | kCoverage).
+  // (e.g. kCoverage | kPossibleBreakpoints).
   //
   // If library_filters is not null, then the report will only include libraries
   // whose URIs start with one of the filter strings.
@@ -84,8 +82,6 @@ class SourceReport {
   bool ShouldFiltersIncludeScript(const Script& script);
   bool ShouldFiltersIncludeUrl(const String& url);
 
-  void PrintCallSitesData(JSONObject* jsobj,
-                          const SourceReportCodeInfo& params);
   void PrintCoverageData(JSONObject* jsobj,
                          const SourceReportCodeInfo& params,
                          bool report_branch_coverage);

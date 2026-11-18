@@ -1537,11 +1537,23 @@ void ARM64Decoder::DecodeSIMDTwoReg(Instr* instr) {
     } else {
       Unknown(instr);
     }
+  } else if ((U == 0) && (op == 0xb)) {
+    if (sz == 2) {
+      Format(instr, "vabsw 'vd, 'vn");
+    } else {
+      Unknown(instr);
+    }
   } else if ((U == 1) && (op == 0xf)) {
     if (sz == 2) {
       Format(instr, "vnegs 'vd, 'vn");
     } else if (sz == 3) {
       Format(instr, "vnegd 'vd, 'vn");
+    } else {
+      Unknown(instr);
+    }
+  } else if ((U == 1) && (op == 0xb)) {
+    if (sz == 2) {
+      Format(instr, "vnegw 'vd, 'vn");
     } else {
       Unknown(instr);
     }

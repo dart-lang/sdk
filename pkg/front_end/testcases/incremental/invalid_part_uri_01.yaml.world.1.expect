@@ -16,5 +16,5 @@ library from "org-dartlang-test:///main.dart" as main {
 //       ^
 //
 
-  part  package:foo/bar.dart;
+  part  package:foo/bar.dart /* not included */;
 }

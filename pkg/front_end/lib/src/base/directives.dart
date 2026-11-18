@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:kernel/ast.dart' show LibraryPart;
+
 import '../builder/compilation_unit.dart';
 
 /// Information about a part directive.
-class Part({
+class PartDirective({
   /// The file URI at which the part directive occurs.
   required final Uri fileUri,
 
@@ -14,6 +16,9 @@ class Part({
 
   /// The [CompilationUnit] referenced by the part directive.
   required final CompilationUnit compilationUnit,
+
+  /// The kernel counterpart.
+  required final LibraryPart kernelPart,
 });
 
 /// Information about a part-of directive.

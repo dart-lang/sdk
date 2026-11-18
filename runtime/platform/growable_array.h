@@ -10,6 +10,8 @@
 #ifndef RUNTIME_PLATFORM_GROWABLE_ARRAY_H_
 #define RUNTIME_PLATFORM_GROWABLE_ARRAY_H_
 
+#include <algorithm>
+
 #include "platform/allocation.h"
 #include "platform/utils.h"
 
@@ -193,11 +195,11 @@ class BaseGrowableArray : public B {
   void Resize(intptr_t new_length);
 
   // Sort the array in place.
-  inline void Sort(int compare(const T*, const T*));
+  inline void Sort(bool compare(const T&, const T&));
 
   // Sort the portion of the array from start (inclusive) to end
   // (exclusive) in place.
-  inline void SortFromTo(int start, int end, int compare(const T*, const T*));
+  inline void SortFromTo(int start, int end, bool compare(const T&, const T&));
 
   void StealBuffer(T** buffer, intptr_t* length) {
     *buffer = data_;
@@ -223,29 +225,26 @@ class BaseGrowableArray : public B {
 };
 
 template <typename T, typename B, typename Allocator>
-inline void BaseGrowableArray<T, B, Allocator>::Sort(int compare(const T*,
-                                                                 const T*)) {
+inline void BaseGrowableArray<T, B, Allocator>::Sort(bool compare(const T&,
+                                                                  const T&)) {
   // Avoid calling qsort with a null array.
   if (length_ == 0) return;
 
-  typedef int (*CompareFunction)(const void*, const void*);
-  qsort(data_, length_, sizeof(T), reinterpret_cast<CompareFunction>(compare));
+  std::stable_sort(data_, data_ + length_, compare);
 }
 
 template <typename T, typename B, typename Allocator>
 inline void BaseGrowableArray<T, B, Allocator>::SortFromTo(
     int start,
     int end,
-    int compare(const T*, const T*)) {
+    bool compare(const T&, const T&)) {
   // Avoid calling qsort with a null array.
   if (length_ == 0) return;
 
   // Also avoid calling it if an invalid portion is given.
   if (start < 0 || end <= start || length_ < end) return;
 
-  typedef int (*CompareFunction)(const void*, const void*);
-  qsort(data_ + start, end - start, sizeof(T),
-        reinterpret_cast<CompareFunction>(compare));
+  std::stable_sort(data_ + start, data_ + end, compare);
 }
 
 template <typename T, typename B, typename Allocator>

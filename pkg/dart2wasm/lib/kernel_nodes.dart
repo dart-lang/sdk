@@ -393,6 +393,11 @@ mixin KernelNodes {
     "_value",
   );
 
+  late final Class wasmGlobalClass = index.getClass('dart:_wasm', 'Global');
+  late final Class wasmMutableGlobalClass = index.getClass(
+    'dart:_wasm',
+    'MutableGlobal',
+  );
   late final Class wasmMemoryClass = index.getClass('dart:_wasm', 'Memory');
   late final Class wasmMemoryTypeClass = index.getClass(
     'dart:_wasm',
@@ -407,6 +412,15 @@ mixin KernelNodes {
     'dart:_wasm',
     'MemoryType',
     'shared',
+  );
+  late final Class wasmTableTypeClass = index.getClass(
+    'dart:_wasm',
+    'TableType',
+  );
+  late final Field wasmTableTypeLimits = index.getField(
+    'dart:_wasm',
+    'TableType',
+    'limits',
   );
   late final Field wasmLimitsMinimum = index.getField(
     'dart:_wasm',
@@ -824,10 +838,9 @@ mixin KernelNodes {
     "WasmFunction",
     "fromFunction",
   );
-  late final Procedure wasmTableCallIndirect = index.getProcedure(
+  late final Procedure wasmTableCallIndirect = index.getTopLevelProcedure(
     "dart:_wasm",
-    "WasmTable",
-    "callIndirect",
+    "WasmTableAccessExtension|callIndirect",
   );
   late final Procedure exportWasmFunctionProcedure = index.getTopLevelProcedure(
     "dart:_internal",

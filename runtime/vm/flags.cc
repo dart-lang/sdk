@@ -4,6 +4,8 @@
 
 #include "vm/flags.h"
 
+#include <algorithm>
+
 #include "platform/assert.h"
 #include "vm/heap/page.h"
 #include "vm/isolate.h"
@@ -474,19 +476,15 @@ static bool IsValidFlag(const char* name,
           (strncmp(name, prefix, prefix_length) == 0));
 }
 
-int Flags::CompareFlagNames(const void* left, const void* right) {
-  const Flag* left_flag = *reinterpret_cast<const Flag* const*>(left);
-  const Flag* right_flag = *reinterpret_cast<const Flag* const*>(right);
-  return strcmp(left_flag->name_, right_flag->name_);
-}
-
 char* Flags::ProcessCommandLineFlags(int number_of_vm_flags,
                                      const char** vm_flags) {
   if (initialized_) {
     return Utils::StrDup("Flags already set");
   }
 
-  qsort(flags_, num_flags_, sizeof flags_[0], CompareFlagNames);
+  std::stable_sort(flags_, flags_ + num_flags_, [](auto& a, auto& b) {
+    return strcmp(a->name_, b->name_) < 0;
+  });
 
   const char* const kPrefix = "--";
   const intptr_t kPrefixLen = strlen(kPrefix);

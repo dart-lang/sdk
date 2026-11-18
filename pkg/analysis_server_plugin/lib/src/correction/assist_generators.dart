@@ -33,6 +33,13 @@ class _RegisteredAssistGenerators {
           },
       };
 
+  /// Clears the assist producers.
+  void clear() {
+    producerGenerators.clear();
+    multiProducerGenerators.clear();
+    _lintRuleMap = null;
+  }
+
   void registerGenerator(ProducerGenerator generator) {
     producerGenerators.add(generator);
     // Reset the lint rule map, to account for the new generator.

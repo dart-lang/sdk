@@ -82,6 +82,8 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
       final input = instr.inputAt(i);
       assert(input.getInstruction(graph) == instr);
       final def = input.getDefinition(graph);
+      assert(def.isInGraph);
+      assert(graph.preorder[def.block!.preorderNumber] == def.block);
       // Check that input can be found in the use list of 'def'.
       var seen = false;
       for (final use in def.inputUses) {
@@ -105,6 +107,9 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
     for (final use in def.inputUses) {
       assert(use != Use.Null);
       assert(use.getDefinition(graph) == def);
+      final user = use.getInstruction(graph);
+      assert(user.isInGraph);
+      assert(graph.preorder[user.block!.preorderNumber] == user.block);
       assert(use.getPrevious(graph) == previous);
       if (previous != Use.Null) {
         assert(previous.getNext(graph) == use);
@@ -346,6 +351,23 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
   void visitStoreLocal(StoreLocal instr) {
     assert(!graph.inSSAForm);
     assert(instr.variable == graph.localVariables[instr.variable.index]);
+  }
+
+  @override
+  void visitExceptionalInput(ExceptionalInput instr) {
+    assert(graph.inSSAForm);
+    final variable = instr.variable;
+    assert(variable == graph.localVariables[variable.index]);
+    // There should be a catch block parameter corresponding to the
+    // variable in one of the enclosing exception handlers.
+    CatchBlock? handler = instr.block!.exceptionHandler;
+    while (handler != null) {
+      if (handler.findParameter(variable) != null) {
+        break;
+      }
+      handler = handler.exceptionHandler;
+    }
+    assert(handler != null);
   }
 
   @override

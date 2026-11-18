@@ -73,14 +73,8 @@ TEST_CASE(MallocGrowableArray) {
   TestGrowableArray<MallocGrowableArray<int>, MallocGrowableArray<int64_t> >();
 }
 
-static int greatestFirst(const int* a, const int* b) {
-  if (*a > *b) {
-    return -1;
-  } else if (*a < *b) {
-    return 1;
-  } else {
-    return 0;
-  }
+static bool greatestFirst(const int& a, const int& b) {
+  return a > b;
 }
 
 TEST_CASE(GrowableArraySort) {

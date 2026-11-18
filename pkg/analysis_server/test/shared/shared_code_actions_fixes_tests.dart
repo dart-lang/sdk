@@ -32,9 +32,6 @@ mixin SharedFixesCodeActionsTests
         LspEditHelpersMixin,
         LspVerifyEditHelpersMixin,
         ClientCapabilitiesHelperMixin {
-  String get analysisOptionsPath =>
-      pathContext.join(projectFolderPath, 'analysis_options.yaml');
-
   @override
   Future<void> setUp() async {
     await super.setUp();

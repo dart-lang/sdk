@@ -6,6 +6,9 @@
 main/no_main_test/01: Crash
 unsorted/disassemble_test: SkipByDesign # Tested in JIT mode.
 
+[ $compiler == dart2bytecode ]
+main/no_main_test/01: Skip
+
 [ $compiler == dartkp ]
 unsorted/disassemble_test: SkipByDesign # JIT only test
 

@@ -104,8 +104,7 @@ SetOrMapLiteral
       period: .
       name: one
       shorthandContext: ValidDotShorthandContextResolution
-        contextType: E
-        lookupType: E
+        declaration: <testLibrary>::@enum::E
       resolution: GetterInvocationResolution
         element: <testLibrary>::@enum::E::@getter::one
         type: E
@@ -144,8 +143,7 @@ SetOrMapLiteral
       period: .
       name: <empty> <synthetic>
       shorthandContext: ValidDotShorthandContextResolution
-        contextType: E
-        lookupType: E
+        declaration: <testLibrary>::@enum::E
       resolution: InvalidNamedReadResolution
         recoveryElement: <null>
       staticType: InvalidType

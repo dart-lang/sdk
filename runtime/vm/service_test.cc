@@ -460,7 +460,7 @@ ISOLATE_UNIT_TEST_CASE(Service_LocalVarDescriptors) {
 #if defined(DART_DYNAMIC_MODULES)
     const Bytecode& bytecode_c = Bytecode::Handle(function_c.GetBytecode());
     EXPECT(!bytecode_c.IsNull());
-    descriptors = bytecode_c.var_descriptors();
+    descriptors = bytecode_c.GetLocalVarDescriptors();
 #else
     UNREACHABLE();
 #endif

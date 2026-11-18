@@ -238,11 +238,7 @@ static constexpr dart::compiler::target::word UntaggedFunction_kAsync = 0x1;
 static constexpr dart::compiler::target::word UntaggedFunction_kSyncGen = 0x2;
 static constexpr dart::compiler::target::word UntaggedFunction_kAsyncGen = 0x3;
 static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumParentTypeArgumentsPos = 0x0;
-static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumParentTypeArgumentsSize = 0x8;
-static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumTypeParametersPos = 0x8;
+    UntaggedFunctionType_kPackedNumTypeParametersPos = 0x0;
 static constexpr dart::compiler::target::word
     UntaggedFunctionType_kPackedNumTypeParametersSize = 0x8;
 static constexpr dart::compiler::target::word
@@ -1168,11 +1164,7 @@ static constexpr dart::compiler::target::word UntaggedFunction_kAsync = 0x1;
 static constexpr dart::compiler::target::word UntaggedFunction_kSyncGen = 0x2;
 static constexpr dart::compiler::target::word UntaggedFunction_kAsyncGen = 0x3;
 static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumParentTypeArgumentsPos = 0x0;
-static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumParentTypeArgumentsSize = 0x8;
-static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumTypeParametersPos = 0x8;
+    UntaggedFunctionType_kPackedNumTypeParametersPos = 0x0;
 static constexpr dart::compiler::target::word
     UntaggedFunctionType_kPackedNumTypeParametersSize = 0x8;
 static constexpr dart::compiler::target::word
@@ -2102,11 +2094,7 @@ static constexpr dart::compiler::target::word UntaggedFunction_kAsync = 0x1;
 static constexpr dart::compiler::target::word UntaggedFunction_kSyncGen = 0x2;
 static constexpr dart::compiler::target::word UntaggedFunction_kAsyncGen = 0x3;
 static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumParentTypeArgumentsPos = 0x0;
-static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumParentTypeArgumentsSize = 0x8;
-static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumTypeParametersPos = 0x8;
+    UntaggedFunctionType_kPackedNumTypeParametersPos = 0x0;
 static constexpr dart::compiler::target::word
     UntaggedFunctionType_kPackedNumTypeParametersSize = 0x8;
 static constexpr dart::compiler::target::word
@@ -3031,11 +3019,7 @@ static constexpr dart::compiler::target::word UntaggedFunction_kAsync = 0x1;
 static constexpr dart::compiler::target::word UntaggedFunction_kSyncGen = 0x2;
 static constexpr dart::compiler::target::word UntaggedFunction_kAsyncGen = 0x3;
 static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumParentTypeArgumentsPos = 0x0;
-static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumParentTypeArgumentsSize = 0x8;
-static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumTypeParametersPos = 0x8;
+    UntaggedFunctionType_kPackedNumTypeParametersPos = 0x0;
 static constexpr dart::compiler::target::word
     UntaggedFunctionType_kPackedNumTypeParametersSize = 0x8;
 static constexpr dart::compiler::target::word
@@ -3968,11 +3952,7 @@ static constexpr dart::compiler::target::word UntaggedFunction_kAsync = 0x1;
 static constexpr dart::compiler::target::word UntaggedFunction_kSyncGen = 0x2;
 static constexpr dart::compiler::target::word UntaggedFunction_kAsyncGen = 0x3;
 static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumParentTypeArgumentsPos = 0x0;
-static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumParentTypeArgumentsSize = 0x8;
-static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumTypeParametersPos = 0x8;
+    UntaggedFunctionType_kPackedNumTypeParametersPos = 0x0;
 static constexpr dart::compiler::target::word
     UntaggedFunctionType_kPackedNumTypeParametersSize = 0x8;
 static constexpr dart::compiler::target::word
@@ -4902,11 +4882,7 @@ static constexpr dart::compiler::target::word UntaggedFunction_kAsync = 0x1;
 static constexpr dart::compiler::target::word UntaggedFunction_kSyncGen = 0x2;
 static constexpr dart::compiler::target::word UntaggedFunction_kAsyncGen = 0x3;
 static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumParentTypeArgumentsPos = 0x0;
-static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumParentTypeArgumentsSize = 0x8;
-static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumTypeParametersPos = 0x8;
+    UntaggedFunctionType_kPackedNumTypeParametersPos = 0x0;
 static constexpr dart::compiler::target::word
     UntaggedFunctionType_kPackedNumTypeParametersSize = 0x8;
 static constexpr dart::compiler::target::word
@@ -5837,11 +5813,7 @@ static constexpr dart::compiler::target::word UntaggedFunction_kAsync = 0x1;
 static constexpr dart::compiler::target::word UntaggedFunction_kSyncGen = 0x2;
 static constexpr dart::compiler::target::word UntaggedFunction_kAsyncGen = 0x3;
 static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumParentTypeArgumentsPos = 0x0;
-static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumParentTypeArgumentsSize = 0x8;
-static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumTypeParametersPos = 0x8;
+    UntaggedFunctionType_kPackedNumTypeParametersPos = 0x0;
 static constexpr dart::compiler::target::word
     UntaggedFunctionType_kPackedNumTypeParametersSize = 0x8;
 static constexpr dart::compiler::target::word
@@ -6768,11 +6740,7 @@ static constexpr dart::compiler::target::word UntaggedFunction_kAsync = 0x1;
 static constexpr dart::compiler::target::word UntaggedFunction_kSyncGen = 0x2;
 static constexpr dart::compiler::target::word UntaggedFunction_kAsyncGen = 0x3;
 static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumParentTypeArgumentsPos = 0x0;
-static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumParentTypeArgumentsSize = 0x8;
-static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumTypeParametersPos = 0x8;
+    UntaggedFunctionType_kPackedNumTypeParametersPos = 0x0;
 static constexpr dart::compiler::target::word
     UntaggedFunctionType_kPackedNumTypeParametersSize = 0x8;
 static constexpr dart::compiler::target::word
@@ -7700,11 +7668,7 @@ static constexpr dart::compiler::target::word UntaggedFunction_kAsync = 0x1;
 static constexpr dart::compiler::target::word UntaggedFunction_kSyncGen = 0x2;
 static constexpr dart::compiler::target::word UntaggedFunction_kAsyncGen = 0x3;
 static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumParentTypeArgumentsPos = 0x0;
-static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumParentTypeArgumentsSize = 0x8;
-static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumTypeParametersPos = 0x8;
+    UntaggedFunctionType_kPackedNumTypeParametersPos = 0x0;
 static constexpr dart::compiler::target::word
     UntaggedFunctionType_kPackedNumTypeParametersSize = 0x8;
 static constexpr dart::compiler::target::word
@@ -8622,11 +8586,7 @@ static constexpr dart::compiler::target::word UntaggedFunction_kAsync = 0x1;
 static constexpr dart::compiler::target::word UntaggedFunction_kSyncGen = 0x2;
 static constexpr dart::compiler::target::word UntaggedFunction_kAsyncGen = 0x3;
 static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumParentTypeArgumentsPos = 0x0;
-static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumParentTypeArgumentsSize = 0x8;
-static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumTypeParametersPos = 0x8;
+    UntaggedFunctionType_kPackedNumTypeParametersPos = 0x0;
 static constexpr dart::compiler::target::word
     UntaggedFunctionType_kPackedNumTypeParametersSize = 0x8;
 static constexpr dart::compiler::target::word
@@ -9548,11 +9508,7 @@ static constexpr dart::compiler::target::word UntaggedFunction_kAsync = 0x1;
 static constexpr dart::compiler::target::word UntaggedFunction_kSyncGen = 0x2;
 static constexpr dart::compiler::target::word UntaggedFunction_kAsyncGen = 0x3;
 static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumParentTypeArgumentsPos = 0x0;
-static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumParentTypeArgumentsSize = 0x8;
-static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumTypeParametersPos = 0x8;
+    UntaggedFunctionType_kPackedNumTypeParametersPos = 0x0;
 static constexpr dart::compiler::target::word
     UntaggedFunctionType_kPackedNumTypeParametersSize = 0x8;
 static constexpr dart::compiler::target::word
@@ -10469,11 +10425,7 @@ static constexpr dart::compiler::target::word UntaggedFunction_kAsync = 0x1;
 static constexpr dart::compiler::target::word UntaggedFunction_kSyncGen = 0x2;
 static constexpr dart::compiler::target::word UntaggedFunction_kAsyncGen = 0x3;
 static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumParentTypeArgumentsPos = 0x0;
-static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumParentTypeArgumentsSize = 0x8;
-static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumTypeParametersPos = 0x8;
+    UntaggedFunctionType_kPackedNumTypeParametersPos = 0x0;
 static constexpr dart::compiler::target::word
     UntaggedFunctionType_kPackedNumTypeParametersSize = 0x8;
 static constexpr dart::compiler::target::word
@@ -11398,11 +11350,7 @@ static constexpr dart::compiler::target::word UntaggedFunction_kAsync = 0x1;
 static constexpr dart::compiler::target::word UntaggedFunction_kSyncGen = 0x2;
 static constexpr dart::compiler::target::word UntaggedFunction_kAsyncGen = 0x3;
 static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumParentTypeArgumentsPos = 0x0;
-static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumParentTypeArgumentsSize = 0x8;
-static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumTypeParametersPos = 0x8;
+    UntaggedFunctionType_kPackedNumTypeParametersPos = 0x0;
 static constexpr dart::compiler::target::word
     UntaggedFunctionType_kPackedNumTypeParametersSize = 0x8;
 static constexpr dart::compiler::target::word
@@ -12324,11 +12272,7 @@ static constexpr dart::compiler::target::word UntaggedFunction_kAsync = 0x1;
 static constexpr dart::compiler::target::word UntaggedFunction_kSyncGen = 0x2;
 static constexpr dart::compiler::target::word UntaggedFunction_kAsyncGen = 0x3;
 static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumParentTypeArgumentsPos = 0x0;
-static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumParentTypeArgumentsSize = 0x8;
-static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumTypeParametersPos = 0x8;
+    UntaggedFunctionType_kPackedNumTypeParametersPos = 0x0;
 static constexpr dart::compiler::target::word
     UntaggedFunctionType_kPackedNumTypeParametersSize = 0x8;
 static constexpr dart::compiler::target::word
@@ -13251,11 +13195,7 @@ static constexpr dart::compiler::target::word UntaggedFunction_kAsync = 0x1;
 static constexpr dart::compiler::target::word UntaggedFunction_kSyncGen = 0x2;
 static constexpr dart::compiler::target::word UntaggedFunction_kAsyncGen = 0x3;
 static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumParentTypeArgumentsPos = 0x0;
-static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumParentTypeArgumentsSize = 0x8;
-static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumTypeParametersPos = 0x8;
+    UntaggedFunctionType_kPackedNumTypeParametersPos = 0x0;
 static constexpr dart::compiler::target::word
     UntaggedFunctionType_kPackedNumTypeParametersSize = 0x8;
 static constexpr dart::compiler::target::word
@@ -14174,11 +14114,7 @@ static constexpr dart::compiler::target::word UntaggedFunction_kAsync = 0x1;
 static constexpr dart::compiler::target::word UntaggedFunction_kSyncGen = 0x2;
 static constexpr dart::compiler::target::word UntaggedFunction_kAsyncGen = 0x3;
 static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumParentTypeArgumentsPos = 0x0;
-static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumParentTypeArgumentsSize = 0x8;
-static constexpr dart::compiler::target::word
-    UntaggedFunctionType_kPackedNumTypeParametersPos = 0x8;
+    UntaggedFunctionType_kPackedNumTypeParametersPos = 0x0;
 static constexpr dart::compiler::target::word
     UntaggedFunctionType_kPackedNumTypeParametersSize = 0x8;
 static constexpr dart::compiler::target::word
@@ -15125,11 +15061,7 @@ static constexpr dart::compiler::target::word AOT_UntaggedFunction_kSyncGen =
 static constexpr dart::compiler::target::word AOT_UntaggedFunction_kAsyncGen =
     0x3;
 static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumParentTypeArgumentsPos = 0x0;
-static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumParentTypeArgumentsSize = 0x8;
-static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumTypeParametersPos = 0x8;
+    AOT_UntaggedFunctionType_kPackedNumTypeParametersPos = 0x0;
 static constexpr dart::compiler::target::word
     AOT_UntaggedFunctionType_kPackedNumTypeParametersSize = 0x8;
 static constexpr dart::compiler::target::word
@@ -16153,11 +16085,7 @@ static constexpr dart::compiler::target::word AOT_UntaggedFunction_kSyncGen =
 static constexpr dart::compiler::target::word AOT_UntaggedFunction_kAsyncGen =
     0x3;
 static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumParentTypeArgumentsPos = 0x0;
-static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumParentTypeArgumentsSize = 0x8;
-static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumTypeParametersPos = 0x8;
+    AOT_UntaggedFunctionType_kPackedNumTypeParametersPos = 0x0;
 static constexpr dart::compiler::target::word
     AOT_UntaggedFunctionType_kPackedNumTypeParametersSize = 0x8;
 static constexpr dart::compiler::target::word
@@ -17192,11 +17120,7 @@ static constexpr dart::compiler::target::word AOT_UntaggedFunction_kSyncGen =
 static constexpr dart::compiler::target::word AOT_UntaggedFunction_kAsyncGen =
     0x3;
 static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumParentTypeArgumentsPos = 0x0;
-static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumParentTypeArgumentsSize = 0x8;
-static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumTypeParametersPos = 0x8;
+    AOT_UntaggedFunctionType_kPackedNumTypeParametersPos = 0x0;
 static constexpr dart::compiler::target::word
     AOT_UntaggedFunctionType_kPackedNumTypeParametersSize = 0x8;
 static constexpr dart::compiler::target::word
@@ -18227,11 +18151,7 @@ static constexpr dart::compiler::target::word AOT_UntaggedFunction_kSyncGen =
 static constexpr dart::compiler::target::word AOT_UntaggedFunction_kAsyncGen =
     0x3;
 static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumParentTypeArgumentsPos = 0x0;
-static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumParentTypeArgumentsSize = 0x8;
-static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumTypeParametersPos = 0x8;
+    AOT_UntaggedFunctionType_kPackedNumTypeParametersPos = 0x0;
 static constexpr dart::compiler::target::word
     AOT_UntaggedFunctionType_kPackedNumTypeParametersSize = 0x8;
 static constexpr dart::compiler::target::word
@@ -19262,11 +19182,7 @@ static constexpr dart::compiler::target::word AOT_UntaggedFunction_kSyncGen =
 static constexpr dart::compiler::target::word AOT_UntaggedFunction_kAsyncGen =
     0x3;
 static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumParentTypeArgumentsPos = 0x0;
-static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumParentTypeArgumentsSize = 0x8;
-static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumTypeParametersPos = 0x8;
+    AOT_UntaggedFunctionType_kPackedNumTypeParametersPos = 0x0;
 static constexpr dart::compiler::target::word
     AOT_UntaggedFunctionType_kPackedNumTypeParametersSize = 0x8;
 static constexpr dart::compiler::target::word
@@ -20299,11 +20215,7 @@ static constexpr dart::compiler::target::word AOT_UntaggedFunction_kSyncGen =
 static constexpr dart::compiler::target::word AOT_UntaggedFunction_kAsyncGen =
     0x3;
 static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumParentTypeArgumentsPos = 0x0;
-static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumParentTypeArgumentsSize = 0x8;
-static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumTypeParametersPos = 0x8;
+    AOT_UntaggedFunctionType_kPackedNumTypeParametersPos = 0x0;
 static constexpr dart::compiler::target::word
     AOT_UntaggedFunctionType_kPackedNumTypeParametersSize = 0x8;
 static constexpr dart::compiler::target::word
@@ -21328,11 +21240,7 @@ static constexpr dart::compiler::target::word AOT_UntaggedFunction_kSyncGen =
 static constexpr dart::compiler::target::word AOT_UntaggedFunction_kAsyncGen =
     0x3;
 static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumParentTypeArgumentsPos = 0x0;
-static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumParentTypeArgumentsSize = 0x8;
-static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumTypeParametersPos = 0x8;
+    AOT_UntaggedFunctionType_kPackedNumTypeParametersPos = 0x0;
 static constexpr dart::compiler::target::word
     AOT_UntaggedFunctionType_kPackedNumTypeParametersSize = 0x8;
 static constexpr dart::compiler::target::word
@@ -22359,11 +22267,7 @@ static constexpr dart::compiler::target::word AOT_UntaggedFunction_kSyncGen =
 static constexpr dart::compiler::target::word AOT_UntaggedFunction_kAsyncGen =
     0x3;
 static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumParentTypeArgumentsPos = 0x0;
-static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumParentTypeArgumentsSize = 0x8;
-static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumTypeParametersPos = 0x8;
+    AOT_UntaggedFunctionType_kPackedNumTypeParametersPos = 0x0;
 static constexpr dart::compiler::target::word
     AOT_UntaggedFunctionType_kPackedNumTypeParametersSize = 0x8;
 static constexpr dart::compiler::target::word
@@ -23378,11 +23282,7 @@ static constexpr dart::compiler::target::word AOT_UntaggedFunction_kSyncGen =
 static constexpr dart::compiler::target::word AOT_UntaggedFunction_kAsyncGen =
     0x3;
 static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumParentTypeArgumentsPos = 0x0;
-static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumParentTypeArgumentsSize = 0x8;
-static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumTypeParametersPos = 0x8;
+    AOT_UntaggedFunctionType_kPackedNumTypeParametersPos = 0x0;
 static constexpr dart::compiler::target::word
     AOT_UntaggedFunctionType_kPackedNumTypeParametersSize = 0x8;
 static constexpr dart::compiler::target::word
@@ -24408,11 +24308,7 @@ static constexpr dart::compiler::target::word AOT_UntaggedFunction_kSyncGen =
 static constexpr dart::compiler::target::word AOT_UntaggedFunction_kAsyncGen =
     0x3;
 static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumParentTypeArgumentsPos = 0x0;
-static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumParentTypeArgumentsSize = 0x8;
-static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumTypeParametersPos = 0x8;
+    AOT_UntaggedFunctionType_kPackedNumTypeParametersPos = 0x0;
 static constexpr dart::compiler::target::word
     AOT_UntaggedFunctionType_kPackedNumTypeParametersSize = 0x8;
 static constexpr dart::compiler::target::word
@@ -25434,11 +25330,7 @@ static constexpr dart::compiler::target::word AOT_UntaggedFunction_kSyncGen =
 static constexpr dart::compiler::target::word AOT_UntaggedFunction_kAsyncGen =
     0x3;
 static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumParentTypeArgumentsPos = 0x0;
-static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumParentTypeArgumentsSize = 0x8;
-static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumTypeParametersPos = 0x8;
+    AOT_UntaggedFunctionType_kPackedNumTypeParametersPos = 0x0;
 static constexpr dart::compiler::target::word
     AOT_UntaggedFunctionType_kPackedNumTypeParametersSize = 0x8;
 static constexpr dart::compiler::target::word
@@ -26460,11 +26352,7 @@ static constexpr dart::compiler::target::word AOT_UntaggedFunction_kSyncGen =
 static constexpr dart::compiler::target::word AOT_UntaggedFunction_kAsyncGen =
     0x3;
 static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumParentTypeArgumentsPos = 0x0;
-static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumParentTypeArgumentsSize = 0x8;
-static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumTypeParametersPos = 0x8;
+    AOT_UntaggedFunctionType_kPackedNumTypeParametersPos = 0x0;
 static constexpr dart::compiler::target::word
     AOT_UntaggedFunctionType_kPackedNumTypeParametersSize = 0x8;
 static constexpr dart::compiler::target::word
@@ -27488,11 +27376,7 @@ static constexpr dart::compiler::target::word AOT_UntaggedFunction_kSyncGen =
 static constexpr dart::compiler::target::word AOT_UntaggedFunction_kAsyncGen =
     0x3;
 static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumParentTypeArgumentsPos = 0x0;
-static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumParentTypeArgumentsSize = 0x8;
-static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumTypeParametersPos = 0x8;
+    AOT_UntaggedFunctionType_kPackedNumTypeParametersPos = 0x0;
 static constexpr dart::compiler::target::word
     AOT_UntaggedFunctionType_kPackedNumTypeParametersSize = 0x8;
 static constexpr dart::compiler::target::word
@@ -28508,11 +28392,7 @@ static constexpr dart::compiler::target::word AOT_UntaggedFunction_kSyncGen =
 static constexpr dart::compiler::target::word AOT_UntaggedFunction_kAsyncGen =
     0x3;
 static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumParentTypeArgumentsPos = 0x0;
-static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumParentTypeArgumentsSize = 0x8;
-static constexpr dart::compiler::target::word
-    AOT_UntaggedFunctionType_kPackedNumTypeParametersPos = 0x8;
+    AOT_UntaggedFunctionType_kPackedNumTypeParametersPos = 0x0;
 static constexpr dart::compiler::target::word
     AOT_UntaggedFunctionType_kPackedNumTypeParametersSize = 0x8;
 static constexpr dart::compiler::target::word

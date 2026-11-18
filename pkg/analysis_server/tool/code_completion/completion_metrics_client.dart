@@ -540,10 +540,11 @@ class _CompletionClientMetricsComputer extends CompletionMetricsComputer {
     ExpectedCompletion expectedCompletion,
     AnalysisContext context,
   ) async {
+    assert(expectedCompletion.syntacticEntity.length >= options.prefixLength);
     var stopwatch = Stopwatch()..start();
     var suggestionsData = await client.requestCompletion(
       expectedCompletion.filePath,
-      expectedCompletion.offset,
+      expectedCompletion.offset + options.prefixLength,
       1000,
     );
     stopwatch.stop();

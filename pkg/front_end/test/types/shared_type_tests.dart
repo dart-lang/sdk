@@ -668,6 +668,19 @@ abstract class SubtypeTest<T, E> {
     isSubtype('T', 'Never', functionTypeTypeParameters: 'T extends Never');
     isSubtype('T & Never', 'Never', typeParameters: 'T extends Object');
 
+    // Testing intersection types against `Null`.
+    isSubtype('T & Never', 'Null', typeParameters: 'T extends Object');
+    isSubtype('T & Never', 'Null', typeParameters: 'T extends Object?');
+    isSubtype('T & Never', 'Null', typeParameters: 'T extends Null');
+    isSubtype('T & Never', 'T & Null', typeParameters: 'T extends Object?');
+    isSubtype(
+      'T & S',
+      'Null',
+      typeParameters: 'T extends Object?, S extends Never',
+    );
+    isSubtype('T & Null', 'Null', typeParameters: 'T extends Object?');
+    isNotSubtype('T & int', 'Null', typeParameters: 'T extends Object?');
+
     // Testing bottom types against type-parameter types.
     isSubtype('Null', 'T?', typeParameters: 'T extends Object');
     isSubtype('Null', 'T?', functionTypeTypeParameters: 'T extends Object');
@@ -1434,6 +1447,17 @@ abstract class SubtypeTest<T, E> {
     isNotSubtype("(int, String)?", "(int, String)");
     isSubtype("Null", "(int, String)?");
     isNotSubtype("(int, String)?", "Record");
+
+    // Records against typedef types.
+    isSubtype("(int, String)", "Id<(int, String)>");
+    isSubtype("(int, String)", "Id<(num, Object)>");
+    isSubtype("(int, {String foo})", "Id<(num, {Object foo})>");
+    isSubtype("(int, String)", "Id<(num, Object)?>");
+    isSubtype("(int, String)", "Id<(num, Object)>?");
+    isSubtype("(int, String)", "Id<Record>");
+    isSubtype("(int, String)", "Id<Object>");
+    isNotSubtype("(num, Object)", "Id<(int, String)>");
+    isNotSubtype("(int, String)?", "Id<(num, Object)>");
 
     // Tests for extension types.
     isSubtype("Never", "NullableExtensionType");

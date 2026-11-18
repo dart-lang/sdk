@@ -90,37 +90,37 @@ B2 = JoinBlock(B0, B2) idom:B0 loop-header (depth:1 body:(B2) back-edges:(B2))
   Goto(B2)
 
 --- irreducible
-B0 = EntryBlock() dominates:(B8, B34, B4, B3, B7)
-  v5 = Constant(1)
-  v11 = Constant(2)
+B0 = EntryBlock() dominates:(B6, B34, B15, B8, B5)
+  v3 = Constant(1)
+  v10 = Constant(2)
   v27 = Constant(10)
   v38 = Constant(null)
   v1 = Parameter(i)
-  v6 = Comparison int ==(v1, v5)
-  Branch(v6, true: B7, false: B8)
-B7 = TargetBlock() idom:B0
-  Goto(B3)
-B8 = TargetBlock() idom:B0 dominates:(B14, B13)
-  v12 = Comparison int ==(v1, v11)
-  Branch(v12, true: B13, false: B14)
-B13 = TargetBlock() idom:B8
-  Goto(B4)
-B4 = JoinBlock(B13, B3) idom:B0 dominates:(B30, B29)
+  v4 = Comparison int ==(v1, v3)
+  Branch(v4, true: B5, false: B6)
+B5 = TargetBlock() idom:B0
+  Goto(B8)
+B6 = TargetBlock() idom:B0 dominates:(B13, B12)
+  v11 = Comparison int ==(v1, v10)
+  Branch(v11, true: B12, false: B13)
+B12 = TargetBlock() idom:B6
+  Goto(B15)
+B15 = JoinBlock(B12, B8) idom:B0 dominates:(B30, B29)
   v40 = Phi(v1, v20)
-  v24 = BinaryIntOp +(v40, v11)
+  v24 = BinaryIntOp +(v40, v10)
   v28 = Comparison int >(v24, v27)
   Branch(v28, true: B29, false: B30)
-B29 = TargetBlock() idom:B4
+B29 = TargetBlock() idom:B15
   Goto(B34)
-B30 = TargetBlock() idom:B4
-  Goto(B3)
-B3 = JoinBlock(B30, B7) idom:B0
+B30 = TargetBlock() idom:B15
+  Goto(B8)
+B8 = JoinBlock(B30, B5) idom:B0
   v41 = Phi(v24, v1)
-  v20 = BinaryIntOp +(v41, v5)
-  Goto(B4)
-B14 = TargetBlock() idom:B8
+  v20 = BinaryIntOp +(v41, v3)
+  Goto(B15)
+B13 = TargetBlock() idom:B6
   Goto(B34)
-B34 = JoinBlock(B14, B29) idom:B0
+B34 = JoinBlock(B13, B29) idom:B0
   Return(v38)
 
 --- withTryBlock

@@ -1492,7 +1492,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     });
   }
 
-  static const kCallSitesReport = '_CallSites';
+  static const kCoverageReport = 'Coverage';
   static const kPossibleBreakpointsReport = 'PossibleBreakpoints';
   static const kProfileReport = '_Profile';
 
@@ -3556,66 +3556,6 @@ class ScriptLine {
       breakpoints = null;
     }
   }
-}
-
-class CallSite {
-  final String name;
-  // TODO(turnidge): Use SourceLocation here instead.
-  final Script script;
-  final int tokenPos;
-  final List<CallSiteEntry> entries;
-
-  CallSite(this.name, this.script, this.tokenPos, this.entries);
-
-  int get line => script.tokenToLine(tokenPos)!;
-  int get column => script.tokenToCol(tokenPos)!;
-
-  int get aggregateCount {
-    var count = 0;
-    for (var entry in entries) {
-      count += entry.count;
-    }
-    return count;
-  }
-
-  factory CallSite.fromMap(Map siteMap, Script script) {
-    var name = siteMap['name'];
-    var tokenPos = siteMap['tokenPos'];
-    var entries = <CallSiteEntry>[];
-    for (var entryMap in siteMap['cacheEntries']) {
-      entries.add(new CallSiteEntry.fromMap(entryMap));
-    }
-    return new CallSite(name, script, tokenPos, entries);
-  }
-
-  bool operator ==(Object other) {
-    if (other is CallSite) {
-      return (script == other.script) && (tokenPos == other.tokenPos);
-    }
-    return false;
-  }
-
-  int get hashCode => (script.hashCode << 8) | tokenPos;
-
-  String toString() => "CallSite($name, $tokenPos)";
-}
-
-class CallSiteEntry {
-  final /* Class | Library */ receiver;
-  final int count;
-  final ServiceFunction target;
-
-  CallSiteEntry(this.receiver, this.count, this.target);
-
-  factory CallSiteEntry.fromMap(Map entryMap) {
-    return new CallSiteEntry(
-      entryMap['receiver'],
-      entryMap['count'],
-      entryMap['target'],
-    );
-  }
-
-  String toString() => "CallSiteEntry(${receiver.name}, $count)";
 }
 
 /// The location of a local variable reference in a script.

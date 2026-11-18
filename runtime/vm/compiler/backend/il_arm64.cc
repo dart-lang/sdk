@@ -3971,6 +3971,8 @@ Condition DoubleTestOpInstr::EmitConditionCode(FlowGraphCompiler* compiler,
   V(Int32x4BitXor, veor)                                                       \
   V(Int32x4Equal, vceqw)                                                       \
   V(Int32x4AndNot, vbic)                                                       \
+  V(Int32x4GreaterThan, vcgtw)                                                 \
+  V(Int32x4GreaterThanOrEqual, vcgew)                                          \
   V(Float32x4Equal, vceqs)                                                     \
   V(Float32x4GreaterThan, vcgts)                                               \
   V(Float32x4GreaterThanOrEqual, vcges)
@@ -4132,6 +4134,8 @@ DEFINE_EMIT(SimdBinaryOp, (VRegister result, VRegister left, VRegister right)) {
   SIMD_OP_FLOAT_ARITH(V, Negate, vneg)                                         \
   SIMD_OP_FLOAT_ARITH(V, Abs, vabs)                                            \
   V(Int32x4Not, vnot)                                                          \
+  V(Int32x4Negate, vnegw)                                                      \
+  V(Int32x4Abs, vabsw)                                                         \
   V(Float32x4Reciprocal, VRecps)                                               \
   V(Float32x4ReciprocalSqrt, VRSqrts)
 

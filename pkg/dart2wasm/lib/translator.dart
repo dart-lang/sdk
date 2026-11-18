@@ -205,11 +205,6 @@ class Translator with KernelNodes {
   final Map<Field, int> fieldIndex = {};
   final Map<TypeParameter, int> typeParameterIndex = {};
   final Map<Reference, ParameterInfo> staticParamInfo = {};
-  final Map<Field, w.Table> _declaredFieldTables = {};
-  late final WasmTableImporter _importedFieldTables = WasmTableImporter(
-    this,
-    'fieldTable',
-  );
   final Set<Member> membersContainingInnerFunctions = {};
   final Set<Member> membersBeingGenerated = {};
   final Map<Reference, Closures> constructorClosures = {};
@@ -219,6 +214,10 @@ class Translator with KernelNodes {
     nullable: true,
   );
   final Map<Procedure, w.Memory> _memories = {};
+  final Map<Procedure, w.Table> _tables = {};
+
+  /// Globals created for `extern Global<WasmI64> global` definitions.
+  final Map<Procedure, w.Global> _globalsForGlobalInterop = {};
 
   // Lazily import FFI memory if used.
   final _ffiMemoryImports = <w.ModuleBuilder, w.Memory>{};
@@ -853,6 +852,10 @@ class Translator with KernelNodes {
   late final WasmMemoryImporter _importedMemories = WasmMemoryImporter(
     this,
     'memory',
+  );
+  late final WasmTableImporter _importedTables = WasmTableImporter(
+    this,
+    'table',
   );
 
   /// Generates a set of instructions to call [function] adding indirection
@@ -1919,36 +1922,6 @@ class Translator with KernelNodes {
     return classInfo[cls]!.repr.withNullability(nullable);
   }
 
-  /// Get the Wasm table declared by [field], or `null` if [field] is not a
-  /// declaration of a Wasm table.
-  ///
-  /// This function participates in tree shaking in the sense that if it's
-  /// never called for a particular table declaration, that table is not added
-  /// to the output module.
-  w.Table? getTable(w.ModuleBuilder module, Field field) {
-    DartType fieldType = field.type;
-    if (fieldType is! InterfaceType || fieldType.classNode != wasmTableClass) {
-      return null;
-    }
-    final mainTable = _declaredFieldTables.putIfAbsent(field, () {
-      w.RefType elementType =
-          translateType(fieldType.typeArguments.single) as w.RefType;
-      Expression sizeExp = (field.initializer as ConstructorInvocation)
-          .arguments
-          .positional
-          .single;
-      if (sizeExp is StaticGet && sizeExp.target is Field) {
-        sizeExp = (sizeExp.target as Field).initializer!;
-      }
-      int size = sizeExp is ConstantExpression
-          ? (sizeExp.constant as IntConstant).value
-          : (sizeExp as IntLiteral).value;
-      return mainModule.tables.define(elementType, size);
-    });
-
-    return _importedFieldTables.get(mainTable, module);
-  }
-
   Member? singleTarget(TreeNode node) {
     return directCallMetadata[node]?.targetMember;
   }
@@ -2659,6 +2632,105 @@ class Translator with KernelNodes {
         }
       }
       return memory;
+    });
+  }
+
+  w.Global interopGlobal(Procedure topLevelExternalGlobalGetter) {
+    return _globalsForGlobalInterop.putIfAbsent(
+      topLevelExternalGlobalGetter,
+      () {
+        final module = moduleForReference(
+          topLevelExternalGlobalGetter.reference,
+        );
+        final import = util.getWasmImportPragma(
+          coreTypes,
+          topLevelExternalGlobalGetter,
+        );
+        final exportName = interopMemberNamer.getExportName(
+          topLevelExternalGlobalGetter,
+        );
+
+        // Either Global<T> or MutableGlobal<T>
+        final dartType =
+            topLevelExternalGlobalGetter.getterType as InterfaceType;
+        final type = w.GlobalType(
+          translateExternalType(dartType.typeArguments[0]),
+          mutable: dartType.classNode == wasmMutableGlobalClass,
+        );
+
+        w.Global wasmGlobal;
+        if (import != null) {
+          wasmGlobal = module.globals.import(
+            import.moduleName,
+            import.itemName,
+            type,
+          );
+        } else {
+          throw UnimplementedError('Non-imported globals');
+        }
+
+        if (exportName != null) {
+          module.exports.export(exportName, wasmGlobal);
+        }
+
+        wasmGlobal.globalName = topLevelExternalGlobalGetter.name.text;
+        return wasmGlobal;
+      },
+    );
+  }
+
+  w.Table findTable(
+    Procedure topLevelExternalTableGetter,
+    w.ModuleBuilder moduleBuilder,
+  ) {
+    final inMain = _findTableForMainModule(topLevelExternalTableGetter);
+    if (moduleBuilder == mainModule) {
+      return inMain;
+    }
+
+    return _importedTables.get(inMain, moduleBuilder);
+  }
+
+  w.Table _findTableForMainModule(Procedure topLevelExternalTableGetter) {
+    return _tables.putIfAbsent(topLevelExternalTableGetter, () {
+      final tableType = WasmTableType.readAnnotation(
+        this,
+        topLevelExternalTableGetter,
+      )!;
+      final returnType =
+          topLevelExternalTableGetter.function.returnType as InterfaceType;
+      assert(returnType.classNode == wasmTableClass);
+      final elementType =
+          translateExternalType(returnType.typeArguments.single) as w.RefType;
+      final import = util.getWasmImportPragma(
+        coreTypes,
+        topLevelExternalTableGetter,
+      );
+      final exportName = interopMemberNamer.getExportName(
+        topLevelExternalTableGetter,
+      );
+
+      final w.Table table;
+      if (import != null) {
+        assert(exportName == null);
+        table = mainModule.tables.import(
+          import.moduleName,
+          import.itemName,
+          elementType,
+          tableType.minSize,
+          tableType.maxSize,
+        );
+      } else {
+        table = mainModule.tables.define(
+          elementType,
+          tableType.minSize,
+          tableType.maxSize,
+        );
+        if (exportName != null) {
+          mainModule.exports.export(exportName, table);
+        }
+      }
+      return table;
     });
   }
 

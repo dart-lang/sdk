@@ -29,6 +29,8 @@ import 'package:cfg/passes/value_numbering.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:test/test.dart';
 import 'package:vm/modular/target/vm.dart';
+import 'package:vm/transformations/unreachable_code_elimination.dart' as uce;
+import 'package:vm/transformations/vm_constant_evaluator.dart';
 
 /// Environment define to update expectation files on failures.
 const kUpdateExpectations = 'updateExpectations';
@@ -47,6 +49,20 @@ Future<void> runTestCase(Uri source) async {
   final coreTypes = CoreTypes(component);
   final coreLibraries = coreTypes.index;
   final hierarchy = ClassHierarchy(component, coreTypes);
+  final mainLibrary = component.mainMethod!.enclosingLibrary;
+  if (File.fromUri(source)
+      .readAsStringSync()
+      .contains('// RunKernelTransformation:UCE')) {
+    final evaluator = VMConstantEvaluator.create(
+      target,
+      component,
+      null,
+      enableAsserts: true,
+      coreTypes: coreTypes,
+      hierarchy: hierarchy,
+    );
+    uce.transformLibraries(target, [mainLibrary], evaluator, true);
+  }
   final typeEnvironment = TypeEnvironment(coreTypes, hierarchy);
 
   String actual = GlobalContext.withContext(
@@ -56,10 +72,7 @@ Future<void> runTestCase(Uri source) async {
     ),
     () {
       final compileAndDump = CompileAndDumpIr();
-
-      final mainLibrary = component.mainMethod!.enclosingLibrary;
       mainLibrary.accept(compileAndDump);
-
       return compileAndDump.buffer.toString();
     },
   );

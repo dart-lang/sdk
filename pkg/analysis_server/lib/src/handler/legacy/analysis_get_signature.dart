@@ -8,6 +8,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/computer/computer_signature.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
+import 'package:analysis_server/src/utilities/extensions/analysis_session.dart';
 
 /// The handler for the `analysis.getSignature` request.
 class AnalysisGetSignatureHandler extends LegacyHandler {
@@ -38,7 +39,7 @@ class AnalysisGetSignatureHandler extends LegacyHandler {
     // Ensure the offset provided is a valid location in the file.
     var unit = result.unit;
     var computer = DartUnitSignatureComputer(
-      server.getDartdocDirectiveInfoFor(result),
+      result.session.dartdocDirectiveInfo,
       unit,
       params.offset,
     );

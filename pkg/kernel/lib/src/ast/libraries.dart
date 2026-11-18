@@ -547,6 +547,21 @@ class LibraryPart extends TreeNode implements Annotatable {
 
   final Uri fileUri;
 
+  static const int IncludedFlag = 1 << 0;
+
+  int flags = 0;
+
+  /// If this [LibraryPart] actually resulted in the file pointed at being
+  /// included.
+  ///
+  /// This will normally be `true`, but if for instance two libraries try to
+  /// claim a part, only the library also pointed to by the part should have
+  /// `true`, the other(s) should have `false`.
+  bool get isIncluded => flags & IncludedFlag != 0;
+  void set isIncluded(bool value) {
+    flags = value ? (flags | IncludedFlag) : (flags & ~IncludedFlag);
+  }
+
   new(this.annotations, this.partUri, this.fileUri) {
     setParents(annotations, this);
   }

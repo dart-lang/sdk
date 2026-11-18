@@ -8,11 +8,7 @@
 
 import "package:expect/expect.dart";
 
-class Contravariant<in T> {}
-
-class Upper {}
-class Middle extends Upper {}
-class Lower extends Middle {}
+import "variance_helper.dart";
 
 class A {
   Contravariant<Middle> method1() {

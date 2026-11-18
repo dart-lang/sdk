@@ -4,6 +4,8 @@
 
 #include "vm/compiler/backend/code_statistics.h"
 
+#include <algorithm>
+
 namespace dart {
 
 CombinedCodeStatistics::CombinedCodeStatistics() {
@@ -56,7 +58,9 @@ void CombinedCodeStatistics::DumpStatistics() {
   for (intptr_t i = 0; i < kNumEntries; i++) {
     sorted[i] = &entries_[i];
   }
-  qsort(sorted, kNumEntries, sizeof(Entry*), &CompareEntries);
+
+  std::stable_sort(sorted, sorted + kNumEntries,
+                   [](auto& a, auto& b) { return a->bytes < b->bytes; });
 
   intptr_t instruction_bytes = 0;
   for (intptr_t i = 0; i < kNumEntries; i++) {
@@ -105,18 +109,6 @@ void CombinedCodeStatistics::DumpStatistics() {
   OS::PrintErr("% 8" Pd " return-constant-with-load-field functions\n",
                return_const_with_load_field_count_);
   OS::PrintErr("--------------------\n");
-}
-
-int CombinedCodeStatistics::CompareEntries(const void* a, const void* b) {
-  const intptr_t a_size = (*static_cast<const Entry* const*>(a))->bytes;
-  const intptr_t b_size = (*static_cast<const Entry* const*>(b))->bytes;
-  if (a_size < b_size) {
-    return -1;
-  } else if (a_size > b_size) {
-    return 1;
-  } else {
-    return 0;
-  }
 }
 
 CodeStatistics::CodeStatistics(compiler::Assembler* assembler)

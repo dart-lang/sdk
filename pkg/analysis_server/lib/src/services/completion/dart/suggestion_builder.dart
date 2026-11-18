@@ -12,6 +12,7 @@ import 'package:analysis_server/src/services/completion/dart/candidate_suggestio
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/dart_completion_suggestion.dart';
 import 'package:analysis_server/src/services/completion/dart/relevance_computer.dart';
+import 'package:analysis_server/src/services/completion/dart/relevance_tables.g.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/element.dart';
@@ -1350,14 +1351,19 @@ class SuggestionBuilder {
       location,
       distance: distance,
     );
-    if (elementKind < 0.0) {
+    if (listener case var listener? when elementKind == 0.0) {
       if (location == null) {
-        listener?.missingCompletionLocationAt(
+        listener.missingCompletionLocationAt(
           request.target.containingNode,
           request.target.entity!,
         );
+      } else if (elementKindRelevance[location] case var locationTable?) {
+        var kind = request.featureComputer.computeElementKind2(element);
+        if (locationTable[kind] == null) {
+          listener.missingElementKindEntryFor(location, kind);
+        }
       } else {
-        listener?.missingElementKindTableFor(location);
+        listener.missingElementKindTableFor(location);
       }
     }
     return elementKind;
@@ -1598,6 +1604,14 @@ abstract class SuggestionListener {
   void missingCompletionLocationAt(
     AstNode containingNode,
     SyntacticEntity entity,
+  );
+
+  /// Invoked when an element kind feature cannot be produced because there is
+  /// no entry for [elementKind] in the `elementKindRelevance` table associated
+  /// with the [completionLocation].
+  void missingElementKindEntryFor(
+    String completionLocation,
+    protocol.ElementKind elementKind,
   );
 
   /// Invoked when an element kind feature cannot be produced because there is

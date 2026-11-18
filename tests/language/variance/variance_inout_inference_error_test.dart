@@ -6,15 +6,7 @@
 
 // SharedOptions=--enable-experiment=variance
 
-class Covariant<out T> {}
-class Contravariant<in T> {}
-class Invariant<inout T> {}
-
-class Exactly<inout T> {}
-
-class Upper {}
-class Middle extends Upper {}
-class Lower extends Middle {}
+import "variance_helper.dart";
 
 Exactly<T> inferInvInv<T>(Invariant<T> x, Invariant<T> y) => new Exactly<T>();
 Exactly<T> inferInvCov<T>(Invariant<T> x, Covariant<T> y) => new Exactly<T>();

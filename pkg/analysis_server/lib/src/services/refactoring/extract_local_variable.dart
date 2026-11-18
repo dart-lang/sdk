@@ -7,22 +7,21 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:language_server_protocol/protocol_generated.dart';
 
-/// The refactoring that extracts an expression into a local variable.
-class ExtractLocalVariable extends RefactoringProducer {
-  static const String commandName = 'dart.refactor.extract_local_variable';
-
-  static const String constTitle = 'Extract Local Variable';
-
+/// Base class for the refactoring that extracts an expression into a
+/// local variable.
+///
+/// [ExtractLocalVariable] extracts only the selected occurrence.
+/// [ExtractLocalVariableAllOccurrences] extracts all occurrences.
+abstract class AbstractExtractLocalVariable extends RefactoringProducer {
   new(super.context);
+
+  bool get extractAll;
 
   @override
   bool get isExperimental => false;
 
   @override
   CodeActionKind get kind => CodeActionKind.RefactorExtract;
-
-  @override
-  String get title => constTitle;
 
   @override
   Future<ComputeStatus> compute(
@@ -58,8 +57,38 @@ class ExtractLocalVariable extends RefactoringProducer {
 
   ExtractLocalRefactoring _createRefactoring() {
     return ExtractLocalRefactoring(unitResult, selectionOffset, selectionLength)
-      // Defaults to true, but may be surprising if users didn't have an option
-      // to opt in.
-      ..extractAll = false;
+      ..extractAll = extractAll;
   }
+}
+
+/// The refactoring that extracts a single expression into a local variable.
+class ExtractLocalVariable extends AbstractExtractLocalVariable {
+  static const String commandName = 'dart.refactor.extract_local_variable';
+
+  static const String constTitle = 'Extract Local Variable';
+
+  new(super.context);
+
+  @override
+  bool get extractAll => false;
+
+  @override
+  String get title => constTitle;
+}
+
+/// The refactoring that extracts all occurrences of an expression into a local
+/// variable.
+class ExtractLocalVariableAllOccurrences extends AbstractExtractLocalVariable {
+  static const String commandName =
+      'dart.refactor.extract_local_variable.allOccurrences';
+
+  static const String constTitle = 'Extract All Occurrences as Local Variable';
+
+  new(super.context);
+
+  @override
+  bool get extractAll => true;
+
+  @override
+  String get title => constTitle;
 }

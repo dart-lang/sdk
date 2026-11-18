@@ -597,22 +597,6 @@ class CodeDescriptor : public ZoneObject {
     return (pc >= Start()) && (pc < end);
   }
 
-  static int Compare(CodeDescriptor* const* a, CodeDescriptor* const* b) {
-    ASSERT(a != nullptr);
-    ASSERT(b != nullptr);
-
-    uword a_start = (*a)->Start();
-    uword b_start = (*b)->Start();
-
-    if (a_start < b_start) {
-      return -1;
-    } else if (a_start > b_start) {
-      return 1;
-    } else {
-      return 0;
-    }
-  }
-
  private:
   const AbstractCode code_;
 

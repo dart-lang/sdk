@@ -17,6 +17,7 @@ import 'package:analysis_server/src/services/completion/yaml/analysis_options_ge
 import 'package:analysis_server/src/services/completion/yaml/fix_data_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/pubspec_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/yaml_completion_generator.dart';
+import 'package:analysis_server/src/utilities/extensions/analysis_session.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 
@@ -170,9 +171,7 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
         libraryFragment: resolvedUnit.libraryFragment,
         offset: offset,
         unit: resolvedUnit.parsedUnit,
-        dartdocDirectiveInfo: server.getDartdocDirectiveInfoForSession(
-          analysisSession,
-        ),
+        dartdocDirectiveInfo: analysisSession.dartdocDirectiveInfo,
       );
       setNewRequest(completionRequest);
 

@@ -150,6 +150,8 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
   /// The offset from the location of each entity passed to
   /// [safelyRecordEntity], to be used as the column for each
   /// [ExpectedCompletion] created.
+  ///
+  /// Entities shorter than this offset are ignored.
   final int _caretOffset;
 
   /// The completions that are expected to be produced in the file being
@@ -182,14 +184,15 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
     protocol.CompletionSuggestionKind? kind,
     protocol.ElementKind? elementKind,
   }) {
-    // Only record if this entity is not null, has a length, etc.
-    if (entity != null && entity.offset >= 0 && entity.length > 0) {
+    // Only record if this entity is not null, has offset/length, etc. and is at
+    // least at long as the caret offset.
+    if (entity != null &&
+        entity.offset >= 0 &&
+        entity.length > 0 &&
+        entity.length >= _caretOffset) {
       var location = lineInfo.getLocation(entity.offset);
       var lineNumber = location.lineNumber;
-      var columnNumber = location.columnNumber;
-      if (entity.length >= _caretOffset) {
-        columnNumber += _caretOffset;
-      }
+      var columnNumber = location.columnNumber + _caretOffset;
 
       bool isKeyword() => kind == protocol.CompletionSuggestionKind.KEYWORD;
 

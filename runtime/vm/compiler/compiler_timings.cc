@@ -4,6 +4,8 @@
 
 #include "vm/compiler/compiler_timings.h"
 
+#include <algorithm>
+
 namespace dart {
 
 namespace {
@@ -54,14 +56,9 @@ void CompilerTimings::PrintTimers(
   for (intptr_t i = 0; i < kNumTimers; i++) {
     by_elapsed[i] = &timers->timers_[i];
   }
-  qsort(by_elapsed, kNumTimers, sizeof(Timer*),
-        [](const void* pa, const void* pb) -> int {
-          const auto a_elapsed =
-              (*static_cast<Timer* const*>(pa))->TotalElapsedTime();
-          const auto b_elapsed =
-              (*static_cast<Timer* const*>(pb))->TotalElapsedTime();
-          return b_elapsed < a_elapsed ? -1 : b_elapsed > a_elapsed ? 1 : 0;
-        });
+  std::stable_sort(by_elapsed, by_elapsed + kNumTimers, [](auto& a, auto& b) {
+    return a->TotalElapsedTime() > b->TotalElapsedTime();
+  });
 
   // Print sorted in descending order.
   for (intptr_t i = 0; i < kNumTimers; i++) {

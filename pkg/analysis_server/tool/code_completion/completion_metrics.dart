@@ -397,6 +397,11 @@ class CompletionMetrics {
   /// The completion locations for which no relevance table was available.
   final Set<String> missingCompletionLocationTables = {};
 
+  /// The element kinds missing from the relevance table for each completion
+  /// location.
+  final Map<String, Set<protocol.ElementKind>>
+  missingCompletionLocationTableEntries = {};
+
   /// A map, keyed by completion location of the missed completions at those
   /// locations.
   Map<String, List<ExpectedCompletion>> missedCompletions = {};
@@ -472,6 +477,15 @@ class CompletionMetrics {
         in map['missingCompletionLocationTables'] as List<dynamic>) {
       metrics.missingCompletionLocationTables.add(element as String);
     }
+    if (map['missingCompletionLocationTableEntries']
+        case Map<String, Object?> entries) {
+      for (var entry in entries.entries) {
+        metrics.missingCompletionLocationTableEntries[entry.key] = {
+          for (var kind in entry.value as List<Object?>)
+            protocol.ElementKind.values.byName(kind as String),
+        };
+      }
+    }
     metrics.slowestResults.addAll([
       for (var result in map['slowestResults'] as List<dynamic>)
         CompletionResult.fromJson(result as Map<String, dynamic>),
@@ -516,6 +530,11 @@ class CompletionMetrics {
     missingCompletionLocationTables.addAll(
       metrics.missingCompletionLocationTables,
     );
+    for (var entry in metrics.missingCompletionLocationTableEntries.entries) {
+      missingCompletionLocationTableEntries
+          .putIfAbsent(entry.key, () => {})
+          .addAll(entry.value);
+    }
     for (var result in metrics.slowestResults) {
       _recordSlowestResult(result);
     }
@@ -605,6 +624,11 @@ class CompletionMetrics {
       'missingCompletionLocations': missingCompletionLocations.toList(),
       'missingCompletionLocationTables': missingCompletionLocationTables
           .toList(),
+      'missingCompletionLocationTableEntries':
+          missingCompletionLocationTableEntries.map(
+            (key, value) =>
+                MapEntry(key, value.map((kind) => kind.name).toList()),
+          ),
       'slowestResults': slowestResults
           .map((result) => result.toJson())
           .toList(),
@@ -627,6 +651,13 @@ class CompletionMetrics {
       location = listener.missingCompletionLocationTable;
       if (location != null) {
         missingCompletionLocationTables.add(location);
+      } else {
+        for (var entry
+            in listener.missingCompletionLocationTableEntries.entries) {
+          missingCompletionLocationTableEntries
+              .putIfAbsent(entry.key, () => {})
+              .addAll(entry.value);
+        }
       }
     }
   }
@@ -827,6 +858,25 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
     }
   }
 
+  /// Compare the default relevance computation against disabling only the
+  /// generated relevance tables and disabling relevance scores entirely.
+  void compareRelevanceModes() {
+    targetMetrics.add(
+      CompletionMetrics(
+        'no relevance tables',
+        enableFunction: () => useRelevanceTables = false,
+        disableFunction: () => useRelevanceTables = true,
+      ),
+    );
+    targetMetrics.add(
+      CompletionMetrics(
+        'no relevance scores',
+        enableFunction: () => useRelevanceScores = false,
+        disableFunction: () => useRelevanceScores = true,
+      ),
+    );
+  }
+
   /// Compare the relevance [tables] to the default relevance tables.
   void compareRelevanceTables(List<RelevanceTables> tables) {
     assert(tables.isNotEmpty);
@@ -853,6 +903,10 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
     // object with enable and disable functions to the list of `targetMetrics`.
     targetMetrics.add(CompletionMetrics('shipping'));
 
+    // To compare the default relevance computation against disabling relevance
+    // tables and disabling relevance scores entirely, uncomment the line below.
+    //    compareRelevanceModes();
+
     // To compare two or more relevance tables, uncomment the line below and
     // add the `RelevanceTables` to the list. The default relevance tables
     // should not be included in the list.
@@ -878,10 +932,11 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
       required MetricsSuggestionListener listener,
       required CompletionMetrics metrics,
     }) async {
+      assert(expectedCompletion.syntacticEntity.length >= options.prefixLength);
       var stopwatch = Stopwatch()..start();
       var request = DartCompletionRequest.forResolvedUnit(
         resolvedUnit: resolvedUnitResult,
-        offset: expectedCompletion.offset,
+        offset: expectedCompletion.offset + options.prefixLength,
       );
 
       var opType = OpType.forCompletion(request.target, request.offset);
@@ -984,10 +1039,16 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
       var charsBeforeTop = _computeCharsBeforeTop(
         expectedCompletion,
         suggestions,
+        targetRank: rank,
       );
       metrics.charsBeforeTop.addValue(charsBeforeTop);
       metrics.charsBeforeTopFive.addValue(
-        _computeCharsBeforeTop(expectedCompletion, suggestions, minRank: 5),
+        _computeCharsBeforeTop(
+          expectedCompletion,
+          suggestions,
+          targetRank: rank,
+          minRank: 5,
+        ),
       );
       metrics.insertionLengthTheoretical.addValue(
         expectedCompletion.completion.length - charsBeforeTop,
@@ -1250,6 +1311,22 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
         print('- $table');
       }
     }
+
+    var tableEntries = metrics.missingCompletionLocationTableEntries;
+    if (tableEntries.isNotEmpty) {
+      print('');
+      printHeading(
+        2,
+        'Missing element kinds in tables for the following completion '
+        'locations',
+      );
+      var entries = tableEntries.entries.toList()
+        ..sort((first, second) => first.key.compareTo(second.key));
+      for (var entry in entries) {
+        var kinds = entry.value.map((kind) => kind.name).toList()..sort();
+        print('- ${entry.key}: ${kinds.join(', ')}');
+      }
+    }
   }
 
   void printMrrComparison() {
@@ -1478,21 +1555,36 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
   @override
   void setupForResolution(AnalysisContext context) {}
 
+  /// Computes the number of characters that need to be typed before [target]
+  /// with [targetRank] would be in the top [minRank] results.
   int _computeCharsBeforeTop(
     ExpectedCompletion target,
     List<CandidateSuggestion> suggestions, {
+    required int targetRank,
     int minRank = 1,
   }) {
-    var rank = placementInSuggestionList(suggestions, target).rank;
-    if (rank <= minRank) {
+    if (targetRank <= minRank) {
       return 0;
     }
+    // Ranks are 1-based, so `target` is at index `targetRank - 1`. Only
+    // suggestions before `targetIndex` can still rank ahead of `target` after
+    // filtering, so we only need to check those, not the entire list.
+    var targetIndex = targetRank - 1;
     var expected = target.completion;
     for (var i = 1; i < expected.length + 1; i++) {
       var prefix = expected.substring(0, i);
-      var filteredSuggestions = _filterSuggestions(prefix, suggestions);
-      rank = placementInSuggestionList(filteredSuggestions, target).rank;
-      if (rank <= minRank) {
+      var newRank = 1;
+      for (var j = 0; j < targetIndex; j++) {
+        // TODO(brianwilkerson): Replace `startsWith` with a more realistic
+        //  filtering algorithm.
+        if (suggestions[j].completion.startsWith(prefix)) {
+          newRank++;
+          if (newRank > minRank) {
+            break;
+          }
+        }
+      }
+      if (newRank <= minRank) {
         return i;
       }
     }
@@ -1519,17 +1611,6 @@ class CompletionQualityMetricsComputer extends CompletionMetricsComputer {
           maxSuggestions: -1,
         );
     return collector.suggestions;
-  }
-
-  List<CandidateSuggestion> _filterSuggestions(
-    String prefix,
-    List<CandidateSuggestion> suggestions,
-  ) {
-    // TODO(brianwilkerson): Replace this with a more realistic filtering
-    //  algorithm.
-    return suggestions
-        .where((suggestion) => suggestion.completion.startsWith(prefix))
-        .toList();
   }
 
   void _printWorstResults(String title, List<CompletionResult> worstResults) {
@@ -1854,6 +1935,9 @@ class MetricsSuggestionListener implements SuggestionListener {
 
   String? missingCompletionLocationTable;
 
+  final Map<String, Set<protocol.ElementKind>>
+  missingCompletionLocationTableEntries = {};
+
   @override
   void builtCandidate(CandidateSuggestion candidate) {
     featureMap[candidate] = cachedFeatures;
@@ -1911,6 +1995,16 @@ class MetricsSuggestionListener implements SuggestionListener {
       var childClass = className(child);
       missingCompletionLocation = '$parentClass/$childClass';
     }
+  }
+
+  @override
+  void missingElementKindEntryFor(
+    String completionLocation,
+    protocol.ElementKind elementKind,
+  ) {
+    missingCompletionLocationTableEntries
+        .putIfAbsent(completionLocation, () => {})
+        .add(elementKind);
   }
 
   @override

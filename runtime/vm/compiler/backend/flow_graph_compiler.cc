@@ -2624,7 +2624,8 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     __ BranchIf(EQUAL, is_instance_lbl);
     __ LoadCompressedFieldFromOffset(
         kScratchReg, kTypeArgumentsReg,
-        compiler::target::TypeArguments::type_at_offset(type_param.index()));
+        compiler::target::TypeArguments::type_at_offset(
+            type_param.index_in_tav()));
     // kScratchReg: Concrete type of type.
     // Check if type argument is dynamic, Object?, or void.
     __ CompareObject(kScratchReg, Object::dynamic_type());
@@ -2948,7 +2949,8 @@ void FlowGraphCompiler::GenerateCallerChecksForAssertAssignable(
     // TTS can be called by the caller.
     __ LoadCompressedFieldFromOffset(
         TypeTestABI::kScratchReg, kTypeArgumentsReg,
-        compiler::target::TypeArguments::type_at_offset(type_param.index()));
+        compiler::target::TypeArguments::type_at_offset(
+            type_param.index_in_tav()));
     return output_dst_type();
   }
 

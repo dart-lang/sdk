@@ -1559,9 +1559,13 @@ class BinaryBuilder {
 
   LibraryPart readLibraryPart() {
     List<Expression> annotations = readAnnotationList();
+    int offset = readOffset();
     String partUri = readStringReference();
     Uri fileUri = readUriReference();
-    return new LibraryPart(annotations, partUri, fileUri);
+    int flags = readByte();
+    return new LibraryPart(annotations, partUri, fileUri)
+      ..flags = flags
+      ..fileOffset = offset;
   }
 
   Typedef readTypedef() {

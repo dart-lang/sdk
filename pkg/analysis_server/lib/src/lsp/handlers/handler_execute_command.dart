@@ -5,7 +5,6 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide MessageType;
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/apply_code_action.dart';
@@ -28,14 +27,14 @@ import 'package:analysis_server/src/services/refactoring/framework/refactoring_p
 /// handler based on the command.
 class ExecuteCommandHandler
     extends SharedMessageHandler<ExecuteCommandParams, Object?> {
-  final Map<String, CommandHandler<ExecuteCommandParams, void, AnalysisServer>>
-  commandHandlers;
+  final Map<String, CommandHandler<ExecuteCommandParams, void>> commandHandlers;
 
   new(super.server)
     : commandHandlers = {
         // Commands that can run for any underlying server type.
         Commands.sortMembers: SortMembersCommandHandler(server),
         Commands.organizeImports: OrganizeImportsCommandHandler(server),
+        Commands.fixAll: FixAllCommandHandler(server),
         Commands.sendWorkspaceEdit: SendWorkspaceEditCommandHandler(server),
         Commands.logAction: LogActionCommandHandler(server),
         Commands.applyCodeAction: ApplyCodeActionCommandHandler(server),
@@ -47,7 +46,6 @@ class ExecuteCommandHandler
 
         // Commands that currently require an underlying LSP server.
         if (server is LspAnalysisServer) ...{
-          Commands.fixAll: FixAllCommandHandler(server),
           Commands.fixAllInWorkspace: FixAllInWorkspaceCommandHandler(server),
           Commands.previewFixAllInWorkspace:
               PreviewFixAllInWorkspaceCommandHandler(server),

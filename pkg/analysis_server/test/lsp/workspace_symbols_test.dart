@@ -310,6 +310,48 @@ class UniqueClassName {
     expect(await getWorkspaceSymbols('LocalClass12345'), isNotEmpty);
   }
 
+  Future<void> test_enum() async {
+    const content = '''
+enum NamedEnum { x }
+''';
+    var code = TestCode.parse(content);
+    newFile(mainFilePath, code.code);
+
+    failTestOnErrorDiagnostic = false;
+    await provideConfig(initialize, {
+      'includeDependenciesInWorkspaceSymbols': false,
+    });
+
+    var symbols = await getWorkspaceSymbols('Named');
+    expect(symbols, hasLength(1));
+    var symbol = symbols.single;
+    expect(symbol.containerName, isNull);
+    expect(symbol.name, 'NamedEnum');
+    expect(symbol.kind, SymbolKind.Enum);
+  }
+
+  Future<void> test_enum_member() async {
+    setWorkspaceSymbolKinds([SymbolKind.Enum, SymbolKind.EnumMember]);
+
+    const content = '''
+enum NamedEnum { namedEnumConstant }
+''';
+    var code = TestCode.parse(content);
+    newFile(mainFilePath, code.code);
+
+    failTestOnErrorDiagnostic = false;
+    await provideConfig(initialize, {
+      'includeDependenciesInWorkspaceSymbols': false,
+    });
+
+    var symbols = await getWorkspaceSymbols('namedEnumCon');
+    expect(symbols, hasLength(1));
+    var symbol = symbols.single;
+    expect(symbol.containerName, 'NamedEnum');
+    expect(symbol.name, 'namedEnumConstant');
+    expect(symbol.kind, SymbolKind.EnumMember);
+  }
+
   Future<void> test_enum_unnamed() async {
     const content = '''
 enum {
@@ -363,6 +405,28 @@ extension type MyExtensionType(int it) {}
     );
     expect(namedExtensions.kind, equals(SymbolKind.Class));
     expect(namedExtensions.containerName, isNull);
+  }
+
+  Future<void> test_extensionType_member() async {
+    const content = '''
+extension NamedExtensionType on int {
+  void namedMethod() {}
+}
+''';
+    var code = TestCode.parse(content);
+    newFile(mainFilePath, code.code);
+
+    failTestOnErrorDiagnostic = false;
+    await provideConfig(initialize, {
+      'includeDependenciesInWorkspaceSymbols': false,
+    });
+
+    var symbols = await getWorkspaceSymbols('namedMet');
+    expect(symbols, hasLength(1));
+    var symbol = symbols.single;
+    expect(symbol.containerName, 'NamedExtensionType');
+    expect(symbol.name, 'namedMethod()');
+    expect(symbol.kind, SymbolKind.Method);
   }
 
   Future<void> test_extensionType_method() async {

@@ -96,8 +96,7 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: <testLibrary>::@class::C
   resolution: ExecutableInvocationResolution
     element: <testLibrary>::@class::C::@method::foo
     invokeType: C Function()
@@ -132,8 +131,7 @@ DotShorthandNameExpression
   period: .
   name: foo
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: <testLibrary>::@class::C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::foo
     type: C
@@ -949,8 +947,7 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: <testLibrary>::@class::C
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -989,8 +986,7 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: <testLibrary>::@class::C
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -1026,8 +1022,7 @@ DotShorthandNameExpression
   period: .
   name: foo
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: <testLibrary>::@class::C
   resolution: InvalidNamedReadResolution
     recoveryElement: <testLibrary>::@class::C::@getter::foo
   staticType: InvalidType
@@ -1058,8 +1053,7 @@ DotShorthandNameExpression
   period: .
   name: foo
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: <testLibrary>::@class::C
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   staticType: InvalidType
@@ -1451,8 +1445,6 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: InvalidDotShorthandContextResolution
-    contextType: void Function()
-    lookupType: void Function()
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -1484,8 +1476,6 @@ DotShorthandNameExpression
   period: .
   name: foo
   shorthandContext: InvalidDotShorthandContextResolution
-    contextType: void Function()
-    lookupType: void Function()
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   staticType: InvalidType
@@ -1511,8 +1501,6 @@ DotShorthandNameExpression
   period: .
   name: foo
   shorthandContext: InvalidDotShorthandContextResolution
-    contextType: InvalidType
-    lookupType: InvalidType
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   staticType: InvalidType
@@ -1539,8 +1527,6 @@ DotShorthandNameExpression
   period: .
   name: foo
   shorthandContext: InvalidDotShorthandContextResolution
-    contextType: (int,)
-    lookupType: (int,)
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   staticType: InvalidType
@@ -1567,8 +1553,6 @@ DotShorthandNameExpression
   period: .
   name: foo
   shorthandContext: InvalidDotShorthandContextResolution
-    contextType: T
-    lookupType: T
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   staticType: InvalidType
@@ -2056,8 +2040,7 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: <testLibrary>::@class::C
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -2091,8 +2074,7 @@ DotShorthandNameExpression
   period: .
   name: foo
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: <testLibrary>::@class::C
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   staticType: InvalidType
@@ -2148,8 +2130,7 @@ DotShorthandNameExpression
   period: .
   name: foo
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: FutureOr<C>
-    lookupType: C
+    declaration: <testLibrary>::@class::C
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   staticType: InvalidType
@@ -2178,8 +2159,7 @@ DotShorthandNameExpression
   period: .
   name: foo
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: E
-    lookupType: E
+    declaration: <testLibrary>::@enum::E
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   staticType: InvalidType
@@ -2208,8 +2188,7 @@ DotShorthandNameExpression
   period: .
   name: foo
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: X
-    lookupType: X
+    declaration: <testLibrary>::@extensionType::X
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   staticType: InvalidType
@@ -2238,8 +2217,7 @@ DotShorthandNameExpression
   period: .
   name: foo
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: M
-    lookupType: M
+    declaration: <testLibrary>::@mixin::M
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   staticType: InvalidType
@@ -2268,8 +2246,7 @@ DotShorthandNameExpression
   period: .
   name: foo
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C?
-    lookupType: C?
+    declaration: <testLibrary>::@class::C
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   staticType: InvalidType
@@ -3050,8 +3027,7 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: package:test/a.dart::@class::C
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -3097,8 +3073,6 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: InvalidDotShorthandContextResolution
-    contextType: _C
-    lookupType: _C
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -3139,8 +3113,7 @@ DotShorthandNameExpression
   period: .
   name: _foo
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: package:test/a.dart::@class::C
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   staticType: InvalidType
@@ -3178,8 +3151,6 @@ DotShorthandNameExpression
   period: .
   name: foo
   shorthandContext: InvalidDotShorthandContextResolution
-    contextType: _C
-    lookupType: _C
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   correspondingParameter: package:test/a.dart::@function::g::@formalParameter::c
@@ -3530,8 +3501,7 @@ DotShorthandMethodInvocation
     leftParenthesis: (
     rightParenthesis: )
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: <testLibrary>::@class::C
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -3567,8 +3537,7 @@ DotShorthandNameExpression
   period: .
   name: foo
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: <testLibrary>::@class::C
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   staticType: InvalidType

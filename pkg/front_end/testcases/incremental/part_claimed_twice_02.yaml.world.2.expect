@@ -23,7 +23,7 @@ library from "org-dartlang-test:///bad.dart" as bad {
 
   import "dart:ffi";
 
-  part part.dart;
+  part part.dart /* not included */;
 }
 library from "org-dartlang-test:///good.dart" as good {
 

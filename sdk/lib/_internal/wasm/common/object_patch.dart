@@ -10,15 +10,12 @@ class Object {
   @pragma("wasm:intrinsic")
   external bool operator ==(Object other);
 
-  // Random number generator used to generate identity hash codes.
-  static final _hashCodeRnd = Random();
-
   static int _objectHashCode(Object obj) {
     var result = getIdentityHashField(obj);
     if (result == 0) {
       // We want the hash to be a Smi value greater than 0.
       do {
-        result = _hashCodeRnd.nextInt(0x40000000);
+        result = objectIdentityHashCodeRng.nextInt(0x40000000);
       } while (result == 0);
 
       setIdentityHashField(obj, result);

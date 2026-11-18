@@ -3646,6 +3646,19 @@ void Simulator::DecodeSIMDTwoReg(Instr* instr) {
     } else {
       UnimplementedInstruction(instr);
     }
+  } else if ((U == 0) && (op == 0xb)) {
+    if (sz == 2) {
+      // Format(instr, "vabsw 'vd, 'vn");
+      for (int i = 0; i < 4; i++) {
+        const int32_t vn_val = get_vregisters(vn, i);
+        const uint32_t abs_val = vn_val < 0
+                                     ? (0u - static_cast<uint32_t>(vn_val))
+                                     : static_cast<uint32_t>(vn_val);
+        set_vregisters(vd, i, static_cast<int32_t>(abs_val));
+      }
+    } else {
+      UnimplementedInstruction(instr);
+    }
   } else if ((U == 1) && (op == 0xf)) {
     if (sz == 2) {
       // Format(instr, "vnegs 'vd, 'vn");
@@ -3660,6 +3673,16 @@ void Simulator::DecodeSIMDTwoReg(Instr* instr) {
         const int64_t vn_val = get_vregisterd(vn, i);
         const double vn_dbl = bit_cast<double, int64_t>(vn_val);
         set_vregisterd(vd, i, bit_cast<int64_t, double>(-vn_dbl));
+      }
+    } else {
+      UnimplementedInstruction(instr);
+    }
+  } else if ((U == 1) && (op == 0xb)) {
+    if (sz == 2) {
+      // Format(instr, "vnegw 'vd, 'vn");
+      for (int i = 0; i < 4; i++) {
+        const uint32_t vn_val = static_cast<uint32_t>(get_vregisters(vn, i));
+        set_vregisters(vd, i, static_cast<int32_t>(0u - vn_val));
       }
     } else {
       UnimplementedInstruction(instr);

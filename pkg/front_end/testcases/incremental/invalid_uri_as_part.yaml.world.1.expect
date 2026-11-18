@@ -15,6 +15,6 @@ library from "org-dartlang-test:///main.dart" as main {
 //       ^
 //
 
-  part org-dartlang-malformed-uri:bad5;
+  part org-dartlang-malformed-uri:bad5 /* not included */;
   static method main() → dynamic {}
 }

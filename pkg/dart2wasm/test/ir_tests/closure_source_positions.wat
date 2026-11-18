@@ -22,7 +22,7 @@
     local.get $var1
     struct.set $"<context file:///.../closure_source_positions.dart:20:10>" $field1
     ;;     return 🎯() => x + y;              file:///.../closure_source_positions.dart:21
-    i32.const 51
+    i32.const 50
     i32.const 0
     local.get $var3
     ref.as_non_null

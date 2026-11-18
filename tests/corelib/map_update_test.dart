@@ -25,6 +25,21 @@ void main() {
   testNonNull(new SplayTreeMap());
   testNonNull(new SplayTreeMap((a, b) => Comparable.compare(a!, b!)));
   testNonNull(new MapView(new SplayTreeMap()));
+  testCustomEquality(
+    new HashMap<int, int>(
+      equals: (a, b) => a % 8 == b % 8,
+      hashCode: (a) => a % 8,
+    ),
+  );
+}
+
+void testCustomEquality(Map<int, int> map) {
+  map[1] = 1;
+  Expect.equals(2, map.update(9, (v) => v + 1, ifAbsent: unreachable));
+  Expect.equals(3, map.update(9, (v) => v + 1));
+  Expect.equals(4, map.update(10, unreachable, ifAbsent: () => 4));
+  Expect.equals(5, map.update(2, (v) => v + 1, ifAbsent: unreachable));
+  Expect.mapEquals({1: 3, 10: 5}, map);
 }
 
 void test(Map<Comparable?, Object?> map) {

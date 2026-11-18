@@ -10,8 +10,8 @@
   (type $_SyncStarIterable <...>)
   (rec
     (type $_SyncStarIterator <...>)
-    (type $type0 <...>)
     (type $_SuspendState <...>)
+    (type $type0 <...>)
   )
   (type $_Type <...>)
   (tag $WebAssembly.JSTag (import "WebAssembly" "JSTag") (param externref))
@@ -908,7 +908,7 @@
     ;; Iterable<int> 🎯testStateMachineTryCatch() sync* { file:///.../state_machine_try_blocks.dart:14
     struct.new_default $"<context file:///.../state_machine_try_blocks.dart:14:39>"
     local.set $var0
-    i32.const 39
+    i32.const 31
     i32.const 0
     global.get $_InterfaceType
     local.get $var0
@@ -921,7 +921,7 @@
     ;; Iterable<int> 🎯testStateMachineTryCatchJs() sync* { file:///.../state_machine_try_blocks.dart:25
     struct.new_default $"<context file:///.../state_machine_try_blocks.dart:25:41>"
     local.set $var0
-    i32.const 39
+    i32.const 31
     i32.const 0
     global.get $_InterfaceType
     local.get $var0

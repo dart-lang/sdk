@@ -376,7 +376,7 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const AbstractType& type,
 
   } else if (type.IsTypeParameter()) {
     const TypeParameter& type_parameter = TypeParameter::Cast(type);
-    // The base and index of a function type parameter are eagerly calculated
+    // The indices of a function type parameter are eagerly calculated
     // upon loading and do not require adjustment here.
     if (type_parameter.IsClassTypeParameter()) {
       const Class& parameterized_class = Class::Cast(
@@ -389,13 +389,12 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const AbstractType& type,
       // parameterized class.
       const intptr_t offset = parameterized_class.NumTypeArguments() -
                               parameterized_class.NumTypeParameters();
-      const intptr_t index = type_parameter.index() + offset;
+      const intptr_t index = type_parameter.index_in_owner() + offset;
       if (!Utils::IsUint(16, index)) {
         FATAL("Too many type parameters in %s",
               parameterized_class.UserVisibleNameCString());
       }
-      type_parameter.set_base(offset);  // Informative, but not needed.
-      type_parameter.set_index(index);
+      type_parameter.set_index_in_tav(index);
 
       if (AbstractType::Handle(zone, type_parameter.bound())
               .IsNullableObjectType()) {
@@ -936,7 +935,7 @@ void ClassFinalizer::VerifyImplicitFieldOffsets() {
   ASSERT(error.IsNull());
   ASSERT(cls.NumTypeParameters() == 1);
   type_param = cls.TypeParameterAt(0);
-  ASSERT(Pointer::kNativeTypeArgPos == type_param.index());
+  ASSERT(Pointer::kNativeTypeArgPos == type_param.index_in_tav());
 #endif
 }
 

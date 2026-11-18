@@ -4805,6 +4805,22 @@ void CompareAsMaskInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ snez(result, result);  // lhs op rhs ? 0 : 1
           __ neg(result, result);   // lhs op rhs ? 0 : -1
           break;
+        case Token::kLT:
+          __ slt(result, lhs, rhs);  // lhs < rhs ? 1 : 0
+          __ neg(result, result);    // lhs < rhs ? -1 : 0
+          break;
+        case Token::kGT:
+          __ slt(result, rhs, lhs);  // lhs > rhs ? 1 : 0
+          __ neg(result, result);    // lhs > rhs ? -1 : 0
+          break;
+        case Token::kLTE:
+          __ slt(result, rhs, lhs);     // lhs > rhs ? 1 : 0
+          __ addi(result, result, -1);  // lhs <= rhs ? -1 : 0
+          break;
+        case Token::kGTE:
+          __ slt(result, lhs, rhs);     // lhs < rhs ? 1 : 0
+          __ addi(result, result, -1);  // lhs >= rhs ? -1 : 0
+          break;
         default:
           UNREACHABLE();
       }

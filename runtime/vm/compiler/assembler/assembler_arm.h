@@ -743,9 +743,11 @@ class Assembler : public AssemblerBase {
   void vabss(SRegister sd, SRegister sm, Condition cond = AL);
   void vabsd(DRegister dd, DRegister dm, Condition cond = AL);
   void vabsqs(QRegister qd, QRegister qm);
+  void vabsqi(QRegister qd, QRegister qm);
   void vnegs(SRegister sd, SRegister sm, Condition cond = AL);
   void vnegd(DRegister dd, DRegister dm, Condition cond = AL);
   void vnegqs(QRegister qd, QRegister qm);
+  void vnegqi(QRegister qd, QRegister qm);
   void vsqrts(SRegister sd, SRegister sm, Condition cond = AL);
   void vsqrtd(DRegister dd, DRegister dm, Condition cond = AL);
 

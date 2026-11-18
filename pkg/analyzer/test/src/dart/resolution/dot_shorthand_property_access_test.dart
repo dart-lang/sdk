@@ -38,8 +38,7 @@ ReceiverMethodInvocation
       period: .
       name: instances
       shorthandContext: ValidDotShorthandContextResolution
-        contextType: C
-        lookupType: C
+        declaration: <testLibrary>::@class::C
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::C::@getter::instances
         type: List<C>
@@ -123,8 +122,7 @@ ReceiverPropertyExtraction
       period: .
       name: instances
       shorthandContext: ValidDotShorthandContextResolution
-        contextType: C
-        lookupType: C
+        declaration: <testLibrary>::@class::C
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::C::@getter::instances
         type: List<C>
@@ -201,8 +199,7 @@ ReceiverMethodInvocation
     period: .
     name: member
     shorthandContext: ValidDotShorthandContextResolution
-      contextType: C
-      lookupType: C
+      declaration: <testLibrary>::@class::C
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::member
       type: C
@@ -256,8 +253,7 @@ ReceiverPropertyExtraction
       period: .
       name: nullable
       shorthandContext: ValidDotShorthandContextResolution
-        contextType: C?
-        lookupType: C?
+        declaration: <testLibrary>::@class::C
       resolution: GetterInvocationResolution
         element: <testLibrary>::@class::C::@getter::nullable
         type: C?
@@ -328,8 +324,7 @@ ReceiverPropertyExtraction
     period: .
     name: member
     shorthandContext: ValidDotShorthandContextResolution
-      contextType: C
-      lookupType: C
+      declaration: <testLibrary>::@class::C
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::member
       type: C
@@ -373,8 +368,7 @@ ReceiverMethodInvocation
       period: .
       name: identity
       shorthandContext: ValidDotShorthandContextResolution
-        contextType: C
-        lookupType: C
+        declaration: <testLibrary>::@class::C
       resolution: ExecutableTearOffResolution
         element: <testLibrary>::@class::C::@method::identity
         type: T Function<T>(T)
@@ -470,8 +464,7 @@ DotShorthandNameExpression
   period: .
   name: member
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: <testLibrary>::@class::C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::member
     type: C
@@ -506,8 +499,7 @@ DotShorthandNameExpression
   period: .
   name: one
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: Integer
-    lookupType: Integer
+    declaration: <testLibrary>::@class::Integer
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::Integer::@getter::one
     type: Integer
@@ -539,8 +531,7 @@ DotShorthandNameExpression
   period: .
   name: blue
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: Color
-    lookupType: Color
+    declaration: <testLibrary>::@enum::Color
   resolution: GetterInvocationResolution
     element: <testLibrary>::@enum::Color::@getter::blue
     type: Color
@@ -578,8 +569,7 @@ DotShorthandNameExpression
   period: .
   name: member
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: <testLibrary>::@class::C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::member
     type: C
@@ -610,8 +600,7 @@ DotShorthandNameExpression
   period: .
   name: blue
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: Color
-    lookupType: Color
+    declaration: <testLibrary>::@enum::Color
   resolution: GetterInvocationResolution
     element: <testLibrary>::@enum::Color::@getter::blue
     type: Color
@@ -645,8 +634,7 @@ DotShorthandNameExpression
   period: .
   name: member
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: <testLibrary>::@extensionType::C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extensionType::C::@getter::member
     type: C
@@ -677,8 +665,7 @@ DotShorthandNameExpression
   period: .
   name: red
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: <testLibrary>::@enum::C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@enum::C::@getter::red
     type: C
@@ -714,8 +701,7 @@ DotShorthandNameExpression
   period: .
   name: member
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: <testLibrary>::@class::C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::member
     type: C
@@ -819,8 +805,7 @@ DotShorthandNameExpression
   period: .
   name: instances
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: <testLibrary>::@class::C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::instances
     type: List<C>
@@ -854,8 +839,7 @@ DotShorthandNameExpression
   period: .
   name: nullable
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: <testLibrary>::@class::C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::nullable
     type: C?
@@ -890,8 +874,7 @@ DotShorthandNameExpression
   period: .
   name: nullable
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: <testLibrary>::@class::C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::nullable
     type: C?
@@ -922,8 +905,7 @@ DotShorthandNameExpression
   period: .
   name: blue
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: Color
-    lookupType: Color
+    declaration: <testLibrary>::@enum::Color
   resolution: GetterInvocationResolution
     element: <testLibrary>::@enum::Color::@getter::blue
     type: Color
@@ -1028,8 +1010,6 @@ DotShorthandNameExpression
   period: .
   name: member
   shorthandContext: InvalidDotShorthandContextResolution
-    contextType: C Function()
-    lookupType: C Function()
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   staticType: InvalidType
@@ -1060,8 +1040,6 @@ DotShorthandNameExpression
   period: .
   name: member
   shorthandContext: InvalidDotShorthandContextResolution
-    contextType: FutureOr<C Function()>
-    lookupType: C Function()
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   staticType: InvalidType
@@ -1122,8 +1100,7 @@ DotShorthandNameExpression
   period: .
   name: getter
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: <testLibrary>::@class::C
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   staticType: InvalidType
@@ -1157,8 +1134,7 @@ DotShorthandNameExpression
   period: .
   name: new
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: <testLibrary>::@class::C
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   staticType: InvalidType
@@ -1192,8 +1168,7 @@ DotShorthandNameExpression
   period: .
   name: value
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: <testLibrary>::@class::C
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   staticType: InvalidType
@@ -1225,8 +1200,7 @@ DotShorthandNameExpression
   period: .
   name: one
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: <testLibrary>::@extensionType::C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extensionType::C::@getter::one
     type: C
@@ -1260,8 +1234,7 @@ CallInvocation
     period: .
     name: field
     shorthandContext: ValidDotShorthandContextResolution
-      contextType: C
-      lookupType: C
+      declaration: <testLibrary>::@class::C
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::field
       type: C
@@ -1323,8 +1296,7 @@ CallInvocation
     period: .
     name: field
     shorthandContext: ValidDotShorthandContextResolution
-      contextType: C
-      lookupType: C
+      declaration: <testLibrary>::@class::C
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::field
       type: C
@@ -1376,8 +1348,7 @@ CallInvocation
     period: .
     name: getter
     shorthandContext: ValidDotShorthandContextResolution
-      contextType: C
-      lookupType: C
+      declaration: <testLibrary>::@class::C
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::getter
       type: C
@@ -1426,8 +1397,7 @@ CallInvocation
     period: .
     name: field
     shorthandContext: ValidDotShorthandContextResolution
-      contextType: C
-      lookupType: C
+      declaration: <testLibrary>::@class::C
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::field
       type: C
@@ -1476,8 +1446,7 @@ CallInvocation
     period: .
     name: field
     shorthandContext: ValidDotShorthandContextResolution
-      contextType: C
-      lookupType: C
+      declaration: <testLibrary>::@class::C
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::field
       type: C
@@ -1560,8 +1529,7 @@ CallInvocation
     period: .
     name: getter
     shorthandContext: ValidDotShorthandContextResolution
-      contextType: C
-      lookupType: C
+      declaration: <testLibrary>::@class::C
     resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::getter
       type: C
@@ -1610,8 +1578,7 @@ DotShorthandNameExpression
   period: .
   name: field
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: <testLibrary>::@class::C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::field
     type: C
@@ -1645,8 +1612,7 @@ DotShorthandNameExpression
   period: .
   name: getter
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C
-    lookupType: C
+    declaration: <testLibrary>::@class::C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::C::@getter::getter
     type: C
@@ -1687,8 +1653,7 @@ DotShorthandNameExpression
   period: .
   name: foo
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C<dynamic>
-    lookupType: C<dynamic>
+    declaration: <testLibrary>::@class::C
   resolution: ExecutableTearOffResolution
     element: <testLibrary>::@class::C::@method::foo
     type: String Function<X>()
@@ -1721,8 +1686,7 @@ DotShorthandNameExpression
   period: .
   name: red
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: FutureOr<C>
-    lookupType: C
+    declaration: <testLibrary>::@enum::C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@enum::C::@getter::red
     type: C
@@ -1755,8 +1719,7 @@ DotShorthandNameExpression
   period: .
   name: red
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: FutureOr<FutureOr<C>>
-    lookupType: C
+    declaration: <testLibrary>::@enum::C
   resolution: GetterInvocationResolution
     element: <testLibrary>::@enum::C::@getter::red
     type: C
@@ -1799,8 +1762,7 @@ DotShorthandNameExpression
   period: .
   name: mixinOne
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: CMixin
-    lookupType: CMixin
+    declaration: <testLibrary>::@mixin::CMixin
   resolution: GetterInvocationResolution
     element: <testLibrary>::@mixin::CMixin::@getter::mixinOne
     type: CMixin
@@ -2062,10 +2024,6 @@ DotShorthandNameExpression
   period: .
   name: getter
   shorthandContext: InvalidDotShorthandContextResolution
-    contextType: _Private
-      alias: package:test/a.dart::@typeAlias::Public
-    lookupType: _Private
-      alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   correspondingParameter: <null>
@@ -2105,9 +2063,6 @@ DotShorthandNameExpression
   period: .
   name: getter
   shorthandContext: InvalidDotShorthandContextResolution
-    contextType: FutureOr<_Private>
-    lookupType: _Private
-      alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   staticType: InvalidType
@@ -2143,10 +2098,7 @@ DotShorthandNameExpression
   period: .
   name: getter
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: _Private
-      alias: <testLibrary>::@typeAlias::Public
-    lookupType: _Private
-      alias: <testLibrary>::@typeAlias::Public
+    declaration: <testLibrary>::@class::_Private
   resolution: GetterInvocationResolution
     element: <testLibrary>::@class::_Private::@getter::getter
     type: _Private
@@ -2188,10 +2140,6 @@ DotShorthandNameExpression
   period: .
   name: two
   shorthandContext: InvalidDotShorthandContextResolution
-    contextType: _Private
-      alias: package:test/a.dart::@typeAlias::Public
-    lookupType: _Private
-      alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   correspondingParameter: <null>
@@ -2227,10 +2175,7 @@ DotShorthandNameExpression
   period: .
   name: two
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: _Private
-      alias: <testLibrary>::@typeAlias::Public
-    lookupType: _Private
-      alias: <testLibrary>::@typeAlias::Public
+    declaration: <testLibrary>::@enum::_Private
   resolution: GetterInvocationResolution
     element: <testLibrary>::@enum::_Private::@getter::two
     type: _Private
@@ -2274,10 +2219,6 @@ DotShorthandNameExpression
   period: .
   name: getter
   shorthandContext: InvalidDotShorthandContextResolution
-    contextType: _Private
-      alias: package:test/a.dart::@typeAlias::Public
-    lookupType: _Private
-      alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   correspondingParameter: <null>
@@ -2315,10 +2256,7 @@ DotShorthandNameExpression
   period: .
   name: getter
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: _Private
-      alias: <testLibrary>::@typeAlias::Public
-    lookupType: _Private
-      alias: <testLibrary>::@typeAlias::Public
+    declaration: <testLibrary>::@extensionType::_Private
   resolution: GetterInvocationResolution
     element: <testLibrary>::@extensionType::_Private::@getter::getter
     type: _Private
@@ -2363,10 +2301,6 @@ DotShorthandNameExpression
   period: .
   name: getter
   shorthandContext: InvalidDotShorthandContextResolution
-    contextType: _Private
-      alias: package:test/a.dart::@typeAlias::Public
-    lookupType: _Private
-      alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   correspondingParameter: <null>
@@ -2405,10 +2339,7 @@ DotShorthandNameExpression
   period: .
   name: getter
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: _Private
-      alias: <testLibrary>::@typeAlias::Public
-    lookupType: _Private
-      alias: <testLibrary>::@typeAlias::Public
+    declaration: <testLibrary>::@mixin::_Private
   resolution: GetterInvocationResolution
     element: <testLibrary>::@mixin::_Private::@getter::getter
     type: _Private
@@ -2446,8 +2377,7 @@ DotShorthandNameExpression
   period: .
   name: id
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C1
-    lookupType: C1
+    declaration: <testLibrary>::@class::C1
   resolution: ExecutableTearOffResolution
     element: <testLibrary>::@class::C1::@constructor::id
     type: C1 Function()
@@ -2479,8 +2409,7 @@ DotShorthandNameExpression
   period: .
   name: new
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: Function
-    lookupType: Function
+    declaration: dart:core::@class::Function
   resolution: ExecutableTearOffResolution
     element: dart:core::@class::Function::@constructor::new
     type: Function Function()
@@ -2520,8 +2449,7 @@ DotShorthandNameExpression
   period: .
   name: new
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: C<int>
-    lookupType: C<int>
+    declaration: <testLibrary>::@class::C
   resolution: ExecutableTearOffResolution
     element: SubstitutedConstructorElementImpl
       baseElement: <testLibrary>::@class::C::@constructor::new
@@ -2554,8 +2482,7 @@ DotShorthandNameExpression
   period: .
   name: new
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: Object
-    lookupType: Object
+    declaration: dart:core::@class::Object
   resolution: ExecutableTearOffResolution
     element: dart:core::@class::Object::@constructor::new
     type: Object Function()
@@ -2587,8 +2514,7 @@ FunctionInstantiation
     period: .
     name: new
     shorthandContext: ValidDotShorthandContextResolution
-      contextType: C
-      lookupType: C
+      declaration: <testLibrary>::@class::C
     resolution: ExecutableTearOffResolution
       element: <testLibrary>::@class::C::@constructor::new
       type: C Function()
@@ -2639,8 +2565,6 @@ FunctionInstantiation
     period: .
     name: new
     shorthandContext: InvalidDotShorthandContextResolution
-      contextType: C Function()
-      lookupType: C Function()
     resolution: InvalidNamedReadResolution
       recoveryElement: <null>
     staticType: InvalidType
@@ -2692,8 +2616,7 @@ FunctionInstantiation
     period: .
     name: foo
     shorthandContext: ValidDotShorthandContextResolution
-      contextType: C
-      lookupType: C
+      declaration: <testLibrary>::@class::C
     resolution: ExecutableTearOffResolution
       element: <testLibrary>::@class::C::@method::foo
       type: C Function<T>()
@@ -2752,8 +2675,7 @@ DotShorthandNameExpression
   period: .
   name: foo
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: int
-    lookupType: int
+    declaration: dart:core::@class::int
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   staticType: InvalidType
@@ -2780,8 +2702,7 @@ DotShorthandNameExpression
   period: .
   name: foo
   shorthandContext: ValidDotShorthandContextResolution
-    contextType: int
-    lookupType: int
+    declaration: dart:core::@class::int
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   correspondingParameter: dart:core::@class::num::@method::==::@formalParameter::other

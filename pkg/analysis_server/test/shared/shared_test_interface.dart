@@ -15,6 +15,10 @@ import 'package:analyzer_testing/package_config_file_builder.dart';
 /// notification from [openFile] whereas when using the legacy server (even for
 /// LSP-over-Legacy tests) will send an `analysis.updateContent` request.
 abstract interface class SharedTestInterface {
+  /// Gets the full normalized file path of the `analysis_options.yaml` in the
+  /// test project.
+  String get analysisOptionsPath;
+
   /// Sets whether the test should fail if error diagnostics are generated.
   ///
   /// This is used to avoid accidentally including invalid code in tests but can

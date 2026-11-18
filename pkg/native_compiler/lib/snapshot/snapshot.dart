@@ -64,6 +64,7 @@ enum PredefinedClusters {
   libraryRefs,
   libraries,
   privateNames,
+  qualifiedPrivateNames,
   scripts,
   classRefs,
   classes,
@@ -170,6 +171,7 @@ class SnapshotSerializer {
     addBaseObject(true);
     addBaseObject(false);
     addBaseObject(SentinelConstant());
+    addBaseObject(UnsetTypeArgumentsConstant());
     addBaseObject(const ast.DynamicType());
     addBaseObject(const ast.VoidType());
     addBaseObject(const ast.NullType());
@@ -388,6 +390,9 @@ class SnapshotSerializer {
                 : PredefinedClusters.functionRefs),
     ),
     PrivateName() => getPredefinedCluster(PredefinedClusters.privateNames),
+    QualifiedPrivateName() => getPredefinedCluster(
+      PredefinedClusters.qualifiedPrivateNames,
+    ),
     Script() => getPredefinedCluster(PredefinedClusters.scripts),
     ArgumentsShape() => getPredefinedCluster(
       PredefinedClusters.argumentsDescriptorRefs,
@@ -483,6 +488,7 @@ class SnapshotSerializer {
         .oneByteStrings => OneByteStringSerializationCluster(),
         .twoByteStrings => TwoByteStringSerializationCluster(),
         .privateNames => PrivateNameSerializationCluster(),
+        .qualifiedPrivateNames => QualifiedPrivateNameSerializationCluster(),
         .functions => FunctionSerializationCluster(),
         .ints => IntSerializationCluster(),
         .doubles => DoubleSerializationCluster(),
@@ -652,10 +658,24 @@ final class ScriptSerializationCluster extends SerializationCluster {
 const topLevelClassName = '##topLevel';
 
 extension on ast.Class {
-  Object? get mangledName => isTopLevel
+  Name? get mangledName => isTopLevel
       ? null
-      : (name.startsWith('_') ? PrivateName(name, enclosingLibrary) : name);
+      : Name(name, name.startsWith('_') ? enclosingLibrary : null);
   bool get isTopLevel => name == topLevelClassName;
+
+  /// Returns number of native fields in instances of [this].
+  /// Native fields are inherited from
+  /// `dart:nativewrappers::NativeFieldWrapperClassN` classes.
+  int getNumNativeFields(ast.Library nativewrappersLibrary) {
+    const prefix = 'NativeFieldWrapperClass';
+    for (ast.Class? c = this; c != null; c = c.superclass) {
+      if (c.enclosingLibrary == nativewrappersLibrary &&
+          c.name.startsWith(prefix)) {
+        return int.parse(c.name.substring(prefix.length));
+      }
+    }
+    return 0;
+  }
 }
 
 final class ClassRefSerializationCluster extends SerializationCluster {
@@ -734,7 +754,9 @@ final class ClassSerializationCluster extends SerializationCluster {
           serializer.functionRegistry.getFunction(field, isInitializer: true),
       ],
     ]);
-    final fields = getListConstant(cls.fields);
+    final fields = getListConstant(
+      cls.isTopLevel ? library.fields : cls.fields,
+    );
     final interfaces = getListConstant([
       for (final sup in cls.implementedTypes) sup.asInterfaceType,
     ]);
@@ -801,9 +823,6 @@ final class ClassSerializationCluster extends SerializationCluster {
               objectLayout.getFieldOffset(typeArgsField) ~/ compressedWordSize;
         }
       }
-      final numNativeFields = (cls.enclosingLibrary == nativewrappersLibrary)
-          ? 1
-          : 0;
       serializer.writeRefId(fields.name);
       serializer.writeRefId(fields.functions);
       serializer.writeRefId(fields.fields);
@@ -816,7 +835,7 @@ final class ClassSerializationCluster extends SerializationCluster {
       serializer.writeInt(unalignedInstanceSize);
       serializer.writeInt(typeArgsFieldOffset);
       serializer.writeInt(getNumberOfInstantiatorTypeArguments(cls));
-      serializer.writeInt(numNativeFields);
+      serializer.writeInt(cls.getNumNativeFields(nativewrappersLibrary));
       serializer.writeUint(cls.fileOffset + 1);
       serializer.writeUint(cls.fileEndOffset + 1);
       // TODO: ImplementedBit, HasPragmaBit, IsIsolateUnsendableBit, IsDeeplyImmutableBit
@@ -1022,14 +1041,11 @@ extension on CFunction {
     TearOffFunction() => FunctionKind.ImplicitClosureFunction,
   };
 
-  Name get _mangledConstructorName {
-    final className = member.enclosingClass!.name;
-    return Name(
-      "$className.${member.name.text}",
-      member.name.library ??
-          (className.startsWith('_') ? member.enclosingLibrary : null),
-    );
-  }
+  Name get _mangledConstructorName => Name.constructor(
+    member.enclosingClass!.mangledName!,
+    member.name.text,
+    member.name.library,
+  );
 
   Object get mangledName => switch (this) {
     LocalFunction(:final ast.FunctionDeclaration localFunction) =>
@@ -1184,18 +1200,21 @@ final class ClosureSerializationCluster extends SerializationCluster {
   void trace(SnapshotSerializer serializer, Object object) {
     final closure = object as ast.Constant;
     _objects.add(closure);
-    final (target, typeArgs) = switch (closure) {
-      ast.TearOffConstant() => (closure.target, SentinelConstant()),
-      ast.InstantiationConstant() => (
+    final target = switch (closure) {
+      ast.TearOffConstant() => closure.target,
+      ast.InstantiationConstant() =>
         (closure.tearOffConstant as ast.TearOffConstant).target,
-        TypeArgumentsConstant(closure.types),
-      ),
       _ => throw 'Unexpected closure ${closure.runtimeType} $closure',
     };
     final function = serializer.functionRegistry.getFunction(
       target,
       isTearOff: true,
     ) as TearOffFunction;
+    final typeArgs = function.hasFunctionTypeParameters
+        ? (closure is ast.InstantiationConstant
+              ? TypeArgumentsConstant(closure.types)
+              : UnsetTypeArgumentsConstant())
+        : null;
     _fields.add((function: function, typeArgs: typeArgs));
     serializer.push(function);
     serializer.push(typeArgs);
@@ -1238,7 +1257,7 @@ final class ClosureSerializationCluster extends SerializationCluster {
       if (hasDelayedTypeArgs) {
         serializer.writeRefId(fields.typeArgs);
       } else {
-        assert(fields.typeArgs == SentinelConstant());
+        assert(fields.typeArgs == null);
       }
     }
   }
@@ -1300,7 +1319,11 @@ final class RecordShapeRefSerializationCluster extends SerializationCluster {
   }
 }
 
-class ClosureData(final CFunction parentFunction);
+class ClosureData(
+  final CFunction parentFunction,
+  // Number of type parameters declared by the enclosing generic functions.
+  final int numParentTypeArguments,
+);
 
 final class ClosureDataSerializationCluster extends SerializationCluster {
   final List<ClosureData> _objects = [];
@@ -1329,11 +1352,23 @@ final class ClosureDataSerializationCluster extends SerializationCluster {
   void writeFill(SnapshotSerializer serializer) {
     for (final closureData in _objects) {
       serializer.writeRefId(closureData.parentFunction);
+      serializer.writeUint(closureData.numParentTypeArguments);
     }
   }
 }
 
-/// FunctionType which doesn't have an implicit closure/receiver parameter.
+/// Signature of a function which differs from a plain FunctionType:
+///
+/// - It may not have an implicit closure/receiver parameter
+///   ([hasImplicitParameter] is false).
+///
+/// - It may be a signature of a closure nested in generic functions
+///   ([numParentTypeArguments] > 0). In such case type parameters of
+///   the signature follow type parameters of the enclosing functions
+///   in the function type arguments vector.
+///
+/// Plain FunctionType is used for signatures with implicit parameter and
+/// without parent type arguments.
 class FunctionSignature(
   super.positionalParameters,
   super.returnType,
@@ -1341,12 +1376,15 @@ class FunctionSignature(
   super.namedParameters,
   super.typeParameters,
   super.requiredParameterCount,
+  required final bool hasImplicitParameter,
+  required final int numParentTypeArguments,
 }) extends ast.FunctionType {
   static ast.FunctionType from(
     ast.FunctionType ft, {
     required bool hasImplicitParameter,
+    int numParentTypeArguments = 0,
   }) {
-    if (hasImplicitParameter) return ft;
+    if (hasImplicitParameter && numParentTypeArguments == 0) return ft;
     if (ft.typeParameters.isNotEmpty) {
       final fresh = ast_type_algebra.getFreshStructuralParameters(
         ft.typeParameters,
@@ -1364,6 +1402,8 @@ class FunctionSignature(
         ),
         typeParameters: fresh.freshTypeParameters,
         requiredParameterCount: ft.requiredParameterCount,
+        hasImplicitParameter: hasImplicitParameter,
+        numParentTypeArguments: numParentTypeArguments,
       );
     }
     return FunctionSignature(
@@ -1372,32 +1412,38 @@ class FunctionSignature(
       ft.declaredNullability,
       namedParameters: ft.namedParameters,
       requiredParameterCount: ft.requiredParameterCount,
+      hasImplicitParameter: hasImplicitParameter,
+      numParentTypeArguments: numParentTypeArguments,
     );
   }
 
   @override
-  int get hashCode => super.hashCode ^ 123;
+  int get hashCode =>
+      Object.hash(super.hashCode, hasImplicitParameter, numParentTypeArguments);
 
   @override
   bool operator ==(Object other) =>
-      other is FunctionSignature && super == (other);
+      other is FunctionSignature &&
+      hasImplicitParameter == other.hasImplicitParameter &&
+      numParentTypeArguments == other.numParentTypeArguments &&
+      super == (other);
 }
+
+typedef _FunctionFields = ({
+  Object name,
+  ast.Class owner,
+  ast.FunctionType signature,
+  Object? /*ClosureData|???*/ data,
+  ast.ListConstant positionalParameterNames,
+  int startFileOffset,
+  int endFileOffset,
+  int kindTags,
+  String? nativeName,
+});
 
 final class FunctionSerializationCluster extends SerializationCluster {
   final List<CFunction> _objects = [];
-  final List<
-    ({
-      Object name,
-      ast.Class owner,
-      ast.FunctionType signature,
-      Object? /*ClosureData|???*/ data,
-      ast.ListConstant positionalParameterNames,
-      int startFileOffset,
-      int endFileOffset,
-      int kindTags,
-    })
-  >
-  _fields = [];
+  final List<_FunctionFields> _fields = [];
 
   @override
   void trace(SnapshotSerializer serializer, Object object) {
@@ -1438,6 +1484,9 @@ final class FunctionSerializationCluster extends SerializationCluster {
         functionNode!.computeThisFunctionType(.nonNullable),
         hasImplicitParameter:
             function.hasReceiverParameter || function.hasClosureParameter,
+        numParentTypeArguments: (function is LocalFunction)
+            ? function.numberOfEnclosingFunctionTypeParameters
+            : 0,
       ),
     };
     final positionalParameterNames = getListConstant([
@@ -1450,11 +1499,21 @@ final class FunctionSerializationCluster extends SerializationCluster {
     final startFileOffset = functionNode?.fileOffset ?? 0;
     final endFileOffset = functionNode?.fileEndOffset ?? 0;
 
+    final coreTypes = GlobalContext.instance.coreTypes;
+    final String? nativeName =
+        (member.isExternal && function is! ClosureFunction)
+        ? getExternalName(coreTypes, member)
+        : null;
+
     final data = switch (function) {
       // TODO: implicit_static_closure
-      LocalFunction() => ClosureData(function.enclosingFunction),
+      LocalFunction() => ClosureData(
+        function.enclosingFunction,
+        function.numberOfEnclosingFunctionTypeParameters,
+      ),
       TearOffFunction() => ClosureData(
         serializer.functionRegistry.getFunction(function.member),
+        0,
       ),
       ImplicitFieldGetter() ||
       ImplicitFieldSetter() ||
@@ -1463,7 +1522,6 @@ final class FunctionSerializationCluster extends SerializationCluster {
     };
 
     var kindTags = 0;
-    final coreTypes = GlobalContext.instance.coreTypes;
     final vmOffsets = serializer.objectLayout.vmOffsets;
     switch (function) {
       case LocalFunction():
@@ -1501,7 +1559,7 @@ final class FunctionSerializationCluster extends SerializationCluster {
                 ? (1 << vmOffsets.Function_kIsExtensionTypeMemberBitPos)
                 : 0);
         if (member.isExternal) {
-          if (getExternalName(coreTypes, member) == null) {
+          if (nativeName == null) {
             kindTags |=
                 (1 << vmOffsets.Function_kExternalBitPos) |
                 (member.isFfiNative(coreTypes)
@@ -1522,7 +1580,9 @@ final class FunctionSerializationCluster extends SerializationCluster {
     kindTags |=
         (kind.index << vmOffsets.Function_kKindBitsPos) |
         (modifier << vmOffsets.Function_kModifierBitsPos) |
-        ((member.isInstanceMember || member is ast.Constructor)
+        // Constructor tear-offs are static closures.
+        ((member.isInstanceMember ||
+                (member is ast.Constructor && function is! TearOffFunction))
             ? 0
             : (1 << vmOffsets.Function_kStaticBitPos));
 
@@ -1531,6 +1591,7 @@ final class FunctionSerializationCluster extends SerializationCluster {
     serializer.push(signature);
     serializer.push(data);
     serializer.push(positionalParameterNames);
+    serializer.push(nativeName);
     _fields.add((
       name: name,
       owner: owner,
@@ -1540,6 +1601,7 @@ final class FunctionSerializationCluster extends SerializationCluster {
       startFileOffset: startFileOffset,
       endFileOffset: endFileOffset,
       kindTags: kindTags,
+      nativeName: nativeName,
     ));
   }
 
@@ -1568,6 +1630,10 @@ final class FunctionSerializationCluster extends SerializationCluster {
       serializer.writeUint(fields.startFileOffset + 1);
       serializer.writeUint(fields.endFileOffset + 1);
       serializer.writeUint(fields.kindTags);
+      final nativeName = fields.nativeName;
+      if (nativeName != null) {
+        serializer.writeRefId(nativeName);
+      }
     }
   }
 
@@ -1655,6 +1721,30 @@ final class PrivateNameSerializationCluster extends SerializationCluster {
       serializer.assignRef(name);
       serializer.writeRefId(name.library);
       serializer.writeRefId(name.text);
+    }
+  }
+}
+
+final class QualifiedPrivateNameSerializationCluster
+    extends SerializationCluster {
+  final List<QualifiedPrivateName> _objects = [];
+
+  @override
+  void trace(SnapshotSerializer serializer, Object object) {
+    final name = object as QualifiedPrivateName;
+    _objects.add(name);
+    serializer.push(name.className);
+    serializer.push(name.name);
+  }
+
+  @override
+  void writePreLoad(SnapshotSerializer serializer) {
+    serializer.writeUint(PredefinedClusters.qualifiedPrivateNames.index);
+    serializer.writeUint(_objects.length);
+    for (final name in _objects) {
+      serializer.assignRef(name);
+      serializer.writeRefId(name.className);
+      serializer.writeRefId(name.name);
     }
   }
 }
@@ -2158,6 +2248,9 @@ final class FunctionTypeSerializationCluster extends SerializationCluster {
   >
   _fields = [];
 
+  static bool _hasImplicitParameter(ast.FunctionType type) =>
+      (type is! FunctionSignature) || type.hasImplicitParameter;
+
   @override
   void trace(SnapshotSerializer serializer, Object object) {
     final type = object as ast.FunctionType;
@@ -2175,7 +2268,7 @@ final class FunctionTypeSerializationCluster extends SerializationCluster {
         ? TypeParameters.fromStructuralParameters(type.typeParameters)
         : null;
     final parameterTypes = getListConstant([
-      if (type is! FunctionSignature)
+      if (_hasImplicitParameter(type))
         const ast.DynamicType(), // implicit receiver/closure parameter
       ...type.positionalParameters,
       for (final np in type.namedParameters) np.type,
@@ -2221,7 +2314,7 @@ final class FunctionTypeSerializationCluster extends SerializationCluster {
       serializer.writeRefId(fields.parameterTypes);
       serializer.writeRefId(fields.parameterNames);
       final vmOffsets = serializer.objectLayout.vmOffsets;
-      final numImplicitParams = (type is! FunctionSignature) ? 1 : 0;
+      final numImplicitParams = _hasImplicitParameter(type) ? 1 : 0;
       final numFixedParams = numImplicitParams + type.requiredParameterCount;
       final numOptionalParams = type.namedParameters.isNotEmpty
           ? type.namedParameters.length
@@ -2261,7 +2354,6 @@ final class FunctionTypeSerializationCluster extends SerializationCluster {
         numTypeParams <
             (1 << vmOffsets.UntaggedFunctionType_kPackedNumTypeParametersSize),
       );
-      // TODO: number of parent type arguments
       final packedTypeParamCount =
           (type.typeParameters.length <<
           vmOffsets.UntaggedFunctionType_kPackedNumTypeParametersPos);
@@ -2379,26 +2471,36 @@ final class TypeParameterTypeSerializationCluster extends SerializationCluster {
         type.declaredNullability == ast.Nullability.nullable ? 1 : 0,
       );
       Object owner;
-      int index;
+      int indexInOwner;
+      int indexInTAV;
       switch (type) {
         case ast.TypeParameterType():
-          owner = _getTypeParameterOwner(
-            serializer,
-            type.parameter.declaration!,
-          );
-          index = computeIndexOfTypeParameter(type.parameter);
+          final declaration = type.parameter.declaration!;
+          owner = _getTypeParameterOwner(serializer, declaration);
+          indexInOwner = declaration.typeParameters.indexOf(type.parameter);
+          indexInTAV = computeIndexOfTypeParameter(type.parameter);
           break;
         case ast.StructuralParameterType():
           final functionType = _structuralParameterOwner[type.parameter]!;
           owner = functionType;
-          index = functionType.typeParameters.indexOf(type.parameter);
+          indexInOwner = functionType.typeParameters.indexOf(type.parameter);
+          // Type parameters of closures nested in generic functions
+          // follow type parameters of the enclosing functions.
+          // Other function types do not have parent type arguments.
+          indexInTAV =
+              indexInOwner +
+              ((functionType is FunctionSignature)
+                  ? functionType.numParentTypeArguments
+                  : 0);
           break;
         default:
           throw 'Unexpected type parameter ${type.runtimeType} $type';
       }
-      assert(index >= 0);
+      assert(indexInOwner >= 0);
+      assert(indexInTAV >= indexInOwner);
       serializer.writeRefId(owner);
-      serializer.writeUint(index);
+      serializer.writeUint(indexInOwner);
+      serializer.writeUint(indexInTAV);
     }
   }
 }

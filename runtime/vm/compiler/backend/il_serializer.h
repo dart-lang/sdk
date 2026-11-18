@@ -29,6 +29,7 @@ class CompileType;
 class Definition;
 class Environment;
 class FunctionEntryInstr;
+class FunctionTypeMapping;
 class Instruction;
 class FlowGraph;
 class GraphEntryInstr;
@@ -314,7 +315,7 @@ class FlowGraphSerializer : public ValueObject {
   bool HasEnclosingTypes(const Object& obj);
   bool WriteObjectWithEnclosingTypes(const Object& type);
   void WriteEnclosingTypes(const Object& type,
-                           intptr_t num_free_fun_type_params);
+                           FunctionTypeMapping* enclosing_function_types);
 
   NonStreamingWriteStream* stream_;
   Zone* zone_;
@@ -323,7 +324,11 @@ class FlowGraphSerializer : public ValueObject {
   Heap* heap_;
   intptr_t object_counter_ = 0;
   bool can_write_refs_ = false;
-  intptr_t num_free_fun_type_params_ = kMaxInt;
+  // Function types which are being written. Type parameters of these
+  // function types can be written without writing their owners first.
+  FunctionTypeMapping* enclosing_function_types_ = nullptr;
+  // True if owners of all type parameters were already written.
+  bool all_enclosing_types_written_ = false;
 };
 
 // Deserializes flow graph.

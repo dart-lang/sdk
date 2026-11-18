@@ -121,6 +121,7 @@ final class RegisterAllocationChecker extends Pass {
     final bool match = switch (con) {
       PhysicalRegister() => con == loc,
       ParameterStackLocation() => con == loc,
+      CatchSlotLocation() => con == loc,
       AnyCpuRegister() => loc is Register,
       AnyFpuRegister() => loc is FPRegister,
       AnyLocation() => true,

@@ -4211,6 +4211,7 @@ Condition DoubleTestOpInstr::EmitConditionCode(FlowGraphCompiler* compiler,
   V(Int32x4BitOr, orps)                                                        \
   V(Int32x4BitXor, xorps)                                                      \
   V(Int32x4Equal, pcmpeqd)                                                     \
+  V(Int32x4GreaterThan, pcmpgtd)                                               \
   V(Float32x4Equal, cmppseq)                                                   \
   V(Float32x4NotEqual, cmppsneq)                                               \
   V(Float32x4LessThan, cmppslt)                                                \
@@ -4228,6 +4229,14 @@ DEFINE_EMIT(SimdBinaryOp,
     case SimdOpInstr::kInt32x4AndNot:
       __ orps(left, right);
       __ xorps(left, right);
+      break;
+    case SimdOpInstr::kInt32x4GreaterThanOrEqual:
+      // TODO(dartbug.com/64170): Use pminsd for fewer instructions when
+      // SSE4.1 is available.
+      __ movaps(FpuTMP, right);  // FpuTMP = b
+      __ pcmpgtd(FpuTMP, left);  // FpuTMP = b > a
+      __ pcmpeqd(left, left);    // left = all ones
+      __ pxor(left, FpuTMP);     // left = ~(b > a) = a >= b
       break;
     case SimdOpInstr::kFloat32x4Scale:
       __ cvtsd2ss(left, left);
@@ -4643,6 +4652,21 @@ DEFINE_EMIT(Int32x4NotEqual,
   __ notps(left, left);
 }
 
+DEFINE_EMIT(Int32x4Negate, (XmmRegister result, XmmRegister value)) {
+  ASSERT(result != value);
+  __ pxor(result, result);
+  __ subpl(result, value);
+}
+
+DEFINE_EMIT(Int32x4Abs,
+            (SameAsFirstInput, XmmRegister value, Temp<XmmRegister> temp)) {
+  // temp = value < 0 ? -1 : 0, then abs(value) = (value ^ temp) - temp.
+  __ pxor(temp, temp);
+  __ pcmpgtd(temp, value);
+  __ pxor(value, temp);
+  __ subpl(value, temp);
+}
+
 DEFINE_EMIT(Int32x4Shift,
             (SameAsFirstInput,
              XmmRegister value,
@@ -4680,6 +4704,7 @@ DEFINE_EMIT(Int32x4Shift,
   ____(Int32x4Shift)                                                           \
   SIMD_OP_SIMPLE_BINARY(CASE)                                                  \
   CASE(Int32x4AndNot)                                                          \
+  CASE(Int32x4GreaterThanOrEqual)                                              \
   CASE(Float32x4Scale)                                                         \
   CASE(Float32x4ShuffleMix)                                                    \
   CASE(Int32x4ShuffleMix)                                                      \
@@ -4697,6 +4722,8 @@ DEFINE_EMIT(Int32x4Shift,
   SIMPLE(Float64x2Min)                                                         \
   SIMPLE(Float64x2Max)                                                         \
   SIMPLE(Int32x4NotEqual)                                                      \
+  SIMPLE(Int32x4Negate)                                                        \
+  SIMPLE(Int32x4Abs)                                                           \
   CASE(Float32x4Shuffle)                                                       \
   CASE(Int32x4Shuffle)                                                         \
   ____(Simd32x4Shuffle)                                                        \

@@ -6,6 +6,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:linter/src/rules.dart';
@@ -69,6 +70,40 @@ linter:
     expect(error.location.file, analysisOptions.path);
     expect(error.severity, AnalysisErrorSeverity.WARNING);
     expect(error.type, AnalysisErrorType.STATIC_WARNING);
+  }
+
+  Future<void>
+  test_analysisOptionsFile_deprecatedLint_useStringInPartOfDirectives() async {
+    var currentVersion = ExperimentStatus.currentVersion;
+    await _verifyUseStringInPartOfDirectivesDeprecation(
+      sdkConstraint: '^${currentVersion.major}.${currentVersion.minor + 1}.0',
+      expectDeprecated: true,
+    );
+  }
+
+  Future<void>
+  test_analysisOptionsFile_deprecatedLint_useStringInPartOfDirectives_belowSdkConstraint() async {
+    await _verifyUseStringInPartOfDirectivesDeprecation(
+      sdkConstraint: '^3.15.0',
+      expectDeprecated: false,
+    );
+  }
+
+  Future<void>
+  test_analysisOptionsFile_deprecatedLint_useStringInPartOfDirectives_belowSdkConstraint_patchVersion() async {
+    await _verifyUseStringInPartOfDirectivesDeprecation(
+      sdkConstraint: '^3.15.1',
+      expectDeprecated: false,
+    );
+  }
+
+  Future<void>
+  test_analysisOptionsFile_deprecatedLint_useStringInPartOfDirectives_nextMajorSdk() async {
+    var currentVersion = ExperimentStatus.currentVersion;
+    await _verifyUseStringInPartOfDirectivesDeprecation(
+      sdkConstraint: '^${currentVersion.major + 1}.0.0',
+      expectDeprecated: true,
+    );
   }
 
   Future<void> test_analysisOptionsFile_packageInclude() async {
@@ -590,5 +625,37 @@ void f(E e) {
     var error = errors[0];
     expect(error.severity, AnalysisErrorSeverity.ERROR);
     expect(error.type, AnalysisErrorType.COMPILE_TIME_ERROR);
+  }
+
+  Future<void> _verifyUseStringInPartOfDirectivesDeprecation({
+    required String sdkConstraint,
+    required bool expectDeprecated,
+  }) async {
+    newPubspecYamlFile(testPackageRootPath, '''
+name: test
+environment:
+  sdk: $sdkConstraint
+''');
+    var analysisOptions = newAnalysisOptionsYamlFile(testPackageRootPath, '''
+linter:
+  rules:
+    - use_string_in_part_of_directives
+''');
+
+    await setRoots(included: [workspaceRootPath], excluded: []);
+    await waitForTasksFinished();
+    await pumpEventQueue();
+
+    var errors = filesErrors[analysisOptions] ?? const [];
+    if (expectDeprecated) {
+      expect(errors, hasLength(1));
+      var error = errors[0];
+      expect(error.location.file, analysisOptions.path);
+      expect(error.severity, AnalysisErrorSeverity.WARNING);
+      expect(error.type, AnalysisErrorType.STATIC_WARNING);
+      expect(error.code, 'deprecated_lint');
+    } else {
+      expect(errors, isEmpty);
+    }
   }
 }

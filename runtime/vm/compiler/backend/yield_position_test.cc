@@ -14,8 +14,8 @@ namespace dart {
 
 using YieldPoints = ZoneGrowableArray<TokenPosition>;
 
-int LowestFirst(const TokenPosition* a, const TokenPosition* b) {
-  return a->Pos() - b->Pos();
+bool LowestFirst(const TokenPosition& a, const TokenPosition& b) {
+  return a.Pos() < b.Pos();
 }
 
 static YieldPoints* GetYieldPointsFromGraph(FlowGraph* flow_graph) {

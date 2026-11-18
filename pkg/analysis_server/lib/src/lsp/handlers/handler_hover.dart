@@ -11,6 +11,7 @@ import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
+import 'package:analysis_server/src/utilities/extensions/analysis_session.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
 
@@ -149,7 +150,7 @@ class HoverHandler
   ) {
     var compilationUnit = unit.unit;
     var computer = DartUnitHoverComputer(
-      server.getDartdocDirectiveInfoFor(unit),
+      unit.session.dartdocDirectiveInfo,
       compilationUnit,
       offset,
     );

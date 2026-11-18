@@ -1,0 +1,12 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/part_of_self_2.dart:1:1: Error: This part doesn't have a containing library.
+// Try removing the 'part of' declaration.
+// // Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
+// ^
+//
+import self as self;
+
+part part_of_self_2.dart /* not included */;

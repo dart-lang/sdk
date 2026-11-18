@@ -44,6 +44,7 @@ class _CharCode {
   static const int QUOTE = 0x22;
   static const int COMMA = 0x2C;
   static const int MINUS = 0x2D;
+  static const int DOT = 0x2E;
   static const int SLASH = 0x2F;
   static const int ZERO = 0x30;
   static const int ONE = 0x31;

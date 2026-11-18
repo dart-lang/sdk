@@ -346,15 +346,11 @@ bool CallSpecializer::TryStringLengthOneEquality(InstanceCallInstr* call,
         /*null_aware=*/false);
     ReplaceCall(call, comp);
 
-    // Remove dead instructions.
-    if ((to_remove_left != nullptr) &&
-        (to_remove_left->input_use_list() == nullptr)) {
-      to_remove_left->ReplaceUsesWith(flow_graph()->constant_null());
+    // Remove dead instructions. Keep any that an environment still uses.
+    if ((to_remove_left != nullptr) && !to_remove_left->HasUses()) {
       to_remove_left->RemoveFromGraph();
     }
-    if ((to_remove_right != nullptr) &&
-        (to_remove_right->input_use_list() == nullptr)) {
-      to_remove_right->ReplaceUsesWith(flow_graph()->constant_null());
+    if ((to_remove_right != nullptr) && !to_remove_right->HasUses()) {
       to_remove_right->RemoveFromGraph();
     }
     return true;
@@ -2392,6 +2388,18 @@ class SimdLowering : public ValueObject {
       case MethodRecognizer::kInt32x4NotEqual:
         Int32x4Compare(Token::kNE);
         return true;
+      case MethodRecognizer::kInt32x4GreaterThan:
+        Int32x4Compare(Token::kGT);
+        return true;
+      case MethodRecognizer::kInt32x4GreaterThanOrEqual:
+        Int32x4Compare(Token::kGTE);
+        return true;
+      case MethodRecognizer::kInt32x4LessThan:
+        Int32x4Compare(Token::kLT);
+        return true;
+      case MethodRecognizer::kInt32x4LessThanOrEqual:
+        Int32x4Compare(Token::kLTE);
+        return true;
       case MethodRecognizer::kInt32x4FromInts:
         UnboxScalar(0, kUnboxedInt32, 4);
         UnboxScalar(1, kUnboxedInt32, 4);
@@ -2773,6 +2781,8 @@ class SimdLowering : public ValueObject {
       case MethodRecognizer::kInt32x4ShrS:
       case MethodRecognizer::kInt32x4ShrU:
       case MethodRecognizer::kInt32x4AndNot:
+      case MethodRecognizer::kInt32x4Negate:
+      case MethodRecognizer::kInt32x4Abs:
         // TODO(riscv)
         return false;
       default:
@@ -3531,12 +3541,18 @@ bool CallSpecializer::TryInlineRecognizedMethod(
     case MethodRecognizer::kInt32x4BitXor:
     case MethodRecognizer::kInt32x4Not:
 #if !defined(TARGET_ARCH_IA32)
+    case MethodRecognizer::kInt32x4Negate:
     case MethodRecognizer::kInt32x4Equal:
     case MethodRecognizer::kInt32x4NotEqual:
     case MethodRecognizer::kInt32x4Shl:
     case MethodRecognizer::kInt32x4ShrS:
     case MethodRecognizer::kInt32x4ShrU:
     case MethodRecognizer::kInt32x4AndNot:
+    case MethodRecognizer::kInt32x4GreaterThan:
+    case MethodRecognizer::kInt32x4GreaterThanOrEqual:
+    case MethodRecognizer::kInt32x4LessThan:
+    case MethodRecognizer::kInt32x4LessThanOrEqual:
+    case MethodRecognizer::kInt32x4Abs:
 #endif
       return InlineSimdOp(flow_graph, is_dynamic_call, call, receiver, kind,
                           graph_entry, entry, last, result);

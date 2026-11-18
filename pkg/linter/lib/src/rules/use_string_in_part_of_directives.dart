@@ -4,11 +4,14 @@
 
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart'; // ignore: implementation_imports
+import 'package:pub_semver/pub_semver.dart';
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
@@ -20,6 +23,18 @@ class UseStringInPartOfDirectives extends AnalysisRule {
     : super(
         name: LintNames.use_string_in_part_of_directives,
         description: _desc,
+        state: RuleState.deprecated(
+          since:
+              Feature.enhanced_parts.releaseVersion ??
+              // Until `enhanced_parts` has a release version, bumping minor by 1
+              // makes `since <= min` match both the next minor and next major
+              // versions while excluding patch releases of `currentVersion`.
+              Version(
+                ExperimentStatus.currentVersion.major,
+                ExperimentStatus.currentVersion.minor + 1,
+                0,
+              ),
+        ),
       );
 
   @override

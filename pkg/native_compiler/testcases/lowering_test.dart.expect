@@ -736,6 +736,198 @@ B0 = EntryBlock()
   ParallelMove input(NullConstant(null) -> R0)
   Return(v10)   # RA: (R0)
 
+--- lateLocalVar1
+B0 = EntryBlock() dominates:(B7, B9, B6)
+  v3 = Constant(#sentinel)
+  v11 = Constant(10)
+  v26 = Constant("i")
+  v33 = Constant(null)
+  v1 = Parameter(c1)   # RA: param[0] <- ()
+  v2 = Parameter(c2)   # RA: param[1] <- ()
+  ParallelMove output(param[1] -> vloc:R1, param[0] -> vloc:R0)
+  Branch(v1, true: B6, false: B7)   # RA: (R0)
+B6 = TargetBlock() idom:B0
+  ParallelMove input(IntConstant(10) -> R0)
+  Goto(B9)
+B7 = TargetBlock() idom:B0
+  ParallelMove input(#sentinel -> R0)
+  Goto(B9)
+B9 = JoinBlock(B7, B6) idom:B0 dominates:(B16, B18, B15)
+  v35 = Phi(v3, v11)   # RA: R0 <- (-, -)
+  Branch(v2, true: B15, false: B16)   # RA: (R1)
+B15 = TargetBlock() idom:B9 dominates:(B21, B20)
+  CompareAndBranch ==(v35, v3, true: B20, false: B21)   # RA: (R0, -)
+B21 = TargetBlock() idom:B15
+  v30 = TypeCast(v35, int, unchecked)   # RA: R0 <- (R0) SAFEPT{live: [R0], objects: [R0]}
+  DirectCall print(v30)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: []}
+  Goto(B18)
+B16 = TargetBlock() idom:B9
+  Goto(B18)
+B18 = JoinBlock(B16, B21) idom:B9
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v33)   # RA: (R0)
+B20 = TargetBlock() idom:B15
+  DirectCall LateError._throwLocalNotInitialized(v26)   # RA: R0 <- (-) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: []}
+  Unreachable(message: "LateError._throwLocalNotInitialized should not return")
+
+--- lateLocalVar2
+B0 = EntryBlock() dominates:(B7, B9, B6)
+  v3 = Constant(#sentinel)
+  v11 = Constant(10)
+  v17 = Constant("i")
+  v27 = Constant(20)
+  v47 = Constant(null)
+  Constant(true)
+  v1 = Parameter(c1)   # RA: param[0] <- ()
+  v2 = Parameter(c2)   # RA: param[1] <- ()
+  ParallelMove output(param[1] -> vloc:R1, param[0] -> vloc:R0)
+  Branch(v1, true: B6, false: B7)   # RA: (R0)
+B6 = TargetBlock() idom:B0
+  ParallelMove input(IntConstant(10) -> R0)
+  Goto(B9)
+B7 = TargetBlock() idom:B0
+  ParallelMove input(#sentinel -> R0)
+  Goto(B9)
+B9 = JoinBlock(B7, B6) idom:B0 dominates:(B23, B25, B22)
+  v49 = Phi(v3, v11)   # RA: R0 <- (-, -)
+  Branch(v2, true: B22, false: B23)   # RA: (R1)
+B22 = TargetBlock() idom:B9 dominates:(B29, B28)
+  CompareAndBranch ==(v49, v3, true: B28, false: B29)   # RA: (R0, -)
+B28 = TargetBlock() idom:B22
+  ParallelMove input(IntConstant(20) -> R0)
+  Goto(B25)
+B23 = TargetBlock() idom:B9
+  Goto(B25)
+B25 = JoinBlock(B23, B28) idom:B9 dominates:(B37, B36)
+  v50 = Phi(v49, v27)   # RA: R0 <- (R0, -)
+  CompareAndBranch ==(v50, v3, true: B36, false: B37)   # RA: (R0, -)
+B37 = TargetBlock() idom:B25
+  v45 = TypeCast(v50, int, unchecked)   # RA: R0 <- (R0) SAFEPT{live: [R0], objects: [R0]}
+  DirectCall print(v45)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: []}
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v47)   # RA: (R0)
+B29 = TargetBlock() idom:B22
+  DirectCall LateError._throwLocalAlreadyInitialized(v17)   # RA: R0 <- (-) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: []}
+  Unreachable(message: "LateError._throwLocalAlreadyInitialized should not return")
+B36 = TargetBlock() idom:B25
+  DirectCall LateError._throwLocalNotInitialized(v17)   # RA: R0 <- (-) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: []}
+  Unreachable(message: "LateError._throwLocalNotInitialized should not return")
+
+--- lateLocalVar3
+B0 = EntryBlock() dominates:(B13, B14, B12)
+  v7 = Constant(#sentinel)
+  v25 = Constant("i")
+  v33 = Constant(null)
+  Parameter(c1)   # RA: param[0] <- ()
+  Parameter(c2)   # RA: param[1] <- ()
+  v3 = AllocateContext()   # RA: R0 <- () temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: []}
+  ParallelMove output(R0 -> vloc:R0)
+  ParallelMove spill(R0 -> stack[0])
+  v4 = AllocateClosure(len:1)   # RA: R0 <- () temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0]]}
+  ParallelMove output(R0 -> vloc:R0, stack[0] -> R3)
+  StoreInstanceField(#closure-field[0], v4, v3)   # RA: (R0, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2, R3], objects: [R0, R3, stack[0]]}
+  StoreInstanceField(#context-field:#i#initializer, v3, v4)   # RA: (R3, R0) temps: [R1, R2] SAFEPT{live: [R1, R2, R3], objects: [R3, stack[0]]}
+  ParallelMove input(#sentinel -> vloc:R0)
+  StoreInstanceField(#context-field:i, v3, v7)   # RA: (R3, R0) temps: [R1, R2] SAFEPT{live: [R1, R2, R3], objects: [R3, stack[0]]}
+  v9 = AllocateClosure(len:1)   # RA: R0 <- () temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0]]}
+  ParallelMove output(R0 -> vloc:R0, stack[0] -> R3)
+  StoreInstanceField(#closure-field[0], v9, v3)   # RA: (R0, R3) temps: [R1, R2] SAFEPT{live: [R0, R1, R2, R3], objects: [R0, R3, stack[0]]}
+  StoreInstanceField(#context-field:init, v3, v9)   # RA: (R3, R0) temps: [R1, R2] SAFEPT{live: [R1, R2, R3], objects: [R3, stack[0]]}
+  v15 = LoadInstanceField(#context-field:i, v3)   # RA: R0 <- (R3)
+  CompareAndBranch ==(v15, v7, true: B12, false: B13)   # RA: (R0, -)
+B12 = TargetBlock() idom:B0 dominates:(B21, B20)
+  v18 = LoadInstanceField(#context-field:#i#initializer, v3)   # RA: R0 <- (R3)
+  v19 = ClosureCall(v18)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0]]}
+  ParallelMove output(R0 -> vloc:R0, stack[0] -> R1)
+  v22 = LoadInstanceField(#context-field:i, v3)   # RA: R2 <- (R1)
+  CompareAndBranch ==(v22, v7, true: B20, false: B21)   # RA: (R2, -)
+B20 = TargetBlock() idom:B12
+  StoreInstanceField(#context-field:i, v3, v19)   # RA: (R1, R0) temps: [R2, R3] SAFEPT{live: [R1, R2, R3], objects: [R1, stack[0]]}
+  Goto(B14)
+B13 = TargetBlock() idom:B0
+  ParallelMove control(R3 -> R1)
+  Goto(B14)
+B14 = JoinBlock(B13, B20) idom:B0
+  v30 = LoadInstanceField(#context-field:i, v3)   # RA: R0 <- (R1)
+  v31 = TypeCast(v30, int, unchecked)   # RA: R0 <- (R0) SAFEPT{live: [R0], objects: [R0]}
+  DirectCall print(v31)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: []}
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v33)   # RA: (R0)
+B21 = TargetBlock() idom:B12
+  DirectCall LateError._throwLocalAssignedDuringInitialization(v25)   # RA: R0 <- (-) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: []}
+  Unreachable(message: "LateError._throwLocalAssignedDuringInitialization should not return")
+
+--- closure FunctionDeclaration(int #i#initializer() => let final int? #0 = let final int Function()? #1 = init in #1 == null ?{int?} null : #1{int Function()}() in #0 == null ?{int} 10 : #0{int};) at lateLocalVar3
+B0 = EntryBlock() dominates:(B10, B13, B9)
+  v7 = Constant(null)
+  v27 = Constant(10)
+  v1 = Parameter(#closure)   # RA: param[0] <- ()
+  ParallelMove output(param[0] -> vloc:R0)
+  v3 = LoadInstanceField(#closure-field[0], v1)   # RA: R0 <- (R0)
+  v4 = LoadInstanceField(#context-field:init, v3)   # RA: R0 <- (R0)
+  CompareAndBranch ==(v4, v7, true: B9, false: B10)   # RA: (R0, -)
+B9 = TargetBlock() idom:B0
+  ParallelMove input(NullConstant(null) -> R0)
+  Goto(B13)
+B10 = TargetBlock() idom:B0
+  v16 = TypeCast(v4, int Function(), unchecked)   # RA: R0 <- (R0) SAFEPT{live: [R0], objects: [R0]}
+  v17 = ClosureCall(v16)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: []}
+  ParallelMove output(R0 -> vloc:R0)
+  Goto(B13)
+B13 = JoinBlock(B10, B9) idom:B0 dominates:(B25, B29, B24)
+  v37 = Phi(v17, v7)   # RA: R0 <- (R0, -)
+  CompareAndBranch ==(v37, v7, true: B24, false: B25)   # RA: (R0, -)
+B24 = TargetBlock() idom:B13
+  ParallelMove input(IntConstant(10) -> R0)
+  Goto(B29)
+B25 = TargetBlock() idom:B13
+  v32 = TypeCast(v37, int, unchecked)   # RA: R0 <- (R0) SAFEPT{live: [R0], objects: [R0]}
+  Goto(B29)
+B29 = JoinBlock(B25, B24) idom:B13
+  v38 = Phi(v32, v27)   # RA: R0 <- (R0, -)
+  ParallelMove input(vloc:R0 -> R0)
+  Return(v38)   # RA: (R0)
+
+--- closure FunctionExpression(int () {
+  init = null;
+  print(i);
+  return 20;
+}) at lateLocalVar3
+B0 = EntryBlock() dominates:(B7, B8, B6)
+  v4 = Constant(null)
+  v10 = Constant(#sentinel)
+  v20 = Constant("i")
+  v28 = Constant(20)
+  v1 = Parameter(#closure)   # RA: param[0] <- ()
+  ParallelMove output(param[0] -> vloc:R0)
+  v3 = LoadInstanceField(#closure-field[0], v1)   # RA: R0 <- (R0)
+  ParallelMove output(R0 -> stack[0])
+  ParallelMove input(NullConstant(null) -> vloc:R1)
+  StoreInstanceField(#context-field:init, v3, v4)   # RA: (R0, R1) temps: [R2, R3] SAFEPT{live: [R0, R2, R3], objects: [R0, stack[0]]}
+  v9 = LoadInstanceField(#context-field:i, v3)   # RA: R1 <- (R0)
+  CompareAndBranch ==(v9, v10, true: B6, false: B7)   # RA: (R1, -)
+B6 = TargetBlock() idom:B0 dominates:(B16, B15)
+  v13 = LoadInstanceField(#context-field:#i#initializer, v3)   # RA: R1 <- (R0)
+  v14 = ClosureCall(v13)   # RA: R0 <- (R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: [stack[0]]}
+  ParallelMove output(R0 -> vloc:R0, stack[0] -> R1)
+  v17 = LoadInstanceField(#context-field:i, v3)   # RA: R2 <- (R1)
+  CompareAndBranch ==(v17, v10, true: B15, false: B16)   # RA: (R2, -)
+B15 = TargetBlock() idom:B6
+  StoreInstanceField(#context-field:i, v3, v14)   # RA: (R1, R0) temps: [R2, R3] SAFEPT{live: [R1, R2, R3], objects: [R1, stack[0]]}
+  Goto(B8)
+B7 = TargetBlock() idom:B0
+  ParallelMove control(R0 -> R1)
+  Goto(B8)
+B8 = JoinBlock(B7, B15) idom:B0
+  v25 = LoadInstanceField(#context-field:i, v3)   # RA: R0 <- (R1)
+  v26 = TypeCast(v25, int, unchecked)   # RA: R0 <- (R0) SAFEPT{live: [R0], objects: [R0]}
+  DirectCall print(v26)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: []}
+  ParallelMove input(IntConstant(20) -> R0)
+  Return(v28)   # RA: (R0)
+B16 = TargetBlock() idom:B6
+  DirectCall LateError._throwLocalAssignedDuringInitialization(v20)   # RA: R0 <- (-) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30] SAFEPT{live: [], objects: []}
+  Unreachable(message: "LateError._throwLocalAssignedDuringInitialization should not return")
+
 --- main
 B0 = EntryBlock()
   v1 = Constant(null)

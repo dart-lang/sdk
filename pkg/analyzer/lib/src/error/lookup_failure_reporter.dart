@@ -19,50 +19,39 @@ import 'package:analyzer/src/error/listener.dart';
 /// A dot shorthand without a context type is reported as missing a context
 /// instead, so this domain always has a context type.
 final class DotShorthandLookupDomain extends LookupDomain {
-  /// The context type of the dot shorthand.
-  final TypeImpl contextType;
-
-  /// The interface declaration that [contextType] denotes, or `null` if it
+  /// The interface declaration that the context type denotes, or `null` if it
   /// doesn't denote one.
   final InterfaceElementImpl? declaration;
+
+  /// The context type, when it doesn't denote a [declaration].
+  final TypeImpl? _contextTypeWithoutDeclaration;
 
   /// Whether [declaration] is private to another library, so its static
   /// members were not searched.
   final bool _isPrivateDeclaration;
 
-  /// A lookup in the declaration that [context] denotes.
-  new declaration(ValidDotShorthandContextResolutionImpl context)
-    : contextType = context.contextType,
-      declaration = context.lookupType.element,
+  /// A lookup in the static members of [declaration].
+  new declaration(InterfaceElementImpl this.declaration)
+    : _contextTypeWithoutDeclaration = null,
       _isPrivateDeclaration = false;
 
-  /// A lookup in the context type of [context], which doesn't denote an
-  /// accessible interface declaration, so nothing could be found.
-  factory invalid(InvalidDotShorthandContextResolutionImpl context) {
-    if (context.lookupType case InterfaceTypeImpl(:var element)) {
-      if (element.isPrivate) {
-        return DotShorthandLookupDomain._privateDeclaration(
-          context.contextType,
-          element,
-        );
-      }
-    }
-    return DotShorthandLookupDomain._noDeclaration(context.contextType);
-  }
-
-  new _noDeclaration(this.contextType)
+  /// A lookup in [contextType], which doesn't denote an interface declaration,
+  /// so nothing could be found.
+  new noDeclaration(TypeImpl contextType)
     : declaration = null,
+      _contextTypeWithoutDeclaration = contextType,
       _isPrivateDeclaration = false;
 
-  new _privateDeclaration(
-    this.contextType,
-    InterfaceElementImpl this.declaration,
-  ) : _isPrivateDeclaration = true;
+  /// A lookup in [declaration], which is private to another library, so
+  /// nothing could be found.
+  new privateDeclaration(InterfaceElementImpl this.declaration)
+    : _contextTypeWithoutDeclaration = null,
+      _isPrivateDeclaration = true;
 
   @override
   bool _isIgnored(LibraryFragmentImpl libraryFragment, String name) {
     // The invalid context type has already been reported.
-    return contextType is InvalidTypeImpl;
+    return _contextTypeWithoutDeclaration is InvalidTypeImpl;
   }
 
   @override
@@ -76,7 +65,7 @@ final class DotShorthandLookupDomain extends LookupDomain {
       return diag.undefinedStaticMemberReadNoStaticMembersDotShorthand
           .withArguments(
             name: name,
-            contextType: contextType.getDisplayString(),
+            contextType: _contextTypeWithoutDeclaration!.getDisplayString(),
           );
     } else if (_isPrivateDeclaration) {
       return diag.undefinedStaticMemberReadPrivateDotShorthand.withArguments(

@@ -170,7 +170,11 @@ front_end/WasmExternInvalidLoad/example: missingExample # only issued by wasm bu
 front_end/WasmExternInvalidTarget/example: missingExample # only issued by wasm build
 front_end/WasmIntrinsicTearOff/example: missingExample # only issued by wasm build
 front_end/WasmExternMemoryMissingAnnotation/example: missingExample # only issued by wasm build
+front_end/WasmExternTableMissingAnnotation/example: missingExample # only issued by wasm build
+front_end/WasmTableInvalidElementType/example: missingExample # only issued by wasm build
+front_end/WasmTableCallIndirectInvalidUsage/example: missingExample # only issued by wasm build
 front_end/WasmSharedMemoryMissingMaximum/example: missingExample # only issued by wasm build
+front_end/WasmInvalidLimits/example: missingExample # only issued by wasm build
 front_end/WasmImportInvalidPragma/example: missingExample # only issued by wasm build
 front_end/WasmExportInvalidPragma/example: missingExample # only issued by wasm build
 front_end/WasmImportOrExportInvalidSignature/example: missingExample # only issued by wasm build

@@ -59,6 +59,7 @@ class AstToIr extends ast.RecursiveVisitor {
 
   Map<ast.LabeledStatement, JoinBlock>? labeledStatements;
   Map<ast.SwitchCase, JoinBlock>? switchCases;
+  Map<ast.SwitchStatement, List<ast.SwitchCase>>? switchCaseWorklists;
   Map<ast.TryFinally, List<FinallyBlock>>? finallyBlocks;
 
   bool _hasTypeParametersInScope = false;
@@ -117,6 +118,8 @@ class AstToIr extends ast.RecursiveVisitor {
         _translateNode(field.initializer!);
         if (builder.hasOpenBlock) {
           builder.addReturn();
+        } else {
+          builder.pop();
         }
       case MethodExtractor():
         throw 'Unimplemented buildFlowGraph for ${function.runtimeType}';
@@ -345,7 +348,7 @@ class AstToIr extends ast.RecursiveVisitor {
         case ast.Expression():
           _handleUnreachableExpression(0);
           return;
-        case ast.Statement():
+        case ast.Statement() || ast.Initializer() || ast.VariableDeclaration():
           return;
         default:
           throw 'Unexpected ${node.runtimeType} $node';
@@ -939,7 +942,10 @@ class AstToIr extends ast.RecursiveVisitor {
   void _readVariable(ast.Variable v) {
     if (_isCaptured(v)) {
       builder.push(localVarIndexer.contextDef(scopes.getVariableContext(v)));
-      builder.addLoadInstanceField(localVarIndexer.contextField(v));
+      builder.addLoadInstanceField(
+        localVarIndexer.contextField(v),
+        type: v.isLate ? const LateValueType() : null,
+      );
     } else {
       builder.addLoadLocal(localVarIndexer.variableForDeclaration(v));
     }
@@ -1336,35 +1342,33 @@ class AstToIr extends ast.RecursiveVisitor {
   void visitSwitchStatement(ast.SwitchStatement node) {
     _translateNode(node.expression);
     final value = builder.pop();
+    if (!builder.hasOpenBlock) return;
 
     final switchCases = this.switchCases ??= <ast.SwitchCase, JoinBlock>{};
-    final caseBlocks = List<JoinBlock>.generate(
-      node.cases.length,
-      (_) => builder.newJoinBlock(),
-    );
+    final switchCaseWorklists = this.switchCaseWorklists ??=
+        <ast.SwitchStatement, List<ast.SwitchCase>>{};
+    final worklist = switchCaseWorklists[node] = <ast.SwitchCase>[];
 
     for (var i = 0; i < node.cases.length; i++) {
       final switchCase = node.cases[i];
-      final caseBlock = caseBlocks[i];
-      switchCases[switchCase] = caseBlock;
 
       if (switchCase.isDefault) {
         assert(i == node.cases.length - 1);
-        builder.addGoto(caseBlock);
+        builder.addGoto(_getSwitchCaseBlock(switchCase));
       } else {
         final savedSourcePosition = builder.currentSourcePosition;
-        for (var i = 0; i < switchCase.expressions.length; ++i) {
+        for (var j = 0; j < switchCase.expressions.length; ++j) {
           builder.currentSourcePosition = SourcePosition(
-            switchCase.expressionOffsets[i],
+            switchCase.expressionOffsets[j],
           );
-          _generateSwitchComparison(value, switchCase.expressions[i]);
+          _generateSwitchComparison(value, switchCase.expressions[j]);
 
           final trueBlock = builder.newTargetBlock();
           final falseBlock = builder.newTargetBlock();
           builder.addBranch(trueBlock, falseBlock);
 
           builder.startBlock(trueBlock);
-          builder.addGoto(caseBlock);
+          builder.addGoto(_getSwitchCaseBlock(switchCase));
 
           builder.startBlock(falseBlock);
         }
@@ -1382,18 +1386,19 @@ class AstToIr extends ast.RecursiveVisitor {
       }
     }
 
-    for (var i = 0; i < node.cases.length; i++) {
-      final switchCase = node.cases[i];
-      final caseBlock = caseBlocks[i];
-
-      builder.startBlock(caseBlock);
+    // Only translate SwitchCases that were actually reached (either during
+    // dispatch above, or via a ContinueSwitchStatement as bodies are
+    // translated; UCE can leave label-only SwitchCases with empty expressions).
+    final lastCase = node.cases.lastOrNull;
+    for (var i = 0; i < worklist.length; ++i) {
+      final switchCase = worklist[i];
+      builder.startBlock(switchCases[switchCase]!);
       _translateNode(switchCase.body);
 
       if (builder.hasOpenBlock) {
-        if (i == node.cases.length - 1) {
-          if (done != null) {
-            builder.addGoto(done);
-          }
+        if (switchCase == lastCase) {
+          done ??= builder.newJoinBlock();
+          builder.addGoto(done);
         } else {
           // There is no implicit fall-through in Dart.
           // However, CFE sometimes omit 'break' when code is unreachable due to exhaustiveness.
@@ -1402,7 +1407,8 @@ class AstToIr extends ast.RecursiveVisitor {
       }
     }
 
-    node.cases.forEach(switchCases.remove);
+    switchCaseWorklists.remove(node);
+    worklist.forEach(switchCases.remove);
 
     if (done != null) {
       builder.startBlock(done);
@@ -1411,13 +1417,19 @@ class AstToIr extends ast.RecursiveVisitor {
 
   @override
   void visitContinueSwitchStatement(ast.ContinueSwitchStatement node) {
-    final targetBlock = switchCases?[node.target];
-    if (targetBlock == null) {
-      throw 'Target block ${node.target} was not registered for continue-switch $node';
-    }
     _generateNonLocalControlTransfer(node, node.target.parent!, () {
-      builder.addGoto(targetBlock);
+      builder.addGoto(_getSwitchCaseBlock(node.target));
     });
+  }
+
+  JoinBlock _getSwitchCaseBlock(ast.SwitchCase switchCase) {
+    final map = switchCases!;
+    final block = map[switchCase];
+    if (block != null) return block;
+    switchCaseWorklists![switchCase.parent as ast.SwitchStatement]!.add(
+      switchCase,
+    );
+    return map[switchCase] = builder.newJoinBlock();
   }
 
   @override
@@ -1478,7 +1490,15 @@ class AstToIr extends ast.RecursiveVisitor {
 
       final exceptionVariable = catchClause.exception;
       if (exceptionVariable != null) {
+        assert(exceptionVariable.type == guardType);
         builder.addLoadLocal(exceptionLocal);
+        if (guardCType is! TopType && guardCType is! ObjectType) {
+          builder.addTypeCast(
+            guardCType,
+            typeParameters: _typeParametersForType(guardType),
+            isChecked: false,
+          );
+        }
         _writeVariable(exceptionVariable);
       }
 
@@ -1497,6 +1517,8 @@ class AstToIr extends ast.RecursiveVisitor {
 
       if (next != null) {
         builder.startBlock(next);
+      } else {
+        break;
       }
     }
     builder.currentSourcePosition = savedSourcePosition;
@@ -1718,12 +1740,8 @@ class AstToIr extends ast.RecursiveVisitor {
     final (trueBlocks, falseBlocks) = _translateConditionForControl(
       node.condition,
     );
-    if (trueBlocks.isEmpty && falseBlocks.isEmpty) {
-      assert(!builder.hasOpenBlock);
-      return;
-    }
     JoinBlock? joinBlock;
-    final tempVar = builder.declareLocalVariable(
+    late final tempVar = builder.declareLocalVariable(
       '#temp',
       null,
       _typeTranslator.translate(node.staticType),
@@ -1736,6 +1754,8 @@ class AstToIr extends ast.RecursiveVisitor {
         builder.addStoreLocal(tempVar);
         joinBlock ??= builder.newJoinBlock();
         builder.addGoto(joinBlock);
+      } else {
+        builder.pop();
       }
     }
 
@@ -1746,12 +1766,16 @@ class AstToIr extends ast.RecursiveVisitor {
         builder.addStoreLocal(tempVar);
         joinBlock ??= builder.newJoinBlock();
         builder.addGoto(joinBlock);
+      } else {
+        builder.pop();
       }
     }
 
     if (joinBlock != null) {
       builder.startBlock(joinBlock);
       builder.addLoadLocal(tempVar);
+    } else {
+      _handleUnreachableExpression(0);
     }
   }
 
@@ -1779,7 +1803,10 @@ class AstToIr extends ast.RecursiveVisitor {
     assert(args.types.isEmpty);
     final target = functionRegistry.getFunction(node.target);
     final inputCount = _translateArguments(ast.ThisExpression(), args);
-    if (_handleUnreachableExpression(inputCount)) return;
+    if (!builder.hasOpenBlock) {
+      builder.drop(inputCount);
+      return;
+    }
     builder.addDirectCall(
       target,
       inputCount,
@@ -1804,7 +1831,10 @@ class AstToIr extends ast.RecursiveVisitor {
     }
     final target = functionRegistry.getFunction(targetMember!);
     final inputCount = _translateArguments(ast.ThisExpression(), args);
-    if (_handleUnreachableExpression(inputCount)) return;
+    if (!builder.hasOpenBlock) {
+      builder.drop(inputCount);
+      return;
+    }
     builder.addDirectCall(
       target,
       inputCount,
@@ -2274,6 +2304,7 @@ class AstToIr extends ast.RecursiveVisitor {
           node.isYieldStar ? .syncYieldStar : .syncYield,
           const TopType(),
         );
+        builder.pop();
         break;
 
       default:
@@ -2285,6 +2316,7 @@ class AstToIr extends ast.RecursiveVisitor {
   void visitRecordIndexGet(ast.RecordIndexGet node) {
     final shape = RecordType(node.receiverType).shape;
     _translateNode(node.receiver);
+    if (_handleUnreachableExpression(1)) return;
     // TODO: canonicalize record fields
     builder.addLoadInstanceField(
       CField(RecordField(shape, node.index)),
@@ -2298,6 +2330,7 @@ class AstToIr extends ast.RecursiveVisitor {
     final namedIndex = shape.named.indexOf(node.name);
     assert(namedIndex >= 0);
     _translateNode(node.receiver);
+    if (_handleUnreachableExpression(1)) return;
     // TODO: canonicalize record fields
     builder.addLoadInstanceField(
       CField(RecordField(shape, shape.positional + namedIndex)),
@@ -2316,6 +2349,7 @@ class AstToIr extends ast.RecursiveVisitor {
       _translateNode(expr.value);
     }
     assert(node.positional.length + node.named.length == type.numFields);
+    if (_handleUnreachableExpression(type.numFields)) return;
     builder.addAllocateRecordLiteral(type);
   }
 }
@@ -2350,7 +2384,7 @@ class LocalVariableIndexer {
         .getThisVariable(function.member);
     if (function.hasFunctionTypeParameters) {
       functionTypeParameters = builder.declareLocalVariable(
-        '#functionTypeParameters',
+        LocalVariable.functionTypeParametersVariableName,
         null,
         const TypeParametersType(),
       );

@@ -21,7 +21,7 @@ void main() {
 @reflectiveTest
 class SurveyManagerTest with ResourceProviderMixin {
   final instrumentationService = NoopInstrumentationService();
-  final sessionLogger = SessionLogger();
+  final sessionListener = SessionLogger();
   final analytics = TestAnalytics();
   late final TestServer server;
   late final TestSurveyManager manager;
@@ -134,7 +134,7 @@ class SurveyManagerTest with ResourceProviderMixin {
     manager = TestSurveyManager(
       server,
       instrumentationService,
-      sessionLogger,
+      sessionListener,
       analytics,
       initialDelay: initialDelay,
       checkFrequency: checkFrequency,
@@ -233,7 +233,7 @@ class TestSurveyManager extends SurveyManager {
   new(
     super.server,
     super.instrumentationService,
-    super._sessionLogger,
+    super._sessionListener,
     super.analytics, {
     super.initialDelay,
     super.checkFrequency,

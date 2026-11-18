@@ -90,16 +90,14 @@ abstract class DartRuntimeServiceBackend<IM extends IsolateManager> {
   /// `streamListen` request.
   ///
   /// Returns true when the stream was successfully listened to.
-  FutureOr<bool> onStreamListen({
+  Future<bool> onStreamListen({
     required String streamId,
     required Map<String, Object?> params,
-  }) {
-    return true;
-  }
+  }) async => true;
 
   /// Invoked when [EventStreamManager.streamCancel] is called and there are no
   /// more clients listening to [streamId].
-  FutureOr<void> onStreamCancel({required String streamId}) {}
+  Future<void> onStreamCancel({required String streamId}) async {}
 
   /// Invoked when a client subscribes to [streamId].
   ///
@@ -109,11 +107,11 @@ abstract class DartRuntimeServiceBackend<IM extends IsolateManager> {
   /// [client] is already subscribed to [streamId] when this is invoked, so
   /// events may be delivered to [client] before the returned future
   /// completes. Implementations should not throw.
-  FutureOr<void> onClientSubscribe(
+  Future<void> onClientSubscribe(
     Client client,
     String streamId, {
     Map<String, Object?> params = const <String, Object?>{},
-  }) {}
+  }) async {}
 
   /// Invoked when a client unsubscribes from [streamId].
   void onClientUnsubscribe(Client client, String streamId) {}

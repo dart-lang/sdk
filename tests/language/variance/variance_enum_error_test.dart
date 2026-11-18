@@ -8,13 +8,7 @@
 
 // SharedOptions=--enable-experiment=variance
 
-class Covariant<out T> {}
-
-class Contravariant<in T> {}
-
-mixin MCovariant<out T> {}
-
-mixin MInvariant<inout T> {}
+import "variance_helper.dart";
 
 enum OutParameter<out T> {
   a;

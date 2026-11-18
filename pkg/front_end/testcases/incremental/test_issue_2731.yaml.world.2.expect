@@ -12,7 +12,7 @@ library from "org-dartlang-test:///main.dart" as main {
 //   ^^^^^^^^
 //
 
-  part part.dart;
+  part part.dart /* not included */;
   static method main() → dynamic {
     invalid-expression "org-dartlang-test:///main.dart:4:3: Error: Method not found: 'fromPart'.\n  fromPart();\n  ^^^^^^^^";
   }

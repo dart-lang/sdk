@@ -27,7 +27,7 @@ class LspStdioAnalysisServer {
       stdin,
       stdout.nonBlocking,
       socketServer.instrumentationService,
-      sessionLogger: socketServer.sessionLogger,
+      sessionListener: socketServer.sessionListener,
     );
     socketServer.createAnalysisServer(serverChannel);
     return serverChannel.closed;

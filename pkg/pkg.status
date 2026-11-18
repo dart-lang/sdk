@@ -122,6 +122,7 @@ vm_service/test/async_scope_test: SkipByDesign # Debugger is disabled in AOT mod
 vm_service/test/async_single_step_exception_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/awaiter_async_stack_contents_2_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/awaiter_async_stack_contents_test: SkipByDesign # Debugger is disabled in AOT mode.
+vm_service/test/awaiter_link_nested_context_test: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/branch_coverage_test: SkipByDesign # Hot reload is disabled in AOT mode.
 vm_service/test/break*: SkipByDesign # Debugger is disabled in AOT mode.
 vm_service/test/capture_stdio_test: SkipByDesign # Debugger is disabled in AOT mode.

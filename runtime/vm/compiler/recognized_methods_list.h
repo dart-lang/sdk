@@ -41,7 +41,7 @@ namespace dart {
   V(CoreLibrary, _GrowableList, get:_emptyList, GrowableArrayGetEmptyList,     \
     0x735785f0)                                                                \
   V(CoreLibrary, _Closure, get:_hash, Closure_hash, 0x6e92d1d5)                \
-  V(CoreLibrary, _Record, get:_fieldNames, Record_fieldNames, 0x68c8319e)      \
+  V(CoreLibrary, _Record, get:_fieldNames, Record_fieldNames, 0x6b0f9d90)      \
   V(CoreLibrary, _Record, get:_numFields, Record_numFields, 0x7ba4f393)        \
   V(CoreLibrary, _Record, get:_shape, Record_shape, 0x70c40933)                \
   V(CoreLibrary, _Record, _fieldAt, Record_fieldAt, 0xb47fa0b3)                \
@@ -523,11 +523,20 @@ namespace dart {
     0x45556523)                                                                \
   V(TypedDataLibrary, _Int32x4, ~, Int32x4Not, 0xad8370a8)                     \
   V(TypedDataLibrary, _Int32x4, andNot, Int32x4AndNot, 0x4a88a5d8)             \
+  V(TypedDataLibrary, _Int32x4, unary-, Int32x4Negate, 0x5d3cea2e)             \
+  V(TypedDataLibrary, _Int32x4, abs, Int32x4Abs, 0x4451c29c)                   \
   V(TypedDataLibrary, _Int32x4, equal, Int32x4Equal, 0xe12e0e16)               \
   V(TypedDataLibrary, _Int32x4, notEqual, Int32x4NotEqual, 0xafde9ab3)         \
   V(TypedDataLibrary, _Int32x4, <<, Int32x4Shl, 0xfc92031f)                    \
   V(TypedDataLibrary, _Int32x4, >>, Int32x4ShrS, 0xf0fc5fc4)                   \
   V(TypedDataLibrary, _Int32x4, >>>, Int32x4ShrU, 0xedd3f6c6)                  \
+  V(TypedDataLibrary, _Int32x4, greaterThan, Int32x4GreaterThan,               \
+    0xb38eff5f)                                                                \
+  V(TypedDataLibrary, _Int32x4, greaterThanOrEqual,                            \
+    Int32x4GreaterThanOrEqual, 0x6af4ba6f)                                     \
+  V(TypedDataLibrary, _Int32x4, lessThan, Int32x4LessThan, 0x3a1ac9c5)         \
+  V(TypedDataLibrary, _Int32x4, lessThanOrEqual, Int32x4LessThanOrEqual,       \
+    0x9b8cf408)                                                                \
   V(TypedDataLibrary, _Int32x4, get:x, Int32x4GetX, 0x55b951d5)                \
   V(TypedDataLibrary, _Int32x4, get:y, Int32x4GetY, 0x434aacf8)                \
   V(TypedDataLibrary, _Int32x4, get:z, Int32x4GetZ, 0x7916188e)                \

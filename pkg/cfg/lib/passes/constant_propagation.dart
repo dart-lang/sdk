@@ -35,6 +35,9 @@ final class ConstantPropagation extends Pass
   final _blockWorkList = <Block>[];
   final _definitionsWorkList = <Definition>[];
 
+  // Whether any reachable [ExceptionalInput] instruction was found.
+  bool _hasExceptionalInputs = false;
+
   ConstantPropagation() : super('ConstantPropagation');
 
   @override
@@ -316,7 +319,51 @@ final class ConstantPropagation extends Pass
 
   @override
   void visitParameter(Parameter instr) {
-    _setNonConstant(instr);
+    // Values of catch block parameters which take values from
+    // [ExceptionalInput] instructions are calculated in
+    // [visitExceptionalInput].
+    if (!instr.hasExceptionalInputs) {
+      _setNonConstant(instr);
+    }
+  }
+
+  @override
+  void visitExceptionalInput(ExceptionalInput instr) {
+    _hasExceptionalInputs = true;
+    final value = instr.value;
+    final isNonConstant = _isNonConstant(value);
+    final constantValue = isNonConstant ? null : _getConstantValue(value);
+    if (!isNonConstant && constantValue == null) {
+      // Unknown value.
+      return;
+    }
+    // The value saved by [ExceptionalInput] can be observed only by
+    // the catch block parameters of the same variable in the enclosing
+    // exception handlers. The value of each such parameter is
+    // approximated as a union of values of all reachable
+    // [ExceptionalInput] instructions in its try block (including
+    // nested try and catch blocks).
+    for (
+      var handler = instr.block!.exceptionHandler;
+      handler != null;
+      handler = handler.exceptionHandler
+    ) {
+      final param = handler.findParameter(instr.variable);
+      if (param == null || _isNonConstant(param)) {
+        continue;
+      }
+      assert(param.hasExceptionalInputs);
+      if (isNonConstant) {
+        _setNonConstant(param);
+      } else {
+        final old = _getConstantValue(param);
+        if (old == null) {
+          _setConstantValue(param, constantValue!);
+        } else if (old != constantValue) {
+          _setNonConstant(param);
+        }
+      }
+    }
   }
 
   @override
@@ -712,28 +759,74 @@ final class ConstantPropagation extends Pass
     var recomputeControlFlow = false;
     for (final block in graph.preorder) {
       if (!_isReachable(block)) {
-        for (final instr in block) {
-          instr.removeInputsFromUseLists();
-        }
+        block.clearInstructions();
         recomputeControlFlow = true;
       }
     }
+    if (recomputeControlFlow) {
+      for (final block in graph.preorder) {
+        if (_isReachable(block)) {
+          if (block is JoinBlock) {
+            _transformPhis(block);
+          }
+          block.exceptionHandler = _transformExceptionHandler(
+            block.exceptionHandler,
+          );
+          _transformLastInstruction(block);
+        }
+      }
+      graph.discoverBlocks();
+    }
+    if (_hasExceptionalInputs) {
+      _removeUnusedExceptionalInputs();
+    }
     if (!recomputeControlFlow) {
       graph.invalidateInstructionNumbering();
-      return;
     }
-    for (final block in graph.preorder) {
-      if (_isReachable(block)) {
-        if (block is JoinBlock) {
-          _transformPhis(block);
+  }
+
+  /// Remove unused catch block parameters.
+  /// Remove [ExceptionalInput] instructions without catch block parameters.
+  ///
+  /// TODO: this should be a part of DCE.
+  void _removeUnusedExceptionalInputs() {
+    // Variables which have used catch block parameters in any enclosing catch blocks.
+    final usedVariables = <CatchBlock, BitVector>{};
+    BitVector usedInHandler(CatchBlock handler) {
+      var used = usedVariables[handler];
+      if (used != null) {
+        return used;
+      }
+      used = BitVector(graph.localVariables.length);
+      final outer = handler.exceptionHandler;
+      if (outer != null) {
+        used.addAll(usedInHandler(outer));
+      }
+      for (final instr in handler) {
+        if (instr is! Parameter) break;
+        if (instr.hasExceptionalInputs && instr.hasUses) {
+          used.add(instr.variable.index);
         }
-        block.exceptionHandler = _transformExceptionHandler(
-          block.exceptionHandler,
-        );
-        _transformLastInstruction(block);
+      }
+      usedVariables[handler] = used;
+      return used;
+    }
+
+    for (final block in graph.preorder) {
+      final handler = block.exceptionHandler;
+      // Cannot skip blocks without an exception handler here as
+      // handler could have been cleared just now when recomputing control flow.
+      final used = (handler != null) ? usedInHandler(handler) : null;
+      for (final instr in block) {
+        switch (instr) {
+          case Parameter() when instr.hasExceptionalInputs && !instr.hasUses:
+            instr.removeFromGraph();
+          case ExceptionalInput()
+              when used == null || !used[instr.variable.index]:
+            instr.removeFromGraph();
+        }
       }
     }
-    graph.discoverBlocks();
   }
 
   void _transformPhis(JoinBlock block) {

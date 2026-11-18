@@ -116,7 +116,7 @@ class WorkspaceSymbolHandler
     var paramString = hasParams ? (parameters == '()' ? '()' : '(…)') : '';
 
     var name = declaration.name;
-    var containerName = declaration.className ?? declaration.mixinName;
+    var containerName = declaration.containerName;
     // Constructors are always prefixed with the class name, and we never show
     // 'new'.
     var fullName = switch ((isConstructor, name)) {

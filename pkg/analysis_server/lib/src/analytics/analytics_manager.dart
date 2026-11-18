@@ -8,7 +8,6 @@ import 'dart:convert';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analytics/active_request_data.dart';
-import 'package:analysis_server/src/analytics/context_structure.dart';
 import 'package:analysis_server/src/analytics/notification_data.dart';
 import 'package:analysis_server/src/analytics/percentile_calculator.dart';
 import 'package:analysis_server/src/analytics/plugin_data.dart';
@@ -66,8 +65,19 @@ class AnalyticsManager {
 
   final PluginData _pluginData = PluginData();
 
-  /// The data about analysis, or `null` if no analysis has been performed.
-  ContextStructure? _contextStructure;
+  /// The reason for performing analysis.
+  ///
+  /// This field is set to non-null when the server is about to (re-)create the
+  /// set of analysis contexts. It is set to `null` when the analysis is
+  /// complete.
+  ///
+  /// Notifications that analysis is complete will only be received when this
+  /// field is non-null, so they are used to trigger sending the context
+  /// structure event.
+  String? analysisReason;
+
+  /// Whether the first full analysis has completed.
+  bool firstAnalysisComplete = false;
 
   /// A map from the id of a request to data about the request.
   final Map<String, ActiveRequestData> _activeRequests = {};
@@ -113,6 +123,10 @@ class AnalyticsManager {
     }
   }
 
+  /// Whether [analysisComplete] should be invoked when the driver signals that
+  /// analysis is compete.
+  bool get needsAnslysisCompleteCall => analysisReason != null;
+
   /// Record information about the number of files and the number of lines of
   /// code in those files, for both immediate files, transitive files, the
   /// number of unique transitive files, and the number and sizes of library
@@ -130,22 +144,38 @@ class AnalyticsManager {
     required List<int> numberOfPackagesInWorkspace,
     required List<int> contextWorkspaceType,
   }) {
-    // This is currently keeping the first report of completed analysis, but we
-    // might want to consider alternatives, such as keeping the "largest"
-    // analysis or keeping all of the data and sending back percentile.
-    _contextStructure ??= ContextStructure(
-      numberOfContexts: numberOfContexts,
-      immediateFileCount: immediateFileCount,
-      immediateFileLineCount: immediateFileLineCount,
-      transitiveFileCount: transitiveFileCount,
-      transitiveFileLineCount: transitiveFileLineCount,
-      transitiveFileUniqueCount: transitiveFileUniqueCount,
-      transitiveFileUniqueLineCount: transitiveFileUniqueLineCount,
-      libraryCycleLibraryCounts: libraryCycleLibraryCounts,
-      libraryCycleLineCounts: libraryCycleLineCounts,
-      contextWorkspaceType: contextWorkspaceType,
-      numberOfPackagesInWorkspace: numberOfPackagesInWorkspace,
+    firstAnalysisComplete = true;
+    var libraryCycleLibraryCountsPercentile = PercentileCalculator.from(
+      libraryCycleLibraryCounts,
     );
+    var libraryCycleLineCountsPercentile = PercentileCalculator.from(
+      libraryCycleLineCounts,
+    );
+    var numberOfPackagesInWorkspacePercentile = PercentileCalculator.from(
+      numberOfPackagesInWorkspace,
+    );
+    // TODO(brianwilkerson): Add [analysisReason] to the [contextStructure]
+    //  event so that we can capture the reasons for analysis.
+    analytics.send(
+      Event.contextStructure(
+        numberOfContexts: numberOfContexts,
+        immediateFileCount: immediateFileCount,
+        immediateFileLineCount: immediateFileLineCount,
+        transitiveFileCount: transitiveFileCount,
+        transitiveFileLineCount: transitiveFileLineCount,
+        transitiveFileUniqueCount: transitiveFileUniqueCount,
+        transitiveFileUniqueLineCount: transitiveFileUniqueLineCount,
+        libraryCycleLibraryCounts: libraryCycleLibraryCountsPercentile
+            .toAnalyticsString(),
+        libraryCycleLineCounts: libraryCycleLineCountsPercentile
+            .toAnalyticsString(),
+        contextWorkspaceType: contextWorkspaceType.toString(),
+        numberOfPackagesInWorkspace: numberOfPackagesInWorkspacePercentile
+            .toAnalyticsString(),
+        // analysisReason: analysisReason,
+      ),
+    );
+    analysisReason = null;
   }
 
   /// Called when analysis status changes to record analysis statistics.
@@ -267,8 +297,6 @@ class AnalyticsManager {
     var requestData = getRequestData(Method.initialized.toString());
     requestData.addValue(openWorkspacePathsKey, openWorkspacePaths.length);
   }
-
-  bool needsAnslysisCompleteCall() => _contextStructure == null;
 
   Future<void> sendMemoryUsage(MemoryUsageEvent event) async {
     var delta = event.delta;
@@ -493,42 +521,6 @@ class AnalyticsManager {
       buffer.writeln('</ul>');
     }
 
-    var analysisData = _contextStructure;
-    if (analysisData != null) {
-      h3('Analysis data');
-      buffer.writeln('<ul>');
-      li('numberOfContexts: ${json.encode(analysisData.numberOfContexts)}');
-      li(
-        'contextWorkspaceType: ${json.encode(analysisData.contextWorkspaceType.toString())}',
-      );
-      li(
-        'numberOfPackagesPerWorkspace: ${json.encode(analysisData.numberOfPackagesInWorkspace.toAnalyticsString())}',
-      );
-      li('immediateFileCount: ${json.encode(analysisData.immediateFileCount)}');
-      li(
-        'immediateFileLineCount: ${json.encode(analysisData.immediateFileLineCount)}',
-      );
-      li(
-        'transitiveFileCount: ${json.encode(analysisData.transitiveFileCount)}',
-      );
-      li(
-        'transitiveFileLineCount: ${json.encode(analysisData.transitiveFileLineCount)}',
-      );
-      li(
-        'transitiveFileUniqueCount: ${json.encode(analysisData.transitiveFileUniqueCount)}',
-      );
-      li(
-        'transitiveFileUniqueLineCount: ${json.encode(analysisData.transitiveFileUniqueLineCount)}',
-      );
-      li(
-        'libraryCycleLibraryCounts: ${analysisData.libraryCycleLibraryCounts.toAnalyticsString()}',
-      );
-      li(
-        'libraryCycleLineCounts: ${analysisData.libraryCycleLineCounts.toAnalyticsString()}',
-      );
-      buffer.writeln('</ul>');
-    }
-
     return buffer.toString();
   }
 
@@ -563,35 +555,6 @@ class AnalyticsManager {
 
     var responseTime = sendTime.millisecondsSinceEpoch - startTime;
     requestData.responseTimes.addValue(responseTime);
-  }
-
-  /// Send information about the number of files and the number of lines of code
-  /// in those files.
-  Future<void> _sendAnalysisData() async {
-    var contextStructure = _contextStructure;
-    if (contextStructure != null) {
-      analytics.send(
-        Event.contextStructure(
-          numberOfContexts: contextStructure.numberOfContexts,
-          immediateFileCount: contextStructure.immediateFileCount,
-          immediateFileLineCount: contextStructure.immediateFileLineCount,
-          transitiveFileCount: contextStructure.transitiveFileCount,
-          transitiveFileLineCount: contextStructure.transitiveFileLineCount,
-          transitiveFileUniqueCount: contextStructure.transitiveFileUniqueCount,
-          transitiveFileUniqueLineCount:
-              contextStructure.transitiveFileUniqueLineCount,
-          libraryCycleLibraryCounts: contextStructure.libraryCycleLibraryCounts
-              .toAnalyticsString(),
-          libraryCycleLineCounts: contextStructure.libraryCycleLineCounts
-              .toAnalyticsString(),
-          contextWorkspaceType: contextStructure.contextWorkspaceType
-              .toString(),
-          numberOfPackagesInWorkspace: contextStructure
-              .numberOfPackagesInWorkspace
-              .toAnalyticsString(),
-        ),
-      );
-    }
   }
 
   /// Send information about analysis statistics.
@@ -678,7 +641,16 @@ class AnalyticsManager {
   /// data is sent with the actual duration of the session.
   Future<void> _sendPeriodicData({DateTime? shutdownTime}) async {
     var sessionData = _sessionData;
-    if (sessionData != null && _contextStructure != null) {
+    if (sessionData != null && firstAnalysisComplete) {
+      // We send `sessionData` twice: once near the beginning of the session,
+      // and again at the end of the session. The second happens so that we can
+      // report the duration of the session. The first is delayed until after
+      // the first analysis completes because we don't have a better signal that
+      // works for both the LSP and legacy protocols.
+      //
+      // When we only support LSP we can send the event in the `initialize`
+      // method, which is when the last piece of session data (other than the
+      // duration) has become available, and stop sending it here.
       if (shutdownTime != null) {
         await _sendSessionData(
           sessionData,
@@ -690,10 +662,7 @@ class AnalyticsManager {
         // The session hasn't ended yet, so the duration is reported as 0.
         await _sendSessionData(sessionData, duration: 0);
       }
-      if (!_hasSentStartupData) {
-        _hasSentStartupData = true;
-        await _sendAnalysisData();
-      }
+      _hasSentStartupData = true;
     }
     await _sendServerResponseTimes();
     await _sendPluginResponseTimes();

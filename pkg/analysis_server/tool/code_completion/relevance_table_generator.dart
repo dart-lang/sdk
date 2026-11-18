@@ -28,6 +28,8 @@ import 'package:analyzer_testing/package_root.dart' as package_root;
 import 'package:analyzer_utilities/tools.dart';
 import 'package:args/args.dart';
 
+import 'metrics_util.dart';
+
 /// Compute metrics to determine whether they should be used to compute a
 /// relevance score for completion suggestions.
 Future<void> main(List<String> args) async {
@@ -2434,59 +2436,59 @@ class RelevanceMetricsComputer {
     var context = collection.contexts[0];
     var pathContext = context.contextRoot.resourceProvider.pathContext;
     for (var filePath in context.contextRoot.analyzedFiles()) {
-      if (file_paths.isDart(pathContext, filePath)) {
-        try {
-          var resolvedUnitResult = await context.currentSession.getResolvedUnit(
-            filePath,
-          );
-          //
-          // Check for errors that cause the file to be skipped.
-          //
-          if (resolvedUnitResult is! ResolvedUnitResult) {
-            print("File $filePath skipped because it couldn't be analyzed.");
-            if (verbose) {
-              print('');
-            }
-            continue;
-          } else if (resolvedUnitResult.diagnostics.errors.isNotEmpty) {
-            if (verbose) {
-              print('File $filePath skipped due to errors:');
-              for (var diagnostic in resolvedUnitResult.diagnostics.errors) {
-                print('  ${diagnostic.toString()}');
-              }
-              print('');
-            } else {
-              print('File $filePath skipped due to analysis errors.');
-            }
-            continue;
+      if (!file_paths.isDart(pathContext, filePath) ||
+          shouldSkipFile(pathContext, filePath)) {
+        continue;
+      }
+      try {
+        var resolvedUnitResult = await context.currentSession.getResolvedUnit(
+          filePath,
+        );
+        //
+        // Check for errors that cause the file to be skipped.
+        //
+        if (resolvedUnitResult is! ResolvedUnitResult) {
+          print("File $filePath skipped because it couldn't be analyzed.");
+          if (verbose) {
+            print('');
           }
-
-          collector.initializeFrom(resolvedUnitResult);
-          resolvedUnitResult.unit.accept(collector);
-          var identifiersAndKeywords = collector._identifiersAndKeywords;
-          if (identifiersAndKeywords.isNotEmpty) {
-            print('Unrecorded identifiers and keywords in $filePath:');
-            for (var token in identifiersAndKeywords) {
-              print(_tokenInContext(token));
-              var ancestors = resolvedUnitResult.unit
-                  .nodeCovering(offset: token.offset)
-                  ?.withAncestors;
-              if (ancestors == null) {
-                print('*** Node not found');
-              } else {
-                print(
-                  ancestors
-                      .map((node) => node.runtimeType.toString())
-                      .join(', '),
-                );
-              }
+          continue;
+        } else if (resolvedUnitResult.diagnostics.errors.isNotEmpty) {
+          if (verbose) {
+            print('File $filePath skipped due to errors:');
+            for (var diagnostic in resolvedUnitResult.diagnostics.errors) {
+              print('  ${diagnostic.toString()}');
             }
+            print('');
+          } else {
+            print('File $filePath skipped due to analysis errors.');
           }
-        } catch (exception, stacktrace) {
-          print('Exception caught analyzing: "$filePath"');
-          print(exception);
-          print(stacktrace);
+          continue;
         }
+
+        collector.initializeFrom(resolvedUnitResult);
+        resolvedUnitResult.unit.accept(collector);
+        var identifiersAndKeywords = collector._identifiersAndKeywords;
+        if (identifiersAndKeywords.isNotEmpty) {
+          print('Unrecorded identifiers and keywords in $filePath:');
+          for (var token in identifiersAndKeywords) {
+            print(_tokenInContext(token));
+            var ancestors = resolvedUnitResult.unit
+                .nodeCovering(offset: token.offset)
+                ?.withAncestors;
+            if (ancestors == null) {
+              print('*** Node not found');
+            } else {
+              print(
+                ancestors.map((node) => node.runtimeType.toString()).join(', '),
+              );
+            }
+          }
+        }
+      } catch (exception, stacktrace) {
+        print('Exception caught analyzing: "$filePath"');
+        print(exception);
+        print(stacktrace);
       }
     }
   }

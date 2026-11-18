@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io' show File, Directory, Process, ProcessResult;
+import 'dart:io'
+    show Directory, File, FileMode, Process, ProcessResult, RandomAccessFile;
 import 'dart:typed_data';
 
 import 'package:build_integration/file_system/multi_root.dart'
@@ -111,13 +112,30 @@ class CompilerPhaseInputOutputManager {
     return File(wasmFileName).writeAsBytes(wasmModule);
   }
 
-  Future<void> writeWasmSourceMap(String sourceMap, String moduleName) {
+  Future<void> writeWasmSourceMap(Object? sourceMapJson, String moduleName) {
     final sourceMapFileName = _moduleNameToSourceMapFile(
       options.outputFile,
       moduleName,
     );
     _createDirIfNecessary(sourceMapFileName);
-    return File(sourceMapFileName).writeAsString(sourceMap);
+    return _writeJson(sourceMapFileName, sourceMapJson);
+  }
+
+  /// Writes [json] to the file at [path] as UTF-8.
+  ///
+  /// The chunks of the encoding are written synchronously as they are made,
+  /// so only one is in memory at a time. Writing `jsonEncode(json)` would
+  /// hold the JSON text and its UTF-8 copies, several times the size of the
+  /// file, see https://github.com/dart-lang/sdk/issues/49288. Asynchronous
+  /// writes would hold every chunk, because the encoder finishes before the
+  /// first write.
+  Future<void> _writeJson(String path, Object? json) {
+    final file = File(path).openSync(mode: FileMode.write);
+    final encoder = JsonUtf8Encoder(null, null, 1 << 16);
+    encoder.startChunkedConversion(_FileByteSink(file))
+      ..add(json)
+      ..close();
+    return file.close();
   }
 
   Future<void> writeJsRuntime(String jsRuntime) {
@@ -212,7 +230,7 @@ class CompilerPhaseInputOutputManager {
         await File(sourceMapOutName).readAsString(),
       );
       addMinifiedClassNames(sourceMapJson, classNames);
-      await File(sourceMapOutName).writeAsString(jsonEncode(sourceMapJson));
+      await _writeJson(sourceMapOutName, sourceMapJson);
     }
   }
 
@@ -250,4 +268,26 @@ class CompilerPhaseInputOutputManager {
     }
     return fileSystemEntity.uri;
   }
+}
+
+/// Writes the chunks of a conversion to an open file as they arrive.
+///
+/// Closing the sink leaves the file open for its owner to close.
+class _FileByteSink with ByteConversionSink {
+  final RandomAccessFile _file;
+
+  _FileByteSink(this._file);
+
+  @override
+  void add(List<int> chunk) {
+    _file.writeFromSync(chunk);
+  }
+
+  @override
+  void addSlice(List<int> chunk, int start, int end, bool isLast) {
+    _file.writeFromSync(chunk, start, end);
+  }
+
+  @override
+  void close() {}
 }

@@ -60,13 +60,13 @@ library lib;
 //
 import self as self;
 
-part org-dartlang-malformed-uri:bad235;
-part org-dartlang-malformed-uri:bad248;
-part org-dartlang-malformed-uri:bad265;
-part org-dartlang-malformed-uri:bad282;
-part org-dartlang-malformed-uri:bad298;
-part org-dartlang-malformed-uri:bad319;
-part org-dartlang-malformed-uri:bad348;
+part org-dartlang-malformed-uri:bad235 /* not included */;
+part org-dartlang-malformed-uri:bad248 /* not included */;
+part org-dartlang-malformed-uri:bad265 /* not included */;
+part org-dartlang-malformed-uri:bad282 /* not included */;
+part org-dartlang-malformed-uri:bad298 /* not included */;
+part org-dartlang-malformed-uri:bad319 /* not included */;
+part org-dartlang-malformed-uri:bad348 /* not included */;
 static method main() → dynamic {}
 
 library;

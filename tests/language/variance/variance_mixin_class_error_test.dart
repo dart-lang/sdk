@@ -8,9 +8,7 @@
 
 // SharedOptions=--enable-experiment=variance
 
-class Contravariant<in T> {}
-
-class Invariant<inout T> {}
+import "variance_helper.dart";
 
 mixin class OutParameter<out T> {
   void method(T x) {}

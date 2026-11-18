@@ -19,12 +19,18 @@ const String dynamicPrefix = 'dyn:';
 /// Identifier in the Dart program, in the VM conventions.
 ///
 /// Public names are represented with [String] objects, while
-/// private names are represented with [PrivateName] objects.
-extension type Name._(Object /*String|PrivateName*/ raw) implements Object {
+/// private names are represented with [PrivateName] and [QualifiedPrivateName] objects.
+extension type Name._(Object /*String|PrivateName|QualifiedPrivateName*/ raw)
+    implements Object {
   /// If [library] is not null, create a private name.
   /// Otherwise, create a public name.
   factory Name(String text, ast.Library? library) =>
       Name._((library != null) ? PrivateName(text, library) : text);
+
+  factory Name.constructor(Name className, String text, ast.Library? library) =>
+      className is PrivateName
+      ? Name._(QualifiedPrivateName(className, Name(text, library)))
+      : Name('$className.$text', library);
 
   factory Name.interfaceCallSelector(CFunction interfaceTarget) {
     final simpleName = interfaceTarget.member.name.text;
@@ -54,4 +60,18 @@ final class PrivateName(final String text, final ast.Library library) {
   @override
   int get hashCode =>
       finalizeHash(combineHash(text.hashCode, library.hashCode));
+}
+
+/// Qualified constructor name "ClassName.name".
+/// If it is private, VM mangles class name and constructor name separately.
+final class QualifiedPrivateName(final Name className, final Name name) {
+  @override
+  bool operator ==(Object other) =>
+      other is QualifiedPrivateName &&
+      className == other.className &&
+      name == other.name;
+
+  @override
+  int get hashCode =>
+      finalizeHash(combineHash(className.hashCode, name.hashCode));
 }

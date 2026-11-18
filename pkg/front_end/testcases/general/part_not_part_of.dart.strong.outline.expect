@@ -10,7 +10,7 @@ import self as self;
 
 import "org-dartlang-testcase:///part_not_part_of_lib2.dart";
 
-part part_not_part_of_lib1.dart;
+part part_not_part_of_lib1.dart /* not included */;
 static method main() → dynamic
   ;
 

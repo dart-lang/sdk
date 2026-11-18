@@ -14,6 +14,7 @@ import 'namer.dart';
 import 'reference_extensions.dart';
 import 'translator.dart';
 import 'util.dart' as util;
+import 'wasm_annotations.dart';
 
 /// This class is responsible for collecting import and export annotations.
 /// It also creates Wasm functions for Dart members and manages the compilation
@@ -59,16 +60,14 @@ class FunctionCollector {
     final isStrongExport = interopNamer.registerExternalExportName(member);
     if (isStrongExport) {
       if (member.isGetter) {
-        assert(
-          member.isStatic &&
-              member.isExternal &&
-              member.function.returnType ==
-                  InterfaceType(
-                    translator.wasmMemoryClass,
-                    Nullability.nonNullable,
-                  ),
-        );
-        translator.findMemory(member, translator.mainModule);
+        switch (ExternType.of(translator, member)!) {
+          case ExternType.memory:
+            translator.findMemory(member, translator.mainModule);
+          case ExternType.table:
+            translator.findTable(member, translator.mainModule);
+          case ExternType.global:
+            translator.interopGlobal(member);
+        }
         return;
       }
       // Ensure any strong exports are enqueued for compilation.

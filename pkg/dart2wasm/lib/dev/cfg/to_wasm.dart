@@ -26,6 +26,25 @@ final class DevCfgToWasm extends CfgToWasm {
 
   DevCfgToWasm(this.moduleCompiler, super.graph, super.b, {super.cfgLog});
 
+  /// Returns the incoming Wasm parameter local corresponding to function
+  /// parameter [instr].
+  w.Local wasmParameter(Parameter instr) {
+    assert(instr.isFunctionParameter);
+    return b.locals[moduleCompiler.wasmParameterIndex(
+      graph.function,
+      instr.variable.index,
+    )];
+  }
+
+  @override
+  w.Local? functionParameterLocal(Parameter instr) {
+    final param = wasmParameter(instr);
+    // Note: for optional parameters of type `topType`, `visitParameter`
+    // replaces any omitted-argument sentinel in `param` in place at function
+    // entry.
+    return param.type == translateType(instr.type) ? param : null;
+  }
+
   @override
   w.ValueType translateType(CType type) => moduleCompiler.translateType(type);
 
@@ -40,15 +59,11 @@ final class DevWasmInstructionLowerer
 
   @override
   void visitParameter(Parameter instr) {
-    assert(instr.isFunctionParameter);
+    assert(instr.hasUses);
     final function = gen.graph.function;
     final index = instr.variable.index;
-    final param =
-        b.locals[gen.moduleCompiler.wasmParameterIndex(function, index)];
-    final type = gen.translateType(instr.type);
-    // Reuse the parameter's local if it already has the parameter's type.
-    final local = param.type == type ? param : b.addLocal(type);
-    gen.locals[instr] = local;
+    final param = gen.wasmParameter(instr);
+    final local = gen.getLocal(instr);
     final isOptional =
         index >= function.numberOfRequiredPositionalParameters &&
         !(function.hasNamedParameters && function.isRequiredParameter(index));
@@ -56,12 +71,12 @@ final class DevWasmInstructionLowerer
       _pushParameterOrDefault(
         param,
         function.getParameterDefaultValue(index),
-        type,
+        local.type,
       );
       b.local_set(local);
     } else if (local != param) {
       b.local_get(param);
-      gen.convertType(param.type, type);
+      gen.convertType(param.type, local.type);
       b.local_set(local);
     }
   }
@@ -119,6 +134,7 @@ final class DevWasmInstructionLowerer
     if (target is GenerativeConstructor &&
         member.enclosingClass == coreTypes.objectClass) {
       // Skip calls to the constructor for Object, as this is empty
+      assert(!instr.hasUses);
       return;
     }
     // TODO(dart2wasm): Remove once dart:core is compiled.
@@ -126,12 +142,18 @@ final class DevWasmInstructionLowerer
       final printFunction = gen.moduleCompiler.runtime.print;
       _pushArguments(instr, target, printFunction.type);
       b.call(printFunction);
+      if (instr.hasUses) {
+        b.ref_null(w.HeapType.none);
+        storeResult(instr, const w.RefType.none(nullable: true));
+      }
       return;
     }
     final signature = gen.moduleCompiler.functionTypeFor(target);
     _pushArguments(instr, target, signature);
     gen.moduleCompiler.callStatic(b, memberLabel(member), signature);
-    _storeResult(instr, signature);
+    if (signature.outputs.isNotEmpty) {
+      storeResult(instr, signature.outputs.single);
+    }
   }
 
   @override
@@ -150,7 +172,9 @@ final class DevWasmInstructionLowerer
       shapeLabel(target.functionNode!),
       signature,
     );
-    _storeResult(instr, signature);
+    if (signature.outputs.isNotEmpty) {
+      storeResult(instr, signature.outputs.single);
+    }
   }
 
   @override
@@ -160,7 +184,7 @@ final class DevWasmInstructionLowerer
     }
     final cls = (instr.type.dartType as ast.InterfaceType).classNode;
     gen.moduleCompiler.allocateObject(b, cls);
-    b.local_set(gen.getLocal(instr));
+    storeResult(instr, gen.moduleCompiler.receiverType);
   }
 
   /// Pushes [instr]'s arguments for a call to [target] with [signature].
@@ -211,17 +235,5 @@ final class DevWasmInstructionLowerer
     final argLocal = gen.getLocal(instr.inputDefAt(index));
     b.local_get(argLocal);
     gen.convertType(argLocal.type, type);
-  }
-
-  /// Stores [instr]'s result or drops it if unused.
-  void _storeResult(CallInstruction instr, w.FunctionType signature) {
-    if (signature.outputs.isEmpty) return;
-    if (!instr.hasUses) {
-      b.drop();
-      return;
-    }
-    final resultLocal = gen.getLocal(instr);
-    gen.convertType(signature.outputs.single, resultLocal.type);
-    b.local_set(resultLocal);
   }
 }

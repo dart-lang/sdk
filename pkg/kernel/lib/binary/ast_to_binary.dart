@@ -1265,8 +1265,10 @@ class BinaryPrinter
       _writeNodeMetadata(node);
     }
     writeAnnotationList(node.annotations);
+    writeOffset(node.fileOffset);
     writeStringReference(node.partUri);
     writeUriReference(node.fileUri);
+    writeByte(node.flags);
   }
 
   @override

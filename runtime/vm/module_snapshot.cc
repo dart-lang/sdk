@@ -79,6 +79,7 @@ class ModuleSnapshot : public AllStatic {
     kLibraryRefs,
     kLibraries,
     kPrivateNames,
+    kQualifiedPrivateNames,
     kScripts,
     kClassRefs,
     kClasses,
@@ -531,9 +532,13 @@ class ClassDeserializationCluster : public DeserializationCluster {
     const intptr_t num_cids = d.ReadUnsigned();
     const intptr_t num_toplevel_cids = d.ReadUnsigned();
 
-    table->AllocateIndex(cid + num_cids);
-    table->AllocateIndex(
-        ClassTable::CidFromTopLevelIndex(toplevel_cid + num_toplevel_cids));
+    if (num_cids > 0) {
+      table->AllocateIndex(cid + num_cids - 1);
+    }
+    if (num_toplevel_cids > 0) {
+      table->AllocateIndex(ClassTable::CidFromTopLevelIndex(
+          toplevel_cid + num_toplevel_cids - 1));
+    }
 
     for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
       ClassPtr cls = static_cast<ClassPtr>(d.Ref(id));
@@ -596,8 +601,8 @@ class ClassDeserializationCluster : public DeserializationCluster {
       }
     }
 
-    ASSERT(table->NumCids() == cid + 1);
-    ASSERT(table->NumTopLevelCids() == toplevel_cid + 1);
+    ASSERT(table->NumCids() == cid);
+    ASSERT(table->NumTopLevelCids() == toplevel_cid);
   }
 
   void PostLoad(Deserializer* d, const Array& refs) override {
@@ -656,6 +661,34 @@ class PrivateNameDeserializationCluster : public DeserializationCluster {
 
  private:
   Library& library_;
+  String& name_;
+};
+
+class QualifiedPrivateNameDeserializationCluster
+    : public DeserializationCluster {
+ public:
+  explicit QualifiedPrivateNameDeserializationCluster(Zone* zone)
+      : DeserializationCluster("QualifiedPrivateName"),
+        class_name_(String::Handle(zone)),
+        name_(String::Handle(zone)) {}
+  ~QualifiedPrivateNameDeserializationCluster() {}
+
+  void PreLoad(Deserializer* d) override {
+    const intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      class_name_ = static_cast<StringPtr>(d->ReadRef());
+      name_ = static_cast<StringPtr>(d->ReadRef());
+      GrowableHandlePtrArray<const String> pieces(d->zone(), 3);
+      pieces.Add(class_name_);
+      pieces.Add(Symbols::Dot());
+      pieces.Add(name_);
+      name_ = Symbols::FromConcatAll(d->thread(), pieces);
+      d->AssignRefPreLoad(name_);
+    }
+  }
+
+ private:
+  String& class_name_;
   String& name_;
 };
 
@@ -924,11 +957,7 @@ class ClosureDeserializationCluster : public DeserializationCluster {
           ((length == 1) && UntaggedClosure::HasDelayedTypeArgumentsBit::decode(
                                 length_and_flags)));
       if (length > 0) {
-        // TODO(alexmarkov): use sentinel for uninitialized type arguments.
-        ObjectPtr type_args = d.ReadRef();
-        closure->untag()->data()[0] = type_args == Object::sentinel().ptr()
-                                          ? Object::empty_type_arguments().ptr()
-                                          : type_args;
+        closure->untag()->data()[0] = d.ReadRef();
       }
     }
   }
@@ -1030,10 +1059,13 @@ class ClosureDataDeserializationCluster : public DeserializationCluster {
       data->untag()->context_scope_ = static_cast<ContextScopePtr>(d.null());
       data->untag()->parent_function_ = static_cast<FunctionPtr>(d.ReadRef());
       data->untag()->closure_ = static_cast<ClosurePtr>(d.null());
+      const intptr_t num_parent_type_args = d.ReadUnsigned();
       data->untag()->packed_fields_ =
           UntaggedClosureData::PackedAwaiterLinkDepth::update(
               UntaggedClosureData::kNoAwaiterLinkDepth,
-              UntaggedClosureData::PackedAwaiterLinkIndex::encode(-1));
+              UntaggedClosureData::PackedAwaiterLinkIndex::encode(-1) |
+                  UntaggedClosureData::PackedNumParentTypeArguments::encode(
+                      num_parent_type_args));
     }
   }
 };
@@ -1071,7 +1103,26 @@ class FunctionDeserializationCluster : public DeserializationCluster {
           TokenPosition::Deserialize(d.ReadUnsigned() - 1);
       func->untag()->end_token_pos_ =
           TokenPosition::Deserialize(d.ReadUnsigned() - 1);
-      func->untag()->kind_tag_ = d.ReadUnsigned();
+      const uint32_t kind_tag = d.ReadUnsigned();
+      func->untag()->kind_tag_ = kind_tag;
+      if (Function::NativeBit::decode(kind_tag) &&
+          !Function::ExternalBit::decode(kind_tag)) {
+        StringPtr native_name = static_cast<StringPtr>(d.ReadRef());
+        ArrayPtr native_data = static_cast<ArrayPtr>(d_->Allocate(
+            Array::InstanceSize(Function::NativeFunctionData::kLength)));
+        Deserializer::InitializeHeader(
+            native_data, kArrayCid,
+            Array::InstanceSize(Function::NativeFunctionData::kLength));
+        native_data->untag()->type_arguments_ =
+            static_cast<TypeArgumentsPtr>(d.null());
+        native_data->untag()->length_ =
+            Smi::New(Function::NativeFunctionData::kLength);
+        native_data->untag()
+            ->data()[Function::NativeFunctionData::kNativeName] = native_name;
+        native_data->untag()->data()[Function::NativeFunctionData::kTearOff] =
+            d.null();
+        func->untag()->data_ = native_data;
+      }
       func->untag()->kernel_offset_ = 0;
       func->untag()->usage_counter_ = 0;
       func->untag()->optimized_instruction_count_ = 0;
@@ -1683,8 +1734,8 @@ class TypeParameterTypeDeserializationCluster : public DeserializationCluster {
       tp->untag()->type_test_stub_ = static_cast<CodePtr>(d.null());
       tp->untag()->hash_ = Smi::New(0);
       tp->untag()->owner_ = owner;
-      tp->untag()->base_ = 0;
-      tp->untag()->index_ = d.ReadUnsigned();
+      tp->untag()->index_in_owner_ = d.ReadUnsigned();
+      tp->untag()->index_in_tav_ = d.ReadUnsigned();
     }
   }
 
@@ -2200,6 +2251,8 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z) LibraryDeserializationCluster(Z);
     case ModuleSnapshot::kPrivateNames:
       return new (Z) PrivateNameDeserializationCluster(Z);
+    case ModuleSnapshot::kQualifiedPrivateNames:
+      return new (Z) QualifiedPrivateNameDeserializationCluster(Z);
     case ModuleSnapshot::kScripts:
       return new (Z) ScriptDeserializationCluster();
     case ModuleSnapshot::kClassRefs:
@@ -2338,6 +2391,7 @@ void Deserializer::Deserialize() {
   AddBaseObject(Bool::True());
   AddBaseObject(Bool::False());
   AddBaseObject(Object::sentinel());
+  AddBaseObject(Object::empty_type_arguments());
   AddBaseObject(Object::dynamic_type());
   AddBaseObject(Object::void_type());
   AddBaseObject(Type::Handle(zone(), object_store->null_type()));

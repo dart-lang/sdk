@@ -12,7 +12,7 @@ library from "org-dartlang-test:///main.dart" as main {
 //      ^
 //
 
-  part package:foo/nonexisting.dart;
+  part package:foo/nonexisting.dart /* not included */;
 }
 library from "package:foo/nonexisting.dart" as non {
 

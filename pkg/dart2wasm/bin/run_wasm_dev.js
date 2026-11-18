@@ -8,15 +8,19 @@
 // Run as follows on D8:
 //
 // $> d8 run_wasm_dev.js \
-//       -- /abs/path/to/wasm_dev_rt.mjs wasm_dev_rt.wasm <dart_module>.wasm
+//       -- /abs/path/to/wasm_dev_rt.mjs wasm_dev_rt.wasm <dart_module>.wasm ...
 //
 // Adapted from `pkg/dart2wasm/bin/run_wasm.js`.
 
 const devRuntimeJsArg = 0;
 const devRuntimeWasmArg = 1;
-const wasmArg = 2;
+const firstWasmArg = 2;
 
-const args = arguments;
+let args = Array.from(arguments);
+const argsSplit = args.indexOf('--');
+if (argsSplit != -1) {
+  args = args.slice(0, argsSplit);
+}
 
 const main = async () => {
   const devRuntimeJs = await import(args[devRuntimeJsArg]);
@@ -27,12 +31,17 @@ const main = async () => {
   const importObject = {
     wasm_dev_rt: devRuntimeApp.instantiatedModule.exports,
   };
-  const compiledApp = await WebAssembly.compile(readbuffer(args[wasmArg]), {
-    builtins: ['js-string'],
-    importedStringConstants: '',
-  });
-  const appInstance = await WebAssembly.instantiate(compiledApp, importObject);
-  appInstance.exports.main();
+  const moduleInstances = [];
+  for (let i = firstWasmArg; i < args.length; i++) {
+    const compiledModule = await WebAssembly.compile(readbuffer(args[i]), {
+      builtins: ['js-string'],
+      importedStringConstants: '',
+    });
+    moduleInstances.push(
+      await WebAssembly.instantiate(compiledModule, importObject),
+    );
+  }
+  moduleInstances[0].exports.main();
 };
 
 main().catch((e) => {

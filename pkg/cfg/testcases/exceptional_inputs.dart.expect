@@ -1,0 +1,309 @@
+--- foo
+B0 = EntryBlock()
+  v1 = Constant(null)
+  Return(v1)
+
+--- assignedInTry
+B0 = EntryBlock() dominates:(B5, B11, B4)
+  v2 = Constant(0)
+  v20 = Constant(null)
+  v1 = Parameter(a)
+  TryEntry(try-body: B4, catch-block: B5)
+B4 = TargetBlock() exception-handler:B5 idom:B0
+  ExceptionalInput(x, v2)
+  DirectCall foo()
+  ExceptionalInput(x, v1)
+  DirectCall foo()
+  Goto(B11)
+B5 = CatchBlock() idom:B0
+  v22 = Parameter(x)
+  Parameter(#exception)
+  Parameter(#stackTrace)
+  DirectCall print(v22)
+  Goto(B11)
+B11 = JoinBlock(B5, B4) idom:B0
+  Return(v20)
+
+--- nestedTry
+B0 = EntryBlock() dominates:(B6, B30, B5)
+  v3 = Constant(0)
+  v25 = Constant(3)
+  v39 = Constant(null)
+  v1 = Parameter(a)
+  v2 = Parameter(b)
+  TryEntry(try-body: B5, catch-block: B6)
+B5 = TargetBlock() exception-handler:B6 idom:B0 dominates:(B11, B17, B10)
+  ExceptionalInput(x, v3)
+  ExceptionalInput(x, v1)
+  TryEntry(try-body: B10, catch-block: B11)
+B10 = TargetBlock() exception-handler:B11 idom:B5
+  ExceptionalInput(x, v1)
+  DirectCall foo()
+  ExceptionalInput(x, v2)
+  DirectCall foo()
+  Goto(B17)
+B11 = CatchBlock() exception-handler:B6 idom:B5
+  v41 = Parameter(x)
+  Parameter(#exception)
+  Parameter(#stackTrace)
+  DirectCall print(v41)
+  ExceptionalInput(x, v25)
+  DirectCall foo()
+  Goto(B17)
+B17 = JoinBlock(B11, B10) exception-handler:B6 idom:B5
+  Phi(v25, v2)
+  DirectCall foo()
+  Goto(B30)
+B6 = CatchBlock() idom:B0
+  v43 = Parameter(x)
+  Parameter(#exception)
+  Parameter(#stackTrace)
+  DirectCall print(v43)
+  Goto(B30)
+B30 = JoinBlock(B6, B17) idom:B0
+  Return(v39)
+
+--- loopInTry
+B0 = EntryBlock() dominates:(B5, B21, B4)
+  v2 = Constant(0)
+  v17 = Constant(1)
+  v30 = Constant(null)
+  v1 = Parameter(n)
+  TryEntry(try-body: B4, catch-block: B5)
+B4 = TargetBlock() exception-handler:B5 idom:B0 dominates:(B7)
+  ExceptionalInput(i, v2)
+  Goto(B7)
+B7 = JoinBlock(B4, B12) exception-handler:B5 idom:B4 dominates:(B13, B12) loop-header (depth:1 body:(B7, B12) back-edges:(B12))
+  v33 = Phi(v2, v18)
+  v11 = Comparison int <(v33, v1)
+  Branch(v11, true: B12, false: B13)
+B12 = TargetBlock() exception-handler:B5 idom:B7 in-loop:B7
+  DirectCall foo()
+  v18 = BinaryIntOp +(v33, v17)
+  ExceptionalInput(i, v18)
+  Goto(B7)
+B13 = TargetBlock() exception-handler:B5 idom:B7
+  Goto(B21)
+B5 = CatchBlock() idom:B0
+  v32 = Parameter(i)
+  Parameter(#exception)
+  Parameter(#stackTrace)
+  DirectCall print(v32)
+  Goto(B21)
+B21 = JoinBlock(B5, B13) idom:B0
+  Return(v30)
+
+--- assignedParameter
+B0 = EntryBlock() dominates:(B3, B11, B2)
+  v7 = Constant(1)
+  v20 = Constant(null)
+  v1 = Parameter(a)
+  TryEntry(try-body: B2, catch-block: B3)
+B2 = TargetBlock() exception-handler:B3 idom:B0
+  ExceptionalInput(a, v1)
+  DirectCall foo()
+  v8 = BinaryIntOp +(v1, v7)
+  ExceptionalInput(a, v8)
+  DirectCall foo()
+  Goto(B11)
+B3 = CatchBlock() idom:B0
+  v22 = Parameter(a)
+  Parameter(#exception)
+  Parameter(#stackTrace)
+  DirectCall print(v22)
+  Goto(B11)
+B11 = JoinBlock(B3, B2) idom:B0
+  Return(v20)
+
+--- constantCatchParameter
+B0 = EntryBlock() dominates:(B5, B17, B4)
+  v2 = Constant(1)
+  v26 = Constant(null)
+  Parameter(c)
+  TryEntry(try-body: B4, catch-block: B5)
+B4 = TargetBlock() exception-handler:B5 idom:B0
+  DirectCall foo()
+  DirectCall foo()
+  Goto(B17)
+B5 = CatchBlock() idom:B0
+  Parameter(#exception)
+  Parameter(#stackTrace)
+  DirectCall print(v2)
+  Goto(B17)
+B17 = JoinBlock(B5, B4) idom:B0
+  Return(v26)
+
+--- usedAfterCatch
+B0 = EntryBlock() dominates:(B5, B11, B4)
+  v2 = Constant(0)
+  v22 = Constant(null)
+  v1 = Parameter(a)
+  TryEntry(try-body: B4, catch-block: B5)
+B4 = TargetBlock() exception-handler:B5 idom:B0
+  ExceptionalInput(x, v2)
+  DirectCall foo()
+  ExceptionalInput(x, v1)
+  DirectCall foo()
+  Goto(B11)
+B5 = CatchBlock() idom:B0
+  v24 = Parameter(x)
+  v13 = Parameter(#exception)
+  Parameter(#stackTrace)
+  DirectCall print(v13)
+  Goto(B11)
+B11 = JoinBlock(B5, B4) idom:B0
+  v25 = Phi(v24, v1)
+  DirectCall print(v25)
+  Return(v22)
+
+--- tryFinally
+B0 = EntryBlock() dominates:(B5, B4)
+  v2 = Constant(0)
+  v22 = Constant(null)
+  v1 = Parameter(a)
+  TryEntry(try-body: B4, catch-block: B5)
+B4 = TargetBlock() exception-handler:B5 idom:B0 dominates:(B11)
+  ExceptionalInput(x, v2)
+  DirectCall foo()
+  ExceptionalInput(x, v1)
+  DirectCall foo()
+  Goto(B11)
+B11 = JoinBlock(B4) idom:B4
+  DirectCall print(v1)
+  Return(v22)
+B5 = CatchBlock() idom:B0
+  v24 = Parameter(x)
+  v13 = Parameter(#exception)
+  v14 = Parameter(#stackTrace)
+  DirectCall print(v24)
+  Throw(v13, v14)
+
+--- noThrowInTry
+B0 = EntryBlock()
+  Constant(0)
+  v20 = Constant(null)
+  v1 = Parameter(a)
+  DirectCall print(v1)
+  Return(v20)
+
+--- unusedCatchParameter
+B0 = EntryBlock() dominates:(B5, B11, B4)
+  Constant(0)
+  v17 = Constant(1)
+  v22 = Constant(null)
+  v1 = Parameter(a)
+  TryEntry(try-body: B4, catch-block: B5)
+B4 = TargetBlock() exception-handler:B5 idom:B0
+  DirectCall foo()
+  DirectCall foo()
+  Goto(B11)
+B5 = CatchBlock() idom:B0
+  Parameter(#exception)
+  Parameter(#stackTrace)
+  Goto(B11)
+B11 = JoinBlock(B5, B4) idom:B0
+  v24 = Phi(v17, v1)
+  DirectCall print(v24)
+  Return(v22)
+
+--- awaitInTry
+B0 = EntryBlock() dominates:(B7, B15, B6)
+  v2 = Constant(<void>)
+  v4 = Constant(0)
+  v24 = Constant(null)
+  v1 = Parameter(f)
+  EnterSuspendableFunction(v2)
+  TryEntry(try-body: B6, catch-block: B7)
+B6 = TargetBlock() exception-handler:B7 idom:B0
+  ExceptionalInput(x, v4)
+  v10 = Suspend await(v1)
+  ExceptionalInput(x, v10)
+  v13 = Suspend await(v1)
+  ExceptionalInput(x, v13)
+  Goto(B15)
+B7 = CatchBlock() idom:B0
+  v26 = Parameter(x)
+  Parameter(#exception)
+  Parameter(#stackTrace)
+  DirectCall print(v26)
+  Goto(B15)
+B15 = JoinBlock(B7, B6) idom:B0
+  Return(v24)
+
+--- unrelatedHandlers
+B0 = EntryBlock() dominates:(B6, B19, B5)
+  v3 = Constant(1)
+  v15 = Constant(2)
+  v43 = Constant(null)
+  v1 = Parameter(c)
+  v2 = Parameter(n)
+  TryEntry(try-body: B5, catch-block: B6)
+B5 = TargetBlock() exception-handler:B6 idom:B0 dominates:(B11, B13, B10)
+  ExceptionalInput(x, v3)
+  DirectCall foo()
+  Branch(v1, true: B10, false: B11)
+B10 = TargetBlock() exception-handler:B6 idom:B5
+  ExceptionalInput(x, v15)
+  DirectCall foo()
+  Goto(B13)
+B11 = TargetBlock() exception-handler:B6 idom:B5
+  Goto(B13)
+B13 = JoinBlock(B11, B10) exception-handler:B6 idom:B5
+  Phi(v3, v15)
+  Goto(B19)
+B6 = CatchBlock() idom:B0 dominates:(B28, B33, B27)
+  v45 = Parameter(x)
+  Parameter(#exception)
+  Parameter(#stackTrace)
+  DirectCall print(v45)
+  TryEntry(try-body: B27, catch-block: B28)
+B27 = TargetBlock() exception-handler:B28 idom:B6
+  ExceptionalInput(x, v45)
+  ExceptionalInput(x, v2)
+  DirectCall foo()
+  Goto(B33)
+B28 = CatchBlock() idom:B6
+  v47 = Parameter(x)
+  Parameter(#exception)
+  Parameter(#stackTrace)
+  DirectCall print(v47)
+  Goto(B33)
+B33 = JoinBlock(B28, B27) idom:B6
+  Goto(B19)
+B19 = JoinBlock(B33, B13) idom:B0
+  Return(v43)
+
+--- constantsInUnrelatedHandlers
+B0 = EntryBlock() dominates:(B4, B9, B3)
+  v1 = Constant(1)
+  v18 = Constant(2)
+  v35 = Constant(null)
+  TryEntry(try-body: B3, catch-block: B4)
+B3 = TargetBlock() exception-handler:B4 idom:B0
+  DirectCall foo()
+  DirectCall foo()
+  Goto(B9)
+B4 = CatchBlock() idom:B0
+  Parameter(#exception)
+  Parameter(#stackTrace)
+  DirectCall print(v1)
+  Goto(B9)
+B9 = JoinBlock(B4, B3) idom:B0 dominates:(B21, B26, B20)
+  TryEntry(try-body: B20, catch-block: B21)
+B20 = TargetBlock() exception-handler:B21 idom:B9
+  DirectCall foo()
+  DirectCall foo()
+  Goto(B26)
+B21 = CatchBlock() idom:B9
+  Parameter(#exception)
+  Parameter(#stackTrace)
+  DirectCall print(v18)
+  Goto(B26)
+B26 = JoinBlock(B21, B20) idom:B9
+  Return(v35)
+
+--- main
+B0 = EntryBlock()
+  v1 = Constant(null)
+  Return(v1)
+

@@ -15,6 +15,50 @@ B0 = EntryBlock()
   v9 = BinaryIntOp +(v7, v4)
   Return(v9)
 
+--- B.
+B0 = EntryBlock()
+  v12 = Constant(null)
+  v1 = Parameter(this)
+  v2 = Parameter(x)
+  v3 = Parameter(y)
+  StoreInstanceField(B.x, v1, v2)
+  StoreInstanceField(B.y, v1, v3)
+  DirectCall A.(v1)
+  Return(v12)
+
+--- B.unreachableFieldInit
+B0 = EntryBlock()
+  v3 = Constant("Bye")
+  Constant(null)
+  Parameter(this)
+  Throw(v3)
+
+--- B.unreachableRedirectingInit
+B0 = EntryBlock()
+  v3 = Constant("Bye")
+  Constant(null)
+  Parameter(this)
+  Throw(v3)
+
+--- getter B.x
+B0 = EntryBlock()
+  v1 = Parameter(this)
+  v3 = LoadInstanceField(B.x, v1)
+  Return(v3)
+
+--- getter B.y
+B0 = EntryBlock()
+  v1 = Parameter(this)
+  v3 = LoadInstanceField(B.y, v1)
+  Return(v3)
+
+--- C.unreachableSuperInit
+B0 = EntryBlock()
+  v3 = Constant("Bye")
+  Constant(null)
+  Parameter(this)
+  Throw(v3)
+
 --- bar
 B0 = EntryBlock()
   v4 = Constant(null)
@@ -205,6 +249,89 @@ B6 = TargetBlock() idom:B0
 B10 = JoinBlock(B6, B13) idom:B0
   v24 = Phi(v8, v19)
   Return(v24)
+
+--- unreachableSwitchExpr
+B0 = EntryBlock()
+  v1 = Constant("Bye")
+  Constant(null)
+  Throw(v1)
+
+--- unreachableCatchClause
+B0 = EntryBlock() dominates:(B2, B6, B1)
+  v4 = Constant(1)
+  v12 = Constant(2)
+  v15 = Constant(null)
+  TryEntry(try-body: B1, catch-block: B2)
+B1 = TargetBlock() exception-handler:B2 idom:B0
+  DirectCall print(v4)
+  Goto(B6)
+B2 = CatchBlock() idom:B0
+  Parameter(#exception)
+  Parameter(#stackTrace)
+  DirectCall print(v12)
+  Goto(B6)
+B6 = JoinBlock(B2, B1) idom:B0
+  Return(v15)
+
+--- unreachableConditional1
+B0 = EntryBlock()
+  Constant(1)
+  v2 = Constant("Bye")
+  Constant(null)
+  Throw(v2)
+
+--- unreachableConditional2
+B0 = EntryBlock() dominates:(B5, B4)
+  v2 = Constant(10)
+  v7 = Constant("Bye")
+  v9 = Constant(null)
+  v10 = Constant(20)
+  v15 = Constant(30)
+  v1 = Parameter(c)
+  Branch(v1, true: B4, false: B5)
+B4 = TargetBlock() idom:B0
+  Throw(v7)
+B5 = TargetBlock() idom:B0
+  DirectCall bar(v2, v10, v15)
+  Return(v9)
+
+--- unreachableConditional3
+B0 = EntryBlock() dominates:(B5, B4)
+  Constant(1)
+  v7 = Constant("Bye1")
+  Constant(null)
+  v10 = Constant("Bye2")
+  v1 = Parameter(c)
+  Branch(v1, true: B4, false: B5)
+B4 = TargetBlock() idom:B0
+  Throw(v7)
+B5 = TargetBlock() idom:B0
+  Throw(v10)
+
+--- unreachableRecordIndexGet
+B0 = EntryBlock()
+  v1 = Constant("Bye")
+  Constant(null)
+  Throw(v1)
+
+--- unreachableRecordNameGet
+B0 = EntryBlock()
+  v1 = Constant("Bye")
+  Constant(null)
+  Throw(v1)
+
+--- unreachableRecordLiteral
+B0 = EntryBlock()
+  Constant(1)
+  v2 = Constant("Bye")
+  Constant(null)
+  Throw(v2)
+
+--- unreachableForInit
+B0 = EntryBlock()
+  v1 = Constant("Bye")
+  Constant(null)
+  Throw(v1)
 
 --- main
 B0 = EntryBlock()

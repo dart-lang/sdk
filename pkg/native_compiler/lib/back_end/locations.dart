@@ -4,6 +4,7 @@
 
 import 'package:cfg/ir/constant_value.dart' show ConstantValue;
 import 'package:cfg/ir/instructions.dart' show MoveOp;
+import 'package:cfg/ir/local_variable.dart' show LocalVariable;
 
 /// A generic operand of a machine instruction.
 abstract interface class Operand;
@@ -14,7 +15,27 @@ enum RegisterClass {
   cpu,
 
   /// Floating-point / SIMD registers.
-  fpu,
+  fpu;
+
+  /// Value class of a "raw" value in this kind of registers.
+  /// Used by temporaries or when blocking a physical register.
+  ValueClass get rawValueClass => switch (this) {
+    cpu => .int64,
+    fpu => .float64,
+  };
+}
+
+/// Class of the value which affects how it is allocated and moved.
+enum ValueClass {
+  object,
+  int64,
+  float64,
+  simd128;
+
+  RegisterClass get registerClass => switch (this) {
+    object || int64 => .cpu,
+    float64 || simd128 => .fpu,
+  };
 }
 
 /// Register allocation constraint for one input/output/temporary
@@ -104,6 +125,29 @@ final class ParameterStackLocation extends StackLocation implements Constraint {
 
   @override
   String toString() => 'param[$paramIndex]';
+}
+
+/// Constraint and location for the slot in the stack frame which holds
+/// the value of a local variable for exception handlers.
+///
+/// The slot is written by `ExceptionalInput` instructions and read by
+/// the corresponding catch block parameters.
+final class CatchSlotLocation extends StackLocation implements Constraint {
+  /// Local variable (used for printing only).
+  final LocalVariable variable;
+
+  /// Index of the stack slot in frame.
+  @override
+  final int stackSlotIndex;
+
+  const CatchSlotLocation(this.variable, this.stackSlotIndex)
+    : assert(stackSlotIndex >= 0);
+
+  @override
+  RegisterClass get registerClass => RegisterClass.cpu;
+
+  @override
+  String toString() => 'catch[${variable.name}]';
 }
 
 /// Location which can be allocated by register allocator.

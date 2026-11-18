@@ -2519,12 +2519,20 @@ void Isolate::RunAndCleanupFinalizersOnShutdown() {
       GrowableObjectArray::Handle(stack_zone.GetZone(), finalizers_);
   if (!finalizers.IsNull()) {
     const intptr_t num_finalizers = finalizers.Length();
+    auto& element = Object::Handle(stack_zone.GetZone());
     auto& weak_reference = WeakReference::Handle(stack_zone.GetZone());
     auto& finalizer = FinalizerBase::Handle(stack_zone.GetZone());
     auto& current_entry = FinalizerEntry::Handle(stack_zone.GetZone());
     auto& all_entries = Set::Handle(stack_zone.GetZone());
     for (int i = 0; i < num_finalizers; i++) {
-      weak_reference ^= finalizers.At(i);
+      // The list of finalizers and each finalizer's set of entries are grown
+      // by Dart code that can be interrupted by Isolate.kill with
+      // Isolate.immediate. A kill between the length update and the store
+      // leaves a slot that is still null, so skip anything that is not the
+      // expected object.
+      element = finalizers.At(i);
+      if (!element.IsWeakReference()) continue;
+      weak_reference ^= element.ptr();
       finalizer ^= weak_reference.target();
       if (!finalizer.IsNull()) {
         if (finalizer.isolate() == this) {
@@ -2545,7 +2553,9 @@ void Isolate::RunAndCleanupFinalizersOnShutdown() {
           all_entries = finalizer.all_entries();
           Set::Iterator iterator(all_entries);
           while (iterator.MoveNext()) {
-            current_entry ^= iterator.CurrentKey();
+            element = iterator.CurrentKey();
+            if (!element.IsFinalizerEntry()) continue;
+            current_entry ^= element.ptr();
             native_finalizer.RunCallback(current_entry, "Isolate shutdown");
           }
         }

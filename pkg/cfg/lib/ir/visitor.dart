@@ -27,6 +27,7 @@ abstract interface class InstructionVisitor<R> {
   R visitParameter(Parameter instr);
   R visitLoadLocal(LoadLocal instr);
   R visitStoreLocal(StoreLocal instr);
+  R visitExceptionalInput(ExceptionalInput instr);
   R visitLoadInstanceField(LoadInstanceField instr);
   R visitStoreInstanceField(StoreInstanceField instr);
   R visitLoadStaticField(LoadStaticField instr);
@@ -112,6 +113,7 @@ abstract mixin class DefaultInstructionVisitor<R>
   R visitParameter(Parameter instr) => defaultInstruction(instr);
   R visitLoadLocal(LoadLocal instr) => defaultInstruction(instr);
   R visitStoreLocal(StoreLocal instr) => defaultInstruction(instr);
+  R visitExceptionalInput(ExceptionalInput instr) => defaultInstruction(instr);
   R visitLoadInstanceField(LoadInstanceField instr) =>
       defaultInstruction(instr);
   R visitStoreInstanceField(StoreInstanceField instr) =>

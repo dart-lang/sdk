@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/completion/dart/candidate_suggestion.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart/relevance_tables.g.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -107,6 +108,9 @@ class RelevanceComputer {
 
   /// Compute the relevance for the given [CandidateSuggestion].
   int computeRelevance(CandidateSuggestion suggestion) {
+    if (!useRelevanceScores) {
+      return 0;
+    }
     // See https://github.com/dart-lang/sdk/issues/61679
     // We have two checks to distinguish prefix `str` or `STR` when
     // candidates are also `str` or `STR`. We want to prefer the same case.
@@ -473,14 +477,19 @@ class RelevanceComputer {
       location,
       distance: distance,
     );
-    if (elementKind < 0.0) {
+    if (listener case var listener? when elementKind == 0.0) {
       if (location == null) {
-        listener?.missingCompletionLocationAt(
+        listener.missingCompletionLocationAt(
           request.target.containingNode,
           request.target.entity!,
         );
+      } else if (elementKindRelevance[location] case var locationTable?) {
+        var kind = featureComputer.computeElementKind2(element);
+        if (locationTable[kind] == null) {
+          listener.missingElementKindEntryFor(location, kind);
+        }
       } else {
-        listener?.missingElementKindTableFor(location);
+        listener.missingElementKindTableFor(location);
       }
     }
     return elementKind;
@@ -495,14 +504,19 @@ class RelevanceComputer {
       location,
       distance: distance,
     );
-    if (elementKind < 0.0) {
+    if (listener case var listener? when elementKind == 0.0) {
       if (location == null) {
-        listener?.missingCompletionLocationAt(
+        listener.missingCompletionLocationAt(
           request.target.containingNode,
           request.target.entity!,
         );
+      } else if (elementKindRelevance[location] case var locationTable?) {
+        var kind = featureComputer.computeElementKind2(element);
+        if (locationTable[kind] == null) {
+          listener.missingElementKindEntryFor(location, kind);
+        }
       } else {
-        listener?.missingElementKindTableFor(location);
+        listener.missingElementKindTableFor(location);
       }
     }
     return elementKind;

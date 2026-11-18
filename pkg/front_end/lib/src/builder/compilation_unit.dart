@@ -245,6 +245,7 @@ abstract class SourceCompilationUnit
     List<SourceCompilationUnit> includedParts,
     Set<Uri> usedParts, {
     required bool allowPartInParts,
+    required PartDirective? partDirective,
   });
 
   void buildOutlineExpressions({

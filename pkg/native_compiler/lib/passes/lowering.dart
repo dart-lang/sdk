@@ -28,7 +28,7 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
   Lowering(this.functionRegistry, this.objectLayout) : super('Lowering');
 
   late final CFunction _growableListLiteral = functionRegistry.getFunction(
-    GlobalContext.instance.coreTypes.index.getProcedure(
+    GlobalContext.instance.coreLibraries.getProcedure(
       'dart:core',
       '_GrowableList',
       '_literal',
@@ -36,7 +36,7 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
   );
 
   late final CFunction _mapFromLiteral = functionRegistry.getFunction(
-    GlobalContext.instance.coreTypes.index.getProcedure(
+    GlobalContext.instance.coreLibraries.getProcedure(
       'dart:core',
       'Map',
       '_fromLiteral',
@@ -44,7 +44,7 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
   );
 
   late final CFunction _interpolateSingle = functionRegistry.getFunction(
-    GlobalContext.instance.coreTypes.index.getProcedure(
+    GlobalContext.instance.coreLibraries.getProcedure(
       'dart:core',
       '_StringBase',
       '_interpolateSingle',
@@ -52,7 +52,7 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
   );
 
   late final CFunction _interpolate = functionRegistry.getFunction(
-    GlobalContext.instance.coreTypes.index.getProcedure(
+    GlobalContext.instance.coreLibraries.getProcedure(
       'dart:core',
       '_StringBase',
       '_interpolate',
@@ -60,18 +60,44 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
   );
 
   late final CFunction _prependTypeArguments = functionRegistry.getFunction(
-    GlobalContext.instance.coreTypes.index.getTopLevelProcedure(
+    GlobalContext.instance.coreLibraries.getTopLevelProcedure(
       'dart:_internal',
       '_prependTypeArguments',
     ),
   );
 
   late final CFunction _instantiateClosure = functionRegistry.getFunction(
-    GlobalContext.instance.coreTypes.index.getTopLevelProcedure(
+    GlobalContext.instance.coreLibraries.getTopLevelProcedure(
       'dart:_internal',
       '_instantiateClosure',
     ),
   );
+
+  late final CFunction _throwLocalNotInitialized = functionRegistry.getFunction(
+    GlobalContext.instance.coreLibraries.getProcedure(
+      'dart:_internal',
+      'LateError',
+      '_throwLocalNotInitialized',
+    ),
+  );
+
+  late final CFunction _throwLocalAlreadyInitialized = functionRegistry
+      .getFunction(
+        GlobalContext.instance.coreLibraries.getProcedure(
+          'dart:_internal',
+          'LateError',
+          '_throwLocalAlreadyInitialized',
+        ),
+      );
+
+  late final CFunction _throwLocalAssignedDuringInitialization =
+      functionRegistry.getFunction(
+        GlobalContext.instance.coreLibraries.getProcedure(
+          'dart:_internal',
+          'LateError',
+          '_throwLocalAssignedDuringInitialization',
+        ),
+      );
 
   late final _emptyList = ConstantValue(
     ast.ListConstant(const ast.DynamicType(), ast.ConstantList.empty),
@@ -447,6 +473,38 @@ final class Lowering extends Pass with DefaultInstructionVisitor<void> {
     replacement.setInputAt(1, instr.typeArguments);
     replacement.insertBefore(instr);
     instr.replaceUsesWith(replacement);
+    instr.removeFromGraph();
+  }
+
+  @override
+  void visitThrow(Throw instr) {
+    final target = switch (instr.kind) {
+      .lateLocalNotInitialized => _throwLocalNotInitialized,
+      .lateLocalAlreadyInitialized => _throwLocalAlreadyInitialized,
+      .lateLocalAssignedDuringInitialization =>
+        _throwLocalAssignedDuringInitialization,
+      _ => null,
+    };
+    if (target == null) {
+      return;
+    }
+    final replacement = DirectCall(
+      graph,
+      instr.sourcePosition,
+      target,
+      const NeverType(),
+      inputCount: 1,
+      argumentsShape: functionRegistry.getArgumentsShape(1),
+    );
+    replacement.setInputAt(0, instr.inputDefAt(0));
+    replacement.insertBefore(instr);
+    // Terminate basic block with Unreachable after Throw is removed.
+    final unreachable = Unreachable(
+      graph,
+      instr.sourcePosition,
+      '$target should not return',
+    );
+    unreachable.insertBefore(instr);
     instr.removeFromGraph();
   }
 }

@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/computer/computer_documentation.dart';
+import 'package:analysis_server/src/utilities/extensions/analysis_session.dart';
 import 'package:analysis_server/src/utilities/extensions/numeric.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
 
 /// Information about the arguments and parameters for an invocation.
@@ -25,10 +25,8 @@ typedef EditableInvocationInfo = ({
 });
 
 mixin EditableArgumentsMixin {
-  DartdocDirectiveInfo getDartdocDirectiveInfoFor(ResolvedUnitResult result);
-
   String? getDocumentation(ResolvedUnitResult result, Element element) {
-    var dartDocInfo = getDartdocDirectiveInfoFor(result);
+    var dartDocInfo = result.session.dartdocDirectiveInfo;
     var dartDocComputer = DartDocumentationComputer(dartDocInfo);
     var dartDoc = dartDocComputer.compute(
       element,

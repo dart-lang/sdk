@@ -1094,7 +1094,8 @@ void TypeTestingStubGenerator::BuildOptimizedTypeParameterArgumentValueCheck(
 
   __ LoadCompressedFieldFromOffset(
       TTSInternalRegs::kSuperTypeArgumentReg, kTypeArgumentsReg,
-      compiler::target::TypeArguments::type_at_offset(type_param.index()));
+      compiler::target::TypeArguments::type_at_offset(
+          type_param.index_in_tav()));
   __ LoadCompressedFieldFromOffset(
       TTSInternalRegs::kSubTypeArgumentReg,
       TTSInternalRegs::kInstanceTypeArgumentsReg,

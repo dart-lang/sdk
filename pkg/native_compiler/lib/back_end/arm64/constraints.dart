@@ -36,7 +36,7 @@ final class Arm64Constraints extends Constraints {
 
   List<Constraint?>? _parameters;
 
-  Arm64Constraints(this.stackFrame);
+  Arm64Constraints(super.unboxing, this.stackFrame);
 
   @override
   int getNumberOfRegisters() => numberOfRegisters;
@@ -99,13 +99,13 @@ final class Arm64Constraints extends Constraints {
       } else {
         paramConstraint = stackFrame.getParameterSlot(
           paramIndex,
-          registerClass(instr),
+          registerClass(instr, unboxing),
         );
       }
     } else {
       paramConstraint = stackFrame.getParameterSlot(
         paramIndex,
-        registerClass(instr),
+        registerClass(instr, unboxing),
       );
     }
     final parameters = (_parameters ??= List<Constraint?>.filled(
@@ -189,7 +189,8 @@ final class Arm64Constraints extends Constraints {
       } else if (variable.isStackTraceVariable) {
         result = stackTraceObjectReg;
       } else {
-        result = anyLocation(instr);
+        assert(instr.hasExceptionalInputs);
+        result = stackFrame.getCatchSlot(variable);
       }
     }
     return InstructionConstraints(result, const []);
@@ -202,6 +203,10 @@ final class Arm64Constraints extends Constraints {
   @override
   InstructionConstraints? visitStoreLocal(StoreLocal instr) =>
       throw 'Unexpected StoreLocal';
+
+  @override
+  InstructionConstraints? visitExceptionalInput(ExceptionalInput instr) =>
+      InstructionConstraints(null, [anyLocationOrImmediate(instr.value)]);
 
   @override
   InstructionConstraints? visitLoadInstanceField(LoadInstanceField instr) {

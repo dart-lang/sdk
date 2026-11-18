@@ -1398,7 +1398,11 @@ abstract class _TypeUniverse {
       // subtype of `T`.
       if (t.isFutureOr) {
         _FutureOrType tFutureOr = t.as<_FutureOrType>();
-        if (isSubtype(s, sEnv, tFutureOr.typeArgument, tEnv)) {
+        // A nullable `FutureOr<T>?` is the union of `T?` and `Future<T>?`.
+        final tTypeArgument = tFutureOr.isDeclaredNullable
+            ? tFutureOr.typeArgument.asNullable
+            : tFutureOr.typeArgument;
+        if (isSubtype(s, sEnv, tTypeArgument, tEnv)) {
           return true;
         }
       }
@@ -1425,7 +1429,11 @@ abstract class _TypeUniverse {
     // Right FutureOr:
     if (t.isFutureOr) {
       _FutureOrType tFutureOr = t.as<_FutureOrType>();
-      if (isSubtype(s, sEnv, tFutureOr.typeArgument, tEnv)) {
+      // A nullable `FutureOr<T>?` is the union of `T?` and `Future<T>?`.
+      final tTypeArgument = tFutureOr.isDeclaredNullable
+          ? tFutureOr.typeArgument.asNullable
+          : tFutureOr.typeArgument;
+      if (isSubtype(s, sEnv, tTypeArgument, tEnv)) {
         return true;
       }
       return isSubtype(s, sEnv, tFutureOr.asFuture, tEnv);

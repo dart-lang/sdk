@@ -47,7 +47,7 @@ void main() {
     await check(
       sandbox.run('bin/main.dart', mode: 'flutter'),
     ).throws<CompilationFailedException>(
-      .it()..has2('message', (it) => it.message).contains("Expected ';'"),
+      .it()..has('message', (it) => it.message).contains("Expected ';'"),
     );
     await iframe.close();
   });
