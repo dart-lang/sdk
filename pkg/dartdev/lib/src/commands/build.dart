@@ -62,8 +62,6 @@ class BuildCliSubcommand extends CompileSubcommandCommand {
 
   static const String cmdName = 'cli';
 
-  static final OS targetOS = OS.current;
-  static final bool busyBoxStyle = targetOS == OS.linux;
   late final List<File> entryPoints;
 
   final bool dataAssetsExperimentEnabled;
@@ -205,7 +203,8 @@ then that is used instead.''',
   Future<int> run() async {
     final args = argResults!;
     final sanitizer = Sanitizer.fromString(args.option('target-sanitizer'))!;
-    final targetRuntime = busyBoxStyle
+    final crossTarget = crossCompilationTarget(args);
+    final targetRuntime = _isBusyBoxStyle(crossTarget ?? Target.current)
         ? sdk.dartCliRuntimeFor(sanitizer: sanitizer.name)
         : sdk.dartAotRuntimeFor(sanitizer: sanitizer.name);
     if (!checkArtifactExists(sdk.genKernelSnapshot) ||
@@ -218,7 +217,6 @@ then that is used instead.''',
     var genSnapshotBinary = sdk.genSnapshot;
     var dartAotRuntimeBinary = targetRuntime;
 
-    final crossTarget = crossCompilationTarget(args);
     if (crossTarget != null) {
       if (!CompileSubcommandCommand.supportedTargetPlatforms.contains(
         crossTarget,
@@ -336,6 +334,20 @@ then that is used instead.''',
     );
   }
 
+  /// Whether the executables of a bundle for [target] are copies of (or links
+  /// to) the `dartcliruntime`, which runs the program compiled to
+  /// `lib/libdartaot<name>.so`, instead of self-contained executables.
+  ///
+  /// The SDK only contains the `dartcliruntime` of the host, and only on
+  /// Linux. A bundle cross-compiled for another target gets self-contained
+  /// executables built with the `dartaotruntime` of that target instead.
+  static bool _isBusyBoxStyle(Target target) {
+    // TODO(dacoharkes): Upload target `dartcliruntime` binaries to Cloud
+    // Storage and use the shared runtime when cross-compiling to Linux too, so
+    // bundles with multiple executables do not duplicate the runtime.
+    return target == Target.current && target.os == OS.linux;
+  }
+
   /// Builds [executables] into an app bundle under [outputUri].
   ///
   /// Status output (other than errors) is suppressed when [verbosity] is
@@ -364,6 +376,7 @@ then that is used instead.''',
     () async {
       final resolvedTarget = target ?? Target.current;
       final targetOS = resolvedTarget.os;
+      final busyBoxStyle = _isBusyBoxStyle(resolvedTarget);
       if (executables.length >= 2) {
         if (recordUseEnabled) {
           // Multiple entry points can lead to multiple different tree-shakings.
