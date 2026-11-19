@@ -1132,6 +1132,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         collector.completionLocation =
             CompletionLocation.ifStatementElseStatement;
       }
+    } else if (parent is DoStatement) {
+      collector.completionLocation = CompletionLocation.doStatementBody;
+    } else if (parent is LabeledStatement) {
+      collector.completionLocation =
+          CompletionLocation.labeledStatementStatement;
+    } else if (parent is WhileStatement) {
+      collector.completionLocation = CompletionLocation.whileStatementBody;
     }
     if (offset <= node.semicolon.offset) {
       _forStatement(node);
@@ -1214,7 +1221,12 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       keywordHelper.addKeywordAndText(Keyword.DEFAULT, ':');
       collector.completionLocation = CompletionLocation.switchMemberStatement;
     } else {
-      collector.completionLocation = CompletionLocation.blockStatement;
+      collector.completionLocation = switch (parent) {
+        DoStatement() => CompletionLocation.doStatementBody,
+        LabeledStatement() => CompletionLocation.labeledStatementStatement,
+        WhileStatement() => CompletionLocation.whileStatementBody,
+        _ => CompletionLocation.blockStatement,
+      };
     }
     if (_forIncompletePrecedingStatement(node)) {
       if (node.isSingleIdentifier) {
@@ -1667,11 +1679,15 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             var type = variable.type;
             if (type == null ||
                 (type is NamedType && offset <= type.name.end)) {
+              collector.completionLocation =
+                  CompletionLocation.forEachPartsWithDeclarationLoopVariable;
               _forTypeAnnotation(node);
             }
           }
         case ForEachPartsWithIdentifier():
           if (offset < parts.identifier.offset) {
+            collector.completionLocation =
+                CompletionLocation.forEachPartsWithIdentifierIdentifier;
             _forTypeAnnotation(node);
           }
         case ForEachPartsWithPattern():
@@ -1946,8 +1962,17 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     } else if (offset <= node.uri.offset) {
       return;
     } else if (offset >= node.uri.end) {
-      collector.completionLocation =
-          CompletionLocation.compilationUnitDirective;
+      var location = CompletionLocation.importDirectiveUri;
+      if (node.deferredKeyword case var deferred? when deferred.end <= offset) {
+        location = CompletionLocation.importDirectiveDeferred;
+      }
+      if (node.prefix case var prefix? when prefix.end <= offset) {
+        location = CompletionLocation.importDirectivePrefix;
+      }
+      if (node.configurations.any((c) => c.end <= offset)) {
+        location = CompletionLocation.importDirectiveConfigurations;
+      }
+      collector.completionLocation = location;
       keywordHelper.addImportDirectiveKeywords(node);
     }
   }
@@ -4268,6 +4293,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           return;
         }
       } else if (identifier.parent is ConstantPattern) {
+        collector.completionLocation =
+            CompletionLocation.constantPatternExpression;
         keywordHelper.addPatternKeywords();
         // TODO(scheglov): Actually we need constructors, but only const.
         // And not-yet imported contributors does not work well yet.

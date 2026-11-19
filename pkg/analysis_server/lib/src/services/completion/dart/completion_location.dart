@@ -49,7 +49,6 @@ abstract final class CompletionLocation {
       'ConditionalExpression_elseExpression';
   static const String conditionalExpressionThenExpression =
       'ConditionalExpression_thenExpression';
-  // TODO(dantup): This is only used in the table generator.
   static const String constantPatternExpression = 'ConstantPattern_expression';
   static const String constructorDeclarationInitializer =
       'ConstructorDeclaration_initializer';
@@ -64,7 +63,6 @@ abstract final class CompletionLocation {
       'DeclaredVariablePattern_type';
   static const String defaultFormalParameterDefaultValue =
       'DefaultFormalParameter_defaultValue';
-  // TODO(dantup): This is only used in the table generator.
   static const String doStatementBody = 'DoStatement_body';
   static const String doStatementCondition = 'DoStatement_condition';
   static const String dotShorthandConstructorInvocationConstructorName =
@@ -93,10 +91,8 @@ abstract final class CompletionLocation {
       'ExtensionTypeDeclaration_member';
   static const String fieldDeclarationFields = 'FieldDeclaration_fields';
   static const String forEachPartsIterable = 'ForEachParts_iterable';
-  // TODO(dantup): This is only used in the table generator.
   static const String forEachPartsWithDeclarationLoopVariable =
       'ForEachPartsWithDeclaration_loopVariable';
-  // TODO(dantup): This is only used in the table generator.
   static const String forEachPartsWithIdentifierIdentifier =
       'ForEachPartsWithIdentifier_identifier';
   static const String forEachPartsWithPatternIterable =
@@ -128,9 +124,7 @@ abstract final class CompletionLocation {
   static const String importDirectiveCombinator = 'ImportDirective_combinator';
   static const String importDirectiveConfigurations =
       'ImportDirective_configurations';
-  // TODO(dantup): This is only used in the table generator.
   static const String importDirectiveDeferred = 'ImportDirective_deferred';
-  // TODO(dantup): This is only used in the table generator.
   static const String importDirectivePrefix = 'ImportDirective_prefix';
   static const String importDirectiveUri = 'ImportDirective_uri';
   static const String indexExpressionIndex = 'IndexExpression_index';
@@ -139,7 +133,6 @@ abstract final class CompletionLocation {
   static const String interpolationExpressionExpression =
       'InterpolationExpression_expression';
   static const String isExpressionType = 'IsExpression_type';
-  // TODO(dantup): This is only used in the table generator.
   static const String labeledStatementStatement = 'LabeledStatement_statement';
   static const String listLiteralElement = 'ListLiteral_element';
   static const String listPatternElement = 'ListPattern_element';
@@ -216,7 +209,6 @@ abstract final class CompletionLocation {
   static const String variableDeclarationListType =
       'VariableDeclarationList_type';
   static const String whenClauseExpression = 'WhenClause_expression';
-  // TODO(dantup): This is only used in the table generator.
   static const String whileStatementBody = 'WhileStatement_body';
   static const String whileStatementCondition = 'WhileStatement_condition';
   static const String wildcardPatternType = 'WildcardPattern_type';
