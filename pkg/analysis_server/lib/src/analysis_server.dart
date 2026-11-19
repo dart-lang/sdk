@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:io' as io;
+import 'dart:typed_data';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
@@ -1450,6 +1451,13 @@ abstract class AnalysisServer {
     await shutdownPerfWitness();
     await sessionListener.shutdown();
   }
+
+  /// Returns the number of committed entries in each hash table bucket of the
+  /// single file byte store, or `null` if the server does not use it.
+  ///
+  /// Unlike [byteStoreStats], this reads the whole table from the disk.
+  Uint8List? singleFileTableBucketEntryCounts() =>
+      _singleFileByteStore?.tableBucketEntryCounts();
 
   ResolvedForCompletionResultImpl?
   _tryGetCachedResolvedUnitAsResolvedForCompletion(
