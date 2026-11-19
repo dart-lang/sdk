@@ -216,9 +216,6 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   /// List of instructions.
   final List<ir.Instruction> _instructions = [];
 
-  /// Stored stack traces leading to the instructions for watch points.
-  final Map<ir.Instruction, StackTrace>? _stackTraces;
-
   final List<_PatchableRegion> _patchPoints = [];
 
   /// Whether the instruction block is for a Wasm constant expression.
@@ -230,8 +227,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     this.inputs,
     this.outputs, {
     this.constantExpression = false,
-  }) : _stackTraces = moduleBuilder.watchPoints.isNotEmpty ? {} : null,
-       _debugInfoWriter = moduleBuilder.debugInfoTables == null
+  }) : _debugInfoWriter = moduleBuilder.debugInfoTables == null
            ? null
            : DebugInfoWriter(moduleBuilder.debugInfoTables!) {
     _labelStack.add(Expression(const [], outputs));
@@ -262,7 +258,6 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     _localInitialized.fillRange(0, inputs.length, true);
     _localInitializationStack.clear();
     _instructions.clear();
-    _stackTraces?.clear();
     _patchPoints.clear();
   }
 
@@ -295,8 +290,6 @@ class InstructionsBuilder with Builder<ir.Instructions> {
         locals,
         localNames.isEmpty ? const {} : localNames,
         _instructions,
-        _stackTraces,
-        _traceLines,
         debugInfo,
       );
     }
@@ -385,8 +378,6 @@ class InstructionsBuilder with Builder<ir.Instructions> {
       locals,
       localNames.isEmpty ? const {} : localNames,
       newInstructions,
-      _stackTraces,
-      _traceLines,
       newDebugInfo,
     );
   }
@@ -421,9 +412,6 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     );
     if (!_reachable) return;
     _instructions.add(i);
-    if (moduleBuilder.watchPoints.isNotEmpty) {
-      _stackTraces![i] = StackTrace.current;
-    }
   }
 
   ir.Local _addParameter(ir.ValueType type) {

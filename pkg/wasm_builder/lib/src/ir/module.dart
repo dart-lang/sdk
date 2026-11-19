@@ -35,7 +35,6 @@ class Module implements Serializable {
   late final Types _types;
   late final DataSegments _dataSegments;
   late final Imports _imports;
-  late final List<int> _watchPoints;
   // Allow source map URL to be updated for deserialized modules.
   late Uri? sourceMapUrl;
   late final List<ExtraCustomSection> _extraCustomSections;
@@ -56,7 +55,6 @@ class Module implements Serializable {
     Types types,
     DataSegments dataSegments,
     Imports imports,
-    List<int> watchPoints,
     Uri? sourceMapUrl,
     List<ExtraCustomSection> extraCustomSections, [
     DebugInfoTables? debugInfoTables,
@@ -76,7 +74,6 @@ class Module implements Serializable {
     _types = types;
     _dataSegments = dataSegments;
     _imports = imports;
-    _watchPoints = watchPoints;
     this.sourceMapUrl = sourceMapUrl;
     _extraCustomSections = extraCustomSections;
     this.debugInfoTables = debugInfoTables;
@@ -94,15 +91,11 @@ class Module implements Serializable {
   Types get types => _types;
   DataSegments get dataSegments => _dataSegments;
   Imports get imports => _imports;
-  List<int> get watchPoints => _watchPoints;
   List<ExtraCustomSection> get extraCustomSections => _extraCustomSections;
 
   /// Serialize a module to its binary representation.
   @override
   void serialize(Serializer s, [DebugInfoSerializer? debugInfoSerializer]) {
-    if (watchPoints.isNotEmpty) {
-      Serializer.traceEnabled = true;
-    }
     // Wasm module preamble: magic number, version 1.
     s.writeBytes(
       Uint8List.fromList(const [
@@ -116,28 +109,24 @@ class Module implements Serializable {
         0x00,
       ]),
     );
-    TypeSection(types, watchPoints).serialize(s);
-    ImportSection(imports, watchPoints).serialize(s);
-    FunctionSection(functions.defined, watchPoints).serialize(s);
-    TableSection(tables.defined, watchPoints).serialize(s);
-    MemorySection(memories.defined, watchPoints).serialize(s);
-    TagSection(tags.defined, watchPoints).serialize(s);
-    GlobalSection(globals.defined, watchPoints).serialize(s);
-    ExportSection(exports.exported, watchPoints).serialize(s);
-    StartSection(start, watchPoints).serialize(s);
-    ElementSection(elements, watchPoints).serialize(s);
-    DataCountSection(dataSegments.defined, watchPoints).serialize(s);
-    CodeSection(
-      functions.defined,
-      watchPoints,
-    ).serialize(s, debugInfoSerializer);
-    DataSection(dataSegments.defined, watchPoints).serialize(s);
+    TypeSection(types).serialize(s);
+    ImportSection(imports).serialize(s);
+    FunctionSection(functions.defined).serialize(s);
+    TableSection(tables.defined).serialize(s);
+    MemorySection(memories.defined).serialize(s);
+    TagSection(tags.defined).serialize(s);
+    GlobalSection(globals.defined).serialize(s);
+    ExportSection(exports.exported).serialize(s);
+    StartSection(start).serialize(s);
+    ElementSection(elements).serialize(s);
+    DataCountSection(dataSegments.defined).serialize(s);
+    CodeSection(functions.defined).serialize(s, debugInfoSerializer);
+    DataSection(dataSegments.defined).serialize(s);
     NameSection(
       moduleName,
       functions,
       types.recursionGroups,
       globals,
-      watchPoints,
     ).serialize(s);
     BinaryenRemovableIfUnusedSection(functions).serialize(s);
     BinaryenInlineHintSection(functions).serialize(s);
@@ -350,7 +339,6 @@ class Module implements Serializable {
       types,
       dataSegments,
       imports,
-      [],
       sourceMapUrl,
       extraCustomSections,
       debugInfoDeserializer?.debugInfoTables,
