@@ -109,12 +109,6 @@ class AnalyzeCommand extends DartdevCommand {
         hide: !verbose,
       )
       ..addFlag(
-        useAotSnapshotFlag,
-        help: 'Use the AOT analysis server snapshot',
-        defaultsTo: true,
-        hide: true,
-      )
-      ..addFlag(
         'plugins',
         help:
             'Use analyzer plugins. Defaults to true when the CI environment '
@@ -222,15 +216,12 @@ class AnalyzeCommand extends DartdevCommand {
     final printMemory = args.flag('memory') && jsonFormat;
 
     io.Directory sdkPath;
-    final useAotSnapshot = args.flag(useAotSnapshotFlag);
     if (args.wasParsed('sdk-path')) {
       sdkPath = io.Directory(args.option('sdk-path')!);
       if (!sdkPath.existsSync()) {
         usageException('Invalid Dart SDK path: ${sdkPath.path}');
       }
-      final snapshotName = useAotSnapshot
-          ? 'analysis_server_aot.dart.snapshot'
-          : 'analysis_server.dart.snapshot';
+      const snapshotName = 'analysis_server_aot.dart.snapshot';
       final snapshotPath = path.join(
         sdkPath.path,
         'bin',
@@ -299,7 +290,6 @@ class AnalyzeCommand extends DartdevCommand {
       neverTrustPlugins: neverTrustPlugins,
       enabledExperiments: args.enabledExperiments,
       suppressAnalytics: suppressAnalytics,
-      useAotSnapshot: useAotSnapshot,
     );
     UsageInfo? usageInfo;
     await progress(

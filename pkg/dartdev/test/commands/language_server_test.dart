@@ -110,28 +110,8 @@ void defineLanguageServerTests() {
     return runWithLsp(['language-server', '--protocol', 'lsp']);
   });
 
-  test('--use-aot-snapshot', () async {
-    return runWithLsp(['language-server', '--use-aot-snapshot']);
-  });
-
-  test('--use-aot-snapshot --enable-experiment=foo', () async {
-    return runWithLsp([
-      'language-server',
-      '--use-aot-snapshot',
-      '--enable-experiment=foo',
-    ]);
-  });
-
-  test('--no-use-aot-snapshot', () async {
-    return runWithLsp(['language-server', '--no-use-aot-snapshot']);
-  });
-
-  test('--no-use-aot-snapshot --enable-experiment=foo', () async {
-    return runWithLsp([
-      'language-server',
-      '--no-use-aot-snapshot',
-      '--enable-experiment=foo',
-    ]);
+  test('--enable-experiment=foo', () async {
+    return runWithLsp(['language-server', '--enable-experiment=foo']);
   });
 
   test('--protocol=analyzer', () async {

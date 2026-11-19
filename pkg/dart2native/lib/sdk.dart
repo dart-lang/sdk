@@ -302,5 +302,3 @@ class Runtime {
     return Runtime._(version, channel);
   }
 }
-
-const useAotSnapshotFlag = 'use-aot-snapshot';
