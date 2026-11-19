@@ -1509,15 +1509,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
-    collector.completionLocation =
-        CompletionLocation.forEachPartsWithDeclarationIterable;
+    collector.completionLocation = CompletionLocation.forEachPartsIterable;
     _visitForEachParts(node);
   }
 
   @override
   void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
-    collector.completionLocation =
-        CompletionLocation.forEachPartsWithDeclarationIterable;
+    collector.completionLocation = CompletionLocation.forEachPartsIterable;
     _visitForEachParts(node);
   }
 
@@ -2457,7 +2455,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitParenthesizedPattern(ParenthesizedPattern node) {
     collector.completionLocation =
-        CompletionLocation.parenthesizedPatternExpression;
+        CompletionLocation.parenthesizedPatternPattern;
     _forPattern(node);
   }
 
@@ -2897,7 +2895,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
     } else if (offset <= node.rightParenthesis.offset) {
       collector.completionLocation =
-          CompletionLocation.recordTypeAnnotationPositionalFields;
+          CompletionLocation.recordTypeAnnotationFields;
       _forTypeAnnotation(node);
     }
   }
@@ -2908,7 +2906,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   ) {
     if (node.type.coversOffset(offset)) {
       collector.completionLocation =
-          CompletionLocation.recordTypeAnnotationNamedFieldsFields;
+          CompletionLocation.recordTypeAnnotationFields;
       _forTypeAnnotation(node);
     } else if (node.name.coversOffset(offset)) {
       collector.completionLocation =
@@ -2922,7 +2920,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     RecordTypeAnnotationNamedFields node,
   ) {
     collector.completionLocation =
-        CompletionLocation.recordTypeAnnotationNamedFieldsFields;
+        CompletionLocation.recordTypeAnnotationFields;
     _forTypeAnnotation(node);
   }
 
@@ -2932,7 +2930,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   ) {
     if (node.type.coversOffset(offset)) {
       collector.completionLocation =
-          CompletionLocation.recordTypeAnnotationPositionalFields;
+          CompletionLocation.recordTypeAnnotationFields;
       _forTypeAnnotation(node);
     }
   }
@@ -3069,7 +3067,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         offset >= node.operator.end &&
         offset <= operand.end) {
       collector.completionLocation =
-          CompletionLocation.relationalPatternOperand;
+          CompletionLocation.relationalPatternOperatorOperand(
+            node.operator.lexeme,
+          );
       _forExpression(node);
     }
   }
@@ -3207,7 +3207,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       _forExpression(node);
     } else if (offset >= node.leftBracket.end &&
         offset <= node.rightBracket.offset) {
-      collector.completionLocation = CompletionLocation.switchExpressionBody;
+      collector.completionLocation = CompletionLocation.switchExpressionPattern;
       _forPattern(node);
     }
   }
@@ -3216,7 +3216,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitSwitchExpressionCase(SwitchExpressionCase node) {
     if (node.arrow.isSynthetic || node.arrow.offset >= offset) {
       // The user is completing in the pattern.
-      collector.completionLocation = CompletionLocation.switchExpressionBody;
+      collector.completionLocation = CompletionLocation.switchExpressionPattern;
       _forPattern(node);
       return;
     }

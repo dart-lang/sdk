@@ -99,17 +99,13 @@ abstract final class CompletionLocation {
   static const String extensionTypeDeclarationMember =
       'ExtensionTypeDeclaration_member';
   static const String fieldDeclarationFields = 'FieldDeclaration_fields';
-  static const String forEachPartsWithDeclarationIterable =
-      'ForEachPartsWithDeclaration_iterable';
+  static const String forEachPartsIterable = 'ForEachParts_iterable';
   // TODO(dantup): This is only used in the table generator.
   static const String forEachPartsWithDeclarationLoopVariable =
       'ForEachPartsWithDeclaration_loopVariable';
   // TODO(dantup): This is only used in the table generator.
   static const String forEachPartsWithIdentifierIdentifier =
       'ForEachPartsWithIdentifier_identifier';
-  // TODO(dantup): This is only used in the table generator.
-  static const String forEachPartsWithIdentifierIterable =
-      'ForEachPartsWithIdentifier_iterable';
   static const String forEachPartsWithPatternIterable =
       'ForEachPartsWithPattern_iterable';
   // TODO(dantup): This is only used in the table generator.
@@ -181,10 +177,6 @@ abstract final class CompletionLocation {
       'OnClause_superclassConstraint';
   static const String parenthesizedExpressionExpression =
       'ParenthesizedExpression_expression';
-  // TODO(dantup): This is only used in the completion code.
-  static const String parenthesizedPatternExpression =
-      'ParenthesizedPattern_expression';
-  // TODO(dantup): This is only used in the table generator.
   static const String parenthesizedPatternPattern =
       'ParenthesizedPattern_pattern';
   static const String patternAssignmentExpression =
@@ -203,25 +195,12 @@ abstract final class CompletionLocation {
       'PrimaryConstructorDeclaration_fieldType';
   static const String propertyAccessPropertyName =
       'PropertyAccess_propertyName';
-  // TODO(dantup): This is only used in the table generator.
-  static const String recordLiteralFieldName = 'RecordLiteral_fieldName';
-  // TODO(dantup): This is only used in the completion code.
   static const String recordLiteralFields = 'RecordLiteral_fields';
-  // TODO(dantup): This is only used in the table generator.
-  static const String recordLiteralFieldValue = 'RecordLiteral_fieldValue';
-  // TODO(dantup): This is only used in the table generator.
-  static const String recordTypeFieldType = 'RecordType_fieldType';
-  // TODO(dantup): This is only used in the completion code.
-  static const String recordTypeAnnotationPositionalFields =
-      'RecordTypeAnnotation_positionalFields';
+  static const String recordTypeAnnotationFields =
+      'RecordTypeAnnotation_fields';
   // TODO(dantup): This is only used in the completion code.
   static const String recordTypeAnnotationNamedFieldName =
       'RecordTypeAnnotationNamedField_name';
-  // TODO(dantup): This is only used in the completion code.
-  static const String recordTypeAnnotationNamedFieldsFields =
-      'RecordTypeAnnotationNamedFields_fields';
-  // TODO(dantup): This is only used in the completion code.
-  static const String relationalPatternOperand = 'RelationalPattern_operand';
   static const String restPatternElementPattern = 'RestPatternElement_pattern';
   static const String returnStatementExpression = 'ReturnStatement_expression';
   static const String setOrMapLiteralElement = 'SetOrMapLiteral_element';
@@ -231,9 +210,6 @@ abstract final class CompletionLocation {
   static const String spreadElementExpression = 'SpreadElement_expression';
   // TODO(dantup): This is only used in the table generator.
   static const String switchCaseExpression = 'SwitchCase_expression';
-  // TODO(dantup): This is only used in the completion code.
-  static const String switchExpressionBody = 'SwitchExpression_body';
-  // TODO(dantup): This is only used in the table generator.
   static const String switchExpressionPattern = 'SwitchExpression_pattern';
   static const String switchExpressionExpression =
       'SwitchExpression_expression';
@@ -241,9 +217,6 @@ abstract final class CompletionLocation {
       'SwitchExpressionCase_expression';
   static const String switchMemberStatement = 'SwitchMember_statement';
   static const String switchPatternCasePattern = 'SwitchPatternCase_pattern';
-  // TODO(dantup): This is only used in the table generator.
-  static const String switchPatternCaseStatement =
-      'SwitchPatternCase_statement';
   static const String switchStatementExpression = 'SwitchStatement_expression';
   static const String throwExpressionExpression = 'ThrowExpression_expression';
   // TODO(dantup): This is only used in the table generator.
@@ -282,8 +255,6 @@ abstract final class CompletionLocation {
 
   /// Returns the location of the operand of a relational pattern whose operator
   /// is [operator].
-  ///
   static String relationalPatternOperatorOperand(String operator) =>
-      // TODO(dantup): This is only used in the table generator.
       'RelationalPattern_${operator}_operand';
 }

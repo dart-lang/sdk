@@ -845,7 +845,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       optype.completionLocation = 'ForEachPartsWithDeclaration_loopVariable';
       optype.includeTypeNameSuggestions = true;
     } else if (identical(entity, node.iterable)) {
-      optype.completionLocation = 'ForEachPartsWithDeclaration_iterable';
+      optype.completionLocation = 'ForEachParts_iterable';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
@@ -858,7 +858,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       optype.completionLocation = 'ForEachPartsWithIdentifier_identifier';
       optype.includeTypeNameSuggestions = true;
     } else if (identical(entity, node.iterable)) {
-      optype.completionLocation = 'ForEachPartsWithIdentifier_iterable';
+      optype.completionLocation = 'ForEachParts_iterable';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
@@ -1326,7 +1326,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitParenthesizedPattern(ParenthesizedPattern node) {
-    optype._forPattern('ParenthesizedPattern_expression');
+    optype._forPattern('ParenthesizedPattern_pattern');
   }
 
   @override
@@ -1468,7 +1468,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitRecordTypeAnnotation(RecordTypeAnnotation node) {
-    optype.completionLocation = 'RecordTypeAnnotation_positionalFields';
+    optype.completionLocation = 'RecordTypeAnnotation_fields';
 
     final entity = this.entity;
     if (entity is Token && entity == node.rightParenthesis) {
@@ -1496,7 +1496,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   void visitRecordTypeAnnotationNamedFields(
     RecordTypeAnnotationNamedFields node,
   ) {
-    optype.completionLocation = 'RecordTypeAnnotationNamedFields_fields';
+    optype.completionLocation = 'RecordTypeAnnotation_fields';
     optype.includeTypeNameSuggestions = true;
   }
 
@@ -1577,7 +1577,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
         optype.includeTypeNameSuggestions = true;
         return;
       }
-      optype._forPattern('RelationalPattern_operand');
+      optype._forPattern('RelationalPattern_${operator.lexeme}_operand');
     }
   }
 
@@ -1664,7 +1664,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     } else {
-      optype.completionLocation = 'SwitchExpression_body';
+      optype.completionLocation = 'SwitchExpression_pattern';
       optype.includeTypeNameSuggestions = true;
       optype.includeReturnValueSuggestions = true;
       optype.mustBeConst = true;
