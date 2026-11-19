@@ -54,6 +54,7 @@ final class IrToText extends VoidInstructionVisitor {
     _currentLine.write('(');
     final inputCols = _printInputs(instr);
     _currentLine.write(')');
+    _printImplicitInputs(instr);
     positions?[instr] = InstructionTextPosition(line, col, inputCols);
     final extraInfo = annotator?.call(instr);
     if (extraInfo != null && extraInfo.isNotEmpty) {
@@ -201,6 +202,17 @@ final class IrToText extends VoidInstructionVisitor {
       case _:
     }
     return inputCols ?? const [];
+  }
+
+  void _printImplicitInputs(Instruction instr) {
+    final n = instr.implicitInputCount;
+    if (n == 0) return;
+    _currentLine.write(' implicit:(');
+    for (var i = 0; i < n; ++i) {
+      if (i != 0) _currentLine.write(', ');
+      _currentLine.write(reference(instr.implicitInputDefAt(i)));
+    }
+    _currentLine.write(')');
   }
 
   void _writeln() {

@@ -174,6 +174,7 @@ final class Simplification extends Pass
       for (int i = 0, n = instr.inputCount; i < n; ++i) {
         replacement.setInputAt(i, instr.inputDefAt(i));
       }
+      instr.copyImplicitInputsTo(replacement);
       return replacement;
     }
     return instr;
@@ -333,6 +334,7 @@ final class Simplification extends Pass
           : input as Definition;
       replacement.setInputAt(i, inputDef);
     }
+    instr.copyImplicitInputsTo(replacement);
     return replacement;
   }
 

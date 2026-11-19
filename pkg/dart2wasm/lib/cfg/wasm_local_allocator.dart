@@ -173,8 +173,8 @@ final class WasmLocalAllocator {
   ) {
     for (final instr in block) {
       assert(
-        instr.implicitInputs == null,
-        'Implicit inputs are not yet handled by liveness analysis',
+        instr.implicitInputCount == 0,
+        'Implicit inputs are not yet handled by WasmLocalAllocator',
       );
       if (instr is Phi) {
         // Phi inputs are consumed in predecessor blocks (`assignPhis`), not

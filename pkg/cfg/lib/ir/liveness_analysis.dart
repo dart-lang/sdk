@@ -170,7 +170,9 @@ final class SSALivenessAnalysis extends LivenessAnalysis {
           for (var i = 0, n = instr.inputCount; i < n; ++i) {
             liveIn.add(instr.inputDefAt(i).id);
           }
-          // TODO(alexmarkov): also account for implicit uses.
+          for (var i = 0, n = instr.implicitInputCount; i < n; ++i) {
+            liveIn.add(instr.implicitInputDefAt(i).id);
+          }
         }
       }
     }
