@@ -224,8 +224,8 @@ void main() {
         'movz r2, #0x54\n'
         'ldr r3, [pp, #${objectPoolBase + 8}]\n'
         'mov r4, null\n'
-        'add r5, null, #0x${trueOffsetFromNull(wordSize).toRadixString(16)}\n'
-        'add r6, null, #0x${falseOffsetFromNull(wordSize).toRadixString(16)}\n',
+        'add r5, null, #${trueOffsetFromNull(wordSize).toHexString()}\n'
+        'add r6, null, #${falseOffsetFromNull(wordSize).toHexString()}\n',
       );
     });
     test('loadImmediate', () {
@@ -387,6 +387,36 @@ void main() {
         'movk r17, #0x3344 lsl 32\n'
         'movk r17, #0x1122 lsl 48\n'
         'and r1, r2, r17\n',
+      );
+    });
+    test('orImmediate', () {
+      asm.orImmediate(R1, R2, 0);
+      asm.orImmediate(R1, R2, 0, .u32);
+      asm.orImmediate(R1, R2, -1);
+      asm.orImmediate(R1, R2, -1, .u32);
+      asm.orImmediate(R1, R2, 0xff);
+      asm.orImmediate(R1, R2, 0x11223344_55667788);
+      expectDisassembly(
+        'mov r1, r2\n'
+        'movw r1, r2\n'
+        'movn r1, #0x0\n'
+        'movnw r1, #0x0\n'
+        'orr r1, r2, 0xff\n'
+        'movz r17, #0x7788\n'
+        'movk r17, #0x5566 lsl 16\n'
+        'movk r17, #0x3344 lsl 32\n'
+        'movk r17, #0x1122 lsl 48\n'
+        'orr r1, r2, r17\n',
+      );
+    });
+    test('copyMemoryWords', () {
+      asm.copyMemoryWords(R5, R6, R2, R1);
+      expectDisassembly(
+        'cbz r2, +20\n'
+        'ldr r1, [r5], #8 !\n'
+        'str r1, [r6], #8 !\n'
+        'subs r2, r2, #0x8\n'
+        'bne -12\n',
       );
     });
     test('callRuntime', () {
@@ -557,7 +587,7 @@ void main() {
         'str r4, [thr, #${vmOffsets.Thread_top_offset}]\n'
         'str r1, [r0]\n'
         'str r5, [r0, #${vmOffsets.TypedDataBase_length_offset}]\n'
-        'add r3, r0, #0x${vmOffsets.TypedData_payload_offset.toRadixString(16)}\n'
+        'add r3, r0, #${vmOffsets.TypedData_payload_offset.toHexString()}\n'
         'str r3, [r0, #${vmOffsets.PointerBase_data_offset}]\n'
         'str zr, [r3], #8 !\n'
         'cmp r3, r4\n'
@@ -591,6 +621,17 @@ void main() {
         'add r0, r0, #0x1\n',
       );
     });
+    test('branchIfRemembered', () {
+      final rememberObject = Label();
+      asm.branchIfRemembered(R0, rememberObject, tempReg);
+      asm.bind(rememberObject);
+      expectDisassembly(
+        'and tmp, r0, ${vmOffsets.Page_kPageMask.toHexString()}\n'
+        'ldr tmp, [tmp, #${vmOffsets.Page_survivor_end_offset}]\n'
+        'cmp r0, tmp\n'
+        'bcc +4\n',
+      );
+    });
     test('loadClassId', () {
       asm.loadClassId(R0, R0, canBeSmi: false);
       asm.loadClassId(R1, R5, canBeSmi: false);
@@ -617,31 +658,31 @@ void main() {
         'ubfm r0, r0, #$lowBit, #$highBit\n'
         'lsl r0, r0, #${smiShift}\n'
         // R1, R0, canBeSmi: true
-        'movz r1, #0x${ClassId.SmiCid.index.toRadixString(16)}\n'
+        'movz r1, #${ClassId.SmiCid.index.toHexString()}\n'
         'tbzw r0, #${smiBit}, +12\n'
         'ldr r1, [r0, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
         'ubfm r1, r1, #$lowBit, #$highBit\n'
         // R0, R0, canBeSmi: true
         'mov r17, r0\n'
-        'movz r0, #0x${ClassId.SmiCid.index.toRadixString(16)}\n'
+        'movz r0, #${ClassId.SmiCid.index.toHexString()}\n'
         'tbzw r17, #${smiBit}, +12\n'
         'ldr r0, [r17, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
         'ubfm r0, r0, #$lowBit, #$highBit\n'
         // R1, R2, canBeSmi: true, asTagged: true
-        'movz r1, #0x${(ClassId.SmiCid.index << smiShift).toRadixString(16)}\n'
+        'movz r1, #${(ClassId.SmiCid.index << smiShift).toHexString()}\n'
         'tbzw r2, #${smiBit}, +16\n'
         'ldr r1, [r2, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
         'ubfm r1, r1, #$lowBit, #$highBit\n'
         'lsl r1, r1, #${smiShift}\n'
         // R1, R1, canBeSmi: true, scratch: R2
         'mov r2, r1\n'
-        'movz r1, #0x${ClassId.SmiCid.index.toRadixString(16)}\n'
+        'movz r1, #${ClassId.SmiCid.index.toHexString()}\n'
         'tbzw r2, #${smiBit}, +12\n'
         'ldr r1, [r2, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
         'ubfm r1, r1, #$lowBit, #$highBit\n'
         // R3, R3, canBeSmi: true, asTagged: true, scratch: R2
         'mov r2, r3\n'
-        'movz r3, #0x${(ClassId.SmiCid.index << smiShift).toRadixString(16)}\n'
+        'movz r3, #${(ClassId.SmiCid.index << smiShift).toHexString()}\n'
         'tbzw r2, #${smiBit}, +16\n'
         'ldr r3, [r2, #${vmOffsets.Object_tags_offset - heapObjectTag}]\n'
         'ubfm r3, r3, #$lowBit, #$highBit\n'
@@ -2684,4 +2725,15 @@ void main() {
       });
     });
   });
+}
+
+extension on int {
+  String toHexString() {
+    if (this < 0) {
+      // Print in two halves to avoid printing value as signed "0x-123".
+      return '0x${(this >>> 32).toRadixString(16)}${(this & 0xffffffff).toRadixString(16).padLeft(8, '0')}';
+    } else {
+      return '0x${toRadixString(16)}';
+    }
+  }
 }

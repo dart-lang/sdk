@@ -40,6 +40,73 @@ abstract base class StubFactory {
     invokeDartCodeFromBytecodeStubGenerator(),
   );
 
+  late final Code awaitStub = _generateCode('AwaitStub', awaitStubGenerator());
+
+  late final Code awaitWithTypeCheckStub = _generateCode(
+    'AwaitWithTypeCheckStub',
+    awaitWithTypeCheckStubGenerator(),
+  );
+
+  late final Code yieldAsyncStarStub = _generateCode(
+    'YieldAsyncStarStub',
+    yieldAsyncStarStubGenerator(),
+  );
+
+  late final Code suspendSyncStarAtStartStub = _generateCode(
+    'SuspendSyncStarAtStartStub',
+    suspendSyncStarAtStartStubGenerator(),
+  );
+
+  late final Code suspendSyncStarAtYieldStub = _generateCode(
+    'SuspendSyncStarAtYieldStub',
+    suspendSyncStarAtYieldStubGenerator(),
+  );
+
+  late final Code initAsyncStub = _generateCode(
+    'InitAsyncStub',
+    initAsyncStubGenerator(),
+  );
+
+  late final Code initAsyncStarStub = _generateCode(
+    'InitAsyncStarStub',
+    initAsyncStarStubGenerator(),
+  );
+
+  late final Code initSyncStarStub = _generateCode(
+    'InitSyncStarStub',
+    initSyncStarStubGenerator(),
+  );
+
+  late final Code resumeStub = _generateCode(
+    'ResumeStub',
+    resumeStubGenerator(),
+  );
+
+  late final Code returnAsyncStub = _generateCode(
+    'ReturnAsyncStub',
+    returnAsyncStubGenerator(),
+  );
+
+  late final Code returnAsyncNotFutureStub = _generateCode(
+    'ReturnAsyncNotFutureStub',
+    returnAsyncNotFutureStubGenerator(),
+  );
+
+  late final Code returnAsyncStarStub = _generateCode(
+    'ReturnAsyncStarStub',
+    returnAsyncStarStubGenerator(),
+  );
+
+  late final Code asyncExceptionHandlerStub = _generateCode(
+    'AsyncExceptionHandlerStub',
+    asyncExceptionHandlerStubGenerator(),
+  );
+
+  late final Code cloneSuspendStateStub = _generateCode(
+    'CloneSuspendStateStub',
+    cloneSuspendStateStubGenerator(),
+  );
+
   StubFactory(this.consumeGeneratedCode);
 
   StubCodeGenerator allocationStubGenerator(ast.Class cls);
@@ -59,6 +126,34 @@ abstract base class StubFactory {
   StubCodeGenerator invokeDartCodeFromBytecodeStubGenerator();
 
   StubCodeGenerator subtypeTestCacheStubGenerator(int n);
+
+  StubCodeGenerator awaitStubGenerator();
+
+  StubCodeGenerator awaitWithTypeCheckStubGenerator();
+
+  StubCodeGenerator yieldAsyncStarStubGenerator();
+
+  StubCodeGenerator suspendSyncStarAtStartStubGenerator();
+
+  StubCodeGenerator suspendSyncStarAtYieldStubGenerator();
+
+  StubCodeGenerator initAsyncStubGenerator();
+
+  StubCodeGenerator initAsyncStarStubGenerator();
+
+  StubCodeGenerator initSyncStarStubGenerator();
+
+  StubCodeGenerator resumeStubGenerator();
+
+  StubCodeGenerator returnAsyncStubGenerator();
+
+  StubCodeGenerator returnAsyncNotFutureStubGenerator();
+
+  StubCodeGenerator returnAsyncStarStubGenerator();
+
+  StubCodeGenerator asyncExceptionHandlerStubGenerator();
+
+  StubCodeGenerator cloneSuspendStateStubGenerator();
 
   Code _generateCode(String name, StubCodeGenerator generator) {
     final code = generator.generate(name);

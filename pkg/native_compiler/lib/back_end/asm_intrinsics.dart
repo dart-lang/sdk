@@ -5,6 +5,7 @@
 import 'package:cfg/ir/global_context.dart';
 import 'package:cfg/ir/functions.dart';
 import 'package:native_compiler/back_end/assembler.dart';
+import 'package:native_compiler/back_end/stub_code_generator.dart';
 import 'package:native_compiler/runtime/object_layout.dart';
 import 'package:native_compiler/runtime/vm_defs.dart';
 
@@ -13,6 +14,7 @@ abstract base class AsmIntrinsics(
   final FunctionRegistry functionRegistry,
   final VMOffsets vmOffsets,
   final ObjectLayout objectLayout,
+  final StubFactory stubFactory,
 ) {
   /// Use [asm] for code generation.
   void setAssembler(Assembler? asm);

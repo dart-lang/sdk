@@ -203,6 +203,26 @@ abstract base class Assembler {
     OperandSize sz = OperandSize.s64,
   ]);
 
+  /// [dst] = bitwise or ([src], arbitrary integer [value]).
+  void orImmediate(
+    Register dst,
+    Register src,
+    int value, [
+    OperandSize sz = OperandSize.s64,
+  ]);
+
+  /// Copy [size] bytes from [src] address to [dst] address.
+  ///
+  /// [size] should be aligned by word size.
+  /// Source and destination memory regions should not overlap.
+  /// [src], [dst], [size] and [temp] can be modified during copying.
+  void copyMemoryWords(
+    Register src,
+    Register dst,
+    Register size,
+    Register temp,
+  );
+
   void callRuntime(RuntimeEntry entry, int argumentCount);
   void callLeafRuntime(LeafRuntimeEntry entry);
   void callStub(Code stub);

@@ -45,7 +45,7 @@ class CompilationSet {
       compilePlatform: config.compilePlatform,
     );
     _stubFactory = config.createStubFactory(_consumeGeneratedCode);
-    _asmIntrinsics = config.createAsmIntrinsics(functionRegistry);
+    _asmIntrinsics = config.createAsmIntrinsics(functionRegistry, _stubFactory);
 
     // Currently VM loads declarations of core libraries from core snapshot.
     if (!config.compilePlatform) {
@@ -122,6 +122,50 @@ class CompilationSet {
       _snapshot.addRootStub(
         StubCode.InvokeDartCodeFromBytecode,
         _stubFactory.invokeDartCodeFromBytecodeStub,
+      );
+      _snapshot.addRootStub(StubCode.Await, _stubFactory.awaitStub);
+      _snapshot.addRootStub(
+        StubCode.AwaitWithTypeCheck,
+        _stubFactory.awaitWithTypeCheckStub,
+      );
+      _snapshot.addRootStub(
+        StubCode.YieldAsyncStar,
+        _stubFactory.yieldAsyncStarStub,
+      );
+      _snapshot.addRootStub(
+        StubCode.SuspendSyncStarAtStart,
+        _stubFactory.suspendSyncStarAtStartStub,
+      );
+      _snapshot.addRootStub(
+        StubCode.SuspendSyncStarAtYield,
+        _stubFactory.suspendSyncStarAtYieldStub,
+      );
+      _snapshot.addRootStub(StubCode.InitAsync, _stubFactory.initAsyncStub);
+      _snapshot.addRootStub(
+        StubCode.InitAsyncStar,
+        _stubFactory.initAsyncStarStub,
+      );
+      _snapshot.addRootStub(
+        StubCode.InitSyncStar,
+        _stubFactory.initSyncStarStub,
+      );
+      _snapshot.addRootStub(StubCode.Resume, _stubFactory.resumeStub);
+      _snapshot.addRootStub(StubCode.ReturnAsync, _stubFactory.returnAsyncStub);
+      _snapshot.addRootStub(
+        StubCode.ReturnAsyncNotFuture,
+        _stubFactory.returnAsyncNotFutureStub,
+      );
+      _snapshot.addRootStub(
+        StubCode.ReturnAsyncStar,
+        _stubFactory.returnAsyncStarStub,
+      );
+      _snapshot.addRootStub(
+        StubCode.AsyncExceptionHandler,
+        _stubFactory.asyncExceptionHandlerStub,
+      );
+      _snapshot.addRootStub(
+        StubCode.CloneSuspendState,
+        _stubFactory.cloneSuspendStateStub,
       );
     }
   }

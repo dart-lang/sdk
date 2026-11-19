@@ -98,7 +98,10 @@ final class Arm64CodeGenerator extends CodeGenerator {
       );
     }
     if (function.isSuspendable) {
-      _asm.str(nullReg, _asm.address(FP, stackFrame.suspendStateOffsetFromFP));
+      _asm.str(
+        nullReg,
+        _asm.address(FP, Arm64StackFrame.suspendStateOffsetFromFP),
+      );
     }
     // Catch slots are always included into stack maps,
     // so they should be initialized.
@@ -551,14 +554,14 @@ final class Arm64CodeGenerator extends CodeGenerator {
     assert(inputReg(instr, 0) == returnReg);
     switch (graph.function.asyncMarker) {
       case .Async:
-        _asm.jumpVmStub(
+        _asm.jumpStub(
           instr.value.type.canBeFuture
-              ? StubCode.ReturnAsync
-              : StubCode.ReturnAsyncNotFuture,
+              ? stubFactory.returnAsyncStub
+              : stubFactory.returnAsyncNotFutureStub,
         );
         return;
       case .AsyncStar:
-        _asm.jumpVmStub(StubCode.ReturnAsyncStar);
+        _asm.jumpStub(stubFactory.returnAsyncStarStub);
         return;
       case .SyncStar:
         // Overwrite the return value to indicate the end of iteration.
@@ -3245,26 +3248,30 @@ final class Arm64CodeGenerator extends CodeGenerator {
   void visitEnterSuspendableFunction(EnterSuspendableFunction instr) {
     final asyncMarker = graph.function.asyncMarker;
     final stub = switch (asyncMarker) {
-      .Async => StubCode.InitAsync,
-      .AsyncStar => StubCode.InitAsyncStar,
-      .SyncStar => StubCode.InitSyncStar,
+      .Async => stubFactory.initAsyncStub,
+      .AsyncStar => stubFactory.initAsyncStarStub,
+      .SyncStar => stubFactory.initSyncStarStub,
       .Sync => throw 'Unexpected async marker',
     };
-    _asm.callVmStub(stub);
+    _asm.callStub(stub);
     // Suspend async* and sync* functions at the beginning.
     if (asyncMarker == .AsyncStar) {
       _asm.mov(SuspendStub.argumentReg, nullReg);
-      _asm.callVmStub(StubCode.YieldAsyncStar);
+      _asm.callStub(stubFactory.yieldAsyncStarStub);
     } else if (asyncMarker == .SyncStar) {
       _asm.mov(SuspendStub.argumentReg, nullReg);
-      _asm.callVmStub(StubCode.SuspendSyncStarAtStart);
+      _asm.callStub(stubFactory.suspendSyncStarAtStartStub);
     }
   }
 
   @override
   void visitSuspend(Suspend instr) {
+    assert(graph.function.isSuspendable);
     void loadFunctionData(Register dst) {
-      _asm.ldr(tempReg, _asm.address(FP, stackFrame.suspendStateOffsetFromFP));
+      _asm.ldr(
+        tempReg,
+        _asm.address(FP, Arm64StackFrame.suspendStateOffsetFromFP),
+      );
       _asm.ldr(
         dst,
         _asm.fieldAddress(tempReg, vmOffsets.SuspendState_function_data_offset),
@@ -3273,10 +3280,10 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
     switch (instr.op) {
       case .await:
-        _asm.callVmStub(StubCode.Await);
+        _asm.callStub(stubFactory.awaitStub);
         break;
       case .awaitWithTypeCheck:
-        _asm.callVmStub(StubCode.AwaitWithTypeCheck);
+        _asm.callStub(stubFactory.awaitWithTypeCheckStub);
         break;
       case .asyncYield || .asyncYieldStar:
         // Load controller from suspend state.
@@ -3299,7 +3306,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
         _asm.branchIfBoolIs(returnReg, true, done);
         // Suspend.
         _asm.mov(SuspendStub.argumentReg, nullReg);
-        _asm.callVmStub(StubCode.YieldAsyncStar);
+        _asm.callStub(stubFactory.yieldAsyncStarStub);
         _asm.bind(done);
         break;
       case .syncYield || .syncYieldStar:
@@ -3332,7 +3339,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
           SuspendStub.argumentReg,
           ConstantValue.fromBool(true),
         );
-        _asm.callVmStub(StubCode.SuspendSyncStarAtYield);
+        _asm.callStub(stubFactory.suspendSyncStarAtYieldStub);
         break;
     }
   }
