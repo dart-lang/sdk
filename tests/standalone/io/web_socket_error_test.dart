@@ -66,7 +66,6 @@ class SecurityConfiguration {
         sha1.add("$key$webSocketGUID".codeUnits);
         String accept = base64Encode(sha1.close());
         response.headers.add("Sec-WebSocket-Accept", accept);
-        response.headers.contentLength = 0;
         response.detachSocket().then((socket) {
           socket.destroy();
         });

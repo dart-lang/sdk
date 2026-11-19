@@ -559,7 +559,6 @@ class SecurityConfiguration {
           ..headers.add(HttpHeaders.connectionHeader, "Upgrade")
           ..headers.add(HttpHeaders.upgradeHeader, "websocket")
           ..headers.add("Sec-WebSocket-Accept", accept);
-        request.response.contentLength = 0;
         request.response
             .detachSocket()
             .then((socket) {
@@ -694,6 +693,125 @@ class SecurityConfiguration {
     });
   }
 
+  Future<void> testUpgradeResponseHeaders({
+    required bool useTransformerStream,
+  }) async {
+    asyncStart();
+    final server = await createServer();
+    server.autoCompress = true;
+    final serverDone = Completer<void>();
+    if (useTransformerStream) {
+      server.transform(WebSocketTransformer()).listen((webSocket) {
+        webSocket.listen(null, onDone: serverDone.complete);
+      });
+    } else {
+      server.listen((request) async {
+        final webSocket = await WebSocketTransformer.upgrade(request);
+        webSocket.listen(null, onDone: serverDone.complete);
+      });
+    }
+
+    final rawSocket = secure
+        ? await SecureSocket.connect(
+            HOST_NAME,
+            server.port,
+            context: clientContext,
+          )
+        : await Socket.connect(HOST_NAME, server.port);
+    final nonce = base64.encode(List<int>.filled(16, 0x42));
+    final expectedAccept = base64.encode(
+      sha1.convert('$nonce$WEB_SOCKET_GUID'.codeUnits).bytes,
+    );
+
+    final headersReceived = Completer<String>();
+    final clientDone = Completer<void>();
+    final buffer = StringBuffer();
+    rawSocket.listen(
+      (chunk) {
+        if (!headersReceived.isCompleted) {
+          buffer.write(latin1.decode(chunk));
+          final current = buffer.toString();
+          final endIndex = current.indexOf('\r\n\r\n');
+          if (endIndex != -1) {
+            headersReceived.complete(current.substring(0, endIndex));
+          }
+        }
+      },
+      onError: (Object e, StackTrace st) {
+        if (!headersReceived.isCompleted) {
+          headersReceived.completeError(e, st);
+        }
+        if (!clientDone.isCompleted) {
+          clientDone.completeError(e, st);
+        }
+      },
+      onDone: () {
+        if (!headersReceived.isCompleted) {
+          headersReceived.completeError(
+            StateError('Connection closed before end of headers: $buffer'),
+          );
+        }
+        if (!clientDone.isCompleted) {
+          clientDone.complete();
+        }
+      },
+    );
+
+    rawSocket.write(
+      'GET / HTTP/1.1\r\n'
+      'Host: $HOST_NAME:${server.port}\r\n'
+      'Upgrade: websocket\r\n'
+      'Connection: Upgrade\r\n'
+      'Sec-WebSocket-Key: $nonce\r\n'
+      'Sec-WebSocket-Version: 13\r\n'
+      'Accept-Encoding: gzip\r\n'
+      '\r\n',
+    );
+    await rawSocket.flush();
+
+    try {
+      final headerBlock = await headersReceived.future;
+      final lines = headerBlock.split('\r\n');
+      Expect.equals('HTTP/1.1 101 Switching Protocols', lines.first);
+
+      final headers = <String, List<String>>{};
+      for (final line in lines.skip(1)) {
+        final colon = line.indexOf(':');
+        Expect.isTrue(colon > 0, 'Malformed header line: $line');
+        final name = line.substring(0, colon).trim().toLowerCase();
+        final value = line.substring(colon + 1).trim();
+        (headers[name] ??= <String>[]).add(value);
+      }
+
+      Expect.equals('websocket', headers[HttpHeaders.upgradeHeader]?.single);
+      Expect.equals(
+        'upgrade',
+        headers[HttpHeaders.connectionHeader]?.single.toLowerCase(),
+      );
+      Expect.equals(expectedAccept, headers['sec-websocket-accept']?.single);
+      Expect.isFalse(
+        headers.containsKey(HttpHeaders.contentLengthHeader),
+        'Unexpected content-length in 101 response:\n$headerBlock',
+      );
+      Expect.isFalse(
+        headers.containsKey(HttpHeaders.transferEncodingHeader),
+        'Unexpected transfer-encoding in 101 response:\n$headerBlock',
+      );
+      Expect.isFalse(
+        headers.containsKey(HttpHeaders.contentEncodingHeader),
+        'Unexpected content-encoding in 101 response:\n$headerBlock',
+      );
+    } finally {
+      // Send a masked empty Close frame to complete WebSocket + server teardown.
+      rawSocket.add(const <int>[0x88, 0x80, 0, 0, 0, 0]);
+      await rawSocket.flush();
+      await rawSocket.close();
+      await Future.wait(<Future<void>>[serverDone.future, clientDone.future]);
+      await server.close();
+    }
+    asyncEnd();
+  }
+
   void runTests() {
     testRequestResponseClientCloses(2, null, null, 1);
     testRequestResponseClientCloses(2, 3001, null, 2);
@@ -724,6 +842,8 @@ class SecurityConfiguration {
     testBasicAuthentication();
     testShouldSetUserAgent();
     testStaticClientUserAgentStaysTheSame();
+    testUpgradeResponseHeaders(useTransformerStream: false);
+    testUpgradeResponseHeaders(useTransformerStream: true);
   }
 }
 
