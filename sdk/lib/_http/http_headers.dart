@@ -4,6 +4,8 @@
 
 part of "dart:_http";
 
+enum _ChunkedState { disabled, enabledByDefault, enabledExplicitly }
+
 class _HttpHeaders implements HttpHeaders {
   final Map<String, List<String>> _headers;
   // The original header names keyed by the lowercase header names.
@@ -19,7 +21,7 @@ class _HttpHeaders implements HttpHeaders {
 
   int _contentLength = -1;
   bool _persistentConnection = true;
-  bool _chunkedTransferEncoding = false;
+  _ChunkedState _chunkedState = _ChunkedState.disabled;
   String? _host;
   int? _port;
 
@@ -36,13 +38,13 @@ class _HttpHeaders implements HttpHeaders {
       initialHeaders._headers.forEach((name, value) => _headers[name] = value);
       _contentLength = initialHeaders._contentLength;
       _persistentConnection = initialHeaders._persistentConnection;
-      _chunkedTransferEncoding = initialHeaders._chunkedTransferEncoding;
+      _chunkedState = initialHeaders._chunkedState;
       _host = initialHeaders._host;
       _port = initialHeaders._port;
     }
     if (protocolVersion == "1.0") {
       _persistentConnection = false;
-      _chunkedTransferEncoding = false;
+      _chunkedState = _ChunkedState.disabled;
     }
   }
 
@@ -90,7 +92,7 @@ class _HttpHeaders implements HttpHeaders {
       _contentLength = -1;
     }
     if (lowercaseName == HttpHeaders.transferEncodingHeader) {
-      _chunkedTransferEncoding = false;
+      _chunkedState = _ChunkedState.disabled;
     }
     if (preserveHeaderCase && name != lowercaseName) {
       (_originalHeaderNames ??= {})[lowercaseName] = name;
@@ -111,7 +113,7 @@ class _HttpHeaders implements HttpHeaders {
       }
     }
     if (name == HttpHeaders.transferEncodingHeader && value == "chunked") {
-      _chunkedTransferEncoding = false;
+      _chunkedState = _ChunkedState.disabled;
     }
   }
 
@@ -120,6 +122,9 @@ class _HttpHeaders implements HttpHeaders {
     name = _validateField(name);
     _headers.remove(name);
     _originalHeaderNames?.remove(name);
+    if (name == HttpHeaders.transferEncodingHeader) {
+      _chunkedState = _ChunkedState.disabled;
+    }
   }
 
   void forEach(void Function(String name, List<String> values) action) {
@@ -182,12 +187,12 @@ class _HttpHeaders implements HttpHeaders {
     } else {
       _headers.remove(HttpHeaders.contentLengthHeader);
       if (protocolVersion == "1.1" && !_bodylessRequest) {
-        chunkedTransferEncoding = true;
+        _enableDefaultChunkedTransferEncoding();
       }
     }
   }
 
-  bool get chunkedTransferEncoding => _chunkedTransferEncoding;
+  bool get chunkedTransferEncoding => _chunkedState != _ChunkedState.disabled;
 
   void set chunkedTransferEncoding(bool chunkedTransferEncoding) {
     _checkMutable();
@@ -196,7 +201,12 @@ class _HttpHeaders implements HttpHeaders {
         "Trying to set 'Transfer-Encoding: Chunked' on HTTP 1.0 headers",
       );
     }
-    if (chunkedTransferEncoding == _chunkedTransferEncoding) return;
+    if (chunkedTransferEncoding == this.chunkedTransferEncoding) {
+      if (chunkedTransferEncoding) {
+        _chunkedState = _ChunkedState.enabledExplicitly;
+      }
+      return;
+    }
     if (chunkedTransferEncoding) {
       List<String>? values = _headers[HttpHeaders.transferEncodingHeader];
       if (values == null || !values.contains("chunked")) {
@@ -204,11 +214,19 @@ class _HttpHeaders implements HttpHeaders {
         _addValue(HttpHeaders.transferEncodingHeader, "chunked");
       }
       contentLength = -1;
+      _chunkedState = _ChunkedState.enabledExplicitly;
     } else {
       // Headers does specify chunked encoding - remove it if not set.
       remove(HttpHeaders.transferEncodingHeader, "chunked");
+      _chunkedState = _ChunkedState.disabled;
     }
-    _chunkedTransferEncoding = chunkedTransferEncoding;
+  }
+
+  void _enableDefaultChunkedTransferEncoding() {
+    if (_chunkedState == _ChunkedState.disabled) {
+      chunkedTransferEncoding = true;
+      _chunkedState = _ChunkedState.enabledByDefault;
+    }
   }
 
   String? get host => _host;
@@ -313,7 +331,7 @@ class _HttpHeaders implements HttpHeaders {
     _headers.clear();
     _contentLength = -1;
     _persistentConnection = true;
-    _chunkedTransferEncoding = false;
+    _chunkedState = _ChunkedState.disabled;
     _host = null;
     _port = null;
   }

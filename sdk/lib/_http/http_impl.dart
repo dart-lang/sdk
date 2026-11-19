@@ -472,7 +472,7 @@ abstract class _HttpInboundMessage extends Stream<Uint8List> {
 }
 
 class _HttpRequest extends _HttpInboundMessage implements HttpRequest {
-  final HttpResponse response;
+  final _HttpResponse response;
 
   final _HttpServer _httpServer;
 
@@ -490,7 +490,7 @@ class _HttpRequest extends _HttpInboundMessage implements HttpRequest {
   ) : super(_incoming) {
     if (headers.protocolVersion == "1.1") {
       response.headers
-        ..chunkedTransferEncoding = true
+        .._enableDefaultChunkedTransferEncoding()
         ..persistentConnection = headers.persistentConnection;
     }
 
@@ -1333,6 +1333,9 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
     deadline = null; // Be sure to stop any deadline.
     var future = _httpRequest!._httpConnection.detachSocket();
     if (writeHeaders) {
+      if (headers._chunkedState == _ChunkedState.enabledByDefault) {
+        headers.chunkedTransferEncoding = false;
+      }
       var headersFuture = _outgoing.writeHeaders(
         drainRequest: false,
         setOutgoing: false,
@@ -1854,7 +1857,8 @@ class _HttpOutgoing implements StreamConsumer<List<int>> {
     var response = outbound!;
     if (response is _HttpResponse) {
       // Server side.
-      if (response._httpRequest!._httpServer.autoCompress &&
+      if (setOutgoing &&
+          response._httpRequest!._httpServer.autoCompress &&
           response.bufferOutput &&
           response.headers.chunkedTransferEncoding) {
         List<String>? acceptEncodings =
