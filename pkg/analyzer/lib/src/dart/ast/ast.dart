@@ -49053,6 +49053,23 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
     _constructorName = _becomeParentOf12(constructorName);
   }
 
+  /// The formal parameters that declare fields.
+  ///
+  /// These are the regular formal parameters marked `final` or `var`. In an
+  /// extension type, the first regular formal parameter declares the
+  /// representation field even without either keyword.
+  List<RegularFormalParameterImpl> get declaringFormalParameters {
+    var isExtensionType = parent2 is ExtensionTypeDeclaration2Impl;
+    return [
+      for (var (i, formalParameter)
+          in formalParameters.allFormalParameters.indexed)
+        if (formalParameter is RegularFormalParameterImpl &&
+            (formalParameter.finalOrVarKeyword != null ||
+                isExtensionType && i == 0))
+          formalParameter,
+    ];
+  }
+
   @generated
   @override
   Token get endToken {
