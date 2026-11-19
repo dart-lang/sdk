@@ -32,12 +32,9 @@ abstract final class CompletionLocation {
   static const String caseClausePattern = 'CaseClause_pattern';
   static const String castPatternType = 'CastPattern_type';
   static const String catchClauseExceptionType = 'CatchClause_exceptionType';
-  // TODO(dantup): This is only used in the table generator.
   static const String classDeclarationExtends = 'ClassDeclaration_extends';
   static const String classDeclarationMember = 'ClassDeclaration_member';
-  // TODO(dantup): This is only used in the table generator.
   static const String classDeclarationName = 'ClassDeclaration_name';
-  // TODO(dantup): This is only used in the table generator.
   static const String classDeclarationWith = 'ClassDeclaration_with';
   // TODO(dantup): This is only used in the table generator.
   static const String classTypeAliasSuperclass = 'ClassTypeAlias_superclass';
@@ -70,17 +67,13 @@ abstract final class CompletionLocation {
   // TODO(dantup): This is only used in the table generator.
   static const String doStatementBody = 'DoStatement_body';
   static const String doStatementCondition = 'DoStatement_condition';
-  // TODO(dantup): This is only used in the table generator.
   static const String dotShorthandConstructorInvocationConstructorName =
       'DotShorthandConstructorInvocation_constructorName';
-  // TODO(dantup): This is only used in the table generator.
   static const String dotShorthandInvocationMemberName =
       'DotShorthandInvocation_memberName';
-  // TODO(dantup): This is only used in the table generator.
   static const String dotShorthandPropertyAccessPropertyName =
       'DotShorthandPropertyAccess_propertyName';
   static const String enumDeclarationMember = 'EnumDeclaration_member';
-  // TODO(dantup): This is only used in the table generator.
   static const String enumDeclarationName = 'EnumDeclaration_name';
   static const String expressionFunctionBodyExpression =
       'ExpressionFunctionBody_expression';
@@ -133,14 +126,12 @@ abstract final class CompletionLocation {
   static const String implementsClauseInterface = 'ImplementsClause_interface';
   // TODO(dantup): This is only used in the table generator.
   static const String importDirectiveCombinator = 'ImportDirective_combinator';
-  // TODO(dantup): This is only used in the table generator.
   static const String importDirectiveConfigurations =
       'ImportDirective_configurations';
   // TODO(dantup): This is only used in the table generator.
   static const String importDirectiveDeferred = 'ImportDirective_deferred';
   // TODO(dantup): This is only used in the table generator.
   static const String importDirectivePrefix = 'ImportDirective_prefix';
-  // TODO(dantup): This is only used in the table generator.
   static const String importDirectiveUri = 'ImportDirective_uri';
   static const String indexExpressionIndex = 'IndexExpression_index';
   static const String instanceCreationExpressionConstructorName =
@@ -163,15 +154,12 @@ abstract final class CompletionLocation {
   static const String methodDeclarationReturnType =
       'MethodDeclaration_returnType';
   static const String mixinDeclarationMember = 'MixinDeclaration_member';
-  // TODO(dantup): This is only used in the table generator.
   static const String mixinDeclarationName = 'MixinDeclaration_name';
-  // TODO(dantup): This is only used in the table generator.
   static const String mixinDeclarationOn = 'MixinDeclaration_on';
   static const String nullAwareElementValue = 'NullAwareElement_value';
   // This is only used in the completion code (no relevance data).
   static const String objectPatternFieldName = 'ObjectPattern_fieldName';
   static const String objectPatternType = 'ObjectPattern_type';
-  // TODO(dantup): This is only used in the table generator.
   static const String onClauseSuperclassConstraint =
       'OnClause_superclassConstraint';
   static const String parenthesizedExpressionExpression =
