@@ -92,7 +92,11 @@ final class Arm64Constraints extends Constraints {
     if (paramConstraint != null) {
       return paramConstraint;
     }
-    if (function.hasOptionalPositionalParameters ||
+    if (paramIndex == 0 && function.hasOptionalFunctionTypeParameters) {
+      // Optional function type arguments are loaded to the register
+      // in the prologue.
+      paramConstraint = argumentRegisters[0];
+    } else if (function.hasOptionalPositionalParameters ||
         function.hasNamedParameters) {
       if (paramIndex < argumentRegisters.length) {
         paramConstraint = argumentRegisters[paramIndex];

@@ -2228,7 +2228,7 @@ char* Deserializer::VerifyVersionAndFeatures() {
   }
   stream_.Advance(features_length + 1);
 
-  const char* expected_features = kHostArchitectureName;
+  const char* expected_features = kTargetArchitectureName;
   if (strcmp(expected_features, features) != 0) {
     return OS::SCreate(
         nullptr, "Invalid module snapshot configuration '%s' (expected '%s')",

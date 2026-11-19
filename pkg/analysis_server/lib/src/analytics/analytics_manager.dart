@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analytics/active_request_data.dart';
+import 'package:analysis_server/src/analytics/lsp_client_info.dart';
 import 'package:analysis_server/src/analytics/notification_data.dart';
 import 'package:analysis_server/src/analytics/percentile_calculator.dart';
 import 'package:analysis_server/src/analytics/plugin_data.dart';
@@ -290,6 +291,17 @@ class AnalyticsManager {
         'suggestFromUnimportedLibraries',
     ];
     _sessionData?.initializeParams = paramNames.join(',');
+
+    var clientInfo = params.clientInfo;
+    if (clientInfo != null) {
+      var name = lspClientNameForAnalytics(clientInfo.name);
+      _sessionData
+        ?..lspClientName = name
+        ..lspClientVersion = lspClientVersionForAnalytics(
+          name,
+          clientInfo.version,
+        );
+    }
   }
 
   /// Record the number of [openWorkspacePaths].
@@ -763,8 +775,14 @@ class AnalyticsManager {
     SessionData sessionData, {
     required int duration,
   }) async {
-    var ideName = platform.environment['DASH__IDE_NAME'] ?? '';
-    var ideVersion = platform.environment['DASH__IDE_VERSION'] ?? '';
+    // IDE plugins identify the IDE through environment variables. Other LSP
+    // clients (such as Neovim or Zed) don't, so fall back to the client name
+    // and version they sent on initialize.
+    var ideName =
+        platform.environment['DASH__IDE_NAME'] ?? sessionData.lspClientName;
+    var ideVersion =
+        platform.environment['DASH__IDE_VERSION'] ??
+        sessionData.lspClientVersion;
     var pluginName = platform.environment['DASH__PLUGIN_NAME'] ?? '';
     var pluginVersion = platform.environment['DASH__PLUGIN_VERSION'] ?? '';
 

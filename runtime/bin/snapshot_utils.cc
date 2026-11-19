@@ -157,6 +157,10 @@ static DartUtils::MagicNumber ReadMagicNumberAt(File& file, int64_t offset) {
   return DartUtils::SniffForMagicNumber(header, read_size);
 }
 
+// Loading of AOT and module snapshots from shared objects (natively or using
+// ELF / Mach-O loaders) is supported in all executables except gen_snapshot.
+// gen_snapshot is not linked with the shared object loaders.
+#if !defined(DART_PRECOMPILER)
 class DylibAppSnapshot : public AppSnapshot {
  public:
   DylibAppSnapshot(DartUtils::MagicNumber magic_number,
@@ -242,7 +246,6 @@ static AppSnapshot* TryReadAppSnapshotDynamicLibrary(
 #endif  // defined(DART_INCLUDE_SIMULATOR)
 }
 
-#if defined(DART_PRECOMPILED_RUNTIME)
 class ElfAppSnapshot : public AppSnapshot {
  public:
   ElfAppSnapshot(Dart_LoadedElf* elf,
@@ -418,6 +421,7 @@ static AppSnapshot* TryReadAppSnapshotAt(const char* script_name,
   return nullptr;
 }
 
+#if defined(DART_PRECOMPILED_RUNTIME)
 #if defined(DART_TARGET_OS_MACOS)
 AppSnapshot* Snapshot::TryReadAppendedAppSnapshotFromMachO(
     const char* container_path) {
@@ -627,6 +631,7 @@ AppSnapshot* Snapshot::TryReadAppendedAppSnapshot(const char* container_path) {
   return TryReadAppSnapshotAt(container_path, *file, snapshot_offset);
 }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
+#endif  // !defined(DART_PRECOMPILER)
 
 bool Snapshot::IsMachOFormattedBinary(const char* filename,
                                       DartUtils::MagicNumber* out) {
@@ -731,17 +736,15 @@ AppSnapshot* Snapshot::TryReadAppSnapshot(const char* script_uri,
     // Return the JIT snapshot.
     return TryReadAppSnapshotBlobs(script_name, file);
   }
+#if !defined(DART_PRECOMPILER)
   if (magic_number == DartUtils::kAotMachO64MagicNumber) {
-    // Read module snapshot.
-    char* error = nullptr;
-    if (auto* const snapshot = TryReadAppSnapshotDynamicLibrary(
-            magic_number, script_name, &error)) {
-      return snapshot;
-    }
-    Syslog::PrintErr("Loading dynamic library failed: %s\n", error);
-    free(error);
-    return nullptr;
+    // Read module snapshot. Module snapshots are Mach-O dynamic libraries,
+    // which are loaded natively when possible and using the Mach-O loader
+    // otherwise.
+    return TryReadAppSnapshotAt(script_name, *file, offset,
+                                force_load_from_memory);
   }
+#endif  // !defined(DART_PRECOMPILER)
   // We create a dummy snapshot object just to remember the type which
   // has already been identified by sniffing the magic number.
   return new DummySnapshot(magic_number);

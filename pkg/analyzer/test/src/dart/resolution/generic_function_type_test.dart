@@ -50,6 +50,72 @@ int Function(int a)? y;
 ''');
   }
 
+  test_defaultValue_inLocalVariable() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const foo = 0;
+
+void f() {
+  void Function([int a = foo])? g;
+//                     ^
+// [diag.defaultValueInFunctionType] Parameters in a function type can't have default values.
+//                              ^
+// [diag.unusedLocalVariable] The value of the local variable 'g' isn't used.
+}
+''');
+
+    var node = result.findNode.singleRegularFormalParameter;
+    var element = node.declaredFragment!.element;
+    assertResolvedNodeText(element.constantInitializer2!, r'''
+UnqualifiedNameExpression
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::foo
+    type: int
+  staticType: int
+V1: SimpleIdentifier
+  token: foo
+  element: <testLibrary>::@getter::foo
+  staticType: int
+''');
+
+    assertElementDefaultValueIsClauseValue(node);
+    assertDartObjectText(element.computeConstantValue(), r'''
+int 0
+  variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
+  test_defaultValue_inTopLevelVariable() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const foo = 0;
+
+void Function([int a = foo])? g;
+//                   ^
+// [diag.defaultValueInFunctionType] Parameters in a function type can't have default values.
+''');
+
+    var node = result.findNode.singleRegularFormalParameter;
+    var element = node.declaredFragment!.element;
+    assertResolvedNodeText(element.constantInitializer2!, r'''
+UnqualifiedNameExpression
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::foo
+    type: int
+  staticType: int
+V1: SimpleIdentifier
+  token: foo
+  element: <testLibrary>::@getter::foo
+  staticType: int
+''');
+
+    assertElementDefaultValueIsClauseValue(node);
+    assertDartObjectText(element.computeConstantValue(), r'''
+int 0
+  variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
   test_element_enclosingElement() async {
     var result = await resolveTestCodeWithDiagnostics('''
 void f(

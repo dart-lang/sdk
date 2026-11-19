@@ -165,6 +165,10 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
           assert(user.typeArguments == def);
         case Suspend(op: .awaitWithTypeCheck):
           assert(user.typeArguments == def);
+        case StoreLocal(:var variable) || Phi(:var variable)
+            when variable.isFunctionTypeParametersVariable:
+          // Default function type arguments of a generic closure.
+          assert(graph.function.hasOptionalFunctionTypeParameters);
         default:
           throw 'Unexpected user ${IrToText.instruction(user)} of type arguments ${IrToText.instruction(def)}';
       }
@@ -436,7 +440,13 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
 
   @override
   void visitTypeParameters(TypeParameters instr) {
-    assert(instr.block is EntryBlock);
+    // Function type parameters of generic closures may follow
+    // a check for optional function type arguments in the prologue.
+    assert(
+      instr.block is EntryBlock ||
+          (instr.kind == .functionTypeParameters &&
+              graph.function.hasOptionalFunctionTypeParameters),
+    );
     // TypeParameters can only be used in TypeCast, TypeTest,
     // TypeArguments, TypeLiteral, SubtypeCheck and StoreInstanceField
     // for capturing.

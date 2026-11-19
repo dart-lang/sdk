@@ -146,6 +146,7 @@ class _ScopeBuilder extends ast.RecursiveVisitor {
 
       ast.visitList(function.positionalParameters, this);
       ast.visitList(function.namedParameters, this);
+      ast.visitList(function.typeParameters, this);
       function.emittedValueType?.accept(this);
 
       if (node is ast.Constructor) {

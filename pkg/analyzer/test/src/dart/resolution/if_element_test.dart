@@ -57,6 +57,379 @@ IfElement
 ''');
   }
 
+  test_caseClause_pattern_constant_list_closure() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+f(x) => [if (x case const [() {}]) 0];
+//                         ^^^^^
+// [diag.constantPatternWithNonConstantExpression] The expression of a constant pattern must be a valid constant.
+''');
+
+    var node = result.findNode.ifElement('if (x');
+    assertResolvedNodeText(node, r'''
+IfElement
+  ifKeyword: if
+  leftParenthesis: (
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: dynamic
+    staticType: dynamic
+  expression(v1): SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: dynamic
+  caseClause: CaseClause
+    caseKeyword: case
+    guardedPattern: GuardedPattern
+      pattern: ConstantPattern
+        constKeyword: const
+        expression2: ListLiteral
+          leftBracket: [
+          elements2
+            FunctionExpression
+              parameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+              declaredFragment: <testLibraryFragment> null@null
+                element: null@null
+                  type: Null Function()
+              staticType: Null Function()
+          rightBracket: ]
+          staticType: List<Null Function()>
+        matchedValueType: dynamic
+  rightParenthesis: )
+  thenElement2: IntegerLiteral
+    literal: 0
+    staticType: int
+''');
+  }
+
+  test_caseClause_pattern_constant_list_forElement() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+f(x) => [if (x case const [for (var i in []) i]) 0];
+//                         ^^^^^^^^^^^^^^^^^^^
+// [diag.constEvalForElement] Constant expressions don't support 'for' elements.
+''');
+
+    var node = result.findNode.ifElement('if (x');
+    assertResolvedNodeText(node, r'''
+IfElement
+  ifKeyword: if
+  leftParenthesis: (
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: dynamic
+    staticType: dynamic
+  expression(v1): SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: dynamic
+  caseClause: CaseClause
+    caseKeyword: case
+    guardedPattern: GuardedPattern
+      pattern: ConstantPattern
+        constKeyword: const
+        expression2: ListLiteral
+          leftBracket: [
+          elements2
+            ForElement
+              forKeyword: for
+              leftParenthesis: (
+              forLoopParts: ForEachPartsWithDeclaration
+                loopVariable: DeclaredIdentifier
+                  keyword: var
+                  name: i
+                  declaredFragment: isPublic i@36
+                    element: hasImplicitType isPublic
+                      type: dynamic
+                inKeyword: in
+                iterable2: ListLiteral
+                  leftBracket: [
+                  rightBracket: ]
+                  staticType: List<dynamic>
+              rightParenthesis: )
+              body2: UnqualifiedNameExpression
+                name: i
+                resolution: VariableReadResolution
+                  element: i@36
+                  type: dynamic
+                staticType: dynamic
+              body(v1): SimpleIdentifier
+                token: i
+                element: i@36
+                staticType: dynamic
+          rightBracket: ]
+          staticType: List<dynamic>
+        matchedValueType: dynamic
+  rightParenthesis: )
+  thenElement2: IntegerLiteral
+    literal: 0
+    staticType: int
+''');
+  }
+
+  test_caseClause_pattern_constant_parenthesized_closure() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+f(x) => [if (x case const (() {})) 0];
+//                         ^^^^^
+// [diag.constantPatternWithNonConstantExpression] The expression of a constant pattern must be a valid constant.
+''');
+
+    var node = result.findNode.ifElement('if (x');
+    assertResolvedNodeText(node, r'''
+IfElement
+  ifKeyword: if
+  leftParenthesis: (
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: dynamic
+    staticType: dynamic
+  expression(v1): SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: dynamic
+  caseClause: CaseClause
+    caseKeyword: case
+    guardedPattern: GuardedPattern
+      pattern: ConstantPattern
+        constKeyword: const
+        expression2: ParenthesizedExpression
+          leftParenthesis: (
+          expression2: FunctionExpression
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+            declaredFragment: <testLibraryFragment> null@null
+              element: null@null
+                type: Null Function()
+            staticType: Null Function()
+          rightParenthesis: )
+          staticType: Null Function()
+        matchedValueType: dynamic
+  rightParenthesis: )
+  thenElement2: IntegerLiteral
+    literal: 0
+    staticType: int
+''');
+  }
+
+  test_caseClause_pattern_map_key_closure() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+f(x) => [if (x case {() {}: 0}) 0];
+//                   ^^^^^
+// [diag.nonConstantMapPatternKey] Key expressions in map patterns must be constants.
+''');
+
+    var node = result.findNode.ifElement('if (x');
+    assertResolvedNodeText(node, r'''
+IfElement
+  ifKeyword: if
+  leftParenthesis: (
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: dynamic
+    staticType: dynamic
+  expression(v1): SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: dynamic
+  caseClause: CaseClause
+    caseKeyword: case
+    guardedPattern: GuardedPattern
+      pattern: MapPattern
+        leftBracket: {
+        elements
+          MapPatternEntry
+            key2: FunctionExpression
+              parameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+              declaredFragment: <testLibraryFragment> null@null
+                element: null@null
+                  type: Null Function()
+              staticType: Null Function()
+            separator: :
+            value: ConstantPattern
+              expression2: IntegerLiteral
+                literal: 0
+                staticType: int
+              matchedValueType: dynamic
+        rightBracket: }
+        matchedValueType: dynamic
+        requiredType: Map<dynamic, dynamic>
+  rightParenthesis: )
+  thenElement2: IntegerLiteral
+    literal: 0
+    staticType: int
+''');
+  }
+
+  test_caseClause_pattern_relational_closure() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+f(x) => [if (x case == (() {})) 0];
+//                      ^^^^^
+// [diag.nonConstantRelationalPatternExpression] The relational pattern expression must be a constant.
+''');
+
+    var node = result.findNode.ifElement('if (x');
+    assertResolvedNodeText(node, r'''
+IfElement
+  ifKeyword: if
+  leftParenthesis: (
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: dynamic
+    staticType: dynamic
+  expression(v1): SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: dynamic
+  caseClause: CaseClause
+    caseKeyword: case
+    guardedPattern: GuardedPattern
+      pattern: RelationalPattern
+        operator: ==
+        operand2: ParenthesizedExpression
+          leftParenthesis: (
+          expression2: FunctionExpression
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+            declaredFragment: <testLibraryFragment> null@null
+              element: null@null
+                type: Null Function()
+            staticType: Null Function()
+          rightParenthesis: )
+          staticType: Null Function()
+        element: dart:core::@class::Object::@method::==
+        matchedValueType: dynamic
+  rightParenthesis: )
+  thenElement2: IntegerLiteral
+    literal: 0
+    staticType: int
+''');
+  }
+
+  test_caseClause_pattern_relational_closure_assignsVariable() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+f(x, Object? v) {
+  if (v is int) {
+    return [if (x case == (() { v = 0; })) v];
+//                         ^^^^^^^^^^^^^
+// [diag.nonConstantRelationalPatternExpression] The relational pattern expression must be a constant.
+  }
+}
+''');
+
+    var node = result.findNode.ifElement('if (x');
+    assertResolvedNodeText(node, r'''
+IfElement
+  ifKeyword: if
+  leftParenthesis: (
+  expression2: UnqualifiedNameExpression
+    name: x
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::x
+      type: dynamic
+    staticType: dynamic
+  expression(v1): SimpleIdentifier
+    token: x
+    element: <testLibrary>::@function::f::@formalParameter::x
+    staticType: dynamic
+  caseClause: CaseClause
+    caseKeyword: case
+    guardedPattern: GuardedPattern
+      pattern: RelationalPattern
+        operator: ==
+        operand2: ParenthesizedExpression
+          leftParenthesis: (
+          expression2: FunctionExpression
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                statements2
+                  ExpressionStatement
+                    expression2: DirectAssignment
+                      target: UnqualifiedNameAssignmentTarget
+                        name: v
+                        read: <null>
+                        write: VariableWriteResolution
+                          element: <testLibrary>::@function::f::@formalParameter::v
+                          acceptedType: Object?
+                      operator: =
+                      value: IntegerLiteral
+                        literal: 0
+                        correspondingParameter: <null>
+                        staticType: int
+                      staticType: int
+                    expression(v1): AssignmentExpression
+                      leftHandSide: SimpleIdentifier
+                        token: v
+                        element: <testLibrary>::@function::f::@formalParameter::v
+                        staticType: null
+                      operator: =
+                      rightHandSide: IntegerLiteral
+                        literal: 0
+                        correspondingParameter: <null>
+                        staticType: int
+                      readElement: <null>
+                      readType: null
+                      writeElement: <testLibrary>::@function::f::@formalParameter::v
+                      writeType: Object?
+                      element: <null>
+                      staticType: int
+                    semicolon: ;
+                rightBracket: }
+            declaredFragment: <testLibraryFragment> null@null
+              element: null@null
+                type: Null Function()
+            staticType: Null Function()
+          rightParenthesis: )
+          staticType: Null Function()
+        element: dart:core::@class::Object::@method::==
+        matchedValueType: dynamic
+  rightParenthesis: )
+  thenElement2: UnqualifiedNameExpression
+    name: v
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::v
+      type: Object?
+    staticType: Object?
+  thenElement(v1): SimpleIdentifier
+    token: v
+    element: <testLibrary>::@function::f::@formalParameter::v
+    staticType: Object?
+''');
+  }
+
   test_caseClause_topLevelVariableInitializer() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 final x = 0;

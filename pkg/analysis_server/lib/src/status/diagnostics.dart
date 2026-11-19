@@ -19,6 +19,7 @@ import 'package:analysis_server/src/status/pages/analysis_options_page.dart';
 import 'package:analysis_server/src/status/pages/analysis_performance_log_page.dart';
 import 'package:analysis_server/src/status/pages/assists_page.dart';
 import 'package:analysis_server/src/status/pages/ast_page.dart';
+import 'package:analysis_server/src/status/pages/byte_store_page.dart';
 import 'package:analysis_server/src/status/pages/client_page.dart';
 import 'package:analysis_server/src/status/pages/code_completion_page.dart';
 import 'package:analysis_server/src/status/pages/collect_report_page.dart';
@@ -30,7 +31,6 @@ import 'package:analysis_server/src/status/pages/environment_variables_page.dart
 import 'package:analysis_server/src/status/pages/exception_page.dart';
 import 'package:analysis_server/src/status/pages/exceptions_page.dart';
 import 'package:analysis_server/src/status/pages/feedback_page.dart';
-import 'package:analysis_server/src/status/pages/file_byte_store_timing_page.dart';
 import 'package:analysis_server/src/status/pages/file_io_timing_page.dart';
 import 'package:analysis_server/src/status/pages/fixes_page.dart';
 import 'package:analysis_server/src/status/pages/legacy_plugins_page.dart';
@@ -613,13 +613,41 @@ table.sticky-header thead tr:first-child > * {
 }
 
 table.sticky-header thead tr:first-child > :first-child,
-table.sticky-header tbody td:first-child {
+table.sticky-header tbody tr:first-child > :first-child {
   border-left-width: 1px;
 }
 
 table.sticky-header th {
   white-space: nowrap;
   background-color: #fff;
+}
+
+/* Each tbody is a group of related rows, so groups are shaded and separated,
+   rather than individual rows. */
+.markdown-body table.row-groups tbody tr {
+  background-color: #fff;
+}
+
+.markdown-body table.row-groups tbody:nth-of-type(even) tr {
+  background-color: #f6f8fa;
+}
+
+table.row-groups tbody + tbody tr:first-child > * {
+  border-top: 1px solid #959da5;
+}
+
+/* Byte store operations, to follow one operation across periods: harmless
+   reads, cheap queuing of writes, and costly writing to disk. */
+.operation-get {
+  color: #1a7f37;
+}
+
+.operation-put {
+  color: #57606a;
+}
+
+.operation-flush {
+  color: #bc4c00;
 }
 
 .footer {
@@ -648,6 +676,7 @@ table.sticky-header th {
   final List<String> lastPrintedLines;
 
   new(this.socketServer, this.lastPrintedLines) : super('Analysis Server') {
+    pages.add(ByteStorePage(this));
     pages.add(CommunicationsPage(this));
     pages.add(ContextsPage(this));
     pages.add(EnvironmentVariablesPage(this));
@@ -705,7 +734,6 @@ table.sticky-header th {
     // (Nested)
     pages.add(AnalysisDriverPage(this));
     pages.add(AssistsPage(this));
-    pages.add(FileByteStoreTimingPage(this));
     pages.add(FileIoTimingPage(this));
     pages.add(CodeCompletionPage(this));
     pages.add(FixesPage(this));

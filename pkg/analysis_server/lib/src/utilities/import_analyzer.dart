@@ -285,6 +285,12 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    recorder.recordDeclaration(node.offset, node.declaredFragment?.element);
+    super.visitExtensionTypeDeclaration(node);
+  }
+
+  @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     recorder.recordDeclaration(node.offset, node.declaredFragment?.element);
     super.visitFunctionDeclaration(node);

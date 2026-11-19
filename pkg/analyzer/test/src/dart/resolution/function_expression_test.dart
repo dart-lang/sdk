@@ -16,6 +16,130 @@ main() {
 
 @reflectiveTest
 class FunctionExpressionResolutionTest extends PubPackageResolutionTest {
+  test_defaultValue_inConstructorInitializer() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const foo = 0;
+
+class A {
+  final Function g;
+  A() : g = (([int a = foo]) {});
+}
+''');
+
+    var node = result.findNode.singleRegularFormalParameter;
+    var element = node.declaredFragment!.element;
+    assertResolvedNodeText(element.constantInitializer2!, r'''
+UnqualifiedNameExpression
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::foo
+    type: int
+  staticType: int
+V1: SimpleIdentifier
+  token: foo
+  element: <testLibrary>::@getter::foo
+  staticType: int
+''');
+
+    assertElementDefaultValueIsClauseValue(node);
+    assertDartObjectText(element.computeConstantValue(), r'''
+int 0
+  variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
+  test_defaultValue_inFieldInitializer() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const foo = 0;
+
+class A {
+  var g = ([int a = foo]) {};
+}
+''');
+
+    var node = result.findNode.singleRegularFormalParameter;
+    var element = node.declaredFragment!.element;
+    assertResolvedNodeText(element.constantInitializer2!, r'''
+UnqualifiedNameExpression
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::foo
+    type: int
+  staticType: int
+V1: SimpleIdentifier
+  token: foo
+  element: <testLibrary>::@getter::foo
+  staticType: int
+''');
+
+    assertElementDefaultValueIsClauseValue(node);
+    assertDartObjectText(element.computeConstantValue(), r'''
+int 0
+  variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
+  test_defaultValue_inFunctionBody() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const foo = 0;
+
+void f() {
+  var g = ([int a = foo]) {};
+  g();
+}
+''');
+
+    var node = result.findNode.singleRegularFormalParameter;
+    var element = node.declaredFragment!.element;
+    assertResolvedNodeText(element.constantInitializer2!, r'''
+UnqualifiedNameExpression
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::foo
+    type: int
+  staticType: int
+V1: SimpleIdentifier
+  token: foo
+  element: <testLibrary>::@getter::foo
+  staticType: int
+''');
+
+    assertElementDefaultValueIsClauseValue(node);
+    assertDartObjectText(element.computeConstantValue(), r'''
+int 0
+  variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
+  test_defaultValue_inTopLevelVariableInitializer() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const foo = 0;
+
+var g = ([int a = foo]) {};
+''');
+
+    var node = result.findNode.singleRegularFormalParameter;
+    var element = node.declaredFragment!.element;
+    assertResolvedNodeText(element.constantInitializer2!, r'''
+UnqualifiedNameExpression
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::foo
+    type: int
+  staticType: int
+V1: SimpleIdentifier
+  token: foo
+  element: <testLibrary>::@getter::foo
+  staticType: int
+''');
+
+    assertElementDefaultValueIsClauseValue(node);
+    assertDartObjectText(element.computeConstantValue(), r'''
+int 0
+  variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
   test_genericFunctionExpression_fBoundedDefaultType() async {
     var result = await resolveTestCodeWithDiagnostics('''
 void f() {

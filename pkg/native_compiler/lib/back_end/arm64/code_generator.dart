@@ -88,6 +88,14 @@ final class Arm64CodeGenerator extends CodeGenerator {
       _prepareOptionalPositionalParameters(function);
     } else if (function.hasNamedParameters) {
       _prepareNamedParameters(function);
+    } else if (function.hasOptionalFunctionTypeParameters) {
+      // All parameters are passed on the stack, so the offset of
+      // the type arguments slot (if passed) is known statically.
+      _loadOptionalFunctionTypeArguments(
+        FP,
+        Arm64StackFrame.lastParameterOffsetFromFP +
+            (function.numberOfParameters - 1) * wordSize,
+      );
     }
     if (function.isSuspendable) {
       _asm.str(nullReg, _asm.address(FP, stackFrame.suspendStateOffsetFromFP));
@@ -98,6 +106,36 @@ final class Arm64CodeGenerator extends CodeGenerator {
       // TODO: unboxed catch slots
       _asm.str(nullReg, _asm.address(FP, stackFrame.offsetFromFP(slot)));
     }
+  }
+
+  /// Load optional function type arguments into the first argument register.
+  ///
+  /// If function type arguments are passed (according to the arguments
+  /// descriptor), they are loaded from [base] + [offset]. Otherwise,
+  /// UnsetTypeArgumentsConstant is loaded.
+  ///
+  /// Should be called before [argumentsDescriptorReg] is clobbered.
+  void _loadOptionalFunctionTypeArguments(Register base, int offset) {
+    assert(graph.function.hasOptionalFunctionTypeParameters);
+    final typeArgsReg = argumentRegisters[0];
+    final notPassed = Label();
+    final done = Label();
+
+    // TODO: compressed pointers
+    // Load [ArgumentsDescriptor.typeArgsLen] as a Smi.
+    _asm.ldr(
+      tempReg,
+      _asm.fieldAddress(
+        argumentsDescriptorReg,
+        vmOffsets.ArgumentsDescriptor_type_args_len_offset,
+      ),
+    );
+    _asm.cbz(tempReg, notPassed);
+    _asm.ldr(typeArgsReg, _asm.address(base, offset));
+    _asm.b(done);
+    _asm.bind(notPassed);
+    _asm.loadConstant(typeArgsReg, ConstantValue(UnsetTypeArgumentsConstant()));
+    _asm.bind(done);
   }
 
   /// Load positional required and optional arguments into argument registers,
@@ -136,6 +174,12 @@ final class Arm64CodeGenerator extends CodeGenerator {
     final labels = List.generate(total - numRequired, (_) => Label());
 
     var i = 0;
+    if (function.hasOptionalFunctionTypeParameters) {
+      // Type arguments are the first parameter.
+      assert(numRequired > 0);
+      _loadOptionalFunctionTypeArguments(argPtrReg, baseOffset);
+      i = 1;
+    }
     final int numArgsToLoadInPairs = math.min(total, argumentRegisters.length);
     for (; i + 1 < numArgsToLoadInPairs; i += 2) {
       if (i >= numRequired) {
@@ -227,6 +271,12 @@ final class Arm64CodeGenerator extends CodeGenerator {
     final int baseOffset = baseOffsetWithoutTypeArgs + typeArg * wordSize;
 
     var i = 0;
+    if (function.hasOptionalFunctionTypeParameters) {
+      // Type arguments are the first parameter.
+      assert(numRequired > 0);
+      _loadOptionalFunctionTypeArguments(argPtrReg, baseOffset);
+      i = 1;
+    }
     final int numArgsToLoadInPairs = math.min(
       numRequired,
       argumentRegisters.length,

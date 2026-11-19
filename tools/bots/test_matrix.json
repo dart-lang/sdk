@@ -690,7 +690,7 @@
         ]
       }
     },
-    "vm-modaot-mac-(debug|product|release)-(arm64|arm64c)": {},
+    "vm-modaot-(linux|mac|win)-(debug|product|release)-(arm64|arm64c|simarm64|simarm64c)": {},
     "ddc-(linux|win)-chrome": {
       "options": {
         "checked": true,

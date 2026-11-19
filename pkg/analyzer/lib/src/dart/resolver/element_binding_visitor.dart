@@ -1010,6 +1010,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
     T Function() createFragment,
   ) {
     var fragment = createFragment();
+    fragment.isFromResolution = true;
     _elementHolder.addParameter(fragment);
 
     fragment.setCodeRange(node.offset, node.length);

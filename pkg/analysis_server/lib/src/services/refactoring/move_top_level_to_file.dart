@@ -98,9 +98,7 @@ class MoveTopLevelToFile extends ParameterizedRefactoringProducer {
     var destinationUri = Uri.parse(commandArguments[0] as String);
     var destinationFilePath = pathContext.fromUri(destinationUri);
 
-    var destinationImportUri = unitResult.session.uriConverter.pathToUri(
-      destinationFilePath,
-    );
+    var destinationImportUri = await _destinationImportUri(destinationFilePath);
     if (destinationImportUri == null) {
       return ComputeStatusFailure();
     }
@@ -108,6 +106,7 @@ class MoveTopLevelToFile extends ParameterizedRefactoringProducer {
       destinationFilePath,
     );
     var destinationExists = destinationFile.exists;
+    var isSameLibraryMove = destinationImportUri == libraryResult.element.uri;
     var insertOffset = 0;
     var insertLeadingNewline = false;
     String? fileHeader;
@@ -148,6 +147,10 @@ class MoveTopLevelToFile extends ParameterizedRefactoringProducer {
 
     // References in the source library are handled separately below.
     elementsByReferencingLibrary.remove(libraryResult.element);
+    // The destination library shouldn't import itself.
+    elementsByReferencingLibrary.removeWhere(
+      (library, _) => library.uri == destinationImportUri,
+    );
 
     // Resolve each library once to find imports for moved declarations.
     var prefixesByReferencingLibrary = <LibraryElement, Set<String>>{};
@@ -187,13 +190,15 @@ class MoveTopLevelToFile extends ParameterizedRefactoringProducer {
           builder.write(utils.getRangeText(sourceRange));
         }
       });
-      if (analyzer.hasMovingReferenceToStayingDeclaration) {
-        builder.importLibrary(unitResult.uri);
+      if (!isSameLibraryMove &&
+          analyzer.hasMovingReferenceToStayingDeclaration) {
+        builder.importLibrary(libraryResult.element.uri);
       }
       _addImportsForMovingDeclarations(builder, analyzer);
     });
     await builder.addDartFileEdit(sourcePath, (builder) {
-      if (analyzer.hasStayingReferenceToMovingDeclaration) {
+      if (!isSameLibraryMove &&
+          analyzer.hasStayingReferenceToMovingDeclaration) {
         builder.importLibrary(destinationImportUri);
       }
       for (var group in members.groups) {
@@ -253,6 +258,18 @@ class MoveTopLevelToFile extends ParameterizedRefactoringProducer {
         );
       }
     }
+  }
+
+  /// Return the URI to import for declarations in the file at [filePath], or
+  /// `null` if it can't be determined.
+  ///
+  /// If [filePath] is a part, this will be the URI of its library.
+  Future<Uri?> _destinationImportUri(String filePath) async {
+    var session = unitResult.session;
+    var unit = await session.getUnitElement(filePath);
+    return unit is UnitElementResult
+        ? unit.fragment.element.uri
+        : session.uriConverter.pathToUri(filePath);
   }
 
   /// Initialize the [title] and [defaultFilePath] based on the [members] being

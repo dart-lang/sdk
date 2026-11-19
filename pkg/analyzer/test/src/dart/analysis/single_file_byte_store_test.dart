@@ -310,12 +310,19 @@ class SingleFileByteStoreTest {
     _open();
   }
 
+  void test_constructor_emptyStorage_notCountedAsReset() {
+    // `setUp` opened the store on empty storage.
+    expect(store.statistics.resetCount, 0);
+    expect(store.freeDataPageCount, store.dataPageCount);
+  }
+
   void test_constructor_recoversInvalidFile() {
     storage.truncate(3);
     storage.write(0, Uint8List.fromList([1, 2, 3]));
 
     // No exception, just reset.
     _open();
+    expect(store.statistics.resetCount, 1);
 
     // It is valid, but empty.
     expect(store.get('missing'), isNull);
@@ -391,6 +398,7 @@ class SingleFileByteStoreTest {
     storage.write(0, header);
 
     _open();
+    expect(store.statistics.resetCount, 1);
     expect(store.get('key'), isNull);
     store.putGet('new_key', _value(20));
     store.flush();
@@ -404,6 +412,7 @@ class SingleFileByteStoreTest {
 
     // No exception, just reset.
     _open(tableSlotCountLog2: 8);
+    expect(store.statistics.resetCount, 1);
     expect(store.tableSlotCount, 256);
     expect(store.get('key'), isNull);
     store.putGet('new_key', _value(20));
@@ -413,6 +422,23 @@ class SingleFileByteStoreTest {
     _open(tableSlotCountLog2: 8);
     expect(store.get('key'), isNull);
     expect(store.get('new_key'), _value(20));
+  }
+
+  void test_flush_callsOnFlush() {
+    var flushedBytes = <int>[];
+    store.onFlush = (valueBytes, elapsed) {
+      expect(elapsed, greaterThanOrEqualTo(Duration.zero));
+      flushedBytes.add(valueBytes);
+    };
+
+    store.putGet('a', _value(10));
+    store.putGet('b', _value(20));
+    store.flush();
+    expect(flushedBytes, [30]);
+
+    // Nothing pending, so no flush.
+    store.flush();
+    expect(flushedBytes, [30]);
   }
 
   void test_flush_continuesDataReclamationAfterReopening() {
@@ -465,7 +491,8 @@ class SingleFileByteStoreTest {
     // preserve A's cursor instead of publishing a stale process-local cursor.
     storeB.putGet(smallKey, _value(10));
     storeB.flush();
-    expect(storeB.statistics.evictedEntryCount, 0);
+    expect(storeB.statistics.evictedForSpaceEntryCount, 0);
+    expect(storeB.statistics.evictedFromFullBucketEntryCount, 0);
     storeB.putGet(fourthKey, value);
     storeB.flush();
 
@@ -496,7 +523,8 @@ class SingleFileByteStoreTest {
 
     store.flush();
     expect(store.statistics.capacityDiscardedBatchCount, 1);
-    expect(store.statistics.evictedEntryCount, 0);
+    expect(store.statistics.evictedForSpaceEntryCount, 0);
+    expect(store.statistics.evictedFromFullBucketEntryCount, 0);
     expect(store.statistics.commitCount, commitCount);
     expect(storage.writeCount, writeCount);
     expect(store.pendingEntryCount, 0);
@@ -542,7 +570,8 @@ class SingleFileByteStoreTest {
 
     // The eviction happened, CLOCK encountered `readKey` first, but it was
     // read, so `unreadKey` was evicted instead.
-    expect(store.statistics.evictedEntryCount, 1);
+    expect(store.statistics.evictedForSpaceEntryCount, 1);
+    expect(store.statistics.evictedFromFullBucketEntryCount, 0);
     expect(store.get(readKey), value);
     expect(store.get(unreadKey), isNull);
     expect(store.get(newKey), value);
@@ -574,7 +603,8 @@ class SingleFileByteStoreTest {
     // By default tests run with 1 hash table bucket.
     store.putGet('new_key', _value(20));
     store.flush();
-    expect(store.statistics.evictedEntryCount, 16);
+    expect(store.statistics.evictedForSpaceEntryCount, 0);
+    expect(store.statistics.evictedFromFullBucketEntryCount, 16);
 
     void checkEntries() {
       // The sweep skips the 8 read entries, evicts the next 16,
@@ -609,7 +639,8 @@ class SingleFileByteStoreTest {
 
     // We know that we tried to put too much data.
     // So we expect eviction, but don't need to know how much exactly.
-    expect(store.statistics.evictedEntryCount, greaterThan(0));
+    expect(store.statistics.evictedForSpaceEntryCount, greaterThan(0));
+    expect(store.statistics.evictedFromFullBucketEntryCount, 0);
 
     _open();
 
@@ -641,7 +672,8 @@ class SingleFileByteStoreTest {
 
     // We tried to put 3x more entries than the capacity.
     // So, some were evicted.
-    expect(store.statistics.evictedEntryCount, greaterThan(0));
+    expect(store.statistics.evictedForSpaceEntryCount, 0);
+    expect(store.statistics.evictedFromFullBucketEntryCount, greaterThan(0));
 
     // The storage size is fixed, does not grow with number of entries.
     expect(storage.length, storageLength);
@@ -694,7 +726,8 @@ class SingleFileByteStoreTest {
       expect(store.get('key'), _value(400 * 1024, startByte: i));
       expect(store.get('other'), _value(10));
     }
-    expect(store.statistics.evictedEntryCount, 0);
+    expect(store.statistics.evictedForSpaceEntryCount, 0);
+    expect(store.statistics.evictedFromFullBucketEntryCount, 0);
 
     _open();
     expect(store.get('key'), _value(400 * 1024, startByte: 7));
@@ -731,6 +764,16 @@ class SingleFileByteStoreTest {
       _open();
       expect(store.get('key'), _value(10), reason: 'writeIndex=$writeIndex');
     }
+  }
+
+  void test_freeDataPageCount() {
+    store.putGet('key', _value(10));
+    store.flush();
+    expect(store.freeDataPageCount, store.dataPageCount - 1);
+
+    // Another instance reads it from the header.
+    _open();
+    expect(store.freeDataPageCount, store.dataPageCount - 1);
   }
 
   void test_get_hashCollision() {
@@ -809,7 +852,8 @@ class SingleFileByteStoreTest {
     }
     store.flush();
     expect(store.pendingEntryCount, 0);
-    expect(store.statistics.evictedEntryCount, 0);
+    expect(store.statistics.evictedForSpaceEntryCount, 0);
+    expect(store.statistics.evictedFromFullBucketEntryCount, 0);
     expect(store.statistics.capacityDiscardedBatchCount, 0);
 
     // Expected values, generated once: generating them in each corruption
@@ -860,6 +904,25 @@ class SingleFileByteStoreTest {
             'offset=$offset bit=$bit',
       );
     }
+  }
+
+  void test_get_resetsWhenValueIsCorrupt() {
+    var value = Uint8List(100)..fillRange(0, 100, 0xAB);
+    store.putGet('key', value);
+    store.flush();
+
+    // Find the end of the value bytes in storage, and corrupt the last one.
+    var bytes = storage.read(0, storage.length);
+    var offset = 0;
+    for (var runLength = 0; runLength < value.length; offset++) {
+      runLength = bytes[offset] == 0xAB ? runLength + 1 : 0;
+    }
+    storage.write(offset - 1, Uint8List.fromList([0]));
+
+    _open();
+    expect(store.statistics.resetCount, 0);
+    expect(store.get('key'), isNull);
+    expect(store.statistics.resetCount, 1);
   }
 
   void test_get_returnedBytesRemainValidAfterOtherOperations() {
@@ -940,12 +1003,15 @@ class SingleFileByteStoreTest {
 
   void test_putGet_flushesWhenEntryLimitIsReached() {
     _open(maxPendingEntryCount: 2);
+    var flushedBytes = <int>[];
+    store.onFlush = (valueBytes, _) => flushedBytes.add(valueBytes);
     store.putGet('a', _value(10));
     expect(
       store.putGet('b', _value(20, startByte: 1)),
       _value(20, startByte: 1),
     );
     expect(store.pendingEntryCount, 0);
+    expect(flushedBytes, [30]);
 
     _open();
     expect(store.get('a'), _value(10));

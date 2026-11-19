@@ -1409,9 +1409,12 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
               assignedVariables.write(element);
             }
           case ForEachPartsWithDeclarationImpl():
+            forLoopParts.loopVariable.accept2(this);
             var variable = forLoopParts.loopVariable.declaredFragment!.element;
             assignedVariables.declare(variable);
           case ForEachPartsWithPatternImpl():
+            forLoopParts.metadata.accept2(this);
+            forLoopParts.pattern.accept2(this);
             for (var variable in forLoopParts.variables) {
               assignedVariables.declare(variable);
             }
@@ -1441,6 +1444,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
     if (caseClause != null) {
       var guardedPattern = caseClause.guardedPattern;
       assignedVariables.beginNode();
+      guardedPattern.pattern.accept2(this);
       for (var variable in guardedPattern.variables.values) {
         assignedVariables.declare(variable);
       }

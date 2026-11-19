@@ -44,6 +44,10 @@ bool shouldSkipFile(path.Context pathContext, String filePath) {
   if (fileName.startsWith('app_localizations_') && fileName.endsWith('.dart')) {
     return true;
   }
+  // Flutter Rust Bridge
+  if (fileName.startsWith('frb_generated.') && fileName.endsWith('.dart')) {
+    return true;
+  }
   return false;
 }
 

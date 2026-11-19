@@ -426,6 +426,8 @@ abstract class AnalysisServer {
     }
 
     var fileByteStore = _fileByteStore;
+    var singleFileByteStore = _singleFileByteStore;
+    var singleFileStatistics = singleFileByteStore?.statistics;
     return AnalysisServerByteStoreStats(
       cacheHitCount: memoryByteStore.cacheHitCount,
       cacheMissCount: memoryByteStore.cacheMissCount,
@@ -455,6 +457,26 @@ abstract class AnalysisServer {
       writeCount: fileByteStore?.writeCount,
       singleFileStorePath: _singleFileByteStore?.filePath,
       singleFilePendingEntryCount: _singleFileByteStore?.pendingEntryCount,
+      singleFileDataBytes: singleFileByteStore == null
+          ? null
+          : singleFileByteStore.dataPageCount * pageSize,
+      singleFileFreeDataBytes: singleFileByteStore == null
+          ? null
+          : singleFileByteStore.freeDataPageCount * pageSize,
+      singleFileBucketRebuildCount: singleFileStatistics?.bucketRebuildCount,
+      singleFileCapacityDiscardedBatchCount:
+          singleFileStatistics?.capacityDiscardedBatchCount,
+      singleFileCommitCount: singleFileStatistics?.commitCount,
+      singleFileCommittedEntryCount: singleFileStatistics?.committedEntryCount,
+      singleFileCommittedValueBytes: singleFileStatistics?.committedValueBytes,
+      singleFileEvictedForSpaceEntryCount:
+          singleFileStatistics?.evictedForSpaceEntryCount,
+      singleFileEvictedFromFullBucketEntryCount:
+          singleFileStatistics?.evictedFromFullBucketEntryCount,
+      singleFileOversizedValueBytes: singleFileStatistics?.oversizedValueBytes,
+      singleFileOversizedValueCount: singleFileStatistics?.oversizedValueCount,
+      singleFileResetCount: singleFileStatistics?.resetCount,
+      singleFileTableSlotCount: singleFileByteStore?.tableSlotCount,
     );
   }
 
@@ -761,6 +783,7 @@ abstract class AnalysisServer {
       }
       if (fileByteStore != null) {
         var timingByteStore = _timingByteStore = TimingByteStore(fileByteStore);
+        _singleFileByteStore?.onFlush = timingByteStore.recordFlush;
         return _memoryCachingByteStore = MemoryCachingByteStore(
           timingByteStore,
           memoryCacheSize,
@@ -1525,8 +1548,21 @@ class AnalysisServerByteStoreStats {
   final int putCount;
   final int? readCount;
   final int? readMissCount;
+  final int? singleFileBucketRebuildCount;
+  final int? singleFileCapacityDiscardedBatchCount;
+  final int? singleFileCommitCount;
+  final int? singleFileCommittedEntryCount;
+  final int? singleFileCommittedValueBytes;
+  final int? singleFileDataBytes;
+  final int? singleFileEvictedForSpaceEntryCount;
+  final int? singleFileEvictedFromFullBucketEntryCount;
+  final int? singleFileFreeDataBytes;
+  final int? singleFileOversizedValueBytes;
+  final int? singleFileOversizedValueCount;
   final int? singleFilePendingEntryCount;
+  final int? singleFileResetCount;
   final String? singleFileStorePath;
+  final int? singleFileTableSlotCount;
   final int storeHitCount;
   final int storeMissCount;
   final int? writeBytes;
@@ -1557,8 +1593,21 @@ class AnalysisServerByteStoreStats {
     this.pendingWriteCount,
     this.readCount,
     this.readMissCount,
+    this.singleFileBucketRebuildCount,
+    this.singleFileCapacityDiscardedBatchCount,
+    this.singleFileCommitCount,
+    this.singleFileCommittedEntryCount,
+    this.singleFileCommittedValueBytes,
+    this.singleFileDataBytes,
+    this.singleFileEvictedForSpaceEntryCount,
+    this.singleFileEvictedFromFullBucketEntryCount,
+    this.singleFileFreeDataBytes,
+    this.singleFileOversizedValueBytes,
+    this.singleFileOversizedValueCount,
     this.singleFilePendingEntryCount,
+    this.singleFileResetCount,
     this.singleFileStorePath,
+    this.singleFileTableSlotCount,
     this.writeBytes,
     this.writeCount,
   });

@@ -256,6 +256,8 @@ void main() {
       expectSkip('/a/lib/l10n/app_localizations_en.dart');
       expectSkip('/a/lib/generated_plugin_registrant.dart');
       expectSkip('/a/lib/src/pedometer_bindings_generated.dart');
+      expectSkip('/a/lib/rust/frb_generated.dart');
+      expectSkip('/a/lib/rust/frb_generated.io.dart');
     });
 
     test('keeps handwritten dart files', () {
