@@ -1233,7 +1233,7 @@ Future<void> asyncTests() async {
       Expect.isTrue(e.isA<JSWrappedPromiseError>());
       final jsError = e as JSWrappedPromiseError;
       Expect.isTrue(jsError.instanceof(globalContext['Error'] as JSFunction));
-      Expect.isTrue(jsError.error.toDart is Exception);
+      Expect.isTrue(jsError.error is Exception);
       jsError.stack; // This shouldn't throw a parse error.
     }
     var error = await asyncExpectThrows<JSAny>(
@@ -1301,7 +1301,7 @@ Future<void> asyncTests() async {
       Expect.isTrue(e.isA<JSWrappedPromiseError>());
       final jsError = e as JSWrappedPromiseError;
       Expect.isTrue(jsError.instanceof(globalContext['Error'] as JSFunction));
-      Expect.isTrue(jsError.error.toDart is Exception);
+      Expect.isTrue(jsError.error is Exception);
       jsError.stack; // This shouldn't throw a parse error.
     }
     var error = await asyncExpectThrows<JSAny>(

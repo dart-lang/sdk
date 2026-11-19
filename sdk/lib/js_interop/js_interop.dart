@@ -1554,11 +1554,14 @@ extension FutureOrToJSAny<T extends JSAny> on FutureOr<T> {
 /// [FutureOfVoidToJSPromise.toJS] catches a Dart exception.
 @Since('3.15')
 extension type JSWrappedPromiseError._(JSError _) implements JSError {
-  /// The Dart error that was originally thrown.
-  external JSBoxedDartObject get error;
+  @JS('error')
+  external JSBoxedDartObject get _error;
 
   @JS('stack')
   external String get _stack;
+
+  /// The Dart error that was originally thrown.
+  Object get error => _error.toDart;
 
   /// The Dart stack trace, serialized to a string.
   StackTrace get stack => StackTrace.fromString(_stack);
