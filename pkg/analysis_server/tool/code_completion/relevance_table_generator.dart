@@ -1702,7 +1702,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitObjectPattern(ObjectPattern node) {
-    // There are no completions.
+    _recordDataForNode(CompletionLocation.objectPatternType, node.type);
     super.visitObjectPattern(node);
   }
 
@@ -1825,8 +1825,14 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
-    // There are no completions.
     if (node.constKeyword case var keyword?) _unrecorded(keyword);
+    for (var parameter in node.formalParameters.parameters) {
+      _recordDataForNode(
+        CompletionLocation.primaryConstructorDeclarationFieldType,
+        parameter,
+        allowedKeywords: [Keyword.COVARIANT, Keyword.REQUIRED],
+      );
+    }
     super.visitPrimaryConstructorDeclaration(node);
   }
 

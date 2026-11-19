@@ -61,7 +61,7 @@ abstract final class CompletionLocation {
       'ConstructorDeclaration_returnType';
   static const String constructorFieldInitializerExpression =
       'ConstructorFieldInitializer_expression';
-  // TODO(dantup): This is only used in the completion code.
+  // This is only used in the completion code (no relevance data).
   static const String constructorSelectorName = 'ConstructorSelector_name';
   static const String declaredVariablePatternType =
       'DeclaredVariablePattern_type';
@@ -168,9 +168,8 @@ abstract final class CompletionLocation {
   // TODO(dantup): This is only used in the table generator.
   static const String mixinDeclarationOn = 'MixinDeclaration_on';
   static const String nullAwareElementValue = 'NullAwareElement_value';
-  // TODO(dantup): This is only used in the completion code.
+  // This is only used in the completion code (no relevance data).
   static const String objectPatternFieldName = 'ObjectPattern_fieldName';
-  // TODO(dantup): This is only used in the completion code.
   static const String objectPatternType = 'ObjectPattern_type';
   // TODO(dantup): This is only used in the table generator.
   static const String onClauseSuperclassConstraint =
@@ -187,10 +186,9 @@ abstract final class CompletionLocation {
   // TODO(dantup): This is only used in the table generator.
   static const String patternVariableDeclarationPattern =
       'PatternVariableDeclaration_pattern';
-  // TODO(dantup): This is only used in the completion code.
+  // This is only used in the completion code (no relevance data).
   static const String primaryConstructorDeclarationFieldName =
       'PrimaryConstructorDeclaration_fieldName';
-  // TODO(dantup): This is only used in the completion code.
   static const String primaryConstructorDeclarationFieldType =
       'PrimaryConstructorDeclaration_fieldType';
   static const String propertyAccessPropertyName =
@@ -198,7 +196,7 @@ abstract final class CompletionLocation {
   static const String recordLiteralFields = 'RecordLiteral_fields';
   static const String recordTypeAnnotationFields =
       'RecordTypeAnnotation_fields';
-  // TODO(dantup): This is only used in the completion code.
+  // This is only used in the completion code (no relevance data).
   static const String recordTypeAnnotationNamedFieldName =
       'RecordTypeAnnotationNamedField_name';
   static const String restPatternElementPattern = 'RestPatternElement_pattern';
