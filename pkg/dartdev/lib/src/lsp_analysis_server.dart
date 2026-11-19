@@ -42,7 +42,6 @@ class LspAnalysisServer {
     this._neverTrustPlugins = false,
     this.enabledExperiments = const [],
     this.suppressAnalytics = false,
-    this._useAotSnapshot = false,
     ProcessFactory? processFactory,
   }) : _processFactory =
            processFactory ??
@@ -57,7 +56,6 @@ class LspAnalysisServer {
   final ArgResults? argResults;
   final List<String> enabledExperiments;
   final bool suppressAnalytics;
-  final bool _useAotSnapshot;
   final bool? _usePlugins;
   final bool _trustPlugins;
   final bool _alwaysTrustPlugins;
@@ -226,12 +224,9 @@ class LspAnalysisServer {
   }
 
   Future<Process> _startProcess() {
-    final executable = _useAotSnapshot ? sdk.dartAotRuntime : sdk.dart;
+    final executable = sdk.dartAotRuntime;
     final arguments = [
-      if (_useAotSnapshot)
-        sdk.analysisServerAotSnapshot
-      else
-        sdk.analysisServerSnapshot,
+      sdk.analysisServerAotSnapshot,
       if (suppressAnalytics) '--${Driver.suppressAnalyticsFlag}',
       '--${Driver.clientIdOption}=dart-$commandName',
       '--disable-server-feature-completion',

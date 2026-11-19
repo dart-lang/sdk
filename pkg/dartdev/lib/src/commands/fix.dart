@@ -71,12 +71,6 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
             'Compare the result of applying fixes to a golden file for testing.',
         hide: !verbose,
       )
-      ..addFlag(
-        useAotSnapshotFlag,
-        help: 'Use the AOT analysis server snapshot',
-        defaultsTo: true,
-        hide: true,
-      )
       ..addExperimentalFlags(verbose: verbose);
   }
 
@@ -144,7 +138,6 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       usePlugins: false,
       suppressAnalytics: suppressAnalytics,
       enabledExperiments: args.enabledExperiments,
-      useAotSnapshot: args.flag(useAotSnapshotFlag),
     );
 
     await server.start();

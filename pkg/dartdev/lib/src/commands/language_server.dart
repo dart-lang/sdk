@@ -38,11 +38,6 @@ For more information about the server's capabilities and configuration, see:
       usageLineLength: dartdevUsageLineLength,
       includeHelpFlag: false,
       defaultToLsp: true,
-    )..addFlag(
-      useAotSnapshotFlag,
-      help: 'Use the AOT analysis server snapshot',
-      defaultsTo: true,
-      hide: true,
     );
   }
 
@@ -56,23 +51,13 @@ For more information about the server's capabilities and configuration, see:
       args = [...args, '--$protocol=$lsp'];
     }
     try {
-      var script = sdk.analysisServerAotSnapshot;
-      var useExec = false;
-      if (argResults!.flag(useAotSnapshotFlag)) {
-        if (!checkArtifactExists(sdk.analysisServerAotSnapshot)) {
-          log.stderr('Error: launching language analysis server failed');
-          log.stderr('${sdk.analysisServerAotSnapshot} not found');
-          return _genericErrorExitCode;
-        }
-        args = [...args];
-        args.remove('--$useAotSnapshotFlag');
-      } else {
-        args = [...args];
-        args.remove('--no-$useAotSnapshotFlag');
-        script = sdk.analysisServerSnapshot;
-        useExec = true;
+      final script = sdk.analysisServerAotSnapshot;
+      if (!checkArtifactExists(script)) {
+        log.stderr('Error: launching language analysis server failed');
+        log.stderr('$script not found');
+        return _genericErrorExitCode;
       }
-      VmInteropHandler.run(script, args, useExecProcess: useExec);
+      VmInteropHandler.run(script, args, useExecProcess: false);
       return 0;
     } catch (e, st) {
       log.stderr('Error: launching language analysis server failed');
