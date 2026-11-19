@@ -9,6 +9,11 @@ import 'package:expect/expect.dart' show Expect;
 import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 import 'package:expect/variations.dart';
 
+@JS('Object.keys')
+external JSArray<JSString> _objectKeys(JSObject o);
+
+List<String> _keys(JSObject o) => _objectKeys(o).toDartStringList;
+
 // Test exporting all vs. only some members.
 // Also test using a non-empty `@JSExport` annotation on a class, which should
 // be a warning but should not prevent code generation.
@@ -56,6 +61,21 @@ void testExportAll(WrapperCreator creator) {
   expect(all.has('extensionMethod'), false);
   expect(all.has('extensionStaticField'), false);
   expect(all.has('extensionStaticMethod'), false);
+
+  // Verify all exported properties, including getters and setters, are
+  // enumerable.
+  expect(
+    _keys(all),
+    unorderedEquals([
+      'field',
+      'finalField',
+      '_getSetField',
+      'getSet',
+      'method',
+      'intField',
+      'intMethod',
+    ]),
+  );
 }
 
 class ExportSome {
@@ -70,6 +90,8 @@ class ExportSome {
   String get getSet => nonExportField;
   @JSExport()
   set getSet(String val) => nonExportField = val;
+  @JSExport()
+  set setterOnly(String val) {}
   @JSExport()
   String method() => 'method';
 
@@ -91,12 +113,20 @@ void testExportSome(WrapperCreator creator) {
   expect(some.has('field'), true);
   expect(some.has('finalField'), true);
   expect(some.has('getSet'), true);
+  expect(some.has('setterOnly'), true);
   expect(some.has('method'), true);
 
   expect(some.has('nonExportField'), false);
   expect(some.has('nonExportFinalField'), false);
   expect(some.has('nonExportGetSet'), false);
   expect(some.has('nonExportMethod'), false);
+
+  // Verify all exported properties, including getters and setters, are
+  // enumerable.
+  expect(
+    _keys(some),
+    unorderedEquals(['field', 'finalField', 'getSet', 'setterOnly', 'method']),
+  );
 }
 
 // Test that the properties are forwarded correctly in the object literal.
@@ -192,6 +222,19 @@ void testOverrides(WrapperCreator creator) {
   expect(
     overrides.callMethod('nonOverriddenMethod'.toJS),
     dartOverrides.nonOverriddenMethod().toJS,
+  );
+
+  final keys = _keys(overrides);
+  expect(keys.length, 5);
+  expect(
+    keys,
+    unorderedEquals([
+      'field',
+      'finalField',
+      'getSet',
+      'method',
+      'nonOverriddenMethod',
+    ]),
   );
 }
 

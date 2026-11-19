@@ -127,6 +127,10 @@ of 3.15 or greater. For more details, see
 
 - Added `jsThrow`, which throws an error without any Dart wrappers.
 
+- Objects created from `createJSInteropWrapper` and the legacy
+  `createDartExport` and `createStaticInteropMock` functions now have enumerable
+  properties e.g. `Object.keys` should now return all the exported properties.
+
 [#64558]: https://github.com/dart-lang/sdk/issues/64558
 
 #### `dart:io`
