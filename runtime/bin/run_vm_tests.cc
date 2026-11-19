@@ -113,10 +113,12 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
       (strcmp(run_filter, "DartAPI_InvokeVMServiceMethod") == 0) ||
       (strcmp(run_filter, "DartAPI_InvokeVMServiceMethod_Loop") == 0) ||
       (strcmp(run_filter, "DartAPI_VmService_OriginCheckDisabled_Runtime") ==
-       0);
+       0) ||
+      (strcmp(run_filter, "DartAPI_VmService_NotifyServerState") == 0);
   const bool is_exp_service_test =
       (strcmp(run_filter, "DartAPI_InvokeVMServiceMethod_Exp") == 0) ||
-      (strcmp(run_filter, "DartAPI_InvokeVMServiceMethod_Loop_Exp") == 0);
+      (strcmp(run_filter, "DartAPI_InvokeVMServiceMethod_Loop_Exp") == 0) ||
+      (strcmp(run_filter, "DartAPI_VmService_NotifyServerState_Exp") == 0);
 
   if (!is_service_test && !is_exp_service_test) {
     return nullptr;
@@ -487,6 +489,7 @@ static int Main(int argc, const char** argv) {
   init_params.file_read = dart::bin::DartUtils::ReadFile;
   init_params.file_write = dart::bin::DartUtils::WriteFile;
   init_params.file_close = dart::bin::DartUtils::CloseFile;
+  init_params.entropy_source = dart::bin::DartUtils::EntropySource;
   init_params.start_kernel_isolate = start_kernel_isolate;
   error = Dart::Init(&init_params);
   if (error != nullptr) {

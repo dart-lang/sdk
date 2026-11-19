@@ -68,9 +68,10 @@ struct VmServiceIONativeEntry {
   Dart_NativeFunction function;
 };
 
+// TODO(bkonyi): remove once embedders migrate to
+// Dart_SetServiceServerStateCallback and dart:vmservice_io is removed
+// (https://github.com/dart-lang/sdk/issues/64161).
 static VmServiceIONativeEntry _VmServiceIONativeEntries[] = {
-    // TODO(bkonyi): these aren't used by any known embedders and can be
-    // removed.
     {"VMServiceIO_NotifyServerState", 1, NotifyServerState},
     {"VMServiceIO_Shutdown", 0, Shutdown},
 };
@@ -153,9 +154,6 @@ bool VmService::Setup(const char* server_ip,
     SHUTDOWN_ON_ERROR(library);
     result = Dart_SetRootLibrary(library);
     SHUTDOWN_ON_ERROR(library);
-    result = Dart_SetNativeResolver(library, VmServiceIONativeResolver,
-                                    VmServiceIONativeSymbol);
-    SHUTDOWN_ON_ERROR(result);
   }
 
   // Make runnable.
@@ -172,6 +170,9 @@ bool VmService::Setup(const char* server_ip,
 
   Dart_Handle library = Dart_RootLibrary();
   SHUTDOWN_ON_ERROR(library);
+  result = Dart_SetNativeResolver(library, VmServiceIONativeResolver,
+                                  VmServiceIONativeSymbol);
+  SHUTDOWN_ON_ERROR(result);
 
   // Set HTTP server state.
   // If we have a port specified, start the server immediately.

@@ -322,6 +322,7 @@ main() {
     "Dart_SetPersistentHandle",
     "Dart_SetReturnValue",
     "Dart_SetRootLibrary",
+    "Dart_SetServiceServerStateCallback",
     "Dart_SetServiceStreamCallbacks",
     "Dart_SetShouldPauseOnExit",
     "Dart_SetShouldPauseOnStart",

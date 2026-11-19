@@ -159,6 +159,9 @@ class DartRuntimeService {
   /// Returns true if the server is active.
   bool get isServerRunning => _isServerRunning;
 
+  /// Returns true if [shutdown] has been called.
+  bool get isShuttingDown => _shutdownCalled;
+
   /// If true, the service won't write any messages to STDOUT.
   ///
   /// Note: this does not impact logging output when
