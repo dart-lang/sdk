@@ -13,7 +13,7 @@ import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
 
 const _desc =
-    r'Design widgets should be imported from Material or Cupertino packages.';
+    r'Design widgets should be imported or exported from Material or Cupertino packages.';
 
 class MigrateDesignWidgets extends AnalysisRule {
   new() : super(name: LintNames.migrate_design_widgets, description: _desc);
@@ -27,13 +27,19 @@ class MigrateDesignWidgets extends AnalysisRule {
     RuleContext context,
   ) {
     var visitor = _Visitor(this);
+    registry.addExportDirective(this, visitor);
     registry.addImportDirective(this, visitor);
   }
 }
 
 class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
   @override
-  void visitImportDirective(ImportDirective node) {
+  void visitExportDirective(ExportDirective node) => _checkDirective(node);
+
+  @override
+  void visitImportDirective(ImportDirective node) => _checkDirective(node);
+
+  void _checkDirective(NamespaceDirective node) {
     var uriString = node.uri.stringValue;
     if (uriString == 'package:flutter/material.dart' ||
         uriString == 'package:flutter/cupertino.dart') {
