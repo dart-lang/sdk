@@ -305,6 +305,13 @@ bool _isJSBoxedDartObject(Object? any) =>
 bool _isNullableJSBoxedDartObject(Object? any) =>
     any == null || _isJSBoxedDartObject(any);
 
+bool _isJSWrappedPromiseError(Object? any) =>
+    any.isA<JSError>() &&
+    unsafeCast<JSError>(any).hasProperty(_wrappedPromiseErrorMarker).toDart;
+
+bool _isNullableJSWrappedPromiseError(Object? any) =>
+    any == null || _isJSWrappedPromiseError(any);
+
 bool _isJSObject(Object? any) =>
     _isJSAny(any) &&
     // No need to check for null when doing typeof check since that's handled

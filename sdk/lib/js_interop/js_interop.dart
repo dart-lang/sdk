@@ -1240,6 +1240,9 @@ extension NullableObjectUtilExtension on Object? {
   ///   it's supported. Because Safari has [known bugs] in its implementation,
   ///   `isA<JSError>()` will return true if either `Error.isError()` or
   ///   `instanceof Error` returns true.
+  /// - `JSWrappedPromiseError`: `isA<JSWrappedPromiseError>` will check if the
+  ///   value is the result of a Dart Future's error being intercepted by
+  ///   [FutureOfJSAnyToJSPromise.toJS] or [FutureOfVoidToJSPromise.toJS].
   /// - User interop types whose representation types are JS primitive types:
   ///   This will result in an error to avoid confusion on whether the user
   ///   interop type is used in the type-check. Use the primitive JS type as the
@@ -1453,7 +1456,7 @@ external void _defineProperty(
 
 /// An internal symbol used to mark wrapped Dart exceptions returned by
 /// [_convertError].
-final _wrappedPromiseErrorMarker = JSSymbol('WrappedPromiseError');
+final _wrappedPromiseErrorMarker = JSSymbol('JSWrappedPromiseError');
 
 /// Converts a Dart [error] thrown by a failed Future into a JS value.
 ///
@@ -1479,7 +1482,7 @@ JSAny _convertError(Object dartError, StackTrace stackTrace) {
 extension FutureOfJSAnyToJSPromise<T extends JSAny?> on Future<T> {
   /// A [JSPromise] that either resolves with the result of the completed
   /// [Future] or rejects with its error if it is a JS value and otherwise
-  /// rejects with a [WrappedPromiseError] that wraps its Dart error value.
+  /// rejects with a [JSWrappedPromiseError] that wraps its Dart error value.
   JSPromise<T> get toJS {
     return JSPromise<T>(
       (JSFunction resolve, JSFunction reject) {
@@ -1504,7 +1507,7 @@ extension FutureOfJSAnyToJSPromise<T extends JSAny?> on Future<T> {
 extension FutureOfVoidToJSPromise on Future<void> {
   /// A [JSPromise] that either resolves once this [Future] completes or rejects
   /// with its error if it is a JS value and otherwise rejects with a
-  /// [WrappedPromiseError] that wraps its Dart error value.
+  /// [JSWrappedPromiseError] that wraps its Dart error value.
   JSPromise get toJS {
     return JSPromise(
       (JSFunction resolve, JSFunction reject) {
@@ -1547,29 +1550,18 @@ extension FutureOrToJSAny<T extends JSAny> on FutureOr<T> {
   };
 }
 
-@JS('Object.getOwnPropertyNames')
-external JSArray<JSString> _getOwnPropertyNames(JSObject object);
-
-@pragma('dart2js:prefer-inline')
-bool _isWrappedPromiseError(Object? any) =>
-    any.isA<JSError>() &&
-    (any as JSError).hasProperty(_wrappedPromiseErrorMarker).toDart;
-
-@pragma('dart2js:prefer-inline')
-bool _isNullableWrappedPromiseError(Object? any) =>
-    any == null || _isWrappedPromiseError(any);
-
 /// The type of error produced when [FutureOfJSAnyToJSPromise.toJS] or
 /// [FutureOfVoidToJSPromise.toJS] catches a Dart exception.
-///
-/// This is safe to use with [NullableObjectUtilExtension.isA].
 @Since('3.15')
-extension type WrappedPromiseError._(JSError _) implements JSError {
+extension type JSWrappedPromiseError._(JSError _) implements JSError {
   /// The Dart error that was originally thrown.
   external JSBoxedDartObject get error;
 
+  @JS('stack')
+  external String get _stack;
+
   /// The Dart stack trace, serialized to a string.
-  external String get stack;
+  StackTrace get stack => StackTrace.fromString(_stack);
 }
 
 /// Conversions from [JSArrayBuffer] to [ByteBuffer].
