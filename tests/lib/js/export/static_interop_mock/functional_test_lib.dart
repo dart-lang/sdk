@@ -144,6 +144,11 @@ class ParamsImpl<S extends JSObject, T extends JSObject, U extends Supertype> {
   JSObject genericMethod(JSObject param) => param;
 }
 
+@JS('Object.keys')
+external JSArray<JSString> _objectKeys(JSObject o);
+
+List<String> _keys(JSObject o) => _objectKeys(o).toDartStringList;
+
 void test([Object? proto]) {
   var jsMethods = createStaticInteropMock<Methods, MethodsDart>(
     MethodsDart(),
@@ -200,6 +205,31 @@ void test([Object? proto]) {
   expect(jsGetSet.renamedGetSet, 'dartModified');
   expect(jsGetSet.sameNameDifferentRename, 'dartModifiedGet');
   expect(jsGetSet.differentNameSameRenameGet, 'dartModified');
+  // Check that all exported members, including getters and setters, are
+  // enumerable.
+  expect(
+    _keys(jsMethods as JSObject),
+    unorderedEquals(['concat', 'nonExternal', '_rename', 'optionalConcat']),
+  );
+  expect(
+    _keys(jsFields as JSObject),
+    unorderedEquals([
+      'field',
+      'finalField',
+      '_renamedField',
+      '_renamedFinalField',
+    ]),
+  );
+  expect(
+    _keys(jsGetSet as JSObject),
+    unorderedEquals([
+      'getSet',
+      '_renamedGetSet',
+      '_sameNameDifferentRenameGet',
+      '_sameNameDifferentRenameSet',
+      '_differentNameSameRename',
+    ]),
+  );
   // Calling members with type parameters.
   final jsParams = createStaticInteropMock<Params, ParamsImpl>(ParamsImpl());
   final jsArray = JSArray();

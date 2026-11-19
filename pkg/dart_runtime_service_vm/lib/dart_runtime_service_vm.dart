@@ -38,6 +38,7 @@ class DartRuntimeServiceVMBackend
     required this.signalWatch,
     required Stream<VmRunningIsolate> runningIsolatesStream,
     required this._ddsManager,
+    this.notifyServerState,
     this.serviceInfoFilename,
   }) : isolateManager = VmIsolateManager(
          runningIsolatesStream: runningIsolatesStream,
@@ -60,6 +61,8 @@ class DartRuntimeServiceVMBackend
   /// The internal implementation of [ProcessSignal.watch].
   final Stream<ProcessSignal> Function(ProcessSignal signal) signalWatch;
   StreamSubscription<ProcessSignal>? _sigquitSubscription;
+  StreamSubscription<Uri?>? _ddsUriSubscription;
+  bool _serverStarted = false;
 
   /// The port the VM uses to send messages to the VM service.
   static final isolateControlPort = RawReceivePort();
@@ -90,6 +93,15 @@ class DartRuntimeServiceVMBackend
   /// Adds support for launching and accepting connections from the
   /// Dart Development Service.
   final DartDevelopmentServiceManager _ddsManager;
+
+  /// Callback invoked to notify the embedder when the server URI changes.
+  ///
+  /// Passed the active server URI string when the server starts or when DDS
+  /// connects or disconnects, and `''` when the server shuts down.
+  // TODO(bkonyi): remove once embedders migrate to
+  // Dart_SetServiceServerStateCallback
+  // (https://github.com/dart-lang/sdk/issues/64161).
+  final void Function(String uri)? notifyServerState;
 
   /// The path to the file where VM service connection info should be written.
   final String? serviceInfoFilename;
@@ -164,6 +176,7 @@ class DartRuntimeServiceVMBackend
       name: 'native-rpc-client',
       connection: _nativeRpcClientStreamChannelController.foreign,
     );
+    _ddsUriSubscription = _ddsManager.ddsUriChanges.listen(_onDdsUriChanged);
     _nativeBindings.onStart();
     _logger.info('Initialized.');
   }
@@ -179,6 +192,7 @@ class DartRuntimeServiceVMBackend
     await _ddsManager.shutdown();
     await isolateManager.shutdown();
     await Future.wait([
+      _ddsUriSubscription?.cancel() ?? Future<void>.value(),
       _sigquitSubscription?.cancel() ?? Future<void>.value(),
       _nativeRpcClientStreamChannelController.local.sink.close(),
       _devFs.cleanup(),
@@ -212,13 +226,16 @@ class DartRuntimeServiceVMBackend
         stderr.writeln('Could not start the VM service: ${e.message}');
       }
     }
+    httpUri = _normalizeServerUri(
+      frontend.clientConnectionController.redirectUri ?? httpUri,
+    );
     final serviceInfoFilenameLocal = serviceInfoFilename;
     if (serviceInfoFilenameLocal != null &&
         serviceInfoFilenameLocal.isNotEmpty) {
       await _dumpServiceInfoToFile(serviceInfoFilenameLocal, httpUri);
-    }
-    if (!httpUri.path.endsWith('/')) {
-      httpUri = httpUri.replace(path: '${httpUri.path}/');
+      httpUri = _normalizeServerUri(
+        frontend.clientConnectionController.redirectUri ?? httpUri,
+      );
     }
     frontend.printServiceOutput('The Dart VM service is listening on $httpUri');
     final devToolsUri = _ddsManager.devToolsUri;
@@ -233,7 +250,8 @@ class DartRuntimeServiceVMBackend
         'The Dart Tooling Daemon (DTD) is available at: $dtdUri',
       );
     }
-    _nativeBindings.onServerAddressChange(httpUri.toString());
+    _serverStarted = true;
+    _updateServerAddress(httpUri);
   }
 
   Future<void> _dumpServiceInfoToFile(String filename, Uri httpUri) async {
@@ -248,9 +266,34 @@ class DartRuntimeServiceVMBackend
 
   @override
   Future<void> onServerShutdown() async {
+    _serverStarted = false;
     // Cleanup DDS state so it can be reinitialized if the server is started
     // again.
     await _ddsManager.shutdown();
+    _updateServerAddress(null);
+  }
+
+  void _onDdsUriChanged(Uri? ddsUri) {
+    if (!_serverStarted ||
+        !frontend.isServerRunning ||
+        frontend.isShuttingDown) {
+      return;
+    }
+    _updateServerAddress(ddsUri ?? frontend.httpUri);
+  }
+
+  static Uri _normalizeServerUri(Uri uri) =>
+      uri.path.endsWith('/') ? uri : uri.replace(path: '${uri.path}/');
+
+  void _updateServerAddress(Uri? uri) {
+    if (uri == null) {
+      notifyServerState?.call('');
+      _nativeBindings.onServerAddressChange(null);
+      return;
+    }
+    final serverUri = _normalizeServerUri(uri).toString();
+    notifyServerState?.call(serverUri);
+    _nativeBindings.onServerAddressChange(serverUri);
   }
 
   @override

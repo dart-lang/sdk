@@ -137,7 +137,8 @@ const _Anonymous anonymous = _Anonymous();
 /// When an instance of a class annotated with this annotation is passed to
 /// `createJSInteropWrapper`, the method returns a JS object that contains
 /// a property for each of the class' instance members. When called, these
-/// properties forward to the instance's corresponding members.
+/// properties forward to the instance's corresponding members. These properties
+/// are enumerable.
 ///
 /// You can either annotate specific instance members to only wrap those members
 /// or you can annotate the entire class, which will include all of its instance

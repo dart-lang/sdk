@@ -166,6 +166,38 @@ DART_EXPORT void Dart_SetEmbedderInformationCallback(
     Dart_EmbedderInformationCallback callback);
 
 /**
+ * Callback provided by the embedder that is used by the VM to notify the
+ * embedder when the VM service server state changes.
+ *
+ * The callback is invoked on the service isolate thread when the server state
+ * changes and must not block on the service isolate (e.g., calling
+ * Dart_InvokeVMServiceMethod from within the callback will deadlock).
+ *
+ * \param server_uri The URI of the VM service HTTP server (or the Dart
+ *   Development Service (DDS) URI once DDS is connected), or NULL if the
+ *   server is shut down. The string is only valid for the duration of the
+ *   callback invocation.
+ */
+typedef void (*Dart_ServiceServerStateCallback)(const char* server_uri);
+
+/**
+ * Register a Dart_ServiceServerStateCallback to be called when the VM service
+ * HTTP server starts, updates its address, or shuts down.
+ *
+ * Register the callback before the service isolate starts to receive the
+ * initial startup notification; registering after the server is already running
+ * does not replay the current state.
+ *
+ * \param callback The callback to invoke. Providing a NULL callback will clear
+ *   the registration.
+ *
+ * NOTE: If multiple callbacks are registered, only the last callback registered
+ * will be remembered.
+ */
+DART_EXPORT void Dart_SetServiceServerStateCallback(
+    Dart_ServiceServerStateCallback callback);
+
+/**
  * Invoke a vm-service method and wait for its result.
  *
  * \param request_json The utf8-encoded json-rpc request.

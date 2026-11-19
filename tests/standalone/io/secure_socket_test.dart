@@ -112,10 +112,40 @@ void testConnectTimeout() {
       });
 }
 
+Future<void> testAddStreamAfterCloseThrowsSocketException() async {
+  final server = await SecureServerSocket.bind(
+    "localhost",
+    0,
+    serverContext('pem', 'dartdart'),
+  );
+  final serverSocketFuture = server.first;
+  final client = await SecureSocket.connect(
+    "localhost",
+    server.port,
+    context: clientContext('pem', 'dartdart'),
+  );
+  final serverSocket = await serverSocketFuture;
+  serverSocket.listen((_) {}, onError: (_) {});
+  client.listen((_) {}, onError: (_) {});
+
+  await client.close();
+  await asyncExpectThrows<SocketException>(
+    client.addStream(Stream<List<int>>.value(const [1, 2, 3])),
+  );
+  await asyncExpectThrows<SocketException>(
+    client.addStream(Stream<List<int>>.value(const [4, 5, 6])),
+  );
+
+  client.destroy();
+  serverSocket.destroy();
+  await server.close();
+}
+
 main() async {
   asyncStart();
   await test('pem', 'dartdart');
   await test('p12', 'dartdart');
+  await testAddStreamAfterCloseThrowsSocketException();
   testConnectTimeout();
   asyncEnd();
 }

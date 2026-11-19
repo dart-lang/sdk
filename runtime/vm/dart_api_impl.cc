@@ -6344,6 +6344,13 @@ DART_EXPORT void Dart_SetEmbedderInformationCallback(
 #endif
 }
 
+DART_EXPORT void Dart_SetServiceServerStateCallback(
+    Dart_ServiceServerStateCallback callback) {
+#if !defined(PRODUCT)
+  ServiceIsolate::SetServerStateCallback(callback);
+#endif
+}
+
 DART_EXPORT char* Dart_SetServiceStreamCallbacks(
     Dart_ServiceStreamListenCallback listen_callback,
     Dart_ServiceStreamCancelCallback cancel_callback) {

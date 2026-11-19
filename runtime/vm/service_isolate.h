@@ -6,6 +6,7 @@
 #define RUNTIME_VM_SERVICE_ISOLATE_H_
 
 #include "include/dart_api.h"
+#include "include/dart_tools_api.h"
 
 #include "vm/allocation.h"
 #include "vm/object.h"
@@ -64,6 +65,9 @@ class ServiceIsolate : public AllStatic {
                                const Bool& silenceOutput);
 
   static void SetServerAddress(const char* address);
+  static void SetServerStateCallback(Dart_ServiceServerStateCallback callback) {
+    server_state_callback_ = callback;
+  }
 
   // Returns the server's web address or nullptr if none is running.
   static const char* server_address() { return server_address_; }
@@ -74,6 +78,7 @@ class ServiceIsolate : public AllStatic {
 
  private:
   static void KillServiceIsolate();
+  static Dart_ServiceServerStateCallback server_state_callback_;
 
  protected:
   static void SetServicePort(Dart_Port port);

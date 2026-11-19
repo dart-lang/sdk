@@ -102,6 +102,12 @@ bool _waitForDdsToAdvertiseService = false;
 @entrypoint
 bool _printDtd = false;
 
+// TODO(bkonyi): remove once embedders migrate to
+// Dart_SetServiceServerStateCallback
+// (https://github.com/dart-lang/sdk/issues/64161).
+@pragma('vm:external-name', 'VMServiceIO_NotifyServerState')
+external void _notifyServerState(String uri);
+
 @pragma('vm:entry-point', 'get')
 Future<void> main([List<String> args = const []]) async {
   if (args case ['--help']) {
@@ -130,6 +136,7 @@ Future<void> main([List<String> args = const []]) async {
           host: _ddsIP,
           port: _ddsPort,
         ),
+        notifyServerState: _notifyServerState,
         serviceInfoFilename: _serviceInfoFilename,
       ),
     );

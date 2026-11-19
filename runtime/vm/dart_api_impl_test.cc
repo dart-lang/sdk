@@ -8,6 +8,7 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/vmservice_impl.h"
 #include "include/dart_api.h"
 #include "include/dart_embedder_api.h"
 #include "include/dart_native_api.h"
@@ -24,6 +25,7 @@
 #include "vm/heap/verifier.h"
 #include "vm/lockers.h"
 #include "vm/native_message_handler.h"
+#include "vm/service_isolate.h"
 #include "vm/timeline.h"
 #include "vm/unit_test.h"
 
@@ -10609,6 +10611,221 @@ TEST_CASE(DartAPI_VmService_OriginCheckDisabled_Runtime) {
 
   InvokeVMServiceMethodCommon();
 }
+
+static constexpr const char* kExternalDdsUri = "http://127.0.0.1:8181/dds/";
+
+static void ControlWebServer(Dart_Handle lib, bool enable) {
+  Dart_Handle args[] = {Dart_NewBoolean(enable)};
+  Dart_Handle result =
+      Dart_Invoke(lib, NewString("controlWebServer"), ARRAY_SIZE(args), args);
+  EXPECT_VALID(result);
+  // Run until the service isolate has responded and the receive port used by
+  // Service.controlWebServer is closed.
+  result = Dart_RunLoop();
+  EXPECT_VALID(result);
+}
+
+static Monitor* server_state_monitor = new Monitor();
+static int server_state_callback_count = 0;
+static char* recorded_server_uri = nullptr;
+
+static void RecordServerStateCallback(const char* server_uri) {
+  MonitorLocker ml(server_state_monitor);
+  ++server_state_callback_count;
+  if (recorded_server_uri != nullptr) {
+    free(recorded_server_uri);
+    recorded_server_uri = nullptr;
+  }
+  if (server_uri != nullptr) {
+    recorded_server_uri = Utils::StrDup(server_uri);
+  }
+  ml.NotifyAll();
+}
+
+static void WaitForServerStateCallbackCount(int expected_count) {
+  MonitorLocker ml(server_state_monitor);
+  while (server_state_callback_count < expected_count) {
+    if (ml.Wait(5000) == Monitor::kTimedOut) {
+      break;
+    }
+  }
+  EXPECT_EQ(expected_count, server_state_callback_count);
+}
+
+static void ExpectServerStateMatches(const char* expected_uri) {
+  EXPECT_NOTNULL(ServiceIsolate::server_address());
+  if (ServiceIsolate::server_address() != nullptr) {
+    EXPECT_STREQ(expected_uri, ServiceIsolate::server_address());
+  }
+  EXPECT_STREQ(expected_uri, bin::VmService::GetServerAddress());
+  MonitorLocker ml(server_state_monitor);
+  EXPECT_NOTNULL(recorded_server_uri);
+  if (recorded_server_uri != nullptr) {
+    EXPECT_STREQ(expected_uri, recorded_server_uri);
+  }
+}
+
+static void ExpectEmbedderNotifiedOfServerAddress() {
+  const char* server_address = ServiceIsolate::server_address();
+  EXPECT_NOTNULL(server_address);
+  if (server_address != nullptr) {
+    EXPECT_STREQ(server_address, bin::VmService::GetServerAddress());
+  }
+}
+
+static void OnExternalDdsConnected(Dart_Port dest_port_id,
+                                   Dart_CObject* message) {
+  WaitForServerStateCallbackCount(1);
+  ExpectServerStateMatches(kExternalDdsUri);
+
+  EXPECT_EQ(Dart_CObject_kSendPort, message->type);
+  if (message->type == Dart_CObject_kSendPort) {
+    Dart_CObject close_signal;
+    close_signal.type = Dart_CObject_kNull;
+    EXPECT(Dart_PostCObject(message->value.as_send_port.id, &close_signal));
+  }
+}
+
+static void RunExternalDdsSession(Dart_Handle lib, const char* dds_uri) {
+  Dart_Port sync_port =
+      Dart_NewNativePort("ExternalDdsSync", &OnExternalDdsConnected,
+                         /*handle_concurrently=*/false);
+  EXPECT_NE(ILLEGAL_PORT, sync_port);
+
+  Dart_Handle args[] = {Dart_NewSendPort(sync_port), NewString(dds_uri)};
+  Dart_Handle result = Dart_Invoke(lib, NewString("runExternalDdsSession"),
+                                   ARRAY_SIZE(args), args);
+  EXPECT_VALID(result);
+  result = Dart_RunLoop();
+  EXPECT_VALID(result);
+
+  EXPECT(Dart_CloseNativePort(sync_port));
+}
+
+// Checks that the embedder is notified of the VM service HTTP server address
+// through both VMServiceIO_NotifyServerState and
+// Dart_SetServiceServerStateCallback when the server starts,
+// connects/disconnects an external DDS instance, and stops.
+static void VmServiceNotifyServerStateCommon() {
+  {
+    MonitorLocker ml(server_state_monitor);
+    server_state_callback_count = 0;
+    if (recorded_server_uri != nullptr) {
+      free(recorded_server_uri);
+      recorded_server_uri = nullptr;
+    }
+  }
+
+  const char* kScript = R"(
+    import 'dart:async';
+    import 'dart:convert';
+    import 'dart:developer';
+    import 'dart:io';
+    import 'dart:isolate';
+
+    @pragma('vm:entry-point', 'call')
+    Future<void> controlWebServer(bool enable) async {
+      await Service.controlWebServer(enable: enable);
+    }
+
+    @pragma('vm:entry-point', 'call')
+    Future<void> runExternalDdsSession(
+      SendPort connectedPort,
+      String ddsUri,
+    ) async {
+      final info = await Service.getInfo();
+      final client = HttpClient();
+      final ws = await WebSocket.connect(
+        info.serverWebSocketUri!.toString(),
+        customClient: client,
+      );
+      client.close();
+      final responseCompleter = Completer<String>();
+      ws.listen((Object? data) {
+        if (!responseCompleter.isCompleted) {
+          responseCompleter.complete(data as String);
+        }
+      });
+      ws.add(
+        json.encode({
+          'jsonrpc': '2.0',
+          'id': '1',
+          'method': '_yieldControlToDDS',
+          'params': {'uri': ddsUri},
+        }),
+      );
+      final response =
+          json.decode(await responseCompleter.future) as Map<String, Object?>;
+      if (response['result'] == null) {
+        throw StateError('Unexpected _yieldControlToDDS response: $response');
+      }
+      final closePort = ReceivePort();
+      connectedPort.send(closePort.sendPort);
+      await closePort.first;
+      closePort.close();
+      await ws.close();
+    }
+  )";
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
+  EXPECT_VALID(lib);
+
+  EXPECT(bin::DartUtils::SetOriginalWorkingDirectory());
+  Dart_Handle result = bin::DartUtils::SetupCoreLibraries(
+      /*is_service_isolate=*/false, /*trace_loading=*/false,
+      /*flag_profile_microtasks=*/false, bin::DartIoSettings{});
+  EXPECT_VALID(result);
+
+  // The HTTP server is started while the service isolate is initializing.
+  ServiceIsolate::WaitForServiceIsolateStartup();
+  ExpectEmbedderNotifiedOfServerAddress();
+  char* initial_server_uri = Utils::StrDup(ServiceIsolate::server_address());
+  EXPECT_NOTNULL(initial_server_uri);
+
+  Dart_SetServiceServerStateCallback(&RecordServerStateCallback);
+
+  // Connect an external DDS client (verified inside OnExternalDdsConnected),
+  // then close its WebSocket and verify the server address reverts to the
+  // initial VM service HTTP URI.
+  RunExternalDdsSession(lib, kExternalDdsUri);
+  WaitForServerStateCallbackCount(2);
+  if (initial_server_uri != nullptr) {
+    ExpectServerStateMatches(initial_server_uri);
+  }
+  free(initial_server_uri);
+
+  ControlWebServer(lib, /*enable=*/false);
+  WaitForServerStateCallbackCount(3);
+  EXPECT_NULLPTR(ServiceIsolate::server_address());
+  EXPECT_STREQ("", bin::VmService::GetServerAddress());
+  {
+    MonitorLocker ml(server_state_monitor);
+    EXPECT_NULLPTR(recorded_server_uri);
+  }
+
+  ControlWebServer(lib, /*enable=*/true);
+  WaitForServerStateCallbackCount(4);
+  ExpectEmbedderNotifiedOfServerAddress();
+  if (ServiceIsolate::server_address() != nullptr) {
+    ExpectServerStateMatches(ServiceIsolate::server_address());
+  }
+
+  Dart_SetServiceServerStateCallback(nullptr);
+  {
+    MonitorLocker ml(server_state_monitor);
+    free(recorded_server_uri);
+    recorded_server_uri = nullptr;
+  }
+}
+
+TEST_CASE(DartAPI_VmService_NotifyServerState) {
+  VmServiceNotifyServerStateCommon();
+}
+
+#if defined(EXPERIMENTAL_VM_SERVICE)
+TEST_CASE(DartAPI_VmService_NotifyServerState_Exp) {
+  VmServiceNotifyServerStateCommon();
+}
+#endif  // defined(EXPERIMENTAL_VM_SERVICE)
 
 static Monitor* loop_test_lock = new Monitor();
 static bool loop_test_exit = false;
