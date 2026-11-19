@@ -1006,6 +1006,9 @@ class _StreamSinkImpl<T> implements StreamSink<T> {
     Future targetAddStream() {
       return _target.addStream(stream).whenComplete(() {
         _isBound = false;
+        if (_hasTargetError) {
+          _closeTarget();
+        }
       });
     }
 
@@ -1029,8 +1032,13 @@ class _StreamSinkImpl<T> implements StreamSink<T> {
     controller.close();
     return future.whenComplete(() {
       _isBound = false;
+      if (_hasTargetError) {
+        _closeTarget();
+      }
     });
   }
+
+  bool get _hasTargetError => false;
 
   Future close() {
     if (_isBound) {
@@ -1081,22 +1089,25 @@ class _StreamSinkImpl<T> implements StreamSink<T> {
           .addStream(_controller.stream)
           .then(
             (_) {
+              final completer = _controllerCompleter;
+              _controllerCompleter = null;
+              _controllerInstance = null;
               if (_isBound) {
                 // A new stream takes over - forward values to that stream.
-                _controllerCompleter!.complete(this);
-                _controllerCompleter = null;
-                _controllerInstance = null;
+                completer!.complete(this);
               } else {
-                // No new stream, .close was called. Close _target.
+                // No new stream, .close was called (or target stopped early).
+                // Close _target.
                 _closeTarget();
               }
             },
             onError: (Object error, StackTrace stackTrace) {
+              final completer = _controllerCompleter;
+              _controllerCompleter = null;
+              _controllerInstance = null;
               if (_isBound) {
                 // A new stream takes over - forward errors to that stream.
-                _controllerCompleter!.completeError(error, stackTrace);
-                _controllerCompleter = null;
-                _controllerInstance = null;
+                completer!.completeError(error, stackTrace);
               } else {
                 // No new stream. No need to close target, as it has already
                 // failed.
@@ -1293,6 +1304,8 @@ class _HttpResponse extends _HttpOutboundMessage<HttpResponse>
   }
 
   bool get _isConnectionClosed => _httpRequest!._httpConnection._isClosing;
+
+  bool get _hasTargetError => _outgoing._socketError;
 
   List<Cookie> get cookies => _cookies ??= <Cookie>[];
 
