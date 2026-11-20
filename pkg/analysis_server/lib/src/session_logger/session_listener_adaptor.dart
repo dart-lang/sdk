@@ -32,6 +32,7 @@ class SessionListenerAdaptor(final SessionListener listener)
     listener.logInfo(message);
   }
 
+  @Deprecated('This form of logging is no longer supported.')
   @override
   void logLogEntry(
     String level,
@@ -43,6 +44,7 @@ class SessionListenerAdaptor(final SessionListener listener)
     // TODO(brianwilkerson): Report that this method was unexpectedly invoked.
   }
 
+  @Deprecated('This form of logging is no longer supported.')
   @override
   void logNotification(String notification) {
     // TODO(brianwilkerson): Report that this method was unexpectedly invoked.
@@ -87,16 +89,19 @@ class SessionListenerAdaptor(final SessionListener listener)
     // TODO(brianwilkerson): Report that this method was unexpectedly invoked.
   }
 
+  @Deprecated('This form of logging is no longer supported.')
   @override
   void logRequest(String request) {
     // TODO(brianwilkerson): Report that this method was unexpectedly invoked.
   }
 
+  @Deprecated('This form of logging is no longer supported.')
   @override
   void logResponse(String response) {
     // TODO(brianwilkerson): Report that this method was unexpectedly invoked.
   }
 
+  @Deprecated('This form of logging is no longer supported.')
   @override
   void logVersion(
     String uuid,
@@ -108,6 +113,7 @@ class SessionListenerAdaptor(final SessionListener listener)
     // TODO(brianwilkerson): Report that this method was unexpectedly invoked.
   }
 
+  @Deprecated('This form of logging is no longer supported.')
   @override
   void logWatchEvent(String folderPath, String filePath, String changeType) {
     // TODO(brianwilkerson): Report that this method was unexpectedly invoked.

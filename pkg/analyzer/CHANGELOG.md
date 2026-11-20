@@ -13,6 +13,10 @@
   macro expansion. Templates in documentation comments on `library` directives, declarations, and members remain supported.
 * Dartdoc templates in documentation comments on declaring formal parameters of primary constructors, including the
   representation of an extension type, are collected for macro expansion. These comments document the declared fields.
+* Deprecated the methods `logLogEntry`, `logNotification`, `logRequest`,
+  `logResponse`, `logVersion`, and  `logWatchEvent` in the class
+  `InstrumentationService` and its subclasses. These were only used by the
+  analysis server, which now uses `SessionListener` to log events.
 
 ## 14.7.0
 

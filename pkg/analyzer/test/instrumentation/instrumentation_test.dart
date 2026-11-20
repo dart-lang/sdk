@@ -72,6 +72,7 @@ class InstrumentationServiceTest {
     String exception = 'exception';
     String stackTraceText = 'stackTrace';
     StackTrace stackTrace = StackTrace.fromString(stackTraceText);
+    // ignore: deprecated_member_use_from_same_package
     service.logLogEntry(level, time, message, exception, stackTrace);
     assertNormal(
       logger,
@@ -84,6 +85,7 @@ class InstrumentationServiceTest {
     TestInstrumentationLogger logger = TestInstrumentationLogger();
     InstrumentationService service = InstrumentationLogAdapter(logger);
     String message = 'notificationText';
+    // ignore: deprecated_member_use_from_same_package
     service.logNotification(message);
     assertNormal(logger, InstrumentationLogAdapter.TAG_NOTIFICATION, message);
   }
@@ -184,6 +186,7 @@ class InstrumentationServiceTest {
     TestInstrumentationLogger logger = TestInstrumentationLogger();
     InstrumentationService service = InstrumentationLogAdapter(logger);
     String message = 'requestText';
+    // ignore: deprecated_member_use_from_same_package
     service.logRequest(message);
     assertNormal(logger, InstrumentationLogAdapter.TAG_REQUEST, message);
   }
@@ -192,6 +195,7 @@ class InstrumentationServiceTest {
     TestInstrumentationLogger logger = TestInstrumentationLogger();
     InstrumentationService service = InstrumentationLogAdapter(logger);
     String message = 'responseText';
+    // ignore: deprecated_member_use_from_same_package
     service.logResponse(message);
     assertNormal(logger, InstrumentationLogAdapter.TAG_RESPONSE, message);
   }
@@ -199,6 +203,7 @@ class InstrumentationServiceTest {
   void test_logVersion() {
     TestInstrumentationLogger logger = TestInstrumentationLogger();
     InstrumentationService service = InstrumentationLogAdapter(logger);
+    // ignore: deprecated_member_use_from_same_package
     service.logVersion(
       'myUuid',
       'someClientId',
@@ -217,6 +222,7 @@ class InstrumentationServiceTest {
   void test_logWatch() {
     TestInstrumentationLogger logger = TestInstrumentationLogger();
     InstrumentationService service = InstrumentationLogAdapter(logger);
+    // ignore: deprecated_member_use_from_same_package
     service.logWatchEvent('/folder', '/folder/file.txt', 'modify');
     assertNormal(
       logger,
@@ -231,6 +237,7 @@ class InstrumentationServiceTest {
       logger,
       watchEventExclusionFiles: {'/folder/excluded.txt'},
     );
+    // ignore: deprecated_member_use_from_same_package
     service.logWatchEvent('/folder', '/folder/excluded.txt', 'modify');
     assertNoLogs(logger);
   }
@@ -241,6 +248,7 @@ class InstrumentationServiceTest {
       logger,
       watchEventExclusionFiles: {'/folder/excluded.txt'},
     );
+    // ignore: deprecated_member_use_from_same_package
     service.logWatchEvent('/folder', '/folder/file.txt', 'modify');
     assertNormal(
       logger,

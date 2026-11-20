@@ -59,6 +59,7 @@ class InstrumentationLogAdapter implements InstrumentationService {
   void logInfo(String message, [dynamic exception]) =>
       _log(TAG_INFO, message + (exception == null ? "" : exception.toString()));
 
+  @Deprecated('This form of logging is no longer supported.')
   @override
   void logLogEntry(
     String level,
@@ -84,6 +85,7 @@ class InstrumentationLogAdapter implements InstrumentationService {
     );
   }
 
+  @Deprecated('This form of logging is no longer supported.')
   @override
   void logNotification(String notification) =>
       _log(TAG_NOTIFICATION, notification);
@@ -143,12 +145,15 @@ class InstrumentationLogAdapter implements InstrumentationService {
     _instrumentationLogger.log(_join(fields));
   }
 
+  @Deprecated('This form of logging is no longer supported.')
   @override
   void logRequest(String request) => _log(TAG_REQUEST, request);
 
+  @Deprecated('This form of logging is no longer supported.')
   @override
   void logResponse(String response) => _log(TAG_RESPONSE, response);
 
+  @Deprecated('This form of logging is no longer supported.')
   @override
   void logVersion(
     String uuid,
@@ -172,6 +177,7 @@ class InstrumentationLogAdapter implements InstrumentationService {
     );
   }
 
+  @Deprecated('This form of logging is no longer supported.')
   @override
   void logWatchEvent(String folderPath, String filePath, String changeType) {
     if (_watchEventExclusionFiles?.contains(filePath) ?? false) {
