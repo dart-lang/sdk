@@ -500,7 +500,14 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("signature", sig);
 
   Code& code = Code::Handle(CurrentCode());
-  if (!code.IsNull()) {
+  if (IsInterpreted()) {
+#if defined(DART_DYNAMIC_MODULES)
+    // Report the bytecode instead of the interpreter entry stub.
+    jsobj.AddProperty("code", Bytecode::Handle(GetBytecode()));
+#else
+    UNREACHABLE();
+#endif
+  } else if (!code.IsNull()) {
     jsobj.AddProperty("code", code);
   }
   Array& ics = Array::Handle(ic_data_array());
