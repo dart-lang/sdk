@@ -2851,7 +2851,20 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   void _genClosure(LocalFunction node, String name, FunctionNode function) {
     final int closureIndex = _genClosureBytecode(node, name, function);
+    // Allocating a closure is not a pause point.
+    final savedFlags = asm.currentSourcePositionFlags;
+    asm.currentSourcePositionFlags |= SourcePositions.syntheticFlag;
     _genAllocateClosureInstance(closureIndex, function);
+    asm.currentSourcePositionFlags = savedFlags;
+  }
+
+  // Emits the stack check at the start of each iteration of a loop, which is
+  // not a pause point.
+  void _genLoopCheckStack(int loopDepth) {
+    final savedFlags = asm.currentSourcePositionFlags;
+    asm.currentSourcePositionFlags |= SourcePositions.syntheticFlag;
+    asm.emitCheckStack(loopDepth);
+    asm.currentSourcePositionFlags = savedFlags;
   }
 
   void _allocateContextIfNeeded() {
@@ -4236,7 +4249,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     final Label join = new Label(allowsBackwardJumps: true);
     asm.bind(join);
 
-    asm.emitCheckStack(++currentLoopDepth);
+    _genLoopCheckStack(++currentLoopDepth);
 
     _recordBranchTargetCoverage(node.body);
     _generateNode(node.body);
@@ -4282,7 +4295,7 @@ class BytecodeGenerator extends RecursiveVisitor {
       final Label join = new Label(allowsBackwardJumps: true);
       asm.bind(join);
 
-      asm.emitCheckStack(++currentLoopDepth);
+      _genLoopCheckStack(++currentLoopDepth);
 
       final condition = node.condition;
       if (condition != null) {
@@ -4317,9 +4330,11 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   @override
   void visitFunctionDeclaration(ast.FunctionDeclaration node) {
+    // A local function declaration is a pause point, although allocating its
+    // closure is not.
+    asm.emitSourcePosition();
     _genPushContextIfCaptured(node.variable);
     _genClosure(node, node.variable.name, node.function);
-    asm.emitSourcePosition();
     _genStoreVar(node.variable);
   }
 
@@ -4819,7 +4834,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     final Label join = new Label(allowsBackwardJumps: true);
     asm.bind(join);
 
-    asm.emitCheckStack(++currentLoopDepth);
+    _genLoopCheckStack(++currentLoopDepth);
 
     _genConditionAndJumpIf(node.condition, false, done);
 
@@ -4959,12 +4974,17 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   @override
   void visitYieldStatement(YieldStatement node) {
+    // The yield pauses after evaluating its value, not while preparing to
+    // yield it.
+    final savedFlags = asm.currentSourcePositionFlags;
+    asm.currentSourcePositionFlags |= SourcePositions.syntheticFlag;
     asm.emitPush(locals.suspendStateVarIndexInFrame);
     _genDirectCall(
       suspendStateFunctionData,
       objectTable.getArgDescHandle(1),
       1,
     );
+    asm.currentSourcePositionFlags = savedFlags;
 
     _generateNode(node.expression);
     // Add a pause point after the body prior to the sync/async machinery.

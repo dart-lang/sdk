@@ -889,7 +889,7 @@ void ActivationFrame::GetDescIndices() {
   }
   GetVarDescriptors();
 
-  TokenPosition activation_token_pos = TokenPos();
+  TokenPosition activation_token_pos = TokenPos().ToRealIfSynthetic();
   if (!activation_token_pos.IsDebugPause() || kind_ != kRegular) {
     // We don't have a token position for this frame, so can't determine
     // which variables are visible.
@@ -1377,7 +1377,7 @@ void ActivationFrame::PrintToJSONObjectRegular(JSONObject* jsobj) {
   const Script& script = Script::Handle(SourceScript());
   jsobj->AddProperty("type", "Frame");
   jsobj->AddProperty("kind", KindToCString(kind_));
-  const TokenPosition& pos = TokenPos();
+  const TokenPosition& pos = TokenPos().ToRealIfSynthetic();
   jsobj->AddLocation(script, pos);
   jsobj->AddProperty("function", function());
   if (IsInterpreted()) {
@@ -1419,7 +1419,7 @@ void ActivationFrame::PrintToJSONObjectAsyncAwaiter(JSONObject* jsobj) {
   jsobj->AddProperty("type", "Frame");
   jsobj->AddProperty("kind", KindToCString(kind_));
   const Script& script = Script::Handle(SourceScript());
-  const TokenPosition& pos = TokenPos();
+  const TokenPosition& pos = TokenPos().ToRealIfSynthetic();
   jsobj->AddLocation(script, pos);
   jsobj->AddProperty("function", function());
   if (IsInterpreted()) {

@@ -3055,7 +3055,10 @@ static void CollectBytecodeFunctionTokenPositions(
   if (bytecode.HasSourcePositions()) {
     BytecodeSourcePositionsIterator iter(zone, bytecode);
     while (iter.MoveNext()) {
-      CollectTokenPosition(iter.TokenPos(), token_positions);
+      // Synthetic token positions also encode the source position, so collect
+      // their real counterparts.
+      CollectTokenPosition(iter.TokenPos().ToRealIfSynthetic(),
+                           token_positions);
     }
     if (!function.IsNonImplicitClosureFunction()) {
       // Find closure functions in the object pool.
