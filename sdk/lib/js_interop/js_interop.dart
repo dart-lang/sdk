@@ -1241,6 +1241,9 @@ extension NullableObjectUtilExtension on Object? {
   ///   it's supported. Because Safari has [known bugs] in its implementation,
   ///   `isA<JSError>()` will return true if either `Error.isError()` or
   ///   `instanceof Error` returns true.
+  /// - `JSWrappedPromiseError`: `isA<JSWrappedPromiseError>` will check if the
+  ///   value is the result of a Dart Future's error being intercepted by
+  ///   [FutureOfJSAnyToJSPromise.toJS] or [FutureOfVoidToJSPromise.toJS].
   /// - User interop types whose representation types are JS primitive types:
   ///   This will result in an error to avoid confusion on whether the user
   ///   interop type is used in the type-check. Use the primitive JS type as the
@@ -1445,28 +1448,42 @@ extension JSAnyToFutureOr on JSAny? {
       : this;
 }
 
-JSAny _convertError(Object error, StackTrace stackTrace) {
-  if (error.isA<JSAny>()) return error as JSAny;
-  final errorConstructor = globalContext['Error'] as JSFunction;
-  final wrapper = errorConstructor.callAsConstructor<JSObject>(
-    "Wrapped Dart error thrown from converted Future. See 'error'"
-            "and 'stack' properties.\n$error"
-        .toJS,
+@JS('Object.defineProperty')
+external void _defineProperty(
+  JSObject object,
+  JSAny name,
+  JSObject configuration,
+);
+
+/// An internal symbol used to mark wrapped Dart exceptions returned by
+/// [_convertError].
+final _wrappedPromiseErrorMarker = JSSymbol('JSWrappedPromiseError');
+
+/// Converts a Dart [error] thrown by a failed Future into a JS value.
+///
+/// If [error] is already a [JSAny], returns it as-is.
+JSAny _convertError(Object dartError, StackTrace stackTrace) {
+  if (dartError.isA<JSAny>()) return dartError as JSAny;
+  var jsError =
+      JSError(
+          "Wrapped Dart error thrown from converted Future. See 'error'"
+          "and 'stack' properties.\n$dartError",
+        )
+        ..['error'] = dartError.toJSBox
+        ..['stack'] = stackTrace.toString().toJS;
+  _defineProperty(
+    jsError,
+    _wrappedPromiseErrorMarker,
+    JSObject()..['enumerable'] = false.toJS,
   );
-  wrapper['error'] = error.toJSBox;
-  wrapper['stack'] = stackTrace.toString().toJS;
-  return wrapper;
+  return jsError;
 }
 
 /// Conversions from [Future] to [JSPromise] where the [Future] returns a value.
 extension FutureOfJSAnyToJSPromise<T extends JSAny?> on Future<T> {
   /// A [JSPromise] that either resolves with the result of the completed
   /// [Future] or rejects with its error if it is a JS value and otherwise
-  /// rejects with a JS `Error` that wraps its Dart error value.
-  ///
-  /// The rejected object contains the original error as a [JSBoxedDartObject]
-  /// in the property `error` and the original stack trace as a [String] in the
-  /// property `stack`.
+  /// rejects with a [JSWrappedPromiseError] that wraps its Dart error value.
   JSPromise<T> get toJS {
     return JSPromise<T>(
       (JSFunction resolve, JSFunction reject) {
@@ -1490,11 +1507,8 @@ extension FutureOfJSAnyToJSPromise<T extends JSAny?> on Future<T> {
 /// a value.
 extension FutureOfVoidToJSPromise on Future<void> {
   /// A [JSPromise] that either resolves once this [Future] completes or rejects
-  /// with an object that contains its error.
-  ///
-  /// The rejected object contains the original error as a [JSBoxedDartObject]
-  /// in the property `error` and the original stack trace as a [String] in the
-  /// property `stack`.
+  /// with its error if it is a JS value and otherwise rejects with a
+  /// [JSWrappedPromiseError] that wraps its Dart error value.
   JSPromise get toJS {
     return JSPromise(
       (JSFunction resolve, JSFunction reject) {
@@ -1535,6 +1549,23 @@ extension FutureOrToJSAny<T extends JSAny> on FutureOr<T> {
     Future<T> future => future.toJS,
     _ => this as JSAny,
   };
+}
+
+/// The type of error produced when [FutureOfJSAnyToJSPromise.toJS] or
+/// [FutureOfVoidToJSPromise.toJS] catches a Dart exception.
+@Since('3.15')
+extension type JSWrappedPromiseError._(JSError _) implements JSError {
+  @JS('error')
+  external JSBoxedDartObject get _error;
+
+  @JS('stack')
+  external String get _stack;
+
+  /// The Dart error that was originally thrown.
+  Object get error => _error.toDart;
+
+  /// The Dart stack trace, serialized to a string.
+  StackTrace get stack => StackTrace.fromString(_stack);
 }
 
 /// Conversions from [JSArrayBuffer] to [ByteBuffer].

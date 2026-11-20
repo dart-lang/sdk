@@ -131,6 +131,10 @@ of 3.15 or greater. For more details, see
   `createDartExport` and `createStaticInteropMock` functions now have enumerable
   properties e.g. `Object.keys` should now return all the exported properties.
 
+- Added `WrappedPromiseError` to represent the error type produced by
+  `FutureOfJSAnyToJSPromise.toJS` and `FutureOfVoidToJSPromise.toJS` when they
+  wrap a Dart error.
+
 [#64558]: https://github.com/dart-lang/sdk/issues/64558
 
 #### `dart:io`

@@ -36,6 +36,7 @@ class SharedInteropTransformer extends Transformer {
   final Procedure _isJSAny;
   final Procedure _isJSBoxedDartObject;
   final Procedure _isJSExportedDartFunction;
+  final Procedure _isJSWrappedPromiseError;
   final Procedure _isJSObject;
   final Procedure _isJSArray;
   final Procedure _isNullableJSArray;
@@ -45,6 +46,7 @@ class SharedInteropTransformer extends Transformer {
   final Procedure _isNullableJSAny;
   final Procedure _isNullableJSBoxedDartObject;
   final Procedure _isNullableJSExportedDartFunction;
+  final Procedure _isNullableJSWrappedPromiseError;
   final Procedure _isNullableJSObject;
   final Procedure _isNullableJSTypedArray;
   final ExtensionTypeDeclaration _jsAny;
@@ -115,6 +117,8 @@ class SharedInteropTransformer extends Transformer {
           .getTopLevelProcedure('dart:js_interop', '_isJSBoxedDartObject'),
       _isJSExportedDartFunction = _typeEnvironment.coreTypes.index
           .getTopLevelProcedure('dart:js_interop', '_isJSExportedDartFunction'),
+      _isJSWrappedPromiseError = _typeEnvironment.coreTypes.index
+          .getTopLevelProcedure('dart:js_interop', '_isJSWrappedPromiseError'),
       _isJSObject = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
         'dart:js_interop',
         '_isJSObject',
@@ -144,6 +148,11 @@ class SharedInteropTransformer extends Transformer {
           .getTopLevelProcedure(
             'dart:js_interop',
             '_isNullableJSExportedDartFunction',
+          ),
+      _isNullableJSWrappedPromiseError = _typeEnvironment.coreTypes.index
+          .getTopLevelProcedure(
+            'dart:js_interop',
+            '_isNullableJSWrappedPromiseError',
           ),
       _isNullableJSObject = _typeEnvironment.coreTypes.index
           .getTopLevelProcedure('dart:js_interop', '_isNullableJSObject'),
@@ -875,6 +884,18 @@ class SharedInteropTransformer extends Transformer {
           interopTypeNullable
               ? _isNullableJSBoxedDartObject
               : _isJSBoxedDartObject,
+          Arguments(ExpressionList(VariableGet(receiverVar))),
+        );
+        break;
+      case 'JSWrappedPromiseError' when interopTypeDecl == jsType:
+        // Only do this special case when users are referring directly to the
+        // `dart:js_interop` type and not some wrapper.
+        isJSAnyCheck = null;
+        nullChecksNeeded = false;
+        check = StaticInvocation(
+          interopTypeNullable
+              ? _isNullableJSWrappedPromiseError
+              : _isJSWrappedPromiseError,
           Arguments(ExpressionList(VariableGet(receiverVar))),
         );
         break;
