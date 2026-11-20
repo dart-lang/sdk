@@ -3,6 +3,7 @@ Dynamic Module Entry Point: DART_SDK/pkg/dart2bytecode/testcases/deferred_lib.da
 Library 'DART_SDK/pkg/dart2bytecode/testcases/deferred_lib.dart'
     name '#lib'
     script 'DART_SDK/pkg/dart2bytecode/testcases/deferred_lib.dart'
+    import DART_SDK/pkg/dart2bytecode/testcases/hello.dart deferred as 'lib'
 
 Class '', script = 'DART_SDK/pkg/dart2bytecode/testcases/deferred_lib.dart'
 
@@ -21,7 +22,7 @@ Bytecode {
   ReturnTOS
 }
 ConstantPool {
-  [0] = DeferredLibraryPrefix 'lib', DART_SDK/pkg/dart2bytecode/testcases/deferred_lib.dart -> DART_SDK/pkg/dart2bytecode/testcases/hello.dart
+  [0] = DeferredLibraryPrefix DART_SDK/pkg/dart2bytecode/testcases/deferred_lib.dart, dependency 0
   [1] = DirectCall 'dart:core::_checkLoaded', ArgDesc num-args 1, num-type-args 0, names []
   [2] = Reserved
   [3] = DirectCall 'DART_SDK/pkg/dart2bytecode/testcases/hello.dart::main', ArgDesc num-args 0, num-type-args 0, names []
@@ -41,7 +42,7 @@ Bytecode {
   ReturnTOS
 }
 ConstantPool {
-  [0] = DeferredLibraryPrefix 'lib', DART_SDK/pkg/dart2bytecode/testcases/deferred_lib.dart -> DART_SDK/pkg/dart2bytecode/testcases/hello.dart
+  [0] = DeferredLibraryPrefix DART_SDK/pkg/dart2bytecode/testcases/deferred_lib.dart, dependency 0
   [1] = DirectCall 'dart:core::_loadLibrary', ArgDesc num-args 1, num-type-args 0, names []
   [2] = Reserved
 }

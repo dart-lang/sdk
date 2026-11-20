@@ -8,8 +8,11 @@ import 'dart:math' as math;
 
 import 'package:front_end/src/api_prototype/external_effect.dart'
     show ExternalEffect;
-import 'package:kernel/ast.dart' hide Component, FunctionDeclaration;
-import 'package:kernel/ast.dart' as ast show Component, FunctionDeclaration;
+import 'package:kernel/ast.dart'
+    hide Component, FunctionDeclaration, LibraryDependency;
+import 'package:kernel/ast.dart'
+    as ast
+    show Component, FunctionDeclaration, LibraryDependency;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/external_name.dart' show getExternalName;
@@ -305,9 +308,63 @@ class BytecodeGenerator extends RecursiveVisitor {
         flags |= LibraryDeclaration.usesDartFfiFlag;
       }
     }
+    final dependencies = getLibraryDependencies(library);
+    if (dependencies.isNotEmpty) {
+      flags |= LibraryDeclaration.hasDependenciesFlag;
+    }
     final name = objectTable.getPublicNameHandle(library.name ?? '');
     final script = getScript(library.fileUri);
-    return new LibraryDeclaration(importUri, flags, name, script, classes);
+    return new LibraryDeclaration(
+      importUri,
+      flags,
+      name,
+      script,
+      dependencies,
+      classes,
+    );
+  }
+
+  // The dependencies of [library] which are emitted in bytecode. Deferred
+  // imports are always emitted, as their prefixes are needed at run time.
+  // Other dependencies are only needed by the VM service and hot reload.
+  List<ast.LibraryDependency> _emittedDependencies(Library library) =>
+      options.emitLibraryDependencies
+      ? library.dependencies
+      : library.dependencies.where((d) => d.isDeferred).toList();
+
+  List<LibraryDependency> getLibraryDependencies(Library library) {
+    final dependencies = <LibraryDependency>[];
+    for (var dependency in _emittedDependencies(library)) {
+      int flags = 0;
+      if (dependency.isExport) {
+        flags |= LibraryDependency.isExportFlag;
+      }
+      if (dependency.isDeferred) {
+        flags |= LibraryDependency.isDeferredFlag;
+      }
+      final prefixName = dependency.name;
+      ObjectHandle? prefix;
+      if (prefixName != null) {
+        flags |= LibraryDependency.isPrefixedFlag;
+        prefix = objectTable.getPublicNameHandle(prefixName);
+      }
+      final showNames = <ObjectHandle>[];
+      final hideNames = <ObjectHandle>[];
+      for (var combinator in dependency.combinators) {
+        final names = objectTable.getPublicNameHandles(combinator.names);
+        (combinator.isShow ? showNames : hideNames).addAll(names);
+      }
+      dependencies.add(
+        new LibraryDependency(
+          flags,
+          objectTable.getHandle(dependency.targetLibrary)!,
+          prefix,
+          showNames,
+          hideNames,
+        ),
+      );
+    }
+    return dependencies;
   }
 
   ClassDeclaration getClassDeclaration(Class cls, Members members) {
@@ -4100,30 +4157,25 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   @override
   void visitLoadLibrary(LoadLibrary node) {
-    final dependency = node.import;
-    assert(dependency.isDeferred);
-    asm.emitPushConstant(
-      cp.addDeferredLibraryPrefix(
-        dependency.name!,
-        dependency.enclosingLibrary,
-        dependency.targetLibrary,
-      ),
-    );
+    _genPushDeferredLibraryPrefix(node.import);
     _genDirectCall(loadLibrary, objectTable.getArgDescHandle(1), 1);
   }
 
   @override
   void visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
-    final dependency = node.import;
-    assert(dependency.isDeferred);
-    asm.emitPushConstant(
-      cp.addDeferredLibraryPrefix(
-        dependency.name!,
-        dependency.enclosingLibrary,
-        dependency.targetLibrary,
-      ),
-    );
+    _genPushDeferredLibraryPrefix(node.import);
     _genDirectCall(checkLoaded, objectTable.getArgDescHandle(1), 1);
+  }
+
+  // As in the compiler, the prefix of a deferred import is identified by the
+  // index of the import in the dependencies of its library, as emitted in
+  // bytecode.
+  void _genPushDeferredLibraryPrefix(ast.LibraryDependency dependency) {
+    assert(dependency.isDeferred);
+    final enclosingLibrary = dependency.enclosingLibrary;
+    final index = _emittedDependencies(enclosingLibrary).indexOf(dependency);
+    assert(index >= 0);
+    asm.emitPushConstant(cp.addDeferredLibraryPrefix(enclosingLibrary, index));
   }
 
   @override

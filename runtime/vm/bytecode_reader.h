@@ -247,6 +247,8 @@ class BytecodeReaderHelper : public ValueObject {
   void ReadFunctionDeclarations(const Class& cls);
   void ReadClassDeclaration(const Class& cls);
   void ReadLibraryDeclaration(const Library& library, bool register_classes);
+  void ReadLibraryDependencies(const Library& library);
+  ArrayPtr ReadNameList();
   void ReadLibraryDeclarations(intptr_t num_libraries,
                                const GrowableObjectArray& pending_objects,
                                bool load_code);

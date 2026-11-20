@@ -32,11 +32,13 @@ import 'source_positions.dart'
 class LibraryDeclaration extends BytecodeDeclaration {
   static const usesDartMirrorsFlag = 1 << 0;
   static const usesDartFfiFlag = 1 << 1;
+  static const hasDependenciesFlag = 1 << 2;
 
   ObjectHandle? importUri;
   final int flags;
   final ObjectHandle name;
   final ObjectHandle script;
+  final List<LibraryDependency> dependencies;
   final List<ClassDeclaration> classes;
 
   LibraryDeclaration(
@@ -44,6 +46,7 @@ class LibraryDeclaration extends BytecodeDeclaration {
     this.flags,
     this.name,
     this.script,
+    this.dependencies,
     this.classes,
   );
 
@@ -52,6 +55,12 @@ class LibraryDeclaration extends BytecodeDeclaration {
     writer.writePackedUInt30(flags);
     writer.writePackedObject(name);
     writer.writePackedObject(script);
+    if ((flags & hasDependenciesFlag) != 0) {
+      writer.writePackedUInt30(dependencies.length);
+      for (var dependency in dependencies) {
+        dependency.write(writer);
+      }
+    }
     writer.writePackedUInt30(classes.length);
     for (var cls in classes) {
       writer.writePackedObject(cls.name!);
@@ -64,13 +73,26 @@ class LibraryDeclaration extends BytecodeDeclaration {
     final flags = reader.readPackedUInt30();
     final ObjectHandle name = reader.readPackedObject();
     final ObjectHandle script = reader.readPackedObject();
+    final dependencies = (flags & hasDependenciesFlag) != 0
+        ? List<LibraryDependency>.generate(
+            reader.readPackedUInt30(),
+            (_) => LibraryDependency.read(reader),
+          )
+        : <LibraryDependency>[];
     final classes = List<ClassDeclaration>.generate(reader.readPackedUInt30(), (
       _,
     ) {
       final ObjectHandle className = reader.readPackedObject();
       return reader.readLinkOffset<ClassDeclaration>()..name = className;
     });
-    return new LibraryDeclaration(null, flags, name, script, classes);
+    return new LibraryDeclaration(
+      null,
+      flags,
+      name,
+      script,
+      dependencies,
+      classes,
+    );
   }
 
   @override
@@ -85,9 +107,81 @@ class LibraryDeclaration extends BytecodeDeclaration {
     if ((flags & usesDartFfiFlag) != 0) {
       sb.writeln('    uses dart:ffi');
     }
+    for (var dependency in dependencies) {
+      sb.writeln('    $dependency');
+    }
     sb.writeln();
     for (var cls in classes) {
       sb.write(cls);
+    }
+    return sb.toString();
+  }
+}
+
+class LibraryDependency {
+  static const isExportFlag = 1 << 0;
+  static const isDeferredFlag = 1 << 1;
+  static const isPrefixedFlag = 1 << 2;
+
+  final int flags;
+  final ObjectHandle targetLibrary;
+  final ObjectHandle? prefix;
+  final List<ObjectHandle> showNames;
+  final List<ObjectHandle> hideNames;
+
+  LibraryDependency(
+    this.flags,
+    this.targetLibrary,
+    this.prefix,
+    this.showNames,
+    this.hideNames,
+  ) {
+    assert(((flags & isPrefixedFlag) != 0) == (prefix != null));
+  }
+
+  void write(BufferedWriter writer) {
+    writer.writePackedUInt30(flags);
+    writer.writePackedObject(targetLibrary);
+    if ((flags & isPrefixedFlag) != 0) {
+      writer.writePackedObject(prefix);
+    }
+    writer.writePackedList(showNames);
+    writer.writePackedList(hideNames);
+  }
+
+  factory LibraryDependency.read(BufferedReader reader) {
+    final flags = reader.readPackedUInt30();
+    final ObjectHandle targetLibrary = reader.readPackedObject();
+    final ObjectHandle? prefix = (flags & isPrefixedFlag) != 0
+        ? reader.readPackedObject()
+        : null;
+    final showNames = reader.readPackedList<ObjectHandle>();
+    final hideNames = reader.readPackedList<ObjectHandle>();
+    return new LibraryDependency(
+      flags,
+      targetLibrary,
+      prefix,
+      showNames,
+      hideNames,
+    );
+  }
+
+  @override
+  String toString() {
+    final StringBuffer sb = new StringBuffer();
+    sb.write((flags & isExportFlag) != 0 ? 'export ' : 'import ');
+    sb.write(targetLibrary);
+    if ((flags & isDeferredFlag) != 0) {
+      sb.write(' deferred');
+    }
+    if (prefix != null) {
+      sb.write(' as $prefix');
+    }
+    if (showNames.isNotEmpty) {
+      sb.write(' show ${showNames.join(', ')}');
+    }
+    if (hideNames.isNotEmpty) {
+      sb.write(' hide ${hideNames.join(', ')}');
     }
     return sb.toString();
   }

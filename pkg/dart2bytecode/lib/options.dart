@@ -16,6 +16,8 @@ class BytecodeOptions {
         'Use the closure context lowering in Kernel AST instead of computing it',
     'embed-source-text': 'Embed the source text of scripts',
     'record-coverage': 'Emit instructions and metadata for recording coverage',
+    'library-dependencies':
+        'Emit all imports and exports of libraries, not only deferred imports',
   };
 
   bool enableAsserts;
@@ -29,6 +31,7 @@ class BytecodeOptions {
   bool isClosureContextLoweringEnabled;
   bool embedSourceText;
   bool recordCoverage;
+  bool emitLibraryDependencies;
 
   BytecodeOptions({
     this.enableAsserts = false,
@@ -42,6 +45,7 @@ class BytecodeOptions {
     this.isClosureContextLoweringEnabled = false,
     this.embedSourceText = false,
     this.recordCoverage = false,
+    this.emitLibraryDependencies = false,
   }) {}
 
   void parseCommandLineFlags(List<String>? flags) {
@@ -76,6 +80,9 @@ class BytecodeOptions {
           break;
         case 'record-coverage':
           recordCoverage = true;
+          break;
+        case 'library-dependencies':
+          emitLibraryDependencies = true;
           break;
         default:
           throw 'Unexpected bytecode flag $flag';

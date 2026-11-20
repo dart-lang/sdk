@@ -1,0 +1,114 @@
+Bytecode
+Dynamic Module Entry Point: DART_SDK/pkg/dart2bytecode/testcases/imports.dart::main
+Library 'DART_SDK/pkg/dart2bytecode/testcases/imports.dart'
+    name '#lib'
+    script 'DART_SDK/pkg/dart2bytecode/testcases/imports.dart'
+    import dart:async show 'Future', 'Stream'
+    import dart:collection hide 'HashMap', 'HashSet'
+    import dart:math as 'math'
+    import dart:typed_data as 'math'
+    import dart:io as '_'
+    import DART_SDK/pkg/dart2bytecode/testcases/hello.dart deferred as 'lib'
+    export dart:convert show 'json'
+    export dart:core hide 'print'
+
+Class '', script = 'DART_SDK/pkg/dart2bytecode/testcases/imports.dart'
+
+Field '_exports#', type = dynamic, static, const, final, is-late, has-initializer
+    value = '{"dynamic":"<dynamic>","Never":"<Never>"}'
+
+Function 'testPrefixes', static, reflectable, debuggable, async
+    parameters [] (required: 0)
+    return-type dart:async::Future < dart:core::int >
+
+Bytecode {
+  EntrySuspendable     0, 0, 0
+  Frame                2
+  CheckStack           0
+  PushConstant         CP#0
+  DirectCall           CP#1, 1
+  PopLocal             r0
+Try #0 start:
+  PushConstant         CP#4
+  DirectCall           CP#5, 1
+  PopLocal             r2
+  Suspend              L1
+  Push                 r0
+  Push                 r2
+  DirectCall           CP#7, 2
+  ReturnTOS
+L1:
+  Drop1
+  PushConstant         CP#0
+  PushInt              1
+  PushInt              2
+  DirectCall           CP#9, 3
+  PushInt              1
+  DirectCall           CP#11, 1
+  InterfaceCall        CP#13, 1
+  AddInt
+  PopLocal             r1
+  Push                 r0
+  Push                 r1
+  PushNull
+  PopLocal             r0
+  DirectCall           CP#15, 2
+  ReturnTOS
+Try #0 end:
+Try #0 handler:
+  SetFrame             3
+  Push                 r0
+  JumpIfNull           L2
+  Push                 r0
+  MoveSpecial          exception, r0
+  Push                 r0
+  MoveSpecial          stackTrace, r0
+  Push                 r0
+  DirectCall           CP#17, 3
+  ReturnTOS
+L2:
+  MoveSpecial          exception, r0
+  Push                 r0
+  MoveSpecial          stackTrace, r0
+  Push                 r0
+  Throw                1
+}
+ExceptionsTable {
+  try-index 0, outer -1, start 15, end 66, handler 66, needs-stack-trace, synthetic, types [CP#3]
+}
+ConstantPool {
+  [0] = ObjectRef < dart:core::int >
+  [1] = DirectCall 'dart:async::_SuspendState::_initAsync', ArgDesc num-args 0, num-type-args 1, names []
+  [2] = Reserved
+  [3] = Type dynamic
+  [4] = DeferredLibraryPrefix DART_SDK/pkg/dart2bytecode/testcases/imports.dart, dependency 5
+  [5] = DirectCall 'dart:core::_loadLibrary', ArgDesc num-args 1, num-type-args 0, names []
+  [6] = Reserved
+  [7] = DirectCall 'dart:async::_SuspendState::_await', ArgDesc num-args 2, num-type-args 0, names []
+  [8] = Reserved
+  [9] = DirectCall 'dart:math::max', ArgDesc num-args 2, num-type-args 1, names []
+  [10] = Reserved
+  [11] = DirectCall 'dart:typed_data::Uint8List:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [12] = Reserved
+  [13] = InterfaceCall 'dart:core::List::get:length', ArgDesc num-args 1, num-type-args 0, names []
+  [14] = Reserved
+  [15] = DirectCall 'dart:async::_SuspendState::_returnAsync', ArgDesc num-args 2, num-type-args 0, names []
+  [16] = Reserved
+  [17] = DirectCall 'dart:async::_SuspendState::_handleException', ArgDesc num-args 3, num-type-args 0, names []
+  [18] = Reserved
+}
+
+
+Function 'main', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+}
+

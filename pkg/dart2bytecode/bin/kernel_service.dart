@@ -40,6 +40,7 @@ Uint8List _generateBytecode(
       embedSourceText: true,
       recordCoverage: true,
       keepUnreachableCode: true,
+      emitLibraryDependencies: true,
     ),
   );
   return byteSink.builder.takeBytes();
