@@ -35,6 +35,7 @@ import 'package:analysis_server/src/scheduler/scheduled_message.dart';
 import 'package:analysis_server/src/scheduler/scheduler_tracking_listener.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
+import 'package:analysis_server/src/server/server_byte_store.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/correction/fix_performance.dart';
 import 'package:analysis_server/src/services/correction/refactoring_performance.dart';
@@ -73,14 +74,11 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as analysis;
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/analysis/file_byte_store.dart'
-    show EvictingFileByteStore;
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
-import 'package:analyzer/src/dart/analysis/single_file_byte_store.dart';
 import 'package:analyzer/src/dart/analysis/status.dart' as analysis;
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/file_system/timing_resource_provider.dart';
@@ -172,10 +170,7 @@ abstract class AnalysisServer {
   /// The [SearchEngine] for this server.
   late final SearchEngine searchEngine = SearchEngineImpl(driverMap.values);
 
-  /// The optional [ByteStore] to use as [byteStore].
-  final ByteStore? providedByteStore;
-
-  late final ByteStore byteStore;
+  late final ServerByteStore _byteStore;
 
   final UnlinkedUnitStore unlinkedUnitStore = UnlinkedUnitStoreImpl();
 
@@ -280,18 +275,6 @@ abstract class AnalysisServer {
   /// for processing.
   final MessageScheduler messageScheduler;
 
-  /// A [TimingByteStore] that records operations on the on-disk byte store.
-  TimingByteStore? _timingByteStore;
-
-  /// The file byte store created by [createByteStore], if any.
-  EvictingFileByteStore? _fileByteStore;
-
-  /// The memory caching byte store created by [createByteStore], if any.
-  MemoryCachingByteStore? _memoryCachingByteStore;
-
-  /// The single-file byte store owned by this server, if any.
-  SingleFileByteStore? _singleFileByteStore;
-
   /// Whether notifications caused by analysis should be suppressed.
   ///
   /// This is used when an operation is temporarily modifying overlays and does
@@ -314,7 +297,7 @@ abstract class AnalysisServer {
     // Disable to avoid using this in unit tests.
     @visibleForTesting bool enableBlazeWatcher = false,
     DartFixPromptManager? dartFixPromptManager,
-    this.providedByteStore,
+    ByteStore? providedByteStore,
     PluginManager? pluginManager,
     MessageSchedulerListener? messageSchedulerListener,
     this.performanceLogger,
@@ -379,7 +362,12 @@ abstract class AnalysisServer {
       );
     }
 
-    byteStore = createByteStore(resourceProvider);
+    _byteStore = ServerByteStore(
+      resourceProvider,
+      providedByteStore: providedByteStore,
+      disableFileByteStore: options.disableFileByteStore ?? false,
+      useSingleFileByteStore: options.useSingleFileByteStore,
+    );
 
     analysisDriverScheduler = analysis.AnalysisDriverScheduler(
       analysisPerformanceLogger,
@@ -418,68 +406,12 @@ abstract class AnalysisServer {
   Future<void> get analysisContextsRebuilt =>
       analysisContextRebuildCompleter.future;
 
-  /// Statistics for the byte stores created by [createByteStore], or `null`
-  /// if the byte store was not created by this server.
-  AnalysisServerByteStoreStats? get byteStoreStats {
-    var memoryByteStore = _memoryCachingByteStore;
-    if (memoryByteStore == null) {
-      return null;
-    }
+  /// The [ByteStore] used by this server.
+  ByteStore get byteStore => _byteStore.byteStore;
 
-    var fileByteStore = _fileByteStore;
-    var singleFileByteStore = _singleFileByteStore;
-    var singleFileStatistics = singleFileByteStore?.statistics;
-    return AnalysisServerByteStoreStats(
-      cacheHitCount: memoryByteStore.cacheHitCount,
-      cacheMissCount: memoryByteStore.cacheMissCount,
-      currentSizeBytes: memoryByteStore.currentSizeBytes,
-      entryCount: memoryByteStore.entryCount,
-      evictedBytes: memoryByteStore.evictedBytes,
-      evictedEntryCount: memoryByteStore.evictedEntryCount,
-      evictionCount: memoryByteStore.evictionCount,
-      maxSizeBytes: memoryByteStore.maxSizeBytes,
-      putCount: memoryByteStore.putCount,
-      storeHitCount: memoryByteStore.storeHitCount,
-      storeMissCount: memoryByteStore.storeMissCount,
-      cleanUpCount: fileByteStore?.cleanUpCount,
-      deletedBytes: fileByteStore?.deletedBytes,
-      deletedFileCount: fileByteStore?.deletedFileCount,
-      failedReadCount: fileByteStore?.failedReadCount,
-      failedWriteCount: fileByteStore?.failedWriteCount,
-      fileCacheSizeBytes: fileByteStore?.maxSizeBytes,
-      fileStorePath: fileByteStore?.cachePath,
-      fileStoreSizeBytes: fileByteStore?.lastKnownSizeBytes,
-      lastCleanUpTimeMilliseconds: fileByteStore?.lastCleanUpTimeMilliseconds,
-      lastScannedFileCount: fileByteStore?.lastScannedFileCount,
-      pendingWriteCount: fileByteStore?.pendingWriteCount,
-      readCount: fileByteStore?.readCount,
-      readMissCount: fileByteStore?.readMissCount,
-      writeBytes: fileByteStore?.writeBytes,
-      writeCount: fileByteStore?.writeCount,
-      singleFileStorePath: _singleFileByteStore?.filePath,
-      singleFilePendingEntryCount: _singleFileByteStore?.pendingEntryCount,
-      singleFileDataBytes: singleFileByteStore == null
-          ? null
-          : singleFileByteStore.dataPageCount * pageSize,
-      singleFileFreeDataBytes: singleFileByteStore == null
-          ? null
-          : singleFileByteStore.freeDataPageCount * pageSize,
-      singleFileBucketRebuildCount: singleFileStatistics?.bucketRebuildCount,
-      singleFileCapacityDiscardedBatchCount:
-          singleFileStatistics?.capacityDiscardedBatchCount,
-      singleFileCommitCount: singleFileStatistics?.commitCount,
-      singleFileCommittedEntryCount: singleFileStatistics?.committedEntryCount,
-      singleFileCommittedValueBytes: singleFileStatistics?.committedValueBytes,
-      singleFileEvictedForSpaceEntryCount:
-          singleFileStatistics?.evictedForSpaceEntryCount,
-      singleFileEvictedFromFullBucketEntryCount:
-          singleFileStatistics?.evictedFromFullBucketEntryCount,
-      singleFileOversizedValueBytes: singleFileStatistics?.oversizedValueBytes,
-      singleFileOversizedValueCount: singleFileStatistics?.oversizedValueCount,
-      singleFileResetCount: singleFileStatistics?.resetCount,
-      singleFileTableSlotCount: singleFileByteStore?.tableSlotCount,
-    );
-  }
+  /// Statistics for the byte stores managed by this server, or `null` if a
+  /// non-caching byte store was provided externally.
+  AnalysisServerByteStoreStats? get byteStoreStats => _byteStore.stats;
 
   /// The workspace folders to request resource-scoped configuration for, in
   /// addition to the global configuration.
@@ -603,7 +535,7 @@ abstract class AnalysisServer {
   bool get supportsShowMessageRequest;
 
   /// The timings of the on-disk byte store, or `null` if there is none.
-  TimingByteStore? get timingByteStore => _timingByteStore;
+  TimingByteStore? get timingByteStore => _byteStore.timingByteStore;
 
   /// Resource operations measured since this server was created.
   TimingResourceProvider get timingResourceProvider =>
@@ -635,7 +567,7 @@ abstract class AnalysisServer {
       supportsShowMessageRequest ? showUserPrompt : null;
 
   void afterContextsCreated() {
-    _timingByteStore?.startPeriod('contexts created', isMilestone: true);
+    _byteStore.startPeriod('contexts created', isMilestone: true);
     _isFirstAnalysisSinceContextsBuilt = true;
   }
 
@@ -727,75 +659,6 @@ abstract class AnalysisServer {
           return lsp.success(null);
         });
     }
-  }
-
-  /// If the state location can be accessed, return the file byte store,
-  /// otherwise return the memory byte store.
-  ByteStore createByteStore(ResourceProvider resourceProvider) {
-    const M = 1024 * 1024 /*1 MiB*/;
-    const G = 1024 * 1024 * 1024 /*1 GiB*/;
-
-    const fileCacheSize = 4 * G;
-    const memoryCacheSize = 256 * M;
-
-    if (providedByteStore case var providedByteStore?) {
-      if (providedByteStore is MemoryCachingByteStore) {
-        _memoryCachingByteStore = providedByteStore;
-      }
-      return providedByteStore;
-    }
-
-    if (options.disableFileByteStore ?? false) {
-      return _memoryCachingByteStore = MemoryCachingByteStore(
-        NullByteStore(),
-        memoryCacheSize,
-      );
-    }
-
-    if (resourceProvider is OverlayResourceProvider) {
-      resourceProvider = resourceProvider.baseProvider;
-    }
-    var baseProvider = resourceProvider is TimingResourceProvider
-        ? resourceProvider.baseProvider
-        : resourceProvider;
-    if (baseProvider is PhysicalResourceProvider) {
-      ByteStore? fileByteStore;
-      if (options.useSingleFileByteStore) {
-        var folder = resourceProvider.getStateLocation('.analysis-cache');
-        if (folder != null) {
-          fileByteStore = _singleFileByteStore =
-              SingleFileByteStore.inDirectory(
-                folder.path,
-                filePageCountLog2: 22, // 4 GiB, including metadata.
-                tableSlotCountLog2: 19, // 524,288 entries.
-                bufferPoolCapacityLog2: 12, // 4 MiB of cached pages.
-                maxPendingValueBytes: M,
-                maxPendingEntryCount: 64,
-              );
-        }
-      } else {
-        var folder = resourceProvider.getStateLocation('.analysis-driver');
-        if (folder != null) {
-          fileByteStore = _fileByteStore = EvictingFileByteStore(
-            folder.path,
-            fileCacheSize,
-          );
-        }
-      }
-      if (fileByteStore != null) {
-        var timingByteStore = _timingByteStore = TimingByteStore(fileByteStore);
-        _singleFileByteStore?.onFlush = timingByteStore.recordFlush;
-        return _memoryCachingByteStore = MemoryCachingByteStore(
-          timingByteStore,
-          memoryCacheSize,
-        );
-      }
-    }
-
-    return _memoryCachingByteStore = MemoryCachingByteStore(
-      NullByteStore(),
-      memoryCacheSize,
-    );
   }
 
   void enableSurveys() {
@@ -1082,19 +945,16 @@ abstract class AnalysisServer {
   @mustCallSuper
   FutureOr<void> handleAnalysisStatusChange(analysis.AnalysisStatus status) {
     if (!status.isWorking) {
-      _singleFileByteStore?.flush();
+      _byteStore.flush();
     }
     if (_isFirstAnalysisSinceContextsBuilt) {
       if (!status.isWorking) {
-        _timingByteStore?.startPeriod(
-          'initial analysis completed',
-          isMilestone: true,
-        );
+        _byteStore.startPeriod('initial analysis completed', isMilestone: true);
         _isFirstAnalysisSinceContextsBuilt = false;
         _dartFixPrompt.triggerCheck();
       }
     } else {
-      _timingByteStore?.startPeriod(status.isWorking ? 'analysis' : 'idle');
+      _byteStore.startPeriod(status.isWorking ? 'analysis' : 'idle');
     }
     analyticsManager.analysisStatusChanged(
       isWorking: status.isWorking,
@@ -1445,8 +1305,7 @@ abstract class AnalysisServer {
     pubPackageService.shutdown();
     surveyManager?.shutdown();
     await contextManager.dispose();
-    await _fileByteStore?.flush();
-    _singleFileByteStore?.close();
+    await _byteStore.shutdown();
     await analyticsManager.shutdown();
     await shutdownPerfWitness();
     await sessionListener.shutdown();
@@ -1457,7 +1316,7 @@ abstract class AnalysisServer {
   ///
   /// Unlike [byteStoreStats], this reads the whole table from the disk.
   Uint8List? singleFileTableBucketEntryCounts() =>
-      _singleFileByteStore?.tableBucketEntryCounts();
+      _byteStore.singleFileTableBucketEntryCounts();
 
   ResolvedForCompletionResultImpl?
   _tryGetCachedResolvedUnitAsResolvedForCompletion(
@@ -1526,101 +1385,6 @@ abstract class AnalysisServer {
       pubCommand,
     );
   }
-}
-
-/// A snapshot of the sizes and counters of the byte stores used by the
-/// server, for display on the diagnostics pages.
-///
-/// Fields specific to a persistent byte store are `null` when that store is
-/// not used by the server.
-class AnalysisServerByteStoreStats {
-  final int cacheHitCount;
-  final int cacheMissCount;
-  final int? cleanUpCount;
-  final int currentSizeBytes;
-  final int? deletedBytes;
-  final int? deletedFileCount;
-  final int entryCount;
-  final int evictedBytes;
-  final int evictedEntryCount;
-  final int evictionCount;
-  final int? failedReadCount;
-  final int? failedWriteCount;
-  final int? fileCacheSizeBytes;
-  final String? fileStorePath;
-  final int? fileStoreSizeBytes;
-  final int? lastCleanUpTimeMilliseconds;
-  final int? lastScannedFileCount;
-  final int maxSizeBytes;
-  final int? pendingWriteCount;
-  final int putCount;
-  final int? readCount;
-  final int? readMissCount;
-  final int? singleFileBucketRebuildCount;
-  final int? singleFileCapacityDiscardedBatchCount;
-  final int? singleFileCommitCount;
-  final int? singleFileCommittedEntryCount;
-  final int? singleFileCommittedValueBytes;
-  final int? singleFileDataBytes;
-  final int? singleFileEvictedForSpaceEntryCount;
-  final int? singleFileEvictedFromFullBucketEntryCount;
-  final int? singleFileFreeDataBytes;
-  final int? singleFileOversizedValueBytes;
-  final int? singleFileOversizedValueCount;
-  final int? singleFilePendingEntryCount;
-  final int? singleFileResetCount;
-  final String? singleFileStorePath;
-  final int? singleFileTableSlotCount;
-  final int storeHitCount;
-  final int storeMissCount;
-  final int? writeBytes;
-  final int? writeCount;
-
-  const new({
-    required this.cacheHitCount,
-    required this.cacheMissCount,
-    required this.currentSizeBytes,
-    required this.entryCount,
-    required this.evictedBytes,
-    required this.evictedEntryCount,
-    required this.evictionCount,
-    required this.maxSizeBytes,
-    required this.putCount,
-    required this.storeHitCount,
-    required this.storeMissCount,
-    this.cleanUpCount,
-    this.deletedBytes,
-    this.deletedFileCount,
-    this.failedReadCount,
-    this.failedWriteCount,
-    this.fileCacheSizeBytes,
-    this.fileStorePath,
-    this.fileStoreSizeBytes,
-    this.lastCleanUpTimeMilliseconds,
-    this.lastScannedFileCount,
-    this.pendingWriteCount,
-    this.readCount,
-    this.readMissCount,
-    this.singleFileBucketRebuildCount,
-    this.singleFileCapacityDiscardedBatchCount,
-    this.singleFileCommitCount,
-    this.singleFileCommittedEntryCount,
-    this.singleFileCommittedValueBytes,
-    this.singleFileDataBytes,
-    this.singleFileEvictedForSpaceEntryCount,
-    this.singleFileEvictedFromFullBucketEntryCount,
-    this.singleFileFreeDataBytes,
-    this.singleFileOversizedValueBytes,
-    this.singleFileOversizedValueCount,
-    this.singleFilePendingEntryCount,
-    this.singleFileResetCount,
-    this.singleFileStorePath,
-    this.singleFileTableSlotCount,
-    this.writeBytes,
-    this.writeCount,
-  });
-
-  bool get usesFileByteStore => fileStorePath != null;
 }
 
 /// ContextManager callbacks that operate on the base server regardless

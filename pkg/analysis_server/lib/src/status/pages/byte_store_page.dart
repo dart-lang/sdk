@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/server/server_byte_store.dart';
 import 'package:analysis_server/src/status/diagnostics.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analysis_server/src/utilities/timing_byte_store.dart';
