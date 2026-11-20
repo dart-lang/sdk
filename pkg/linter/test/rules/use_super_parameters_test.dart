@@ -138,6 +138,16 @@ class B extends A {
 ''');
   }
 
+  test_noLint_declaringParameter() async {
+    await assertNoDiagnostics(r'''
+      class A(int x, {int? y});
+
+      class B(final int x, {final int? y}) extends A {
+        this : super(x, y: y);
+      }
+    ''');
+  }
+
   test_noLint_forwardedOutOfOrder() async {
     await assertNoDiagnostics(r'''
 class B {
@@ -274,6 +284,17 @@ class B extends A {
   B(this.x, int y) : super(x, y);
 }
 ''');
+  }
+
+  test_noLint_primaryConstructor_referencedInFieldInitializer() async {
+    await assertNoDiagnostics(r'''
+      class A(int x);
+
+      class B(int x) extends A {
+        final int y = x;
+        this : super(x);
+      }
+    ''');
   }
 
   test_noLint_referencedInBody_multiple() async {
@@ -441,6 +462,19 @@ class Square extends Rect {
   Square(double dimension) : super(dimension, dimension);
 }
 ''');
+  }
+
+  test_requiredPositional_afterFieldFormal() async {
+    await assertDiagnosticsFromMarkup(r'''
+      class A {
+        A(int x);
+      }
+
+      class B extends A {
+        int y;
+        [!B!](this.y, int x) : super(x);
+      }
+    ''');
   }
 
   test_requiredPositional_allConvertible() async {
