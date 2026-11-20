@@ -188,18 +188,6 @@ class SnapshotSerializer {
     addBaseObject(RuntimeConstantObject(.mutableEmptyList));
     // TODO: generate these stubs instead of referencing them from the VM.
     addBaseObject(StubCode.InstantiateTypeArguments);
-    addBaseObject(StubCode.InitAsync);
-    addBaseObject(StubCode.InitAsyncStar);
-    addBaseObject(StubCode.InitSyncStar);
-    addBaseObject(StubCode.Await);
-    addBaseObject(StubCode.AwaitWithTypeCheck);
-    addBaseObject(StubCode.YieldAsyncStar);
-    addBaseObject(StubCode.SuspendSyncStarAtStart);
-    addBaseObject(StubCode.SuspendSyncStarAtYield);
-    addBaseObject(StubCode.ReturnAsync);
-    addBaseObject(StubCode.ReturnAsyncNotFuture);
-    addBaseObject(StubCode.ReturnAsyncStar);
-    addBaseObject(StubCode.CloneSuspendState);
     addBaseObject(StubCode.CallBootstrapNative);
     numObjects = numBaseObjects;
   }

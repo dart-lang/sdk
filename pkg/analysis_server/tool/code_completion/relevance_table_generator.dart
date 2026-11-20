@@ -1084,7 +1084,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       node.loopVariable,
     );
     _recordDataForNode(
-      CompletionLocation.forEachPartsWithDeclarationIterable,
+      CompletionLocation.forEachPartsIterable,
       node.iterable,
       allowedKeywords: expressionKeywords,
     );
@@ -1100,7 +1100,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       node.identifier,
     );
     _recordDataForNode(
-      CompletionLocation.forEachPartsWithIdentifierIterable,
+      CompletionLocation.forEachPartsIterable,
       node.iterable,
       allowedKeywords: expressionKeywords,
     );
@@ -1702,7 +1702,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitObjectPattern(ObjectPattern node) {
-    // There are no completions.
+    _recordDataForNode(CompletionLocation.objectPatternType, node.type);
     super.visitObjectPattern(node);
   }
 
@@ -1825,8 +1825,14 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
-    // There are no completions.
     if (node.constKeyword case var keyword?) _unrecorded(keyword);
+    for (var parameter in node.formalParameters.parameters) {
+      _recordDataForNode(
+        CompletionLocation.primaryConstructorDeclarationFieldType,
+        parameter,
+        allowedKeywords: [Keyword.COVARIANT, Keyword.REQUIRED],
+      );
+    }
     super.visitPrimaryConstructorDeclaration(node);
   }
 
@@ -1850,12 +1856,14 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitRecordLiteral(RecordLiteral node) {
     for (var field in node.fields) {
-      _recordDataForNode(CompletionLocation.recordLiteralFieldName, field);
       if (field is RecordLiteralNamedField) {
+        _recordDeclaration(field.name);
         _recordDataForNode(
-          CompletionLocation.recordLiteralFieldValue,
+          CompletionLocation.recordLiteralFields,
           field.fieldExpression,
         );
+      } else {
+        _recordDataForNode(CompletionLocation.recordLiteralFields, field);
       }
     }
     super.visitRecordLiteral(node);
@@ -1877,7 +1885,10 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void visitRecordTypeAnnotationNamedField(
     RecordTypeAnnotationNamedField node,
   ) {
-    _recordDataForNode(CompletionLocation.recordTypeFieldType, node.type);
+    _recordDataForNode(
+      CompletionLocation.recordTypeAnnotationFields,
+      node.type,
+    );
     _recordDeclaration(node.name);
     super.visitRecordTypeAnnotationNamedField(node);
   }
@@ -1894,7 +1905,10 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void visitRecordTypeAnnotationPositionalField(
     RecordTypeAnnotationPositionalField node,
   ) {
-    _recordDataForNode(CompletionLocation.recordTypeFieldType, node.type);
+    _recordDataForNode(
+      CompletionLocation.recordTypeAnnotationFields,
+      node.type,
+    );
     if (node.name case var name?) _recordDeclaration(name);
     super.visitRecordTypeAnnotationPositionalField(node);
   }
@@ -2100,7 +2114,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     );
     for (var statement in node.statements) {
       _recordDataForNode(
-        CompletionLocation.switchPatternCaseStatement,
+        CompletionLocation.switchMemberStatement,
         statement,
         allowedKeywords: statementKeywords,
       );

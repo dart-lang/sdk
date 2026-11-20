@@ -3,11 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:math';
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/status/diagnostics.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analysis_server/src/utilities/timing_byte_store.dart';
+import 'package:collection/collection.dart';
 
 String _bytesCell(int bytes) => _cell(bytes == 0 ? '' : printBytes(bytes));
 
@@ -74,6 +76,11 @@ class ByteStorePage extends DiagnosticPageWithNav {
 
   @override
   Future<void> generateContent(Map<String, String> params) async {
+    // The scan reads the current header of the single file store, so scan
+    // first, for the data used in the statistics to match the entries.
+    var scanTimer = Stopwatch()..start();
+    var bucketEntryCounts = server.singleFileTableBucketEntryCounts();
+    var scanTime = scanTimer.elapsed;
     var stats = server.byteStoreStats;
     if (stats == null) {
       p('The server did not create a byte store.');
@@ -90,10 +97,14 @@ class ByteStorePage extends DiagnosticPageWithNav {
     buf.writeln('<div class="columns">');
     buf.writeln('<div class="column one-half">');
     _writeMemoryCache(stats, hasDiskStore: path != null);
+    // Below the memory cache, the shorter table, to keep the page short.
+    if (bucketEntryCounts != null) {
+      _writeTableBuckets(stats, bucketEntryCounts, scanTime: scanTime);
+    }
     buf.writeln('</div>');
     buf.writeln('<div class="column one-half">');
-    if (stats.singleFileStorePath != null) {
-      _writeSingleFileStore(stats);
+    if (bucketEntryCounts != null) {
+      _writeSingleFileStore(stats, bucketEntryCounts);
     } else if (stats.usesFileByteStore) {
       _writeFileStore(stats);
     } else {
@@ -272,9 +283,15 @@ class ByteStorePage extends DiagnosticPageWithNav {
     }
   }
 
-  void _writeSingleFileStore(AnalysisServerByteStoreStats stats) {
+  void _writeSingleFileStore(
+    AnalysisServerByteStoreStats stats,
+    List<int> bucketEntryCounts,
+  ) {
     var dataBytes = stats.singleFileDataBytes ?? 0;
     var usedDataBytes = dataBytes - (stats.singleFileFreeDataBytes ?? 0);
+    var entrySlotCount = stats.singleFileTableSlotCount ?? 0;
+    var bucketSize = entrySlotCount ~/ bucketEntryCounts.length;
+    var entryCount = bucketEntryCounts.sum;
     // The file outlives this process, and is shared with other processes, so
     // it holds much more than this process wrote to it.
     _writeFactGroups('Single File Store', {
@@ -282,7 +299,17 @@ class ByteStorePage extends DiagnosticPageWithNav {
         'Data limit': printBytes(dataBytes),
         'Data used': printBytes(usedDataBytes),
         'Data usage': _formatFraction(usedDataBytes, dataBytes),
-        'Entry limit': _formatCount(stats.singleFileTableSlotCount ?? 0),
+        // Below about 11 KiB, the server's table fills before its data space.
+        if (entryCount > 0)
+          'Average entry size': printBytes(usedDataBytes ~/ entryCount),
+        'Entry limit': _formatCount(entrySlotCount),
+        'Entries used': _formatCount(entryCount),
+        'Entry usage': _formatFraction(entryCount, entrySlotCount),
+        // Its overflow evicts entries even when the table is far from full.
+        'Fullest bucket usage': _formatFraction(
+          bucketEntryCounts.max,
+          bucketSize,
+        ),
       },
       'This process': {
         'Pending entries': _formatCount(stats.singleFilePendingEntryCount ?? 0),
@@ -359,6 +386,80 @@ class ByteStorePage extends DiagnosticPageWithNav {
       buf.writeln('</tbody>');
     }
     buf.writeln('</table>');
+  }
+
+  /// Writes how many hash table buckets hold each range of entry counts, next
+  /// to how many uniform hashing would give, to show whether buckets fill
+  /// uniformly.
+  ///
+  /// [scanTime] includes waiting for other processes that hold the lock.
+  void _writeTableBuckets(
+    AnalysisServerByteStoreStats stats,
+    List<int> bucketEntryCounts, {
+    required Duration scanTime,
+  }) {
+    var bucketSize =
+        (stats.singleFileTableSlotCount ?? 0) ~/ bucketEntryCounts.length;
+    // Ranges of 8 entry counts. Because 8 divides the bucket size, full
+    // buckets are a range of their own.
+    const rangeSize = 8;
+    var rangeCount = bucketSize ~/ rangeSize + 1;
+    var actual = List.filled(rangeCount, 0);
+    for (var entryCount in bucketEntryCounts) {
+      actual[entryCount ~/ rangeSize]++;
+    }
+
+    // With uniform hashing, entry counts follow the Poisson distribution.
+    // Without evictions, buckets would hold more entries than they can, so
+    // full buckets get the rest of the probability.
+    var bucketCount = bucketEntryCounts.length;
+    var mean = bucketEntryCounts.sum / bucketCount;
+    var expected = List.filled(rangeCount, 0.0);
+    var probability = exp(-mean);
+    var cumulativeProbability = 0.0;
+    for (var entryCount = 0; entryCount < bucketSize; entryCount++) {
+      expected[entryCount ~/ rangeSize] += probability * bucketCount;
+      cumulativeProbability += probability;
+      probability *= mean / (entryCount + 1);
+    }
+    expected[rangeCount - 1] +=
+        max(0.0, 1 - cumulativeProbability) * bucketCount;
+
+    // Show ranges between the first and the last that has buckets, or would
+    // have with uniform hashing, so that gaps stay visible.
+    bool isShown(int range) => actual[range] > 0 || expected[range] >= 0.5;
+    var first = 0;
+    while (!isShown(first)) {
+      first++;
+    }
+    var last = rangeCount - 1;
+    while (!isShown(last)) {
+      last--;
+    }
+
+    h3('Table Buckets');
+    p('Expected for uniform hashing, without evictions.');
+    buf.writeln('<table>');
+    buf.writeln(
+      '<thead><tr><th>Entries per bucket</th><th>Buckets</th>'
+      '<th>Expected</th></tr></thead>',
+    );
+    for (var range = first; range <= last; range++) {
+      var low = range * rangeSize;
+      var high = min(low + rangeSize - 1, bucketSize);
+      var label = low == high ? '$low' : '$low&ndash;$high';
+      var expectedCount = expected[range].round();
+      var expectedText = expectedCount == 0 && expected[range] > 0
+          ? '&lt; 1'
+          : _formatCount(expectedCount);
+      buf.writeln(
+        '<tr><td>$label</td>${_cell(_formatCount(actual[range]))}'
+        '${_cell(expectedText)}</tr>',
+      );
+    }
+    buf.writeln('</table>');
+    var scanMilliseconds = (scanTime.inMicroseconds / 1000).toStringAsFixed(1);
+    p('Scanned in $scanMilliseconds ms.');
   }
 }
 

@@ -205,7 +205,6 @@ class SecurityConfiguration {
                 'server_max_window_bits="10"; client_max_window_bits = 12'
                 'client_no_context_takeover; server_no_context_takeover',
           );
-        request.response.contentLength = 0;
         request.response
             .detachSocket()
             .then((socket) {
@@ -397,7 +396,6 @@ class SecurityConfiguration {
             "Sec-WebSocket-Extensions",
             "permessage-deflate; client_max_window_bits=99",
           );
-        request.response.contentLength = 0;
         request.response.detachSocket().then((socket) {
           socket.listen((_) {
             if (!gotFrame) {

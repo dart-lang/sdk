@@ -41,7 +41,7 @@ abstract base class Instruction {
 
   /// Values implicitly used by this instruction
   /// e.g. for debugging and deoptimization.
-  UsesArray? implicitInputs;
+  UsesArray? _implicitInputs;
 
   /// Create a new instruction.
   ///
@@ -73,10 +73,7 @@ abstract base class Instruction {
 
   /// Set [i]-th input to the given [value]. Can be done only once.
   void setInputAt(int i, Definition value) {
-    final input = inputAt(i);
-    assert(input.getNext(graph) == Use.Null);
-    assert(input.getPrevious(graph) == Use.Null);
-    input.setDefinition(graph, value);
+    _setInput(inputAt(i), value);
   }
 
   /// Replace [i]-th input with [value]. This instruction should be
@@ -95,6 +92,96 @@ abstract base class Instruction {
 
   int getInputIndex(Use use) => _inputs.indexOf(graph, use);
 
+  /// Number of implicit inputs.
+  int get implicitInputCount => _implicitInputs?.getLength(graph) ?? 0;
+
+  /// [Use] corresponding to an [i]-th implicit input.
+  Use implicitInputAt(int i) => _implicitInputs!.at(graph, i);
+
+  /// [Definition] of [i]-th implicit input.
+  Definition implicitInputDefAt(int i) =>
+      implicitInputAt(i).getDefinition(graph);
+
+  int getImplicitInputIndex(Use use) => _implicitInputs!.indexOf(graph, use);
+
+  /// Allocate [count] implicit inputs for this unlinked instruction.
+  void allocateImplicitInputs(int count) {
+    assert(!isInGraph);
+    _allocateImplicitInputs(count);
+  }
+
+  /// Set [i]-th implicit input to the given [value]. Can be done only once.
+  void setImplicitInputAt(int i, Definition value) {
+    _setInput(implicitInputAt(i), value);
+  }
+
+  /// Replace [i]-th implicit input with [value]. This instruction should be
+  /// linked into a basic block.
+  void replaceImplicitInputAt(int i, Definition value) {
+    assert(isInGraph);
+    removeImplicitInputFromUseList(i);
+    setImplicitInputAt(i, value);
+    addImplicitInputToUseList(i);
+  }
+
+  /// Set implicit inputs of this instruction to [values].
+  ///
+  /// If this instruction is already linked into a basic block, replaces any
+  /// existing implicit inputs and updates use lists.
+  void setImplicitInputs(List<Definition> values) {
+    if (isInGraph) {
+      removeImplicitInputs();
+    } else {
+      assert(_implicitInputs == null);
+    }
+    final n = values.length;
+    if (n == 0) return;
+    _allocateImplicitInputs(n);
+    for (var i = 0; i < n; ++i) {
+      setImplicitInputAt(i, values[i]);
+      if (isInGraph) {
+        addImplicitInputToUseList(i);
+      }
+    }
+  }
+
+  /// Copy implicit inputs to an unlinked [other] instruction.
+  void copyImplicitInputsTo(Instruction other) {
+    assert(!other.isInGraph);
+    final n = implicitInputCount;
+    if (n == 0) return;
+    other.allocateImplicitInputs(n);
+    for (var i = 0; i < n; ++i) {
+      other.setImplicitInputAt(i, implicitInputDefAt(i));
+    }
+  }
+
+  /// Remove all implicit inputs and unlink them from use lists.
+  void removeImplicitInputs() {
+    assert(isInGraph);
+    for (int i = 0, n = implicitInputCount; i < n; ++i) {
+      removeImplicitInputFromUseList(i);
+    }
+    _implicitInputs = null;
+  }
+
+  void _allocateImplicitInputs(int count) {
+    assert(this is! Phi && this is! Block);
+    assert(_implicitInputs == null);
+    assert(count > 0);
+    final array = UsesArray.allocate(graph, count);
+    for (var i = 0; i < count; ++i) {
+      array.at(graph, i).init(graph, this);
+    }
+    _implicitInputs = array;
+  }
+
+  void _setInput(Use input, Definition value) {
+    assert(input.getNext(graph) == Use.Null);
+    assert(input.getPrevious(graph) == Use.Null);
+    input.setDefinition(graph, value);
+  }
+
   /// Link this instruction to the [next] instruction in basic block.
   void linkTo(Instruction next) {
     assert(!identical(this, next));
@@ -108,24 +195,41 @@ abstract base class Instruction {
   /// This is a low-level operation which is rarely needed.
   /// Prefer using [appendInstruction] or [insertAfter].
   void addInputToUseList(int inputIndex) {
-    final input = inputAt(inputIndex);
+    _addToUseList(inputAt(inputIndex), isImplicit: false);
+  }
+
+  /// Add [inputIndex]-th implicit input to implicit use list of its definition.
+  ///
+  /// This is a low-level operation which is rarely needed.
+  /// Prefer using [appendInstruction] or [insertAfter].
+  void addImplicitInputToUseList(int inputIndex) {
+    _addToUseList(implicitInputAt(inputIndex), isImplicit: true);
+  }
+
+  void _addToUseList(Use input, {required bool isImplicit}) {
     assert(input.getNext(graph) == Use.Null);
     assert(input.getPrevious(graph) == Use.Null);
     final def = input.getDefinition(graph);
-    final nextUse = def._inputUses;
+    final nextUse = isImplicit ? def._implicitUses : def._inputUses;
     if (nextUse != Use.Null) {
       assert(nextUse.getPrevious(graph) == Use.Null);
       input.setNext(graph, nextUse);
       nextUse.setPrevious(graph, input);
     }
-    def._inputUses = input;
+    if (isImplicit) {
+      def._implicitUses = input;
+    } else {
+      def._inputUses = input;
+    }
   }
 
   void _addInputsToUseLists() {
     for (int i = 0, n = inputCount; i < n; ++i) {
       addInputToUseList(i);
     }
-    assert(implicitInputs == null);
+    for (int i = 0, n = implicitInputCount; i < n; ++i) {
+      addImplicitInputToUseList(i);
+    }
   }
 
   /// Remove [inputIndex]-th input from use list of its definition.
@@ -133,14 +237,32 @@ abstract base class Instruction {
   /// This is a low-level operation which is rarely needed.
   /// Prefer using [replaceInputAt] or [removeFromGraph].
   void removeInputFromUseList(int inputIndex) {
-    final input = inputAt(inputIndex);
+    _removeFromUseList(inputAt(inputIndex), isImplicit: false);
+  }
+
+  /// Remove [inputIndex]-th implicit input from implicit use list of its
+  /// definition.
+  ///
+  /// This is a low-level operation which is rarely needed.
+  /// Prefer using [replaceImplicitInputAt], [removeImplicitInputs], or
+  /// [removeFromGraph].
+  void removeImplicitInputFromUseList(int inputIndex) {
+    _removeFromUseList(implicitInputAt(inputIndex), isImplicit: true);
+  }
+
+  void _removeFromUseList(Use input, {required bool isImplicit}) {
     assert(input.getInstruction(graph) == this);
     final nextUse = input.getNext(graph);
     final prevUse = input.getPrevious(graph);
     if (prevUse == Use.Null) {
       final def = input.getDefinition(graph);
-      assert(def._inputUses == input);
-      def._inputUses = nextUse;
+      if (isImplicit) {
+        assert(def._implicitUses == input);
+        def._implicitUses = nextUse;
+      } else {
+        assert(def._inputUses == input);
+        def._inputUses = nextUse;
+      }
     } else {
       prevUse.setNext(graph, nextUse);
     }
@@ -155,6 +277,9 @@ abstract base class Instruction {
   void removeInputsFromUseLists() {
     for (int i = 0, n = inputCount; i < n; ++i) {
       removeInputFromUseList(i);
+    }
+    for (int i = 0, n = implicitInputCount; i < n; ++i) {
+      removeImplicitInputFromUseList(i);
     }
   }
 

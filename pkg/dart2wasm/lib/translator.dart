@@ -81,7 +81,6 @@ class TranslatorOptions {
   bool enableProtobufMixinTreeShaker = false;
   int inliningLimit = 0;
   int? sharedMemoryMaxPages;
-  List<int> watchPoints = [];
 
   bool get inlining => inliningOverride ?? optimizationLevel >= 1;
   bool get minify => minifyOverride ?? optimizationLevel >= 2;
@@ -507,7 +506,6 @@ class Translator with KernelNodes {
         outputModule.moduleImportName,
         sourceMapUrlGenerator?.call(outputModule.moduleName),
         parent: outputModule.isMain ? null : mainModule,
-        watchPoints: options.watchPoints,
       );
       _outputToBuilder[outputModule] = builder;
       _builderToOutput[builder] = outputModule;
@@ -566,14 +564,17 @@ class Translator with KernelNodes {
         (global) {
           if (options.printWasm) {
             print("Global #${global.name}: ${info.constant}");
-            if (global is w.DefinedGlobal) {
-              print(global.initializer.trace);
-            }
+            final trace = _initializerTraces[global];
+            if (trace != null) print(trace);
           }
         },
       );
     }
-    _printFunction(mainModule.startFunction.function, "init");
+    final startFunction = mainModule.startFunction;
+    if (options.printWasm) {
+      print("#${startFunction.name}: init");
+      print(startFunction.body.trace);
+    }
 
     final neededForLoadList = <ModuleMetadata>{
       for (
@@ -793,12 +794,21 @@ class Translator with KernelNodes {
     f.build();
   }
 
+  /// Traces of constant initializers for `--print-wasm`, which prints them
+  /// after all code is generated, when their builders are gone.
+  final Map<Object, String> _initializerTraces = {};
+
+  /// Keeps the trace of [body], the initializer of the function or global
+  /// [initializer], if `--print-wasm` will print it.
+  void recordInitializerTrace(Object initializer, w.InstructionsBuilder body) {
+    if (options.printWasm) _initializerTraces[initializer] = body.trace;
+  }
+
   void _printFunction(w.BaseFunction function, Object name) {
     if (options.printWasm) {
       print("#${function.name}: $name");
-      if (function is w.DefinedFunction) {
-        print(function.body.trace);
-      }
+      final trace = _initializerTraces[function];
+      if (trace != null) print(trace);
     }
   }
 

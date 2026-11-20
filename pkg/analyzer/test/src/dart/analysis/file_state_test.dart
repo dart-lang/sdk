@@ -125,6 +125,51 @@ class A {
     );
   }
 
+  test_class_method_formalParameter() async {
+    var definition = '''
+class A {
+  void f(
+    /// {@template foo}
+    /// Body of the template.
+    /// {@endtemplate}
+    int x,
+  ) {}
+}
+''';
+
+    await expectDocumentation(definition, '{@macro foo}', '{@macro foo}');
+  }
+
+  test_class_primaryConstructor_declaringParameter() async {
+    var definition = '''
+class A(
+  /// {@template foo}
+  /// Body of the template.
+  /// {@endtemplate}
+  final int x,
+) {}
+''';
+
+    await expectDocumentation(
+      definition,
+      '{@macro foo}',
+      'Body of the template.',
+    );
+  }
+
+  test_class_primaryConstructor_formalParameter() async {
+    var definition = '''
+class A(
+  /// {@template foo}
+  /// Body of the template.
+  /// {@endtemplate}
+  int x,
+) {}
+''';
+
+    await expectDocumentation(definition, '{@macro foo}', '{@macro foo}');
+  }
+
   test_class_setter() async {
     var definition = '''
 class A {
@@ -270,6 +315,25 @@ enum E {
     );
   }
 
+  test_enum_primaryConstructor_declaringParameter() async {
+    var definition = '''
+enum E(
+  /// {@template foo}
+  /// Body of the template.
+  /// {@endtemplate}
+  final int x,
+) {
+  one(0);
+}
+''';
+
+    await expectDocumentation(
+      definition,
+      '{@macro foo}',
+      'Body of the template.',
+    );
+  }
+
   test_extension() async {
     var definition = '''
 class A {}
@@ -384,6 +448,23 @@ extension type IdNumber(int id) {
   /// {@endtemplate}
   void f() {}
 }
+''';
+
+    await expectDocumentation(
+      definition,
+      '{@macro foo}',
+      'Body of the template.',
+    );
+  }
+
+  test_extensionType_representation() async {
+    var definition = '''
+extension type IdNumber(
+  /// {@template foo}
+  /// Body of the template.
+  /// {@endtemplate}
+  int id,
+) {}
 ''';
 
     await expectDocumentation(

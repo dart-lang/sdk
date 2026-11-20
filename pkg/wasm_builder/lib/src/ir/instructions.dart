@@ -22,13 +22,6 @@ class Instructions implements Serializable {
   /// A sequence of Wasm instructions.
   final List<Instruction> instructions;
 
-  final Map<Instruction, StackTrace>? _stackTraces;
-
-  final List<String> _traceLines;
-
-  /// A string trace.
-  late final trace = _traceLines.join();
-
   /// Debug info bytecode indexed by instruction index.
   final Uint8List? debugInfo;
 
@@ -37,17 +30,9 @@ class Instructions implements Serializable {
     List<Local> locals,
     this.localNames,
     List<Instruction> instructions,
-    Map<Instruction, StackTrace>? stackTraces,
-    List<String> traceLines,
     this.debugInfo,
   ) : locals = locals.isEmpty ? const [] : locals.toList(growable: false),
-      instructions = instructions.toList(growable: false),
-      _stackTraces = stackTraces == null
-          ? null
-          : (stackTraces.isEmpty ? const {} : stackTraces),
-      _traceLines = traceLines.isEmpty
-          ? const []
-          : traceLines.toList(growable: false);
+      instructions = instructions.toList(growable: false);
 
   void collectUsedTypes(Set<DefType> usedTypes) {
     for (final local in locals) {
@@ -78,7 +63,6 @@ class Instructions implements Serializable {
 
       for (int i = 0; i < instructions.length; i++) {
         final instr = instructions[i];
-        if (_stackTraces != null) s.debugTrace(_stackTraces[instr]!);
 
         if (reader.moveUntil(i)) {
           final relOffset = s.offset - bodyStart;
@@ -102,9 +86,7 @@ class Instructions implements Serializable {
       return writer.build();
     } else {
       for (int i = 0; i < instructions.length; i++) {
-        final instr = instructions[i];
-        if (_stackTraces != null) s.debugTrace(_stackTraces[instr]!);
-        instr.serialize(s);
+        instructions[i].serialize(s);
       }
       return null;
     }
@@ -225,7 +207,7 @@ class Instructions implements Serializable {
       instructions.add(instruction);
       if (instruction is End) break;
     }
-    return Instructions(const [], const {}, instructions, null, const [], null);
+    return Instructions(const [], const {}, instructions, null);
   }
 
   static Instructions deserialize(
@@ -254,6 +236,6 @@ class Instructions implements Serializable {
       instructions.add(instruction);
       if (instruction is End) break;
     }
-    return Instructions(const [], const {}, instructions, null, const [], null);
+    return Instructions(const [], const {}, instructions, null);
   }
 }

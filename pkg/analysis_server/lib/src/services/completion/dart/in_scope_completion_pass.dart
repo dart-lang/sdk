@@ -715,6 +715,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       identifierHelper(includePrivateIdentifiers: false)
           .addTopLevelName(includeBody: hasSyntheticBody);
     } else if (offset <= body.leftBracket.offset) {
+      var withClause = node.withClause;
+      var extendsClause = node.extendsClause;
+      collector.completionLocation =
+          withClause != null && withClause.end <= offset
+          ? CompletionLocation.classDeclarationWith
+          : extendsClause != null && extendsClause.end <= offset
+          ? CompletionLocation.classDeclarationExtends
+          : CompletionLocation.classDeclarationName;
       keywordHelper.addClassDeclarationKeywords(node);
     } else if (offset >= body.leftBracket.end &&
         offset <= body.rightBracket.offset) {
@@ -1005,6 +1013,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   ) {
     var period = node.period;
     if (offset >= period.end && offset <= node.constructorName.end) {
+      collector.completionLocation =
+          CompletionLocation.dotShorthandConstructorInvocationConstructorName;
       var contextType = _computeContextType(node);
       contextType = _resolveFutureOrType(contextType);
       if (contextType is! InterfaceType) return;
@@ -1024,6 +1034,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitDotShorthandInvocation(DotShorthandInvocation node) {
     var period = node.period;
     if (offset >= period.end && offset <= node.memberName.end) {
+      collector.completionLocation =
+          CompletionLocation.dotShorthandInvocationMemberName;
       var contextType = _computeContextType(node);
       contextType = _resolveFutureOrType(contextType);
       if (contextType == null) return;
@@ -1044,6 +1056,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+    collector.completionLocation =
+        CompletionLocation.dotShorthandPropertyAccessPropertyName;
     var contextType = _computeContextType(node);
     contextType = _resolveFutureOrType(contextType);
     if (contextType == null) return;
@@ -1118,6 +1132,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         collector.completionLocation =
             CompletionLocation.ifStatementElseStatement;
       }
+    } else if (parent is DoStatement) {
+      collector.completionLocation = CompletionLocation.doStatementBody;
+    } else if (parent is LabeledStatement) {
+      collector.completionLocation =
+          CompletionLocation.labeledStatementStatement;
+    } else if (parent is WhileStatement) {
+      collector.completionLocation = CompletionLocation.whileStatementBody;
     }
     if (offset <= node.semicolon.offset) {
       _forStatement(node);
@@ -1148,6 +1169,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
 
       if (offset <= body.leftBracket.offset) {
+        collector.completionLocation = CompletionLocation.enumDeclarationName;
         keywordHelper.addEnumDeclarationKeywords(node);
         return;
       }
@@ -1174,7 +1196,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       return;
     } else if (offset >= node.uri.end) {
       collector.completionLocation =
-          CompletionLocation.compilationUnitDirective;
+          node.configurations.any((c) => c.end <= offset)
+          ? CompletionLocation.importDirectiveConfigurations
+          : CompletionLocation.importDirectiveUri;
       keywordHelper.addExportDirectiveKeywords(node);
     }
   }
@@ -1197,7 +1221,12 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       keywordHelper.addKeywordAndText(Keyword.DEFAULT, ':');
       collector.completionLocation = CompletionLocation.switchMemberStatement;
     } else {
-      collector.completionLocation = CompletionLocation.blockStatement;
+      collector.completionLocation = switch (parent) {
+        DoStatement() => CompletionLocation.doStatementBody,
+        LabeledStatement() => CompletionLocation.labeledStatementStatement,
+        WhileStatement() => CompletionLocation.whileStatementBody,
+        _ => CompletionLocation.blockStatement,
+      };
     }
     if (_forIncompletePrecedingStatement(node)) {
       if (node.isSingleIdentifier) {
@@ -1509,15 +1538,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
-    collector.completionLocation =
-        CompletionLocation.forEachPartsWithDeclarationIterable;
+    collector.completionLocation = CompletionLocation.forEachPartsIterable;
     _visitForEachParts(node);
   }
 
   @override
   void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
-    collector.completionLocation =
-        CompletionLocation.forEachPartsWithDeclarationIterable;
+    collector.completionLocation = CompletionLocation.forEachPartsIterable;
     _visitForEachParts(node);
   }
 
@@ -1652,11 +1679,15 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             var type = variable.type;
             if (type == null ||
                 (type is NamedType && offset <= type.name.end)) {
+              collector.completionLocation =
+                  CompletionLocation.forEachPartsWithDeclarationLoopVariable;
               _forTypeAnnotation(node);
             }
           }
         case ForEachPartsWithIdentifier():
           if (offset < parts.identifier.offset) {
+            collector.completionLocation =
+                CompletionLocation.forEachPartsWithIdentifierIdentifier;
             _forTypeAnnotation(node);
           }
         case ForEachPartsWithPattern():
@@ -1931,8 +1962,17 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     } else if (offset <= node.uri.offset) {
       return;
     } else if (offset >= node.uri.end) {
-      collector.completionLocation =
-          CompletionLocation.compilationUnitDirective;
+      var location = CompletionLocation.importDirectiveUri;
+      if (node.deferredKeyword case var deferred? when deferred.end <= offset) {
+        location = CompletionLocation.importDirectiveDeferred;
+      }
+      if (node.prefix case var prefix? when prefix.end <= offset) {
+        location = CompletionLocation.importDirectivePrefix;
+      }
+      if (node.configurations.any((c) => c.end <= offset)) {
+        location = CompletionLocation.importDirectiveConfigurations;
+      }
+      collector.completionLocation = location;
       keywordHelper.addImportDirectiveKeywords(node);
     }
   }
@@ -2247,6 +2287,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
 
       if (offset <= body.leftBracket.offset) {
+        var onClause = node.onClause;
+        collector.completionLocation =
+            onClause != null && onClause.end <= offset
+            ? CompletionLocation.mixinDeclarationOn
+            : CompletionLocation.mixinDeclarationName;
         keywordHelper.addMixinDeclarationKeywords(node);
         return;
       }
@@ -2278,6 +2323,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (offset <= onKeyword.end) {
       keywordHelper.addKeyword(Keyword.ON);
     } else {
+      collector.completionLocation =
+          CompletionLocation.onClauseSuperclassConstraint;
       _forTypeAnnotation(node);
     }
   }
@@ -2457,7 +2504,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitParenthesizedPattern(ParenthesizedPattern node) {
     collector.completionLocation =
-        CompletionLocation.parenthesizedPatternExpression;
+        CompletionLocation.parenthesizedPatternPattern;
     _forPattern(node);
   }
 
@@ -2897,7 +2944,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
     } else if (offset <= node.rightParenthesis.offset) {
       collector.completionLocation =
-          CompletionLocation.recordTypeAnnotationPositionalFields;
+          CompletionLocation.recordTypeAnnotationFields;
       _forTypeAnnotation(node);
     }
   }
@@ -2908,7 +2955,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   ) {
     if (node.type.coversOffset(offset)) {
       collector.completionLocation =
-          CompletionLocation.recordTypeAnnotationNamedFieldsFields;
+          CompletionLocation.recordTypeAnnotationFields;
       _forTypeAnnotation(node);
     } else if (node.name.coversOffset(offset)) {
       collector.completionLocation =
@@ -2922,7 +2969,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     RecordTypeAnnotationNamedFields node,
   ) {
     collector.completionLocation =
-        CompletionLocation.recordTypeAnnotationNamedFieldsFields;
+        CompletionLocation.recordTypeAnnotationFields;
     _forTypeAnnotation(node);
   }
 
@@ -2932,7 +2979,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   ) {
     if (node.type.coversOffset(offset)) {
       collector.completionLocation =
-          CompletionLocation.recordTypeAnnotationPositionalFields;
+          CompletionLocation.recordTypeAnnotationFields;
       _forTypeAnnotation(node);
     }
   }
@@ -3069,7 +3116,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         offset >= node.operator.end &&
         offset <= operand.end) {
       collector.completionLocation =
-          CompletionLocation.relationalPatternOperand;
+          CompletionLocation.relationalPatternOperatorOperand(
+            node.operator.lexeme,
+          );
       _forExpression(node);
     }
   }
@@ -3207,7 +3256,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       _forExpression(node);
     } else if (offset >= node.leftBracket.end &&
         offset <= node.rightBracket.offset) {
-      collector.completionLocation = CompletionLocation.switchExpressionBody;
+      collector.completionLocation = CompletionLocation.switchExpressionPattern;
       _forPattern(node);
     }
   }
@@ -3216,7 +3265,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitSwitchExpressionCase(SwitchExpressionCase node) {
     if (node.arrow.isSynthetic || node.arrow.offset >= offset) {
       // The user is completing in the pattern.
-      collector.completionLocation = CompletionLocation.switchExpressionBody;
+      collector.completionLocation = CompletionLocation.switchExpressionPattern;
       _forPattern(node);
       return;
     }
@@ -4244,6 +4293,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           return;
         }
       } else if (identifier.parent is ConstantPattern) {
+        collector.completionLocation =
+            CompletionLocation.constantPatternExpression;
         keywordHelper.addPatternKeywords();
         // TODO(scheglov): Actually we need constructors, but only const.
         // And not-yet imported contributors does not work well yet.

@@ -38,9 +38,9 @@ export "foo" ^
 ''');
     assertResponse(r'''
 suggestions
-  hide
-    kind: keyword
   show
+    kind: keyword
+  hide
     kind: keyword
 ''');
   }
@@ -73,9 +73,9 @@ export "foo" ^;
 ''');
     assertResponse(r'''
 suggestions
-  hide
-    kind: keyword
   show
+    kind: keyword
+  hide
     kind: keyword
 ''');
   }
@@ -88,9 +88,9 @@ export "foo" h^;
 replacement
   left: 1
 suggestions
-  hide
-    kind: keyword
   show
+    kind: keyword
+  hide
     kind: keyword
 ''');
   }

@@ -483,9 +483,9 @@ class Fclass extends Bclass ^with  Eclass {}
 replacement
   right: 4
 suggestions
-  implements
-    kind: keyword
   with
+    kind: keyword
+  implements
     kind: keyword
 ''');
   }
@@ -4479,9 +4479,9 @@ class Maps{}class x extends M ^implements
 replacement
   right: 10
 suggestions
-  implements
-    kind: keyword
   with
+    kind: keyword
+  implements
     kind: keyword
 ''');
   }

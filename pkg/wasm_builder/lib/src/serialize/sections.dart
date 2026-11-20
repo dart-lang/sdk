@@ -19,10 +19,6 @@ const Set<String> _reservedCustomSectionNames = {
 };
 
 abstract class Section implements Serializable {
-  final List<int> watchPoints;
-
-  Section(this.watchPoints);
-
   @override
   void serialize(Serializer s, [DebugInfoSerializer? debugInfoSerializer]) {
     final contents = Serializer();
@@ -31,7 +27,7 @@ abstract class Section implements Serializable {
     if (data.isNotEmpty) {
       s.writeByte(id);
       s.writeUnsigned(data.length);
-      s.writeData(contents, watchPoints);
+      s.writeData(contents);
     }
   }
 
@@ -45,7 +41,7 @@ class TypeSection extends Section {
 
   final ir.Types types;
 
-  TypeSection(this.types, super.watchPoints);
+  TypeSection(this.types);
 
   List<List<ir.DefType>> get recursionGroups => types.recursionGroups;
 
@@ -143,7 +139,7 @@ class ImportSection extends Section {
 
   final ir.Imports imports;
 
-  ImportSection(this.imports, super.watchPoints);
+  ImportSection(this.imports);
 
   @override
   int get id => sectionId;
@@ -274,7 +270,7 @@ class FunctionSection extends Section {
 
   final List<ir.DefinedFunction> functions;
 
-  FunctionSection(this.functions, super.watchPoints);
+  FunctionSection(this.functions);
 
   @override
   int get id => sectionId;
@@ -320,7 +316,7 @@ class TableSection extends Section {
 
   final List<ir.DefinedTable> tables;
 
-  TableSection(this.tables, super.watchPOints);
+  TableSection(this.tables);
 
   @override
   int get id => sectionId;
@@ -365,7 +361,7 @@ class MemorySection extends Section {
 
   final List<ir.DefinedMemory> memories;
 
-  MemorySection(this.memories, super.watchPoints);
+  MemorySection(this.memories);
 
   @override
   int get id => sectionId;
@@ -411,7 +407,7 @@ class TagSection extends Section {
 
   final List<ir.DefinedTag> tags;
 
-  TagSection(this.tags, super.watchPoints);
+  TagSection(this.tags);
 
   @override
   int get id => sectionId;
@@ -455,7 +451,7 @@ class GlobalSection extends Section {
 
   final List<ir.DefinedGlobal> globals;
 
-  GlobalSection(this.globals, super.watchPoints);
+  GlobalSection(this.globals);
 
   @override
   int get id => sectionId;
@@ -506,7 +502,7 @@ class ExportSection extends Section {
 
   final List<ir.Export> exports;
 
-  ExportSection(this.exports, super.watchPoints);
+  ExportSection(this.exports);
 
   @override
   int get id => sectionId;
@@ -555,7 +551,7 @@ class StartSection extends Section {
 
   final ir.BaseFunction? startFunction;
 
-  StartSection(this.startFunction, super.watchPoints);
+  StartSection(this.startFunction);
 
   @override
   int get id => sectionId;
@@ -580,7 +576,7 @@ class ElementSection extends Section {
 
   final ir.Elements elementSegments;
 
-  ElementSection(this.elementSegments, super.watchPoints);
+  ElementSection(this.elementSegments);
 
   @override
   int get id => sectionId;
@@ -651,7 +647,7 @@ class DataCountSection extends Section {
 
   final List<ir.DataSegment> dataSegments;
 
-  DataCountSection(this.dataSegments, super.watchPoints);
+  DataCountSection(this.dataSegments);
 
   @override
   int get id => sectionId;
@@ -680,7 +676,7 @@ class CodeSection extends Section {
 
   final List<ir.DefinedFunction> functions;
 
-  CodeSection(this.functions, super.watchPoints);
+  CodeSection(this.functions);
 
   @override
   int get id => sectionId;
@@ -707,7 +703,7 @@ class CodeSection extends Section {
       s.writeByte(id);
       s.writeUnsigned(data.length);
       final fileOffset = s.offset;
-      s.writeData(contents, watchPoints);
+      s.writeData(contents);
       debugInfoSerializer?.setCodeSectionFileOffset(fileOffset);
     }
   }
@@ -794,14 +790,7 @@ class CodeSection extends Section {
         sectionFileOffset! + bodyOffset + bodyDeserializer.offset,
       );
 
-      function.body = ir.Instructions(
-        locals,
-        {},
-        instructions,
-        null,
-        [],
-        debugInfo,
-      );
+      function.body = ir.Instructions(locals, {}, instructions, debugInfo);
     }
   }
 }
@@ -811,7 +800,7 @@ class DataSection extends Section {
 
   final List<ir.DataSegment> dataSegments;
 
-  DataSection(this.dataSegments, super.watchPoints);
+  DataSection(this.dataSegments);
 
   @override
   int get id => sectionId;
@@ -885,8 +874,6 @@ class DataSection extends Section {
 abstract class CustomSection extends Section {
   static const int sectionId = 0;
 
-  CustomSection(super.watchPoints);
-
   @override
   int get id => sectionId;
 }
@@ -899,13 +886,7 @@ class NameSection extends CustomSection {
   final List<List<ir.DefType>> types;
   final ir.Globals globals;
 
-  NameSection(
-    this.moduleName,
-    this.functions,
-    this.types,
-    this.globals,
-    super.watchPoints,
-  );
+  NameSection(this.moduleName, this.functions, this.types, this.globals);
 
   @override
   void serializeContents(Serializer s) {
@@ -1138,7 +1119,7 @@ class SourceMapSection extends CustomSection {
 
   final Uri? url;
 
-  SourceMapSection(this.url) : super([]);
+  SourceMapSection(this.url);
 
   @override
   void serializeContents(Serializer s) {
@@ -1161,7 +1142,7 @@ class BinaryenRemovableIfUnusedSection extends CustomSection {
 
   final ir.Functions functions;
 
-  BinaryenRemovableIfUnusedSection(this.functions) : super([]);
+  BinaryenRemovableIfUnusedSection(this.functions);
 
   @override
   void serializeContents(Serializer s) {
@@ -1210,7 +1191,7 @@ class BinaryenInlineHintSection extends CustomSection {
 
   final ir.Functions functions;
 
-  BinaryenInlineHintSection(this.functions) : super([]);
+  BinaryenInlineHintSection(this.functions);
 
   @override
   void serializeContents(Serializer s) {
@@ -1269,7 +1250,7 @@ class BinaryenJSCalledSection extends CustomSection {
 
   final ir.Functions functions;
 
-  BinaryenJSCalledSection(this.functions) : super([]);
+  BinaryenJSCalledSection(this.functions);
 
   @override
   void serializeContents(Serializer s) {
@@ -1318,8 +1299,7 @@ class ExtraCustomSection extends CustomSection {
   final Uint8List bytes;
 
   ExtraCustomSection(this.name, this.bytes)
-    : assert(!_reservedCustomSectionNames.contains(name)),
-      super([]);
+    : assert(!_reservedCustomSectionNames.contains(name));
 
   factory ExtraCustomSection.deserialize(Deserializer d, String name) {
     final bytes = d.readBytes(d.length - d.offset);

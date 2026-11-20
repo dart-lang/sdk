@@ -460,12 +460,13 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     add(poolPointerReg, poolPointerReg, Immediate(heapObjectTag));
     pushPair(poolPointerReg, codeReg);
 
-    // Load and untag current pool pointer.
-    ldr(
-      poolPointerReg,
-      fieldAddress(codeReg, vmOffsets.Code_object_pool_offset),
-    );
-    sub(poolPointerReg, poolPointerReg, Immediate(heapObjectTag));
+    loadPoolPointer();
+  }
+
+  /// Load and untag current pool pointer from [codeReg].
+  void loadPoolPointer([Register ppReg = poolPointerReg]) {
+    ldr(ppReg, fieldAddress(codeReg, vmOffsets.Code_object_pool_offset));
+    sub(ppReg, ppReg, Immediate(heapObjectTag));
   }
 
   @override
@@ -815,6 +816,49 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
   }
 
   @override
+  void orImmediate(
+    Register dst,
+    Register src,
+    int value, [
+    OperandSize sz = OperandSize.s64,
+    Register scratch = temp2Reg,
+  ]) {
+    assert(sz.is32or64);
+    assert(_isInt(sz.bitWidth, value) || _isUint(sz.bitWidth, value));
+    if (value == 0) {
+      if (dst != src) {
+        mov(dst, src, sz);
+      }
+    } else if (value == -1 || (value == 0xffffffff && sz.is32)) {
+      movn(dst, 0, 0, sz);
+    } else if (canEncodeBitMasks(value, sz)) {
+      orr(dst, src, Immediate(value), sz);
+    } else {
+      assert(src != scratch);
+      loadImmediate(scratch, value);
+      orr(dst, src, scratch, sz);
+    }
+  }
+
+  @override
+  void copyMemoryWords(
+    Register src,
+    Register dst,
+    Register size,
+    Register temp,
+  ) {
+    final loop = Label();
+    final done = Label();
+    cbz(size, done);
+    bind(loop);
+    ldr(temp, WritebackRegOffsetAddress(src, wordSize, isPostIndexed: true));
+    str(temp, WritebackRegOffsetAddress(dst, wordSize, isPostIndexed: true));
+    subs(size, size, Immediate(wordSize));
+    b(loop, .notZero);
+    bind(done);
+  }
+
+  @override
   void callRuntime(RuntimeEntry entry, int argumentCount) {
     ldr(
       R5,
@@ -889,9 +933,8 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     addCallSiteMetadata?.call(.stubCall);
   }
 
-  // TODO: remove after all stubs are implemented in the compiler
-  void jumpVmStub(StubCode vmStub) {
-    loadFromPool(codeReg, vmStub);
+  void jumpStub(Code stub) {
+    loadFromPool(codeReg, stub);
     ldr(LR, fieldAddress(codeReg, vmOffsets.Code_entry_point_offset.first));
     br(LR);
   }
@@ -1070,6 +1113,17 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     }
 
     addImmediate(resultReg, resultReg, heapObjectTag);
+  }
+
+  /// Branch to [target] if [object] should be added to the remembered set
+  /// and/or deferred marking worklist.
+  void branchIfRemembered(Register object, Label target, Register scratch) {
+    assert(scratch != object);
+    assert(scratch != temp2Reg);
+    andImmediate(scratch, object, vmOffsets.Page_kPageMask);
+    ldr(scratch, address(scratch, vmOffsets.Page_survivor_end_offset));
+    cmp(object, scratch);
+    b(target, .unsignedLess);
   }
 
   @override

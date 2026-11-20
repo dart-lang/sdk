@@ -23,9 +23,9 @@ class A extends foo ^
 ''');
     assertResponse(r'''
 suggestions
-  implements
-    kind: keyword
   with
+    kind: keyword
+  implements
     kind: keyword
 ''');
   }
@@ -47,9 +47,9 @@ class A extends foo i^ { }
 replacement
   left: 1
 suggestions
-  implements
-    kind: keyword
   with
+    kind: keyword
+  implements
     kind: keyword
 ''');
   }

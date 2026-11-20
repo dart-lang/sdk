@@ -1078,6 +1078,39 @@ class SingleFileByteStoreTest {
     expect(store.get('key'), value);
   }
 
+  void test_tableBucketEntryCounts() {
+    // 4 buckets of 128 slots.
+    _open(tableSlotCountLog2: 9);
+    for (var slot in [0, 1, 2, 2 * 128 + 5]) {
+      store.putGet(_keyForSlot(slot), _value(10));
+    }
+    store.flush();
+    expect(store.tableBucketEntryCounts(), [3, 0, 1, 0]);
+
+    // Pending values are not counted.
+    store.putGet(_keyForSlot(128), _value(10));
+    expect(store.tableBucketEntryCounts(), [3, 0, 1, 0]);
+
+    // Another instance reads the same committed table.
+    store.flush();
+    _open(tableSlotCountLog2: 9);
+    expect(store.tableBucketEntryCounts(), [3, 1, 1, 0]);
+  }
+
+  void test_tableBucketEntryCounts_fullBucket() {
+    // By default tests run with 1 hash table bucket.
+    for (var slot = 0; slot < store.tableSlotCount; slot++) {
+      store.putGet(_keyForSlot(slot), _value(10));
+    }
+    store.flush();
+    expect(store.tableBucketEntryCounts(), [128]);
+
+    // A new key evicts 16 entries from the full bucket.
+    store.putGet('new_key', _value(10));
+    store.flush();
+    expect(store.tableBucketEntryCounts(), [113]);
+  }
+
   String _keyForSlot(int slot) {
     for (var i = 0; ; i++) {
       var key = 'key_$i';

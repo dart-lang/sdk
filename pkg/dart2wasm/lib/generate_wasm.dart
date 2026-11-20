@@ -69,9 +69,6 @@ Future<int> generateWasm(
     print(
       '  - shared memory max pages = ${translatorOptions.sharedMemoryMaxPages}',
     );
-    print(
-      '  - watch points = [${translatorOptions.watchPoints.map((p) => p.toString()).join(',')}]',
-    );
   }
 
   final fileSystem = StandardFileSystem.instance;

@@ -7,11 +7,11 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
+import "dart:convert";
+import "dart:io";
+
 import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-
-import "dart:io";
-import "dart:isolate";
 
 void testServerDetachSocket() {
   HttpServer.bind("127.0.0.1", 0).then((server) {
@@ -219,9 +219,120 @@ void testUpgradedConnection() {
   });
 }
 
+void testServerDetachSocketDefaultHeaders() async {
+  asyncStart();
+  final server = await HttpServer.bind("127.0.0.1", 0);
+  server.defaultResponseHeaders.clear();
+  server.serverHeader = null;
+  server.autoCompress = true;
+  server.listen((request) async {
+    final response = request.response;
+    response.headers.contentType = ContentType("text", "event-stream");
+    final socket = await response.detachSocket();
+    socket.listen(null);
+    socket.write("data: hello\n\n");
+    await socket.flush();
+    await socket.close();
+  });
+
+  // Verify raw wire headers omit default Transfer-Encoding: chunked and
+  // autoCompress Content-Encoding: gzip.
+  final rawSocket = await Socket.connect("127.0.0.1", server.port);
+  rawSocket.write(
+    "GET / HTTP/1.1\r\n"
+    "Host: 127.0.0.1:${server.port}\r\n"
+    "Accept-Encoding: gzip\r\n\r\n",
+  );
+  await rawSocket.flush();
+  final rawResponse = utf8.decode(
+    await rawSocket.fold<List<int>>(<int>[], (acc, b) => acc..addAll(b)),
+  );
+  rawSocket.destroy();
+  Expect.equals(
+    "HTTP/1.1 200 OK\r\n"
+    "content-type: text/event-stream\r\n"
+    "\r\n"
+    "data: hello\n\n",
+    rawResponse,
+  );
+
+  // Verify HttpClient reads the unchunked body cleanly.
+  final client = HttpClient();
+  final req = await client.get("127.0.0.1", server.port, "/");
+  final resp = await req.close();
+  Expect.isFalse(resp.headers.chunkedTransferEncoding);
+  Expect.isNull(resp.headers[HttpHeaders.transferEncodingHeader]);
+  Expect.isNull(resp.headers[HttpHeaders.contentEncodingHeader]);
+  Expect.equals("data: hello\n\n", await utf8.decoder.bind(resp).join());
+  client.close(force: true);
+  await server.close();
+  asyncEnd();
+}
+
+void testServerDetachSocketExplicitChunked() async {
+  asyncStart();
+  final server = await HttpServer.bind("127.0.0.1", 0);
+  server.autoCompress = true;
+  server.listen((request) async {
+    final response = request.response;
+    response.headers.chunkedTransferEncoding = true;
+    final socket = await response.detachSocket();
+    socket.listen(null);
+    socket.write("5\r\nhello\r\n0\r\n\r\n");
+    await socket.flush();
+    await socket.close();
+  });
+
+  final client = HttpClient();
+  final req = await client.get("127.0.0.1", server.port, "/");
+  final resp = await req.close();
+  Expect.isTrue(resp.headers.chunkedTransferEncoding);
+  Expect.isNull(resp.headers[HttpHeaders.contentEncodingHeader]);
+  Expect.equals("hello", await utf8.decoder.bind(resp).join());
+  client.close(force: true);
+  await server.close();
+  asyncEnd();
+}
+
+void testServerDetachSocketAddNonChunkedTransferEncoding() async {
+  asyncStart();
+  final server = await HttpServer.bind("127.0.0.1", 0);
+  server.defaultResponseHeaders.clear();
+  server.serverHeader = null;
+  server.listen((request) async {
+    final response = request.response;
+    response.headers.add(HttpHeaders.transferEncodingHeader, "identity");
+    final socket = await response.detachSocket();
+    socket.listen(null);
+    socket.write("hello");
+    await socket.flush();
+    await socket.close();
+  });
+
+  final rawSocket = await Socket.connect("127.0.0.1", server.port);
+  rawSocket.write("GET / HTTP/1.1\r\nHost: 127.0.0.1:${server.port}\r\n\r\n");
+  await rawSocket.flush();
+  final rawResponse = utf8.decode(
+    await rawSocket.fold<List<int>>(<int>[], (acc, b) => acc..addAll(b)),
+  );
+  rawSocket.destroy();
+  Expect.equals(
+    "HTTP/1.1 200 OK\r\n"
+    "transfer-encoding: identity\r\n"
+    "\r\n"
+    "hello",
+    rawResponse,
+  );
+  await server.close();
+  asyncEnd();
+}
+
 void main() {
   testServerDetachSocket();
   testServerDetachSocketNoWriteHeaders();
+  testServerDetachSocketDefaultHeaders();
+  testServerDetachSocketExplicitChunked();
+  testServerDetachSocketAddNonChunkedTransferEncoding();
   testBadServerDetachSocket();
   testClientDetachSocket();
   testUpgradedConnection();

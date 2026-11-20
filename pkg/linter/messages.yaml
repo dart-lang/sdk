@@ -7787,7 +7787,7 @@ LinterLintCode:
     categories: [flutter]
     hasPublishedDocs: false
     deprecatedDetails: |-
-      The 'package:flutter/material.dart' and 'package:flutter/cupertino.dart' libraries are deprecated.
+      The 'package:flutter/material.dart' and 'package:flutter/cupertino.dart' libraries are deprecated and should not be imported or exported.
   missingCodeBlockLanguageInDocComment:
     type: lint
     parameters: none

@@ -11,6 +11,8 @@
   See https://github.com/dart-lang/sdk/issues/64700.
 * Dartdoc templates in comments on `import`, `export`, `part`, and `part of` directives are no longer collected for
   macro expansion. Templates in documentation comments on `library` directives, declarations, and members remain supported.
+* Dartdoc templates in documentation comments on declaring formal parameters of primary constructors, including the
+  representation of an extension type, are collected for macro expansion. These comments document the declared fields.
 
 ## 14.7.0
 

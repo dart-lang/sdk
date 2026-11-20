@@ -633,6 +633,38 @@ class SingleFileByteStore implements ByteStore {
   @override
   void release(Iterable<String> keys) {}
 
+  /// Returns the number of committed entries in each hash table bucket, in
+  /// bucket order, as written by all instances sharing the storage.
+  ///
+  /// Pending values are not included. Reads the whole table directly from
+  /// storage, so this is for diagnostics, not for regular operations.
+  Uint8List tableBucketEntryCounts() {
+    // A full bucket must fit into a byte.
+    assert(_tableEntriesPerPage < 256);
+
+    _checkOpen();
+    return _withExclusiveAccess((header) {
+      // Bypass the page cache, to keep the pages that lookups use.
+      var selectors = _readSelectors(header.selectorSlot);
+      var tableBytes = Uint8List(_tablePageCount * pageSize);
+      _bufferPool.readPagesInto([
+        for (var index = 0; index < _tablePageCount; index++)
+          _committedTableFilePageIndex(selectors, _TablePageIndex(index)),
+      ], tableBytes);
+
+      // A zero page reference marks an empty slot.
+      var data = ByteData.sublistView(tableBytes);
+      var counts = Uint8List(_tablePageCount);
+      for (var slot = 0; slot < tableSlotCount; slot++) {
+        var offset = slot * _tableEntrySize + _tableEntryPageReferenceOffset;
+        if (data.getUint32(offset, Endian.little) != 0) {
+          counts[slot ~/ _tableEntriesPerPage]++;
+        }
+      }
+      return counts;
+    });
+  }
+
   _FilePageIndex _allocationBitmapChunkIndexToFilePageIndex(
     int chunkSlot,
     _AllocationBitmapChunkIndex chunkIndex,

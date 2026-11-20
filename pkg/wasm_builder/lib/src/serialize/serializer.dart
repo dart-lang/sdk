@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -13,15 +12,9 @@ abstract class Serializable {
 // TODO(joshualitt): Now that we have an IR, we should consider switching to a
 // visitor pattern.
 class Serializer {
-  static bool traceEnabled = false;
-
   // The prefix of `_data` up to `_index` contains the data serialized so far.
   Uint8List _data = Uint8List(24);
   int _index = 0;
-
-  // Stack traces or other serializers attached to byte positions within the
-  // chunk of data produced by this serializer.
-  late final SplayTreeMap<int, Object> _traces = SplayTreeMap();
 
   /// Get the current offset in the serialized data.
   int get offset => _index;
@@ -39,19 +32,13 @@ class Serializer {
     }
   }
 
-  void debugTrace(Object data) {
-    _traces[_index] ??= data;
-  }
-
   void writeByte(int byte) {
-    if (traceEnabled) debugTrace(StackTrace.current);
     assert(byte == byte & 0xFF);
     _ensure(1);
     _data[_index++] = byte;
   }
 
   void writeBytes(Uint8List bytes) {
-    if (traceEnabled) debugTrace(StackTrace.current);
     _ensure(bytes.length);
     _data.setRange(_index, _index += bytes.length, bytes);
   }
@@ -115,24 +102,7 @@ class Serializer {
     }
   }
 
-  void writeData(Serializer chunk, [List<int> watchPoints = const []]) {
-    if (traceEnabled) debugTrace(chunk);
-    for (int watchPoint in watchPoints) {
-      if (_index <= watchPoint && watchPoint < _index + chunk.data.length) {
-        int byteValue = chunk.data[watchPoint - _index];
-        Object trace = this;
-        int offset = watchPoint;
-        while (trace is Serializer) {
-          int keyOffset = trace._traces.containsKey(offset)
-              ? offset
-              : trace._traces.lastKeyBefore(offset)!;
-          trace = trace._traces[keyOffset]!;
-          offset -= keyOffset;
-        }
-        String byte = byteValue.toRadixString(16).padLeft(2, '0');
-        print("Watch $watchPoint: 0x$byte\n$trace");
-      }
-    }
+  void writeData(Serializer chunk) {
     writeBytes(chunk.data);
   }
 

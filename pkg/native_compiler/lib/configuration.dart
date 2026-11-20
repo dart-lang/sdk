@@ -112,14 +112,17 @@ abstract base class Configuration(
         ),
       };
 
-  AsmIntrinsics createAsmIntrinsics(FunctionRegistry functionRegistry) =>
-      switch (targetCPU) {
-        TargetCPU.arm64 => Arm64AsmIntrinsics(
-          functionRegistry,
-          vmOffsets,
-          objectLayout,
-        ),
-      };
+  AsmIntrinsics createAsmIntrinsics(
+    FunctionRegistry functionRegistry,
+    StubFactory stubFactory,
+  ) => switch (targetCPU) {
+    TargetCPU.arm64 => Arm64AsmIntrinsics(
+      functionRegistry,
+      vmOffsets,
+      objectLayout,
+      stubFactory,
+    ),
+  };
 
   ImageWriter createImageWriter() => switch (imageFormat) {
     ImageFormat.macho => MachoImageWriter(targetCPU, outputLibraryName),

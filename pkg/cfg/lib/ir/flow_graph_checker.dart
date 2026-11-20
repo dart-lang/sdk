@@ -79,32 +79,49 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
 
   void verifyInputs(Instruction instr) {
     for (int i = 0, n = instr.inputCount; i < n; ++i) {
-      final input = instr.inputAt(i);
-      assert(input.getInstruction(graph) == instr);
-      final def = input.getDefinition(graph);
-      assert(def.isInGraph);
-      assert(graph.preorder[def.block!.preorderNumber] == def.block);
-      // Check that input can be found in the use list of 'def'.
-      var seen = false;
-      for (final use in def.inputUses) {
-        if (use == input) {
-          assert(!seen);
-          seen = true;
-        }
+      _verifyInput(instr, i, instr.inputAt(i), isImplicit: false);
+    }
+    for (int i = 0, n = instr.implicitInputCount; i < n; ++i) {
+      _verifyInput(instr, i, instr.implicitInputAt(i), isImplicit: true);
+    }
+  }
+
+  void _verifyInput(
+    Instruction instr,
+    int i,
+    Use input, {
+    required bool isImplicit,
+  }) {
+    assert(input.getInstruction(graph) == instr);
+    final def = input.getDefinition(graph);
+    assert(def.isInGraph);
+    assert(graph.preorder[def.block!.preorderNumber] == def.block);
+    // Check that input can be found in the use list of 'def'.
+    var seen = false;
+    for (final use in isImplicit ? def.implicitUses : def.inputUses) {
+      if (use == input) {
+        assert(!seen);
+        seen = true;
       }
-      assert(seen);
-      // Check that every use is dominated by def.
-      if (instr is Phi) {
-        assert(instr.block!.predecessors[i].lastInstruction.isDominatedBy(def));
-      } else {
-        assert(instr.isDominatedBy(def));
-      }
+    }
+    assert(seen);
+    // Check that every use is dominated by def.
+    if (instr is Phi) {
+      assert(!isImplicit);
+      assert(instr.block!.predecessors[i].lastInstruction.isDominatedBy(def));
+    } else {
+      assert(instr.isDominatedBy(def));
     }
   }
 
   void verifyUses(Definition def) {
+    _verifyUseList(def, def.inputUses);
+    _verifyUseList(def, def.implicitUses);
+  }
+
+  void _verifyUseList(Definition def, UsesIterable uses) {
     Use previous = Use.Null;
-    for (final use in def.inputUses) {
+    for (final use in uses) {
       assert(use != Use.Null);
       assert(use.getDefinition(graph) == def);
       final user = use.getInstruction(graph);

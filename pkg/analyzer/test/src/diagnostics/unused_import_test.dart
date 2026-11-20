@@ -85,6 +85,37 @@ Two? two;
 ''');
   }
 
+  test_library_export_unusedReexportOfSibling() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class Reexported {}
+class OnlyInA {}
+''');
+    newFile('$testPackageLibPath/b.dart', "export 'a.dart' show Reexported;");
+    await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart';
+import 'b.dart';
+//     ^^^^^^^^
+// [diag.unusedImport] Unused import: 'b.dart'.
+
+OnlyInA? value;
+''');
+  }
+
+  test_library_export_usedElementProvidedByThreeImports() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/b.dart', "export 'a.dart';");
+    newFile('$testPackageLibPath/c.dart', "export 'a.dart';");
+    await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart' as p;
+import 'b.dart' as p;
+import 'c.dart' as p;
+
+p.A? value;
+''');
+  }
+
   test_library_extension_instance_call() async {
     newFile('$testPackageLibPath/lib1.dart', r'''
 extension E on int {
@@ -302,6 +333,28 @@ extension E on String {
 import 'lib1.dart' as lib1;
 //     ^^^^^^^^^^^
 // [diag.unusedImport] Unused import: 'lib1.dart'.
+''');
+  }
+
+  test_library_extension_providedByTwoImports() async {
+    // Twice and Other have the same first two suppliers. Adding a third
+    // supplier for Other must leave the suppliers of Twice unchanged.
+    newFile('$testPackageLibPath/a.dart', r'''
+extension Twice on int {
+  int get twice => this * 2;
+}
+class Other {}
+''');
+    newFile('$testPackageLibPath/b.dart', "export 'a.dart';");
+    newFile('$testPackageLibPath/c.dart', "export 'a.dart' show Other;");
+    await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart';
+import 'b.dart';
+import 'c.dart';
+//     ^^^^^^^^
+// [diag.unusedImport] Unused import: 'c.dart'.
+
+int value = 1.twice;
 ''');
   }
 
