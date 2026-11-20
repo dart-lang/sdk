@@ -15,7 +15,6 @@ import 'package:native_compiler/back_end/stub_code_generator.dart';
 import 'package:native_compiler/configuration.dart';
 import 'package:native_compiler/front_end/recognized_methods.dart';
 import 'package:native_compiler/runtime/type_utils.dart';
-import 'package:native_compiler/runtime/vm_defs.dart';
 import 'package:native_compiler/snapshot/image_writer.dart';
 import 'package:native_compiler/snapshot/snapshot.dart';
 
@@ -110,63 +109,10 @@ class CompilationSet {
     }
 
     if (config.compilePlatform) {
-      // Generate stubs for the VM.
-      _snapshot.addRootStub(
-        StubCode.DynamicInvocationForwarder,
-        _stubFactory.dynamicInvocationForwarderStub,
-      );
-      _snapshot.addRootStub(
-        StubCode.InvokeDartCode,
-        _stubFactory.invokeDartCodeStub,
-      );
-      _snapshot.addRootStub(
-        StubCode.InvokeDartCodeFromBytecode,
-        _stubFactory.invokeDartCodeFromBytecodeStub,
-      );
-      _snapshot.addRootStub(StubCode.Await, _stubFactory.awaitStub);
-      _snapshot.addRootStub(
-        StubCode.AwaitWithTypeCheck,
-        _stubFactory.awaitWithTypeCheckStub,
-      );
-      _snapshot.addRootStub(
-        StubCode.YieldAsyncStar,
-        _stubFactory.yieldAsyncStarStub,
-      );
-      _snapshot.addRootStub(
-        StubCode.SuspendSyncStarAtStart,
-        _stubFactory.suspendSyncStarAtStartStub,
-      );
-      _snapshot.addRootStub(
-        StubCode.SuspendSyncStarAtYield,
-        _stubFactory.suspendSyncStarAtYieldStub,
-      );
-      _snapshot.addRootStub(StubCode.InitAsync, _stubFactory.initAsyncStub);
-      _snapshot.addRootStub(
-        StubCode.InitAsyncStar,
-        _stubFactory.initAsyncStarStub,
-      );
-      _snapshot.addRootStub(
-        StubCode.InitSyncStar,
-        _stubFactory.initSyncStarStub,
-      );
-      _snapshot.addRootStub(StubCode.Resume, _stubFactory.resumeStub);
-      _snapshot.addRootStub(StubCode.ReturnAsync, _stubFactory.returnAsyncStub);
-      _snapshot.addRootStub(
-        StubCode.ReturnAsyncNotFuture,
-        _stubFactory.returnAsyncNotFutureStub,
-      );
-      _snapshot.addRootStub(
-        StubCode.ReturnAsyncStar,
-        _stubFactory.returnAsyncStarStub,
-      );
-      _snapshot.addRootStub(
-        StubCode.AsyncExceptionHandler,
-        _stubFactory.asyncExceptionHandlerStub,
-      );
-      _snapshot.addRootStub(
-        StubCode.CloneSuspendState,
-        _stubFactory.cloneSuspendStateStub,
-      );
+      // Ensure all platform stubs are generated and included into the snapshot.
+      for (final stub in StubFactory.platformStubs) {
+        _snapshot.addRootStub(stub, _stubFactory.getPlatformStub(stub) as Code);
+      }
     }
   }
 

@@ -51,7 +51,7 @@ final class Arm64AsmIntrinsics(
       _asm.fieldAddress(codeReg, vmOffsets.Code_object_pool_offset),
     );
     _asm.sub(poolPointerReg, poolPointerReg, Immediate(heapObjectTag));
-    _asm.loadFromPool(codeReg, stubFactory.cloneSuspendStateStub);
+    _asm.loadFromPool(codeReg, stubFactory.getPlatformStub(.CloneSuspendState));
     _asm.mov(poolPointerReg, tempReg);
     _asm.ldr(
       tempReg,

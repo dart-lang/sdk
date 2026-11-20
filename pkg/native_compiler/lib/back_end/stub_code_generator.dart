@@ -5,109 +5,60 @@
 import 'package:kernel/ast.dart' as ast show Class;
 import 'package:native_compiler/back_end/code.dart';
 import 'package:native_compiler/back_end/locations.dart';
+import 'package:native_compiler/runtime/vm_defs.dart';
 
 /// Interface class for architecture-specific stub code generator.
 abstract interface class StubCodeGenerator {
   Code generate(String name);
 }
 
+/// Reference to platform stub code.
+///
+/// It could be either [Code] if compiling a platform, or symbolic [StubCode]
+/// which resolves to a stub code when module snapshot is loaded.
+extension type PlatformStub._(Object /*Code|StubCode*/ code) implements Object;
+
 /// Base class for architecture-specific stub factory.
 ///
 /// Generates and caches stubs on demand.
 abstract base class StubFactory {
+  /// List of stubs included into a platform snapshot.
+  /// Should match PLATFORM_STUB_LIST macro in runtime/vm/module_snapshot.cc.
+  static const Set<StubCode> platformStubs = <StubCode>{
+    .DynamicInvocationForwarder,
+    .InvokeDartCode,
+    .InvokeDartCodeFromBytecode,
+    .Await,
+    .AwaitWithTypeCheck,
+    .YieldAsyncStar,
+    .SuspendSyncStarAtStart,
+    .SuspendSyncStarAtYield,
+    .InitAsync,
+    .InitAsyncStar,
+    .InitSyncStar,
+    .Resume,
+    .ReturnAsync,
+    .ReturnAsyncNotFuture,
+    .ReturnAsyncStar,
+    .AsyncExceptionHandler,
+    .CloneSuspendState,
+  };
+
   final CodeConsumer consumeGeneratedCode;
-  Map<ast.Class, Code> _allocationStubs = {};
-  Map<(Register, Register, bool), Code> _writeBarrierStubs = {};
-  List<Code?> _subtypeTestCacheStubs = List<Code?>.filled(8, null);
+  final bool compilePlatform;
+  final Map<StubCode, PlatformStub> _platformStubs = {};
+  final Map<ast.Class, Code> _allocationStubs = {};
+  final Map<(Register, Register, bool), Code> _writeBarrierStubs = {};
+  final List<Code?> _subtypeTestCacheStubs = List<Code?>.filled(8, null);
 
   late final Code dynamicCallStub = _generateCode(
     'DynamicCallStub',
     dynamicCallStubGenerator(),
   );
 
-  late final Code dynamicInvocationForwarderStub = _generateCode(
-    'DynamicInvocationForwarderStub',
-    dynamicInvocationForwarderStubGenerator(),
-  );
+  StubFactory(this.consumeGeneratedCode, {required this.compilePlatform});
 
-  late final Code invokeDartCodeStub = _generateCode(
-    'InvokeDartCodeStub',
-    invokeDartCodeStubGenerator(),
-  );
-
-  late final Code invokeDartCodeFromBytecodeStub = _generateCode(
-    'InvokeDartCodeFromBytecodeStub',
-    invokeDartCodeFromBytecodeStubGenerator(),
-  );
-
-  late final Code awaitStub = _generateCode('AwaitStub', awaitStubGenerator());
-
-  late final Code awaitWithTypeCheckStub = _generateCode(
-    'AwaitWithTypeCheckStub',
-    awaitWithTypeCheckStubGenerator(),
-  );
-
-  late final Code yieldAsyncStarStub = _generateCode(
-    'YieldAsyncStarStub',
-    yieldAsyncStarStubGenerator(),
-  );
-
-  late final Code suspendSyncStarAtStartStub = _generateCode(
-    'SuspendSyncStarAtStartStub',
-    suspendSyncStarAtStartStubGenerator(),
-  );
-
-  late final Code suspendSyncStarAtYieldStub = _generateCode(
-    'SuspendSyncStarAtYieldStub',
-    suspendSyncStarAtYieldStubGenerator(),
-  );
-
-  late final Code initAsyncStub = _generateCode(
-    'InitAsyncStub',
-    initAsyncStubGenerator(),
-  );
-
-  late final Code initAsyncStarStub = _generateCode(
-    'InitAsyncStarStub',
-    initAsyncStarStubGenerator(),
-  );
-
-  late final Code initSyncStarStub = _generateCode(
-    'InitSyncStarStub',
-    initSyncStarStubGenerator(),
-  );
-
-  late final Code resumeStub = _generateCode(
-    'ResumeStub',
-    resumeStubGenerator(),
-  );
-
-  late final Code returnAsyncStub = _generateCode(
-    'ReturnAsyncStub',
-    returnAsyncStubGenerator(),
-  );
-
-  late final Code returnAsyncNotFutureStub = _generateCode(
-    'ReturnAsyncNotFutureStub',
-    returnAsyncNotFutureStubGenerator(),
-  );
-
-  late final Code returnAsyncStarStub = _generateCode(
-    'ReturnAsyncStarStub',
-    returnAsyncStarStubGenerator(),
-  );
-
-  late final Code asyncExceptionHandlerStub = _generateCode(
-    'AsyncExceptionHandlerStub',
-    asyncExceptionHandlerStubGenerator(),
-  );
-
-  late final Code cloneSuspendStateStub = _generateCode(
-    'CloneSuspendStateStub',
-    cloneSuspendStateStubGenerator(),
-  );
-
-  StubFactory(this.consumeGeneratedCode);
+  StubCodeGenerator getPlatformStubGenerator(StubCode stub);
 
   StubCodeGenerator allocationStubGenerator(ast.Class cls);
 
@@ -119,47 +70,20 @@ abstract base class StubFactory {
 
   StubCodeGenerator dynamicCallStubGenerator();
 
-  StubCodeGenerator dynamicInvocationForwarderStubGenerator();
-
-  StubCodeGenerator invokeDartCodeStubGenerator();
-
-  StubCodeGenerator invokeDartCodeFromBytecodeStubGenerator();
-
   StubCodeGenerator subtypeTestCacheStubGenerator(int n);
-
-  StubCodeGenerator awaitStubGenerator();
-
-  StubCodeGenerator awaitWithTypeCheckStubGenerator();
-
-  StubCodeGenerator yieldAsyncStarStubGenerator();
-
-  StubCodeGenerator suspendSyncStarAtStartStubGenerator();
-
-  StubCodeGenerator suspendSyncStarAtYieldStubGenerator();
-
-  StubCodeGenerator initAsyncStubGenerator();
-
-  StubCodeGenerator initAsyncStarStubGenerator();
-
-  StubCodeGenerator initSyncStarStubGenerator();
-
-  StubCodeGenerator resumeStubGenerator();
-
-  StubCodeGenerator returnAsyncStubGenerator();
-
-  StubCodeGenerator returnAsyncNotFutureStubGenerator();
-
-  StubCodeGenerator returnAsyncStarStubGenerator();
-
-  StubCodeGenerator asyncExceptionHandlerStubGenerator();
-
-  StubCodeGenerator cloneSuspendStateStubGenerator();
 
   Code _generateCode(String name, StubCodeGenerator generator) {
     final code = generator.generate(name);
     consumeGeneratedCode(code);
     return code;
   }
+
+  PlatformStub getPlatformStub(StubCode stub) =>
+      _platformStubs[stub] ??= PlatformStub._(
+        (compilePlatform && platformStubs.contains(stub))
+            ? _generateCode('${stub.name}Stub', getPlatformStubGenerator(stub))
+            : stub,
+      );
 
   Code getAllocationStub(ast.Class cls) => _allocationStubs[cls] ??=
       _generateCode('AllocationStub for ${cls}', allocationStubGenerator(cls));

@@ -21,6 +21,7 @@ import 'package:kernel/type_environment.dart'
 import 'package:native_compiler/back_end/code.dart';
 import 'package:native_compiler/back_end/code_metadata.dart';
 import 'package:native_compiler/back_end/object_pool.dart';
+import 'package:native_compiler/back_end/stub_code_generator.dart';
 import 'package:native_compiler/configuration.dart';
 import 'package:native_compiler/runtime/constant_objects.dart';
 import 'package:native_compiler/runtime/names.dart';
@@ -186,6 +187,9 @@ class SnapshotSerializer {
     addBaseObject(RuntimeConstantObject(.uninitializedIndex));
     addBaseObject(RuntimeConstantObject(.uninitializedData));
     addBaseObject(RuntimeConstantObject(.mutableEmptyList));
+    for (final stub in StubFactory.platformStubs) {
+      addBaseObject(stub);
+    }
     // TODO: generate these stubs instead of referencing them from the VM.
     addBaseObject(StubCode.InstantiateTypeArguments);
     addBaseObject(StubCode.CallBootstrapNative);
