@@ -8,6 +8,7 @@ import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
@@ -158,9 +159,17 @@ class ConvertIfStatementToSwitchStatement extends ResolvedCorrectionProducer {
         }
       }
     } else if (node is IsExpression) {
+      // A negated type test cannot be expressed as a pattern without
+      // swapping the branches, and an object pattern cannot use a nullable
+      // type, so the assist is not offered for either.
+      var type = node.type.typeOrThrow;
+      if (node.notOperator != null ||
+          type.nullabilitySuffix != NullabilitySuffix.none) {
+        return null;
+      }
       var expressionCode = utils.getNodeText(node.expression);
       var typeCode = utils.getNodeText(node.type);
-      var patternCode = switch (node.type.typeOrThrow) {
+      var patternCode = switch (type) {
         InterfaceType() => '$typeCode()',
         _ => '$typeCode _',
       };

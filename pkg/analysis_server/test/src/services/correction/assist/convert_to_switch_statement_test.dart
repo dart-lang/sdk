@@ -194,6 +194,21 @@ void f(Object? x) {
     await assertNoAssist();
   }
 
+  Future<void> test_chain_expression_isType_negated() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  i^f (x case int()) {
+    1;
+  } else if (x is! String) {
+    0;
+  } else {
+    2;
+  }
+}
+''');
+    await assertNoAssist();
+  }
+
   Future<void> test_single_case_expr_thenBlock_elseBlock() async {
     await resolveTestCode('''
 void f(int? x) {
@@ -398,6 +413,32 @@ void f(Object? x) {
   }
 }
 ''');
+  }
+
+  Future<void> test_single_expression_isType_negated() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  i^f (x is! List<int>) {
+    0;
+  } else {
+    1;
+  }
+}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_single_expression_isType_nullable() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  i^f (x is List<int>?) {
+    0;
+  } else {
+    1;
+  }
+}
+''');
+    await assertNoAssist();
   }
 
   Future<void> test_single_expression_isType_recordType() async {
