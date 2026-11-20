@@ -84,7 +84,9 @@ class CompiledApp {
   //   callback that should be invoked for each loaded module with 2 arguments:
   //   (1) the module name, (2) the loaded module in a format supported by
   //   `WebAssembly.compile` or `WebAssembly.compileStreaming`. The callback
-  //   returns a Promise that resolves when the module is instantiated.
+  //   returns a Promise that resolves to `{module, instance}` (the compiled
+  //   `WebAssembly.Module` and instantiated `WebAssembly.Instance`) when the
+  //   module is instantiated.
   //   loadDeferredModules should return a Promise that resolves when all the
   //   modules have been loaded and the callback promises have resolved.
   // `loadDeferredId` is a JS function that takes load ID produced by the
@@ -93,8 +95,9 @@ class CompiledApp {
   //   takes a callback that should be invoked for each loaded module with 2
   //   arguments: (1) the module name, (2) the loaded module in a format
   //   supported by `WebAssembly.compile` or `WebAssembly.compileStreaming`.
-  //   The callback returns a Promise that resolves when the module is
-  //   instantiated.
+  //   The callback returns a Promise that resolves to `{module, instance}`
+  //   (the compiled `WebAssembly.Module` and instantiated
+  //   `WebAssembly.Instance`) when the module is instantiated.
   //   loadDeferredId should return a Promise that resolves when all the
   //   modules have been loaded and the callback promises have resolved.
   async instantiate(additionalImports, {loadDeferredModules, loadDeferredId} = {}) {
@@ -182,6 +185,7 @@ final moduleLoadingHelperTemplate = Template(r'''
         ...additionalImports,
         "<<MAIN_MODULE_NAME>>": dartInstance.exports,
       });
+      return {module, instance: moduleInstance};
     }
     const moduleLoadingHelper = {
       "loadDeferredModules": async (moduleNames) => {
