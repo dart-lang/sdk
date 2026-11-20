@@ -132,7 +132,7 @@ class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
     required _ConstructorItemFlags super.flags,
     required super.metadata,
     required super.functionType,
-    required super.formalParameterDefaultValues,
+    required super.declaredFormalParameters,
     required this.constantInitializers,
     required this.redirectedConstructor,
     required this.superConstructor,
@@ -149,8 +149,10 @@ class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
         flags: _ConstructorItemFlags.encode(element),
         metadata: ManifestMetadata.encode(context, element.metadata),
         functionType: element.type.encode(context),
-        formalParameterDefaultValues: element.formalParameters
-            .encodeDefaultValues(context),
+        declaredFormalParameters: ManifestDeclaredFormalParameter.encodeList(
+          context,
+          element,
+        ),
         constantInitializers: element.constantInitializers
             .map((initializer) => ManifestNode.encode(context, initializer))
             .toFixedList(),
@@ -172,7 +174,9 @@ class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
       flags: _ConstructorItemFlags.read(reader),
       metadata: ManifestMetadata.read(reader),
       functionType: ManifestFunctionType.read(reader),
-      formalParameterDefaultValues: ManifestNode.readListOfOptional(reader),
+      declaredFormalParameters: ManifestDeclaredFormalParameter.readList(
+        reader,
+      ),
       constantInitializers: ManifestNode.readList(reader),
       redirectedConstructor: ManifestElement.readOptional(reader),
       superConstructor: ManifestElement.readOptional(reader),
@@ -291,14 +295,14 @@ class EnumItem extends InterfaceItem<EnumElementImpl> {
 sealed class ExecutableItem<E extends ExecutableElementImpl>
     extends ManifestItem<E> {
   final ManifestFunctionType functionType;
-  final List<ManifestNode?> formalParameterDefaultValues;
+  final List<ManifestDeclaredFormalParameter> declaredFormalParameters;
 
   new({
     required super.id,
     required _ExecutableItemFlags super.flags,
     required super.metadata,
     required this.functionType,
-    required this.formalParameterDefaultValues,
+    required this.declaredFormalParameters,
   });
 
   @override
@@ -317,17 +321,29 @@ sealed class ExecutableItem<E extends ExecutableElementImpl>
         flags.isSimplyBounded == element.isSimplyBounded &&
         flags.isStatic == element.isStatic &&
         functionType.match(context, element.type) &&
-        formalParameterDefaultValues.match(
-          context,
-          element.formalParameters.map((e) => e.constantInitializer2).toList(),
-        );
+        _matchDeclaredFormalParameters(context, element);
   }
 
   @override
   void write(BinaryWriter writer) {
     super.write(writer);
     functionType.writeNoTag(writer);
-    formalParameterDefaultValues.writeList(writer);
+    writer.writeList(declaredFormalParameters, (e) => e.write(writer));
+  }
+
+  bool _matchDeclaredFormalParameters(MatchContext context, E element) {
+    var formalParameters = element.formalParametersSortedByName;
+    if (declaredFormalParameters.length != formalParameters.length) {
+      return false;
+    }
+    return context.withTypeParameters(element.typeParameters, () {
+      for (var i = 0; i < formalParameters.length; i++) {
+        if (!declaredFormalParameters[i].match(context, formalParameters[i])) {
+          return false;
+        }
+      }
+      return true;
+    });
   }
 }
 
@@ -578,7 +594,7 @@ class GetterItem extends PropertyAccessorItem<GetterElementImpl> {
     required super.flags,
     required super.metadata,
     required super.functionType,
-    required super.formalParameterDefaultValues,
+    required super.declaredFormalParameters,
   });
 
   factory fromElement({
@@ -594,8 +610,10 @@ class GetterItem extends PropertyAccessorItem<GetterElementImpl> {
         element.thisOrVariableMetadata,
       ),
       functionType: element.type.encode(context),
-      formalParameterDefaultValues: element.formalParameters
-          .encodeDefaultValues(context),
+      declaredFormalParameters: ManifestDeclaredFormalParameter.encodeList(
+        context,
+        element,
+      ),
     );
   }
 
@@ -605,7 +623,9 @@ class GetterItem extends PropertyAccessorItem<GetterElementImpl> {
       flags: _PropertyAccessorItemFlags.read(reader),
       metadata: ManifestMetadata.read(reader),
       functionType: ManifestFunctionType.read(reader),
-      formalParameterDefaultValues: ManifestNode.readListOfOptional(reader),
+      declaredFormalParameters: ManifestDeclaredFormalParameter.readList(
+        reader,
+      ),
     );
   }
 
@@ -937,6 +957,56 @@ class ManifestAnnotation {
   }
 }
 
+/// The parts of a formal parameter of an executable declaration that are not
+/// in its function type: metadata and the default value.
+class ManifestDeclaredFormalParameter {
+  final ManifestMetadata metadata;
+  final ManifestNode? defaultValue;
+
+  new({required this.metadata, required this.defaultValue});
+
+  factory encode(EncodeContext context, FormalParameterElementImpl element) {
+    return ManifestDeclaredFormalParameter(
+      metadata: ManifestMetadata.encode(context, element.metadata),
+      defaultValue: element.constantInitializer2?.encode(context),
+    );
+  }
+
+  factory read(BinaryReader reader) {
+    return ManifestDeclaredFormalParameter(
+      metadata: ManifestMetadata.read(reader),
+      defaultValue: ManifestNode.readOptional(reader),
+    );
+  }
+
+  bool match(MatchContext context, FormalParameterElementImpl element) {
+    return metadata.match(context, element.metadata) &&
+        defaultValue.match(context, element.constantInitializer2);
+  }
+
+  void write(BinaryWriter writer) {
+    metadata.write(writer);
+    defaultValue.writeOptional(writer);
+  }
+
+  static List<ManifestDeclaredFormalParameter> encodeList(
+    EncodeContext context,
+    ExecutableElementImpl element,
+  ) {
+    return context.withTypeParameterScope(element.typeParameters, () {
+      return element.formalParametersSortedByName.map((formalParameter) {
+        return ManifestDeclaredFormalParameter.encode(context, formalParameter);
+      }).toFixedList();
+    });
+  }
+
+  static List<ManifestDeclaredFormalParameter> readList(BinaryReader reader) {
+    return reader.readTypedList(() {
+      return ManifestDeclaredFormalParameter.read(reader);
+    });
+  }
+}
+
 /// Manifest version of `Interface` computed by `InheritanceManager`.
 ///
 /// We store only IDs of the interface members, but not type substitutions,
@@ -1200,7 +1270,7 @@ class MethodItem extends ExecutableItem<MethodElementImpl> {
     required _MethodItemFlags super.flags,
     required super.metadata,
     required super.functionType,
-    required super.formalParameterDefaultValues,
+    required super.declaredFormalParameters,
     required this.typeInferenceError,
   });
 
@@ -1214,8 +1284,10 @@ class MethodItem extends ExecutableItem<MethodElementImpl> {
       flags: _MethodItemFlags.encode(element),
       metadata: ManifestMetadata.encode(context, element.metadata),
       functionType: element.type.encode(context),
-      formalParameterDefaultValues: element.formalParameters
-          .encodeDefaultValues(context),
+      declaredFormalParameters: ManifestDeclaredFormalParameter.encodeList(
+        context,
+        element,
+      ),
       typeInferenceError: element.typeInferenceError,
     );
   }
@@ -1226,7 +1298,9 @@ class MethodItem extends ExecutableItem<MethodElementImpl> {
       flags: _MethodItemFlags.read(reader),
       metadata: ManifestMetadata.read(reader),
       functionType: ManifestFunctionType.read(reader),
-      formalParameterDefaultValues: ManifestNode.readListOfOptional(reader),
+      declaredFormalParameters: ManifestDeclaredFormalParameter.readList(
+        reader,
+      ),
       typeInferenceError: TopLevelInferenceError.readOptional(reader),
     );
   }
@@ -1368,7 +1442,7 @@ sealed class PropertyAccessorItem<E extends PropertyAccessorElementImpl>
     required _PropertyAccessorItemFlags super.flags,
     required super.metadata,
     required super.functionType,
-    required super.formalParameterDefaultValues,
+    required super.declaredFormalParameters,
   });
 
   @override
@@ -1390,7 +1464,7 @@ class SetterItem extends PropertyAccessorItem<SetterElementImpl> {
     required super.flags,
     required super.metadata,
     required super.functionType,
-    required super.formalParameterDefaultValues,
+    required super.declaredFormalParameters,
   });
 
   factory fromElement({
@@ -1406,8 +1480,10 @@ class SetterItem extends PropertyAccessorItem<SetterElementImpl> {
         element.thisOrVariableMetadata,
       ),
       functionType: element.type.encode(context),
-      formalParameterDefaultValues: element.formalParameters
-          .encodeDefaultValues(context),
+      declaredFormalParameters: ManifestDeclaredFormalParameter.encodeList(
+        context,
+        element,
+      ),
     );
   }
 
@@ -1417,7 +1493,9 @@ class SetterItem extends PropertyAccessorItem<SetterElementImpl> {
       flags: _PropertyAccessorItemFlags.read(reader),
       metadata: ManifestMetadata.read(reader),
       functionType: ManifestFunctionType.read(reader),
-      formalParameterDefaultValues: ManifestNode.readListOfOptional(reader),
+      declaredFormalParameters: ManifestDeclaredFormalParameter.readList(
+        reader,
+      ),
     );
   }
 
@@ -1435,7 +1513,7 @@ class TopLevelFunctionItem extends ExecutableItem<TopLevelFunctionElementImpl> {
     required _TopLevelFunctionItemFlags super.flags,
     required super.metadata,
     required super.functionType,
-    required super.formalParameterDefaultValues,
+    required super.declaredFormalParameters,
   });
 
   factory fromElement({
@@ -1448,8 +1526,10 @@ class TopLevelFunctionItem extends ExecutableItem<TopLevelFunctionElementImpl> {
       flags: _TopLevelFunctionItemFlags.encode(element),
       metadata: ManifestMetadata.encode(context, element.metadata),
       functionType: element.type.encode(context),
-      formalParameterDefaultValues: element.formalParameters
-          .encodeDefaultValues(context),
+      declaredFormalParameters: ManifestDeclaredFormalParameter.encodeList(
+        context,
+        element,
+      ),
     );
   }
 
@@ -1459,7 +1539,9 @@ class TopLevelFunctionItem extends ExecutableItem<TopLevelFunctionElementImpl> {
       flags: _TopLevelFunctionItemFlags.read(reader),
       metadata: ManifestMetadata.read(reader),
       functionType: ManifestFunctionType.read(reader),
-      formalParameterDefaultValues: ManifestNode.readListOfOptional(reader),
+      declaredFormalParameters: ManifestDeclaredFormalParameter.readList(
+        reader,
+      ),
     );
   }
 
@@ -2563,14 +2645,6 @@ extension type _VariableItemFlags._(int _bits) implements _ManifestItemFlags {
   }
 }
 
-extension on List<InternalFormalParameterElement> {
-  List<ManifestNode?> encodeDefaultValues(EncodeContext context) {
-    return map((element) {
-      return element.constantInitializer2?.encode(context);
-    }).toFixedList();
-  }
-}
-
 extension BinaryReaderExtension on BinaryReader {
   Map<LookupName, V> readLookupNameMap<V>({required V Function() readValue}) {
     return readMap(
@@ -2616,6 +2690,36 @@ extension _AnnotatableElementExtension on ElementImpl {
 extension _AstNodeExtension on AstNode {
   ManifestNode encode(EncodeContext context) {
     return ManifestNode.encode(context, this);
+  }
+}
+
+extension _ExecutableElementExtension on ExecutableElementImpl {
+  /// The formal parameters, with the named ones sorted by name.
+  ///
+  /// Named formal parameters are identified by their names, so the order of
+  /// the declaration must not affect which one a manifest entry describes.
+  List<FormalParameterElementImpl> get formalParametersSortedByName {
+    var formalParameters = this.formalParameters;
+    String? previousName;
+    for (var i = 0; i < formalParameters.length; i++) {
+      var formalParameter = formalParameters[i];
+      if (formalParameter.isNamed) {
+        var name = formalParameter.name ?? '';
+        if (previousName != null && previousName.compareTo(name) > 0) {
+          return _sortNamed(formalParameters);
+        }
+        previousName = name;
+      }
+    }
+    return formalParameters;
+  }
+
+  static List<FormalParameterElementImpl> _sortNamed(
+    List<FormalParameterElementImpl> formalParameters,
+  ) {
+    var named = formalParameters.where((e) => e.isNamed).toList();
+    named.sort((a, b) => (a.name ?? '').compareTo(b.name ?? ''));
+    return [...formalParameters.where((e) => !e.isNamed), ...named];
   }
 }
 
