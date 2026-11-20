@@ -51,6 +51,9 @@ sealed class CFunction {
   bool get hasEnclosingFunctionTypeParameters =>
       numberOfEnclosingFunctionTypeParameters > 0;
 
+  /// Whether this function has optional function type parameters.
+  bool get hasOptionalFunctionTypeParameters => false;
+
   /// Number of implicit parameters of this function:
   /// - function type parameters (represented with a single parameter),
   /// - receiver,
@@ -234,6 +237,10 @@ sealed class ClosureFunction extends CFunction {
 
   @override
   bool get hasClosureParameter => true;
+
+  /// Closures can be called with or without type parameters.
+  @override
+  bool get hasOptionalFunctionTypeParameters => hasFunctionTypeParameters;
 }
 
 /// Anonymous closure or a local function.

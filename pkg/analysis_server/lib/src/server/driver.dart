@@ -12,12 +12,10 @@ import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/lsp_socket_server.dart';
-import 'package:analysis_server/src/server/crash_reporting.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/dev_server.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
-import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/server/features.dart';
 import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/server/isolate_analysis_server.dart';
@@ -27,15 +25,17 @@ import 'package:analysis_server/src/server/stdio_server.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/services/perf_witness/perf_witness.dart';
+import 'package:analysis_server/src/session_logger/crash_reporting_session_listener.dart';
+import 'package:analysis_server/src/session_logger/session_listener.dart';
+import 'package:analysis_server/src/session_logger/session_listener_adaptor.dart';
 import 'package:analysis_server/src/session_logger/session_logger.dart';
+import 'package:analysis_server/src/session_logger/user_notifying_session_listener.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/performance_logger.dart';
 import 'package:analysis_server/src/utilities/env.dart' as env;
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analysis_server/starter.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/instrumentation/file_instrumentation.dart';
-import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -180,11 +180,8 @@ class Driver implements ServerStarter {
   /// available.
   DetachableFileSystemManager? detachableFileSystemManager;
 
-  /// The instrumentation service that is to be used by the analysis server.
-  late final InstrumentationService _instrumentationService;
-
   /// The session logger.
-  late final SessionLogger _sessionLogger;
+  late final SessionListener _sessionListener;
 
   /// Use the given command-line [arguments] to start this server.
   ///
@@ -330,51 +327,41 @@ class Driver implements ServerStarter {
       clientVersion: analysisServerOptions.clientVersion,
     );
 
-    // Initialize the instrumentation service.
-    var logFilePath =
+    // Initialize the session listeners.
+    var allSessionListeners = <SessionListener>[];
+
+    allSessionListeners.add(CrashReportingSessionListener(crashReportSender));
+
+    var errorListener = UserNotifyingSessionListener();
+    allSessionListeners.add(errorListener);
+
+    // We should remove the options used to specify the "protocolTrafficLog",
+    // but until we do we treat them as aliases for the 'session-log' option.
+    var sessionLogFilePath =
+        results.option(sessionLogOption) ??
         results.option(protocolTrafficLogOption) ??
         results.option(protocolTrafficLogAliasOption);
-    var allInstrumentationServices = <InstrumentationService>[];
-    if (logFilePath != null) {
-      _rollLogFiles(logFilePath, 5);
-      allInstrumentationServices.add(
-        InstrumentationLogAdapter(
-          FileInstrumentationLogger(logFilePath),
-          watchEventExclusionFiles: {logFilePath},
-        ),
-      );
-    }
-
-    var errorNotifier = ErrorNotifier();
-    allInstrumentationServices.add(errorNotifier);
-    allInstrumentationServices.add(
-      CrashReportingInstrumentation(crashReportSender),
+    var sessionLogger = _sessionListener = SessionLogger(
+      filePath: sessionLogFilePath,
     );
-    _instrumentationService = MulticastInstrumentationService(
-      allInstrumentationServices,
-    );
-
-    // Initialize the session logging service.
-    var sessionLogFilePath = results.option(sessionLogOption);
-    _sessionLogger = SessionLogger(filePath: sessionLogFilePath);
-    _sessionLogger.normalizer.addReplacementsForPath(
+    sessionLogger.normalizer.addReplacementsForPath(
       defaultSdkPath,
       'dartSdkRoot',
     );
+    if (sessionLogFilePath != null) {
+      _rollLogFiles(sessionLogFilePath, 5);
+    }
+    var instrumentationService = SessionListenerAdaptor(_sessionListener);
+    AnalysisEngine.instance.instrumentationService = instrumentationService;
 
     // Log the command-line.
-    //
-    // Note that we used to pass in a uuid as the first argument, but it isn't
-    // used anywhere and doesn't appear to have any value.
-    _instrumentationService.logVersion(
-      '',
-      analysisServerOptions.clientId ?? '',
-      analysisServerOptions.clientVersion ?? '',
-      PROTOCOL_VERSION,
-      defaultSdk.languageVersion.toString(),
+    _sessionListener.logCommandLine(arguments: arguments);
+    // TODO(brianwilkerson): The protocol version information can be removed
+    //  when we stop supporting the legacy protocol.
+    _sessionListener.logInfo(
+      'protocolVersion: $PROTOCOL_VERSION, '
+      'defaultLanguageVersion: ${defaultSdk.languageVersion.toString()}',
     );
-    AnalysisEngine.instance.instrumentationService = _instrumentationService;
-    _sessionLogger.logCommandLine(arguments: arguments);
 
     int? diagnosticServerPort;
     var portValue =
@@ -419,10 +406,9 @@ class Driver implements ServerStarter {
         analysisServerOptions,
         dartSdkManager,
         analyticsManager,
-        _instrumentationService,
-        _sessionLogger,
+        _sessionListener,
         diagnosticServerPort,
-        errorNotifier,
+        errorListener,
         performanceLogger,
         environment,
       );
@@ -434,11 +420,10 @@ class Driver implements ServerStarter {
         dartSdkManager,
         analyticsManager,
         crashReportingAttachmentsBuilder,
-        _instrumentationService,
-        _sessionLogger,
+        _sessionListener,
         RequestStatisticsHelper(),
         diagnosticServerPort,
-        errorNotifier,
+        errorListener,
         sendPort,
         performanceLogger,
         environment,
@@ -458,11 +443,10 @@ class Driver implements ServerStarter {
     DartSdkManager dartSdkManager,
     AnalyticsManager analyticsManager,
     CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder,
-    InstrumentationService instrumentationService,
-    SessionLogger sessionLogger,
+    SessionListener sessionListener,
     RequestStatisticsHelper requestStatistics,
     int? diagnosticServerPort,
-    ErrorNotifier errorNotifier,
+    UserNotifyingSessionListener errorListener,
     SendPort? sendPort,
     PerformanceLogger? performanceLogger,
     Map<String, String>? environment,
@@ -491,8 +475,7 @@ class Driver implements ServerStarter {
       analysisServerOptions,
       dartSdkManager,
       crashReportingAttachmentsBuilder,
-      instrumentationService,
-      sessionLogger,
+      sessionListener,
       requestStatistics,
       diagnosticServer,
       analyticsManager,
@@ -537,7 +520,6 @@ class Driver implements ServerStarter {
         if (exitCode != 0) exit(exitCode);
 
         diagnosticServer.httpServer.close();
-        await instrumentationService.shutdown();
         unawaited(socketServer.analysisServer!.shutdown());
 
         try {
@@ -550,8 +532,7 @@ class Driver implements ServerStarter {
       }();
     } else {
       capture(
-        instrumentationService,
-        sessionLogger,
+        sessionListener,
         () {
           Future<void> serveResult;
           if (sendPort == null) {
@@ -561,13 +542,12 @@ class Driver implements ServerStarter {
             var isolateAnalysisServer = IsolateAnalysisServer(socketServer);
             serveResult = isolateAnalysisServer.serveIsolate(sendPort);
           }
-          errorNotifier.server = socketServer.analysisServer;
+          errorListener.server = socketServer.analysisServer;
           if (results.flag(disableSilentAnalysisExceptionsOption)) {
-            errorNotifier.sendSilentExceptionsToClient = true;
+            errorListener.sendSilentExceptionsToClient = true;
           }
-          serveResult.then((_) async {
+          serveResult.then((_) {
             diagnosticServer.httpServer.close();
-            await instrumentationService.shutdown();
             unawaited(socketServer.analysisServer!.shutdown());
             if (sendPort == null) exit(0);
           });
@@ -584,15 +564,14 @@ class Driver implements ServerStarter {
     AnalysisServerOptions analysisServerOptions,
     DartSdkManager dartSdkManager,
     AnalyticsManager analyticsManager,
-    InstrumentationService instrumentationService,
-    SessionLogger sessionLogger,
+    SessionListener sessionListener,
     int? diagnosticServerPort,
-    ErrorNotifier errorNotifier,
+    UserNotifyingSessionListener errorListener,
     PerformanceLogger? performanceLogger,
     Map<String, String>? environment,
   ) {
     var capture = args.flag(disableServerExceptionHandlingOption)
-        ? (_, _, Function f, {void Function(String)? print}) => f()
+        ? (_, Function f, {void Function(String)? print}) => f()
         : _captureExceptions;
 
     linter.registerLintRules();
@@ -606,8 +585,7 @@ class Driver implements ServerStarter {
       diagnosticServer,
       analyticsManager,
       dartSdkManager,
-      instrumentationService,
-      sessionLogger,
+      sessionListener,
       detachableFileSystemManager,
       performanceLogger,
       environment: environment,
@@ -618,12 +596,12 @@ class Driver implements ServerStarter {
       diagnosticServer.startOnPort(diagnosticServerPort);
     }
 
-    capture(instrumentationService, sessionLogger, () {
+    capture(sessionListener, () {
       var stdioServer = LspStdioAnalysisServer(socketServer);
       var serveResult = stdioServer.serveStdio();
-      errorNotifier.server = socketServer.analysisServer;
+      errorListener.server = socketServer.analysisServer;
       if (args.flag(disableSilentAnalysisExceptionsOption)) {
-        errorNotifier.sendSilentExceptionsToClient = true;
+        errorListener.sendSilentExceptionsToClient = true;
       }
       serveResult.then((_) {
         // Only shutdown the server and exit if the server is not already
@@ -638,11 +616,10 @@ class Driver implements ServerStarter {
 
   /// Execute the given [callback] within a zone that will capture any unhandled
   /// exceptions and both report them to the client and send them to the given
-  /// instrumentation [service]. If a [print] function is provided, then also
+  /// [sessionListener]. If a [print] function is provided, then also
   /// capture any data printed by the callback and redirect it to the function.
   void _captureExceptions(
-    InstrumentationService service,
-    SessionLogger sessionLogger,
+    SessionListener sessionListener,
     void Function() callback, {
     void Function(String line)? print,
   }) {
@@ -653,8 +630,10 @@ class Driver implements ServerStarter {
       Object exception,
       StackTrace stackTrace,
     ) {
-      service.logException(exception, stackTrace);
-      sessionLogger.logException(exception: exception, stackTrace: stackTrace);
+      sessionListener.logException(
+        exception: exception,
+        stackTrace: stackTrace,
+      );
       throw exception;
     }
 

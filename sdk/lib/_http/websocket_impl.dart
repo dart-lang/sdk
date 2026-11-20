@@ -755,7 +755,6 @@ class _WebSocketTransformerImpl
         maxPayloadLength: maxPayloadLength,
       );
 
-      response.headers.contentLength = 0;
       return response.detachSocket().then<WebSocket>(
         (socket) => _WebSocketImpl._fromSocket(
           socket,

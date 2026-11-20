@@ -127,6 +127,10 @@ of 3.15 or greater. For more details, see
 
 - Added `jsThrow`, which throws an error without any Dart wrappers.
 
+- Objects created from `createJSInteropWrapper` and the legacy
+  `createDartExport` and `createStaticInteropMock` functions now have enumerable
+  properties e.g. `Object.keys` should now return all the exported properties.
+
 - Added `WrappedPromiseError` to represent the error type produced by
   `FutureOfJSAnyToJSPromise.toJS` and `FutureOfVoidToJSPromise.toJS` when they
   wrap a Dart error.

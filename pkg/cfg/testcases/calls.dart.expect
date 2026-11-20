@@ -114,9 +114,9 @@ B0 = EntryBlock()
   v1 = Parameter(#functionTypeParameters)
   v2 = Parameter(this)
   v3 = Parameter(x)
+  v5 = TypeParameters(v2)
   TypeParameters(v1)
-  v7 = TypeParameters(v2)
-  TypeCast(v3, v7, v9, C.T%)
+  TypeCast(v3, v5, v9, C.T%)
   Return(v9)
 
 --- getter C.x
@@ -388,13 +388,29 @@ B0 = EntryBlock()
   Return(v4)
 
 --- closure FunctionDeclaration(void func4<T extends Object?>(T% x) => print(x);) at closureCalls
-B0 = EntryBlock()
+B0 = EntryBlock() dominates:(B5, B8, B4)
+  v10 = Constant(#unset-type-args)
+  v19 = Constant(<dynamic>)
   v1 = Parameter(#functionTypeParameters)
-  Parameter(#closure)
+  v2 = Parameter(#closure)
   v3 = Parameter(x)
-  TypeParameters(v1)
-  v7 = DirectCall print(v3)
-  Return(v7)
+  v11 = Comparison ==(v1, v10)
+  Branch(v11, true: B4, false: B5)
+B4 = TargetBlock() idom:B0 dominates:(B6, B7)
+  v14 = LoadInstanceField(#closure-field[0], v2)
+  v15 = Comparison ==(v14, v10)
+  Branch(v15, true: B7, false: B6)
+B7 = TargetBlock() idom:B4
+  Goto(B8)
+B6 = TargetBlock() idom:B4
+  Goto(B8)
+B5 = TargetBlock() idom:B0
+  Goto(B8)
+B8 = JoinBlock(B5, B6, B7) idom:B0
+  v28 = Phi(v1, v14, v19)
+  TypeParameters(v28)
+  v26 = DirectCall print(v3)
+  Return(v26)
 
 --- closure FunctionExpression(Null () {
   print("hey");

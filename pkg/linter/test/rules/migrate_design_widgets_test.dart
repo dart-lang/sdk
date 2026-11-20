@@ -22,6 +22,33 @@ class MigrateDesignWidgetsTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.migrate_design_widgets;
 
+  test_export_cupertino_withCombinators() async {
+    await assertDiagnosticsFromMarkup(r'''
+library;
+
+export [!'package:flutter/cupertino.dart'!] hide CupertinoButton;
+''');
+  }
+
+  test_export_material() async {
+    await assertDiagnosticsFromMarkup(r'''
+export [!'package:flutter/material.dart'!];
+''');
+  }
+
+  test_export_noMigration() async {
+    await assertNoDiagnostics(r'''
+export 'package:flutter/widgets.dart';
+''');
+  }
+
+  test_import_and_export() async {
+    await assertDiagnosticsFromMarkup(r'''
+import /*[0*/'package:flutter/material.dart'/*0]*/;
+export /*[1*/'package:flutter/material.dart'/*1]*/;
+''');
+  }
+
   test_migrateCupertino() async {
     await assertDiagnosticsFromMarkup(r'''
 import [!'package:flutter/cupertino.dart'!];

@@ -15,7 +15,6 @@ import 'package:analysis_server/src/session_logger/session_listener.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/performance_logger.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 
 /// Instances of the class [SocketServer] implement the common parts of
@@ -40,8 +39,6 @@ class LspSocketServer implements AbstractSocketServer {
   /// The object through which analytics are to be sent.
   final AnalyticsManager analyticsManager;
 
-  final InstrumentationService instrumentationService;
-
   /// The session listener.
   final SessionListener sessionListener;
 
@@ -59,7 +56,6 @@ class LspSocketServer implements AbstractSocketServer {
     this.diagnosticServer,
     this.analyticsManager,
     this.sdkManager,
-    this.instrumentationService,
     this.sessionListener,
     this.detachableFileSystemManager,
     this.performanceLogger, {
@@ -109,7 +105,6 @@ class LspSocketServer implements AbstractSocketServer {
       sdkManager,
       analyticsManager,
       CrashReportingAttachmentsBuilder.empty,
-      instrumentationService,
       sessionListener,
       diagnosticServer: diagnosticServer,
       detachableFileSystemManager: detachableFileSystemManager,

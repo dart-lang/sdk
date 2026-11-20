@@ -15,7 +15,6 @@ import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/dart/analysis/context_root.dart' as analyzer;
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
@@ -302,10 +301,6 @@ class TestPluginManager(final ResourceProvider resourceProvider)
 
   @override
   final SessionLogger sessionListener = SessionLogger();
-
-  @override
-  InstrumentationService get instrumentationService =>
-      InstrumentationService.NULL_SERVICE;
 
   @override
   List<PluginIsolate> get legacyPluginIsolates =>

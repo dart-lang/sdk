@@ -5,11 +5,13 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'analytics_manager_test.dart' as analytics_manager;
+import 'lsp_client_info_test.dart' as lsp_client_info;
 import 'percentile_calculator_test.dart' as percentile_calculator;
 
 void main() {
   defineReflectiveSuite(() {
     analytics_manager.main();
+    lsp_client_info.main();
     percentile_calculator.main();
   });
 }

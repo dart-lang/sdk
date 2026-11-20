@@ -54,7 +54,7 @@ class DartdocInfoTest extends PubPackageResolutionTest {
     // Ask for the file, will extract templates.
     fileStateFor(testFile);
 
-    // We should have templates here now.
+    // Get the extracted template information.
     var info = driverFor(testFile).dartdocDirectiveInfo;
 
     // Apply these templates.
@@ -125,6 +125,51 @@ class A {
     );
   }
 
+  test_class_method_formalParameter() async {
+    var definition = '''
+class A {
+  void f(
+    /// {@template foo}
+    /// Body of the template.
+    /// {@endtemplate}
+    int x,
+  ) {}
+}
+''';
+
+    await expectDocumentation(definition, '{@macro foo}', '{@macro foo}');
+  }
+
+  test_class_primaryConstructor_declaringParameter() async {
+    var definition = '''
+class A(
+  /// {@template foo}
+  /// Body of the template.
+  /// {@endtemplate}
+  final int x,
+) {}
+''';
+
+    await expectDocumentation(
+      definition,
+      '{@macro foo}',
+      'Body of the template.',
+    );
+  }
+
+  test_class_primaryConstructor_formalParameter() async {
+    var definition = '''
+class A(
+  /// {@template foo}
+  /// Body of the template.
+  /// {@endtemplate}
+  int x,
+) {}
+''';
+
+    await expectDocumentation(definition, '{@macro foo}', '{@macro foo}');
+  }
+
   test_class_setter() async {
     var definition = '''
 class A {
@@ -139,6 +184,99 @@ class A {
       definition,
       '{@macro foo}',
       'Body of the template.',
+    );
+  }
+
+  test_directive_export() async {
+    await expectDocumentation(
+      '''
+/// {@template foo}
+/// Body of the template.
+/// {@endtemplate}
+export 'dart:async';
+''',
+      '{@macro foo}',
+      '{@macro foo}',
+    );
+  }
+
+  test_directive_import() async {
+    await expectDocumentation(
+      '''
+/// {@template foo}
+/// Body of the template.
+/// {@endtemplate}
+import 'dart:async';
+''',
+      '{@macro foo}',
+      '{@macro foo}',
+    );
+  }
+
+  test_directive_import_afterLibrary() async {
+    await expectDocumentation(
+      '''
+library;
+
+/// {@template foo}
+/// Body of the template.
+/// {@endtemplate}
+import 'dart:async';
+''',
+      '{@macro foo}',
+      '{@macro foo}',
+    );
+  }
+
+  test_directive_library_named() async {
+    await expectDocumentation(
+      '''
+/// {@template foo}
+/// Body of the template.
+/// {@endtemplate}
+library test;
+''',
+      '{@macro foo}',
+      'Body of the template.',
+    );
+  }
+
+  test_directive_library_unnamed() async {
+    await expectDocumentation(
+      '''
+/// {@template foo}
+/// Body of the template.
+/// {@endtemplate}
+library;
+''',
+      '{@macro foo}',
+      'Body of the template.',
+    );
+  }
+
+  test_directive_part() async {
+    await expectDocumentation(
+      '''
+/// {@template foo}
+/// Body of the template.
+/// {@endtemplate}
+part 'a.dart';
+''',
+      '{@macro foo}',
+      '{@macro foo}',
+    );
+  }
+
+  test_directive_partOf() async {
+    await expectDocumentation(
+      '''
+/// {@template foo}
+/// Body of the template.
+/// {@endtemplate}
+part of 'a.dart';
+''',
+      '{@macro foo}',
+      '{@macro foo}',
     );
   }
 
@@ -167,6 +305,25 @@ enum E {
   /// Body of the template.
   /// {@endtemplate}
   void f() {}
+}
+''';
+
+    await expectDocumentation(
+      definition,
+      '{@macro foo}',
+      'Body of the template.',
+    );
+  }
+
+  test_enum_primaryConstructor_declaringParameter() async {
+    var definition = '''
+enum E(
+  /// {@template foo}
+  /// Body of the template.
+  /// {@endtemplate}
+  final int x,
+) {
+  one(0);
 }
 ''';
 
@@ -291,6 +448,23 @@ extension type IdNumber(int id) {
   /// {@endtemplate}
   void f() {}
 }
+''';
+
+    await expectDocumentation(
+      definition,
+      '{@macro foo}',
+      'Body of the template.',
+    );
+  }
+
+  test_extensionType_representation() async {
+    var definition = '''
+extension type IdNumber(
+  /// {@template foo}
+  /// Body of the template.
+  /// {@endtemplate}
+  int id,
+) {}
 ''';
 
     await expectDocumentation(

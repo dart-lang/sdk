@@ -8,7 +8,6 @@ import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
-import 'package:analyzer_testing/src/test_instrumentation_service.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -22,6 +21,7 @@ void main() {
     defineReflectiveTests(ChangeMapTest);
     defineReflectiveTests(DataDrivenInstanceMemberBulkFixTest);
     defineReflectiveTests(HasFixesTest);
+    defineReflectiveTests(MigrateDesignWidgetsBulkFixTest);
     defineReflectiveTests(NoFixTest);
     defineReflectiveTests(PubspecFixTest);
   });
@@ -45,7 +45,6 @@ var a = new A();
     var analysisContext = contextFor2(testFile);
     var changeWorkspace = await workspace;
     var processor = BulkFixProcessor.withAdditionalLints(
-      TestInstrumentationService(),
       changeWorkspace,
       byteStore: MemoryByteStore(),
       additionalLintCodes: [LintNames.unnecessary_new],
@@ -135,7 +134,6 @@ var b = new B();
     // so without this the assertion below would hold even for a processor that
     // wrongly analyzed `package2`.
     var processor = BulkFixProcessor.withAdditionalLints(
-      TestInstrumentationService(),
       DartChangeWorkspace([context1.currentSession, context2.currentSession]),
       byteStore: MemoryByteStore(),
       additionalLintCodes: [LintNames.unnecessary_new],
@@ -169,7 +167,6 @@ var a = new A();
     var analysisContext = contextFor2(testFile);
     var changeWorkspace = await workspace;
     var processor = BulkFixProcessor.withAdditionalLints(
-      TestInstrumentationService(),
       changeWorkspace,
       byteStore: MemoryByteStore(),
       additionalLintCodes: [LintNames.unnecessary_new],
@@ -198,7 +195,6 @@ var a = new A();
     var analysisContext = contextFor2(testFile);
     var changeWorkspace = await workspace;
     var processor = BulkFixProcessor.withAdditionalLints(
-      TestInstrumentationService(),
       changeWorkspace,
       byteStore: MemoryByteStore(),
       additionalLintCodes: ['some_fake_lint_that_doesnt_exist'],
@@ -226,7 +222,6 @@ var a = new A();
     var analysisContext = contextFor2(testFile);
     var changeWorkspace = await workspace;
     var processor = BulkFixProcessor.withAdditionalLints(
-      TestInstrumentationService(),
       changeWorkspace,
       byteStore: MemoryByteStore(),
       additionalLintCodes: [LintNames.unnecessary_new],
@@ -320,7 +315,6 @@ var a = new A();
     var changeWorkspace = await workspace;
     var token = CancelableToken();
     var processor = BulkFixProcessor(
-      TestInstrumentationService(),
       changeWorkspace,
       byteStore: MemoryByteStore(),
       cancellationToken: token,
@@ -636,6 +630,118 @@ class B extends A {
     processor = await computeFixes();
     expect(processor.fixDetails.single.fixes, hasLength(2));
     expect(processor.builder.sourceChange.edits.single.edits, hasLength(2));
+  }
+}
+
+@reflectiveTest
+class MigrateDesignWidgetsBulkFixTest extends DataDrivenBulkFixProcessorTest {
+  Future<void> test_export_libraryAndHideCombinator() async {
+    _setUpFlutterDesignPackages();
+    await resolveTestCode('''
+library;
+
+export 'package:flutter/cupertino.dart' hide RefreshCallback;
+export 'package:flutter/material.dart';
+''');
+    await assertHasFix(
+      '''
+library;
+
+export 'package:cupertino_ui/cupertino_ui.dart' hide RefreshCallback;
+export 'package:material_ui/material_ui.dart';
+''',
+      codes: [LintNames.migrate_design_widgets],
+    );
+  }
+
+  Future<void> test_export_plain() async {
+    _setUpFlutterDesignPackages();
+    await resolveTestCode('''
+export 'package:flutter/material.dart';
+''');
+    await assertHasFix(
+      '''
+export 'package:material_ui/material_ui.dart';
+''',
+      codes: [LintNames.migrate_design_widgets],
+    );
+  }
+
+  Future<void> test_importAndExport_mixed() async {
+    _setUpFlutterDesignPackages();
+    await resolveTestCode('''
+import 'package:flutter/material.dart';
+export 'package:flutter/material.dart';
+
+const Widget placeholder = Placeholder();
+''');
+    await assertHasFix(
+      '''
+import 'package:material_ui/material_ui.dart';
+export 'package:material_ui/material_ui.dart';
+
+const Widget placeholder = Placeholder();
+''',
+      codes: [LintNames.migrate_design_widgets],
+    );
+  }
+
+  void _setUpFlutterDesignPackages() {
+    newFile('$workspaceRootPath/flutter/lib/material.dart', '''
+class Widget {
+  const Widget();
+}
+class Placeholder extends Widget {
+  const Placeholder();
+}
+typedef RefreshCallback = Future<void> Function();
+''');
+    newFile('$workspaceRootPath/flutter/lib/cupertino.dart', '''
+typedef RefreshCallback = Future<void> Function();
+''');
+    newFile('$workspaceRootPath/flutter/lib/fix_data.yaml', '''
+version: 1
+transforms:
+  - title: 'Replace by material_ui'
+    date: 2026-01-01
+    library: 'package:flutter/material.dart'
+    changes:
+      - kind: 'replacedBy'
+        newLibrary: 'package:material_ui/material_ui.dart'
+  - title: 'Replace by cupertino_ui'
+    date: 2026-01-01
+    library: 'package:flutter/cupertino.dart'
+    changes:
+      - kind: 'replacedBy'
+        newLibrary: 'package:cupertino_ui/cupertino_ui.dart'
+''');
+    newFile('$workspaceRootPath/material_ui/lib/material_ui.dart', '''
+class Widget {
+  const Widget();
+}
+class Placeholder extends Widget {
+  const Placeholder();
+}
+typedef RefreshCallback = Future<void> Function();
+''');
+    newFile('$workspaceRootPath/cupertino_ui/lib/cupertino_ui.dart', '''
+typedef RefreshCallback = Future<void> Function();
+''');
+    writeTestPackageConfig2(
+      config: PackageConfigFileBuilder()
+        ..add(
+          name: 'flutter',
+          rootFolder: getFolder('$workspaceRootPath/flutter'),
+        )
+        ..add(
+          name: 'material_ui',
+          rootFolder: getFolder('$workspaceRootPath/material_ui'),
+        )
+        ..add(
+          name: 'cupertino_ui',
+          rootFolder: getFolder('$workspaceRootPath/cupertino_ui'),
+        ),
+    );
   }
 }
 

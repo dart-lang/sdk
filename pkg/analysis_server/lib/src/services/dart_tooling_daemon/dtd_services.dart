@@ -119,7 +119,6 @@ class DtdServices {
         );
       }
     } catch (error, stackTrace) {
-      _server.instrumentationService.logException(error, stackTrace);
       _server.sessionListener.logException(
         exception: error,
         stackTrace: stackTrace,
@@ -148,9 +147,6 @@ class DtdServices {
       _dtd?.close();
     } catch (error, stack) {
       // Record as INFO, since this may be common during shutdown.
-      _server.instrumentationService.logInfo(
-        'Error closing DTD connection:\n$error\n$stack',
-      );
       _server.sessionListener.logInfo(
         'Error closing DTD connection:\n$error\n$stack',
       );
@@ -239,9 +235,6 @@ class DtdServices {
   /// Handles an unexpected error occurring on the DTD connection by logging and
   /// closing the connection.
   void _handleError(Object? error, Object? stack) {
-    _server.instrumentationService.logError(
-      ['Failed to connect to/initialize DTD:', error, ?stack].join('\n'),
-    );
     if (error != null && stack is StackTrace?) {
       _server.sessionListener.logException(
         exception: [

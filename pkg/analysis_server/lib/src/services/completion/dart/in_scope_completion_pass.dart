@@ -5,6 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart'
     hide Declaration, Element;
 import 'package:analysis_server/src/services/completion/dart/candidate_suggestion.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_location.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_state.dart';
 import 'package:analysis_server/src/services/completion/dart/declaration_helper.dart';
 import 'package:analysis_server/src/services/completion/dart/identifier_helper.dart';
@@ -267,7 +268,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitAnnotation(Annotation node) {
-    collector.completionLocation = 'Annotation_name';
+    collector.completionLocation = CompletionLocation.annotationName;
     _forAnnotation(node);
 
     // Look for `@override` with an empty line before the next token.
@@ -436,7 +437,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       // are a selector or puctuation.
       //
       // This was added for conformance with now-removed `OpType`.
-      collector.completionLocation = 'ExpressionStatement_expression';
+      collector.completionLocation =
+          CompletionLocation.expressionStatementExpression;
     }
   }
 
@@ -467,7 +469,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
     var type = node.type;
     if (type.isFullySynthetic || type.beginToken.coversOffset(offset)) {
-      collector.completionLocation = 'AsExpression_type';
+      collector.completionLocation = CompletionLocation.asExpressionType;
       _forTypeAnnotation(node, mustBeNonVoid: true);
     }
   }
@@ -480,16 +482,19 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (node.leftParenthesis.end <= offset) {
       var comma = node.comma;
       if (comma == null || offset <= comma.offset) {
-        collector.completionLocation = 'AssertInitializer_condition';
+        collector.completionLocation =
+            CompletionLocation.assertInitializerCondition;
         _forExpression(node.condition);
       } else {
-        collector.completionLocation = 'AssertInitializer_message';
+        collector.completionLocation =
+            CompletionLocation.assertInitializerMessage;
         _forExpression(node.condition);
       }
       return;
     }
 
-    collector.completionLocation = 'ConstructorDeclaration_initializer';
+    collector.completionLocation =
+        CompletionLocation.constructorDeclarationInitializer;
     if (node.parent case ConstructorDeclaration parent) {
       keywordHelper.addConstructorInitializerKeywords(
         parent.initializers,
@@ -514,24 +519,27 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         node.leftParenthesis.end <= offset) {
       var comma = node.comma;
       if (comma == null || offset <= comma.offset) {
-        collector.completionLocation = 'AssertStatement_condition';
+        collector.completionLocation =
+            CompletionLocation.assertStatementCondition;
         _forExpression(node.condition);
       } else {
-        collector.completionLocation = 'AssertStatement_message';
+        collector.completionLocation =
+            CompletionLocation.assertStatementMessage;
         _forExpression(node.condition);
       }
       return;
     }
 
     if (offset <= node.assertKeyword.end) {
-      collector.completionLocation = 'Block_statement';
+      collector.completionLocation = CompletionLocation.blockStatement;
       _forStatement(node);
     }
   }
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    collector.completionLocation = 'AssignmentExpression_rightHandSide';
+    collector.completionLocation =
+        CompletionLocation.assignmentExpressionRightHandSide;
     _forExpression(node, mustBeNonVoid: true);
     // TODO(brianwilkerson): Consider proposing a closure when the left-hand
     //  side is a function-typed variable.
@@ -539,14 +547,15 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitAwaitExpression(AwaitExpression node) {
-    collector.completionLocation = 'AwaitExpression_expression';
+    collector.completionLocation = CompletionLocation.awaitExpressionExpression;
     _forExpression(node, mustBeNonVoid: true);
   }
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
     var operator = node.operator.lexeme;
-    collector.completionLocation = 'BinaryExpression_${operator}_rightOperand';
+    collector.completionLocation =
+        CompletionLocation.binaryExpressionRightOperand(operator);
     _forExpression(node, mustBeNonVoid: true);
   }
 
@@ -562,7 +571,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
       return;
     }
-    collector.completionLocation = 'Block_statement';
+    collector.completionLocation = CompletionLocation.blockStatement;
     var previousStatement = node.statements.elementBefore(offset);
     if (previousStatement is TryStatement) {
       if (previousStatement.finallyBlock == null) {
@@ -598,7 +607,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitBreakStatement(BreakStatement node) {
     var breakEnd = node.breakKeyword.end;
     if (offset <= breakEnd) {
-      collector.completionLocation = 'Block_statement';
+      collector.completionLocation = CompletionLocation.blockStatement;
       keywordHelper.addKeyword(Keyword.BREAK);
     } else if (breakEnd < offset && offset <= node.semicolon.offset) {
       labelHelper.addLabels(node);
@@ -607,13 +616,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitCascadeExpression(CascadeExpression node) {
-    collector.completionLocation = 'CascadeExpression_cascadeSection';
+    collector.completionLocation =
+        CompletionLocation.cascadeExpressionCascadeSection;
     _forExpression(node);
   }
 
   @override
   void visitCaseClause(CaseClause node) {
-    collector.completionLocation = 'CaseClause_pattern';
+    collector.completionLocation = CompletionLocation.caseClausePattern;
     _forPattern(node);
   }
 
@@ -622,7 +632,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (node.asToken.coversOffset(offset)) {
       keywordHelper.addKeyword(Keyword.AS);
     } else {
-      collector.completionLocation = 'CastPattern_type';
+      collector.completionLocation = CompletionLocation.castPatternType;
       _forTypeAnnotation(node, mustBeNonVoid: true);
     }
   }
@@ -635,10 +645,12 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (offset <= onKeyword.end) {
         keywordHelper.addKeyword(Keyword.ON);
       } else if (catchKeyword == null && offset <= node.body.offset) {
-        collector.completionLocation = 'CatchClause_exceptionType';
+        collector.completionLocation =
+            CompletionLocation.catchClauseExceptionType;
         _forTypeAnnotation(node);
       } else if (catchKeyword != null && offset < catchKeyword.offset) {
-        collector.completionLocation = 'CatchClause_exceptionType';
+        collector.completionLocation =
+            CompletionLocation.catchClauseExceptionType;
         _forTypeAnnotation(node);
       }
     }
@@ -671,7 +683,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
                 if (semicolon != null &&
                     semicolon.type == TokenType.SEMICOLON &&
                     semicolon.next == dropped) {
-                  collector.completionLocation = 'ClassDeclaration_member';
+                  collector.completionLocation =
+                      CompletionLocation.classDeclarationMember;
                   identifierHelper(includePrivateIdentifiers: false)
                       .addSuggestionsFromTypeName(shouldBeTypeName.lexeme);
                   return;
@@ -702,6 +715,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       identifierHelper(includePrivateIdentifiers: false)
           .addTopLevelName(includeBody: hasSyntheticBody);
     } else if (offset <= body.leftBracket.offset) {
+      var withClause = node.withClause;
+      var extendsClause = node.extendsClause;
+      collector.completionLocation =
+          withClause != null && withClause.end <= offset
+          ? CompletionLocation.classDeclarationWith
+          : extendsClause != null && extendsClause.end <= offset
+          ? CompletionLocation.classDeclarationExtends
+          : CompletionLocation.classDeclarationName;
       keywordHelper.addClassDeclarationKeywords(node);
     } else if (offset >= body.leftBracket.end &&
         offset <= body.rightBracket.offset) {
@@ -709,7 +730,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         return;
       }
 
-      collector.completionLocation = 'ClassDeclaration_member';
+      collector.completionLocation = CompletionLocation.classDeclarationMember;
       var members = body.members;
       var precedingMember = members.elementBefore(offset);
       var token = precedingMember?.beginToken ?? body.leftBracket.next!;
@@ -743,7 +764,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitCommentReference(CommentReference node) {
-    collector.completionLocation = 'CommentReference_identifier';
+    collector.completionLocation =
+        CompletionLocation.commentReferenceIdentifier;
     declarationHelper(preferNonInvocation: true).addLexicalDeclarations(node);
   }
 
@@ -764,9 +786,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitConditionalExpression(ConditionalExpression node) {
     // TODO(brianwilkerson): Consider adding a location for the condition.
     if (offset >= node.question.end && offset <= node.colon.offset) {
-      collector.completionLocation = 'ConditionalExpression_thenExpression';
+      collector.completionLocation =
+          CompletionLocation.conditionalExpressionThenExpression;
     } else if (offset >= node.colon.end) {
-      collector.completionLocation = 'ConditionalExpression_elseExpression';
+      collector.completionLocation =
+          CompletionLocation.conditionalExpressionElseExpression;
     }
     _forExpression(node);
   }
@@ -786,7 +810,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             node.newKeyword?.end ??
             node.factoryKeyword?.end ??
             node.beginToken.offset)) {
-      collector.completionLocation = 'ClassDeclaration_member';
+      collector.completionLocation = CompletionLocation.classDeclarationMember;
       var parent = node.parent?.parent;
       if (parent != null) {
         _forClassLikeMember(parent);
@@ -800,7 +824,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     var type = separator.type;
     if (type == TokenType.COLON) {
       if (offset >= separator.end && offset <= node.body.offset) {
-        collector.completionLocation = 'ConstructorDeclaration_initializer';
+        collector.completionLocation =
+            CompletionLocation.constructorDeclarationInitializer;
         _forConstructorInitializer(.t1(node), null);
       }
     } else if (type == TokenType.EQ) {
@@ -821,10 +846,12 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       return;
     }
     if (offset <= node.equals.offset) {
-      collector.completionLocation = 'ConstructorDeclaration_initializer';
+      collector.completionLocation =
+          CompletionLocation.constructorDeclarationInitializer;
       _forConstructorInitializer(.t1(constructor), node);
     } else {
-      collector.completionLocation = 'ConstructorFieldInitializer_expression';
+      collector.completionLocation =
+          CompletionLocation.constructorFieldInitializerExpression;
       if (node.fieldName.isSynthetic && node.equals.isSynthetic) {
         var expression = node.expression;
         if (expression is PropertyAccess &&
@@ -890,7 +917,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorSelector(ConstructorSelector node) {
-    collector.completionLocation = 'ConstructorSelector_name';
+    collector.completionLocation = CompletionLocation.constructorSelectorName;
     if (!featureSet.isEnabled(Feature.enhanced_enums)) {
       return;
     }
@@ -919,7 +946,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitContinueStatement(ContinueStatement node) {
     var continueEnd = node.continueKeyword.end;
     if (offset <= continueEnd) {
-      collector.completionLocation = 'Block_statement';
+      collector.completionLocation = CompletionLocation.blockStatement;
       keywordHelper.addKeyword(Keyword.CONTINUE);
     } else if (continueEnd < offset && offset <= node.semicolon.offset) {
       labelHelper.addLabels(node);
@@ -967,14 +994,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitDoStatement(DoStatement node) {
     if (offset <= node.doKeyword.end) {
-      collector.completionLocation = 'Block_statement';
+      collector.completionLocation = CompletionLocation.blockStatement;
       _forStatement(node);
     } else if (node.leftParenthesis.end <= offset &&
         offset <= node.rightParenthesis.offset) {
       if (node.condition.isSynthetic ||
           offset <= node.condition.offset ||
           offset == node.condition.end) {
-        collector.completionLocation = 'DoStatement_condition';
+        collector.completionLocation = CompletionLocation.doStatementCondition;
         _forExpression(node, mustBeNonVoid: true);
       }
     }
@@ -986,6 +1013,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   ) {
     var period = node.period;
     if (offset >= period.end && offset <= node.constructorName.end) {
+      collector.completionLocation =
+          CompletionLocation.dotShorthandConstructorInvocationConstructorName;
       var contextType = _computeContextType(node);
       contextType = _resolveFutureOrType(contextType);
       if (contextType is! InterfaceType) return;
@@ -1005,6 +1034,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitDotShorthandInvocation(DotShorthandInvocation node) {
     var period = node.period;
     if (offset >= period.end && offset <= node.memberName.end) {
+      collector.completionLocation =
+          CompletionLocation.dotShorthandInvocationMemberName;
       var contextType = _computeContextType(node);
       contextType = _resolveFutureOrType(contextType);
       if (contextType == null) return;
@@ -1025,6 +1056,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+    collector.completionLocation =
+        CompletionLocation.dotShorthandPropertyAccessPropertyName;
     var contextType = _computeContextType(node);
     contextType = _resolveFutureOrType(contextType);
     if (contextType == null) return;
@@ -1076,7 +1109,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitEmptyStatement(EmptyStatement node) {
     var parent = node.parent;
     if (parent is Block) {
-      collector.completionLocation = 'Block_statement';
+      collector.completionLocation = CompletionLocation.blockStatement;
       var statements = parent.statements;
       var index = statements.indexOf(node);
       if (index > 0) {
@@ -1093,10 +1126,19 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
     } else if (parent is IfStatement) {
       if (node == parent.thenStatement) {
-        collector.completionLocation = 'IfStatement_thenStatement';
+        collector.completionLocation =
+            CompletionLocation.ifStatementThenStatement;
       } else {
-        collector.completionLocation = 'IfStatement_elseStatement';
+        collector.completionLocation =
+            CompletionLocation.ifStatementElseStatement;
       }
+    } else if (parent is DoStatement) {
+      collector.completionLocation = CompletionLocation.doStatementBody;
+    } else if (parent is LabeledStatement) {
+      collector.completionLocation =
+          CompletionLocation.labeledStatementStatement;
+    } else if (parent is WhileStatement) {
+      collector.completionLocation = CompletionLocation.whileStatementBody;
     }
     if (offset <= node.semicolon.offset) {
       _forStatement(node);
@@ -1127,6 +1169,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
 
       if (offset <= body.leftBracket.offset) {
+        collector.completionLocation = CompletionLocation.enumDeclarationName;
         keywordHelper.addEnumDeclarationKeywords(node);
         return;
       }
@@ -1137,7 +1180,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
       var semicolon = body.semicolon;
       if (semicolon != null && offset >= semicolon.end) {
-        collector.completionLocation = 'EnumDeclaration_member';
+        collector.completionLocation = CompletionLocation.enumDeclarationMember;
         _forEnumMember(node);
       }
     }
@@ -1146,12 +1189,16 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitExportDirective(ExportDirective node) {
     if (offset <= node.exportKeyword.end) {
-      collector.completionLocation = 'CompilationUnit_directive';
+      collector.completionLocation =
+          CompletionLocation.compilationUnitDirective;
       _forCompilationUnitMemberBefore(node);
     } else if (offset <= node.uri.offset) {
       return;
     } else if (offset >= node.uri.end) {
-      collector.completionLocation = 'CompilationUnit_directive';
+      collector.completionLocation =
+          node.configurations.any((c) => c.end <= offset)
+          ? CompletionLocation.importDirectiveConfigurations
+          : CompletionLocation.importDirectiveUri;
       keywordHelper.addExportDirectiveKeywords(node);
     }
   }
@@ -1160,7 +1207,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
     var expression = node.expression;
     if (offset >= node.functionDefinition.end && offset <= expression.end) {
-      collector.completionLocation = 'ExpressionFunctionBody_expression';
+      collector.completionLocation =
+          CompletionLocation.expressionFunctionBodyExpression;
       _forExpression(expression);
     }
   }
@@ -1171,9 +1219,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (parent is SwitchPatternCase || parent is SwitchCase) {
       keywordHelper.addKeyword(Keyword.CASE);
       keywordHelper.addKeywordAndText(Keyword.DEFAULT, ':');
-      collector.completionLocation = 'SwitchMember_statement';
+      collector.completionLocation = CompletionLocation.switchMemberStatement;
     } else {
-      collector.completionLocation = 'Block_statement';
+      collector.completionLocation = switch (parent) {
+        DoStatement() => CompletionLocation.doStatementBody,
+        LabeledStatement() => CompletionLocation.labeledStatementStatement,
+        WhileStatement() => CompletionLocation.whileStatementBody,
+        _ => CompletionLocation.blockStatement,
+      };
     }
     if (_forIncompletePrecedingStatement(node)) {
       if (node.isSingleIdentifier) {
@@ -1277,7 +1330,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       keywordHelper.addKeyword(Keyword.EXTENDS);
     } else if (node.superclass.isFullySynthetic ||
         node.superclass.name.coversOffset(offset)) {
-      collector.completionLocation = 'ExtendsClause_superclass';
+      collector.completionLocation = CompletionLocation.extendsClauseSuperclass;
       _forTypeAnnotation(node, mustBeExtensible: true);
     }
   }
@@ -1317,7 +1370,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
     if (node.body case BlockClassBody body) {
       if (offset <= body.leftBracket.offset) {
-        collector.completionLocation = 'ExtensionDeclaration_onClause';
+        collector.completionLocation =
+            CompletionLocation.extensionDeclarationOnClause;
         if (node.onClause case var onClause?) {
           if (onClause.onKeyword.isSynthetic) {
             keywordHelper.addExtensionDeclarationKeywords(node);
@@ -1327,7 +1381,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
       if (offset >= body.leftBracket.end &&
           offset <= body.rightBracket.offset) {
-        collector.completionLocation = 'ExtensionDeclaration_member';
+        collector.completionLocation =
+            CompletionLocation.extensionDeclarationMember;
         _forExtensionMember(node);
       }
     }
@@ -1340,7 +1395,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       return;
     }
 
-    collector.completionLocation = 'ExtensionOnClause_extendedType';
+    collector.completionLocation =
+        CompletionLocation.extensionOnClauseExtendedType;
     _forTypeAnnotation(node);
   }
 
@@ -1375,7 +1431,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       keywordHelper.addKeyword(Keyword.IMPLEMENTS);
     } else if (offset >= body.leftBracket.end &&
         offset <= body.rightBracket.offset) {
-      collector.completionLocation = 'ExtensionTypeDeclaration_member';
+      collector.completionLocation =
+          CompletionLocation.extensionTypeDeclarationMember;
       _forExtensionTypeMember(node);
     }
   }
@@ -1384,7 +1441,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitFieldDeclaration(FieldDeclaration node) {
     _forIncompletePrecedingClassMember(node);
     if (offset <= node.firstTokenAfterCommentAndMetadata.end) {
-      collector.completionLocation = 'ClassDeclaration_member';
+      collector.completionLocation = CompletionLocation.classDeclarationMember;
     }
     var fields = node.fields;
     var type = fields.type;
@@ -1392,7 +1449,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       var variables = fields.variables;
       var firstField = variables.firstOrNull;
       if (firstField != null) {
-        collector.completionLocation = 'FieldDeclaration_fields';
+        collector.completionLocation =
+            CompletionLocation.fieldDeclarationFields;
         var name = firstField.name;
         if (variables.length == 1 && name.isKeyword && offset > name.end) {
           // The parser has recovered by using one of the existing keywords as
@@ -1434,7 +1492,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           }
         } else {
           keywordHelper.addFieldDeclarationKeywords(node);
-          collector.completionLocation = 'ClassDeclaration_member';
+          collector.completionLocation =
+              CompletionLocation.classDeclarationMember;
           // TODO(brianwilkerson): `var` should only be suggested if neither
           //  `static` nor `final` are present.
           keywordHelper.addKeyword(Keyword.VAR);
@@ -1479,25 +1538,26 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
-    collector.completionLocation = 'ForEachPartsWithDeclaration_iterable';
+    collector.completionLocation = CompletionLocation.forEachPartsIterable;
     _visitForEachParts(node);
   }
 
   @override
   void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
-    collector.completionLocation = 'ForEachPartsWithDeclaration_iterable';
+    collector.completionLocation = CompletionLocation.forEachPartsIterable;
     _visitForEachParts(node);
   }
 
   @override
   void visitForEachPartsWithPattern(ForEachPartsWithPattern node) {
-    collector.completionLocation = 'ForEachPartsWithPattern_iterable';
+    collector.completionLocation =
+        CompletionLocation.forEachPartsWithPatternIterable;
     _visitForEachParts(node);
   }
 
   @override
   void visitForElement(ForElement node) {
-    collector.completionLocation = 'ForElement_body';
+    collector.completionLocation = CompletionLocation.forElementBody;
     var literal = node.thisOrAncestorOfType<TypedLiteral>();
     if (literal is ListLiteral) {
       _forCollectionElement(literal, literal.elements);
@@ -1510,7 +1570,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitFormalParameterDefaultClause(FormalParameterDefaultClause node) {
     var defaultValue = node.value;
     if (defaultValue.coversOffset(offset)) {
-      collector.completionLocation = 'DefaultFormalParameter_defaultValue';
+      collector.completionLocation =
+          CompletionLocation.defaultFormalParameterDefaultValue;
       _forExpression(defaultValue, mustBeNonVoid: true);
     }
   }
@@ -1538,7 +1599,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         return;
       }
     }
-    collector.completionLocation = 'FormalParameterList_parameter';
+    collector.completionLocation =
+        CompletionLocation.formalParameterListParameter;
     var parameters = node.parameters;
     var precedingParameter = parameters.elementBefore(offset);
     if (precedingParameter != null) {
@@ -1573,7 +1635,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
     if (offset >= node.leftSeparator.end &&
         offset <= node.rightSeparator.offset) {
-      collector.completionLocation = 'ForParts_condition';
+      collector.completionLocation = CompletionLocation.forPartsCondition;
       var condition = node.condition;
       if (condition is SimpleIdentifier &&
           node.leftSeparator.isSynthetic &&
@@ -1586,7 +1648,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
       _forExpression(node);
     } else if (offset >= node.rightSeparator.end) {
-      collector.completionLocation = 'ForParts_updater';
+      collector.completionLocation = CompletionLocation.forPartsUpdater;
       _forExpression(node);
     }
   }
@@ -1601,13 +1663,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitForStatement(ForStatement node) {
     if (offset <= node.forKeyword.end) {
-      collector.completionLocation = 'Block_statement';
+      collector.completionLocation = CompletionLocation.blockStatement;
       _forStatement(node);
     } else if (offset >= node.leftParenthesis.end &&
         offset <= node.rightParenthesis.offset) {
       // The cursor is between the parentheses, but outside the range of the for
       // parts, either before it or after it.
-      collector.completionLocation = 'ForStatement_forLoopParts';
+      collector.completionLocation =
+          CompletionLocation.forStatementForLoopParts;
       var parts = node.forLoopParts;
       switch (parts) {
         case ForEachPartsWithDeclaration():
@@ -1616,11 +1679,15 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             var type = variable.type;
             if (type == null ||
                 (type is NamedType && offset <= type.name.end)) {
+              collector.completionLocation =
+                  CompletionLocation.forEachPartsWithDeclarationLoopVariable;
               _forTypeAnnotation(node);
             }
           }
         case ForEachPartsWithIdentifier():
           if (offset < parts.identifier.offset) {
+            collector.completionLocation =
+                CompletionLocation.forEachPartsWithIdentifierIdentifier;
             _forTypeAnnotation(node);
           }
         case ForEachPartsWithPattern():
@@ -1659,7 +1726,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           return;
       }
     } else {
-      collector.completionLocation = 'ForStatement_body';
+      collector.completionLocation = CompletionLocation.forStatementBody;
       _forStatement(node);
     }
   }
@@ -1674,7 +1741,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     var returnType = node.returnType;
     if ((returnType == null || returnType.beginToken == returnType.endToken) &&
         offset <= node.name.offset) {
-      collector.completionLocation = 'FunctionDeclaration_returnType';
+      collector.completionLocation =
+          CompletionLocation.functionDeclarationReturnType;
       _forTypeAnnotation(node);
     }
   }
@@ -1712,7 +1780,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (offset == node.offset) {
       _forCompilationUnitMemberBefore(node);
     } else if (offset <= typedefKeyword.end) {
-      collector.completionLocation = 'CompilationUnit_declaration';
+      collector.completionLocation =
+          CompletionLocation.compilationUnitDeclaration;
       keywordHelper.addKeyword(Keyword.TYPEDEF);
     } else if (offset <= typedefKeyword.next!.end) {
       declarationHelper(mustBeType: true).addLexicalDeclarations(node);
@@ -1723,7 +1792,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitFunctionTypedFormalParameterSuffix(
     FunctionTypedFormalParameterSuffix node,
   ) {
-    collector.completionLocation = 'FormalParameterList_parameter';
+    collector.completionLocation =
+        CompletionLocation.formalParameterListParameter;
     var parent = node.parent;
     if (parent is! FormalParameter) {
       return;
@@ -1751,7 +1821,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     } else if (node.typedefKeyword.coversOffset(offset)) {
       keywordHelper.addKeyword(Keyword.TYPEDEF);
     } else if (offset >= node.equals.end && offset <= node.semicolon.offset) {
-      collector.completionLocation = 'GenericTypeAlias_type';
+      collector.completionLocation = CompletionLocation.genericTypeAliasType;
       _forTypeAnnotation(node);
     } else if (node.documentationComment.coversOffset(offset)) {
       node.documentationComment?.accept(this);
@@ -1760,7 +1830,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitHideCombinator(HideCombinator node) {
-    collector.completionLocation = 'HideCombinator_hiddenName';
+    collector.completionLocation = CompletionLocation.hideCombinatorHiddenName;
     _forCombinator(node, node.hiddenNames);
   }
 
@@ -1786,14 +1856,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
     } else if (offset >= node.leftParenthesis.end &&
         offset <= node.rightParenthesis.offset) {
-      collector.completionLocation = 'IfElement_condition';
+      collector.completionLocation = CompletionLocation.ifElementCondition;
       _forExpression(node, mustBeNonVoid: true);
     } else if (offset >= node.rightParenthesis.end) {
       var elseKeyword = node.elseKeyword;
       if (elseKeyword == null || offset <= elseKeyword.offset) {
-        collector.completionLocation = 'IfElement_thenElement';
+        collector.completionLocation = CompletionLocation.ifElementThenElement;
       } else {
-        collector.completionLocation = 'IfElement_elseElement';
+        collector.completionLocation = CompletionLocation.ifElementElseElement;
       }
       var literal = node.thisOrAncestorOfType<TypedLiteral>();
       if (literal is ListLiteral) {
@@ -1824,11 +1894,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     }
     var expression = node.expression;
     if (offset <= node.ifKeyword.end) {
-      collector.completionLocation = 'Block_statement';
+      collector.completionLocation = CompletionLocation.blockStatement;
       _forStatement(node);
     } else if (offset > expression.end &&
         offset <= node.rightParenthesis.offset) {
-      collector.completionLocation = 'IfStatement_condition';
+      collector.completionLocation = CompletionLocation.ifStatementCondition;
       var caseClause = node.caseClause;
       if (caseClause == null) {
         keywordHelper.addKeyword(Keyword.CASE);
@@ -1856,14 +1926,16 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
     } else if (offset >= node.leftParenthesis.end &&
         offset <= node.rightParenthesis.offset) {
-      collector.completionLocation = 'IfStatement_condition';
+      collector.completionLocation = CompletionLocation.ifStatementCondition;
       _forExpression(node, mustBeNonVoid: true);
     } else if (offset >= node.rightParenthesis.end) {
       var elseKeyword = node.elseKeyword;
       if (elseKeyword == null || offset <= elseKeyword.offset) {
-        collector.completionLocation = 'IfStatement_thenStatement';
+        collector.completionLocation =
+            CompletionLocation.ifStatementThenStatement;
       } else {
-        collector.completionLocation = 'IfStatement_elseStatement';
+        collector.completionLocation =
+            CompletionLocation.ifStatementElseStatement;
       }
       _forStatement(node);
     }
@@ -1875,7 +1947,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (offset <= implementsKeyword.end) {
       keywordHelper.addKeyword(Keyword.IMPLEMENTS);
     } else {
-      collector.completionLocation = 'ImplementsClause_interface';
+      collector.completionLocation =
+          CompletionLocation.implementsClauseInterface;
       _forTypeAnnotation(node, mustBeImplementable: true);
     }
   }
@@ -1883,12 +1956,23 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitImportDirective(ImportDirective node) {
     if (offset <= node.importKeyword.end) {
-      collector.completionLocation = 'CompilationUnit_directive';
+      collector.completionLocation =
+          CompletionLocation.compilationUnitDirective;
       _forCompilationUnitMemberBefore(node);
     } else if (offset <= node.uri.offset) {
       return;
     } else if (offset >= node.uri.end) {
-      collector.completionLocation = 'CompilationUnit_directive';
+      var location = CompletionLocation.importDirectiveUri;
+      if (node.deferredKeyword case var deferred? when deferred.end <= offset) {
+        location = CompletionLocation.importDirectiveDeferred;
+      }
+      if (node.prefix case var prefix? when prefix.end <= offset) {
+        location = CompletionLocation.importDirectivePrefix;
+      }
+      if (node.configurations.any((c) => c.end <= offset)) {
+        location = CompletionLocation.importDirectiveConfigurations;
+      }
+      collector.completionLocation = location;
       keywordHelper.addImportDirectiveKeywords(node);
     }
   }
@@ -1899,7 +1983,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (parent is NamedType && offset <= parent.name.offset) {
       var element = node.element;
       DartType type;
-      collector.completionLocation = 'PropertyAccess_propertyName';
+      collector.completionLocation =
+          CompletionLocation.propertyAccessPropertyName;
       if (element is FunctionTypedElement) {
         if (element is GetterElement) {
           type = element.type.returnType;
@@ -1937,7 +2022,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       return;
     }
     if (offset >= node.leftBracket.end && offset <= node.rightBracket.offset) {
-      collector.completionLocation = 'IndexExpression_index';
+      collector.completionLocation = CompletionLocation.indexExpressionIndex;
       _forExpression(node, mustBeNonVoid: true);
     }
   }
@@ -1954,7 +2039,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             offset < constructorName.offset ||
             constructorName.coversOffset(offset)) {
           collector.completionLocation =
-              'InstanceCreationExpression_constructorName';
+              CompletionLocation.instanceCreationExpressionConstructorName;
           declarationHelper()
             ..addConstructorInvocations()
             ..addImportPrefixes();
@@ -1972,7 +2057,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitInterpolationExpression(InterpolationExpression node) {
-    collector.completionLocation = 'InterpolationExpression_expression';
+    collector.completionLocation =
+        CompletionLocation.interpolationExpressionExpression;
     declarationHelper(
       mustBeStatic: node.inStaticContext,
       mustBeNonVoid: true,
@@ -1996,7 +2082,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     } else if (offset < isOperator.offset) {
       _forExpression(node);
     } else if (offset > isOperator.end) {
-      collector.completionLocation = 'IsExpression_type';
+      collector.completionLocation = CompletionLocation.isExpressionType;
       declarationHelper(mustBeType: true).addLexicalDeclarations(node);
     }
   }
@@ -2030,26 +2116,28 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitListLiteral(ListLiteral node) {
     var offset = this.offset;
     if (offset >= node.leftBracket.end && offset <= node.rightBracket.offset) {
-      collector.completionLocation = 'ListLiteral_element';
+      collector.completionLocation = CompletionLocation.listLiteralElement;
       _forCollectionElement(node, node.elements);
     }
   }
 
   @override
   void visitListPattern(ListPattern node) {
-    collector.completionLocation = 'ListPattern_element';
+    collector.completionLocation = CompletionLocation.listPatternElement;
     _forPattern(node);
   }
 
   @override
   void visitLogicalAndPattern(LogicalAndPattern node) {
-    collector.completionLocation = 'LogicalAndPattern_rightOperand';
+    collector.completionLocation =
+        CompletionLocation.logicalAndPatternRightOperand;
     _forPattern(node);
   }
 
   @override
   void visitLogicalOrPattern(LogicalOrPattern node) {
-    collector.completionLocation = 'LogicalOrPattern_rightOperand';
+    collector.completionLocation =
+        CompletionLocation.logicalOrPatternRightOperand;
     _forPattern(node);
   }
 
@@ -2062,7 +2150,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       // '?', but before the key expression. It is a place where an expression
       // is expected.
       node.parent?.accept(this);
-      collector.completionLocation = 'NullAwareElement_value';
+      collector.completionLocation = CompletionLocation.nullAwareElementValue;
     } else if (node.valueQuestion != null &&
         (offset == node.separator.end ||
             offset == node.valueQuestion!.offset ||
@@ -2071,16 +2159,16 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       // null-aware marker '?' in the value. It is a place where an expression
       // is expected.
       node.parent?.accept(this);
-      collector.completionLocation = 'NullAwareElement_value';
+      collector.completionLocation = CompletionLocation.nullAwareElementValue;
     } else if (offset >= node.separator.end) {
-      collector.completionLocation = 'MapLiteralEntry_value';
+      collector.completionLocation = CompletionLocation.mapLiteralEntryValue;
       _forExpression(node, mustBeNonVoid: true);
     }
   }
 
   @override
   void visitMapPattern(MapPattern node) {
-    collector.completionLocation = 'MapPatternEntry_key';
+    collector.completionLocation = CompletionLocation.mapPatternEntryKey;
     _forConstantExpression(node);
   }
 
@@ -2091,13 +2179,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       node.parent?.accept(this);
       return;
     }
-    collector.completionLocation = 'MapPatternEntry_value';
+    collector.completionLocation = CompletionLocation.mapPatternEntryValue;
     _forPattern(node, mustBeConst: false);
   }
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    collector.completionLocation = 'ClassDeclaration_member';
+    collector.completionLocation = CompletionLocation.classDeclarationMember;
     if (offset >= node.firstTokenAfterCommentAndMetadata.previous!.offset &&
         offset <= node.name.end) {
       _forTypeAnnotation(node, isInDeclaration: true);
@@ -2146,7 +2234,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           }
           mustBeNonVoid = true;
         } else if (parent is RecordLiteral) {
-          collector.completionLocation = 'RecordLiteral_fields';
+          collector.completionLocation = CompletionLocation.recordLiteralFields;
           mustBeNonVoid = true;
         }
         _forExpression(node, mustBeNonVoid: mustBeNonVoid);
@@ -2199,13 +2287,19 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
 
       if (offset <= body.leftBracket.offset) {
+        var onClause = node.onClause;
+        collector.completionLocation =
+            onClause != null && onClause.end <= offset
+            ? CompletionLocation.mixinDeclarationOn
+            : CompletionLocation.mixinDeclarationName;
         keywordHelper.addMixinDeclarationKeywords(node);
         return;
       }
 
       if (offset >= body.leftBracket.end &&
           offset <= body.rightBracket.offset) {
-        collector.completionLocation = 'MixinDeclaration_member';
+        collector.completionLocation =
+            CompletionLocation.mixinDeclarationMember;
         if (_tryAnnotationAtEndOfClassBody(node)) {
           return;
         }
@@ -2229,6 +2323,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (offset <= onKeyword.end) {
       keywordHelper.addKeyword(Keyword.ON);
     } else {
+      collector.completionLocation =
+          CompletionLocation.onClauseSuperclassConstraint;
       _forTypeAnnotation(node);
     }
   }
@@ -2273,7 +2369,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             }
           }
         case RecordLiteral recordLiteral:
-          collector.completionLocation = 'RecordLiteral_fields';
+          collector.completionLocation = CompletionLocation.recordLiteralFields;
           _suggestRecordLiteralNamedFields(
             contextType: _computeContextType(recordLiteral),
             containerNode: node,
@@ -2284,7 +2380,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     } else if (offset >= node.colon.end) {
       var inArgumentList = node.parent is ArgumentList;
       if (inArgumentList) {
-        collector.completionLocation = 'ArgumentList_method_named';
+        collector.completionLocation = CompletionLocation.argumentList(
+          'method',
+          isNamed: true,
+        );
       }
       var parameterType =
           node.correspondingParameter?.type ?? DynamicTypeImpl.instance;
@@ -2331,11 +2430,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
     var parent = node.parent;
     if (parent is ImplementsClause) {
-      collector.completionLocation = 'ImplementsClause_interface';
+      collector.completionLocation =
+          CompletionLocation.implementsClauseInterface;
     } else if (parent is TypeArgumentList) {
-      collector.completionLocation = 'TypeArgumentList_argument';
+      collector.completionLocation =
+          CompletionLocation.typeArgumentListArgument;
     } else if (parent is WithClause) {
-      collector.completionLocation = 'WithClause_mixinType';
+      collector.completionLocation = CompletionLocation.withClauseMixinType;
     }
     _forTypeAnnotation(
       node,
@@ -2345,7 +2446,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitNullAwareElement(NullAwareElement node) {
-    collector.completionLocation = 'NullAwareElement_value';
+    collector.completionLocation = CompletionLocation.nullAwareElementValue;
     _forExpression(node);
   }
 
@@ -2358,7 +2459,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitObjectPattern(ObjectPattern node) {
     if (node.leftParenthesis.end <= offset &&
         offset <= node.rightParenthesis.offset) {
-      collector.completionLocation = 'ObjectPattern_fieldName';
+      collector.completionLocation = CompletionLocation.objectPatternFieldName;
       declarationHelper(
         mustBeNonVoid: true,
         preferNonInvocation: true,
@@ -2385,7 +2486,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         }
       }
     }
-    collector.completionLocation = 'ParenthesizedExpression_expression';
+    collector.completionLocation =
+        CompletionLocation.parenthesizedExpressionExpression;
 
     if (node.expression case SimpleIdentifier()) {
       _suggestRecordLiteralNamedFields(
@@ -2401,14 +2503,16 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitParenthesizedPattern(ParenthesizedPattern node) {
-    collector.completionLocation = 'ParenthesizedPattern_expression';
+    collector.completionLocation =
+        CompletionLocation.parenthesizedPatternPattern;
     _forPattern(node);
   }
 
   @override
   void visitPartDirective(PartDirective node) {
     if (offset <= node.partKeyword.end) {
-      collector.completionLocation = 'CompilationUnit_directive';
+      collector.completionLocation =
+          CompletionLocation.compilationUnitDirective;
       _forCompilationUnitMemberBefore(node);
     }
   }
@@ -2416,14 +2520,16 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitPartOfDirective(PartOfDirective node) {
     if (offset <= node.partKeyword.end) {
-      collector.completionLocation = 'CompilationUnit_directive';
+      collector.completionLocation =
+          CompletionLocation.compilationUnitDirective;
       _forCompilationUnitMemberBefore(node);
     }
   }
 
   @override
   void visitPatternAssignment(PatternAssignment node) {
-    collector.completionLocation = 'PatternAssignment_expression';
+    collector.completionLocation =
+        CompletionLocation.patternAssignmentExpression;
     _forExpression(node);
   }
 
@@ -2433,9 +2539,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (name != null && offset <= name.colon.offset) {
       var parent = node.parent;
       if (parent is ObjectPattern) {
-        collector.completionLocation = 'ObjectPattern_fieldName';
+        collector.completionLocation =
+            CompletionLocation.objectPatternFieldName;
       } else {
-        collector.completionLocation = 'PatternField_pattern';
+        collector.completionLocation = CompletionLocation.patternFieldPattern;
       }
       _forPatternFieldName(name, isKeywordNeeded: false, isTypeNeeded: false);
       return;
@@ -2443,7 +2550,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (name == null) {
       var parent = node.parent;
       if (parent is ObjectPattern) {
-        collector.completionLocation = 'ObjectPattern_fieldName';
+        collector.completionLocation =
+            CompletionLocation.objectPatternFieldName;
         declarationHelper(mustBeNonVoid: true).addGetters(
           type: parent.type.typeOrThrow,
           excludedGetters: parent.fields.fieldNames,
@@ -2451,13 +2559,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           isTypeNeeded: false,
         );
       } else if (parent is RecordPattern) {
-        collector.completionLocation = 'PatternField_pattern';
+        collector.completionLocation = CompletionLocation.patternFieldPattern;
         _forPattern(node);
         // TODO(brianwilkerson): If we know the expected record type, add the
         //  names of any named fields.
       }
     } else if (name.name == null) {
-      collector.completionLocation = 'PatternField_pattern';
+      collector.completionLocation = CompletionLocation.patternFieldPattern;
       var parent = node.thisOrAncestorOfType<PatternVariableDeclarationImpl>();
       if (parent == null) {
         _forVariablePattern();
@@ -2472,7 +2580,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         isTypeNeeded: true,
       );
     } else {
-      collector.completionLocation = 'PatternField_pattern';
+      collector.completionLocation = CompletionLocation.patternFieldPattern;
       _forPattern(node, mustBeConst: false);
     }
   }
@@ -2482,9 +2590,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (offset <= node.colon.offset) {
       var parent = node.parent?.parent;
       if (parent is ObjectPattern) {
-        collector.completionLocation = 'ObjectPattern_fieldName';
+        collector.completionLocation =
+            CompletionLocation.objectPatternFieldName;
       } else {
-        collector.completionLocation = 'PatternField_pattern';
+        collector.completionLocation = CompletionLocation.patternFieldPattern;
       }
       _forPatternFieldName(node, isKeywordNeeded: false, isTypeNeeded: false);
       return;
@@ -2494,14 +2603,17 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
-    collector.completionLocation = 'PatternVariableDeclaration_expression';
+    collector.completionLocation =
+        CompletionLocation.patternVariableDeclarationExpression;
     _forExpression(node);
   }
 
   @override
   void visitPostfixExpression(PostfixExpression node) {
     var type = node.operator.type;
-    collector.completionLocation = 'PrefixExpression_${type.lexeme}_operand';
+    collector.completionLocation = CompletionLocation.prefixExpressionOperand(
+      type.lexeme,
+    );
     _forExpression(
       node,
       mustBeAssignable:
@@ -2514,7 +2626,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (offset <= node.period.offset) {
       _forExpression(node);
     } else {
-      collector.completionLocation = 'PropertyAccess_propertyName';
+      collector.completionLocation =
+          CompletionLocation.propertyAccessPropertyName;
       var target = node.prefix;
       var type = target.staticType;
       if (type != null && type is! InvalidType) {
@@ -2557,7 +2670,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitPrefixExpression(PrefixExpression node) {
-    collector.completionLocation = 'PropertyAccess_propertyName';
+    collector.completionLocation =
+        CompletionLocation.propertyAccessPropertyName;
     var type = node.operator.type;
     _forExpression(
       node,
@@ -2578,7 +2692,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     var formalParameters = node.formalParameters;
     var parameter = formalParameters.parameters.firstOrNull;
     if (parameter == null) {
-      collector.completionLocation = 'PrimaryConstructorDeclaration_fieldType';
+      collector.completionLocation =
+          CompletionLocation.primaryConstructorDeclarationFieldType;
       keywordHelper.addFormalParameterKeywords(
         formalParameters,
         suggestRequired: true,
@@ -2630,7 +2745,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     }
 
     if (offsetIsAfterCovariant()) {
-      collector.completionLocation = 'PrimaryConstructorDeclaration_fieldName';
+      collector.completionLocation =
+          CompletionLocation.primaryConstructorDeclarationFieldName;
       keywordHelper.addFormalParameterKeywords(
         formalParameters,
         suggestCovariant: false,
@@ -2639,7 +2755,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       );
       _forTypeAnnotation(node);
     } else if (offsetIsAfterRequired()) {
-      collector.completionLocation = 'PrimaryConstructorDeclaration_fieldName';
+      collector.completionLocation =
+          CompletionLocation.primaryConstructorDeclarationFieldName;
       keywordHelper.addFormalParameterKeywords(
         formalParameters,
         suggestCovariant: false,
@@ -2648,7 +2765,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       );
       _forTypeAnnotation(node);
     } else if (offsetIsAfterFinalOrVar()) {
-      collector.completionLocation = 'PrimaryConstructorDeclaration_fieldName';
+      collector.completionLocation =
+          CompletionLocation.primaryConstructorDeclarationFieldName;
       keywordHelper.addFormalParameterKeywords(
         formalParameters,
         suggestCovariant: false,
@@ -2661,11 +2779,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       var parameterType = parameter.type;
       if (parameterType == null || parameterType.isFullySynthetic) {
         if (nameToken.isSynthetic && hasIncompleteAnnotation()) {
-          collector.completionLocation = 'Annotation_name';
+          collector.completionLocation = CompletionLocation.annotationName;
           _forAnnotation(parameter);
         } else {
           collector.completionLocation =
-              'PrimaryConstructorDeclaration_fieldType';
+              CompletionLocation.primaryConstructorDeclarationFieldType;
           if (node.parent is! ExtensionTypeDeclaration) {
             keywordHelper.addFormalParameterKeywords(
               formalParameters,
@@ -2679,13 +2797,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         }
       } else {
         collector.completionLocation =
-            'PrimaryConstructorDeclaration_fieldName';
+            CompletionLocation.primaryConstructorDeclarationFieldName;
         identifierHelper(includePrivateIdentifiers: true)
             .addVariable(parameterType);
       }
     } else if (offsetIsAfterComma()) {
       // The user is adding a new parameter after [parameter].
-      collector.completionLocation = 'PrimaryConstructorDeclaration_fieldType';
+      collector.completionLocation =
+          CompletionLocation.primaryConstructorDeclarationFieldType;
       keywordHelper.addFormalParameterKeywords(
         formalParameters,
         suggestRequired: true,
@@ -2693,7 +2812,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       );
       _forTypeAnnotation(node);
     } else {
-      collector.completionLocation = 'PrimaryConstructorDeclaration_fieldName';
+      collector.completionLocation =
+          CompletionLocation.primaryConstructorDeclarationFieldName;
       identifierHelper(includePrivateIdentifiers: true)
           .addSuggestionsFromTypeName(nameToken.lexeme);
     }
@@ -2707,7 +2827,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       // case the user is attempting to complete that identifier.
       _forExpression(node);
     } else {
-      collector.completionLocation = 'PropertyAccess_propertyName';
+      collector.completionLocation =
+          CompletionLocation.propertyAccessPropertyName;
       var target = node.realTarget;
       var parent = node.parent;
       if (target is ThisExpression && parent is ConstructorFieldInitializer) {
@@ -2745,7 +2866,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitRecordLiteral(RecordLiteral node) {
-    collector.completionLocation = 'RecordLiteral_fields';
+    collector.completionLocation = CompletionLocation.recordLiteralFields;
 
     _suggestRecordLiteralNamedFields(
       contextType: _computeContextType(node),
@@ -2761,7 +2882,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitRecordLiteralNamedField(RecordLiteralNamedField node) {
     if (offset <= node.name.end) {
       if (node.parent case RecordLiteral recordLiteral) {
-        collector.completionLocation = 'RecordLiteral_fields';
+        collector.completionLocation = CompletionLocation.recordLiteralFields;
         _suggestRecordLiteralNamedFields(
           contextType: _computeContextType(recordLiteral),
           containerNode: node,
@@ -2770,7 +2891,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         );
       }
     } else if (offset >= node.colon.end) {
-      collector.completionLocation = 'RecordLiteral_fields';
+      collector.completionLocation = CompletionLocation.recordLiteralFields;
       _forExpression(node.fieldExpression);
     }
   }
@@ -2779,7 +2900,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitRecordPattern(RecordPattern node) {
     // `^()` to become object pattern.
     if (offset == node.leftParenthesis.offset) {
-      collector.completionLocation = 'ObjectPattern_type';
+      collector.completionLocation = CompletionLocation.objectPatternType;
       declarationHelper(
         mustBeType: true,
         mustBeNonVoid: true,
@@ -2790,7 +2911,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (node.leftParenthesis.end <= offset &&
         offset <= node.rightParenthesis.offset) {
       // TODO(brianwilkerson): Is there a reason we aren't suggesting 'void'?
-      collector.completionLocation = 'PatternField_pattern';
+      collector.completionLocation = CompletionLocation.patternFieldPattern;
       keywordHelper.addKeyword(Keyword.DYNAMIC);
       _forExpression(node);
       var targetField = node.fields.skipWhile((field) {
@@ -2817,11 +2938,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (parent is FormalParameter && offset <= parent.offset) {
         // The user might be starting a new formal parameter before the one
         // containing the `node`.
-        collector.completionLocation = 'FormalParameterList_parameter';
+        collector.completionLocation =
+            CompletionLocation.formalParameterListParameter;
         _forTypeAnnotation(node);
       }
     } else if (offset <= node.rightParenthesis.offset) {
-      collector.completionLocation = 'RecordTypeAnnotation_positionalFields';
+      collector.completionLocation =
+          CompletionLocation.recordTypeAnnotationFields;
       _forTypeAnnotation(node);
     }
   }
@@ -2831,10 +2954,12 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     RecordTypeAnnotationNamedField node,
   ) {
     if (node.type.coversOffset(offset)) {
-      collector.completionLocation = 'RecordTypeAnnotationNamedFields_fields';
+      collector.completionLocation =
+          CompletionLocation.recordTypeAnnotationFields;
       _forTypeAnnotation(node);
     } else if (node.name.coversOffset(offset)) {
-      collector.completionLocation = 'RecordTypeAnnotationNamedField_name';
+      collector.completionLocation =
+          CompletionLocation.recordTypeAnnotationNamedFieldName;
       identifierHelper(includePrivateIdentifiers: false).addVariable(node.type);
     }
   }
@@ -2843,7 +2968,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitRecordTypeAnnotationNamedFields(
     RecordTypeAnnotationNamedFields node,
   ) {
-    collector.completionLocation = 'RecordTypeAnnotationNamedFields_fields';
+    collector.completionLocation =
+        CompletionLocation.recordTypeAnnotationFields;
     _forTypeAnnotation(node);
   }
 
@@ -2852,7 +2978,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     RecordTypeAnnotationPositionalField node,
   ) {
     if (node.type.coversOffset(offset)) {
-      collector.completionLocation = 'RecordTypeAnnotation_positionalFields';
+      collector.completionLocation =
+          CompletionLocation.recordTypeAnnotationFields;
       _forTypeAnnotation(node);
     }
   }
@@ -2865,7 +2992,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (constructor is! ConstructorDeclaration) {
       return;
     }
-    collector.completionLocation = 'ConstructorDeclaration_initializer';
+    collector.completionLocation =
+        CompletionLocation.constructorDeclarationInitializer;
     if (offset <= node.thisKeyword.end && node.argumentList.isFullySynthetic) {
       keywordHelper.addConstructorInitializerKeywords(
         constructor.initializers,
@@ -2899,7 +3027,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     bool suggestDynamic = true;
     bool suggestRequired = true;
     if (name != null && node.isSingleIdentifier) {
-      collector.completionLocation = 'FormalParameterList_parameter';
+      collector.completionLocation =
+          CompletionLocation.formalParameterListParameter;
       keywordHelper.addFormalParameterKeywords(
         node.parentFormalParameterList,
         suggestRequired: suggestRequired && name.keyword != Keyword.REQUIRED,
@@ -2923,7 +3052,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     }
     var type = node.type;
     if (type != null) {
-      collector.completionLocation = 'FormalParameterList_parameter';
+      collector.completionLocation =
+          CompletionLocation.formalParameterListParameter;
       if (type is NamedType) {
         if (type.importPrefix case var importPrefix?) {
           var prefixElement = importPrefix.element;
@@ -2951,7 +3081,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     } else {
       var keyword = node.constFinalOrVarKeyword;
       if (keyword == null || offset <= keyword.end) {
-        collector.completionLocation = 'FormalParameterList_parameter';
+        collector.completionLocation =
+            CompletionLocation.formalParameterListParameter;
         var parent = node.parent;
         if (parent case FormalParameterList list) {
           keywordHelper.addFormalParameterKeywords(
@@ -2978,29 +3109,34 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         operand.isSynthetic &&
         operand.beginToken.nextNonSynthetic?.type == TokenType.GT) {
       // This is most likely a type argument list before a typed literal.
-      collector.completionLocation = 'TypeArgumentList_argument';
+      collector.completionLocation =
+          CompletionLocation.typeArgumentListArgument;
       _forTypeAnnotation(node);
     } else if (operand is SimpleIdentifier &&
         offset >= node.operator.end &&
         offset <= operand.end) {
-      collector.completionLocation = 'RelationalPattern_operand';
+      collector.completionLocation =
+          CompletionLocation.relationalPatternOperatorOperand(
+            node.operator.lexeme,
+          );
       _forExpression(node);
     }
   }
 
   @override
   void visitRestPatternElement(RestPatternElement node) {
-    collector.completionLocation = 'RestPatternElement_pattern';
+    collector.completionLocation = CompletionLocation.restPatternElementPattern;
     _forPattern(node);
   }
 
   @override
   void visitReturnStatement(ReturnStatement node) {
     if (offset <= node.returnKeyword.end) {
-      collector.completionLocation = 'Block_statement';
+      collector.completionLocation = CompletionLocation.blockStatement;
       _forStatement(node);
     } else {
-      collector.completionLocation = 'ReturnStatement_expression';
+      collector.completionLocation =
+          CompletionLocation.returnStatementExpression;
       _forExpression(node.expression ?? node);
     }
   }
@@ -3009,14 +3145,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
     var offset = this.offset;
     if (offset >= node.leftBracket.end && offset <= node.rightBracket.offset) {
-      collector.completionLocation = 'SetOrMapLiteral_element';
+      collector.completionLocation = CompletionLocation.setOrMapLiteralElement;
       _forCollectionElement(node, node.elements);
     }
   }
 
   @override
   void visitShowCombinator(ShowCombinator node) {
-    collector.completionLocation = 'ShowCombinator_shownName';
+    collector.completionLocation = CompletionLocation.showCombinatorShownName;
     _forCombinator(node, node.shownNames);
   }
 
@@ -3041,7 +3177,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitSpreadElement(SpreadElement node) {
-    collector.completionLocation = 'SpreadElement_expression';
+    collector.completionLocation = CompletionLocation.spreadElementExpression;
     _forExpression(node);
   }
 
@@ -3056,7 +3192,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (constructor is! ConstructorDeclaration) {
       return;
     }
-    collector.completionLocation = 'ConstructorDeclaration_initializer';
+    collector.completionLocation =
+        CompletionLocation.constructorDeclarationInitializer;
     if (offset <= node.superKeyword.end && node.argumentList.isFullySynthetic) {
       keywordHelper.addConstructorInitializerKeywords(
         constructor.initializers,
@@ -3091,14 +3228,14 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitSwitchCase(SwitchCase node) {
-    collector.completionLocation = 'SwitchMember_statement';
+    collector.completionLocation = CompletionLocation.switchMemberStatement;
     _forStatement(node);
   }
 
   @override
   void visitSwitchDefault(SwitchDefault node) {
     if (offset <= node.keyword.offset) {
-      collector.completionLocation = 'SwitchMember_statement';
+      collector.completionLocation = CompletionLocation.switchMemberStatement;
       keywordHelper.addKeyword(Keyword.CASE);
       keywordHelper.addKeywordAndText(Keyword.DEFAULT, ':');
     } else if (offset <= node.keyword.end) {
@@ -3114,11 +3251,12 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitSwitchExpression(SwitchExpression node) {
     if (offset >= node.leftParenthesis.end &&
         offset <= node.rightParenthesis.offset) {
-      collector.completionLocation = 'SwitchExpression_expression';
+      collector.completionLocation =
+          CompletionLocation.switchExpressionExpression;
       _forExpression(node);
     } else if (offset >= node.leftBracket.end &&
         offset <= node.rightBracket.offset) {
-      collector.completionLocation = 'SwitchExpression_body';
+      collector.completionLocation = CompletionLocation.switchExpressionPattern;
       _forPattern(node);
     }
   }
@@ -3127,7 +3265,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitSwitchExpressionCase(SwitchExpressionCase node) {
     if (node.arrow.isSynthetic || node.arrow.offset >= offset) {
       // The user is completing in the pattern.
-      collector.completionLocation = 'SwitchExpression_body';
+      collector.completionLocation = CompletionLocation.switchExpressionPattern;
       _forPattern(node);
       return;
     }
@@ -3135,7 +3273,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     var endToken = expression.endToken;
     if (endToken == expression.beginToken || endToken.isSynthetic) {
       // The user is completing in the expression.
-      collector.completionLocation = 'SwitchExpressionCase_expression';
+      collector.completionLocation =
+          CompletionLocation.switchExpressionCaseExpression;
       var type =
           _computeContextType(node.expression) ?? DynamicTypeImpl.instance;
       _forExpression(
@@ -3158,12 +3297,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (offset <= node.keyword.end) {
       keywordHelper.addKeyword(Keyword.CASE);
     } else if (offset <= node.colon.offset) {
-      collector.completionLocation = 'SwitchPatternCase_pattern';
+      collector.completionLocation =
+          CompletionLocation.switchPatternCasePattern;
 
       // Object pattern `Name^()`
       if (state.selection.coveringNode case NamedType type) {
         if (type.parent case ObjectPattern()) {
-          collector.completionLocation = 'ObjectPattern_type';
+          collector.completionLocation = CompletionLocation.objectPatternType;
           type.accept(this);
           return;
         }
@@ -3212,11 +3352,12 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             type.accept(this);
             return;
           case ObjectPattern():
-            collector.completionLocation = 'ObjectPattern_type';
+            collector.completionLocation = CompletionLocation.objectPatternType;
             type.accept(this);
             return;
           case WildcardPattern():
-            collector.completionLocation = 'WildcardPattern_type';
+            collector.completionLocation =
+                CompletionLocation.wildcardPatternType;
             type.accept(this);
             return;
         }
@@ -3245,7 +3386,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         keywordHelper.addKeyword(Keyword.WHEN);
       }
     } else {
-      collector.completionLocation = 'SwitchMember_statement';
+      collector.completionLocation = CompletionLocation.switchMemberStatement;
       if (node.statements.isEmpty || offset <= node.statements.first.offset) {
         keywordHelper.addKeyword(Keyword.CASE);
         keywordHelper.addKeywordAndText(Keyword.DEFAULT, ':');
@@ -3257,15 +3398,16 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitSwitchStatement(SwitchStatement node) {
     if (offset <= node.switchKeyword.end) {
-      collector.completionLocation = 'Block_statement';
+      collector.completionLocation = CompletionLocation.blockStatement;
       _forStatement(node);
     } else if (offset >= node.leftParenthesis.end &&
         offset <= node.rightParenthesis.offset) {
-      collector.completionLocation = 'SwitchStatement_expression';
+      collector.completionLocation =
+          CompletionLocation.switchStatementExpression;
       _forExpression(node, mustBeNonVoid: true);
     } else if (offset >= node.leftBracket.end &&
         offset <= node.rightBracket.offset) {
-      collector.completionLocation = 'SwitchMember_statement';
+      collector.completionLocation = CompletionLocation.switchMemberStatement;
       var members = node.members;
       keywordHelper.addKeyword(Keyword.CASE);
       keywordHelper.addKeywordAndText(Keyword.DEFAULT, ':');
@@ -3290,7 +3432,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitThrowExpression(ThrowExpression node) {
-    collector.completionLocation = 'ThrowExpression_expression';
+    collector.completionLocation = CompletionLocation.throwExpressionExpression;
     _forExpression(node);
   }
 
@@ -3335,9 +3477,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (parent is CompilationUnit) {
       var (:before, after: _) = parent.membersBeforeAndAfterMember(node);
       if (before == null || before is Directive) {
-        collector.completionLocation = 'CompilationUnit_directive';
+        collector.completionLocation =
+            CompletionLocation.compilationUnitDirective;
       } else {
-        collector.completionLocation = 'CompilationUnit_declaration';
+        collector.completionLocation =
+            CompletionLocation.compilationUnitDeclaration;
       }
     }
     declarationHelper(mustBeType: true).addLexicalDeclarations(node);
@@ -3346,7 +3490,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitTryStatement(TryStatement node) {
     if (offset <= node.tryKeyword.end) {
-      collector.completionLocation = 'Block_statement';
+      collector.completionLocation = CompletionLocation.blockStatement;
       _forStatement(node);
     } else if (offset >= node.body.end) {
       var finallyKeyword = node.finallyKeyword;
@@ -3391,7 +3535,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           rightParenthesis != null &&
           rightParenthesis.type == TokenType.CLOSE_PAREN &&
           rightParenthesis.isSynthetic) {
-        collector.completionLocation = 'TypeParameter_bound';
+        collector.completionLocation = CompletionLocation.typeParameterBound;
         _forTypeAnnotation(node, excludedNodes: {typeParameters});
         return;
       }
@@ -3410,7 +3554,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     } else {
       // The cursor is after the `extends` keyword, so we should suggest valid
       // upper bounds.
-      collector.completionLocation = 'TypeParameter_bound';
+      collector.completionLocation = CompletionLocation.typeParameterBound;
       _forTypeAnnotation(node, mustBeNonVoid: true);
     }
   }
@@ -3454,7 +3598,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       var keyword = parent.keyword;
       var type = parent.type;
       if (type == null) {
-        collector.completionLocation = 'VariableDeclarationList_type';
+        collector.completionLocation =
+            CompletionLocation.variableDeclarationListType;
         if (keyword == null) {
           keywordHelper.addKeyword(Keyword.CONST);
           keywordHelper.addKeyword(Keyword.FINAL);
@@ -3486,7 +3631,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             .addVariable(type);
       }
       if (grandparent is FieldDeclaration) {
-        collector.completionLocation = 'FieldDeclaration_fields';
+        collector.completionLocation =
+            CompletionLocation.fieldDeclarationFields;
         if (grandparent.externalKeyword == null) {
           keywordHelper.addKeyword(Keyword.EXTERNAL);
         }
@@ -3521,13 +3667,17 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         }
         if (grandparent.isSingleIdentifier) {
           if (container is ClassDeclaration) {
-            collector.completionLocation = 'ClassDeclaration_member';
+            collector.completionLocation =
+                CompletionLocation.classDeclarationMember;
           } else if (container is EnumDeclaration) {
-            collector.completionLocation = 'EnumDeclaration_member';
+            collector.completionLocation =
+                CompletionLocation.enumDeclarationMember;
           } else if (container is ExtensionDeclaration) {
-            collector.completionLocation = 'ExtensionDeclaration_member';
+            collector.completionLocation =
+                CompletionLocation.extensionDeclarationMember;
           } else if (container is MixinDeclaration) {
-            collector.completionLocation = 'MixinDeclaration_member';
+            collector.completionLocation =
+                CompletionLocation.mixinDeclarationMember;
           }
           _suggestOverridesFor(
             element: switch (container) {
@@ -3549,7 +3699,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     }
     var equals = node.equals;
     if (equals != null && offset >= equals.end) {
-      collector.completionLocation = 'VariableDeclaration_initializer';
+      collector.completionLocation =
+          CompletionLocation.variableDeclarationInitializer;
       _forExpression(node, mustBeNonVoid: true);
     }
   }
@@ -3562,7 +3713,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       var type = node.type;
       if ((type == null || type.coversOffset(offset)) &&
           keyword?.keyword != Keyword.VAR) {
-        collector.completionLocation = 'VariableDeclarationList_type';
+        collector.completionLocation =
+            CompletionLocation.variableDeclarationListType;
         _forTypeAnnotation(node);
       } else if (type is RecordTypeAnnotation) {
         // This might be a record pattern that happens to look like a type, in
@@ -3574,7 +3726,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    collector.completionLocation = 'Block_statement';
+    collector.completionLocation = CompletionLocation.blockStatement;
     if (_forIncompletePrecedingStatement(node)) {
       return;
     }
@@ -3592,7 +3744,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitWhenClause(WhenClause node) {
     var whenKeyword = node.whenKeyword;
     if (!whenKeyword.isSynthetic && offset > whenKeyword.end) {
-      collector.completionLocation = 'WhenClause_expression';
+      collector.completionLocation = CompletionLocation.whenClauseExpression;
       _forExpression(node);
     }
   }
@@ -3600,14 +3752,15 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitWhileStatement(WhileStatement node) {
     if (offset <= node.whileKeyword.end) {
-      collector.completionLocation = 'Block_statement';
+      collector.completionLocation = CompletionLocation.blockStatement;
       _forStatement(node);
     } else if (node.leftParenthesis.end <= offset &&
         offset <= node.rightParenthesis.offset) {
       if (node.condition.isSynthetic ||
           offset <= node.condition.offset ||
           offset == node.condition.end) {
-        collector.completionLocation = 'WhileStatement_condition';
+        collector.completionLocation =
+            CompletionLocation.whileStatementCondition;
         _forExpression(node, mustBeNonVoid: true);
       }
     }
@@ -3632,7 +3785,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     } else if (offset <= whenKeyword.end) {
       keywordHelper.addKeyword(Keyword.WITH);
     } else {
-      collector.completionLocation = 'WithClause_mixinType';
+      collector.completionLocation = CompletionLocation.withClauseMixinType;
       _forTypeAnnotation(node, mustBeMixable: true);
     }
   }
@@ -3640,10 +3793,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitYieldStatement(YieldStatement node) {
     if (offset <= node.yieldKeyword.end) {
-      collector.completionLocation = 'Block_statement';
+      collector.completionLocation = CompletionLocation.blockStatement;
       keywordHelper.addKeyword(Keyword.YIELD);
     } else if (node.semicolon.isSynthetic || offset <= node.semicolon.end) {
-      collector.completionLocation = 'YieldStatement_expression';
+      collector.completionLocation =
+          CompletionLocation.yieldStatementExpression;
       _forExpression(node);
     }
   }
@@ -3819,11 +3973,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   ) {
     var before = surroundingMembers.before;
     if (before is Directive?) {
-      collector.completionLocation = 'CompilationUnit_directive';
+      collector.completionLocation =
+          CompletionLocation.compilationUnitDirective;
       _forDirective(unit, before);
     }
     if (surroundingMembers.after is CompilationUnitMember?) {
-      collector.completionLocation ??= 'CompilationUnit_declaration';
+      collector.completionLocation ??=
+          CompletionLocation.compilationUnitDeclaration;
       _forCompilationUnitDeclaration(unit);
     }
   }
@@ -3997,7 +4153,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
             //   We set the completion location to match the old behavior, even
             //   though we aren't proposing any elements in this location and
             //   therefore don't need a completion location.
-            collector.completionLocation = 'ClassDeclaration_member';
+            collector.completionLocation =
+                CompletionLocation.classDeclarationMember;
             keywordHelper.addFunctionBodyModifiers(declaration.body);
             return true;
           }
@@ -4082,7 +4239,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     } else if (parent is PatternField) {
       var outerPattern = parent.parent;
       if (outerPattern is DartPattern) {
-        collector.completionLocation = 'PatternField_pattern';
+        collector.completionLocation = CompletionLocation.patternFieldPattern;
         _forPatternFieldNameInPattern(
           outerPattern,
           isKeywordNeeded: (node.type ?? node.keyword) == null,
@@ -4136,6 +4293,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           return;
         }
       } else if (identifier.parent is ConstantPattern) {
+        collector.completionLocation =
+            CompletionLocation.constantPatternExpression;
         keywordHelper.addPatternKeywords();
         // TODO(scheglov): Actually we need constructors, but only const.
         // And not-yet imported contributors does not work well yet.
@@ -4150,15 +4309,16 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (coveringNode case NamedType type) {
       switch (type.parent) {
         case DeclaredVariablePattern():
-          collector.completionLocation = 'DeclaredVariablePattern_type';
+          collector.completionLocation =
+              CompletionLocation.declaredVariablePatternType;
           type.accept(this);
           return;
         case ObjectPattern():
-          collector.completionLocation = 'ObjectPattern_type';
+          collector.completionLocation = CompletionLocation.objectPatternType;
           type.accept(this);
           return;
         case WildcardPattern():
-          collector.completionLocation = 'WildcardPattern_type';
+          collector.completionLocation = CompletionLocation.wildcardPatternType;
           type.accept(this);
           return;
       }
@@ -4324,7 +4484,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           // TODO(brianwilkerson): This location is bogus, but it's what OpType
           //  was computing before. Remove this when we recompute the element
           //  kind relevance table.
-          collector.completionLocation = 'CompilationUnit_declaration';
+          collector.completionLocation =
+              CompletionLocation.compilationUnitDeclaration;
           keywordHelper.addClassDeclarationKeywords(declaration);
           return true;
         }
@@ -4341,7 +4502,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           // TODO(brianwilkerson): This location is bogus, but it's what OpType
           //  was computing before. Remove this when we recompute the element
           //  kind relevance table.
-          collector.completionLocation = 'CompilationUnit_declaration';
+          collector.completionLocation =
+              CompletionLocation.compilationUnitDeclaration;
           visitExtensionTypeDeclaration(declaration);
           return true;
         }
@@ -4349,7 +4511,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         // TODO(brianwilkerson): This location is bogus, but it's what OpType
         //  was computing before. Remove this when we recompute the element
         //  kind relevance table.
-        collector.completionLocation = 'CompilationUnit_declaration';
+        collector.completionLocation =
+            CompletionLocation.compilationUnitDeclaration;
         var body = declaration.functionExpression.body;
         if (body.isEmpty) {
           keywordHelper.addFunctionBodyModifiers(body);
@@ -4453,8 +4616,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       SuperConstructorInvocation() => 'constructorRedirect',
       _ => '',
     };
-    var argumentKind = isNamed ? 'named' : 'unnamed';
-    return 'ArgumentList_${context}_$argumentKind';
+    return CompletionLocation.argumentList(context, isNamed: isNamed);
   }
 
   DartType? _resolveFutureOrType(DartType? contextType) {
@@ -4558,7 +4720,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       var identifier = displaced.previous;
       if (identifier != null && identifier.type == TokenType.IDENTIFIER) {
         if (identifier.previous?.type == TokenType.AT) {
-          collector.completionLocation = 'Annotation_name';
+          collector.completionLocation = CompletionLocation.annotationName;
           _forAnnotation(node);
           _tryOverrideAnnotation(identifier, node);
           return true;

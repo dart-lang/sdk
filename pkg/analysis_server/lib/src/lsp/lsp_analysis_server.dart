@@ -37,7 +37,6 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/analysis/context_locator.dart';
 import 'package:analyzer/src/dart/analysis/status.dart' as analysis;
 import 'package:analyzer/src/generated/sdk.dart';
@@ -147,7 +146,6 @@ class LspAnalysisServer extends AnalysisServer {
     DartSdkManager sdkManager,
     AnalyticsManager analyticsManager,
     CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder,
-    InstrumentationService instrumentationService,
     SessionListener sessionListener, {
     http.Client? httpClient,
     ProcessRunner? processRunner,
@@ -170,7 +168,6 @@ class LspAnalysisServer extends AnalysisServer {
          analyticsManager,
          crashReportingAttachmentsBuilder,
          baseResourceProvider,
-         instrumentationService,
          sessionListener,
          httpClient,
          processRunner,
@@ -360,10 +357,6 @@ class LspAnalysisServer extends AnalysisServer {
     if (initializationOptions.allowOverlappingHandlers
         case var allowOverlappingHandlers?) {
       MessageScheduler.allowOverlappingHandlers = allowOverlappingHandlers;
-      instrumentationService.logInfo(
-        'MessageScheduler.allowOverlappingHandlers set to '
-        '$allowOverlappingHandlers by LSP client initializationOptions',
-      );
       sessionListener.logInfo(
         'MessageScheduler.allowOverlappingHandlers set to '
         '$allowOverlappingHandlers by LSP client initializationOptions',
@@ -576,7 +569,6 @@ class LspAnalysisServer extends AnalysisServer {
 
     var fatalException = FatalException(message, exception, stackTrace);
     var attachments = crashReportingAttachmentsBuilder.forException(exception);
-    instrumentationService.logException(fatalException, null, attachments);
     sessionListener.logException(
       exception: fatalException,
       attachments: attachments,
@@ -1038,7 +1030,6 @@ class LspAnalysisServer extends AnalysisServer {
     // Record to the instrumentation log so the stack trace is accessible. This
     // is an unhandled exception that was not awaited and is almost certainly a
     // bug.
-    instrumentationService.logException(error, stackTrace);
     sessionListener.logException(exception: error, stackTrace: stackTrace);
 
     sendServerErrorNotification('Unhandled handler error', error, stackTrace);

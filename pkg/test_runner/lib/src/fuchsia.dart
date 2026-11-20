@@ -24,21 +24,22 @@ class FuchsiaEmulator {
     daemonIsolateDir = Directory.systemTemp.createTempSync();
     envs["FFX_ISOLATE_DIR"] = daemonIsolateDir!.path;
     envs["QEMU_LD_PREFIX"] = "/usr/x86_64-linux-gnu";
+    envs["FUCHSIA_ORCHESTRATE_CONFIG"] = File(
+      arch == "arm64"
+          ? "build/fuchsia/orchestrate_x64_arm64.json"
+          : "build/fuchsia/orchestrate_x64.json",
+    ).absolute.path;
 
     assert(publisher == null);
-    var args = <String>[
-      "./build/fuchsia/test_env.py",
-      "--out-dir=$buildDir/gen/dart_test",
-      "--device-spec=$arch-emu-recommended",
-      "--packages=dart_test.far",
-      "--logs-dir=${daemonIsolateDir!.path}",
-    ];
-    if (arch == "arm64") {
-      args.add("--product=terminal.qemu-arm64");
-    }
     publisher = await Process.start(
       withEnv,
-      args,
+      [
+        "./build/fuchsia/test_env.py",
+        "--out-dir=$buildDir/gen/dart_test",
+        "--packages=dart_test.far",
+        "--logs-dir=${daemonIsolateDir!.path}",
+        "--orchestrate",
+      ],
       environment: envs,
       mode: ProcessStartMode.inheritStdio,
     );
@@ -68,6 +69,7 @@ class FuchsiaEmulator {
     environmentOverrides.addAll(envs);
     return VMCommand(withEnv, [
       "./third_party/fuchsia/test_scripts/test/run_executable_test.py",
+      "--mypid=${publisher!.pid}",
       "--test-name=fuchsia-pkg://fuchsia.com/dart_test#meta/$component",
       // VmexResource not available in default hermetic realm
       // TODO(38752): Setup a Dart test realm.

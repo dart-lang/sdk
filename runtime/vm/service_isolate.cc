@@ -111,6 +111,8 @@ static ArrayPtr MakeServerControlMessage(const SendPort& sp,
 const char* ServiceIsolate::kName = DART_VM_SERVICE_ISOLATE_NAME;
 Dart_IsolateGroupCreateCallback ServiceIsolate::create_group_callback_ =
     nullptr;
+Dart_ServiceServerStateCallback ServiceIsolate::server_state_callback_ =
+    nullptr;
 Monitor* ServiceIsolate::monitor_ = new Monitor();
 ServiceIsolate::State ServiceIsolate::state_ = ServiceIsolate::kStopped;
 Isolate* ServiceIsolate::isolate_ = nullptr;
@@ -143,10 +145,15 @@ void ServiceIsolate::SetServerAddress(const char* address) {
     free(server_address_);
     server_address_ = nullptr;
   }
-  if (address == nullptr) {
-    return;
+  if (address != nullptr) {
+    server_address_ = Utils::StrDup(address);
   }
-  server_address_ = Utils::StrDup(address);
+  Dart_ServiceServerStateCallback callback = server_state_callback_;
+  if (callback != nullptr) {
+    Thread* T = Thread::Current();
+    TransitionVMToNative transition(T);
+    (*callback)(server_address_);
+  }
 }
 
 bool ServiceIsolate::Exists() {

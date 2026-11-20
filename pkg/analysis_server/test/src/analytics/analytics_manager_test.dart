@@ -15,9 +15,9 @@ import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
+import 'package:analyzer/src/util/platform_info.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:http/src/response.dart' as http;
 import 'package:linter/src/rules.dart';
@@ -421,6 +421,47 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     ]);
   }
 
+  Future<void> test_server_request_initialize_clientInfo_known() async {
+    _defaultStartup();
+    var params = InitializeParams(
+      capabilities: ClientCapabilities(),
+      clientInfo: ClientInfo(name: 'Neovim', version: '0.10.2'),
+    );
+    manager.initialize(params);
+    _completeAnalysis();
+    await manager.shutdown();
+    analytics.assertEvents([
+      _ExpectedEvent.contextStructure(),
+      _ExpectedEvent.session(
+        eventData: {
+          // IDE plugins set these environment variables, which take precedence.
+          'ideName': platform.environment['DASH__IDE_NAME'] ?? 'neovim',
+          'ideVersion': platform.environment['DASH__IDE_VERSION'] ?? '0.10.2',
+        },
+      ),
+    ]);
+  }
+
+  Future<void> test_server_request_initialize_clientInfo_unknown() async {
+    _defaultStartup();
+    var params = InitializeParams(
+      capabilities: ClientCapabilities(),
+      clientInfo: ClientInfo(name: 'My Editor', version: '1.0.0'),
+    );
+    manager.initialize(params);
+    _completeAnalysis();
+    await manager.shutdown();
+    analytics.assertEvents([
+      _ExpectedEvent.contextStructure(),
+      _ExpectedEvent.session(
+        eventData: {
+          'ideName': platform.environment['DASH__IDE_NAME'] ?? 'other',
+          'ideVersion': platform.environment['DASH__IDE_VERSION'] ?? '',
+        },
+      ),
+    ]);
+  }
+
   Future<void> test_server_request_initialized() async {
     _defaultStartup();
     var params = InitializedParams();
@@ -648,7 +689,6 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     '/some/execution/path',
     '/some/packages/path',
     TestNotificationManager(),
-    InstrumentationService.NULL_SERVICE,
     SessionLogger(),
     isLegacy: true,
   );

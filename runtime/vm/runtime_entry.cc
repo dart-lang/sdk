@@ -4598,9 +4598,8 @@ DEFINE_RUNTIME_ENTRY(DynamicInvocationForwarderModAOT, 2) {
           Object::Handle(zone, args.At(args_desc.FirstArgIndex()));
       const auto& instantiator_type_arguments = TypeArguments::Handle(
           zone, Instance::Cast(receiver).GetTypeArguments());
-      default_type_args = default_type_args.InstantiateFrom(
-          instantiator_type_arguments, Object::null_type_arguments(), kAllFree,
-          Heap::kOld);
+      default_type_args = default_type_args.InstantiateAndCanonicalizeFrom(
+          instantiator_type_arguments, Object::null_type_arguments());
     }
     const auto& arg_names = Array::Handle(zone, args_desc.GetArgumentNames());
     const auto& new_args_desc = Array::Handle(

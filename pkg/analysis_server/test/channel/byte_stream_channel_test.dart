@@ -9,7 +9,6 @@ import 'dart:io';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/src/channel/byte_stream_channel.dart';
 import 'package:analysis_server/src/session_logger/session_logger.dart';
-import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -133,7 +132,6 @@ class ByteStreamServerChannelTest {
     channel = InputOutputByteStreamServerChannel(
       inputStream.stream,
       outputSink,
-      InstrumentationService.NULL_SERVICE,
       SessionLogger(),
     );
     var requestStreamController = StreamController<ClientMessage>();
@@ -251,7 +249,6 @@ class ByteStreamServerChannelTest {
     var channel = InputOutputByteStreamServerChannel(
       StreamController<List<int>>().stream,
       outputSink,
-      InstrumentationService.NULL_SERVICE,
       SessionLogger(),
     );
 

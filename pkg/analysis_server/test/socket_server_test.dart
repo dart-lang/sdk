@@ -11,12 +11,10 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
-import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/src/file_system/timing_resource_provider.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:test/test.dart';
 import 'package:unified_analytics/unified_analytics.dart';
@@ -117,12 +115,10 @@ class SocketServerTest {
     MockServerChannel channel, {
     AnalysisServerOptions? options,
   }) {
-    var errorNotifier = ErrorNotifier();
     var server = SocketServer(
       options ?? AnalysisServerOptions(),
       DartSdkManager(''),
       CrashReportingAttachmentsBuilder.empty,
-      errorNotifier,
       SessionLogger(),
       null,
       null,
@@ -132,8 +128,6 @@ class SocketServerTest {
     );
 
     server.createAnalysisServer(channel);
-    errorNotifier.server = server.analysisServer;
-    AnalysisEngine.instance.instrumentationService = errorNotifier;
 
     return server;
   }

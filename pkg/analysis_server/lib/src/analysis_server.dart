@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:io' as io;
+import 'dart:typed_data';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
@@ -68,7 +69,6 @@ import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' as analysis;
@@ -197,9 +197,6 @@ abstract class AnalysisServer {
   /// server.
   final RecentBuffer<ServerException> exceptions = RecentBuffer(10);
 
-  /// The instrumentation service that is to be used by this analysis server.
-  InstrumentationService instrumentationService;
-
   /// The session listener that is to be used by this analysis server.
   SessionListener sessionListener;
 
@@ -283,7 +280,7 @@ abstract class AnalysisServer {
   /// for processing.
   final MessageScheduler messageScheduler;
 
-  /// A [TimingByteStore] that records timings for reads from the byte store.
+  /// A [TimingByteStore] that records operations on the on-disk byte store.
   TimingByteStore? _timingByteStore;
 
   /// The file byte store created by [createByteStore], if any.
@@ -309,7 +306,6 @@ abstract class AnalysisServer {
     this.analyticsManager,
     this.crashReportingAttachmentsBuilder,
     ResourceProvider baseResourceProvider,
-    this.instrumentationService,
     this.sessionListener,
     http.Client? httpClient,
     ProcessRunner? processRunner,
@@ -332,7 +328,6 @@ abstract class AnalysisServer {
        ),
        pubPackageService = _createPubPackageService(
          baseResourceProvider: baseResourceProvider,
-         instrumentationService: instrumentationService,
          sessionListener: sessionListener,
          httpClient: httpClient,
          processRunner: processRunner,
@@ -351,7 +346,6 @@ abstract class AnalysisServer {
       resourceProvider.byteStorePath,
       sdkManager.defaultSdkDirectory,
       notificationManager,
-      instrumentationService,
       sessionListener,
       processRunner: processRunner ?? ProcessRunner(environment: environment),
     );
@@ -403,7 +397,6 @@ abstract class AnalysisServer {
       analysisPerformanceLogger,
       analysisDriverScheduler,
       analyticsManager,
-      instrumentationService,
       sessionListener,
       enableBlazeWatcher: enableBlazeWatcher,
       withFineDependencies: options.withFineDependencies,
@@ -413,11 +406,7 @@ abstract class AnalysisServer {
         dartFixPromptManager ??
         DartFixPromptManager(
           this,
-          UserPromptPreferences(
-            resourceProvider,
-            instrumentationService,
-            sessionListener,
-          ),
+          UserPromptPreferences(resourceProvider, sessionListener),
         );
   }
 
@@ -438,6 +427,8 @@ abstract class AnalysisServer {
     }
 
     var fileByteStore = _fileByteStore;
+    var singleFileByteStore = _singleFileByteStore;
+    var singleFileStatistics = singleFileByteStore?.statistics;
     return AnalysisServerByteStoreStats(
       cacheHitCount: memoryByteStore.cacheHitCount,
       cacheMissCount: memoryByteStore.cacheMissCount,
@@ -467,12 +458,28 @@ abstract class AnalysisServer {
       writeCount: fileByteStore?.writeCount,
       singleFileStorePath: _singleFileByteStore?.filePath,
       singleFilePendingEntryCount: _singleFileByteStore?.pendingEntryCount,
+      singleFileDataBytes: singleFileByteStore == null
+          ? null
+          : singleFileByteStore.dataPageCount * pageSize,
+      singleFileFreeDataBytes: singleFileByteStore == null
+          ? null
+          : singleFileByteStore.freeDataPageCount * pageSize,
+      singleFileBucketRebuildCount: singleFileStatistics?.bucketRebuildCount,
+      singleFileCapacityDiscardedBatchCount:
+          singleFileStatistics?.capacityDiscardedBatchCount,
+      singleFileCommitCount: singleFileStatistics?.commitCount,
+      singleFileCommittedEntryCount: singleFileStatistics?.committedEntryCount,
+      singleFileCommittedValueBytes: singleFileStatistics?.committedValueBytes,
+      singleFileEvictedForSpaceEntryCount:
+          singleFileStatistics?.evictedForSpaceEntryCount,
+      singleFileEvictedFromFullBucketEntryCount:
+          singleFileStatistics?.evictedFromFullBucketEntryCount,
+      singleFileOversizedValueBytes: singleFileStatistics?.oversizedValueBytes,
+      singleFileOversizedValueCount: singleFileStatistics?.oversizedValueCount,
+      singleFileResetCount: singleFileStatistics?.resetCount,
+      singleFileTableSlotCount: singleFileByteStore?.tableSlotCount,
     );
   }
-
-  /// A list of timings for the byte store, or `null` if timing is not being
-  /// tracked.
-  List<ByteStoreTimings>? get byteStoreTimings => _timingByteStore?.timings;
 
   /// The workspace folders to request resource-scoped configuration for, in
   /// addition to the global configuration.
@@ -595,6 +602,9 @@ abstract class AnalysisServer {
   @protected
   bool get supportsShowMessageRequest;
 
+  /// The timings of the on-disk byte store, or `null` if there is none.
+  TimingByteStore? get timingByteStore => _timingByteStore;
+
   /// Resource operations measured since this server was created.
   TimingResourceProvider get timingResourceProvider =>
       resourceProvider.baseProvider as TimingResourceProvider;
@@ -625,7 +635,7 @@ abstract class AnalysisServer {
       supportsShowMessageRequest ? showUserPrompt : null;
 
   void afterContextsCreated() {
-    _timingByteStore?.newTimings('after contexts created');
+    _timingByteStore?.startPeriod('contexts created', isMilestone: true);
     _isFirstAnalysisSinceContextsBuilt = true;
   }
 
@@ -774,6 +784,7 @@ abstract class AnalysisServer {
       }
       if (fileByteStore != null) {
         var timingByteStore = _timingByteStore = TimingByteStore(fileByteStore);
+        _singleFileByteStore?.onFlush = timingByteStore.recordFlush;
         return _memoryCachingByteStore = MemoryCachingByteStore(
           timingByteStore,
           memoryCacheSize,
@@ -793,7 +804,6 @@ abstract class AnalysisServer {
     //  without a flag and for both protocols.
     surveyManager = SurveyManager(
       this,
-      instrumentationService,
       sessionListener,
       analyticsManager.analytics,
     );
@@ -1001,7 +1011,6 @@ abstract class AnalysisServer {
     } on InconsistentAnalysisException {
       return null;
     } catch (exception, stackTrace) {
-      instrumentationService.logException(exception, stackTrace);
       sessionListener.logException(
         exception: exception,
         stackTrace: stackTrace,
@@ -1038,7 +1047,6 @@ abstract class AnalysisServer {
       );
       return value is ResolvedUnitResult ? value : null;
     } catch (exception, stackTrace) {
-      instrumentationService.logException(exception, stackTrace);
       sessionListener.logException(
         exception: exception,
         stackTrace: stackTrace,
@@ -1076,10 +1084,17 @@ abstract class AnalysisServer {
     if (!status.isWorking) {
       _singleFileByteStore?.flush();
     }
-    if (_isFirstAnalysisSinceContextsBuilt && !status.isWorking) {
-      _timingByteStore?.newTimings('initial analysis completed');
-      _isFirstAnalysisSinceContextsBuilt = false;
-      _dartFixPrompt.triggerCheck();
+    if (_isFirstAnalysisSinceContextsBuilt) {
+      if (!status.isWorking) {
+        _timingByteStore?.startPeriod(
+          'initial analysis completed',
+          isMilestone: true,
+        );
+        _isFirstAnalysisSinceContextsBuilt = false;
+        _dartFixPrompt.triggerCheck();
+      }
+    } else {
+      _timingByteStore?.startPeriod(status.isWorking ? 'analysis' : 'idle');
     }
     analyticsManager.analysisStatusChanged(
       isWorking: status.isWorking,
@@ -1132,11 +1147,6 @@ abstract class AnalysisServer {
     );
 
     // TODO(39284): should this exception be silent?
-    instrumentationService.logException(
-      SilentException.wrapInMessage(message, result.exception),
-      null,
-      attachments,
-    );
     sessionListener.logException(
       exception: SilentException.wrapInMessage(message, result.exception),
       attachments: attachments,
@@ -1329,7 +1339,6 @@ abstract class AnalysisServer {
         performance: performance,
       );
     } catch (exception, stackTrace) {
-      instrumentationService.logException(exception, stackTrace);
       sessionListener.logException(
         exception: exception,
         stackTrace: stackTrace,
@@ -1364,7 +1373,6 @@ abstract class AnalysisServer {
         performance: performance,
       );
     } catch (exception, stackTrace) {
-      instrumentationService.logException(exception, stackTrace);
       sessionListener.logException(
         exception: exception,
         stackTrace: stackTrace,
@@ -1444,6 +1452,13 @@ abstract class AnalysisServer {
     await sessionListener.shutdown();
   }
 
+  /// Returns the number of committed entries in each hash table bucket of the
+  /// single file byte store, or `null` if the server does not use it.
+  ///
+  /// Unlike [byteStoreStats], this reads the whole table from the disk.
+  Uint8List? singleFileTableBucketEntryCounts() =>
+      _singleFileByteStore?.tableBucketEntryCounts();
+
   ResolvedForCompletionResultImpl?
   _tryGetCachedResolvedUnitAsResolvedForCompletion(
     AnalysisDriver driver,
@@ -1467,7 +1482,6 @@ abstract class AnalysisServer {
         );
       }
     } catch (exception, stackTrace) {
-      instrumentationService.logException(exception, stackTrace);
       sessionListener.logException(
         exception: exception,
         stackTrace: stackTrace,
@@ -1478,14 +1492,12 @@ abstract class AnalysisServer {
 
   static PubPackageService _createPubPackageService({
     required ResourceProvider baseResourceProvider,
-    required InstrumentationService instrumentationService,
     required SessionListener sessionListener,
     required http.Client? httpClient,
     required ProcessRunner? processRunner,
     required Map<String, String>? environment,
   }) {
     var pubApi = PubApi(
-      instrumentationService,
       sessionListener,
       httpClient,
       platform.environment['PUB_HOSTED_URL'],
@@ -1501,7 +1513,6 @@ abstract class AnalysisServer {
         platform.environment[PubCommand.disablePubCommandEnvironmentKey];
     var pubCommand = processRunner != null && disablePubCommandVariable == null
         ? PubCommand(
-            instrumentationService,
             sessionListener,
             baseResourceProvider.pathContext,
             processRunner,
@@ -1509,7 +1520,6 @@ abstract class AnalysisServer {
         : null;
 
     return PubPackageService(
-      instrumentationService,
       sessionListener,
       baseResourceProvider,
       pubApi,
@@ -1546,8 +1556,21 @@ class AnalysisServerByteStoreStats {
   final int putCount;
   final int? readCount;
   final int? readMissCount;
+  final int? singleFileBucketRebuildCount;
+  final int? singleFileCapacityDiscardedBatchCount;
+  final int? singleFileCommitCount;
+  final int? singleFileCommittedEntryCount;
+  final int? singleFileCommittedValueBytes;
+  final int? singleFileDataBytes;
+  final int? singleFileEvictedForSpaceEntryCount;
+  final int? singleFileEvictedFromFullBucketEntryCount;
+  final int? singleFileFreeDataBytes;
+  final int? singleFileOversizedValueBytes;
+  final int? singleFileOversizedValueCount;
   final int? singleFilePendingEntryCount;
+  final int? singleFileResetCount;
   final String? singleFileStorePath;
+  final int? singleFileTableSlotCount;
   final int storeHitCount;
   final int storeMissCount;
   final int? writeBytes;
@@ -1578,8 +1601,21 @@ class AnalysisServerByteStoreStats {
     this.pendingWriteCount,
     this.readCount,
     this.readMissCount,
+    this.singleFileBucketRebuildCount,
+    this.singleFileCapacityDiscardedBatchCount,
+    this.singleFileCommitCount,
+    this.singleFileCommittedEntryCount,
+    this.singleFileCommittedValueBytes,
+    this.singleFileDataBytes,
+    this.singleFileEvictedForSpaceEntryCount,
+    this.singleFileEvictedFromFullBucketEntryCount,
+    this.singleFileFreeDataBytes,
+    this.singleFileOversizedValueBytes,
+    this.singleFileOversizedValueCount,
     this.singleFilePendingEntryCount,
+    this.singleFileResetCount,
     this.singleFileStorePath,
+    this.singleFileTableSlotCount,
     this.writeBytes,
     this.writeCount,
   });

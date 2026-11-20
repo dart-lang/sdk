@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:cfg/ir/constant_value.dart';
+import 'package:cfg/ir/functions.dart' show ArgumentsShape;
 import 'package:cfg/utils/misc.dart';
 import 'package:kernel/ast.dart' as ast show Class;
 import 'package:native_compiler/back_end/arm64/assembler.dart';
@@ -68,15 +69,133 @@ abstract base class Arm64StubCodeGenerator implements StubCodeGenerator {
     }
   }
 
-  void createSafepointForRuntimeCall(int numSlots) {
-    assert((0 <= numSlots) && (numSlots <= _frameSizeInWords));
+  void createSafepoint(int numObjectSlots) {
+    assert((0 <= numObjectSlots) && (numObjectSlots <= _frameSizeInWords));
     final safepoint = _currentSafepoint = Safepoint();
 
     /// TODO: pass arguments on registers.
     safepoint.addLiveStackSlots(
-      _frameSizeInWords - numSlots,
-      numSlots,
+      _frameSizeInWords - numObjectSlots,
+      numObjectSlots,
       isObjectPointer: true,
+    );
+  }
+
+  /// Generate code for calling core library Dart function
+  /// cached in the ObjectStore.
+  void callDartCoreLibraryFunction(
+    int functionOffsetInObjectStore,
+    int numObjectSlots, {
+    bool usesArgsDesc = false,
+  }) {
+    _asm.loadIsolateGroup(tempReg);
+    _asm.ldr(
+      tempReg,
+      _asm.address(tempReg, vmOffsets.IsolateGroup_object_store_offset),
+    );
+    _asm.ldr(functionReg, _asm.address(tempReg, functionOffsetInObjectStore));
+    _asm.ldr(
+      codeReg,
+      _asm.fieldAddress(functionReg, vmOffsets.Function_code_offset),
+    );
+    if (!usesArgsDesc) {
+      // Load a GC-safe value for the arguments descriptor (unused but tagged).
+      _asm.loadImmediate(argumentsDescriptorReg, 0);
+    }
+    _asm.ldr(
+      LR,
+      _asm.fieldAddress(
+        functionReg,
+        vmOffsets.Function_entry_point_offset.first,
+      ),
+    );
+    createSafepoint(numObjectSlots);
+    _asm.blr(LR);
+    addCallSiteMetadata(.dartCall);
+    _currentSafepoint = null;
+  }
+
+  /// Helper to generate allocation of _SuspendState instance.
+  /// Initializes tags, frame_capacity and frame_size.
+  /// Other fields are not initialized.
+  ///
+  /// Input:
+  ///   [frameSizeReg]: size of the frame payload in bytes.
+  /// Output:
+  ///   [resultReg]: allocated instance.
+  /// Clobbers:
+  ///   [scratch1Reg], [scratch2Reg], [scratch3Reg], [tempReg], [temp2Reg].
+  void generateAllocateSuspendState(
+    Register resultReg,
+    Register frameSizeReg,
+    Register scratch1Reg,
+    Register scratch2Reg,
+    Register scratch3Reg,
+    Label slowPath,
+  ) {
+    final instanceSizeReg = scratch1Reg;
+    final tagsReg = scratch2Reg;
+
+    // Compute the rounded instance size.
+    final fixedSizePlusAlignmentPadding =
+        vmOffsets.SuspendState_HeaderSize + objectAlignment(wordSize) - 1;
+    _asm.addImmediate(
+      instanceSizeReg,
+      frameSizeReg,
+      fixedSizePlusAlignmentPadding,
+    );
+    _asm.andImmediate(
+      instanceSizeReg,
+      instanceSizeReg,
+      -objectAlignment(wordSize),
+    );
+
+    // Combine tags and size.
+    final log2alignment = log2objectAlignment(log2wordSize);
+    _asm.cmpImmediate(
+      instanceSizeReg,
+      (1 << (vmOffsets.UntaggedObject_kSizeTagSize + log2alignment)),
+    );
+    _asm.lsl(
+      tempReg,
+      instanceSizeReg,
+      vmOffsets.UntaggedObject_kSizeTagPos - log2alignment,
+    );
+    _asm.csel(tempReg, ZR, tempReg, .unsignedGreaterOrEqual);
+    final tags = vmOffsets.computeNewObjectTags(
+      ClassId.SuspendStateCid,
+      0,
+      log2wordSize,
+    );
+    _asm.orImmediate(tagsReg, tempReg, tags);
+
+    _asm.inlineArrayAllocation(
+      resultReg,
+      tagsReg,
+      instanceSizeReg,
+      scratch3Reg,
+      tempReg,
+      slowPath,
+      initializeFields: false,
+    );
+
+    // Use rounded object size to calculate and save frame capacity.
+    _asm.subImmediate(
+      tempReg,
+      instanceSizeReg,
+      vmOffsets.SuspendState_payload_offset,
+    );
+    _asm.str(
+      tempReg,
+      _asm.fieldAddress(
+        resultReg,
+        vmOffsets.SuspendState_frame_capacity_offset,
+      ),
+    );
+
+    _asm.str(
+      frameSizeReg,
+      _asm.fieldAddress(resultReg, vmOffsets.SuspendState_frame_size_offset),
     );
   }
 }
@@ -127,7 +246,7 @@ final class AllocationStub extends Arm64StubCodeGenerator {
     _asm.pushPair(typeArgumentsReg, scratch1Reg);
 
     _frameSizeInWords = 4;
-    createSafepointForRuntimeCall(3);
+    createSafepoint(3);
     _asm.callRuntime(RuntimeEntry.AllocateObject, 2);
     _currentSafepoint = null;
 
@@ -254,17 +373,21 @@ final class DynamicCallStub extends Arm64StubCodeGenerator {
     _asm.stp(
       inlineCacheDataReg,
       argumentsDescriptorReg,
-      _asm.address(stackPointerReg, 4 * wordSize),
+      _asm.pairAddress(stackPointerReg, 4 * wordSize),
     );
     _asm.stp(
       nullReg, // Placeholder for the result of the call.
       nullReg, // Space for result (target function).
-      _asm.address(stackPointerReg, 2 * wordSize),
+      _asm.pairAddress(stackPointerReg, 2 * wordSize),
     );
-    _asm.stp(inlineCacheDataReg, receiverReg, _asm.address(stackPointerReg, 0));
+    _asm.stp(
+      inlineCacheDataReg,
+      receiverReg,
+      _asm.pairAddress(stackPointerReg, 0),
+    );
 
     // Make sure all slots are recorded as pointers in the stackmap.
-    createSafepointForRuntimeCall(6);
+    createSafepoint(6);
     _asm.callRuntime(RuntimeEntry.InlineCacheMissHandlerModAOT, 3);
     _currentSafepoint = null;
 
@@ -272,10 +395,14 @@ final class DynamicCallStub extends Arm64StubCodeGenerator {
     _asm.ldp(
       inlineCacheDataReg,
       argumentsDescriptorReg,
-      _asm.address(stackPointerReg, 4 * wordSize),
+      _asm.pairAddress(stackPointerReg, 4 * wordSize),
     );
     // Load target function and the result of the call.
-    _asm.ldp(tempReg, functionReg, _asm.address(stackPointerReg, 2 * wordSize));
+    _asm.ldp(
+      tempReg,
+      functionReg,
+      _asm.pairAddress(stackPointerReg, 2 * wordSize),
+    );
 
     leaveStubFrame();
 
@@ -332,10 +459,10 @@ final class DynamicInvocationForwarderStub extends Arm64StubCodeGenerator {
     _asm.stp(
       argumentsDescriptorReg,
       functionReg,
-      _asm.address(stackPointerReg, 0),
+      _asm.pairAddress(stackPointerReg, 0),
     );
 
-    createSafepointForRuntimeCall(3);
+    createSafepoint(3);
     _asm.callRuntime(RuntimeEntry.DynamicInvocationForwarderModAOT, 2);
     _currentSafepoint = null;
 
@@ -1231,17 +1358,670 @@ final class InstantiateTypeArgumentsStub {
   static const Register scratchReg = R8;
 }
 
-final class InitSuspendableFunctionStub {
+final class InitSuspendableFunctionStub extends Arm64StubCodeGenerator {
   static const Register typeArgsReg = R0;
+
+  final int initFunctionOffsetInObjectStore;
+
+  InitSuspendableFunctionStub(
+    super.vmOffsets,
+    super.objectLayout,
+    this.initFunctionOffsetInObjectStore,
+  );
+
+  @override
+  void _generate() {
+    enterStubFrame();
+    _asm.loadFromPool(
+      argumentsDescriptorReg,
+      const ArgumentsShape(1, 0, const []),
+    );
+    _frameSizeInWords = 2;
+    _asm.pushPair(typeArgsReg, ZR);
+    callDartCoreLibraryFunction(
+      initFunctionOffsetInObjectStore,
+      1,
+      usesArgsDesc: true,
+    );
+    leaveStubFrame();
+
+    // Set :suspend_state in the caller frame.
+    _asm.str(
+      returnReg,
+      _asm.address(FP, Arm64StackFrame.suspendStateOffsetFromFP),
+    );
+    _asm.ret();
+  }
 }
 
-final class SuspendStub {
+final class SuspendStub extends Arm64StubCodeGenerator {
   static const Register argumentReg = R0;
-  static const Register typeArgsReg = R1;
+  static const Register typeArgsReg = R1; // Can be the same as scratch1Reg
+  static const Register scratch1Reg = R1;
+  static const Register frameSizeReg = R2;
+  static const Register suspendStateReg = R3;
+  static const Register functionDataReg = R4;
+  static const Register srcFrameReg = R5;
+  static const Register dstFrameReg = R6;
+  static const Register scratch2Reg = R7;
+  static const Register scratch3Reg = R8;
+
+  static const bool generateVerificationCode = true; // TODO: turn to a flag.
+
+  final bool callSuspendFunction;
+  final bool passTypeArguments;
+  final int? suspendFunctionOffsetInObjectStore;
+
+  SuspendStub(
+    super.vmOffsets,
+    super.objectLayout, {
+    required this.callSuspendFunction,
+    required this.passTypeArguments,
+    this.suspendFunctionOffsetInObjectStore,
+  }) : assert(
+         !callSuspendFunction || suspendFunctionOffsetInObjectStore != null,
+       );
+
+  @override
+  void _generate() {
+    final allocSlowPath = Label();
+    final allocDone = Label();
+    final initDone = Label();
+    final rememberObject = Label();
+    final callDart = Label();
+
+    _asm.ldr(
+      suspendStateReg,
+      _asm.address(FP, Arm64StackFrame.suspendStateOffsetFromFP),
+    );
+
+    _asm.sub(frameSizeReg, FP, stackPointerReg);
+
+    enterStubFrame();
+
+    if (passTypeArguments) {
+      _frameSizeInWords += 2;
+      _asm.pushPair(typeArgsReg, ZR);
+    }
+
+    _asm.loadClassId(tempReg, suspendStateReg, canBeSmi: false);
+    _asm.cmpImmediate(tempReg, ClassId.SuspendStateCid.index);
+
+    if (generateVerificationCode) {
+      final allocSuspendState = Label();
+      _asm.b(allocSuspendState, .notEqual);
+
+      _asm.ldr(
+        tempReg,
+        _asm.fieldAddress(
+          suspendStateReg,
+          vmOffsets.SuspendState_frame_size_offset,
+        ),
+      );
+      _asm.cmp(frameSizeReg, tempReg);
+      _asm.b(initDone, .equal);
+
+      _asm.unimplemented('SuspendState frame size mismatch');
+
+      _asm.bind(allocSuspendState);
+    } else {
+      _asm.b(initDone, .equal);
+    }
+
+    // Allocate SuspendState.
+    _asm.mov(functionDataReg, suspendStateReg);
+
+    generateAllocateSuspendState(
+      suspendStateReg,
+      frameSizeReg,
+      scratch1Reg,
+      scratch2Reg,
+      scratch3Reg,
+      allocSlowPath,
+    );
+
+    // TODO: compressed pointers
+    _asm.str(
+      functionDataReg,
+      _asm.fieldAddress(
+        suspendStateReg,
+        vmOffsets.SuspendState_function_data_offset,
+      ),
+    );
+    _asm.str(
+      nullReg,
+      _asm.fieldAddress(
+        suspendStateReg,
+        vmOffsets.SuspendState_then_callback_offset,
+      ),
+    );
+    _asm.str(
+      nullReg,
+      _asm.fieldAddress(
+        suspendStateReg,
+        vmOffsets.SuspendState_error_callback_offset,
+      ),
+    );
+
+    _asm.bind(allocDone);
+
+    // Save SuspendState to frame.
+    _asm.ldr(
+      tempReg,
+      _asm.address(FP, Arm64StackFrame.savedCallerFpOffsetFromFP),
+    );
+    _asm.str(
+      suspendStateReg,
+      _asm.address(tempReg, Arm64StackFrame.suspendStateOffsetFromFP),
+    );
+
+    _asm.bind(initDone);
+    // Copy frame to SuspendState.
+    const callerSpOffsetFromFp = Arm64StackFrame.lastParameterOffsetFromFP;
+    _asm.addImmediate(srcFrameReg, FP, callerSpOffsetFromFp);
+    _asm.addImmediate(
+      dstFrameReg,
+      suspendStateReg,
+      vmOffsets.SuspendState_payload_offset - heapObjectTag,
+    );
+    _asm.copyMemoryWords(srcFrameReg, dstFrameReg, frameSizeReg, tempReg);
+
+    _asm.ldr(
+      tempReg,
+      _asm.address(FP, Arm64StackFrame.savedCallerPcOffsetFromFP),
+    );
+    _asm.str(
+      tempReg,
+      _asm.fieldAddress(suspendStateReg, vmOffsets.SuspendState_pc_offset),
+    );
+
+    if (callSuspendFunction) {
+      // Push arguments for suspend Dart function early to preserve them
+      // across write barrier.
+      _frameSizeInWords += 2;
+      _asm.pushPair(argumentReg, suspendStateReg);
+    }
+
+    // Write barrier.
+    _asm.branchIfRemembered(suspendStateReg, rememberObject, tempReg);
+
+    _asm.bind(callDart);
+    if (callSuspendFunction) {
+      // Call suspend Dart function.
+      if (passTypeArguments) {
+        _asm.loadFromPool(
+          argumentsDescriptorReg,
+          const ArgumentsShape(1, 2, const []),
+        );
+      }
+      callDartCoreLibraryFunction(
+        suspendFunctionOffsetInObjectStore!,
+        2 + (passTypeArguments ? 1 : 0),
+        usesArgsDesc: passTypeArguments,
+      );
+    } else {
+      // SuspendStub returns either the result of Dart callback,
+      // or SuspendStub argument (if Dart callback is not used).
+      // The latter is used by yield/yield* in sync* functions
+      // to indicate that iteration should be continued.
+      if (returnReg != argumentReg) {
+        _asm.mov(returnReg, argumentReg);
+      }
+    }
+
+    leaveStubFrame();
+    _asm.leaveDartFrame();
+    _asm.ret();
+
+    // SuspendState Allocation slow case.
+    _asm.bind(allocSlowPath);
+
+    _frameSizeInWords = 6 + (passTypeArguments ? 2 : 0);
+    _asm.subImmediate(stackPointerReg, stackPointerReg, 6 * wordSize);
+    // Save argument and frame size.
+    _asm.stp(
+      frameSizeReg, // Untagged but aligned, so GC would treat it as a Smi.
+      argumentReg,
+      _asm.pairAddress(stackPointerReg, 4 * wordSize),
+    );
+    _asm.stp(
+      nullReg, // Space for return value.
+      nullReg, // Padding.
+      _asm.pairAddress(stackPointerReg, 2 * wordSize),
+    );
+    _asm.smiTag(frameSizeReg);
+    _asm.stp(
+      functionDataReg,
+      frameSizeReg,
+      _asm.pairAddress(stackPointerReg, 0),
+    );
+    createSafepoint(6 + (passTypeArguments ? 1 : 0));
+    _asm.callRuntime(RuntimeEntry.AllocateSuspendState, 2);
+    _currentSafepoint = null;
+    _asm.ldr(suspendStateReg, _asm.address(stackPointerReg, 2 * wordSize));
+    _asm.ldp(
+      frameSizeReg,
+      argumentReg,
+      _asm.pairAddress(stackPointerReg, 4 * wordSize),
+    );
+    _asm.addImmediate(
+      stackPointerReg,
+      stackPointerReg,
+      6 * wordSize,
+    ); // Drop arguments.
+    _asm.b(allocDone);
+
+    // Old gen SuspendState slow case.
+    _asm.bind(rememberObject);
+    if (!callSuspendFunction) {
+      // Save argumentReg which contains the return value
+      // if suspend function is not called.
+      _asm.pushPair(argumentReg, ZR);
+    }
+    _asm.mov(R0, suspendStateReg);
+    _asm.mov(R1, threadReg);
+    _asm.callLeafRuntime(LeafRuntimeEntry.EnsureRememberedAndMarkingDeferred);
+    if (!callSuspendFunction) {
+      _asm.popPair(argumentReg, ZR);
+    }
+    _asm.b(callDart);
+  }
 }
 
-final class CloneSuspendStateStub {
+final class ResumeStub extends Arm64StubCodeGenerator {
+  static const Register suspendStateReg = R2;
+  static const Register scratchReg = R0;
+  // Registers for the frame copying (the 1st part).
+  static const Register frameSizeReg = R1;
+  static const Register srcFrameReg = R3;
+  static const Register dstFrameReg = R4;
+  // Registers for control transfer
+  // (the 2nd part, can reuse registers from the 1st part).
+  static const Register resumePcReg = R1;
+  static const Register exceptionReg = R3;
+  static const Register stackTraceReg = R4;
+
+  ResumeStub(super.vmOffsets, super.objectLayout);
+
+  @override
+  void _generate() {
+    final callRuntime = Label();
+
+    // Top of the stack on entry:
+    // ... [SuspendState] [value] [exception] [stackTrace]
+
+    _asm.enterDartFrame();
+
+    const int paramOffset = Arm64StackFrame.lastParameterOffsetFromFP;
+    _asm.ldr(suspendStateReg, _asm.address(FP, paramOffset + 3 * wordSize));
+
+    _asm.ldr(
+      frameSizeReg,
+      _asm.fieldAddress(
+        suspendStateReg,
+        vmOffsets.SuspendState_frame_size_offset,
+      ),
+    );
+
+    // Copy Code object (part of the fixed frame which is not copied below)
+    // and restore pool pointer.
+    _asm.add(tempReg, suspendStateReg, frameSizeReg);
+    _asm.ldr(
+      codeReg,
+      _asm.address(
+        tempReg,
+        vmOffsets.SuspendState_payload_offset -
+            heapObjectTag +
+            Arm64StackFrame.codeOffsetFromFP,
+      ),
+    );
+    _asm.str(codeReg, _asm.address(FP, Arm64StackFrame.codeOffsetFromFP));
+    _asm.loadPoolPointer();
+
+    // Do not copy fixed frame between the first local and FP.
+    _asm.addImmediate(
+      frameSizeReg,
+      frameSizeReg,
+      Arm64StackFrame.firstSlotOffsetFromFP + wordSize,
+    );
+    _asm.sub(stackPointerReg, stackPointerReg, frameSizeReg);
+
+    // Copy frame from SuspendState.
+    _asm.addImmediate(
+      srcFrameReg,
+      suspendStateReg,
+      vmOffsets.SuspendState_payload_offset - heapObjectTag,
+    );
+    _asm.mov(dstFrameReg, stackPointerReg);
+    _asm.copyMemoryWords(srcFrameReg, dstFrameReg, frameSizeReg, tempReg);
+
+    // Transfer control.
+    _asm.ldr(
+      resumePcReg,
+      _asm.fieldAddress(suspendStateReg, vmOffsets.SuspendState_pc_offset),
+    );
+    _asm.str(
+      ZR,
+      _asm.fieldAddress(suspendStateReg, vmOffsets.SuspendState_pc_offset),
+    );
+
+    assert((exceptionReg != codeReg) && (exceptionReg != poolPointerReg));
+    _asm.ldr(exceptionReg, _asm.address(FP, paramOffset + 1 * wordSize));
+    _asm.cmp(exceptionReg, nullReg);
+    _asm.b(callRuntime, .notEqual);
+
+    // Check if Code is disabled.
+    _asm.ldr(
+      scratchReg,
+      _asm.fieldAddress(codeReg, vmOffsets.Code_instructions_offset),
+    );
+    _asm.ldr(
+      tempReg,
+      _asm.fieldAddress(codeReg, vmOffsets.Code_active_instructions_offset),
+    );
+    _asm.cmp(scratchReg, tempReg);
+    _asm.b(callRuntime, .notEqual);
+
+    // TODO: check if there is a breakpoint at resumption.
+
+    _asm.ldr(returnReg, _asm.address(FP, paramOffset + 2 * wordSize));
+    _asm.br(resumePcReg);
+
+    // Call runtime to throw exception or deopt.
+    _asm.bind(callRuntime);
+
+    _asm.ldr(stackTraceReg, _asm.address(FP, paramOffset + 0 * wordSize));
+    assert((stackTraceReg != codeReg) && (stackTraceReg != poolPointerReg));
+
+    final resumeInterpreter = Label();
+    _asm.ldr(
+      tempReg,
+      _asm.address(
+        threadReg,
+        vmOffsets.Thread_resume_interpreter_adjusted_entry_point_offset,
+      ),
+    );
+    _asm.cmp(resumePcReg, tempReg);
+    _asm.b(resumeInterpreter, .equal);
+
+    // Set return address as if suspended Dart function called
+    // stub with resumePcReg as a return address.
+    _asm.mov(LR, resumePcReg);
+
+    _asm.ldr(
+      codeReg,
+      _asm.address(threadReg, vmOffsets.Thread_resume_stub_offset),
+    );
+    enterStubFrame();
+    _frameSizeInWords = 4;
+    _asm.subImmediate(stackPointerReg, stackPointerReg, 4 * wordSize);
+    _asm.stp(
+      nullReg,
+      ZR,
+      _asm.pairAddress(stackPointerReg, 2 * wordSize),
+    ); // Space for result.
+    _asm.stp(stackTraceReg, exceptionReg, _asm.pairAddress(stackPointerReg, 0));
+    createSafepoint(3);
+    _asm.callRuntime(RuntimeEntry.ResumeFrame, 2);
+    _currentSafepoint = null;
+    leaveStubFrame();
+    _asm.ldr(returnReg, _asm.address(FP, paramOffset + 2 * wordSize));
+    // Lazy deoptimize.
+    _asm.ret();
+
+    // Resume interpreter.
+    _asm.bind(resumeInterpreter);
+    _frameSizeInWords = 4;
+    _asm.subImmediate(stackPointerReg, stackPointerReg, 4 * wordSize);
+    // Load the value to pass to the resumed bytecode.
+    _asm.ldr(tempReg, _asm.address(FP, paramOffset + 2 * wordSize));
+    // Value, space for result.
+    _asm.stp(tempReg, nullReg, _asm.pairAddress(stackPointerReg, 2 * wordSize));
+    _asm.stp(stackTraceReg, exceptionReg, _asm.pairAddress(stackPointerReg, 0));
+    // This safepoint is unused as frame has a different Code object.
+    // TODO: figure out how to align this with ResumeInterpreter stub.
+    createSafepoint(4);
+    _asm.callRuntime(RuntimeEntry.ResumeInterpreter, 3);
+    _currentSafepoint = null;
+    _asm.ldr(returnReg, _asm.address(stackPointerReg, 3 * wordSize));
+    _asm.leaveDartFrame();
+    _asm.ret();
+  }
+}
+
+final class ReturnStub extends Arm64StubCodeGenerator {
+  static const Register suspendStateReg = R2;
+
+  final int returnFunctionOffsetInObjectStore;
+
+  ReturnStub(
+    super.vmOffsets,
+    super.objectLayout,
+    this.returnFunctionOffsetInObjectStore,
+  );
+
+  @override
+  void _generate() {
+    _asm.ldr(
+      suspendStateReg,
+      _asm.address(FP, Arm64StackFrame.suspendStateOffsetFromFP),
+    );
+    _asm.leaveDartFrame();
+    // Code object of the stub is already loaded to codeReg in jumpStub.
+    enterStubFrame();
+    _frameSizeInWords = 2;
+    _asm.pushPair(returnReg, suspendStateReg);
+    callDartCoreLibraryFunction(returnFunctionOffsetInObjectStore, 2);
+    leaveStubFrame();
+    _asm.ret();
+  }
+}
+
+final class AsyncExceptionHandlerStub extends Arm64StubCodeGenerator {
+  static const Register suspendStateReg = R2;
+
+  AsyncExceptionHandlerStub(super.vmOffsets, super.objectLayout);
+
+  @override
+  void _generate() {
+    assert(suspendStateReg != exceptionObjectReg);
+    assert(suspendStateReg != stackTraceObjectReg);
+    final rethrowException = Label();
+
+    _asm.ldr(
+      suspendStateReg,
+      _asm.address(FP, Arm64StackFrame.suspendStateOffsetFromFP),
+    );
+
+    // Check if suspend_state is initialized. Otherwise
+    // exception was thrown from the prologue code and
+    // should be synchronously propagated.
+    _asm.cmp(suspendStateReg, nullReg);
+    _asm.b(rethrowException, .equal);
+
+    _asm.leaveDartFrame();
+    _asm.ldr(
+      codeReg,
+      _asm.address(
+        threadReg,
+        vmOffsets.Thread_async_exception_handler_stub_offset,
+      ),
+    );
+    enterStubFrame();
+    _frameSizeInWords = 4;
+    _asm.subImmediate(stackPointerReg, stackPointerReg, 4 * wordSize);
+    _asm.stp(
+      suspendStateReg,
+      ZR,
+      _asm.pairAddress(stackPointerReg, 2 * wordSize),
+    );
+    _asm.stp(
+      stackTraceObjectReg,
+      exceptionObjectReg,
+      _asm.pairAddress(stackPointerReg, 0),
+    );
+    callDartCoreLibraryFunction(
+      vmOffsets.ObjectStore_suspend_state_handle_exception_offset,
+      3,
+    );
+    leaveStubFrame();
+    _asm.ret();
+
+    // Rethrow exception.
+    _asm.bind(rethrowException);
+    _asm.leaveDartFrame();
+    _asm.ldr(
+      codeReg,
+      _asm.address(
+        threadReg,
+        vmOffsets.Thread_async_exception_handler_stub_offset,
+      ),
+    );
+    enterStubFrame();
+    _frameSizeInWords = 4;
+    _asm.subImmediate(stackPointerReg, stackPointerReg, 4 * wordSize);
+    // Exception object, space for result.
+    _asm.stp(
+      exceptionObjectReg,
+      nullReg,
+      _asm.pairAddress(stackPointerReg, 2 * wordSize),
+    );
+    // Do not bypass debugger (Smi 0), stack trace object.
+    _asm.stp(ZR, stackTraceObjectReg, _asm.pairAddress(stackPointerReg, 0));
+    createSafepoint(4);
+    _asm.callRuntime(RuntimeEntry.ReThrow, 3);
+    _currentSafepoint = null;
+    _asm.breakpoint();
+  }
+}
+
+final class CloneSuspendStateStub extends Arm64StubCodeGenerator {
   static const Register sourceReg = R0;
+  static const Register destinationReg = R1;
+  static const Register scratch1Reg = R2;
+  static const Register frameSizeReg = R3;
+  static const Register srcFrameReg = R4;
+  static const Register dstFrameReg = R5;
+  static const Register scratch2Reg = R6;
+  static const Register scratch3Reg = R7;
+
+  CloneSuspendStateStub(super.vmOffsets, super.objectLayout);
+
+  @override
+  void _generate() {
+    final allocSlowPath = Label();
+
+    _asm.ldr(
+      frameSizeReg,
+      _asm.fieldAddress(sourceReg, vmOffsets.SuspendState_frame_size_offset),
+    );
+
+    generateAllocateSuspendState(
+      destinationReg,
+      frameSizeReg,
+      scratch1Reg,
+      scratch2Reg,
+      scratch3Reg,
+      allocSlowPath,
+    );
+
+    // Copy pc.
+    _asm.ldr(
+      tempReg,
+      _asm.fieldAddress(sourceReg, vmOffsets.SuspendState_pc_offset),
+    );
+    _asm.str(
+      tempReg,
+      _asm.fieldAddress(destinationReg, vmOffsets.SuspendState_pc_offset),
+    );
+
+    // TODO: compressed pointers
+
+    // Copy function_data.
+    _asm.ldr(
+      tempReg,
+      _asm.fieldAddress(sourceReg, vmOffsets.SuspendState_function_data_offset),
+    );
+    _asm.str(
+      tempReg,
+      _asm.fieldAddress(
+        destinationReg,
+        vmOffsets.SuspendState_function_data_offset,
+      ),
+    );
+
+    // Copy then_callback.
+    _asm.ldr(
+      tempReg,
+      _asm.fieldAddress(sourceReg, vmOffsets.SuspendState_then_callback_offset),
+    );
+    _asm.str(
+      tempReg,
+      _asm.fieldAddress(
+        destinationReg,
+        vmOffsets.SuspendState_then_callback_offset,
+      ),
+    );
+
+    // Copy error_callback.
+    _asm.ldr(
+      tempReg,
+      _asm.fieldAddress(
+        sourceReg,
+        vmOffsets.SuspendState_error_callback_offset,
+      ),
+    );
+    _asm.str(
+      tempReg,
+      _asm.fieldAddress(
+        destinationReg,
+        vmOffsets.SuspendState_error_callback_offset,
+      ),
+    );
+
+    // Copy payload frame.
+    final offset = vmOffsets.SuspendState_payload_offset - heapObjectTag;
+    _asm.addImmediate(srcFrameReg, sourceReg, offset);
+    _asm.addImmediate(dstFrameReg, destinationReg, offset);
+    _asm.copyMemoryWords(srcFrameReg, dstFrameReg, frameSizeReg, tempReg);
+
+    // Update value of :suspend_state variable in the copied frame
+    // for the new SuspendState.
+    _asm.ldr(
+      tempReg,
+      _asm.fieldAddress(
+        destinationReg,
+        vmOffsets.SuspendState_frame_size_offset,
+      ),
+    );
+    _asm.add(tempReg, tempReg, destinationReg);
+    _asm.str(
+      destinationReg,
+      _asm.fieldAddress(
+        tempReg,
+        vmOffsets.SuspendState_payload_offset +
+            Arm64StackFrame.suspendStateOffsetFromFP,
+      ),
+    );
+
+    _asm.mov(returnReg, destinationReg);
+    _asm.ret();
+
+    // CloneSuspendState slow case.
+    _asm.bind(allocSlowPath);
+    enterStubFrame();
+    _frameSizeInWords = 2;
+    _asm.pushPair(
+      sourceReg,
+      nullReg, // Space for result.
+    );
+    createSafepoint(2);
+    _asm.callRuntime(RuntimeEntry.CloneSuspendState, 1);
+    _currentSafepoint = null;
+    _asm.ldr(returnReg, _asm.address(stackPointerReg, 1 * wordSize));
+    leaveStubFrame();
+    _asm.ret();
+  }
 }
 
 final class CallBootstrapNativeStub {
@@ -1289,4 +2069,106 @@ final class Arm64StubFactory extends StubFactory {
   @override
   StubCodeGenerator subtypeTestCacheStubGenerator(int n) =>
       SubtypeTestCacheStub(vmOffsets, objectLayout, n);
+
+  @override
+  StubCodeGenerator awaitStubGenerator() => SuspendStub(
+    vmOffsets,
+    objectLayout,
+    callSuspendFunction: true,
+    passTypeArguments: false,
+    suspendFunctionOffsetInObjectStore:
+        vmOffsets.ObjectStore_suspend_state_await_offset,
+  );
+
+  @override
+  StubCodeGenerator awaitWithTypeCheckStubGenerator() => SuspendStub(
+    vmOffsets,
+    objectLayout,
+    callSuspendFunction: true,
+    passTypeArguments: true,
+    suspendFunctionOffsetInObjectStore:
+        vmOffsets.ObjectStore_suspend_state_await_with_type_check_offset,
+  );
+
+  @override
+  StubCodeGenerator yieldAsyncStarStubGenerator() => SuspendStub(
+    vmOffsets,
+    objectLayout,
+    callSuspendFunction: true,
+    passTypeArguments: false,
+    suspendFunctionOffsetInObjectStore:
+        vmOffsets.ObjectStore_suspend_state_yield_async_star_offset,
+  );
+
+  @override
+  StubCodeGenerator suspendSyncStarAtStartStubGenerator() => SuspendStub(
+    vmOffsets,
+    objectLayout,
+    callSuspendFunction: true,
+    passTypeArguments: false,
+    suspendFunctionOffsetInObjectStore:
+        vmOffsets.ObjectStore_suspend_state_suspend_sync_star_at_start_offset,
+  );
+
+  @override
+  StubCodeGenerator suspendSyncStarAtYieldStubGenerator() => SuspendStub(
+    vmOffsets,
+    objectLayout,
+    callSuspendFunction: false,
+    passTypeArguments: false,
+  );
+
+  @override
+  StubCodeGenerator initAsyncStubGenerator() => InitSuspendableFunctionStub(
+    vmOffsets,
+    objectLayout,
+    vmOffsets.ObjectStore_suspend_state_init_async_offset,
+  );
+
+  @override
+  StubCodeGenerator initAsyncStarStubGenerator() => InitSuspendableFunctionStub(
+    vmOffsets,
+    objectLayout,
+    vmOffsets.ObjectStore_suspend_state_init_async_star_offset,
+  );
+
+  @override
+  StubCodeGenerator initSyncStarStubGenerator() => InitSuspendableFunctionStub(
+    vmOffsets,
+    objectLayout,
+    vmOffsets.ObjectStore_suspend_state_init_sync_star_offset,
+  );
+
+  @override
+  StubCodeGenerator resumeStubGenerator() =>
+      ResumeStub(vmOffsets, objectLayout);
+
+  @override
+  StubCodeGenerator returnAsyncStubGenerator() => ReturnStub(
+    vmOffsets,
+    objectLayout,
+    vmOffsets.ObjectStore_suspend_state_return_async_offset,
+  );
+
+  @override
+  StubCodeGenerator returnAsyncNotFutureStubGenerator() => ReturnStub(
+    vmOffsets,
+    objectLayout,
+    vmOffsets.ObjectStore_suspend_state_return_async_not_future_offset,
+  );
+
+  @override
+  StubCodeGenerator returnAsyncStarStubGenerator() => ReturnStub(
+    vmOffsets,
+    objectLayout,
+    vmOffsets.ObjectStore_suspend_state_return_async_star_offset,
+  );
+
+  @override
+  StubCodeGenerator asyncExceptionHandlerStubGenerator() =>
+      AsyncExceptionHandlerStub(vmOffsets, objectLayout);
+
+  @override
+  StubCodeGenerator cloneSuspendStateStubGenerator() =>
+      CloneSuspendStateStub(vmOffsets, objectLayout);
 }

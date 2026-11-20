@@ -14,7 +14,6 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
-import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options.dart';
@@ -28,6 +27,7 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/manifest/manifest_validator.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
@@ -222,9 +222,6 @@ class ContextManagerImpl implements ContextManager {
   @override
   List<String> includedPaths = <String>[];
 
-  /// The instrumentation service used to report instrumentation data.
-  final InstrumentationService _instrumentationService;
-
   /// The session listener.
   final SessionListener _sessionListener;
 
@@ -290,14 +287,15 @@ class ContextManagerImpl implements ContextManager {
     this._performanceLog,
     this._scheduler,
     this._analyticsManager,
-    this._instrumentationService,
     this._sessionListener, {
     this.callbacks = const NoopContextManagerCallbacks(),
     required bool enableBlazeWatcher,
     this.withFineDependencies = false,
   }) : pathContext = resourceProvider.pathContext {
     if (enableBlazeWatcher) {
-      blazeWatcherService = BlazeFileWatcherService(_instrumentationService);
+      blazeWatcherService = BlazeFileWatcherService(
+        AnalysisEngine.instance.instrumentationService,
+      );
       blazeWatcherSubscription = blazeWatcherService!.events.listen(
         (events) => _handleBlazeWatchEvents(events),
       );
@@ -847,10 +845,6 @@ class ContextManagerImpl implements ContextManager {
                 // unexpectedly" on Windows when the buffer overflows also
                 // require that we restarted to be consistent.
                 needsBuild = true;
-                _instrumentationService.logError(
-                  'Temporary watcher error; restarting context build.\n'
-                  '$error\n$stackTrace',
-                );
                 if (error is Object) {
                   _sessionListener.logException(
                     exception:
@@ -982,7 +976,6 @@ class ContextManagerImpl implements ContextManager {
     var path = event.path;
     var type = event.type;
 
-    _instrumentationService.logWatchEvent('<unknown>', path, type.toString());
     _sessionListener.logMessage(
       from: ProcessId.watcher,
       to: ProcessId.server,
@@ -1054,10 +1047,6 @@ class ContextManagerImpl implements ContextManager {
     // re-occur.
     // https://github.com/Dart-Code/Dart-Code/issues/4280
     if (error is PathNotFoundException) {
-      _instrumentationService.logError(
-        'Watcher error; not refreshing contexts '
-        'because PathNotFound.\n$error\n$stackTrace',
-      );
       _sessionListener.logException(
         exception:
             'Watcher error; not refreshing contexts '
@@ -1068,9 +1057,6 @@ class ContextManagerImpl implements ContextManager {
     }
 
     // We've handled the error, so we only have to log it.
-    _instrumentationService.logError(
-      'Watcher error; refreshing contexts.\n$error\n$stackTrace',
-    );
     if (error != null) {
       _sessionListener.logException(
         exception: 'Watcher error; refreshing contexts.\n$error',

@@ -2228,7 +2228,7 @@ char* Deserializer::VerifyVersionAndFeatures() {
   }
   stream_.Advance(features_length + 1);
 
-  const char* expected_features = kHostArchitectureName;
+  const char* expected_features = kTargetArchitectureName;
   if (strcmp(expected_features, features) != 0) {
     return OS::SCreate(
         nullptr, "Invalid module snapshot configuration '%s' (expected '%s')",
@@ -2405,18 +2405,6 @@ void Deserializer::Deserialize() {
   AddBaseObject(Object::uninitialized_data());
   AddBaseObject(Object::mutable_empty_array());
   AddBaseObject(StubCode::InstantiateTypeArguments());
-  AddBaseObject(StubCode::InitAsync());
-  AddBaseObject(StubCode::InitAsyncStar());
-  AddBaseObject(StubCode::InitSyncStar());
-  AddBaseObject(StubCode::Await());
-  AddBaseObject(StubCode::AwaitWithTypeCheck());
-  AddBaseObject(StubCode::YieldAsyncStar());
-  AddBaseObject(StubCode::SuspendSyncStarAtStart());
-  AddBaseObject(StubCode::SuspendSyncStarAtYield());
-  AddBaseObject(StubCode::ReturnAsync());
-  AddBaseObject(StubCode::ReturnAsyncNotFuture());
-  AddBaseObject(StubCode::ReturnAsyncStar());
-  AddBaseObject(StubCode::CloneSuspendState());
   AddBaseObject(StubCode::CallBootstrapNative());
 
   if (num_base_objects_ != (next_ref_index_ - kFirstReference)) {

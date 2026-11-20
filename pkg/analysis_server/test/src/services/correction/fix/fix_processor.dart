@@ -65,11 +65,7 @@ abstract class BulkFixProcessorTest extends SingleUnitTest {
     File? file,
   }) async {
     var analysisContext = contextFor2(file ?? testFile);
-    var processor = BulkFixProcessor(
-      TestInstrumentationService(),
-      await workspace,
-      byteStore: _byteStore,
-    );
+    var processor = BulkFixProcessor(await workspace, byteStore: _byteStore);
     var fixes = (await processor.fixPubspec([analysisContext])).edits;
     var edits = [for (var fix in fixes) ...fix.edits];
     var result = SourceEdit.applySequence(normalizeSource(original), edits);
@@ -78,11 +74,7 @@ abstract class BulkFixProcessorTest extends SingleUnitTest {
 
   Future<void> assertFormat(String expectedCode) async {
     var analysisContext = contextFor2(testFile);
-    processor = BulkFixProcessor(
-      TestInstrumentationService(),
-      await workspace,
-      byteStore: _byteStore,
-    );
+    processor = BulkFixProcessor(await workspace, byteStore: _byteStore);
     await processor.formatCode([analysisContext]);
     var change = processor.builder.sourceChange;
     var fileEdits = change.edits;
@@ -115,11 +107,7 @@ abstract class BulkFixProcessorTest extends SingleUnitTest {
 
   Future<void> assertOrganize(String expectedCode) async {
     var analysisContext = contextFor2(testFile);
-    processor = BulkFixProcessor(
-      TestInstrumentationService(),
-      await workspace,
-      byteStore: _byteStore,
-    );
+    processor = BulkFixProcessor(await workspace, byteStore: _byteStore);
     await processor.organizeDirectives([analysisContext]);
     var change = processor.builder.sourceChange;
     var fileEdits = change.edits;
@@ -135,7 +123,6 @@ abstract class BulkFixProcessorTest extends SingleUnitTest {
   }) async {
     var analysisContext = contextFor2(testFile);
     var processor = BulkFixProcessor(
-      TestInstrumentationService(),
       await workspace,
       codes: codes,
       byteStore: _byteStore,
@@ -152,11 +139,7 @@ abstract class BulkFixProcessorTest extends SingleUnitTest {
   /// [testFile].
   Future<bool> computeHasFixes() async {
     var analysisContext = contextFor2(testFile);
-    processor = BulkFixProcessor(
-      TestInstrumentationService(),
-      await workspace,
-      byteStore: _byteStore,
-    );
+    processor = BulkFixProcessor(await workspace, byteStore: _byteStore);
     return processor.hasFixes([analysisContext]);
   }
 
@@ -305,9 +288,29 @@ abstract class FixPriorityTest extends FixProcessorForBuiltInDiagnosticTest {
     List<FixKind> fixKinds, {
     DiagnosticFilter? filter,
   }) async {
-    var diagnostic = await _findDiagnosticToFix(filter: filter);
-    var computedFixes = await _computeFixes(diagnostic);
-    var kinds = computedFixes.map((fix) => fix.kind).toList();
+    // Fails unless exactly one diagnostic passes the [filter].
+    await _findDiagnosticToFix(filter: filter);
+    await assertFixPriorityOrderForAllDiagnostics(fixKinds, filter: filter);
+  }
+
+  /// Asserts that the fixes for all of the diagnostics in the test file that
+  /// pass the [filter], combined and sorted by descending priority, contain the
+  /// [fixKinds] in order.
+  ///
+  /// This is useful when multiple diagnostics are reported at the same location
+  /// and their fixes are offered together.
+  Future<void> assertFixPriorityOrderForAllDiagnostics(
+    List<FixKind> fixKinds, {
+    DiagnosticFilter? filter,
+  }) async {
+    var diagnostics = testAnalysisResult.diagnostics;
+    if (filter != null) {
+      diagnostics = diagnostics.where(filter).toList();
+    }
+    var kinds = [
+      for (var diagnostic in diagnostics)
+        for (var fix in await _computeFixes(diagnostic)) fix.kind,
+    ];
     kinds.sort((a, b) => b.priority.compareTo(a.priority));
     expect(kinds, containsAllInOrder(fixKinds));
   }

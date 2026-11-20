@@ -12,7 +12,6 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/services/dart_tooling_daemon/dtd_services.dart';
 import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:test/test.dart';
@@ -121,10 +120,6 @@ class DtdServicesTest {
 
 class TestAnalysisServer implements AnalysisServer {
   Object? exceptionToThrow;
-
-  @override
-  final InstrumentationService instrumentationService =
-      NoopInstrumentationService();
 
   ErrorOr<Object?>? resultToReturn;
 

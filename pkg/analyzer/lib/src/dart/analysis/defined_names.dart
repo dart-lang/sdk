@@ -27,17 +27,10 @@ DefinedNames computeDefinedNames(CompilationUnitImpl unit) {
   }
 
   void appendDeclaringFormalParameterNames(
-    PrimaryConstructorDeclarationImpl constructor, {
-    bool isExtensionType = false,
-  }) {
-    var parameters = constructor.formalParameters.allFormalParameters;
-    for (var i = 0; i < parameters.length; i++) {
-      var parameter = parameters[i];
-      var isRepresentation =
-          isExtensionType && i == 0 && parameter is RegularFormalParameterImpl;
-      if (parameter.finalOrVarKeyword != null || isRepresentation) {
-        appendName(names.classMemberNames, parameter.name);
-      }
+    PrimaryConstructorDeclarationImpl constructor,
+  ) {
+    for (var parameter in constructor.declaringFormalParameters) {
+      appendName(names.classMemberNames, parameter.name);
     }
   }
 
@@ -67,10 +60,7 @@ DefinedNames computeDefinedNames(CompilationUnitImpl unit) {
         appendName(names.topLevelNames, member.namePart.typeName);
         if (member.namePart
             case PrimaryConstructorDeclarationImpl primaryConstructor) {
-          appendDeclaringFormalParameterNames(
-            primaryConstructor,
-            isExtensionType: true,
-          );
+          appendDeclaringFormalParameterNames(primaryConstructor);
         }
         member.body.members.forEach(appendClassMemberName);
       case MixinDeclaration2Impl():

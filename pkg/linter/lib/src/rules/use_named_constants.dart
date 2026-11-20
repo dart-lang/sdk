@@ -73,7 +73,10 @@ class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
     var library =
         (node.root as CompilationUnit).declaredFragment?.element.library;
     if (library == null) return;
-    var value = node.computeConstantValue()?.value;
+    // Keep this lazy so we only evaluate the expression if there is an
+    // accessible static constant to compare it with.
+    // https://github.com/dart-lang/sdk/issues/64970
+    late var value = node.computeConstantValue()?.value;
     for (var field in element.fields.where((e) => e.isStatic && e.isConst)) {
       if (field.isAccessibleIn(library) &&
           field.computeConstantValue() == value) {

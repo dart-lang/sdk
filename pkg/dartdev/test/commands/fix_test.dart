@@ -959,46 +959,6 @@ linter:
         );
       },
     );
-
-    group('AOT mode', () {
-      test('--use-aot-snapshot', () async {
-        p = project(
-          mainSrc: 'String a() => "";',
-          analysisOptions: '''
-linter:
-  rules:
-    - prefer_single_quotes
-''',
-        );
-        var result = await p!.runFix([
-          '--use-aot-snapshot',
-          '--dry-run',
-          '.',
-        ], workingDir: p!.dirPath);
-        expect(result.stderr, isEmpty);
-        expect(result.exitCode, 0);
-        expect(result.stdout, contains('1 proposed fix in 1 file.'));
-      });
-
-      test('--no-use-aot-snapshot', () async {
-        p = project(
-          mainSrc: 'String a() => "";',
-          analysisOptions: '''
-linter:
-  rules:
-    - prefer_single_quotes
-''',
-        );
-        var result = await p!.runFix([
-          '--no-use-aot-snapshot',
-          '--dry-run',
-          '.',
-        ], workingDir: p!.dirPath);
-        expect(result.stderr, isEmpty);
-        expect(result.exitCode, 0);
-        expect(result.stdout, contains('1 proposed fix in 1 file.'));
-      });
-    });
   });
 
   group('regression', () {

@@ -8,8 +8,10 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
-import 'package:analysis_server/src/server/error_notifier.dart';
+import 'package:analysis_server/src/session_logger/forwarding_session_listener.dart';
+import 'package:analysis_server/src/session_logger/session_listener.dart';
 import 'package:analysis_server/src/session_logger/session_logger.dart';
+import 'package:analysis_server/src/session_logger/user_notifying_session_listener.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -40,7 +42,7 @@ class AnalysisServerTest with ResourceProviderMixin {
   );
 
   late MockServerChannel channel;
-  late ErrorNotifier errorNotifier;
+  late SessionListener sessionListener;
   late LegacyAnalysisServer server;
 
   void setUp() {
@@ -50,7 +52,11 @@ class AnalysisServerTest with ResourceProviderMixin {
     var sdkRoot = newFolder('/sdk');
     createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 
-    errorNotifier = ErrorNotifier();
+    var userNotifyingSessionListener = UserNotifyingSessionListener();
+    sessionListener = ForwardingSessionListener([
+      SessionLogger(),
+      userNotifyingSessionListener,
+    ]);
     server = LegacyAnalysisServer(
       channel,
       resourceProvider,
@@ -58,10 +64,9 @@ class AnalysisServerTest with ResourceProviderMixin {
       DartSdkManager(sdkRoot.path),
       AnalyticsManager(NoOpAnalytics()),
       CrashReportingAttachmentsBuilder.empty,
-      errorNotifier,
-      SessionLogger(),
+      sessionListener,
     );
-    errorNotifier.server = server;
+    userNotifyingSessionListener.server = server;
   }
 
   /// See https://github.com/dart-lang/sdk/issues/50496
@@ -179,7 +184,7 @@ class X extends A with M {}
   }
 
   Future<void> test_errorNotification_errorNotifier() async {
-    errorNotifier.logException(Exception('dummy exception'));
+    sessionListener.logException(exception: Exception('dummy exception'));
 
     var errors = channel.notificationsReceived.where(
       (notification) => notification.event == serverNotificationError,

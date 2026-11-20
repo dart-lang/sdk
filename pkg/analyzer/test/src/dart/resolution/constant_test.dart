@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -191,6 +193,503 @@ class A<T, U> {
       result.findNode.listLiteral('const []'),
       'List<Never Function(Object?)>',
     );
+  }
+
+  test_formalParameter_defaultValue_detached_class_constructor() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const foo = 0;
+
+class A {
+  A([int a = foo]);
+}
+''');
+
+    var parameter = result.findElement.parameter('a');
+    nodeTextConfiguration.withCheckingTokenStream = false;
+    assertResolvedNodeText(parameter.constantInitializer2!, r'''
+UnqualifiedNameExpression
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::foo
+    type: int
+  staticType: int
+V1: SimpleIdentifier
+  token: foo
+  element: <testLibrary>::@getter::foo
+  staticType: int
+''');
+
+    _assertDefaultValueDetached(parameter);
+    assertDartObjectText(parameter.computeConstantValue(), r'''
+int 0
+  variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
+  test_formalParameter_defaultValue_detached_class_fieldFormalParameter() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const foo = 0;
+
+class A {
+  final int a;
+  A([this.a = foo]);
+}
+''');
+
+    var parameter = result.findElement.parameter('a');
+    nodeTextConfiguration.withCheckingTokenStream = false;
+    assertResolvedNodeText(parameter.constantInitializer2!, r'''
+UnqualifiedNameExpression
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::foo
+    type: int
+  staticType: int
+V1: SimpleIdentifier
+  token: foo
+  element: <testLibrary>::@getter::foo
+  staticType: int
+''');
+
+    _assertDefaultValueDetached(parameter);
+    assertDartObjectText(parameter.computeConstantValue(), r'''
+int 0
+  variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
+  test_formalParameter_defaultValue_detached_class_method() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const foo = 0;
+
+class A {
+  void bar([int a = foo]) {}
+}
+''');
+
+    var parameter = result.findElement.parameter('a');
+    nodeTextConfiguration.withCheckingTokenStream = false;
+    assertResolvedNodeText(parameter.constantInitializer2!, r'''
+UnqualifiedNameExpression
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::foo
+    type: int
+  staticType: int
+V1: SimpleIdentifier
+  token: foo
+  element: <testLibrary>::@getter::foo
+  staticType: int
+''');
+
+    _assertDefaultValueDetached(parameter);
+    assertDartObjectText(parameter.computeConstantValue(), r'''
+int 0
+  variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
+  test_formalParameter_defaultValue_detached_class_primaryConstructor() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const foo = 0;
+
+class A([int a = foo]);
+''');
+
+    var parameter = result.findElement.parameter('a');
+    nodeTextConfiguration.withCheckingTokenStream = false;
+    assertResolvedNodeText(parameter.constantInitializer2!, r'''
+UnqualifiedNameExpression
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::foo
+    type: int
+  staticType: int
+V1: SimpleIdentifier
+  token: foo
+  element: <testLibrary>::@getter::foo
+  staticType: int
+''');
+
+    _assertDefaultValueDetached(parameter);
+    assertDartObjectText(parameter.computeConstantValue(), r'''
+int 0
+  variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
+  test_formalParameter_defaultValue_detached_class_primaryConstructor_declaring() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const foo = 0;
+
+class A([final int a = foo]);
+''');
+
+    var parameter = result.findElement.parameter('a');
+    nodeTextConfiguration.withCheckingTokenStream = false;
+    assertResolvedNodeText(parameter.constantInitializer2!, r'''
+UnqualifiedNameExpression
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::foo
+    type: int
+  staticType: int
+V1: SimpleIdentifier
+  token: foo
+  element: <testLibrary>::@getter::foo
+  staticType: int
+''');
+
+    _assertDefaultValueDetached(parameter);
+    assertDartObjectText(parameter.computeConstantValue(), r'''
+int 0
+  variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
+  test_formalParameter_defaultValue_detached_class_staticMethod() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const foo = 0;
+
+class A {
+  static void bar([int a = foo]) {}
+}
+''');
+
+    var parameter = result.findElement.parameter('a');
+    nodeTextConfiguration.withCheckingTokenStream = false;
+    assertResolvedNodeText(parameter.constantInitializer2!, r'''
+UnqualifiedNameExpression
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::foo
+    type: int
+  staticType: int
+V1: SimpleIdentifier
+  token: foo
+  element: <testLibrary>::@getter::foo
+  staticType: int
+''');
+
+    _assertDefaultValueDetached(parameter);
+    assertDartObjectText(parameter.computeConstantValue(), r'''
+int 0
+  variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
+  test_formalParameter_defaultValue_detached_class_superFormalParameter() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const foo = 0;
+
+class A {
+  A([int x = 1]);
+}
+
+class B extends A {
+  B([super.a = foo]);
+}
+''');
+
+    var parameter = result.findElement.parameter('a');
+    nodeTextConfiguration.withCheckingTokenStream = false;
+    assertResolvedNodeText(parameter.constantInitializer2!, r'''
+UnqualifiedNameExpression
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::foo
+    type: int
+  staticType: int
+V1: SimpleIdentifier
+  token: foo
+  element: <testLibrary>::@getter::foo
+  staticType: int
+''');
+
+    _assertDefaultValueDetached(parameter);
+    assertDartObjectText(parameter.computeConstantValue(), r'''
+int 0
+  variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
+  test_formalParameter_defaultValue_detached_enum_constructor() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const foo = 0;
+
+enum E {
+  v;
+  const E([int a = foo]);
+//             ^
+// [diag.unusedElementParameter] A value for optional parameter 'a' isn't ever given.
+}
+''');
+
+    var parameter = result.findElement.parameter('a');
+    nodeTextConfiguration.withCheckingTokenStream = false;
+    assertResolvedNodeText(parameter.constantInitializer2!, r'''
+UnqualifiedNameExpression
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::foo
+    type: int
+  staticType: int
+V1: SimpleIdentifier
+  token: foo
+  element: <testLibrary>::@getter::foo
+  staticType: int
+''');
+
+    _assertDefaultValueDetached(parameter);
+    assertDartObjectText(parameter.computeConstantValue(), r'''
+int 0
+  variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
+  test_formalParameter_defaultValue_detached_enum_method() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const foo = 0;
+
+enum E {
+  v;
+  void bar([int a = foo]) {}
+}
+''');
+
+    var parameter = result.findElement.parameter('a');
+    nodeTextConfiguration.withCheckingTokenStream = false;
+    assertResolvedNodeText(parameter.constantInitializer2!, r'''
+UnqualifiedNameExpression
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::foo
+    type: int
+  staticType: int
+V1: SimpleIdentifier
+  token: foo
+  element: <testLibrary>::@getter::foo
+  staticType: int
+''');
+
+    _assertDefaultValueDetached(parameter);
+    assertDartObjectText(parameter.computeConstantValue(), r'''
+int 0
+  variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
+  test_formalParameter_defaultValue_detached_enum_primaryConstructor() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const foo = 0;
+
+enum E([final int a = foo]) { v }
+//                ^
+// [diag.unusedElementParameter] A value for optional parameter 'a' isn't ever given.
+''');
+
+    var parameter = result.findElement.parameter('a');
+    nodeTextConfiguration.withCheckingTokenStream = false;
+    assertResolvedNodeText(parameter.constantInitializer2!, r'''
+UnqualifiedNameExpression
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::foo
+    type: int
+  staticType: int
+V1: SimpleIdentifier
+  token: foo
+  element: <testLibrary>::@getter::foo
+  staticType: int
+''');
+
+    _assertDefaultValueDetached(parameter);
+    assertDartObjectText(parameter.computeConstantValue(), r'''
+int 0
+  variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
+  test_formalParameter_defaultValue_detached_extension_method() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const foo = 0;
+
+extension E on int {
+  void bar([int a = foo]) {}
+}
+''');
+
+    var parameter = result.findElement.parameter('a');
+    nodeTextConfiguration.withCheckingTokenStream = false;
+    assertResolvedNodeText(parameter.constantInitializer2!, r'''
+UnqualifiedNameExpression
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::foo
+    type: int
+  staticType: int
+V1: SimpleIdentifier
+  token: foo
+  element: <testLibrary>::@getter::foo
+  staticType: int
+''');
+
+    _assertDefaultValueDetached(parameter);
+    assertDartObjectText(parameter.computeConstantValue(), r'''
+int 0
+  variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
+  test_formalParameter_defaultValue_detached_extensionType_constructor() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const foo = 0;
+
+extension type E(int it) {
+  E.named([int a = foo]) : this(a);
+}
+''');
+
+    var parameter = result.findElement.parameter('a');
+    nodeTextConfiguration.withCheckingTokenStream = false;
+    assertResolvedNodeText(parameter.constantInitializer2!, r'''
+UnqualifiedNameExpression
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::foo
+    type: int
+  staticType: int
+V1: SimpleIdentifier
+  token: foo
+  element: <testLibrary>::@getter::foo
+  staticType: int
+''');
+
+    _assertDefaultValueDetached(parameter);
+    assertDartObjectText(parameter.computeConstantValue(), r'''
+int 0
+  variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
+  test_formalParameter_defaultValue_detached_extensionType_method() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const foo = 0;
+
+extension type E(int it) {
+  void bar([int a = foo]) {}
+}
+''');
+
+    var parameter = result.findElement.parameter('a');
+    nodeTextConfiguration.withCheckingTokenStream = false;
+    assertResolvedNodeText(parameter.constantInitializer2!, r'''
+UnqualifiedNameExpression
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::foo
+    type: int
+  staticType: int
+V1: SimpleIdentifier
+  token: foo
+  element: <testLibrary>::@getter::foo
+  staticType: int
+''');
+
+    _assertDefaultValueDetached(parameter);
+    assertDartObjectText(parameter.computeConstantValue(), r'''
+int 0
+  variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
+  test_formalParameter_defaultValue_detached_extensionType_primaryConstructor() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const foo = 0;
+
+extension type E([int a = foo]) {}
+''');
+
+    var parameter = result.findElement.parameter('a');
+    nodeTextConfiguration.withCheckingTokenStream = false;
+    assertResolvedNodeText(parameter.constantInitializer2!, r'''
+UnqualifiedNameExpression
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::foo
+    type: int
+  staticType: int
+V1: SimpleIdentifier
+  token: foo
+  element: <testLibrary>::@getter::foo
+  staticType: int
+''');
+
+    _assertDefaultValueDetached(parameter);
+    assertDartObjectText(parameter.computeConstantValue(), r'''
+int 0
+  variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
+  test_formalParameter_defaultValue_detached_mixin_method() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const foo = 0;
+
+mixin M {
+  void bar([int a = foo]) {}
+}
+''');
+
+    var parameter = result.findElement.parameter('a');
+    nodeTextConfiguration.withCheckingTokenStream = false;
+    assertResolvedNodeText(parameter.constantInitializer2!, r'''
+UnqualifiedNameExpression
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::foo
+    type: int
+  staticType: int
+V1: SimpleIdentifier
+  token: foo
+  element: <testLibrary>::@getter::foo
+  staticType: int
+''');
+
+    _assertDefaultValueDetached(parameter);
+    assertDartObjectText(parameter.computeConstantValue(), r'''
+int 0
+  variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
+  test_formalParameter_defaultValue_detached_topLevelFunction() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const foo = 0;
+
+void f([int a = foo]) {}
+''');
+
+    var parameter = result.findElement.parameter('a');
+    nodeTextConfiguration.withCheckingTokenStream = false;
+    assertResolvedNodeText(parameter.constantInitializer2!, r'''
+UnqualifiedNameExpression
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::foo
+    type: int
+  staticType: int
+V1: SimpleIdentifier
+  token: foo
+  element: <testLibrary>::@getter::foo
+  staticType: int
+''');
+
+    _assertDefaultValueDetached(parameter);
+    assertDartObjectText(parameter.computeConstantValue(), r'''
+int 0
+  variable: <testLibrary>::@topLevelVariable::foo
+''');
   }
 
   test_functionType_element_typeArguments() async {
@@ -383,5 +882,13 @@ const a = A((values) {
   return x + y;
 });
 ''');
+  }
+
+  /// Asserts that the default value of the linked [parameter] is still the
+  /// detached expression from linking, not a node of the resolved unit, so
+  /// the element model does not retain the unit.
+  void _assertDefaultValueDetached(FormalParameterElement parameter) {
+    var defaultValue = parameter.constantInitializer2!;
+    expect(defaultValue.thisOrAncestorOfType2<CompilationUnit>(), isNull);
   }
 }

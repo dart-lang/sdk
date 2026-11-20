@@ -123,6 +123,31 @@ void nestedFunctionTypeParameters2<S>() {
   nested1();
 }
 
+class G<T> {
+  void defaultFunctionTypeArguments<U>() {
+    void local1<V>() {
+      print(V);
+    }
+
+    void local2<V extends T>() {
+      print(V);
+    }
+
+    void local3<V extends List<U>>() {
+      print(V);
+    }
+
+    void local4<V extends Map<T, U>, W extends V>() {
+      print(W);
+    }
+
+    print(local1);
+    print(local2);
+    print(local3);
+    print(local4);
+  }
+}
+
 class D<S, T> {}
 
 class E<T, U> extends D<String, T> {}

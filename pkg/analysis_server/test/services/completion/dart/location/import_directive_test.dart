@@ -165,9 +165,9 @@ import "foo" as foo ^;
 ''');
     assertResponse(r'''
 suggestions
-  hide
-    kind: keyword
   show
+    kind: keyword
+  hide
     kind: keyword
 ''');
   }
@@ -178,9 +178,9 @@ import "foo" deferred as foo ^;
 ''');
     assertResponse(r'''
 suggestions
-  hide
-    kind: keyword
   show
+    kind: keyword
+  hide
     kind: keyword
 ''');
   }
@@ -248,11 +248,11 @@ import "foo" ^
 suggestions
   as
     kind: keyword
-  deferred as
+  show
     kind: keyword
   hide
     kind: keyword
-  show
+  deferred as
     kind: keyword
 ''');
   }
@@ -265,9 +265,9 @@ import "foo" d^
 replacement
   left: 1
 suggestions
-  deferred as
-    kind: keyword
   hide
+    kind: keyword
+  deferred as
     kind: keyword
 ''');
   }
@@ -307,9 +307,9 @@ import
 replacement
   left: 1
 suggestions
-  deferred as
-    kind: keyword
   hide
+    kind: keyword
+  deferred as
     kind: keyword
 ''');
   }
@@ -337,11 +337,11 @@ import "foo" ^;
 suggestions
   as
     kind: keyword
-  deferred as
+  show
     kind: keyword
   hide
     kind: keyword
-  show
+  deferred as
     kind: keyword
 ''');
   }
@@ -354,9 +354,9 @@ import "foo" d^;
 replacement
   left: 1
 suggestions
-  deferred as
-    kind: keyword
   hide
+    kind: keyword
+  deferred as
     kind: keyword
 ''');
   }

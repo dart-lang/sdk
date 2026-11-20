@@ -13,6 +13,7 @@ final class Arm64AsmIntrinsics(
   super.functionRegistry,
   super.vmOffsets,
   super.objectLayout,
+  super.stubFactory,
 ) extends AsmIntrinsics {
   Arm64Assembler? _assembler;
 
@@ -50,7 +51,7 @@ final class Arm64AsmIntrinsics(
       _asm.fieldAddress(codeReg, vmOffsets.Code_object_pool_offset),
     );
     _asm.sub(poolPointerReg, poolPointerReg, Immediate(heapObjectTag));
-    _asm.loadFromPool(codeReg, StubCode.CloneSuspendState);
+    _asm.loadFromPool(codeReg, stubFactory.cloneSuspendStateStub);
     _asm.mov(poolPointerReg, tempReg);
     _asm.ldr(
       tempReg,

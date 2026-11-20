@@ -5,7 +5,6 @@
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/services/user_prompts/survey_manager.dart';
 import 'package:analysis_server/src/session_logger/session_logger.dart';
-import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
@@ -20,7 +19,6 @@ void main() {
 
 @reflectiveTest
 class SurveyManagerTest with ResourceProviderMixin {
-  final instrumentationService = NoopInstrumentationService();
   final sessionListener = SessionLogger();
   final analytics = TestAnalytics();
   late final TestServer server;
@@ -28,7 +26,7 @@ class SurveyManagerTest with ResourceProviderMixin {
   int nextSurveyNum = 1;
 
   void setUp() {
-    server = TestServer(instrumentationService);
+    server = TestServer();
   }
 
   void tearDown() {
@@ -133,7 +131,6 @@ class SurveyManagerTest with ResourceProviderMixin {
   }) {
     manager = TestSurveyManager(
       server,
-      instrumentationService,
       sessionListener,
       analytics,
       initialDelay: initialDelay,
@@ -188,9 +185,6 @@ class TestAnalytics implements Analytics {
 }
 
 class TestServer implements AnalysisServer {
-  @override
-  final InstrumentationService instrumentationService;
-
   /// The URIs that the server sent to be opened by the client.
   final List<Uri> openedUris = [];
 
@@ -202,7 +196,7 @@ class TestServer implements AnalysisServer {
 
   bool supportsOpenUri = true;
 
-  new(this.instrumentationService);
+  new();
 
   @override
   OpenUriNotificationSender? get openUriNotificationSender =>
@@ -232,7 +226,6 @@ class TestSurveyManager extends SurveyManager {
 
   new(
     super.server,
-    super.instrumentationService,
     super._sessionListener,
     super.analytics, {
     super.initialDelay,

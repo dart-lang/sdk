@@ -19,6 +19,7 @@ import 'package:analysis_server/src/status/pages/analysis_options_page.dart';
 import 'package:analysis_server/src/status/pages/analysis_performance_log_page.dart';
 import 'package:analysis_server/src/status/pages/assists_page.dart';
 import 'package:analysis_server/src/status/pages/ast_page.dart';
+import 'package:analysis_server/src/status/pages/byte_store_page.dart';
 import 'package:analysis_server/src/status/pages/client_page.dart';
 import 'package:analysis_server/src/status/pages/code_completion_page.dart';
 import 'package:analysis_server/src/status/pages/collect_report_page.dart';
@@ -30,7 +31,6 @@ import 'package:analysis_server/src/status/pages/environment_variables_page.dart
 import 'package:analysis_server/src/status/pages/exception_page.dart';
 import 'package:analysis_server/src/status/pages/exceptions_page.dart';
 import 'package:analysis_server/src/status/pages/feedback_page.dart';
-import 'package:analysis_server/src/status/pages/file_byte_store_timing_page.dart';
 import 'package:analysis_server/src/status/pages/file_io_timing_page.dart';
 import 'package:analysis_server/src/status/pages/fixes_page.dart';
 import 'package:analysis_server/src/status/pages/legacy_plugins_page.dart';
@@ -589,6 +589,67 @@ td.pre {
   overflow-x: auto;
 }
 
+/* Collapsed borders do not stick with the header, and rows scrolled behind
+   it show through, so borders are separate, and drawn once per line. */
+table.sticky-header {
+  display: block;
+  max-height: 75vh;
+  overflow: auto;
+  border-collapse: separate;
+}
+
+table.sticky-header thead {
+  position: sticky;
+  top: 0;
+}
+
+table.sticky-header th, table.sticky-header td {
+  padding: 4px 8px;
+  border-width: 0 1px 1px 0;
+}
+
+table.sticky-header thead tr:first-child > * {
+  border-top-width: 1px;
+}
+
+table.sticky-header thead tr:first-child > :first-child,
+table.sticky-header tbody tr:first-child > :first-child {
+  border-left-width: 1px;
+}
+
+table.sticky-header th {
+  white-space: nowrap;
+  background-color: #fff;
+}
+
+/* Each tbody is a group of related rows, so groups are shaded and separated,
+   rather than individual rows. */
+.markdown-body table.row-groups tbody tr {
+  background-color: #fff;
+}
+
+.markdown-body table.row-groups tbody:nth-of-type(even) tr {
+  background-color: #f6f8fa;
+}
+
+table.row-groups tbody + tbody tr:first-child > * {
+  border-top: 1px solid #959da5;
+}
+
+/* Byte store operations, to follow one operation across periods: harmless
+   reads, cheap queuing of writes, and costly writing to disk. */
+.operation-get {
+  color: #1a7f37;
+}
+
+.operation-put {
+  color: #57606a;
+}
+
+.operation-flush {
+  color: #bc4c00;
+}
+
 .footer {
   padding-top: 3rem;
   padding-bottom: 3rem;
@@ -615,6 +676,7 @@ td.pre {
   final List<String> lastPrintedLines;
 
   new(this.socketServer, this.lastPrintedLines) : super('Analysis Server') {
+    pages.add(ByteStorePage(this));
     pages.add(CommunicationsPage(this));
     pages.add(ContextsPage(this));
     pages.add(EnvironmentVariablesPage(this));
@@ -672,7 +734,6 @@ td.pre {
     // (Nested)
     pages.add(AnalysisDriverPage(this));
     pages.add(AssistsPage(this));
-    pages.add(FileByteStoreTimingPage(this));
     pages.add(FileIoTimingPage(this));
     pages.add(CodeCompletionPage(this));
     pages.add(FixesPage(this));

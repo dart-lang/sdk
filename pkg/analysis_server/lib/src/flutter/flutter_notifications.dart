@@ -33,7 +33,6 @@ void _sendNotification(LegacyAnalysisServer server, void Function() f) {
       exception,
       stackTrace,
     );
-    server.instrumentationService.logException(caughtException);
     server.sessionListener.logException(exception: caughtException);
   }
 }

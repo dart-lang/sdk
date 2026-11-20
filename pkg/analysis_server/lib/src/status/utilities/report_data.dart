@@ -17,6 +17,7 @@ import 'package:analysis_server/src/scheduler/scheduler_tracking_listener.dart';
 import 'package:analysis_server/src/status/diagnostics.dart';
 import 'package:analysis_server/src/status/utilities/library_cycle_extensions.dart';
 import 'package:analysis_server/src/utilities/profiling.dart';
+import 'package:analysis_server/src/utilities/timing_byte_store.dart';
 import 'package:analysis_server_plugin/src/correction/performance.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
@@ -152,38 +153,67 @@ void _collectFileByteStoreTimingData(
   Map<String, Object?> collectedData,
   AnalysisServer server,
 ) {
-  var byteStoreTimings = server.byteStoreTimings
-      ?.where(
-        (timing) => timing.readCount != 0 || timing.readTime != Duration.zero,
-      )
-      .toList();
-  if (byteStoreTimings != null && byteStoreTimings.isNotEmpty) {
-    var performance = [];
-    collectedData['byteStoreTimings'] = performance;
-    for (var i = 0; i < byteStoreTimings.length; i++) {
-      var timing = byteStoreTimings[i];
-      if (timing.readCount == 0) {
-        continue;
-      }
-
-      var nextTiming = i + 1 < byteStoreTimings.length
-          ? byteStoreTimings[i + 1]
-          : null;
-      var duration = (nextTiming?.time ?? DateTime.now()).difference(
-        timing.time,
-      );
-      var value = duration.inMilliseconds;
-      var description =
-          'Between ${timing.reason} and ${nextTiming?.reason ?? 'now'} '
-          '(${'$value ms'}).';
-
-      var itemData = {};
-      performance.add(itemData);
-      itemData['file_reads'] = timing.readCount;
-      itemData['time'] = timing.readTime.inMilliseconds;
-      itemData['description'] = description;
-    }
+  var timingByteStore = server.timingByteStore;
+  if (timingByteStore == null) {
+    return;
   }
+
+  Map<String, Object> timingsData(ByteStoreTimings timings) {
+    var gets = timings.gets;
+    var puts = timings.puts;
+    var flushes = timings.flushes;
+    return {
+      'get_count': gets.count,
+      'get_not_found': timings.notFoundCount,
+      'get_bytes': gets.bytes,
+      'get_us': gets.elapsed.inMicroseconds,
+      'get_max_us': gets.max.inMicroseconds,
+      'put_count': puts.count,
+      'put_bytes': puts.bytes,
+      'put_us': puts.elapsed.inMicroseconds,
+      'put_max_us': puts.max.inMicroseconds,
+      'flush_count': flushes.count,
+      'flush_bytes': flushes.bytes,
+      'flush_us': flushes.elapsed.inMicroseconds,
+      'flush_max_us': flushes.max.inMicroseconds,
+    };
+  }
+
+  collectedData['byteStoreTimings'] = {
+    'periods': [
+      for (var period in timingByteStore.periods)
+        if (!period.isEmpty)
+          {
+            'description':
+                '${period.reason} -> ${period.endReason ?? 'now'} '
+                '(${period.duration.inMilliseconds} ms)',
+            ...timingsData(period),
+          },
+    ],
+    'dropped_periods': timingByteStore.droppedPeriodCount,
+    'total': timingsData(timingByteStore.total),
+    // The path is not included, because it might include the user name.
+    if (server.byteStoreStats case var stats?
+        when stats.singleFileStorePath != null)
+      'single_file_store': {
+        'data_bytes': stats.singleFileDataBytes,
+        'free_data_bytes': stats.singleFileFreeDataBytes,
+        'reset_count': stats.singleFileResetCount,
+        'pending_entry_count': stats.singleFilePendingEntryCount,
+        'commit_count': stats.singleFileCommitCount,
+        'committed_entry_count': stats.singleFileCommittedEntryCount,
+        'committed_value_bytes': stats.singleFileCommittedValueBytes,
+        'evicted_for_space_entry_count':
+            stats.singleFileEvictedForSpaceEntryCount,
+        'evicted_from_full_bucket_entry_count':
+            stats.singleFileEvictedFromFullBucketEntryCount,
+        'capacity_discarded_batch_count':
+            stats.singleFileCapacityDiscardedBatchCount,
+        'oversized_value_count': stats.singleFileOversizedValueCount,
+        'oversized_value_bytes': stats.singleFileOversizedValueBytes,
+        'bucket_rebuild_count': stats.singleFileBucketRebuildCount,
+      },
+  };
 }
 
 void _collectGeneralData(

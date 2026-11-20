@@ -50,6 +50,39 @@ V1: FunctionReference
 ''');
   }
 
+  test_defaultValue_topLevelVariable() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const foo = 0;
+
+void f() {
+  void g([int a = foo]) {}
+//     ^
+// [diag.unusedElement] The declaration 'g' isn't referenced.
+}
+''');
+
+    var node = result.findNode.singleRegularFormalParameter;
+    var element = node.declaredFragment!.element;
+    assertResolvedNodeText(element.constantInitializer2!, r'''
+UnqualifiedNameExpression
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::foo
+    type: int
+  staticType: int
+V1: SimpleIdentifier
+  token: foo
+  element: <testLibrary>::@getter::foo
+  staticType: int
+''');
+
+    assertElementDefaultValueIsClauseValue(node);
+    assertDartObjectText(element.computeConstantValue(), r'''
+int 0
+  variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
   test_element_block() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 f() {

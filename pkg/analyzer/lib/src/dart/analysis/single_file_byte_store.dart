@@ -18,7 +18,6 @@ import 'package:path/path.dart' as pkg_path;
 const int headerChecksumOffset = _Header._headerChecksumOffset;
 
 /// Size in bytes of every physical page in the store.
-@visibleForTesting
 const int pageSize = 1024;
 
 const _FilePageIndex _allocationBitmapFirstPageIndex = _FilePageIndex(3);
@@ -155,7 +154,7 @@ class FileStorage implements Storage {
 /// contains one allocation bit for each of `8192` data pages. Selector bit `i`
 /// chooses slot 0 or 1 of allocation chunk `i`. A set allocation bit means
 /// allocated. Bits are numbered least significant first. Data page numbers
-/// start at zero in the data area; bitmap bits beyond [_dataPageCount] are
+/// start at zero in the data area; bitmap bits beyond [dataPageCount] are
 /// unused.
 ///
 /// The following selector bits choose slots of hash table pages. Each table
@@ -213,6 +212,9 @@ class SingleFileByteStore implements ByteStore {
   /// The committed state represented by cached metadata pages.
   int? _cachedCommitId;
 
+  /// See [freeDataPageCount]. Set by the constructor, under the lock.
+  late int _freeDataPageCount;
+
   /// Approximate process-local recency, indexed by table slot.
   ///
   /// Reads in other processes do not update these bits. Bits survive external
@@ -237,7 +239,7 @@ class SingleFileByteStore implements ByteStore {
   /// Largest value that fits in otherwise empty storage for every valid key,
   /// accounting for its first page and overflow metadata pages.
   late final int maxValueLength = _ValueHeader.maximumValueLength(
-    _dataPageCount,
+    dataPageCount,
   );
 
   /// Latest value queued for each key, owned by this store.
@@ -247,8 +249,14 @@ class SingleFileByteStore implements ByteStore {
   int _pendingValueBytes = 0;
 
   /// Cumulative statistics for this instance.
-  @visibleForTesting
   final _Statistics statistics = ._();
+
+  /// Called after each [flush] that had pending values, with their total bytes
+  /// and the duration of the flush, including waiting for the lock.
+  ///
+  /// Flushes happen both when [flush] is invoked, and inside [putGet] when
+  /// pending values reach a limit, so this is the only way to observe all.
+  void Function(int valueBytes, Duration elapsed)? onFlush;
 
   /// Flush the queue when its values reach this many bytes.
   /// A single larger value is committed immediately.
@@ -329,7 +337,7 @@ class SingleFileByteStore implements ByteStore {
       _maxTableSlotCountLog2,
       'tableSlotCountLog2',
     );
-    if (_dataPageCount <= 0) {
+    if (dataPageCount <= 0) {
       throw ArgumentError(
         'The table and allocation metadata must fit in the file',
       );
@@ -406,10 +414,18 @@ class SingleFileByteStore implements ByteStore {
     return store;
   }
 
+  /// The number of pages in the data area, which holds the values.
+  int get dataPageCount => _filePageCount - _dataAreaFirstPageIndex.value;
+
   /// The path opened by [SingleFileByteStore.inDirectory], or null if storage
   /// was supplied by constructing this object using the
   /// [SingleFileByteStore.new] constructor.
   String? get filePath => _ownedFile?.path;
+
+  /// The number of free pages in the data area, as of the last header that
+  /// this instance read or wrote. Other instances sharing the storage may have
+  /// changed it since.
+  int get freeDataPageCount => _freeDataPageCount;
 
   int get pendingEntryCount => _pendingValues.length;
 
@@ -426,8 +442,6 @@ class SingleFileByteStore implements ByteStore {
       _allocationBitmapFirstPageIndex +
       2 * _allocationBitmapChunkCount +
       2 * _tablePageCount;
-
-  int get _dataPageCount => _filePageCount - _dataAreaFirstPageIndex.value;
 
   /// Total physical pages in the file, including metadata.
   int get _filePageCount => 1 << _filePageCountLog2;
@@ -468,6 +482,8 @@ class SingleFileByteStore implements ByteStore {
   void flush() {
     _checkOpen();
     if (_pendingValues.isEmpty) return;
+    var timer = Stopwatch()..start();
+    var valueBytes = _pendingValueBytes;
     _withExclusiveAccess((header) {
       try {
         header = _prepareCapacity(header);
@@ -490,6 +506,7 @@ class SingleFileByteStore implements ByteStore {
       _pendingValues.clear();
       _pendingValueBytes = 0;
     });
+    onFlush?.call(valueBytes, timer.elapsed);
   }
 
   /// Returns the pending or committed value, or null if absent or corrupt.
@@ -616,6 +633,38 @@ class SingleFileByteStore implements ByteStore {
   @override
   void release(Iterable<String> keys) {}
 
+  /// Returns the number of committed entries in each hash table bucket, in
+  /// bucket order, as written by all instances sharing the storage.
+  ///
+  /// Pending values are not included. Reads the whole table directly from
+  /// storage, so this is for diagnostics, not for regular operations.
+  Uint8List tableBucketEntryCounts() {
+    // A full bucket must fit into a byte.
+    assert(_tableEntriesPerPage < 256);
+
+    _checkOpen();
+    return _withExclusiveAccess((header) {
+      // Bypass the page cache, to keep the pages that lookups use.
+      var selectors = _readSelectors(header.selectorSlot);
+      var tableBytes = Uint8List(_tablePageCount * pageSize);
+      _bufferPool.readPagesInto([
+        for (var index = 0; index < _tablePageCount; index++)
+          _committedTableFilePageIndex(selectors, _TablePageIndex(index)),
+      ], tableBytes);
+
+      // A zero page reference marks an empty slot.
+      var data = ByteData.sublistView(tableBytes);
+      var counts = Uint8List(_tablePageCount);
+      for (var slot = 0; slot < tableSlotCount; slot++) {
+        var offset = slot * _tableEntrySize + _tableEntryPageReferenceOffset;
+        if (data.getUint32(offset, Endian.little) != 0) {
+          counts[slot ~/ _tableEntriesPerPage]++;
+        }
+      }
+      return counts;
+    });
+  }
+
   _FilePageIndex _allocationBitmapChunkIndexToFilePageIndex(
     int chunkSlot,
     _AllocationBitmapChunkIndex chunkIndex,
@@ -645,7 +694,7 @@ class SingleFileByteStore implements ByteStore {
       dataPageIndex.value,
       null,
       'dataPageIndex',
-      _dataPageCount,
+      dataPageCount,
     );
     return _dataAreaFirstPageIndex + dataPageIndex.value;
   }
@@ -708,7 +757,7 @@ class SingleFileByteStore implements ByteStore {
         }
 
         // Sanity check.
-        if (storedPage > _dataPageCount) {
+        if (storedPage > dataPageCount) {
           throw const FormatException('Invalid table entry page');
         }
 
@@ -769,7 +818,7 @@ class SingleFileByteStore implements ByteStore {
 
     // Reject a batch that cannot fit even in an empty store before evicting
     // any committed entries.
-    if (requiredPages > _dataPageCount) {
+    if (requiredPages > dataPageCount) {
       throw _CapacityException();
     }
 
@@ -812,7 +861,7 @@ class SingleFileByteStore implements ByteStore {
     }
 
     // Sanity check.
-    if (header.freePageCount > _dataPageCount) {
+    if (header.freePageCount > dataPageCount) {
       return null;
     }
 
@@ -838,7 +887,7 @@ class SingleFileByteStore implements ByteStore {
     // Iterate over the linked list of overflow metadata pages.
     var nextOverflowMetadataPageIndex = header.firstOverflowMetadataPageIndex;
     while (nextOverflowMetadataPageIndex != null) {
-      if (nextOverflowMetadataPageIndex.value >= _dataPageCount ||
+      if (nextOverflowMetadataPageIndex.value >= dataPageCount ||
           !seen.add(nextOverflowMetadataPageIndex)) {
         throw const FormatException(
           'Invalid or repeated overflow metadata page',
@@ -858,7 +907,7 @@ class SingleFileByteStore implements ByteStore {
 
       // Sanity check.
       for (var index in metadata.dataPages) {
-        if (index.value >= _dataPageCount || !seen.add(index)) {
+        if (index.value >= dataPageCount || !seen.add(index)) {
           throw const FormatException('Invalid or repeated continuation page');
         }
       }
@@ -905,13 +954,18 @@ class SingleFileByteStore implements ByteStore {
     var filePageIndex = _dataPageIndexToFilePageIndex(index);
     var page = _bufferPool.readPage(filePageIndex);
     try {
-      return _ValueHeader.read(page, index, _dataPageCount);
+      return _ValueHeader.read(page, index, dataPageCount);
     } finally {
       page.release();
     }
   }
 
   _Header _reset() {
+    // Initializing new, empty storage is not a loss.
+    if (!_bufferPool.hasPageCount(0)) {
+      statistics._resetCount++;
+    }
+
     // Discard any existing content.
     _bufferPool.setPageCount(0);
     _bufferPool.flush();
@@ -922,7 +976,7 @@ class SingleFileByteStore implements ByteStore {
     _bucketClockHands.fillRange(0, _bucketClockHands.length, 0);
     var header = _writeHeader(
       selectorSlot: 0,
-      freePageCount: _dataPageCount,
+      freePageCount: dataPageCount,
       dataReclamationClockHand: 0,
     );
     _bufferPool.flush();
@@ -959,6 +1013,7 @@ class SingleFileByteStore implements ByteStore {
       }
 
       _cachedCommitId = header.commitId;
+      _freeDataPageCount = header.freePageCount;
       return action(header);
     });
   }
@@ -978,6 +1033,7 @@ class SingleFileByteStore implements ByteStore {
       freePageCount: freePageCount,
       dataReclamationClockHand: dataReclamationClockHand,
     );
+    _freeDataPageCount = freePageCount;
 
     // Write the complete header to publish the selector slot and commit ID.
     // The caller must flush storage to make this publication durable.
@@ -1773,9 +1829,11 @@ class _Statistics {
   int _commitCount = 0;
   int _committedEntryCount = 0;
   int _committedValueBytes = 0;
-  int _evictedEntryCount = 0;
+  int _evictedForSpaceEntryCount = 0;
+  int _evictedFromFullBucketEntryCount = 0;
   int _oversizedValueBytes = 0;
   int _oversizedValueCount = 0;
+  int _resetCount = 0;
 
   new _();
 
@@ -1795,14 +1853,22 @@ class _Statistics {
   /// Value bytes written by successfully committed batches.
   int get committedValueBytes => _committedValueBytes;
 
-  /// Entries durably evicted.
-  int get evictedEntryCount => _evictedEntryCount;
+  /// Entries durably evicted to free data pages for a batch.
+  int get evictedForSpaceEntryCount => _evictedForSpaceEntryCount;
+
+  /// Entries durably evicted from full hash-table buckets, to insert new keys.
+  int get evictedFromFullBucketEntryCount => _evictedFromFullBucketEntryCount;
 
   /// Total bytes in values ignored because they exceeded the size limit.
   int get oversizedValueBytes => _oversizedValueBytes;
 
   /// Values ignored because they exceeded the size limit.
   int get oversizedValueCount => _oversizedValueCount;
+
+  /// Resets that discarded existing storage content, because it was corrupt,
+  /// incompletely published, or incompatible. Initializing empty storage is not
+  /// counted.
+  int get resetCount => _resetCount;
 }
 
 /// The first page of a value contains its metadata and, without overflow, an
@@ -2108,7 +2174,8 @@ class _WriteTransaction {
   int _freePageCount;
   int _dataReclamationClockHand;
   int _rebuiltBucketCount = 0;
-  int _evictedEntryCount = 0;
+  int _evictedForSpaceEntryCount = 0;
+  int _evictedFromFullBucketEntryCount = 0;
   final SingleFileByteStore _store;
   final int _selectorSlot;
 
@@ -2213,7 +2280,9 @@ class _WriteTransaction {
     }
 
     _store.statistics._commitCount++;
-    _store.statistics._evictedEntryCount += _evictedEntryCount;
+    _store.statistics._evictedForSpaceEntryCount += _evictedForSpaceEntryCount;
+    _store.statistics._evictedFromFullBucketEntryCount +=
+        _evictedFromFullBucketEntryCount;
     _store.statistics._bucketRebuildCount += _rebuiltBucketCount;
 
     return header;
@@ -2272,6 +2341,7 @@ class _WriteTransaction {
 
       // Creates a copy of [currentPageIndex] page in [_workingTablePages].
       _evictEntry(pageIndex, entryIndexAtPage);
+      _evictedForSpaceEntryCount++;
 
       // Switch data of [currentPageIndex] to [_workingTablePages].
       currentPageData = ByteData.sublistView(_workingTablePages[pageIndex]!);
@@ -2435,7 +2505,7 @@ class _WriteTransaction {
 
     // Iterate from the previous maybe free data page to the last.
     var dataPageIndexRaw = _nextAllocationPageIndex.value;
-    while (dataPageIndexRaw < _store._dataPageCount) {
+    while (dataPageIndexRaw < _store.dataPageCount) {
       var chunkIndex = _AllocationBitmapChunkIndex(
         dataPageIndexRaw ~/ _dataPagesPerAllocationChunk,
       );
@@ -2446,7 +2516,7 @@ class _WriteTransaction {
       // The final bitmap chunk may contain unused bits beyond the data area.
       var chunkEnd = min(
         (chunkIndex.value + 1) * _dataPagesPerAllocationChunk,
-        _store._dataPageCount,
+        _store.dataPageCount,
       );
 
       // Iterate through the bitmap chunk bits.
@@ -2528,6 +2598,7 @@ class _WriteTransaction {
       }
 
       _evictEntry(index, slot);
+      _evictedFromFullBucketEntryCount++;
       victimsRemaining--;
     }
 
@@ -2556,7 +2627,7 @@ class _WriteTransaction {
     );
 
     // Sanity check.
-    if (storedPage == 0 || storedPage > _store._dataPageCount) {
+    if (storedPage == 0 || storedPage > _store.dataPageCount) {
       throw const FormatException('Invalid table entry page');
     }
 
@@ -2575,7 +2646,6 @@ class _WriteTransaction {
 
     // This entry is definitely not used.
     _getBucketClockBits(index).setBit(slot, false);
-    _evictedEntryCount++;
   }
 
   Uint8List _getBucketClockBits(_TablePageIndex index) {

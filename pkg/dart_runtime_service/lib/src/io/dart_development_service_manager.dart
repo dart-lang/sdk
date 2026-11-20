@@ -62,6 +62,7 @@ final class DartDevelopmentServiceManager {
 
   final _logger = Logger('$DartDevelopmentServiceManager');
   DartDevelopmentServiceLauncher? _launcher;
+  Client? _ddsClient;
 
   /// The set of RPCs that must be registered for DDS to function.
   late final rpcs = UnmodifiableListView<ServiceRpcHandler>([
@@ -70,6 +71,11 @@ final class DartDevelopmentServiceManager {
 
   Future<Uri> get ddsConnected => _yieldCompleter.future;
   var _yieldCompleter = Completer<Uri>();
+
+  /// Emits the DDS [Uri] when a DDS instance connects and takes control, and
+  /// `null` when that DDS instance disconnects.
+  Stream<Uri?> get ddsUriChanges => _ddsUriChangesController.stream;
+  final _ddsUriChangesController = StreamController<Uri?>.broadcast(sync: true);
 
   /// Launches a Dart Development Service (DDS) instance that will attempt to
   /// connect to the VM service at [vmServiceUri].
@@ -106,16 +112,21 @@ final class DartDevelopmentServiceManager {
 
   /// Shuts down the Dart Development Service (DDS) instance, if it exists.
   Future<void> shutdown() async {
-    if (_launcher == null) {
+    final launcher = _launcher;
+    final ddsClient = _ddsClient;
+    if (launcher == null && ddsClient == null) {
       return;
     }
     _logger.info('Shutting down DDS...');
-    await _launcher?.shutdown();
     _cleanup();
+    frontend.clientConnectionController.acceptConnections();
+    await launcher?.shutdown();
+    await ddsClient?.close();
     _logger.info('DDS shutdown.');
   }
 
   void _cleanup() {
+    _ddsClient = null;
     _launcher = null;
     _yieldCompleter = Completer<Uri>();
   }
@@ -182,13 +193,19 @@ final class DartDevelopmentServiceManager {
     }
 
     _logger.info('Non-DDS clients disconnected.');
+    _ddsClient = client;
     _yieldCompleter.complete(uri);
+    _ddsUriChangesController.add(uri);
 
     // Register a callback to cleanup state if DDS disconnects.
     unawaited(
       client.done.whenComplete(() {
+        if (_ddsClient != client) {
+          return;
+        }
         _cleanup();
         frontend.clientConnectionController.acceptConnections();
+        _ddsUriChangesController.add(null);
         _logger.info('DDS disconnected. Accepting future connections.');
       }),
     );

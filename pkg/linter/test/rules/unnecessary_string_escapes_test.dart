@@ -24,9 +24,21 @@ var x = '\\';
 ''');
   }
 
+  test_escapedBackslashes_beforeUnnecessaryEscape() async {
+    await assertDiagnosticsFromMarkup(r'''
+var x = '\\\\: \\[!\!]:';
+''');
+  }
+
   test_escapedColon() async {
     await assertDiagnosticsFromMarkup(r'''
 var x = '[!\!]:';
+''');
+  }
+
+  test_escapedDoubleQuotes_afterTwoQuotes_inThreeDoubleQuotes() async {
+    await assertNoDiagnostics(r'''
+var x = """text""\"text""";
 ''');
   }
 

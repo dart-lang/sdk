@@ -652,7 +652,7 @@ const defaultElementKindRelevance = {
     ElementKind.ENUM: ProbabilityRange(lower: 0.004, upper: 0.011),
     ElementKind.CLASS: ProbabilityRange(lower: 0.119, upper: 0.491),
   },
-  'ForEachPartsWithDeclaration_iterable': {
+  'ForEachParts_iterable': {
     ElementKind.CONSTRUCTOR: ProbabilityRange(lower: 0.001, upper: 0.003),
     ElementKind.ENUM: ProbabilityRange(lower: 0.003, upper: 0.005),
     ElementKind.FUNCTION: ProbabilityRange(lower: 0.005, upper: 0.009),
@@ -1479,7 +1479,7 @@ const defaultKeywordRelevance = {
     'const': ProbabilityRange(lower: 0.024, upper: 0.119),
     'final': ProbabilityRange(lower: 0.491, upper: 1.000),
   },
-  'ForEachPartsWithDeclaration_iterable': {
+  'ForEachParts_iterable': {
     'await': ProbabilityRange(lower: 0.000, upper: 0.001),
     'this': ProbabilityRange(lower: 0.023, upper: 0.031),
   },

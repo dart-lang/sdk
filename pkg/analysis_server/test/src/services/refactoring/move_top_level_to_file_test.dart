@@ -225,6 +225,39 @@ class A {}
     await verifyCommandEdits(action.command!, expected);
   }
 
+  Future<void> test_existingFile_referencedInDestination() async {
+    var destinationFilePath = join(projectFolderPath, 'lib', 'b.dart');
+    newFile(destinationFilePath, '''
+import 'package:test/main.dart';
+
+B? b;
+''');
+    var originalSource = '''
+class A {}
+
+class B^ {}
+''';
+    var declarationName = 'B';
+
+    var expected = '''
+>>>>>>>>>> lib/b.dart
+import 'package:test/main.dart';
+
+B? b;
+
+class B {}
+>>>>>>>>>> lib/main.dart
+class A {}
+''';
+
+    await _singleDeclaration(
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+      destinationFilePath: destinationFilePath,
+    );
+  }
+
   Future<void> test_existingFile_withHeader() async {
     addTestSource(simpleClassContent);
 
@@ -1535,6 +1568,50 @@ class ClassToMove {}
     );
   }
 
+  Future<void>
+  test_parts_crossLibrary_libraryToPart_referencedInSource() async {
+    var originalSource = '''
+ClassToMove? c;
+
+class Clas^sToMove {}
+''';
+    var declarationName = 'ClassToMove';
+
+    var targetLibraryFileName = 'target_library.dart';
+    var targetLibraryFilePath = join(
+      projectFolderPath,
+      'lib',
+      targetLibraryFileName,
+    );
+    newFile(targetLibraryFilePath, '''
+part 'target_part.dart';
+''');
+
+    var targetPartFileName = 'target_part.dart';
+    var targetPartFilePath = join(projectFolderPath, 'lib', targetPartFileName);
+    newFile(targetPartFilePath, '''
+part of 'target_library.dart';
+''');
+
+    var expected = '''
+>>>>>>>>>> lib/main.dart
+import 'package:test/target_library.dart';
+
+ClassToMove? c;
+>>>>>>>>>> lib/target_part.dart
+part of 'target_library.dart';
+
+class ClassToMove {}
+''';
+
+    await _singleDeclaration(
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+      destinationFilePath: targetPartFilePath,
+    );
+  }
+
   Future<void> test_parts_crossLibrary_partToLibrary_importInLibrary() async {
     var originalSource = '''
 part of 'original_library.dart';
@@ -1840,6 +1917,44 @@ part of 'main.dart';
 class ClassToMove {}
 >>>>>>>>>> lib/main.dart
 part 'class_to_move.dart';
+''';
+
+    await _singleDeclaration(
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+    );
+  }
+
+  Future<void>
+  test_parts_singleLibrary_libraryToPart_referencedInSource() async {
+    var originalSource = '''
+part 'class_to_move.dart';
+
+ClassToMove? c;
+
+class Clas^sToMove {}
+''';
+    var declarationName = 'ClassToMove';
+    var destinationFileName = 'class_to_move.dart';
+    var destinationFilePath = join(
+      projectFolderPath,
+      'lib',
+      destinationFileName,
+    );
+    newFile(destinationFilePath, '''
+part of 'main.dart';
+''');
+
+    var expected = '''
+>>>>>>>>>> lib/class_to_move.dart
+part of 'main.dart';
+
+class ClassToMove {}
+>>>>>>>>>> lib/main.dart
+part 'class_to_move.dart';
+
+ClassToMove? c;
 ''';
 
     await _singleDeclaration(

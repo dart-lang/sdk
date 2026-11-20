@@ -19,7 +19,10 @@ import 'utils/utilities.dart';
 
 const _yieldControlToDdsMethod = '_yieldControlToDDS';
 const _ddsConnectedEventKind = 'DartDevelopmentServiceConnected';
+const _uriParam = 'uri';
 const _ddsRedirectUri = 'http://127.0.0.1:42673/authToken/';
+const _secondDdsRedirectUri = 'http://127.0.0.1:42674/authToken/';
+const _invalidDdsRedirectUri = 'http://[::1';
 
 Future<VmService> _connectTestClient(Uri uri) async {
   final client = await vmServiceConnectUri(uri.toString());
@@ -312,6 +315,181 @@ void main() {
       );
       expect(response.type, 'Success');
       expect(await ddsConnectedFuture, Uri.parse(_ddsRedirectUri));
+    });
+
+    test('ddsUriChanges emits synchronously on connect, null on disconnect, '
+        'and works across multiple cycles', () async {
+      late final _DdsBackend backend;
+      final service = await createDartRuntimeServiceForTest(
+        config: const DartRuntimeServiceOptions(enableLogging: true),
+        backendBuilder: (frontend) {
+          backend = _DdsBackend(frontend: frontend);
+          return backend;
+        },
+      );
+
+      final events = <Uri?>[];
+      final callbackOrder = <String>[];
+      unawaited(
+        backend.ddsManager.ddsConnected.then((_) {
+          callbackOrder.add('ddsConnected');
+        }),
+      );
+      final sub = backend.ddsManager.ddsUriChanges.listen((uri) {
+        if (events.isEmpty) {
+          callbackOrder.add('ddsUriChanges');
+        }
+        events.add(uri);
+      });
+      addTearDown(sub.cancel);
+
+      // Cycle 1: connect and disconnect. Because `ddsUriChanges` is backed by
+      // a synchronous broadcast controller, its listener fires before the
+      // microtask scheduled by `_yieldCompleter.complete(uri)` even though
+      // `_yieldCompleter.complete(uri)` is called first.
+      final ddsClient1 = await _connectTestClient(service.uri);
+      final response1 = await ddsClient1.callMethod(
+        _yieldControlToDdsMethod,
+        args: <String, Object?>{_uriParam: _ddsRedirectUri},
+      );
+      expect(response1.type, 'Success');
+      final expectedUri1 = Uri.parse(_ddsRedirectUri);
+      expect(callbackOrder, ['ddsUriChanges', 'ddsConnected']);
+      expect(events, [expectedUri1]);
+
+      final serverDdsClient1 = service.clients.single;
+      await ddsClient1.dispose();
+      await ddsClient1.onDone;
+      await serverDdsClient1.done;
+      expect(events, [expectedUri1, null]);
+
+      // Cycle 2: connect and disconnect with a new DDS URI, including after
+      // `shutdown()` is called (as happens when toggling the HTTP server).
+      await backend.ddsManager.shutdown();
+      final ddsClient2 = await _connectTestClient(service.uri);
+      final response2 = await ddsClient2.callMethod(
+        _yieldControlToDdsMethod,
+        args: <String, Object?>{_uriParam: _secondDdsRedirectUri},
+      );
+      expect(response2.type, 'Success');
+      final expectedUri2 = Uri.parse(_secondDdsRedirectUri);
+      expect(events, [expectedUri1, null, expectedUri2]);
+
+      final serverDdsClient2 = service.clients.single;
+      await ddsClient2.dispose();
+      await ddsClient2.onDone;
+      await serverDdsClient2.done;
+      expect(events, [expectedUri1, null, expectedUri2, null]);
+    });
+
+    test('ddsUriChanges does not emit when _yieldControlToDDS fails', () async {
+      final closeStarted = Completer<void>();
+      final allowClose = Completer<void>();
+      var delayClientClose = false;
+      addTearDown(() {
+        if (!allowClose.isCompleted) {
+          allowClose.complete();
+        }
+      });
+
+      late final _DdsBackend backend;
+      final service = await createDartRuntimeServiceForTest(
+        config: const DartRuntimeServiceOptions(enableLogging: true),
+        backendBuilder: (frontend) {
+          backend = _DdsBackend(
+            frontend: frontend,
+            onClientClose: () async {
+              if (delayClientClose && !closeStarted.isCompleted) {
+                closeStarted.complete();
+                await allowClose.future;
+              }
+            },
+          );
+          return backend;
+        },
+      );
+
+      final events = <Uri?>[];
+      final sub = backend.ddsManager.ddsUriChanges.listen(events.add);
+      addTearDown(sub.cancel);
+
+      // 1. Invalid URI parameter fails with `invalidParams` and does not emit.
+      final invalidDdsClient = await _connectTestClient(service.uri);
+      await expectLater(
+        invalidDdsClient.callMethod(
+          _yieldControlToDdsMethod,
+          args: <String, Object?>{_uriParam: _invalidDdsRedirectUri},
+        ),
+        throwsA(
+          isA<RPCError>().having(
+            (e) => e.code,
+            'code',
+            RpcException.invalidParams.code,
+          ),
+        ),
+      );
+      final serverInvalidClient = service.clients.single;
+      await invalidDdsClient.dispose();
+      await invalidDdsClient.onDone;
+      await serverInvalidClient.done;
+      expect(events, isEmpty);
+
+      // 2. Incoming DDS disconnecting mid-yield fails and does not emit.
+      delayClientClose = true;
+      final nonDdsClient = await _connectTestClient(service.uri);
+      final serverNonDdsClient = service.clients.single;
+      final abortingDdsClient = await _connectTestClient(service.uri);
+      final serverAbortingDdsClient = service.clients.singleWhere(
+        (c) => c != serverNonDdsClient,
+      );
+
+      final abortedYieldFuture = expectLater(
+        abortingDdsClient.callMethod(
+          _yieldControlToDdsMethod,
+          args: <String, Object?>{_uriParam: _ddsRedirectUri},
+        ),
+        throwsA(isA<RPCError>()),
+      );
+      await closeStarted.future;
+      await abortingDdsClient.dispose();
+      await abortingDdsClient.onDone;
+      await serverAbortingDdsClient.done;
+      allowClose.complete();
+      await abortedYieldFuture;
+      await nonDdsClient.onDone;
+      await pumpEventQueue();
+      expect(events, isEmpty);
+
+      // 3. Second DDS rejected with `featureDisabled` while first DDS is
+      // active does not emit.
+      delayClientClose = false;
+      final activeDdsClient = await _connectTestClient(service.uri);
+      final competingDdsClient = await _connectTestClient(service.uri);
+      final response = await activeDdsClient.callMethod(
+        _yieldControlToDdsMethod,
+        args: <String, Object?>{_uriParam: _ddsRedirectUri},
+      );
+      expect(response.type, 'Success');
+      await competingDdsClient.onDone;
+      final expectedUri = Uri.parse(_ddsRedirectUri);
+      expect(events, [expectedUri]);
+
+      // Calling `_yieldControlToDDS` again while DDS is already connected is
+      // rejected with `featureDisabled` without emitting a duplicate URI.
+      await expectLater(
+        activeDdsClient.callMethod(
+          _yieldControlToDdsMethod,
+          args: <String, Object?>{_uriParam: _secondDdsRedirectUri},
+        ),
+        throwsA(
+          isA<RPCError>().having(
+            (e) => e.code,
+            'code',
+            RpcException.featureDisabled.code,
+          ),
+        ),
+      );
+      expect(events, [expectedUri]);
     });
   });
 }

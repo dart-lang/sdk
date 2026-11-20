@@ -21,10 +21,10 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/analysis_options/analysis_options.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_parser.dart';
 import 'package:analyzer/src/dart/analysis/results.dart' as engine;
 import 'package:analyzer/src/exception/exception.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/pub.dart';
@@ -184,7 +184,8 @@ class EditGetFixesHandler extends LegacyHandler
         if (errorLine == requestLine) {
           var workspace = DartChangeWorkspace(await server.currentSessions);
           var context = DartFixContext(
-            instrumentationService: server.instrumentationService,
+            instrumentationService:
+                AnalysisEngine.instance.instrumentationService,
             workspace: workspace,
             libraryResult: libraryResult,
             unitResult: unitResult,

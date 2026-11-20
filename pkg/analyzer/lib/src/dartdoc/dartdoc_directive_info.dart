@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/scanner/characters.dart';
-import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/util/comment.dart';
 import 'package:analyzer/src/utilities/string_search.dart';
 
@@ -272,16 +272,30 @@ class DartdocDirectiveInfo {
   static DartdocDirectiveInfo extractFromUnit(CompilationUnit unit) {
     var result = DartdocDirectiveInfo();
 
-    for (var directive in unit.directives) {
-      var comment = directive.documentationComment;
+    void extractFromComment(Comment? comment) {
       var rawText = getCommentNodeRawText(comment);
       result.extractTemplate(rawText);
     }
 
+    for (var directive in unit.directives.whereType<LibraryDirective>()) {
+      extractFromComment(directive.documentationComment);
+    }
+
     for (var declaration in unit.declarations2) {
-      var comment = declaration.documentationComment;
-      var rawText = getCommentNodeRawText(comment);
-      result.extractTemplate(rawText);
+      extractFromComment(declaration.documentationComment);
+
+      // A declaring formal parameter documents the field that it declares.
+      var namePart = switch (declaration) {
+        ClassDeclaration2() => declaration.namePart,
+        EnumDeclaration2() => declaration.namePart,
+        ExtensionTypeDeclaration2() => declaration.namePart,
+        _ => null,
+      };
+      if (namePart is PrimaryConstructorDeclarationImpl) {
+        for (var formalParameter in namePart.declaringFormalParameters) {
+          extractFromComment(formalParameter.documentationComment);
+        }
+      }
 
       var members = switch (declaration) {
         ClassDeclaration2() => declaration.body.members,
@@ -297,9 +311,7 @@ class DartdocDirectiveInfo {
 
       if (members != null) {
         for (var member in members) {
-          var comment = member.documentationComment;
-          var rawText = getCommentNodeRawText(comment);
-          result.extractTemplate(rawText);
+          extractFromComment(member.documentationComment);
         }
       }
     }

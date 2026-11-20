@@ -27,7 +27,6 @@ class ModuleBuilder with Builder<ir.Module> {
 
   final String moduleName;
   final Uri? sourceMapUrl;
-  final List<int> watchPoints;
   final DebugInfoTables? debugInfoTables;
   late final TypesBuilder types;
   late final functions = FunctionsBuilder(this);
@@ -50,16 +49,10 @@ class ModuleBuilder with Builder<ir.Module> {
   final bool allowRelaxedSimd;
 
   /// Create a new, initially empty, module.
-  ///
-  /// The [watchPoints] is a list of byte offsets within the final module of
-  /// bytes to watch. When the module is serialized, the stack traces leading
-  /// to the production of all watched bytes are printed. This can be used to
-  /// debug runtime errors happening at specific offsets within the module.
   ModuleBuilder(
     this.moduleName,
     this.sourceMapUrl, {
     ModuleBuilder? parent,
-    this.watchPoints = const [],
     this.allowRelaxedSimd = false,
   }) : debugInfoTables = sourceMapUrl == null ? null : DebugInfoTables() {
     types = TypesBuilder(parent: parent?.types);
@@ -134,7 +127,6 @@ class ModuleBuilder with Builder<ir.Module> {
       finalTypes,
       finalDataSegments,
       imports,
-      watchPoints,
       sourceMapUrl,
       _extraCustomSections,
       debugInfoTables,

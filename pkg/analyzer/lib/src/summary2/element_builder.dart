@@ -1987,15 +1987,10 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
     }
 
     // Handle declaring formal parameters.
-    var formalParameters = node.formalParameters.allFormalParameters;
-
-    var isFirstFormalExtensionTypeRepresentation = false;
+    RegularFormalParameterImpl? extensionTypeRepresentation;
     if (parent is ExtensionTypeDeclaration2Impl) {
-      var firstFormalParameter = formalParameters.firstOrNull;
-      isFirstFormalExtensionTypeRepresentation =
-          firstFormalParameter is RegularFormalParameterImpl;
-
-      if (!isFirstFormalExtensionTypeRepresentation) {
+      extensionTypeRepresentation = parent.representationFormalParameter;
+      if (extensionTypeRepresentation == null) {
         var fieldFragment = FieldFragmentImpl(name: null);
         fieldFragment.isAugmentation = isAugmentation;
         fieldFragment.isFinal = true;
@@ -2003,56 +1998,49 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
         _addChildFragment(fieldFragment);
       }
     }
-    for (var (i, formalParameter) in formalParameters.indexed) {
-      if (formalParameter is! RegularFormalParameterImpl) {
-        continue;
-      }
-
+    for (var formalParameter in node.declaringFormalParameters) {
       var isExtensionTypeRepresentation =
-          i == 0 && isFirstFormalExtensionTypeRepresentation;
-      if (formalParameter.finalOrVarKeyword != null ||
-          isExtensionTypeRepresentation) {
-        var name = _getFragmentName(formalParameter.name);
-        var fieldFragment = FieldFragmentImpl(name: name);
-        fieldFragment.isAugmentation = isAugmentation;
-        fieldFragment.isExplicitlyCovariant =
-            formalParameter.covariantKeyword != null;
-        fieldFragment.isFinal =
-            formalParameter.isFinal || isExtensionTypeRepresentation;
-        fieldFragment.isOriginDeclaringFormalParameter = true;
-        fieldFragment.hasImplicitType = !formalParameter.isExplicitlyTyped;
-        _linker.setFragmentNode(fieldFragment, formalParameter);
-        _addChildFragment(fieldFragment);
+          formalParameter == extensionTypeRepresentation;
+      var name = _getFragmentName(formalParameter.name);
+      var fieldFragment = FieldFragmentImpl(name: name);
+      fieldFragment.isAugmentation = isAugmentation;
+      fieldFragment.isExplicitlyCovariant =
+          formalParameter.covariantKeyword != null;
+      fieldFragment.isFinal =
+          formalParameter.isFinal || isExtensionTypeRepresentation;
+      fieldFragment.isOriginDeclaringFormalParameter = true;
+      fieldFragment.hasImplicitType = !formalParameter.isExplicitlyTyped;
+      _linker.setFragmentNode(fieldFragment, formalParameter);
+      _addChildFragment(fieldFragment);
 
-        var formalParameterName = name;
-        String? formalParameterPrivateName;
-        if (formalParameterName != null &&
-            formalParameter.isNamed &&
-            _libraryBuilder.element.featureSet.isEnabled(
-              Feature.private_named_parameters,
-            )) {
-          var publicName = correspondingPublicName(formalParameterName);
-          if (publicName != null) {
-            formalParameterPrivateName = formalParameterName;
-            formalParameterName = publicName;
-          }
+      var formalParameterName = name;
+      String? formalParameterPrivateName;
+      if (formalParameterName != null &&
+          formalParameter.isNamed &&
+          _libraryBuilder.element.featureSet.isEnabled(
+            Feature.private_named_parameters,
+          )) {
+        var publicName = correspondingPublicName(formalParameterName);
+        if (publicName != null) {
+          formalParameterPrivateName = formalParameterName;
+          formalParameterName = publicName;
         }
-
-        var formalFragment = FieldFormalParameterFragmentImpl(
-          name: formalParameterName,
-          nameOffset: null,
-          parameterKind: formalParameter.kind,
-          privateName: formalParameterPrivateName,
-        );
-        formalFragment.isDeclaring = true;
-
-        _linker.declaringFormalParameters[formalParameter] =
-            DeclaringFormalParameterInfo(
-              node: formalParameter,
-              fieldFragment: fieldFragment,
-              formalFragment: formalFragment,
-            );
       }
+
+      var formalFragment = FieldFormalParameterFragmentImpl(
+        name: formalParameterName,
+        nameOffset: null,
+        parameterKind: formalParameter.kind,
+        privateName: formalParameterPrivateName,
+      );
+      formalFragment.isDeclaring = true;
+
+      _linker.declaringFormalParameters[formalParameter] =
+          DeclaringFormalParameterInfo(
+            node: formalParameter,
+            fieldFragment: fieldFragment,
+            formalFragment: formalFragment,
+          );
     }
 
     _buildExecutableElementChildren(

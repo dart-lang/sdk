@@ -425,6 +425,133 @@ pubspec.yaml:
     );
   }
 
+  Future<void> test_migrateDesignWidgets_exports() async {
+    failTestOnErrorDiagnostic = false;
+
+    var flutterRoot = join(packagesRootPath, 'flutter');
+    newFile(join(flutterRoot, 'lib', 'material.dart'), '''
+class Widget {
+  const Widget();
+}
+class Placeholder extends Widget {
+  const Placeholder();
+}
+typedef RefreshCallback = Future<void> Function();
+''');
+    newFile(join(flutterRoot, 'lib', 'cupertino.dart'), '''
+typedef RefreshCallback = Future<void> Function();
+''');
+    newFile(join(flutterRoot, 'lib', TransformSetManager.dataFileName), '''
+version: 1
+transforms:
+  - title: 'Replace by material_ui'
+    date: 2026-01-01
+    library: 'package:flutter/material.dart'
+    changes:
+      - kind: 'replacedBy'
+        newLibrary: 'package:material_ui/material_ui.dart'
+  - title: 'Replace by cupertino_ui'
+    date: 2026-01-01
+    library: 'package:flutter/cupertino.dart'
+    changes:
+      - kind: 'replacedBy'
+        newLibrary: 'package:cupertino_ui/cupertino_ui.dart'
+''');
+
+    var materialUiRoot = join(packagesRootPath, 'material_ui');
+    newFile(join(materialUiRoot, 'lib', 'material_ui.dart'), '''
+class Widget {
+  const Widget();
+}
+class Placeholder extends Widget {
+  const Placeholder();
+}
+typedef RefreshCallback = Future<void> Function();
+''');
+
+    var cupertinoUiRoot = join(packagesRootPath, 'cupertino_ui');
+    newFile(join(cupertinoUiRoot, 'lib', 'cupertino_ui.dart'), '''
+typedef RefreshCallback = Future<void> Function();
+''');
+
+    writePackageConfig2(
+      projectFolderPath,
+      config: PackageConfigFileBuilder()
+        ..add(name: 'flutter', rootFolder: getFolder(flutterRoot))
+        ..add(name: 'material_ui', rootFolder: getFolder(materialUiRoot))
+        ..add(name: 'cupertino_ui', rootFolder: getFolder(cupertinoUiRoot)),
+    );
+
+    newPubspecYamlFile(projectFolderPath, '''
+name: x
+dependencies:
+  flutter: any
+''');
+
+    newFile(join(projectFolderPath, 'lib', 'barrel.dart'), '''
+library;
+
+export 'package:flutter/cupertino.dart' hide RefreshCallback;
+export 'package:flutter/material.dart';
+''');
+
+    newFile(join(projectFolderPath, 'lib', 'mixed.dart'), '''
+import 'package:flutter/material.dart';
+export 'package:flutter/material.dart';
+
+const Widget placeholder = Placeholder();
+''');
+
+    newFile(join(projectFolderPath, 'lib', 'plain_export.dart'), '''
+export 'package:flutter/material.dart';
+''');
+
+    await initialize();
+
+    var params = DartGetWorkspaceFixesParams(
+      diagnosticCodes: [diag.migrateDesignWidgets.lowerCaseName],
+    );
+    var result = await getWorkspaceFixes(params);
+
+    verifyResult(
+      result,
+      '''
+>>>>>>>>>> lib/barrel.dart
+>>>>>>>>>>   {0}: line 3, line 4
+library;
+
+export 'package:cupertino_ui/cupertino_ui.dart' hide RefreshCallback;
+export 'package:material_ui/material_ui.dart';
+>>>>>>>>>> lib/mixed.dart
+>>>>>>>>>>   {0}: line 1, line 2
+import 'package:material_ui/material_ui.dart';
+export 'package:material_ui/material_ui.dart';
+
+const Widget placeholder = Placeholder();
+>>>>>>>>>> lib/plain_export.dart
+>>>>>>>>>>   {0}: line 1
+export 'package:material_ui/material_ui.dart';
+>>>>>>>>>> pubspec.yaml
+>>>>>>>>>>   Update pubspec with the missing dependencies: line 3, line 4
+name: x
+dependencies:
+  cupertino_ui: any
+  flutter: any
+  material_ui: any
+''',
+      '''
+lib/barrel.dart:
+    migrate_design_widgets: 2
+lib/mixed.dart:
+    migrate_design_widgets: 2
+lib/plain_export.dart:
+    migrate_design_widgets: 1
+pubspec.yaml:
+    missing_dependency: 1
+''',
+    );
+  }
+
   Future<void> test_multiple() async {
     newFile(analysisOptionsPath, '''
 linter:

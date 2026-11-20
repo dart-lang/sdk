@@ -2591,46 +2591,50 @@ class _SocketStreamConsumer implements StreamConsumer<List<int>> {
   List<int>? buffer;
   bool paused = false;
   Completer<Socket>? streamCompleter;
+  Object? closedError;
+  StackTrace? closedStackTrace;
+  bool isClosed = false;
 
   _SocketStreamConsumer(this.socket);
 
   Future<Socket> addStream(Stream<List<int>> stream) {
     socket._ensureRawSocketSubscription();
-    final completer = streamCompleter = Completer<Socket>();
-    if (socket._raw != null) {
-      subscription = stream.listen(
-        (data) {
-          assert(!paused);
-          assert(buffer == null);
-          buffer = data;
-          offset = 0;
-          try {
-            write();
-          } catch (e) {
-            buffer = null;
-            offset = 0;
-
-            socket.destroy();
-            stop();
-            done(e);
-          }
-        },
-        onError: (error, [stackTrace]) {
-          socket.destroy();
-          done(error, stackTrace);
-        },
-        onDone: () {
-          // Note: stream only delivers done event if subscription is not paused.
-          // so it is crucial to keep subscription paused while writes are
-          // in flight.
-          assert(buffer == null);
-          done();
-        },
-        cancelOnError: true,
-      );
-    } else {
-      done();
+    if (isClosed || socket._raw == null) {
+      stream.listen(null).cancel();
+      final error = closedError;
+      if (error != null) {
+        return Future.error(error, closedStackTrace);
+      }
+      return Future.value(socket);
     }
+    final completer = streamCompleter = Completer<Socket>();
+    subscription = stream.listen(
+      (data) {
+        assert(!paused);
+        assert(buffer == null);
+        buffer = data;
+        offset = 0;
+        try {
+          write();
+        } catch (e) {
+          socket.destroy();
+          stop();
+          done(e);
+        }
+      },
+      onError: (error, [stackTrace]) {
+        socket.destroy();
+        done(error, stackTrace);
+      },
+      onDone: () {
+        // Note: stream only delivers done event if subscription is not paused.
+        // so it is crucial to keep subscription paused while writes are
+        // in flight.
+        assert(buffer == null);
+        done();
+      },
+      cancelOnError: true,
+    );
     return completer.future;
   }
 
@@ -2655,12 +2659,15 @@ class _SocketStreamConsumer implements StreamConsumer<List<int>> {
     if (sub == null) return;
 
     // We have something to write out.
-    if (offset! < buffer!.length) {
-      offset =
-          offset! + socket._write(buffer!, offset!, buffer!.length - offset!);
+    final buf = buffer!;
+    if (offset! < buf.length) {
+      offset = offset! + socket._write(buf, offset!, buf.length - offset!);
     }
+    // [socket._write] may synchronously trigger [_onError] -> [stop()],
+    // clearing [buffer] and [subscription].
+    if (subscription == null || buffer == null) return;
 
-    if (offset! < buffer!.length || !_previousWriteHasCompleted) {
+    if (offset! < buf.length || !_previousWriteHasCompleted) {
       // On Windows we might have written the whole buffer out but we are
       // still waiting for the write to complete. We should not resume the
       // subscription until the pending write finishes and we receive a
@@ -2682,6 +2689,11 @@ class _SocketStreamConsumer implements StreamConsumer<List<int>> {
   }
 
   void done([error, stackTrace]) {
+    if (error != null) {
+      closedError = error;
+      closedStackTrace = stackTrace;
+      isClosed = true;
+    }
     final completer = streamCompleter;
     if (completer != null) {
       if (error != null) {
@@ -2694,6 +2706,8 @@ class _SocketStreamConsumer implements StreamConsumer<List<int>> {
   }
 
   void stop() {
+    buffer = null;
+    offset = 0;
     final sub = subscription;
     if (sub == null) return;
     sub.cancel();
@@ -2919,6 +2933,8 @@ class _Socket extends Stream<Uint8List> implements Socket {
       _controllerClosed = true;
       _controller.close();
     }
+    _consumer.isClosed = true;
+    _consumer.stop();
     _consumer.done();
   }
 
@@ -2928,6 +2944,7 @@ class _Socket extends Stream<Uint8List> implements Socket {
       _controller.addError(error, stackTrace);
       _controller.close();
     }
+    _consumer.stop();
     _consumer.done(error, stackTrace);
   }
 

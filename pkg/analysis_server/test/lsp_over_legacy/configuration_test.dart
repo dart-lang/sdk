@@ -8,8 +8,10 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analyzer/instrumentation/noop_service.dart';
-import 'package:analyzer/instrumentation/service.dart';
+import 'package:analysis_server/src/session_logger/entry_keys.dart' as key;
+import 'package:analysis_server/src/session_logger/entry_kind.dart';
+import 'package:analysis_server/src/session_logger/log_entry.dart';
+import 'package:analysis_server/src/session_logger/session_logger_sink.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -56,6 +58,12 @@ void g() {
         params: DidChangeConfigurationParams().toJson(),
         jsonrpc: jsonRpcVersion,
       );
+
+  Iterable<LogEntry> get loggedExceptions {
+    var sink = sessionLogger.sink as SessionLoggerInMemorySink;
+    var entries = sink.capturedEntries;
+    return entries.where((entry) => entry.kind == EntryKind.exception);
+  }
 
   /// Returns the inlay hints for the marked range of [testCode].
   ///
@@ -211,8 +219,6 @@ void g() {
 
   Future<void> test_notification_invalidParams_logged() async {
     await initializeServer();
-    var instrumentationService = _RecordingInstrumentationService();
-    server.instrumentationService = instrumentationService;
 
     // Not a valid `lsp.notification`, because it has no `lspNotification`.
     serverChannel.simulateNotificationFromClient(
@@ -228,18 +234,14 @@ void g() {
     // A client error rather than a server failure, so it is logged as an error
     // and not as an exception (which would also be sent to the client as a
     // `server.error` notification and reported to crash reporting).
-    expect(instrumentationService.loggedExceptions, isEmpty);
-    expect(instrumentationService.loggedErrors, hasLength(1));
     expect(
-      instrumentationService.loggedErrors.single,
+      loggedExceptions.single.map[key.message] as String,
       startsWith("The 'lsp.notification' notification was not valid:"),
     );
   }
 
   Future<void> test_notification_malformed_logged() async {
     await initializeServer();
-    var instrumentationService = _RecordingInstrumentationService();
-    server.instrumentationService = instrumentationService;
 
     // Not a valid LSP NotificationMessage, because it has no `method`.
     serverChannel.simulateNotificationFromClient(
@@ -254,10 +256,8 @@ void g() {
     );
 
     // There is no response to report the failure in, so it is only logged.
-    expect(instrumentationService.loggedExceptions, isEmpty);
-    expect(instrumentationService.loggedErrors, hasLength(1));
     expect(
-      instrumentationService.loggedErrors.single,
+      loggedExceptions.single.map[key.message] as String,
       startsWith(
         "The 'lspNotification' parameter was not a valid LSP notification:",
       ),
@@ -266,8 +266,6 @@ void g() {
 
   Future<void> test_notification_unknownMethod_logged() async {
     await initializeServer();
-    var instrumentationService = _RecordingInstrumentationService();
-    server.instrumentationService = instrumentationService;
 
     // Unlike the optional `$/` notifications, a notification for an unknown
     // method that is not optional is an error for the handler.
@@ -289,10 +287,8 @@ void g() {
     // it must be logged as an error and not as an exception (which would also
     // be sent to the client as a `server.error` notification and reported to
     // crash reporting).
-    expect(instrumentationService.loggedExceptions, isEmpty);
-    expect(instrumentationService.loggedErrors, hasLength(1));
     expect(
-      instrumentationService.loggedErrors.single,
+      loggedExceptions.single.map[key.message] as String,
       'An error occurred while handling randomNotification notification: '
       'Unknown method randomNotification',
     );
@@ -300,8 +296,6 @@ void g() {
 
   Future<void> test_notification_unknownOptionalMethod_ignored() async {
     await initializeServer();
-    var instrumentationService = _RecordingInstrumentationService();
-    server.instrumentationService = instrumentationService;
 
     // Methods starting with `$/` are optional notifications per the LSP spec;
     // unregistered ones are silently accepted rather than reported as errors
@@ -319,8 +313,7 @@ void g() {
       createLegacyRequest(ServerGetVersionParams()),
     );
 
-    expect(instrumentationService.loggedExceptions, isEmpty);
-    expect(instrumentationService.loggedErrors, isEmpty);
+    expect(loggedExceptions, isEmpty);
   }
 
   Future<void> test_setClientCapabilities_afterLspRequest() async {
@@ -334,9 +327,6 @@ void g() {
       InlayHintKind.Parameter,
     ]);
 
-    var instrumentationService = _RecordingInstrumentationService();
-    server.instrumentationService = instrumentationService;
-
     // Capabilities that arrive afterwards must still have their configuration
     // fetched and applied, and completing the already-completed initialization
     // again must not fail.
@@ -346,7 +336,7 @@ void g() {
 
     hints = await getTestFileInlayHints();
     expect(hints.map((hint) => hint.kind), [InlayHintKind.Type]);
-    expect(instrumentationService.loggedExceptions, isEmpty);
+    expect(loggedExceptions, isEmpty);
   }
 
   Future<void> test_setClientCapabilities_invalidCapabilities() async {
@@ -377,8 +367,6 @@ void g() {
 
   Future<void> test_setClientCapabilities_malformedConfiguration() async {
     setConfigurationSupport();
-    var instrumentationService = _RecordingInstrumentationService();
-    server.instrumentationService = instrumentationService;
 
     var configRequest = await expectRequest(
       Method.workspace_configuration,
@@ -411,9 +399,8 @@ void g() {
       ),
       hasLength(1),
     );
-    expect(instrumentationService.loggedExceptions, hasLength(1));
     expect(
-      instrumentationService.loggedExceptions.single.toString(),
+      loggedExceptions.single.map[key.message] as String,
       contains('An error occurred while fetching the client configuration'),
     );
 
@@ -494,9 +481,6 @@ void g() {
     await sendClientCapabilities();
     await initializeServer();
 
-    var instrumentationService = _RecordingInstrumentationService();
-    server.instrumentationService = instrumentationService;
-
     // A client may send its capabilities again. The configuration is fetched
     // for the new capabilities and completing the already-completed
     // initialization again must not fail.
@@ -506,27 +490,6 @@ void g() {
 
     var hints = await getTestFileInlayHints();
     expect(hints.map((hint) => hint.kind), [InlayHintKind.Type]);
-    expect(instrumentationService.loggedExceptions, isEmpty);
-  }
-}
-
-/// An [InstrumentationService] that records the errors and exceptions logged
-/// to it.
-class _RecordingInstrumentationService extends NoopInstrumentationService {
-  final List<String> loggedErrors = [];
-  final List<Object> loggedExceptions = [];
-
-  @override
-  void logError(String message) {
-    loggedErrors.add(message);
-  }
-
-  @override
-  void logException(
-    Object exception, [
-    StackTrace? stackTrace,
-    List<InstrumentationServiceAttachment>? attachments,
-  ]) {
-    loggedExceptions.add(exception);
+    expect(loggedExceptions, isEmpty);
   }
 }

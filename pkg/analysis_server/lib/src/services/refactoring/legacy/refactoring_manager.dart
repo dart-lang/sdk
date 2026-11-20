@@ -175,7 +175,6 @@ class RefactoringManager {
             exception is InconsistentAnalysisException) {
           cancel();
         } else {
-          server.instrumentationService.logException(exception, stackTrace);
           server.sessionListener.logException(
             exception: exception,
             stackTrace: stackTrace,

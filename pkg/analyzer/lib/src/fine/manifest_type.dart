@@ -12,7 +12,6 @@ import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/fine/manifest_context.dart';
-import 'package:analyzer/src/fine/manifest_item.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 final class ManifestDynamicType extends ManifestType {
@@ -32,14 +31,12 @@ final class ManifestDynamicType extends ManifestType {
 }
 
 sealed class ManifestFunctionFormalParameter {
-  final ManifestMetadata metadata;
   final bool isRequired;
   final bool isCovariant;
   final FormalParameterDeclarationForm declarationForm;
   final ManifestType type;
 
   new({
-    required this.metadata,
     required this.isRequired,
     required this.isCovariant,
     required this.declarationForm,
@@ -47,15 +44,13 @@ sealed class ManifestFunctionFormalParameter {
   });
 
   bool match(MatchContext context, InternalFormalParameterElement element) {
-    return metadata.match(context, element.metadata) &&
-        element.isRequired == isRequired &&
+    return element.isRequired == isRequired &&
         element.isCovariant == isCovariant &&
         element.declarationForm == declarationForm &&
         type.match(context, element.type);
   }
 
   void write(BinaryWriter writer) {
-    metadata.write(writer);
     writer.writeBool(isRequired);
     writer.writeBool(isCovariant);
     writer.writeEnum(declarationForm);
@@ -72,7 +67,6 @@ class ManifestFunctionNamedFormalParameter
     InternalFormalParameterElement element,
   ) {
     return ManifestFunctionNamedFormalParameter._(
-      metadata: ManifestMetadata.encode(context, element.metadata),
       isRequired: element.isRequired,
       isCovariant: element.isCovariant,
       declarationForm: element.declarationForm,
@@ -83,7 +77,6 @@ class ManifestFunctionNamedFormalParameter
 
   factory read(BinaryReader reader) {
     return ManifestFunctionNamedFormalParameter._(
-      metadata: ManifestMetadata.read(reader),
       isRequired: reader.readBool(),
       isCovariant: reader.readBool(),
       declarationForm: reader.readEnum(FormalParameterDeclarationForm.values),
@@ -93,7 +86,6 @@ class ManifestFunctionNamedFormalParameter
   }
 
   new _({
-    required super.metadata,
     required super.isRequired,
     required super.isCovariant,
     required super.declarationForm,
@@ -122,7 +114,6 @@ class ManifestFunctionPositionalFormalParameter
     InternalFormalParameterElement element,
   ) {
     return ManifestFunctionPositionalFormalParameter._(
-      metadata: ManifestMetadata.encode(context, element.metadata),
       isRequired: element.isRequiredPositional,
       isCovariant: element.isCovariant,
       declarationForm: element.declarationForm,
@@ -132,7 +123,6 @@ class ManifestFunctionPositionalFormalParameter
 
   factory read(BinaryReader reader) {
     return ManifestFunctionPositionalFormalParameter._(
-      metadata: ManifestMetadata.read(reader),
       isRequired: reader.readBool(),
       isCovariant: reader.readBool(),
       declarationForm: reader.readEnum(FormalParameterDeclarationForm.values),
@@ -141,7 +131,6 @@ class ManifestFunctionPositionalFormalParameter
   }
 
   new _({
-    required super.metadata,
     required super.isRequired,
     required super.isCovariant,
     required super.declarationForm,

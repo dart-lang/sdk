@@ -49,11 +49,24 @@ final class Arm64StackFrame extends StackFrame {
   /// Offset of the last parameter slot, relative to FP
   static const int lastParameterOffsetFromFP = 2 * wordSize;
 
+  /// Offset of the saved caller FP relative to FP.
+  static const int savedCallerFpOffsetFromFP = 0;
+
+  /// Offset of the saved caller PC relative to FP.
+  static const int savedCallerPcOffsetFromFP = 1 * wordSize;
+
+  /// Offset of the Code object relative to FP.
+  static const int codeOffsetFromFP = -1 * wordSize;
+
   /// Offset of the saved pool pointer relative to FP.
   static const int poolPointerOffsetFromFP = -2 * wordSize;
 
   /// Offset of the 0-th allocated stack slot, relative to FP
-  static const int _firstSlotOffsetFromFP = -3 * wordSize;
+  static const int firstSlotOffsetFromFP = -3 * wordSize;
+
+  /// Offset of the suspend state relative to FP, in bytes.
+  /// If present, suspend state always occupies the first slot in the frame.
+  static const int suspendStateOffsetFromFP = firstSlotOffsetFromFP;
 
   /// Number of stack slots used by suspend state.
   late final int _suspendStateStackSlots = (function.isSuspendable ? 1 : 0);
@@ -158,7 +171,7 @@ final class Arm64StackFrame extends StackFrame {
   }
 
   int _slotOffsetFromFP(int stackSlotIndex) =>
-      _firstSlotOffsetFromFP - stackSlotIndex * wordSize;
+      firstSlotOffsetFromFP - stackSlotIndex * wordSize;
 
   @override
   int offsetFromFP(StackLocation location) {
@@ -166,12 +179,6 @@ final class Arm64StackFrame extends StackFrame {
     return _slotOffsetFromFP(
       location.stackSlotIndex + (location is SimdSpillSlot ? 1 : 0),
     );
-  }
-
-  @override
-  int get suspendStateOffsetFromFP {
-    assert(function.isSuspendable);
-    return _slotOffsetFromFP(0);
   }
 
   int _parameterSlotIndex(int paramIndex) {

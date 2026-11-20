@@ -1437,11 +1437,11 @@ class LibraryManifestPrinter extends ManifestPrinter {
 
   void _writeFormalParameterDefaultValues(ExecutableItem item) {
     if (configuration.withElementManifests) {
-      var indexed = item.formalParameterDefaultValues.indexed
-          .where((entry) => entry.$2 != null)
+      var indexed = item.declaredFormalParameters.indexed
+          .where((entry) => entry.$2.defaultValue != null)
           .toList();
       sink.writeElements('formalParameterDefaultValues', indexed, (entry) {
-        _writeNode('[${entry.$1}]', entry.$2);
+        _writeNode('[${entry.$1}]', entry.$2.defaultValue);
       });
     }
   }

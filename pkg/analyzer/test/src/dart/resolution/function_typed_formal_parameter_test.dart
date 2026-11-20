@@ -17,6 +17,103 @@ main() {
 @reflectiveTest
 class FunctionTypedFormalParameterResolutionTest
     extends PubPackageResolutionTest {
+  test_defaultValue_inFunctionExpression() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const foo = 0;
+
+var g = (void h([int a = foo])) {};
+//                     ^
+// [diag.defaultValueInFunctionType] Parameters in a function type can't have default values.
+''');
+
+    var node = result.findNode.regularFormalParameter('int a');
+    var element = node.declaredFragment!.element;
+    assertResolvedNodeText(element.constantInitializer2!, r'''
+UnqualifiedNameExpression
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::foo
+    type: int
+  staticType: int
+V1: SimpleIdentifier
+  token: foo
+  element: <testLibrary>::@getter::foo
+  staticType: int
+''');
+
+    assertElementDefaultValueIsClauseValue(node);
+    assertDartObjectText(element.computeConstantValue(), r'''
+int 0
+  variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
+  test_defaultValue_inLocalFunction() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const foo = 0;
+
+void f() {
+  void g(void h([int a = foo])) {}
+//     ^
+// [diag.unusedElement] The declaration 'g' isn't referenced.
+//                     ^
+// [diag.defaultValueInFunctionType] Parameters in a function type can't have default values.
+}
+''');
+
+    var node = result.findNode.regularFormalParameter('int a');
+    var element = node.declaredFragment!.element;
+    assertResolvedNodeText(element.constantInitializer2!, r'''
+UnqualifiedNameExpression
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::foo
+    type: int
+  staticType: int
+V1: SimpleIdentifier
+  token: foo
+  element: <testLibrary>::@getter::foo
+  staticType: int
+''');
+
+    assertElementDefaultValueIsClauseValue(node);
+    assertDartObjectText(element.computeConstantValue(), r'''
+int 0
+  variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
+  test_defaultValue_inTopLevelFunction() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const foo = 0;
+
+void f(void g([int a = foo])) {}
+//                   ^
+// [diag.defaultValueInFunctionType] Parameters in a function type can't have default values.
+''');
+
+    var node = result.findNode.regularFormalParameter('int a');
+    var element = node.declaredFragment!.element;
+    assertResolvedNodeText(element.constantInitializer2!, r'''
+UnqualifiedNameExpression
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::foo
+    type: int
+  staticType: int
+V1: SimpleIdentifier
+  token: foo
+  element: <testLibrary>::@getter::foo
+  staticType: int
+''');
+
+    assertElementDefaultValueIsClauseValue(node);
+    assertDartObjectText(element.computeConstantValue(), r'''
+int 0
+  variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
   test_hasTypeParameters() async {
     var result = await resolveTestCode('''
 void f<V>(T p<T, U>(U a, V b)) {}

@@ -20,6 +20,37 @@ main() {
 @reflectiveTest
 class GenericTypeAliasResolutionTest extends PubPackageResolutionTest
     with GenericTypeAliasResolutionTestCases {
+  test_defaultValue() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const foo = 0;
+
+typedef F = void Function([int a = foo]);
+//                               ^
+// [diag.defaultValueInFunctionType] Parameters in a function type can't have default values.
+''');
+
+    var node = result.findNode.singleRegularFormalParameter;
+    var element = node.declaredFragment!.element;
+    assertResolvedNodeText(element.constantInitializer2!, r'''
+UnqualifiedNameExpression
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@getter::foo
+    type: int
+  staticType: int
+V1: SimpleIdentifier
+  token: foo
+  element: <testLibrary>::@getter::foo
+  staticType: int
+''');
+
+    assertElementDefaultValueIsClauseValue(node);
+    assertDartObjectText(element.computeConstantValue(), r'''
+int 0
+  variable: <testLibrary>::@topLevelVariable::foo
+''');
+  }
+
   test_genericFunctionTypeCannotBeTypeArgument_beforeGenericMetadata() async {
     newFile('$testPackageLibPath/a.dart', '''
 typedef G = Function<S>();

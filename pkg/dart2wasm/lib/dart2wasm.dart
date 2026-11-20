@@ -139,10 +139,6 @@ final List<Option> options = [
   UriOption("packages", (o, value) => o.packagesPath = value),
   UriOption("libraries-spec", (o, value) => o.librariesSpecPath = value),
   UriOption("platform", (o, value) => o.platformPath = value),
-  IntMultiOption(
-    "watch",
-    (o, values) => o.translatorOptions.watchPoints = values,
-  ),
   StringMultiOption(
     "define",
     (o, values) => o.environment.addAll(processEnvironment(values)),

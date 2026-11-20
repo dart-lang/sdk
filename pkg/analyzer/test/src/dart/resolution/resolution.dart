@@ -91,6 +91,14 @@ mixin ResolutionTest implements ResourceProviderMixin {
     }
   }
 
+  /// Asserts that `constantInitializer2` of the element declared by [node] is
+  /// the current value of the node's default clause, not a replaced node or a
+  /// detached copy from linking.
+  void assertElementDefaultValueIsClauseValue(FormalParameter node) {
+    var element = node.declaredFragment!.element;
+    expect(element.constantInitializer2, same(node.defaultClause!.value2));
+  }
+
   void assertElementNull(Element? element) {
     expect(element, isNull);
   }

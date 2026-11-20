@@ -177,6 +177,7 @@ class ImportAnalyzerDeclarationsKindTest extends ImportAnalyzerTest {
 class C1 {}
 class D1 = C1 with M1;
 enum E1 {}
+extension type ET1(int i) {}
 typedef void F1();
 typedef G1 = void Function();
 mixin M1 {}
@@ -190,6 +191,7 @@ int v1 = 0;
 class C2 {}
 class D2 = C2 with M2;
 enum E2 {}
+extension type ET2(int i) {}
 typedef void F2();
 typedef G2 = void Function();
 mixin M2 {}
@@ -204,6 +206,7 @@ int v2 = 0;
         element<ClassElement>(name: 'C1'),
         element<ClassElement>(name: 'D1'),
         element<EnumElement>(name: 'E1'),
+        element<ExtensionTypeElement>(name: 'ET1'),
         element<TypeAliasElement>(name: 'F1'),
         element<TypeAliasElement>(name: 'G1'),
         element<MixinElement>(name: 'M1'),
@@ -218,6 +221,7 @@ int v2 = 0;
         element<ClassElement>(name: 'C2'),
         element<ClassElement>(name: 'D2'),
         element<EnumElement>(name: 'E2'),
+        element<ExtensionTypeElement>(name: 'ET2'),
         element<TypeAliasElement>(name: 'F2'),
         element<TypeAliasElement>(name: 'G2'),
         element<MixinElement>(name: 'M2'),

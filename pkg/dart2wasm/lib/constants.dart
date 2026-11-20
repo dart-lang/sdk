@@ -2194,6 +2194,7 @@ class _ConstantAccessor {
     translator.globals.writeGlobal(b, definedGlobal);
     b.local_get(temp);
     b.end();
+    translator.recordInitializerTrace(initFunctionBuilder.function, b);
     if (!initFunctionBuilder.body.hasPatchPoints) {
       initFunctionBuilder.build();
     } else {
@@ -2226,6 +2227,7 @@ class _ConstantAccessor {
     b.table_set(tableImporter.get(table, module));
     b.local_get(temp);
     b.end();
+    translator.recordInitializerTrace(initFunctionBuilder.function, b);
     if (!initFunctionBuilder.body.hasPatchPoints) {
       initFunctionBuilder.build();
     } else {
@@ -2252,6 +2254,10 @@ class _ConstantAccessor {
     info._codeGen(info, definedGlobal.initializer, false);
     definedGlobal.initializer.end();
     constants.currentlyCreating = false;
+    translator.recordInitializerTrace(
+      definedGlobal.global,
+      definedGlobal.initializer,
+    );
 
     return definedGlobal.build();
   }

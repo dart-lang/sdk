@@ -18,8 +18,7 @@ import 'js_util_optimizer.dart';
 import 'static_interop_mock_validator.dart';
 
 class SharedInteropTransformer extends Transformer {
-  final bool _supportsJsUtil;
-
+  final Procedure _boolToJS;
   final Procedure _callMethodVarArgs;
   final Procedure _createJSInteropWrapper;
   final JsInteropDiagnosticReporter _diagnosticReporter;
@@ -57,6 +56,7 @@ class SharedInteropTransformer extends Transformer {
   final Procedure _stringToJS;
   final StaticInteropMockValidator _staticInteropMockValidator;
   final StatefulStaticTypeContext _staticTypeContext;
+  final bool _supportsJsUtil;
   final TypeEnvironment _typeEnvironment;
   final Procedure _typeofEquals;
 
@@ -69,8 +69,9 @@ class SharedInteropTransformer extends Transformer {
     this._diagnosticReporter,
     this._exportChecker,
     this._extensionIndex,
-  ) : _supportsJsUtil = _typeEnvironment.coreTypes.index.containsLibrary(
-        'dart:js_util',
+  ) : _boolToJS = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
+        'dart:js_interop',
+        'BoolToJSBoolean|get#toJS',
       ),
       _callMethodVarArgs = _typeEnvironment.coreTypes.index
           .getTopLevelProcedure(
@@ -187,6 +188,9 @@ class SharedInteropTransformer extends Transformer {
         _typeEnvironment,
       ),
       _staticTypeContext = StatefulStaticTypeContext.stacked(_typeEnvironment),
+      _supportsJsUtil = _typeEnvironment.coreTypes.index.containsLibrary(
+        'dart:js_util',
+      ),
       _typeofEquals = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
         'dart:js_interop',
         'JSAnyUtilityExtension|typeofEquals',
@@ -529,22 +533,6 @@ class SharedInteropTransformer extends Transformer {
     );
 
     for (var MapEntry(key: exportName, value: exports) in exportMap.entries) {
-      ExpressionStatement setProperty(
-        VariableGet jsObject,
-        String propertyName,
-        StaticInvocation jsValue,
-      ) {
-        // `jsObject[propertyName] = jsValue`
-        return ExpressionStatement(
-          StaticInvocation(
-            _setProperty,
-            Arguments(
-              ExpressionList(jsObject, StringLiteral(propertyName), jsValue),
-            ),
-          ),
-        )..fileOffset = invocation.fileOffset;
-      }
-
       var firstExport = exports.first;
       // With methods, there's only one export per export name.
       if (firstExport is Procedure &&
@@ -692,6 +680,7 @@ class SharedInteropTransformer extends Transformer {
             ),
           );
         }
+        block.add(setEnumerableTrue(getSetMap));
         // Call `Object.defineProperty` to define the export name with the
         // 'get' and/or 'set' mapping. This allows us to treat get/set
         // semantics as methods.
@@ -1080,4 +1069,27 @@ class SharedInteropTransformer extends Transformer {
     ExpressionList(asJSObject(proto ?? NullLiteral(), true)),
     ExtensionType(_jsObject, Nullability.nonNullable),
   );
+
+  /// Set the property `enumerable` to true in `JSObject` [obj].
+  ExpressionStatement setEnumerableTrue(Variable obj) => setProperty(
+    VariableGet(obj),
+    'enumerable',
+    StaticInvocation(_boolToJS, Arguments(ExpressionList(BoolLiteral(true)))),
+  );
+
+  /// Set property [propertyName] in `JSObject` [jsObject] to [jsValue].
+  ExpressionStatement setProperty(
+    VariableGet jsObject,
+    String propertyName,
+    StaticInvocation jsValue,
+  ) {
+    return ExpressionStatement(
+      StaticInvocation(
+        _setProperty,
+        Arguments(
+          ExpressionList(jsObject, StringLiteral(propertyName), jsValue),
+        ),
+      ),
+    )..fileOffset = invocation.fileOffset;
+  }
 }

@@ -99,7 +99,7 @@ import 'package:analysis_server/src/services/completion/completion_state.dart';
 import 'package:analysis_server/src/services/execution/execution_context.dart';
 import 'package:analysis_server/src/services/flutter/widget_descriptions.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring_manager.dart';
-import 'package:analysis_server/src/session_logger/session_logger.dart';
+import 'package:analysis_server/src/session_logger/session_listener.dart';
 import 'package:analysis_server/src/status/performance_logger.dart';
 import 'package:analysis_server/src/utilities/extensions/resource_provider.dart';
 import 'package:analysis_server/src/utilities/process.dart';
@@ -109,7 +109,6 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/analysis_options/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/status.dart' as analysis;
 import 'package:analyzer/src/generated/sdk.dart';
@@ -422,8 +421,7 @@ class LegacyAnalysisServer extends AnalysisServer {
     DartSdkManager sdkManager,
     AnalyticsManager analyticsManager,
     CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder,
-    InstrumentationService instrumentationService,
-    SessionLogger sessionLogger, {
+    SessionListener sessionListener, {
     http.Client? httpClient,
     ProcessRunner? processRunner,
     super.requestStatistics,
@@ -446,8 +444,7 @@ class LegacyAnalysisServer extends AnalysisServer {
          analyticsManager,
          crashReportingAttachmentsBuilder,
          baseResourceProvider,
-         instrumentationService,
-         sessionLogger,
+         sessionListener,
          httpClient,
          processRunner,
          NotificationManager(channel, baseResourceProvider.pathContext),
@@ -716,9 +713,6 @@ class LegacyAnalysisServer extends AnalysisServer {
         } else {
           // There is no response to carry an error back to the client, so an
           // unknown notification can only be logged.
-          instrumentationService.logError(
-            'Unknown notification ${notification.event}',
-          );
           sessionListener.logException(
             exception: 'Unknown notification ${notification.event}',
           );
@@ -734,7 +728,6 @@ class LegacyAnalysisServer extends AnalysisServer {
         var attachments = crashReportingAttachmentsBuilder.forException(
           exception,
         );
-        instrumentationService.logException(fatalException, null, attachments);
         sessionListener.logException(
           exception: fatalException,
           attachments: attachments,
@@ -811,11 +804,6 @@ class LegacyAnalysisServer extends AnalysisServer {
           );
           var attachments = crashReportingAttachmentsBuilder.forException(
             exception,
-          );
-          instrumentationService.logException(
-            fatalException,
-            null,
-            attachments,
           );
           sessionListener.logException(
             exception: fatalException,
@@ -1152,7 +1140,6 @@ class LegacyAnalysisServer extends AnalysisServer {
     // that the shutdown response can be sent and logged.
     unawaited(
       Future(() {
-        instrumentationService.shutdown();
         sessionListener.shutdown();
         channel.close();
       }),

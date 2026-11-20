@@ -192,6 +192,8 @@ class UseResultVerifier {
         parent is IndexExpression2 ||
         parent is InterpolationExpression ||
         parent is ListLiteral ||
+        parent is LogicalAnd ||
+        parent is LogicalOr ||
         parent is MapLiteralEntry ||
         parent is NamedArgument ||
         parent is PatternAssignment ||
