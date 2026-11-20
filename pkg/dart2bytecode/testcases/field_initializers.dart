@@ -25,4 +25,17 @@ class B extends A {
   B.c2(int i, int j) : foo6 = 50, super.redirecting2(i, j, 51);
 }
 
+class C {
+  late int foo9;
+  late int? foo10 = null;
+  late int foo11 = 52;
+  late String foo12 = 'bar';
+  late final int foo13 = 53;
+  late int foo14 = foo11 + 1;
+  late int foo15 = foo10 ?? foo11;
+
+  C();
+  C.c2(this.foo11);
+}
+
 main() {}

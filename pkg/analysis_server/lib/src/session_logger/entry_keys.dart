@@ -27,5 +27,9 @@ const String sender = 'sender';
 /// The key used in an entry to access the stackTrace of an exception.
 const String stackTrace = 'stackTrace';
 
+/// The key used in an entry to access the text message associated with an
+/// exception or an info.
+const String textMessage = 'textMessage';
+
 /// The key used in an entry to access the sender of a message.
 const String time = 'time';

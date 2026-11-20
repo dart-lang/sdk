@@ -109,6 +109,7 @@ abstract base class Configuration(
           vmOffsets,
           objectLayout,
           consumeGeneratedCode,
+          compilePlatform: compilePlatform,
         ),
       };
 

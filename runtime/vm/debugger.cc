@@ -534,13 +534,46 @@ void ActivationFrame::GetPcDescriptors() {
   }
 }
 
+#if defined(DART_DYNAMIC_MODULES)
+// Returns whether the bytecode instruction before return_address is a pause
+// point for single stepping: either it starts the source position range that
+// starts at range_start, or it is a return, as compiled code checks for single
+// stepping before every return.
+static bool IsPausePointInBytecode(uword range_start, uword return_address) {
+  if (range_start == 0) {
+    return false;
+  }
+  if (KernelBytecode::Next(range_start) == return_address) {
+    return true;
+  }
+  // Find the instruction before return_address by walking forward from the
+  // start of its range.
+  uword instr = range_start;
+  for (uword next = KernelBytecode::Next(instr); next < return_address;
+       next = KernelBytecode::Next(instr)) {
+    instr = next;
+  }
+  return KernelBytecode::IsReturnOpcode(
+      reinterpret_cast<const KBCInstr*>(instr));
+}
+#endif
+
 // If not token_pos_initialized_, compute token_pos_, try_index_ and,
 // if not IsInterpreted(), also compute deopt_id_.
 TokenPosition ActivationFrame::TokenPos() {
   if (!token_pos_initialized_) {
     token_pos_ = TokenPosition::kNoSource;
     if (IsInterpreted()) {
+#if defined(DART_DYNAMIC_MODULES)
+      uword range_start = 0;
+      token_pos_ = bytecode().GetTokenIndexOfPC(pc_, &range_start);
+      // TokenPos uses the position of the function for the whole bytecode of
+      // implicit accessors, which has no source positions.
+      is_bytecode_pause_point_ = !bytecode().HasSourcePositions() ||
+                                 IsPausePointInBytecode(range_start, pc_);
+#else
       token_pos_ = bytecode().GetTokenIndexOfPC(pc_);
+#endif
       try_index_ = bytecode().GetTryIndexAtPc(pc_);
       // Implicit field accessors run shared bytecode without source
       // positions, so use the position of the field, as the JIT does.
@@ -636,6 +669,14 @@ bool ActivationFrame::IsDebuggable() const {
   ASSERT(!function().IsNull());
   return Debugger::IsDebuggable(function());
 }
+
+#if defined(DART_DYNAMIC_MODULES)
+bool ActivationFrame::IsBytecodePausePoint() {
+  ASSERT(IsInterpreted());
+  TokenPos();  // Computes is_bytecode_pause_point_.
+  return is_bytecode_pause_point_;
+}
+#endif
 
 void ActivationFrame::PrintContextLevelError(const char* message) {
   OS::PrintErr("Cannot locate context level: %s\n", message);
@@ -848,7 +889,7 @@ void ActivationFrame::GetDescIndices() {
   }
   GetVarDescriptors();
 
-  TokenPosition activation_token_pos = TokenPos();
+  TokenPosition activation_token_pos = TokenPos().ToRealIfSynthetic();
   if (!activation_token_pos.IsDebugPause() || kind_ != kRegular) {
     // We don't have a token position for this frame, so can't determine
     // which variables are visible.
@@ -1336,7 +1377,7 @@ void ActivationFrame::PrintToJSONObjectRegular(JSONObject* jsobj) {
   const Script& script = Script::Handle(SourceScript());
   jsobj->AddProperty("type", "Frame");
   jsobj->AddProperty("kind", KindToCString(kind_));
-  const TokenPosition& pos = TokenPos();
+  const TokenPosition& pos = TokenPos().ToRealIfSynthetic();
   jsobj->AddLocation(script, pos);
   jsobj->AddProperty("function", function());
   if (IsInterpreted()) {
@@ -1378,7 +1419,7 @@ void ActivationFrame::PrintToJSONObjectAsyncAwaiter(JSONObject* jsobj) {
   jsobj->AddProperty("type", "Frame");
   jsobj->AddProperty("kind", KindToCString(kind_));
   const Script& script = Script::Handle(SourceScript());
-  const TokenPosition& pos = TokenPos();
+  const TokenPosition& pos = TokenPos().ToRealIfSynthetic();
   jsobj->AddLocation(script, pos);
   jsobj->AddProperty("function", function());
   if (IsInterpreted()) {
@@ -2600,7 +2641,10 @@ void GroupDebugger::MakeCodeBreakpointAtUnsafe(Thread* thread,
     const uword start = bytecode.PayloadStart();
     bytecode::BytecodeSourcePositionsIterator iter(zone, bytecode);
     while (iter.MoveNext()) {
-      if (iter.TokenPos() == loc->token_pos_) {
+      // Don't break at the return address of a call to debugger(), which has
+      // the same position as the call. Stepping out of debugger() pauses
+      // there instead.
+      if (iter.TokenPos() == loc->token_pos_ && !iter.IsDebuggerCallReturn()) {
         // Breakpoints are set and located using the address of the instruction
         // following the breakpoint instruction, since frames contain
         // return addresses.
@@ -2619,6 +2663,9 @@ void GroupDebugger::MakeCodeBreakpointAtUnsafe(Thread* thread,
     ASSERT(!code.IsNull());
     const uword start = code.PayloadStart();
     const auto& desc = PcDescriptors::Handle(zone, code.pc_descriptors());
+    // The debug step check at the return address of a call to debugger() has
+    // the same position as the call, but has its own descriptor kind that
+    // is not included here, so no breakpoint is set there.
     PcDescriptors::Iterator iter(desc, kSafepointKind);
     while (iter.MoveNext()) {
       if (iter.TokenPos() == loc->token_pos_) {
@@ -3644,10 +3691,11 @@ void Debugger::HandleSteppingRequest() {
     }
     NotifySingleStepping(true);
     SetSyncSteppingFramePointer(sync_caller);
-    // The bytecode interpreter checks for single stepping at every
-    // instruction, so without this it pauses again in the caller after
-    // the return. Compiled code has no pause point there, so setting
-    // this is harmless in that case.
+    // In interpreted code, the instruction after a call can still be a pause
+    // point with the position of the call, for example the ReturnTOS of
+    // `=> foo()`, so without this the debugger can pause again at the call
+    // in the caller after the return. Compiled code has no pause point there,
+    // so setting this is harmless in that case.
     //
     // Note: there is one case where a pause immediately after stepping out
     // is wanted: a call to debugger(). Thus, PauseDeveloper must reset the last
@@ -4137,6 +4185,17 @@ ErrorPtr Debugger::PauseStepping() {
     // bytecode interpreter which checks single stepping at each instruction.
     return Error::null();
   }
+
+#if defined(DART_DYNAMIC_MODULES)
+  // The bytecode interpreter checks single stepping at every instruction,
+  // but only some instructions are pause points, like the explicit checks in
+  // compiled code. In particular, the instructions after a call inherit the
+  // source position of the call, and compiled code does not pause at the call
+  // again after it returns.
+  if (frame->IsInterpreted() && !frame->IsBytecodePausePoint()) {
+    return Error::null();
+  }
+#endif
 
   // If there is an active breakpoint at this pc, then the last stepping
   // information should have been set appropriately to bail out above.

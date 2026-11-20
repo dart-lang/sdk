@@ -132,6 +132,28 @@ class ModuleSnapshot : public AllStatic {
   };
 };
 
+// List of stubs included into a platform snapshot.
+// Should match StubFactory.platformStubs
+// declared in pkg/native_compiler/lib/back_end/stub_code_generator.dart.
+#define PLATFORM_STUB_LIST(V)                                                  \
+  V(DynamicInvocationForwarder)                                                \
+  V(InvokeDartCode)                                                            \
+  V(InvokeDartCodeFromBytecode)                                                \
+  V(Await)                                                                     \
+  V(AwaitWithTypeCheck)                                                        \
+  V(YieldAsyncStar)                                                            \
+  V(SuspendSyncStarAtStart)                                                    \
+  V(SuspendSyncStarAtYield)                                                    \
+  V(InitAsync)                                                                 \
+  V(InitAsyncStar)                                                             \
+  V(InitSyncStar)                                                              \
+  V(Resume)                                                                    \
+  V(ReturnAsync)                                                               \
+  V(ReturnAsyncNotFuture)                                                      \
+  V(ReturnAsyncStar)                                                           \
+  V(AsyncExceptionHandler)                                                     \
+  V(CloneSuspendState)
+
 class Deserializer;
 
 class DeserializationCluster : public ZoneObject {
@@ -2404,6 +2426,9 @@ void Deserializer::Deserialize() {
   AddBaseObject(Object::uninitialized_index());
   AddBaseObject(Object::uninitialized_data());
   AddBaseObject(Object::mutable_empty_array());
+#define ADD_STUB_BASE_OBJECT(stub) AddBaseObject(StubCode::stub());
+  PLATFORM_STUB_LIST(ADD_STUB_BASE_OBJECT)
+#undef ADD_STUB_BASE_OBJECT
   AddBaseObject(StubCode::InstantiateTypeArguments());
   AddBaseObject(StubCode::CallBootstrapNative());
 

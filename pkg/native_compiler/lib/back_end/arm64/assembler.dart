@@ -8,6 +8,8 @@ import 'package:native_compiler/back_end/assembler.dart';
 import 'package:native_compiler/back_end/code.dart';
 import 'package:native_compiler/back_end/locations.dart';
 import 'package:native_compiler/back_end/object_pool.dart';
+import 'package:native_compiler/back_end/stub_code_generator.dart'
+    show PlatformStub;
 import 'package:native_compiler/runtime/object_layout.dart';
 import 'package:native_compiler/runtime/vm_defs.dart';
 import 'package:cfg/ir/constant_value.dart';
@@ -925,15 +927,14 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     addCallSiteMetadata?.call(.stubCall);
   }
 
-  // TODO: remove after all stubs are implemented in the compiler
-  void callVmStub(StubCode vmStub) {
-    loadFromPool(codeReg, vmStub);
+  void callPlatformStub(PlatformStub stub) {
+    loadFromPool(codeReg, stub);
     ldr(LR, fieldAddress(codeReg, vmOffsets.Code_entry_point_offset.first));
     blr(LR);
     addCallSiteMetadata?.call(.stubCall);
   }
 
-  void jumpStub(Code stub) {
+  void jumpPlatformStub(PlatformStub stub) {
     loadFromPool(codeReg, stub);
     ldr(LR, fieldAddress(codeReg, vmOffsets.Code_entry_point_offset.first));
     br(LR);

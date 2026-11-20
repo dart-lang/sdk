@@ -554,14 +554,16 @@ final class Arm64CodeGenerator extends CodeGenerator {
     assert(inputReg(instr, 0) == returnReg);
     switch (graph.function.asyncMarker) {
       case .Async:
-        _asm.jumpStub(
-          instr.value.type.canBeFuture
-              ? stubFactory.returnAsyncStub
-              : stubFactory.returnAsyncNotFutureStub,
+        _asm.jumpPlatformStub(
+          stubFactory.getPlatformStub(
+            instr.value.type.canBeFuture
+                ? StubCode.ReturnAsync
+                : StubCode.ReturnAsyncNotFuture,
+          ),
         );
         return;
       case .AsyncStar:
-        _asm.jumpStub(stubFactory.returnAsyncStarStub);
+        _asm.jumpPlatformStub(stubFactory.getPlatformStub(.ReturnAsyncStar));
         return;
       case .SyncStar:
         // Overwrite the return value to indicate the end of iteration.
@@ -862,7 +864,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
       CallBootstrapNativeStub.nativeFunctionReg,
       NativeFunction(instr.target),
     );
-    _asm.callVmStub(StubCode.CallBootstrapNative);
+    _asm.callPlatformStub(stubFactory.getPlatformStub(.CallBootstrapNative));
     _asm.ldr(returnReg, _asm.address(stackPointerReg, 0));
   }
 
@@ -2018,7 +2020,9 @@ final class Arm64CodeGenerator extends CodeGenerator {
       InstantiateTypeArgumentsStub.uninstantiatedTypeArgumentsReg,
       ConstantValue(TypeArgumentsConstant(instr.types)),
     );
-    _asm.callVmStub(StubCode.InstantiateTypeArguments);
+    _asm.callPlatformStub(
+      stubFactory.getPlatformStub(.InstantiateTypeArguments),
+    );
   }
 
   @override
@@ -3248,19 +3252,21 @@ final class Arm64CodeGenerator extends CodeGenerator {
   void visitEnterSuspendableFunction(EnterSuspendableFunction instr) {
     final asyncMarker = graph.function.asyncMarker;
     final stub = switch (asyncMarker) {
-      .Async => stubFactory.initAsyncStub,
-      .AsyncStar => stubFactory.initAsyncStarStub,
-      .SyncStar => stubFactory.initSyncStarStub,
+      .Async => StubCode.InitAsync,
+      .AsyncStar => StubCode.InitAsyncStar,
+      .SyncStar => StubCode.InitSyncStar,
       .Sync => throw 'Unexpected async marker',
     };
-    _asm.callStub(stub);
+    _asm.callPlatformStub(stubFactory.getPlatformStub(stub));
     // Suspend async* and sync* functions at the beginning.
     if (asyncMarker == .AsyncStar) {
       _asm.mov(SuspendStub.argumentReg, nullReg);
-      _asm.callStub(stubFactory.yieldAsyncStarStub);
+      _asm.callPlatformStub(stubFactory.getPlatformStub(.YieldAsyncStar));
     } else if (asyncMarker == .SyncStar) {
       _asm.mov(SuspendStub.argumentReg, nullReg);
-      _asm.callStub(stubFactory.suspendSyncStarAtStartStub);
+      _asm.callPlatformStub(
+        stubFactory.getPlatformStub(.SuspendSyncStarAtStart),
+      );
     }
   }
 
@@ -3280,10 +3286,10 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
     switch (instr.op) {
       case .await:
-        _asm.callStub(stubFactory.awaitStub);
+        _asm.callPlatformStub(stubFactory.getPlatformStub(.Await));
         break;
       case .awaitWithTypeCheck:
-        _asm.callStub(stubFactory.awaitWithTypeCheckStub);
+        _asm.callPlatformStub(stubFactory.getPlatformStub(.AwaitWithTypeCheck));
         break;
       case .asyncYield || .asyncYieldStar:
         // Load controller from suspend state.
@@ -3306,7 +3312,7 @@ final class Arm64CodeGenerator extends CodeGenerator {
         _asm.branchIfBoolIs(returnReg, true, done);
         // Suspend.
         _asm.mov(SuspendStub.argumentReg, nullReg);
-        _asm.callStub(stubFactory.yieldAsyncStarStub);
+        _asm.callPlatformStub(stubFactory.getPlatformStub(.YieldAsyncStar));
         _asm.bind(done);
         break;
       case .syncYield || .syncYieldStar:
@@ -3339,7 +3345,9 @@ final class Arm64CodeGenerator extends CodeGenerator {
           SuspendStub.argumentReg,
           ConstantValue.fromBool(true),
         );
-        _asm.callStub(stubFactory.suspendSyncStarAtYieldStub);
+        _asm.callPlatformStub(
+          stubFactory.getPlatformStub(.SuspendSyncStarAtYield),
+        );
         break;
     }
   }

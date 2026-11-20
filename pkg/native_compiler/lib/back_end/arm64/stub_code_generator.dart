@@ -1807,7 +1807,7 @@ final class ReturnStub extends Arm64StubCodeGenerator {
       _asm.address(FP, Arm64StackFrame.suspendStateOffsetFromFP),
     );
     _asm.leaveDartFrame();
-    // Code object of the stub is already loaded to codeReg in jumpStub.
+    // Code object of the stub is already loaded to codeReg in jumpPlatformStub.
     enterStubFrame();
     _frameSizeInWords = 2;
     _asm.pushPair(returnReg, suspendStateReg);
@@ -2030,14 +2030,104 @@ final class CallBootstrapNativeStub {
   static const Register nativeFunctionReg = R5;
 }
 
-final class Arm64StubFactory extends StubFactory {
-  final VMOffsets vmOffsets;
-  final ObjectLayout objectLayout;
-  Arm64StubFactory(
-    this.vmOffsets,
-    this.objectLayout,
-    super.consumeGeneratedCode,
-  );
+final class Arm64StubFactory(
+  final VMOffsets vmOffsets,
+  final ObjectLayout objectLayout,
+  super.consumeGeneratedCode, {
+  required super.compilePlatform,
+}) extends StubFactory {
+  @override
+  StubCodeGenerator getPlatformStubGenerator(StubCode stub) => switch (stub) {
+    .DynamicInvocationForwarder => DynamicInvocationForwarderStub(
+      vmOffsets,
+      objectLayout,
+    ),
+    .InvokeDartCode => InvokeDartCodeStub(
+      vmOffsets,
+      objectLayout,
+      fromBytecode: false,
+    ),
+    .InvokeDartCodeFromBytecode => InvokeDartCodeStub(
+      vmOffsets,
+      objectLayout,
+      fromBytecode: true,
+    ),
+    .Await => SuspendStub(
+      vmOffsets,
+      objectLayout,
+      callSuspendFunction: true,
+      passTypeArguments: false,
+      suspendFunctionOffsetInObjectStore:
+          vmOffsets.ObjectStore_suspend_state_await_offset,
+    ),
+    .AwaitWithTypeCheck => SuspendStub(
+      vmOffsets,
+      objectLayout,
+      callSuspendFunction: true,
+      passTypeArguments: true,
+      suspendFunctionOffsetInObjectStore:
+          vmOffsets.ObjectStore_suspend_state_await_with_type_check_offset,
+    ),
+    .YieldAsyncStar => SuspendStub(
+      vmOffsets,
+      objectLayout,
+      callSuspendFunction: true,
+      passTypeArguments: false,
+      suspendFunctionOffsetInObjectStore:
+          vmOffsets.ObjectStore_suspend_state_yield_async_star_offset,
+    ),
+    .SuspendSyncStarAtStart => SuspendStub(
+      vmOffsets,
+      objectLayout,
+      callSuspendFunction: true,
+      passTypeArguments: false,
+      suspendFunctionOffsetInObjectStore:
+          vmOffsets.ObjectStore_suspend_state_suspend_sync_star_at_start_offset,
+    ),
+    .SuspendSyncStarAtYield => SuspendStub(
+      vmOffsets,
+      objectLayout,
+      callSuspendFunction: false,
+      passTypeArguments: false,
+    ),
+    .InitAsync => InitSuspendableFunctionStub(
+      vmOffsets,
+      objectLayout,
+      vmOffsets.ObjectStore_suspend_state_init_async_offset,
+    ),
+    .InitAsyncStar => InitSuspendableFunctionStub(
+      vmOffsets,
+      objectLayout,
+      vmOffsets.ObjectStore_suspend_state_init_async_star_offset,
+    ),
+    .InitSyncStar => InitSuspendableFunctionStub(
+      vmOffsets,
+      objectLayout,
+      vmOffsets.ObjectStore_suspend_state_init_sync_star_offset,
+    ),
+    .Resume => ResumeStub(vmOffsets, objectLayout),
+    .ReturnAsync => ReturnStub(
+      vmOffsets,
+      objectLayout,
+      vmOffsets.ObjectStore_suspend_state_return_async_offset,
+    ),
+    .ReturnAsyncNotFuture => ReturnStub(
+      vmOffsets,
+      objectLayout,
+      vmOffsets.ObjectStore_suspend_state_return_async_not_future_offset,
+    ),
+    .ReturnAsyncStar => ReturnStub(
+      vmOffsets,
+      objectLayout,
+      vmOffsets.ObjectStore_suspend_state_return_async_star_offset,
+    ),
+    .AsyncExceptionHandler => AsyncExceptionHandlerStub(
+      vmOffsets,
+      objectLayout,
+    ),
+    .CloneSuspendState => CloneSuspendStateStub(vmOffsets, objectLayout),
+    _ => throw 'Stub $stub is not implemented.',
+  };
 
   @override
   StubCodeGenerator allocationStubGenerator(ast.Class cls) =>
@@ -2055,120 +2145,6 @@ final class Arm64StubFactory extends StubFactory {
       DynamicCallStub(vmOffsets, objectLayout);
 
   @override
-  StubCodeGenerator dynamicInvocationForwarderStubGenerator() =>
-      DynamicInvocationForwarderStub(vmOffsets, objectLayout);
-
-  @override
-  StubCodeGenerator invokeDartCodeStubGenerator() =>
-      InvokeDartCodeStub(vmOffsets, objectLayout, fromBytecode: false);
-
-  @override
-  StubCodeGenerator invokeDartCodeFromBytecodeStubGenerator() =>
-      InvokeDartCodeStub(vmOffsets, objectLayout, fromBytecode: true);
-
-  @override
   StubCodeGenerator subtypeTestCacheStubGenerator(int n) =>
       SubtypeTestCacheStub(vmOffsets, objectLayout, n);
-
-  @override
-  StubCodeGenerator awaitStubGenerator() => SuspendStub(
-    vmOffsets,
-    objectLayout,
-    callSuspendFunction: true,
-    passTypeArguments: false,
-    suspendFunctionOffsetInObjectStore:
-        vmOffsets.ObjectStore_suspend_state_await_offset,
-  );
-
-  @override
-  StubCodeGenerator awaitWithTypeCheckStubGenerator() => SuspendStub(
-    vmOffsets,
-    objectLayout,
-    callSuspendFunction: true,
-    passTypeArguments: true,
-    suspendFunctionOffsetInObjectStore:
-        vmOffsets.ObjectStore_suspend_state_await_with_type_check_offset,
-  );
-
-  @override
-  StubCodeGenerator yieldAsyncStarStubGenerator() => SuspendStub(
-    vmOffsets,
-    objectLayout,
-    callSuspendFunction: true,
-    passTypeArguments: false,
-    suspendFunctionOffsetInObjectStore:
-        vmOffsets.ObjectStore_suspend_state_yield_async_star_offset,
-  );
-
-  @override
-  StubCodeGenerator suspendSyncStarAtStartStubGenerator() => SuspendStub(
-    vmOffsets,
-    objectLayout,
-    callSuspendFunction: true,
-    passTypeArguments: false,
-    suspendFunctionOffsetInObjectStore:
-        vmOffsets.ObjectStore_suspend_state_suspend_sync_star_at_start_offset,
-  );
-
-  @override
-  StubCodeGenerator suspendSyncStarAtYieldStubGenerator() => SuspendStub(
-    vmOffsets,
-    objectLayout,
-    callSuspendFunction: false,
-    passTypeArguments: false,
-  );
-
-  @override
-  StubCodeGenerator initAsyncStubGenerator() => InitSuspendableFunctionStub(
-    vmOffsets,
-    objectLayout,
-    vmOffsets.ObjectStore_suspend_state_init_async_offset,
-  );
-
-  @override
-  StubCodeGenerator initAsyncStarStubGenerator() => InitSuspendableFunctionStub(
-    vmOffsets,
-    objectLayout,
-    vmOffsets.ObjectStore_suspend_state_init_async_star_offset,
-  );
-
-  @override
-  StubCodeGenerator initSyncStarStubGenerator() => InitSuspendableFunctionStub(
-    vmOffsets,
-    objectLayout,
-    vmOffsets.ObjectStore_suspend_state_init_sync_star_offset,
-  );
-
-  @override
-  StubCodeGenerator resumeStubGenerator() =>
-      ResumeStub(vmOffsets, objectLayout);
-
-  @override
-  StubCodeGenerator returnAsyncStubGenerator() => ReturnStub(
-    vmOffsets,
-    objectLayout,
-    vmOffsets.ObjectStore_suspend_state_return_async_offset,
-  );
-
-  @override
-  StubCodeGenerator returnAsyncNotFutureStubGenerator() => ReturnStub(
-    vmOffsets,
-    objectLayout,
-    vmOffsets.ObjectStore_suspend_state_return_async_not_future_offset,
-  );
-
-  @override
-  StubCodeGenerator returnAsyncStarStubGenerator() => ReturnStub(
-    vmOffsets,
-    objectLayout,
-    vmOffsets.ObjectStore_suspend_state_return_async_star_offset,
-  );
-
-  @override
-  StubCodeGenerator asyncExceptionHandlerStubGenerator() =>
-      AsyncExceptionHandlerStub(vmOffsets, objectLayout);
-
-  @override
-  StubCodeGenerator cloneSuspendStateStubGenerator() =>
-      CloneSuspendStateStub(vmOffsets, objectLayout);
 }

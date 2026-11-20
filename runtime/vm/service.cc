@@ -3080,7 +3080,7 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
 
     ActivationFrame* frame = stack->FrameAt(framePos);
     script_uri = frame->SourceUrl();
-    token_pos = frame->TokenPos();
+    token_pos = frame->TokenPos().ToRealIfSynthetic();
     frame->BuildParameters(param_names, param_values, type_params_names,
                            type_params_bounds, type_params_defaults);
 

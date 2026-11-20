@@ -2302,6 +2302,8 @@ class UntaggedPcDescriptors : public UntaggedObject {
   V(OsrEntry)                                                                  \
   /* Call rewind target address. */                                            \
   V(Rewind)                                                                    \
+  /* Debug step check at the return address of a call to debugger(). */        \
+  V(DebuggerCallReturn)                                                        \
   V(Other)
 
   enum class KindBit {

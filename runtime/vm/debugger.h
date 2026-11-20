@@ -367,6 +367,14 @@ class ActivationFrame : public ZoneObject {
   // to the user and can be debugged.
   bool IsDebuggable() const;
 
+#if defined(DART_DYNAMIC_MODULES)
+  // Returns true if the bytecode instruction of this interpreted frame is a
+  // pause point for single stepping: either it starts a range of the source
+  // positions table, or it is a return. Other instructions inherit the source
+  // position of the instructions before them.
+  bool IsBytecodePausePoint();
+#endif
+
   // Returns true if it is possible to rewind the debugger to this frame.
   bool IsRewindable() const;
 
@@ -462,6 +470,10 @@ class ActivationFrame : public ZoneObject {
   TokenPosition token_pos_ = TokenPosition::kNoSource;
   intptr_t try_index_ = -1;
   intptr_t deopt_id_ = dart::DeoptId::kNone;
+#if defined(DART_DYNAMIC_MODULES)
+  // Computed together with token_pos_ for interpreted frames.
+  bool is_bytecode_pause_point_ = false;
+#endif
 
   intptr_t line_number_ = -1;
   intptr_t column_number_ = -1;

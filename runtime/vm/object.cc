@@ -16363,6 +16363,8 @@ const char* PcDescriptors::KindToCString(UntaggedPcDescriptors::Kind kind) {
       return "osr-entry";
     case UntaggedPcDescriptors::kRewind:
       return "rewind";
+    case UntaggedPcDescriptors::kDebuggerCallReturn:
+      return "debugger-call-return";
     case UntaggedPcDescriptors::kOther:
       return "other";
     case UntaggedPcDescriptors::kAnyKind:
@@ -19073,8 +19075,12 @@ BytecodePtr Bytecode::New(uword instructions,
   return result.ptr();
 }
 
-TokenPosition Bytecode::GetTokenIndexOfPC(uword return_address) const {
+TokenPosition Bytecode::GetTokenIndexOfPC(uword return_address,
+                                          uword* range_start) const {
 #if defined(DART_DYNAMIC_MODULES)
+  if (range_start != nullptr) {
+    *range_start = 0;
+  }
   if (!HasSourcePositions()) {
     return TokenPosition::kNoSource;
   }
@@ -19084,11 +19090,16 @@ TokenPosition Bytecode::GetTokenIndexOfPC(uword return_address) const {
   ASSERT(pc_offset <= static_cast<uword>(Size()));
   bytecode::BytecodeSourcePositionsIterator iter(zone, *this);
   TokenPosition token_pos = TokenPosition::kNoSource;
+  intptr_t last_range_pc_offset = -1;
   while (iter.MoveNext()) {
     if (pc_offset <= iter.PcOffset()) {
       break;
     }
     token_pos = iter.TokenPos();
+    last_range_pc_offset = iter.PcOffset();
+  }
+  if (range_start != nullptr && last_range_pc_offset >= 0) {
+    *range_start = PayloadStart() + last_range_pc_offset;
   }
   return token_pos;
 #else

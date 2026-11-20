@@ -47,7 +47,7 @@ which reside in different sections such as libraries, classes, members, code, et
 ```
 type BytecodeFile {
   UInt32 magic = 0x44424333; // 'DBC3'
-  UInt32 formatVersion = 4;
+  UInt32 formatVersion = 6;
 
   // Descriptors of the sections below.
   // Each section has a fixed index in the descriptors array.
@@ -451,14 +451,31 @@ Number of items in the library index section and libraries section should be the
 
 ```
 type LibraryDeclaration {
-  UInt flags = (usesDartMirrors, usesDartFfi);
+  UInt flags = (usesDartMirrors, usesDartFfi, hasDependencies);
   PackedObject name;
   PackedObject script;
+
+  // Imports and exports of this library. Only deferred imports are included
+  // unless the 'library-dependencies' bytecode option is enabled.
+  if hasDependencies
+    List<LibraryDependency> dependencies;
 
   // Classes declared in this library.
   // The first class is an artificial ‘top-level’ class containing top-level
   // fields and functions, as well as library annotations.
   List<ClassNameAndOffset> classes;
+}
+
+type LibraryDependency {
+  UInt flags = (isExport, isDeferred, isPrefixed);
+  PackedObject targetLibrary;
+  if isPrefixed
+    // Name of the import prefix. As in kernel, imports with the same
+    // prefix name share a prefix.
+    PackedObject prefix;
+  // Names from the show and hide combinators.
+  List<PackedObject> showNames;
+  List<PackedObject> hideNames;
 }
 
 type ClassNameAndOffset {
@@ -825,9 +842,10 @@ type ConstantNativeFunction extends ConstantPoolEntry {
 
 type ConstantDeferredLibraryPrefix extends ConstantPoolEntry {
   Byte tag = 17;
-  PackedObject name;
   PackedObject enclosingLibrary;
-  PackedObject targetLibrary;
+  // Index of the deferred import in the dependencies of enclosingLibrary,
+  // as emitted in its library declaration.
+  UInt dependencyIndex;
 }
 
 // Occupies 2 entries in the constant pool
@@ -893,6 +911,10 @@ type SourcePositions {
   //   for debugger breakpoints or pausing or for code coverage).
   // - yieldPoint (bit 1): set if the source position corresponds to
   //   bytecode that implements a yield point.
+  // - debuggerCallReturn (bit 2): set if the source position starts at the
+  //   return address of a call to dart:developer::debugger(). The debugger
+  //   pauses there after stepping out of debugger(), but doesn't set
+  //   breakpoints there.
   //
   // For two consecutive entries (PC1, FileOffset1), (PC2, FileOffset2) all
   // bytecode instructions in range [PC1,PC2) correspond to an encoded source

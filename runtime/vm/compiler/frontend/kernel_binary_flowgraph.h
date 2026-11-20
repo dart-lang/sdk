@@ -156,7 +156,9 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   bool NeedsDebugStepCheck(Value* value, TokenPosition position);
 
   void InlineBailout(const char* reason);
-  Fragment DebugStepCheck(TokenPosition position);
+  Fragment DebugStepCheck(
+      TokenPosition position,
+      UntaggedPcDescriptors::Kind kind = UntaggedPcDescriptors::kRuntimeCall);
   Fragment LoadLocal(LocalVariable* variable);
   IndirectGotoInstr* IndirectGoto(intptr_t target_count);
   Fragment Return(TokenPosition position);

@@ -10,6 +10,9 @@ include: ../analysis_options.yaml
 
 analyzer:
   exclude:
+    - library_dependency_shared_prefix_lib.dart
+    - library_dependency_shared_prefix_part1.dart
+    - library_dependency_shared_prefix_part2.dart
     - patterns_local_vars_test.dart
 
 linter:

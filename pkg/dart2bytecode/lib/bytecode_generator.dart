@@ -8,8 +8,11 @@ import 'dart:math' as math;
 
 import 'package:front_end/src/api_prototype/external_effect.dart'
     show ExternalEffect;
-import 'package:kernel/ast.dart' hide Component, FunctionDeclaration;
-import 'package:kernel/ast.dart' as ast show Component, FunctionDeclaration;
+import 'package:kernel/ast.dart'
+    hide Component, FunctionDeclaration, LibraryDependency;
+import 'package:kernel/ast.dart'
+    as ast
+    show Component, FunctionDeclaration, LibraryDependency;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/external_name.dart' show getExternalName;
@@ -305,9 +308,63 @@ class BytecodeGenerator extends RecursiveVisitor {
         flags |= LibraryDeclaration.usesDartFfiFlag;
       }
     }
+    final dependencies = getLibraryDependencies(library);
+    if (dependencies.isNotEmpty) {
+      flags |= LibraryDeclaration.hasDependenciesFlag;
+    }
     final name = objectTable.getPublicNameHandle(library.name ?? '');
     final script = getScript(library.fileUri);
-    return new LibraryDeclaration(importUri, flags, name, script, classes);
+    return new LibraryDeclaration(
+      importUri,
+      flags,
+      name,
+      script,
+      dependencies,
+      classes,
+    );
+  }
+
+  // The dependencies of [library] which are emitted in bytecode. Deferred
+  // imports are always emitted, as their prefixes are needed at run time.
+  // Other dependencies are only needed by the VM service and hot reload.
+  List<ast.LibraryDependency> _emittedDependencies(Library library) =>
+      options.emitLibraryDependencies
+      ? library.dependencies
+      : library.dependencies.where((d) => d.isDeferred).toList();
+
+  List<LibraryDependency> getLibraryDependencies(Library library) {
+    final dependencies = <LibraryDependency>[];
+    for (var dependency in _emittedDependencies(library)) {
+      int flags = 0;
+      if (dependency.isExport) {
+        flags |= LibraryDependency.isExportFlag;
+      }
+      if (dependency.isDeferred) {
+        flags |= LibraryDependency.isDeferredFlag;
+      }
+      final prefixName = dependency.name;
+      ObjectHandle? prefix;
+      if (prefixName != null) {
+        flags |= LibraryDependency.isPrefixedFlag;
+        prefix = objectTable.getPublicNameHandle(prefixName);
+      }
+      final showNames = <ObjectHandle>[];
+      final hideNames = <ObjectHandle>[];
+      for (var combinator in dependency.combinators) {
+        final names = objectTable.getPublicNameHandles(combinator.names);
+        (combinator.isShow ? showNames : hideNames).addAll(names);
+      }
+      dependencies.add(
+        new LibraryDependency(
+          flags,
+          objectTable.getHandle(dependency.targetLibrary)!,
+          prefix,
+          showNames,
+          hideNames,
+        ),
+      );
+    }
+    return dependencies;
   }
 
   ClassDeclaration getClassDeclaration(Class cls, Members members) {
@@ -1355,7 +1412,13 @@ class BytecodeGenerator extends RecursiveVisitor {
   void _genLateFieldInitializer(Field field) {
     assert(!field.isStatic);
 
-    if (_isTrivialInitializer(field.initializer)) {
+    // With instance field initializers, only a null initializer is trivial,
+    // as in the VM, so late fields with other initializers have initializer
+    // code and are initialized lazily. Otherwise, trivial initializers are
+    // stored eagerly to avoid the overhead of lazy initialization.
+    if (options.emitInstanceFieldInitializers
+        ? _isNullInitializer(field.initializer)
+        : _isTrivialInitializer(field.initializer)) {
       _genFieldInitializer(field, field.initializer!);
       return;
     }
@@ -2851,7 +2914,20 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   void _genClosure(LocalFunction node, String name, FunctionNode function) {
     final int closureIndex = _genClosureBytecode(node, name, function);
+    // Allocating a closure is not a pause point.
+    final savedFlags = asm.currentSourcePositionFlags;
+    asm.currentSourcePositionFlags |= SourcePositions.syntheticFlag;
     _genAllocateClosureInstance(closureIndex, function);
+    asm.currentSourcePositionFlags = savedFlags;
+  }
+
+  // Emits the stack check at the start of each iteration of a loop, which is
+  // not a pause point.
+  void _genLoopCheckStack(int loopDepth) {
+    final savedFlags = asm.currentSourcePositionFlags;
+    asm.currentSourcePositionFlags |= SourcePositions.syntheticFlag;
+    asm.emitCheckStack(loopDepth);
+    asm.currentSourcePositionFlags = savedFlags;
   }
 
   void _allocateContextIfNeeded() {
@@ -3874,14 +3950,12 @@ class BytecodeGenerator extends RecursiveVisitor {
     _genDirectCallWithArgs(target, args, node: node);
     if (target == debugger) {
       // The debugger needs a pause for the current source position right after
-      // stepping out from the debugger function.
-      assert(asm.currentSourcePosition != TreeNode.noOffset);
+      // stepping out from the debugger function like compiled code. The
+      // debugger only pauses where a source position range starts, so start a
+      // new range for the source position of the call, marked so that the
+      // debugger doesn't set breakpoints there.
+      asm.currentSourcePositionFlags |= SourcePositions.debuggerCallReturnFlag;
       asm.emitSourcePosition();
-      // The value returned from the debugger call is often ignored, making the
-      // next instruction a Drop1 which is ignored for single stepping purposes
-      // by the interpreter. Thus, explicitly output a Nop instruction to serve
-      // as the pause point after stepping out from the debugger call.
-      asm.emitNop();
     }
   }
 
@@ -4089,30 +4163,25 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   @override
   void visitLoadLibrary(LoadLibrary node) {
-    final dependency = node.import;
-    assert(dependency.isDeferred);
-    asm.emitPushConstant(
-      cp.addDeferredLibraryPrefix(
-        dependency.name!,
-        dependency.enclosingLibrary,
-        dependency.targetLibrary,
-      ),
-    );
+    _genPushDeferredLibraryPrefix(node.import);
     _genDirectCall(loadLibrary, objectTable.getArgDescHandle(1), 1);
   }
 
   @override
   void visitCheckLibraryIsLoaded(CheckLibraryIsLoaded node) {
-    final dependency = node.import;
-    assert(dependency.isDeferred);
-    asm.emitPushConstant(
-      cp.addDeferredLibraryPrefix(
-        dependency.name!,
-        dependency.enclosingLibrary,
-        dependency.targetLibrary,
-      ),
-    );
+    _genPushDeferredLibraryPrefix(node.import);
     _genDirectCall(checkLoaded, objectTable.getArgDescHandle(1), 1);
+  }
+
+  // As in the compiler, the prefix of a deferred import is identified by the
+  // index of the import in the dependencies of its library, as emitted in
+  // bytecode.
+  void _genPushDeferredLibraryPrefix(ast.LibraryDependency dependency) {
+    assert(dependency.isDeferred);
+    final enclosingLibrary = dependency.enclosingLibrary;
+    final index = _emittedDependencies(enclosingLibrary).indexOf(dependency);
+    assert(index >= 0);
+    asm.emitPushConstant(cp.addDeferredLibraryPrefix(enclosingLibrary, index));
   }
 
   @override
@@ -4238,7 +4307,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     final Label join = new Label(allowsBackwardJumps: true);
     asm.bind(join);
 
-    asm.emitCheckStack(++currentLoopDepth);
+    _genLoopCheckStack(++currentLoopDepth);
 
     _recordBranchTargetCoverage(node.body);
     _generateNode(node.body);
@@ -4284,7 +4353,7 @@ class BytecodeGenerator extends RecursiveVisitor {
       final Label join = new Label(allowsBackwardJumps: true);
       asm.bind(join);
 
-      asm.emitCheckStack(++currentLoopDepth);
+      _genLoopCheckStack(++currentLoopDepth);
 
       final condition = node.condition;
       if (condition != null) {
@@ -4319,9 +4388,11 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   @override
   void visitFunctionDeclaration(ast.FunctionDeclaration node) {
+    // A local function declaration is a pause point, although allocating its
+    // closure is not.
+    asm.emitSourcePosition();
     _genPushContextIfCaptured(node.variable);
     _genClosure(node, node.variable.name, node.function);
-    asm.emitSourcePosition();
     _genStoreVar(node.variable);
   }
 
@@ -4821,7 +4892,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     final Label join = new Label(allowsBackwardJumps: true);
     asm.bind(join);
 
-    asm.emitCheckStack(++currentLoopDepth);
+    _genLoopCheckStack(++currentLoopDepth);
 
     _genConditionAndJumpIf(node.condition, false, done);
 
@@ -4961,12 +5032,17 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   @override
   void visitYieldStatement(YieldStatement node) {
+    // The yield pauses after evaluating its value, not while preparing to
+    // yield it.
+    final savedFlags = asm.currentSourcePositionFlags;
+    asm.currentSourcePositionFlags |= SourcePositions.syntheticFlag;
     asm.emitPush(locals.suspendStateVarIndexInFrame);
     _genDirectCall(
       suspendStateFunctionData,
       objectTable.getArgDescHandle(1),
       1,
     );
+    asm.currentSourcePositionFlags = savedFlags;
 
     _generateNode(node.expression);
     // Add a pause point after the body prior to the sync/async machinery.

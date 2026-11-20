@@ -274,7 +274,7 @@ class KernelBytecode {
   static const intptr_t kMagicValue = 0x44424333;  // 'DBC3'
   // Bytecode format version supported by the VM
   // (should match pkg/dart2bytecode/lib/dbc.dart).
-  static const intptr_t kBytecodeFormatVersion = 4;
+  static const intptr_t kBytecodeFormatVersion = 6;
 
   enum Opcode {
 #define DECLARE_BYTECODE(name, encoding, kind, op1, op2, op3) k##name,
@@ -463,17 +463,6 @@ class KernelBytecode {
 
   DART_FORCE_INLINE static bool IsReturnOpcode(const KBCInstr* instr) {
     return DecodeOpcode(instr) == KernelBytecode::kReturnTOS;
-  }
-
-  DART_FORCE_INLINE static bool IsStackManipulationOpcode(
-      const KBCInstr* instr) {
-    switch (DecodeOpcode(instr)) {
-      case KernelBytecode::kDrop1:
-      case KernelBytecode::kDup:
-        return true;
-      default:
-        return false;
-    }
   }
 
   DART_FORCE_INLINE static uint8_t DecodeArgc(const KBCInstr* ret_addr) {

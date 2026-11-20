@@ -7767,7 +7767,11 @@ class Bytecode : public Object {
                          const TypedDataBase& binary,
                          const ObjectPool& object_pool);
 
-  TokenPosition GetTokenIndexOfPC(uword return_address) const;
+  // If range_start is not null, also sets it to the address of the
+  // instruction that starts the source position range containing the
+  // instruction before return_address, or to 0 if there is no such range.
+  TokenPosition GetTokenIndexOfPC(uword return_address,
+                                  uword* range_start = nullptr) const;
   intptr_t GetTryIndexAtPc(uword return_address) const;
 
   // Returns the address of the previous instruction when given

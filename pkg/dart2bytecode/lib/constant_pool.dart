@@ -567,47 +567,38 @@ class ConstantNativeFunction extends ConstantPoolEntry {
 }
 
 class ConstantDeferredLibraryPrefix extends ConstantPoolEntry {
-  final ObjectHandle name;
   final ObjectHandle enclosingLibrary;
-  final ObjectHandle targetLibrary;
+  // Index of the deferred import in the dependencies of [enclosingLibrary].
+  final int dependencyIndex;
 
-  ConstantDeferredLibraryPrefix(
-    this.name,
-    this.enclosingLibrary,
-    this.targetLibrary,
-  );
+  ConstantDeferredLibraryPrefix(this.enclosingLibrary, this.dependencyIndex);
 
   @override
   ConstantTag get tag => ConstantTag.kDeferredLibraryPrefix;
 
   @override
   void writeValue(BufferedWriter writer) {
-    writer.writePackedObject(name);
     writer.writePackedObject(enclosingLibrary);
-    writer.writePackedObject(targetLibrary);
+    writer.writePackedUInt30(dependencyIndex);
   }
 
   ConstantDeferredLibraryPrefix.read(BufferedReader reader)
-    : name = reader.readPackedObject(),
-      enclosingLibrary = reader.readPackedObject(),
-      targetLibrary = reader.readPackedObject();
+    : enclosingLibrary = reader.readPackedObject(),
+      dependencyIndex = reader.readPackedUInt30();
 
   @override
   String toString() =>
-      'DeferredLibraryPrefix $name, $enclosingLibrary -> $targetLibrary';
+      'DeferredLibraryPrefix $enclosingLibrary, dependency $dependencyIndex';
 
   @override
-  int get hashCode => _combineHashes(
-    name.hashCode,
-    _combineHashes(enclosingLibrary.hashCode, targetLibrary.hashCode),
-  );
+  int get hashCode =>
+      _combineHashes(enclosingLibrary.hashCode, dependencyIndex.hashCode);
 
   @override
   bool operator ==(other) =>
       other is ConstantDeferredLibraryPrefix &&
-      this.name == other.name &&
       this.enclosingLibrary == other.enclosingLibrary &&
-      this.targetLibrary == other.targetLibrary;
+      this.dependencyIndex == other.dependencyIndex;
 }
 
 class ConstantAllocateClosure extends ConstantPoolEntry {
@@ -799,17 +790,13 @@ class ConstantPool {
 
   int addEmptyTypeArguments() => _add(const ConstantEmptyTypeArguments());
 
-  int addDeferredLibraryPrefix(
-    String name,
-    Library enclosingLibrary,
-    Library targetLibrary,
-  ) => _add(
-    ConstantDeferredLibraryPrefix(
-      objectTable.getConstStringHandle(name),
-      objectTable.getHandle(enclosingLibrary)!,
-      objectTable.getHandle(targetLibrary)!,
-    ),
-  );
+  int addDeferredLibraryPrefix(Library enclosingLibrary, int dependencyIndex) =>
+      _add(
+        ConstantDeferredLibraryPrefix(
+          objectTable.getHandle(enclosingLibrary)!,
+          dependencyIndex,
+        ),
+      );
 
   int addObjectRef(Node? node) {
     // Constant objects should not depend on the type parameters of

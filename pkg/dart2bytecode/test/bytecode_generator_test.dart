@@ -32,10 +32,15 @@ const kUpdateExpectations = 'updateExpectations';
 
 final String dartSdkPkgDir = Platform.script.resolve('../..').toFilePath();
 
-runTestCase(Uri source, {bool isClosureContextLoweringEnabled = false}) async {
+runTestCase(
+  Uri source, {
+  BytecodeOptions? options,
+  String expectFilePostfix = '',
+}) async {
+  options ??= BytecodeOptions();
   final target = VmTarget(
     TargetFlags(
-      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+      isClosureContextLoweringEnabled: options.isClosureContextLoweringEnabled,
     ),
   );
   final result = await compileTestCaseToKernelProgram(source, target: target);
@@ -49,7 +54,7 @@ runTestCase(Uri source, {bool isClosureContextLoweringEnabled = false}) async {
   generateBytecode(
     result.component,
     sink,
-    options: BytecodeOptions(),
+    options: options,
     libraries: [mainLibrary],
     extraLoadedLibraries: result.loadedLibraries,
     coreTypes: coreTypes,
@@ -66,7 +71,11 @@ runTestCase(Uri source, {bool isClosureContextLoweringEnabled = false}) async {
     'DART_SDK/pkg/',
   );
 
-  compareResultWithExpectationsFile(source, actual);
+  compareResultWithExpectationsFile(
+    source,
+    actual,
+    expectFilePostfix: expectFilePostfix,
+  );
 }
 
 // Similar to CompilerResult from pkg/vm/bin/kernel_service.dart.
@@ -218,9 +227,45 @@ main() {
       if (entry.path.endsWith(".dart")) {
         test(
           entry.path,
-          () => runTestCase(entry.uri, isClosureContextLoweringEnabled: true),
+          () => runTestCase(
+            entry.uri,
+            options: BytecodeOptions(isClosureContextLoweringEnabled: true),
+          ),
         );
       }
+    }
+  });
+
+  // By default, only deferred imports are emitted as library dependencies,
+  // so test emitting all of them separately.
+  group('gen-bytecode-library-dependencies', () {
+    for (final name in ['imports.dart']) {
+      final uri = Uri.file(dartSdkPkgDir + 'dart2bytecode/testcases/$name');
+      test(
+        uri.path,
+        () => runTestCase(
+          uri,
+          options: BytecodeOptions(emitLibraryDependencies: true),
+          expectFilePostfix: '.library_dependencies',
+        ),
+      );
+    }
+  });
+
+  // With instance field initializers, which the kernel service emits for hot
+  // reload, late instance fields with initializers other than null are
+  // initialized lazily.
+  group('gen-bytecode-instance-field-initializers', () {
+    for (final name in ['field_initializers.dart']) {
+      final uri = Uri.file(dartSdkPkgDir + 'dart2bytecode/testcases/$name');
+      test(
+        uri.path,
+        () => runTestCase(
+          uri,
+          options: BytecodeOptions(emitInstanceFieldInitializers: true),
+          expectFilePostfix: '.instance_field_initializers',
+        ),
+      );
     }
   });
 }

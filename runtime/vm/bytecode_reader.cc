@@ -787,19 +787,17 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
         continue;
       }
       case ConstantPoolTag::kDeferredLibraryPrefix: {
-        name ^= ReadObject();
-        ASSERT(name.IsSymbol());
         const auto& enclosing_library = Library::CheckedHandle(Z, ReadObject());
-        const auto& target_library = Library::CheckedHandle(Z, ReadObject());
-        obj = enclosing_library.LookupLocalLibraryPrefix(name);
-        if (obj.IsNull()) {
-          obj = Namespace::New(target_library, Object::null_array(),
-                               Object::null_array(), enclosing_library);
-          obj = LibraryPrefix::New(name, Namespace::Cast(obj),
-                                   /*deferred_load=*/true, enclosing_library);
-          enclosing_library.AddObject(LibraryPrefix::Cast(obj), name);
-        }
-        ASSERT(LibraryPrefix::Cast(obj).GetLibrary(0) == target_library.ptr());
+        const intptr_t dependency_index = reader_.ReadUInt();
+        // As in the compiler, the prefix is found by the index of the deferred
+        // import in the dependencies of the enclosing library. As in the
+        // kernel loader, a deferred import can share a prefix with a
+        // non-deferred import with the same name in another part, in which
+        // case the prefix is not deferred.
+        const auto& deps = Array::Handle(Z, enclosing_library.dependencies());
+        ASSERT(!deps.IsNull());
+        obj = deps.At(dependency_index);
+        ASSERT(obj.IsLibraryPrefix());
       } break;
       case ConstantPoolTag::kAllocateClosure: {
         const intptr_t closure_index = reader_.ReadUInt();
@@ -2545,11 +2543,12 @@ void BytecodeReaderHelper::ReadLibraryDeclaration(const Library& library,
   // pkg/dart2bytecode/lib/declarations.dart.
   // const int kUsesDartMirrorsFlag = 1 << 0;
   // const int kUsesDartFfiFlag = 1 << 1;
+  const int kHasDependenciesFlag = 1 << 2;
 
   ASSERT(!library.Loaded());
   ASSERT(library.toplevel_class() == Object::null());
 
-  reader_.ReadUInt();  // Flags.
+  const intptr_t flags = reader_.ReadUInt();
 
   auto& name = String::CheckedHandle(Z, ReadObject());
   ASSERT(name.ptr() !=
@@ -2564,6 +2563,12 @@ void BytecodeReaderHelper::ReadLibraryDeclaration(const Library& library,
     // As in the kernel loader, the native assets library is looked up by
     // its URI.
     IG->object_store()->set_native_assets_library(library);
+  }
+
+  if ((flags & kHasDependenciesFlag) != 0) {
+    ReadLibraryDependencies(library);
+  } else {
+    library.set_dependencies(Object::empty_array());
   }
 
   const intptr_t num_classes = reader_.ReadUInt();
@@ -2599,6 +2604,73 @@ void BytecodeReaderHelper::ReadLibraryDeclaration(const Library& library,
   library.SetLoaded();
 }
 
+void BytecodeReaderHelper::ReadLibraryDependencies(const Library& library) {
+  // Library dependency flags, must be in sync with LibraryDependency constants
+  // in pkg/dart2bytecode/lib/declarations.dart.
+  const int kIsExportFlag = 1 << 0;
+  const int kIsDeferredFlag = 1 << 1;
+  const int kIsPrefixedFlag = 1 << 2;
+
+  auto& target_library = Library::Handle(Z);
+  auto& prefix_name = String::Handle(Z);
+  auto& show_names = Array::Handle(Z);
+  auto& hide_names = Array::Handle(Z);
+  auto& ns = Namespace::Handle(Z);
+  auto& library_prefix = LibraryPrefix::Handle(Z);
+
+  const intptr_t num_dependencies = reader_.ReadUInt();
+  // As in the kernel loader, record the namespace or prefix of each
+  // dependency, so that deferred prefixes can be found by their import.
+  const auto& deps = Array::Handle(Z, Array::New(num_dependencies, Heap::kOld));
+  for (intptr_t i = 0; i < num_dependencies; ++i) {
+    const intptr_t flags = reader_.ReadUInt();
+    target_library ^= ReadObject();
+    prefix_name = String::null();
+    if ((flags & kIsPrefixedFlag) != 0) {
+      prefix_name ^= ReadObject();
+    }
+    show_names = ReadNameList();
+    hide_names = ReadNameList();
+
+    ns = Namespace::New(target_library, show_names, hide_names, library);
+    if ((flags & kIsExportFlag) != 0) {
+      library.AddExport(ns);
+      deps.SetAt(i, ns);
+    } else if (prefix_name.IsNull()) {
+      library.AddImport(ns);
+      deps.SetAt(i, ns);
+    } else {
+      // As in the kernel loader, imports with the same prefix name share a
+      // prefix. Parts can import with the same prefix name.
+      library_prefix = library.LookupLocalLibraryPrefix(prefix_name);
+      if (!library_prefix.IsNull()) {
+        library_prefix.AddImport(ns);
+      } else {
+        const bool is_deferred = (flags & kIsDeferredFlag) != 0;
+        library_prefix =
+            LibraryPrefix::New(prefix_name, ns, is_deferred, library);
+        library.AddObject(library_prefix, prefix_name);
+      }
+      deps.SetAt(i, library_prefix);
+    }
+  }
+  library.set_dependencies(deps);
+}
+
+ArrayPtr BytecodeReaderHelper::ReadNameList() {
+  const intptr_t length = reader_.ReadUInt();
+  if (length == 0) {
+    return Array::null();
+  }
+  const auto& names = Array::Handle(Z, Array::New(length, Heap::kOld));
+  auto& name = String::Handle(Z);
+  for (intptr_t i = 0; i < length; ++i) {
+    name ^= ReadObject();
+    names.SetAt(i, name);
+  }
+  return names.ptr();
+}
+
 void BytecodeReaderHelper::ReadLibraryDeclarations(
     intptr_t num_libraries,
     const GrowableObjectArray& pending_objects,
@@ -2623,22 +2695,32 @@ void BytecodeReaderHelper::ReadLibraryDeclarations(
     }
   }
 
+  // Create all libraries before reading their declarations, so that
+  // dependencies between libraries of the dynamic module can be resolved.
+  const auto& libraries =
+      Array::Handle(Z, Array::New(num_libraries, Heap::kOld));
+  GrowableArray<intptr_t> library_offsets(Z, num_libraries);
   for (intptr_t i = 0; i < num_libraries; ++i) {
     uri ^= ReadObject();
-    const intptr_t library_offset =
-        bytecode_component_->GetLibrariesOffset() + reader_.ReadUInt();
+    library_offsets.Add(bytecode_component_->GetLibrariesOffset() +
+                        reader_.ReadUInt());
 
-    bool register_classes = true;
     library = Library::New(uri);
     if (uri.ptr() == Symbols::EvalSourceUri().ptr()) {
       thread_->bytecode_loader()->SetExpressionEvaluationLibrary(library);
-      register_classes = false;
     } else {
       library.Register(thread_);
     }
     ASSERT(!library.Loaded());
+    libraries.SetAt(i, library);
+  }
 
-    AlternativeReadingScope alt(&reader_, library_offset);
+  for (intptr_t i = 0; i < num_libraries; ++i) {
+    library ^= libraries.At(i);
+    // Classes of the expression evaluation library are not registered.
+    const bool register_classes =
+        library.url() != Symbols::EvalSourceUri().ptr();
+    AlternativeReadingScope alt(&reader_, library_offsets[i]);
     ReadLibraryDeclaration(library, register_classes);
   }
 
@@ -3055,7 +3137,10 @@ static void CollectBytecodeFunctionTokenPositions(
   if (bytecode.HasSourcePositions()) {
     BytecodeSourcePositionsIterator iter(zone, bytecode);
     while (iter.MoveNext()) {
-      CollectTokenPosition(iter.TokenPos(), token_positions);
+      // Synthetic token positions also encode the source position, so collect
+      // their real counterparts.
+      CollectTokenPosition(iter.TokenPos().ToRealIfSynthetic(),
+                           token_positions);
     }
     if (!function.IsNonImplicitClosureFunction()) {
       // Find closure functions in the object pool.

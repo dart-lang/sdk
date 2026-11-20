@@ -448,9 +448,11 @@ void CodeSourceMapBuilder::EndCodeSourceRange(int32_t pc_offset,
 void CodeSourceMapBuilder::NoteDescriptor(UntaggedPcDescriptors::Kind kind,
                                           int32_t pc_offset,
                                           const InstructionSource& source) {
-  const uint8_t kCanThrow =
-      UntaggedPcDescriptors::kIcCall | UntaggedPcDescriptors::kUnoptStaticCall |
-      UntaggedPcDescriptors::kRuntimeCall | UntaggedPcDescriptors::kOther;
+  const uint8_t kCanThrow = UntaggedPcDescriptors::kIcCall |
+                            UntaggedPcDescriptors::kUnoptStaticCall |
+                            UntaggedPcDescriptors::kRuntimeCall |
+                            UntaggedPcDescriptors::kDebuggerCallReturn |
+                            UntaggedPcDescriptors::kOther;
   if ((kind & kCanThrow) != 0) {
     StartInliningInterval(pc_offset, source);
     BufferChangePosition(source.token_pos);

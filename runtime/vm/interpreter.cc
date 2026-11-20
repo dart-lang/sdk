@@ -4920,19 +4920,11 @@ SwitchDispatchNoSingleStep:
 #if defined(DEBUG)
 #define SINGLE_STEP_HANDLER_BODY                                               \
   do {                                                                         \
-    /* Skip opcodes that purely manipulate the stack, that is, without     */  \
-    /* retrieving/storing into local variables. Source positions are       */  \
-    /* never emitted for these instructions, so they should not be         */  \
-    /* considered valid pause points. This avoids stepping out of a method */  \
-    /* with an unused result and then stopping at the Drop1 instruction,   */  \
-    /* which inherits the source position of the method call, for example. */  \
-    if (!KernelBytecode::IsStackManipulationOpcode(pc)) {                      \
-      if (IsTracingExecution()) {                                              \
-        PrintTracePrefix();                                                    \
-        THR_Print("calling single step handler\n");                            \
-      }                                                                        \
-      SINGLE_STEP_HANDLER_BODY_NO_TRACE;                                       \
+    if (IsTracingExecution()) {                                                \
+      PrintTracePrefix();                                                      \
+      THR_Print("calling single step handler\n");                              \
     }                                                                          \
+    SINGLE_STEP_HANDLER_BODY_NO_TRACE;                                         \
   } while (0)
 #else
 #define SINGLE_STEP_HANDLER_BODY SINGLE_STEP_HANDLER_BODY_NO_TRACE
@@ -4952,7 +4944,11 @@ SwitchDispatchNoSingleStep:
     // First check the breakpoint, then single step so that the debugger does
     // not pause immediately at the same location before hitting the breakpoint.
     DEFINE_BREAKPOINT_BODY;
-    SINGLE_STEP_HANDLER_BODY;
+    // Resuming from a pause at the breakpoint may have turned off single
+    // stepping, in which case there is no single step to handle.
+    if (single_stepping_offset != 0) {
+      SINGLE_STEP_HANDLER_BODY;
+    }
     BREAKPOINT_TRACE_ORIGINAL_INSTRUCTION;
     DISPATCH_ORIGINAL_OPCODE;
   }
