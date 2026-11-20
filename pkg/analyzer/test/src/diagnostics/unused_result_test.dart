@@ -963,6 +963,22 @@ void f() {
 ''');
   }
 
+  test_getter_result_logicalOperators() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  bool get foo => false;
+}
+
+void f(A a, bool b) {
+  if (a.foo && b) {}
+  while (b || A().foo) {}
+}
+''');
+  }
+
   test_getter_result_returned() async {
     await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';
@@ -1525,6 +1541,48 @@ f() {
 
 @useResult
 List<String> g() => [];
+''');
+  }
+
+  test_method_result_logicalAnd() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  bool foo() => false;
+}
+
+bool f(A a) => a.foo() && a.foo();
+''');
+  }
+
+  test_method_result_logicalOperators_nested() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  static bool foo() => false;
+}
+
+void f(bool b) {
+  if (!A.foo() && b) {}
+  while (b && (A.foo() || !A.foo())) {}
+}
+''');
+  }
+
+  test_method_result_logicalOr() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  bool foo() => false;
+}
+
+bool f(A a) => a.foo() || a.foo();
 ''');
   }
 
