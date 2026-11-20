@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
@@ -19,7 +18,9 @@ import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:crypto/crypto.dart';
 import 'package:linter/src/rules.dart';
 
-class CiderServiceTest with ResourceProviderMixin {
+import '../../shared/mixins/byte_store_test_mixin.dart';
+
+class CiderServiceTest with ResourceProviderMixin, ByteStoreTestMixin {
   final FileResolverTestData testData = FileResolverTestData();
 
   final StringBuffer logBuffer = StringBuffer();
@@ -47,7 +48,7 @@ class CiderServiceTest with ResourceProviderMixin {
       getFileDigest: (String path) => _getDigest(path),
       prefetchFiles: null,
       workspace: workspace,
-      byteStore: MemoryByteStore(),
+      byteStore: byteStore,
       isGenerated: (_) => false,
       testData: testData,
     );

@@ -46,6 +46,7 @@ import '../constants.dart';
 import '../mocks.dart';
 import '../mocks_lsp.dart';
 import '../shared/mixins/analytics_test_mixin.dart';
+import '../shared/mixins/byte_store_test_mixin.dart';
 import '../shared/shared_test_interface.dart';
 import '../utils/message_scheduler_test_view.dart';
 import 'request_helpers_mixin.dart';
@@ -64,7 +65,8 @@ abstract class AbstractLspAnalysisServerTest
         LspAnalysisServerTestMixin,
         MockPackagesMixin,
         ConfigurationFilesMixin,
-        AnalyticsTestMixin {
+        AnalyticsTestMixin,
+        ByteStoreTestMixin {
   late MockLspServerChannel channel;
   late TestPluginManager pluginManager;
   MessageSchedulerTestView? testView;
@@ -325,6 +327,7 @@ abstract class AbstractLspAnalysisServerTest
       sessionListener,
       httpClient: httpClient,
       processRunner: processRunner,
+      providedByteStore: byteStore,
       pluginManager: pluginManager,
       dartFixPromptManager: dartFixPromptManager,
       messageSchedulerListener: testView,

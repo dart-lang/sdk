@@ -5,9 +5,9 @@
 // ignore_for_file: library_private_types_in_public_api
 
 import 'package:analysis_server/src/utilities/import_analyzer.dart';
-import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -992,7 +992,8 @@ abstract class ImportAnalyzerTest extends PubPackageAnalysisServerTest {
     createDefaultFiles();
     var testCode = TestCode.parseNormalized(code);
     var pathToInclude = newFile(testFilePath, testCode.code).path;
-    var context = AnalysisContextCollection(
+    var context = AnalysisContextCollectionImpl(
+      byteStore: byteStore,
       includedPaths: [pathToInclude],
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
