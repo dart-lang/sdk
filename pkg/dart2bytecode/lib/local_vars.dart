@@ -418,8 +418,11 @@ class _ScopeBuilder extends RecursiveVisitor {
 
       if (node is Constructor) {
         for (var field in node.enclosingClass.fields) {
-          if (!field.isStatic && field.initializer != null) {
-            field.initializer!.accept(this);
+          // Late fields are either initialized lazily by their own initializer
+          // functions or initialized with trivial values that need no scope,
+          // see BytecodeGenerator._genLateFieldInitializer.
+          if (!field.isStatic && !field.isLate) {
+            field.initializer?.accept(this);
           }
         }
         visitList(node.initializers, this);
@@ -1028,7 +1031,10 @@ class _Allocator extends RecursiveVisitor {
 
       if (node is Constructor) {
         for (var field in node.enclosingClass.fields) {
-          if (!field.isStatic) {
+          // Late fields are either initialized lazily by their own initializer
+          // functions or initialized with trivial values that need no
+          // variables, as in _ScopeBuilder._visitFunction.
+          if (!field.isStatic && !field.isLate) {
             field.initializer?.accept(this);
           }
         }
@@ -1263,6 +1269,8 @@ class LocalVariableIndexOverflowException
 
 ThisVariable? _findThisVariable(TreeNode? node) {
   switch (node) {
+    case Field(:var thisVariable?):
+      return thisVariable;
     case Procedure(function: FunctionNode(:var scope?)):
     case Constructor(function: FunctionNode(:var scope?)):
       for (var context in scope.contexts) {

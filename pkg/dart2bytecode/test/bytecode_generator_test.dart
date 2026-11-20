@@ -251,4 +251,21 @@ main() {
       );
     }
   });
+
+  // With instance field initializers, which the kernel service emits for hot
+  // reload, late instance fields with initializers other than null are
+  // initialized lazily.
+  group('gen-bytecode-instance-field-initializers', () {
+    for (final name in ['field_initializers.dart']) {
+      final uri = Uri.file(dartSdkPkgDir + 'dart2bytecode/testcases/$name');
+      test(
+        uri.path,
+        () => runTestCase(
+          uri,
+          options: BytecodeOptions(emitInstanceFieldInitializers: true),
+          expectFilePostfix: '.instance_field_initializers',
+        ),
+      );
+    }
+  });
 }

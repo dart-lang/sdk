@@ -1412,7 +1412,13 @@ class BytecodeGenerator extends RecursiveVisitor {
   void _genLateFieldInitializer(Field field) {
     assert(!field.isStatic);
 
-    if (_isTrivialInitializer(field.initializer)) {
+    // With instance field initializers, only a null initializer is trivial,
+    // as in the VM, so late fields with other initializers have initializer
+    // code and are initialized lazily. Otherwise, trivial initializers are
+    // stored eagerly to avoid the overhead of lazy initialization.
+    if (options.emitInstanceFieldInitializers
+        ? _isNullInitializer(field.initializer)
+        : _isTrivialInitializer(field.initializer)) {
       _genFieldInitializer(field, field.initializer!);
       return;
     }
