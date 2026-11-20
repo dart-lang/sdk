@@ -29,15 +29,16 @@ class EncodeContext {
   /// Returns the encoding of an annotation that is just the unqualified name
   /// of [element], like `@override`, computed by [encode] once per context.
   ///
-  /// The encoding depends only on [element], except for type and formal
-  /// parameters, which are encoded relative to their declarations.
+  /// The encoding depends only on [element]. It would not be true for type
+  /// and formal parameters, which are encoded relative to their declarations.
+  /// But formal parameters are not in scope of annotations of declarations,
+  /// and a name of a type parameter is a `TypeLiteral`.
   ManifestAnnotation encodeUnqualifiedNameAnnotation(
     Element element,
     ManifestAnnotation Function() encode,
   ) {
-    if (element is TypeParameterElement || element is FormalParameterElement) {
-      return encode();
-    }
+    assert(element is! TypeParameterElement);
+    assert(element is! FormalParameterElement);
     return _unqualifiedNameAnnotations[element] ??= encode();
   }
 
@@ -95,17 +96,24 @@ class EncodeContext {
     List<TypeParameterElementImpl> typeParameters,
     T Function(List<ManifestTypeParameter> typeParameters) operation,
   ) {
+    return withTypeParameterScope(typeParameters, () {
+      return operation([
+        for (var typeParameter in typeParameters)
+          ManifestTypeParameter.encode(this, typeParameter),
+      ]);
+    });
+  }
+
+  /// Runs [operation] with [typeParameters] in scope, without encoding them.
+  T withTypeParameterScope<T>(
+    List<TypeParameterElementImpl> typeParameters,
+    T Function() operation,
+  ) {
     for (var typeParameter in typeParameters) {
       _typeParameters[typeParameter] = _typeParameters.length;
     }
-
-    var encoded = <ManifestTypeParameter>[
-      for (var typeParameter in typeParameters)
-        ManifestTypeParameter.encode(this, typeParameter),
-    ];
-
     try {
-      return operation(encoded);
+      return operation();
     } finally {
       for (var typeParameter in typeParameters) {
         _typeParameters.remove(typeParameter);
