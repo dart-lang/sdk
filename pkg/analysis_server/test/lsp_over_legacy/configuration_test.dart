@@ -8,7 +8,6 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/session_logger/entry_keys.dart' as key;
 import 'package:analysis_server/src/session_logger/entry_kind.dart';
 import 'package:analysis_server/src/session_logger/log_entry.dart';
 import 'package:analysis_server/src/session_logger/session_logger_sink.dart';
@@ -231,11 +230,11 @@ void g() {
       createLegacyRequest(ServerGetVersionParams()),
     );
 
-    // A client error rather than a server failure, so it is logged as an error
+    // A client error rather than a server failure, so it is logged as an info
     // and not as an exception (which would also be sent to the client as a
     // `server.error` notification and reported to crash reporting).
     expect(
-      loggedExceptions.single.map[key.message] as String,
+      loggedExceptions.single.textMessage,
       startsWith("The 'lsp.notification' notification was not valid:"),
     );
   }
@@ -257,7 +256,7 @@ void g() {
 
     // There is no response to report the failure in, so it is only logged.
     expect(
-      loggedExceptions.single.map[key.message] as String,
+      loggedExceptions.single.textMessage,
       startsWith(
         "The 'lspNotification' parameter was not a valid LSP notification:",
       ),
@@ -288,7 +287,7 @@ void g() {
     // be sent to the client as a `server.error` notification and reported to
     // crash reporting).
     expect(
-      loggedExceptions.single.map[key.message] as String,
+      loggedExceptions.single.textMessage,
       'An error occurred while handling randomNotification notification: '
       'Unknown method randomNotification',
     );
@@ -400,7 +399,7 @@ void g() {
       hasLength(1),
     );
     expect(
-      loggedExceptions.single.map[key.message] as String,
+      loggedExceptions.single.textMessage,
       contains('An error occurred while fetching the client configuration'),
     );
 

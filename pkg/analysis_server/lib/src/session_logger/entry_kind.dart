@@ -13,7 +13,7 @@ enum EntryKind {
   /// An entry representing exception from the server.
   ///
   /// Entries of this kind will have the following keys:
-  /// - message
+  /// - textMessage
   /// - stackTrace
   /// - attachments
   exception('exception'),
@@ -23,7 +23,7 @@ enum EntryKind {
   /// This is often used for debugging purposes.
   ///
   /// Entries of this kind will have the following keys:
-  /// - message
+  /// - textMessage
   info('info'),
 
   /// An entry representing the passing of a message from one process to

@@ -34,6 +34,9 @@ extension type LogEntry(JsonMap map) {
 
   /// Returns the sender of the message.
   ProcessId get sender => ProcessId.forName(map[key.sender] as String);
+
+  /// Returns the text message for this log entry.
+  String get textMessage => map[key.textMessage] as String;
 }
 
 /// A representation of a message sent from one process to another.

@@ -281,10 +281,10 @@ class LogSanitizer {
     } else if (kind == EntryKind.message.name) {
       sanitizedEntry.updateIfType(key.message, sanitizeMessage);
     } else if (kind == EntryKind.exception.name) {
-      sanitizedEntry.updateIfType(key.message, _sanitizePathsInText);
+      sanitizedEntry.updateIfType(key.textMessage, _sanitizePathsInText);
       sanitizedEntry.updateIfType(key.stackTrace, _sanitizePathsInText);
     } else if (kind == EntryKind.info.name) {
-      sanitizedEntry.updateIfType(key.message, _sanitizePathsInText);
+      sanitizedEntry.updateIfType(key.textMessage, _sanitizePathsInText);
     }
 
     return sanitizedEntry;

@@ -76,7 +76,7 @@ class SessionLogger implements SessionListener {
     sink?.writeLogEntry({
       key.time: DateTime.now().millisecondsSinceEpoch,
       key.kind: EntryKind.exception.name,
-      key.message: exception.toString(),
+      key.textMessage: exception.toString(),
       key.stackTrace: ?stackTrace?.toString(),
       key.attachments: ?attachments
           ?.map(
@@ -95,7 +95,7 @@ class SessionLogger implements SessionListener {
     sink?.writeLogEntry({
       key.time: DateTime.now().millisecondsSinceEpoch,
       key.kind: EntryKind.info.name,
-      key.message: message,
+      key.textMessage: message,
     });
   }
 
@@ -134,7 +134,7 @@ class SessionLogger implements SessionListener {
           ? nestedException.stackTrace
           : null;
       return {
-        key.message: nestedException.toString(),
+        key.textMessage: nestedException.toString(),
         key.stackTrace: ?stackTrace?.toString(),
         key.nestedException: ?_nestedException(nestedException),
       };

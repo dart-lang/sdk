@@ -50,25 +50,25 @@ class LogSanitizerTest {
   void test_exception_and_info_paths() {
     var exceptionEntry = {
       key.kind: EntryKind.exception.name,
-      key.message: 'Error in file:///Users/user/project/lib/main.dart',
+      key.textMessage: 'Error in file:///Users/user/project/lib/main.dart',
       key.stackTrace: 'at /Users/user/project/lib/main.dart:10:5',
     };
 
     var result = sanitizer.sanitizeEntry(exceptionEntry);
     expect(result, {
       key.kind: EntryKind.exception.name,
-      key.message: 'Error in file:///p0/p1/p2/p3/p4.dart',
+      key.textMessage: 'Error in file:///p0/p1/p2/p3/p4.dart',
       key.stackTrace: 'at /p0/p1/p2/p3/p4.dart:10:5',
     });
 
     var infoEntry = {
       key.kind: EntryKind.info.name,
-      key.message: 'Loaded context at /Users/user/project',
+      key.textMessage: 'Loaded context at /Users/user/project',
     };
     var infoResult = sanitizer.sanitizeEntry(infoEntry);
     expect(infoResult, {
       key.kind: EntryKind.info.name,
-      key.message: 'Loaded context at /p0/p1/p2',
+      key.textMessage: 'Loaded context at /p0/p1/p2',
     });
   }
 
@@ -922,13 +922,13 @@ class LogSanitizerTest {
 
   void test_sanitize_indicatorEntry() {
     var entries = [
-      {key.kind: EntryKind.info.name, key.message: 'Test message'},
+      {key.kind: EntryKind.info.name, key.textMessage: 'Test message'},
     ];
 
     var result = sanitizer.sanitize(entries);
     expect(result, [
       LogSanitizer.sanitizedIndicator,
-      {key.kind: EntryKind.info.name, key.message: 'Test message'},
+      {key.kind: EntryKind.info.name, key.textMessage: 'Test message'},
     ]);
   }
 
