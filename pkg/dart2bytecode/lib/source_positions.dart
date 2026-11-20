@@ -20,7 +20,8 @@ class SourcePositions extends BytecodeDeclaration {
   // The flags encoded into the low bits of the source position.
   static const syntheticFlag = 1 << 0;
   static const yieldPointFlag = 1 << 1;
-  static const _numFlags = 2;
+  static const debuggerCallReturnFlag = 1 << 2;
+  static const _numFlags = 3;
   static const _flagMask = (1 << _numFlags) - 1;
 
   final _positions = <int>[]; // Pairs (PC, fileOffset).
@@ -54,6 +55,12 @@ class SourcePositions extends BytecodeDeclaration {
   //
   // Marks the pc as within a yield point if [(flags & yieldPointFlag) != 0].
   //
+  // Marks the pc as the return address of a call to debugger() if
+  // [(flags & debuggerCallReturnFlag) != 0]. Such an entry always starts a
+  // range of its own, since the debugger pauses there after stepping out of
+  // debugger(). It also covers the code after it with the same source
+  // position, so that this code doesn't start another range.
+  //
   // Assumes that the pc is greater than or equal to the pc used in the most
   // recent call to add, if any.
   bool add(int pc, int fileOffset, int flags) {
@@ -68,7 +75,9 @@ class SourcePositions extends BytecodeDeclaration {
       final i = _positions.length - 2;
       final lastPc = _positions[i];
       final lastFileOffset = _positions[i + 1];
-      if (lastFileOffset == encodedFileOffset) {
+      if (lastFileOffset == encodedFileOffset ||
+          lastFileOffset ==
+              _encode(fileOffset, flags | debuggerCallReturnFlag)) {
         // The last entry covers this PC offset as well, or this is a repeated
         // request for the same (pc, offset) mapping.
         return true;
@@ -122,6 +131,9 @@ class SourcePositions extends BytecodeDeclaration {
       }
       if ((flags & yieldPointFlag) != 0) {
         annotation += 'yield point @ ';
+      }
+      if ((flags & debuggerCallReturnFlag) != 0) {
+        annotation += 'debugger call return @ ';
       }
       annotation += 'source position $fileOffset';
       // There is at most one entry per PC offset.

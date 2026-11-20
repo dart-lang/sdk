@@ -1126,13 +1126,14 @@ Fragment BaseFlowGraphBuilder::Box(Representation from) {
   return instructions;
 }
 
-Fragment BaseFlowGraphBuilder::DebugStepCheck(TokenPosition position) {
+Fragment BaseFlowGraphBuilder::DebugStepCheck(
+    TokenPosition position,
+    UntaggedPcDescriptors::Kind kind) {
 #ifdef PRODUCT
   return Fragment();
 #else
-  return Fragment(new (Z) DebugStepCheckInstr(
-      InstructionSource(position), UntaggedPcDescriptors::kRuntimeCall,
-      GetNextDeoptId()));
+  return Fragment(new (Z) DebugStepCheckInstr(InstructionSource(position), kind,
+                                              GetNextDeoptId()));
 #endif
 }
 

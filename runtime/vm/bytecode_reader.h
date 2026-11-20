@@ -596,7 +596,8 @@ class BytecodeSourcePositionsIterator : ValueObject {
   static const intptr_t kNoSourcePosition = -1;
   static const intptr_t kSyntheticFlag = 1 << 0;
   static const intptr_t kYieldPointFlag = 1 << 1;
-  static const intptr_t kNumFlags = 2;
+  static const intptr_t kDebuggerCallReturnFlag = 1 << 2;
+  static const intptr_t kNumFlags = 3;
   static const intptr_t kFlagMask = (1 << kNumFlags) - 1;
 
  public:
@@ -637,6 +638,11 @@ class BytecodeSourcePositionsIterator : ValueObject {
   }
 
   bool IsYieldPoint() const { return (flags_ & kYieldPointFlag) != 0; }
+
+  // Whether the entry starts at the return address of a call to debugger().
+  bool IsDebuggerCallReturn() const {
+    return (flags_ & kDebuggerCallReturnFlag) != 0;
+  }
 
  private:
   Reader reader_;

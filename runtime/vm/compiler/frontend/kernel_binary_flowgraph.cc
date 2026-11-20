@@ -1497,8 +1497,10 @@ void StreamingFlowGraphBuilder::InlineBailout(const char* reason) {
   flow_graph_builder_->InlineBailout(reason);
 }
 
-Fragment StreamingFlowGraphBuilder::DebugStepCheck(TokenPosition position) {
-  return flow_graph_builder_->DebugStepCheck(position);
+Fragment StreamingFlowGraphBuilder::DebugStepCheck(
+    TokenPosition position,
+    UntaggedPcDescriptors::Kind kind) {
+  return flow_graph_builder_->DebugStepCheck(position, kind);
 }
 
 Fragment StreamingFlowGraphBuilder::LoadLocal(LocalVariable* variable) {
@@ -3478,9 +3480,12 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
     }
 
     // After reaching debugger(), we automatically do one single-step.
-    // Ensure this doesn't cause us to exit the current scope.
+    // Ensure this doesn't cause us to exit the current scope. The step check
+    // has its own descriptor kind, so the debugger doesn't set breakpoints
+    // there in addition to the call.
     if (recognized_kind == MethodRecognizer::kDebugger) {
-      instructions += DebugStepCheck(position);
+      instructions +=
+          DebugStepCheck(position, UntaggedPcDescriptors::kDebuggerCallReturn);
     }
   }
 

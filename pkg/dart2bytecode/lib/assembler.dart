@@ -777,9 +777,8 @@ class BytecodeAssembler {
     _emitInstructionA(Opcode.kCheckStack, ra);
   }
 
-  // Nops are explicitly created by the bytecode generator in only one case
-  // (calls to dart:developer::debugger). Otherwise, they are introduced by
-  // the assembler in order to provide unique pc offsets for source positions.
+  // Nops are introduced by the assembler in order to provide unique pc offsets
+  // for source positions.
   @pragma('vm:prefer-inline')
   void emitNop() {
     _emitInstruction0(Opcode.kNop);

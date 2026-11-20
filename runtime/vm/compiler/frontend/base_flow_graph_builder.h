@@ -425,7 +425,9 @@ class BaseFlowGraphBuilder {
                           const Class& klass,
                           intptr_t argument_count);
 
-  Fragment DebugStepCheck(TokenPosition position);
+  Fragment DebugStepCheck(
+      TokenPosition position,
+      UntaggedPcDescriptors::Kind kind = UntaggedPcDescriptors::kRuntimeCall);
 
   // Loads 'receiver' and checks it for null. Throws NoSuchMethod if it is null.
   // 'function_name' is a selector which is being called (reported in

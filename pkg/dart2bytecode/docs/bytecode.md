@@ -47,7 +47,7 @@ which reside in different sections such as libraries, classes, members, code, et
 ```
 type BytecodeFile {
   UInt32 magic = 0x44424333; // 'DBC3'
-  UInt32 formatVersion = 4;
+  UInt32 formatVersion = 5;
 
   // Descriptors of the sections below.
   // Each section has a fixed index in the descriptors array.
@@ -893,6 +893,10 @@ type SourcePositions {
   //   for debugger breakpoints or pausing or for code coverage).
   // - yieldPoint (bit 1): set if the source position corresponds to
   //   bytecode that implements a yield point.
+  // - debuggerCallReturn (bit 2): set if the source position starts at the
+  //   return address of a call to dart:developer::debugger(). The debugger
+  //   pauses there after stepping out of debugger(), but doesn't set
+  //   breakpoints there.
   //
   // For two consecutive entries (PC1, FileOffset1), (PC2, FileOffset2) all
   // bytecode instructions in range [PC1,PC2) correspond to an encoded source
