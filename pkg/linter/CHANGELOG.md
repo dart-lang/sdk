@@ -13,6 +13,8 @@
   annotated with `@internal`.
 - update `public_member_api_docs` to report undocumented declaring parameters
   of a primary constructor, which induce public fields.
+- update `invalid_runtime_check_with_js_interop_types` to report invalid type
+  tests using collection helpers, e.g. `List.cast`.
 
 # 3.13.0
 
