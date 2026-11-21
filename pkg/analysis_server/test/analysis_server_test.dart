@@ -25,6 +25,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unified_analytics/unified_analytics.dart';
 
 import 'constants.dart';
+import 'shared/mixins/byte_store_test_mixin.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -33,7 +34,7 @@ void main() {
 }
 
 @reflectiveTest
-class AnalysisServerTest with ResourceProviderMixin {
+class AnalysisServerTest with ResourceProviderMixin, ByteStoreTestMixin {
   @override
   MemoryResourceProvider resourceProvider = MemoryResourceProvider(
     // Force the in-memory file watchers to be slowly initialized to emulate
@@ -65,6 +66,7 @@ class AnalysisServerTest with ResourceProviderMixin {
       AnalyticsManager(NoOpAnalytics()),
       CrashReportingAttachmentsBuilder.empty,
       sessionListener,
+      providedByteStore: byteStore,
     );
     userNotifyingSessionListener.server = server;
   }

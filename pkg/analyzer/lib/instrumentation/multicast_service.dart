@@ -36,6 +36,7 @@ class MulticastInstrumentationService implements InstrumentationService {
     }
   }
 
+  @Deprecated('This form of logging is no longer supported.')
   @override
   void logLogEntry(
     String level,
@@ -49,6 +50,7 @@ class MulticastInstrumentationService implements InstrumentationService {
     }
   }
 
+  @Deprecated('This form of logging is no longer supported.')
   @override
   void logNotification(String notification) {
     for (var service in _services) {
@@ -107,6 +109,7 @@ class MulticastInstrumentationService implements InstrumentationService {
     }
   }
 
+  @Deprecated('This form of logging is no longer supported.')
   @override
   void logRequest(String request) {
     for (var service in _services) {
@@ -114,6 +117,7 @@ class MulticastInstrumentationService implements InstrumentationService {
     }
   }
 
+  @Deprecated('This form of logging is no longer supported.')
   @override
   void logResponse(String response) {
     for (var service in _services) {
@@ -121,6 +125,7 @@ class MulticastInstrumentationService implements InstrumentationService {
     }
   }
 
+  @Deprecated('This form of logging is no longer supported.')
   @override
   void logVersion(
     String uuid,
@@ -140,6 +145,7 @@ class MulticastInstrumentationService implements InstrumentationService {
     }
   }
 
+  @Deprecated('This form of logging is no longer supported.')
   @override
   void logWatchEvent(String folderPath, String filePath, String changeType) {
     for (var service in _services) {

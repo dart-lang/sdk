@@ -14,7 +14,6 @@ import 'package:analysis_server_plugin/src/correction/fix_processor.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
@@ -34,8 +33,6 @@ typedef DiagnosticFilter = bool Function(Diagnostic diagnostic);
 /// apply a fix, then the code is valid after applying as many fixes as possible
 /// in a single pass.
 abstract class BulkFixProcessorTest extends SingleUnitTest {
-  final ByteStore _byteStore = MemoryByteStore();
-
   /// The source change associated with the fix that was found, or `null` if
   /// neither [assertHasFix] nor [assertHasFixAllFix] has been invoked.
   late SourceChange change;
@@ -65,7 +62,7 @@ abstract class BulkFixProcessorTest extends SingleUnitTest {
     File? file,
   }) async {
     var analysisContext = contextFor2(file ?? testFile);
-    var processor = BulkFixProcessor(await workspace, byteStore: _byteStore);
+    var processor = BulkFixProcessor(await workspace, byteStore: byteStore);
     var fixes = (await processor.fixPubspec([analysisContext])).edits;
     var edits = [for (var fix in fixes) ...fix.edits];
     var result = SourceEdit.applySequence(normalizeSource(original), edits);
@@ -74,7 +71,7 @@ abstract class BulkFixProcessorTest extends SingleUnitTest {
 
   Future<void> assertFormat(String expectedCode) async {
     var analysisContext = contextFor2(testFile);
-    processor = BulkFixProcessor(await workspace, byteStore: _byteStore);
+    processor = BulkFixProcessor(await workspace, byteStore: byteStore);
     await processor.formatCode([analysisContext]);
     var change = processor.builder.sourceChange;
     var fileEdits = change.edits;
@@ -107,7 +104,7 @@ abstract class BulkFixProcessorTest extends SingleUnitTest {
 
   Future<void> assertOrganize(String expectedCode) async {
     var analysisContext = contextFor2(testFile);
-    processor = BulkFixProcessor(await workspace, byteStore: _byteStore);
+    processor = BulkFixProcessor(await workspace, byteStore: byteStore);
     await processor.organizeDirectives([analysisContext]);
     var change = processor.builder.sourceChange;
     var fileEdits = change.edits;
@@ -125,7 +122,7 @@ abstract class BulkFixProcessorTest extends SingleUnitTest {
     var processor = BulkFixProcessor(
       await workspace,
       codes: codes,
-      byteStore: _byteStore,
+      byteStore: byteStore,
     );
     if (isParse) {
       await processor.fixErrorsUsingParsedResult([analysisContext]);
@@ -139,7 +136,7 @@ abstract class BulkFixProcessorTest extends SingleUnitTest {
   /// [testFile].
   Future<bool> computeHasFixes() async {
     var analysisContext = contextFor2(testFile);
-    processor = BulkFixProcessor(await workspace, byteStore: _byteStore);
+    processor = BulkFixProcessor(await workspace, byteStore: byteStore);
     return processor.hasFixes([analysisContext]);
   }
 

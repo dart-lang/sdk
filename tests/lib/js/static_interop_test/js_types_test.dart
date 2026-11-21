@@ -1230,13 +1230,11 @@ Future<void> asyncTests() async {
       await Future<JSAny?>(() => throw Exception()).toJS.toDart;
       Expect.fail('Expected future to throw.');
     } catch (e) {
-      Expect.isTrue(e is JSObject);
-      final jsError = e as JSObject;
+      Expect.isTrue(e.isA<JSWrappedPromiseError>());
+      final jsError = e as JSWrappedPromiseError;
       Expect.isTrue(jsError.instanceof(globalContext['Error'] as JSFunction));
-      Expect.isTrue(
-        (jsError['error'] as JSBoxedDartObject).toDart is Exception,
-      );
-      StackTrace.fromString((jsError['stack'] as JSString).toDart);
+      Expect.isTrue(jsError.error is Exception);
+      jsError.stack; // This shouldn't throw a parse error.
     }
     var error = await asyncExpectThrows<JSAny>(
       Future<JSAny?>(() => throw JSError('oh no')).toJS.toDart,
@@ -1300,13 +1298,11 @@ Future<void> asyncTests() async {
       await f;
       Expect.fail('Expected future to throw.');
     } catch (e) {
-      Expect.isTrue(e is JSObject);
-      final jsError = e as JSObject;
+      Expect.isTrue(e.isA<JSWrappedPromiseError>());
+      final jsError = e as JSWrappedPromiseError;
       Expect.isTrue(jsError.instanceof(globalContext['Error'] as JSFunction));
-      Expect.isTrue(
-        (jsError['error'] as JSBoxedDartObject).toDart is Exception,
-      );
-      StackTrace.fromString((jsError['stack'] as JSString).toDart);
+      Expect.isTrue(jsError.error is Exception);
+      jsError.stack; // This shouldn't throw a parse error.
     }
     var error = await asyncExpectThrows<JSAny>(
       Future<void>(() => throw JSError('oh no')).toJS.toDart as Future<void>,

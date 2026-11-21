@@ -28,6 +28,7 @@ abstract class InstrumentationService {
   /// Log that a log entry that was written to the analysis engine's log. The log
   /// entry has the given [level] and [message], and was created at the given
   /// [time].
+  @Deprecated('This form of logging is no longer supported.')
   void logLogEntry(
     String level,
     DateTime time,
@@ -37,6 +38,7 @@ abstract class InstrumentationService {
   );
 
   /// Log that a notification has been sent to the client.
+  @Deprecated('This form of logging is no longer supported.')
   void logNotification(String notification);
 
   /// Log the fact that an error, described by the given [message], was reported
@@ -72,13 +74,16 @@ abstract class InstrumentationService {
   void logPluginTimeout(PluginData plugin, String request);
 
   /// Log that a request has been sent to the client.
+  @Deprecated('This form of logging is no longer supported.')
   void logRequest(String request);
 
   /// Log that a response has been sent to the client.
+  @Deprecated('This form of logging is no longer supported.')
   void logResponse(String response);
 
   /// Signal that the client has started analysis server.
   /// This method should be invoked exactly one time.
+  @Deprecated('This form of logging is no longer supported.')
   void logVersion(
     String uuid,
     String clientId,
@@ -91,6 +96,7 @@ abstract class InstrumentationService {
   /// path to the folder containing the changed file, the [filePath] is the path
   /// of the file that changed, and the [changeType] indicates what kind of
   /// change occurred.
+  @Deprecated('This form of logging is no longer supported.')
   void logWatchEvent(String folderPath, String filePath, String changeType);
 
   /// Shut down this service.

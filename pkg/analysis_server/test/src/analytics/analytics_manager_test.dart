@@ -15,6 +15,7 @@ import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/util/platform_info.dart';
@@ -29,6 +30,7 @@ import 'package:unified_analytics/src/enums.dart';
 import 'package:unified_analytics/unified_analytics.dart';
 
 import '../../mocks.dart';
+import '../../shared/mixins/byte_store_test_mixin.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -37,7 +39,7 @@ void main() {
 }
 
 @reflectiveTest
-class AnalyticsManagerTest with ResourceProviderMixin {
+class AnalyticsManagerTest with ResourceProviderMixin, ByteStoreTestMixin {
   final analytics = _MockAnalytics();
   late final manager = AnalyticsManager(analytics);
 
@@ -666,7 +668,8 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     var sdkRoot = getFolder('/sdk');
     createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
     registerLintRules();
-    return AnalysisContextCollection(
+    return AnalysisContextCollectionImpl(
+      byteStore: byteStore,
       resourceProvider: resourceProvider,
       includedPaths: [testPackageRootPath],
       sdkPath: sdkRoot.path,

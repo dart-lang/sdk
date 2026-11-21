@@ -157,6 +157,15 @@ bool _isNullableJSBoxedDartObject(Object? any) =>
     any == null || _isJSBoxedDartObject(any);
 
 @pragma('dart2js:prefer-inline')
+bool _isJSWrappedPromiseError(Object? any) =>
+    any.isA<JSError>() &&
+    (any as JSError).hasProperty(_wrappedPromiseErrorMarker).toDart;
+
+@pragma('dart2js:prefer-inline')
+bool _isNullableJSWrappedPromiseError(Object? any) =>
+    any == null || _isJSWrappedPromiseError(any);
+
+@pragma('dart2js:prefer-inline')
 bool _isJSObject(Object? any) =>
     // Backend will optimize this check. See rti.dart:_isJSObject for more
     // details.

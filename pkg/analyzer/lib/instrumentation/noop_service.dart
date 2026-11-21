@@ -21,6 +21,7 @@ class NoopInstrumentationService implements InstrumentationService {
   @override
   void logInfo(String message, [dynamic exception]) {}
 
+  @Deprecated('This form of logging is no longer supported.')
   @override
   void logLogEntry(
     String level,
@@ -30,6 +31,7 @@ class NoopInstrumentationService implements InstrumentationService {
     StackTrace stackTrace,
   ) {}
 
+  @Deprecated('This form of logging is no longer supported.')
   @override
   void logNotification(String notification) {}
 
@@ -60,12 +62,15 @@ class NoopInstrumentationService implements InstrumentationService {
   @override
   void logPluginTimeout(PluginData plugin, String request) {}
 
+  @Deprecated('This form of logging is no longer supported.')
   @override
   void logRequest(String request) {}
 
+  @Deprecated('This form of logging is no longer supported.')
   @override
   void logResponse(String response) {}
 
+  @Deprecated('This form of logging is no longer supported.')
   @override
   void logVersion(
     String uuid,
@@ -75,6 +80,7 @@ class NoopInstrumentationService implements InstrumentationService {
     String sdkVersion,
   ) {}
 
+  @Deprecated('This form of logging is no longer supported.')
   @override
   void logWatchEvent(String folderPath, String filePath, String changeType) {}
 

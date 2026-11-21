@@ -6,7 +6,6 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -46,7 +45,7 @@ var a = new A();
     var changeWorkspace = await workspace;
     var processor = BulkFixProcessor.withAdditionalLints(
       changeWorkspace,
-      byteStore: MemoryByteStore(),
+      byteStore: byteStore,
       additionalLintCodes: [LintNames.unnecessary_new],
     );
 
@@ -110,6 +109,7 @@ var b = new B();
 ''');
 
     var collection1 = AnalysisContextCollectionImpl(
+      byteStore: byteStore,
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
       includedPaths: [getFolder(package1RootPath).path],
@@ -117,6 +117,7 @@ var b = new B();
     var context1 = collection1.contextFor(file1.path);
 
     var collection2 = AnalysisContextCollectionImpl(
+      byteStore: byteStore,
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
       includedPaths: [getFolder(package2RootPath).path],
@@ -135,7 +136,7 @@ var b = new B();
     // wrongly analyzed `package2`.
     var processor = BulkFixProcessor.withAdditionalLints(
       DartChangeWorkspace([context1.currentSession, context2.currentSession]),
-      byteStore: MemoryByteStore(),
+      byteStore: byteStore,
       additionalLintCodes: [LintNames.unnecessary_new],
     );
 
@@ -168,7 +169,7 @@ var a = new A();
     var changeWorkspace = await workspace;
     var processor = BulkFixProcessor.withAdditionalLints(
       changeWorkspace,
-      byteStore: MemoryByteStore(),
+      byteStore: byteStore,
       additionalLintCodes: [LintNames.unnecessary_new],
     );
 
@@ -196,7 +197,7 @@ var a = new A();
     var changeWorkspace = await workspace;
     var processor = BulkFixProcessor.withAdditionalLints(
       changeWorkspace,
-      byteStore: MemoryByteStore(),
+      byteStore: byteStore,
       additionalLintCodes: ['some_fake_lint_that_doesnt_exist'],
     );
 
@@ -223,7 +224,7 @@ var a = new A();
     var changeWorkspace = await workspace;
     var processor = BulkFixProcessor.withAdditionalLints(
       changeWorkspace,
-      byteStore: MemoryByteStore(),
+      byteStore: byteStore,
       additionalLintCodes: [LintNames.unnecessary_new],
     );
 
@@ -316,7 +317,7 @@ var a = new A();
     var token = CancelableToken();
     var processor = BulkFixProcessor(
       changeWorkspace,
-      byteStore: MemoryByteStore(),
+      byteStore: byteStore,
       cancellationToken: token,
     );
 

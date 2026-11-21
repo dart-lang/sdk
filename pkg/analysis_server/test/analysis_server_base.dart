@@ -16,7 +16,6 @@ import 'package:analyzer/dart/analysis/analysis_options.dart' as analysis;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/platform.dart';
@@ -34,6 +33,7 @@ import 'package:unified_analytics/unified_analytics.dart';
 
 import 'constants.dart';
 import 'mocks.dart';
+import 'shared/mixins/byte_store_test_mixin.dart';
 import 'utils/message_scheduler_test_view.dart';
 
 class BlazeWorkspaceAnalysisServerTest extends ContextResolutionTest {
@@ -51,17 +51,10 @@ class BlazeWorkspaceAnalysisServerTest extends ContextResolutionTest {
   }
 }
 
-abstract class ContextResolutionTest with ResourceProviderMixin {
-  /// The byte store that is reused between tests. This allows reusing all
-  /// unlinked and linked summaries for SDK, so that tests run much faster.
-  /// However nothing is preserved between Dart VM runs, so changes to the
-  /// implementation are still fully verified.
-  static final MemoryByteStore _sharedByteStore = MemoryByteStore();
-
+abstract class ContextResolutionTest
+    with ResourceProviderMixin, ByteStoreTestMixin {
   /// The next ID to use in a request to the server.
   var nextRequestId = 0;
-
-  MemoryByteStore _byteStore = _sharedByteStore;
 
   late final TestPluginManager pluginManager = TestPluginManager(
     resourceProvider,
@@ -194,7 +187,7 @@ abstract class ContextResolutionTest with ResourceProviderMixin {
       CrashReportingAttachmentsBuilder.empty,
       sessionLogger,
       dartFixPromptManager: dartFixPromptManager,
-      providedByteStore: _byteStore,
+      providedByteStore: byteStore,
       pluginManager: pluginManager,
       messageSchedulerListener: testView,
     );
@@ -342,12 +335,6 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest
     var offset = content.indexOf(search);
     expect(offset, isNot(-1));
     return offset;
-  }
-
-  /// Call this method if the test needs to use the empty byte store, without
-  /// any information cached.
-  void useEmptyByteStore() {
-    _byteStore = MemoryByteStore();
   }
 
   void writeTestPackageAnalysisOptionsFile(String content) {
