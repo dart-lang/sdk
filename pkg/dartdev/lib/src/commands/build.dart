@@ -94,7 +94,12 @@ bundle/
   bin/
     <executables>
   lib/
-    <dynamic libraries>''',
+    <dynamic libraries>
+
+Deploy the entire bundle and preserve its directory structure. Executables in
+bin/ are not guaranteed to run without the other files in the bundle, even for
+applications without native dependencies. The internal bundle layout can change
+between SDK versions.''',
          verbose,
        ) {
     final binDirectory = Directory.fromUri(

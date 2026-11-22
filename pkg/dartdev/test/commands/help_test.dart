@@ -56,6 +56,16 @@ void help() {
     expect(result.stderr, contains(pubHelpResult.stderr));
   });
 
+  test('build cli help explains bundle deployment', () {
+    final runner = DartdevRunner(['--suppress-analytics']);
+    final usage = runner.commands['build']!.subcommands['cli']!.usage;
+
+    expect(usage, contains('Deploy the entire bundle'));
+    expect(usage, contains('preserve its directory structure'));
+    expect(usage, contains('applications without native dependencies'));
+    expect(usage, contains('internal bundle layout can change'));
+  });
+
   test('(--help flags also have -h abbr)', () {
     DartdevRunner(['--suppress-analytics']).commands.forEach((
       String commandKey,
