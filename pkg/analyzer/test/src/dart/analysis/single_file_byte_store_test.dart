@@ -6,8 +6,10 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
+import 'package:analyzer/instrumentation/noop_service.dart';
 import 'package:analyzer/src/dart/analysis/single_file_byte_store.dart';
 import 'package:analyzer/src/dart/analysis/xxh64.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -72,15 +74,32 @@ class SingleFileByteStoreFileTest {
   late Directory directory;
   late _TestFile file;
   late _TestFileSource fileSource;
+  final _RecordingInstrumentationService instrumentation = .new();
 
   void setUp() {
     directory = Directory.systemTemp.createTempSync('byte_store_');
     file = _TestFile();
     fileSource = _TestFileSource(file);
+    AnalysisEngine.instance.instrumentationService = instrumentation;
   }
 
   void tearDown() {
+    AnalysisEngine.instance.instrumentationService = null;
     directory.deleteSync(recursive: true);
+  }
+
+  void test_close_closeFailure_recordsStorageFailure() {
+    var store = _open();
+    store.putGet('key', Uint8List.fromList([1, 2, 3]));
+    file.failClose = true;
+
+    store.close();
+    expect(store.storageFailure?.message, 'Simulated close failure');
+    expect(instrumentation.infoMessages, [contains('${store.storageFailure}')]);
+    expect(store.statistics.committedEntryCount, 1);
+    expect(file.closeCount, 1);
+    store.close();
+    expect(file.closeCount, 1);
   }
 
   void test_close_closesFileWhenFlushFails() {
@@ -88,7 +107,10 @@ class SingleFileByteStoreFileTest {
     store.putGet('key', Uint8List.fromList([1, 2, 3]));
     file.failFlush = true;
 
-    expect(store.close, throwsA(isA<FileSystemException>()));
+    store.close();
+    expect(store.storageFailure?.message, 'Simulated flush failure');
+    expect(instrumentation.infoMessages, [contains('${store.storageFailure}')]);
+    expect(store.pendingEntryCount, 0);
     expect(file.closeCount, 1);
     expect(() => store.get('key'), throwsStateError);
     expect(store.flush, throwsStateError);
@@ -129,6 +151,65 @@ class SingleFileByteStoreFileTest {
     expect(store.filePath, isNull);
     expect(store.pendingEntryCount, 0);
     expect(store.statistics.committedEntryCount, 1);
+    expect(file.closeCount, 0);
+  }
+
+  void test_flush_flushAndCloseFailures_recordsFlushFailure() {
+    var store = _open();
+    store.putGet('key', Uint8List.fromList([1, 2, 3]));
+    file.failFlush = true;
+    file.failClose = true;
+
+    store.flush();
+    expect(store.storageFailure?.message, 'Simulated flush failure');
+    expect(instrumentation.infoMessages, [contains('${store.storageFailure}')]);
+    expect(file.closeCount, 1);
+
+    // The file is not closed again, and the first failure is kept.
+    store.close();
+    expect(store.storageFailure?.message, 'Simulated flush failure');
+    expect(instrumentation.infoMessages, hasLength(1));
+    expect(file.closeCount, 1);
+  }
+
+  void test_flush_flushFailure_closesFile() {
+    var store = _open();
+    store.putGet('key', Uint8List.fromList([1, 2, 3]));
+    file.failFlush = true;
+
+    store.flush();
+    expect(store.storageFailure?.message, 'Simulated flush failure');
+    expect(instrumentation.infoMessages, [contains('${store.storageFailure}')]);
+    expect(file.closeCount, 1);
+    expect(store.filePath, 'cache');
+
+    // The disabled store still works without the file.
+    expect(store.get('key'), isNull);
+    expect(store.putGet('key', Uint8List(1)), Uint8List(1));
+    store.flush();
+    expect(store.tableBucketEntryCounts(), isNull);
+
+    store.close();
+    expect(file.closeCount, 1);
+  }
+
+  void test_flush_flushFailure_leavesBorrowedFileOpen() {
+    var store = SingleFileByteStore(
+      FileStorage(file),
+      filePageCountLog2: 11,
+      tableSlotCountLog2: 7,
+      bufferPoolCapacityLog2: 2,
+      maxPendingValueBytes: 1024,
+      maxPendingEntryCount: 64,
+    );
+    store.putGet('key', Uint8List.fromList([1, 2, 3]));
+    file.failFlush = true;
+
+    store.flush();
+    expect(store.storageFailure?.message, 'Simulated flush failure');
+    expect(file.closeCount, 0);
+
+    store.close();
     expect(file.closeCount, 0);
   }
 
@@ -305,9 +386,15 @@ class SingleFileByteStoreInDirectoryTest {
 class SingleFileByteStoreTest {
   final _MemoryStorage storage = _MemoryStorage();
   late SingleFileByteStore store;
+  final _RecordingInstrumentationService instrumentation = .new();
 
   void setUp() {
+    AnalysisEngine.instance.instrumentationService = instrumentation;
     _open();
+  }
+
+  void tearDown() {
+    AnalysisEngine.instance.instrumentationService = null;
   }
 
   void test_constructor_emptyStorage_notCountedAsReset() {
@@ -734,6 +821,43 @@ class SingleFileByteStoreTest {
     expect(store.get('other'), _value(10));
   }
 
+  void test_flush_writeFailure_disablesStore() {
+    var flushedBytes = <int>[];
+    store.onFlush = (valueBytes, _) => flushedBytes.add(valueBytes);
+    store.putGet('a', _value(10));
+    store.flush();
+    expect(flushedBytes, [10]);
+
+    store.putGet('b', _value(20));
+    storage.writesBeforeFailure = 0;
+    store.flush();
+    expect(store.storageFailure, isA<FileSystemException>());
+    expect(instrumentation.infoMessages, [contains('${store.storageFailure}')]);
+    expect(store.pendingEntryCount, 0);
+    expect(store.pendingValueBytes, 0);
+    expect(flushedBytes, [10]);
+
+    // The store does not access storage anymore.
+    var readCount = storage.readCount;
+    var writeCount = storage.writeCount;
+    expect(store.get('a'), isNull);
+    expect(store.get('b'), isNull);
+    expect(store.putGet('c', _value(30)), _value(30));
+    expect(store.pendingEntryCount, 0);
+    expect(store.get('c'), isNull);
+    store.flush();
+    expect(store.tableBucketEntryCounts(), isNull);
+    expect(storage.readCount, readCount);
+    expect(storage.writeCount, writeCount);
+    expect(flushedBytes, [10]);
+    expect(instrumentation.infoMessages, hasLength(1));
+
+    // A new store reads the committed value.
+    _open();
+    expect(store.storageFailure, isNull);
+    expect(store.get('a'), _value(10));
+  }
+
   void test_flush_writeFailurePreservesCommittedValues() {
     store.putGet('key', _value(10));
     store.flush();
@@ -752,15 +876,15 @@ class SingleFileByteStoreTest {
       store.putGet('key', _value(20, startByte: 1));
       storage.writesBeforeFailure = writeIndex;
 
+      store.flush();
       expect(
-        store.flush,
-        throwsA(isA<FileSystemException>()),
+        store.storageFailure,
+        isA<FileSystemException>(),
         reason: 'writeIndex=$writeIndex',
       );
-      expect(store.pendingEntryCount, 1);
+      expect(store.pendingEntryCount, 0);
 
-      // Each failure occurs before publication. Recover with a fresh store
-      // rather than retrying operations on the failed instance.
+      // Each failure occurs before publication, so a fresh store recovers.
       _open();
       expect(store.get('key'), _value(10), reason: 'writeIndex=$writeIndex');
     }
@@ -906,6 +1030,28 @@ class SingleFileByteStoreTest {
     }
   }
 
+  void test_get_readFailure_disablesStore() {
+    store.putGet('a', _value(10));
+    store.flush();
+    store.putGet('b', _value(20));
+
+    // A pending value is returned without reading storage.
+    storage.failReads = true;
+    expect(store.get('b'), _value(20));
+    expect(store.storageFailure, isNull);
+
+    expect(store.get('a'), isNull);
+    expect(store.storageFailure, isA<FileSystemException>());
+    expect(instrumentation.infoMessages, [contains('${store.storageFailure}')]);
+    expect(store.pendingEntryCount, 0);
+
+    // The store does not access storage anymore.
+    storage.failReads = false;
+    var readCount = storage.readCount;
+    expect(store.get('a'), isNull);
+    expect(storage.readCount, readCount);
+  }
+
   void test_get_resetsWhenValueIsCorrupt() {
     var value = Uint8List(100)..fillRange(0, 100, 0xAB);
     store.putGet('key', value);
@@ -967,6 +1113,32 @@ class SingleFileByteStoreTest {
     _open();
     expect(store.get('key'), isEmpty);
     expect(store.get('missing'), isNull);
+  }
+
+  void test_putGet_flushAtEntryLimitFails_disablesStore() {
+    _open(maxPendingEntryCount: 2);
+    store.putGet('a', _value(10));
+    storage.writesBeforeFailure = 0;
+
+    expect(
+      store.putGet('b', _value(20, startByte: 1)),
+      _value(20, startByte: 1),
+    );
+    expect(store.storageFailure, isA<FileSystemException>());
+    expect(store.pendingEntryCount, 0);
+    expect(store.get('a'), isNull);
+    expect(store.get('b'), isNull);
+  }
+
+  void test_putGet_flushBeforeExceedingByteLimitFails_doesNotQueue() {
+    _open(maxPendingValueBytes: 5);
+    store.putGet('a', _value(3));
+    storage.writesBeforeFailure = 0;
+
+    expect(store.putGet('b', _value(3, startByte: 1)), _value(3, startByte: 1));
+    expect(store.storageFailure, isA<FileSystemException>());
+    expect(store.pendingEntryCount, 0);
+    expect(store.get('b'), isNull);
   }
 
   void test_putGet_flushesBeforeExceedingByteLimit() {
@@ -1111,6 +1283,26 @@ class SingleFileByteStoreTest {
     expect(store.tableBucketEntryCounts(), [113]);
   }
 
+  void test_tableBucketEntryCounts_readFailure_disablesStore() {
+    store.putGet('a', _value(10));
+    store.flush();
+    store.putGet('b', _value(20));
+
+    storage.failReads = true;
+    expect(store.tableBucketEntryCounts(), isNull);
+    expect(store.storageFailure, isA<FileSystemException>());
+    expect(instrumentation.infoMessages, [contains('${store.storageFailure}')]);
+    expect(store.pendingEntryCount, 0);
+
+    // The store does not access storage anymore.
+    storage.failReads = false;
+    var readCount = storage.readCount;
+    expect(store.tableBucketEntryCounts(), isNull);
+    expect(store.get('a'), isNull);
+    expect(storage.readCount, readCount);
+    expect(instrumentation.infoMessages, hasLength(1));
+  }
+
   String _keyForSlot(int slot) {
     for (var i = 0; ; i++) {
       var key = 'key_$i';
@@ -1161,10 +1353,14 @@ class SingleFileByteStoreTest {
 }
 
 /// [Storage] backed by an in-memory byte buffer.
-/// Can fail a selected write before modifying the bytes.
+/// Can fail a selected write before modifying the bytes, or all reads.
 class _MemoryStorage implements Storage {
   Uint8List _bytes = Uint8List(0);
+  int readCount = 0;
   int writeCount = 0;
+
+  /// Whether reads throw a simulated failure.
+  bool failReads = false;
 
   /// Successful writes remaining before a single simulated write failure.
   int? writesBeforeFailure;
@@ -1177,6 +1373,7 @@ class _MemoryStorage implements Storage {
 
   @override
   Uint8List read(int offset, int length) {
+    _beforeRead();
     RangeError.checkNotNegative(length, 'length');
     RangeError.checkValidRange(offset, offset + length, this.length);
     return _bytes.sublist(offset, offset + length);
@@ -1184,6 +1381,7 @@ class _MemoryStorage implements Storage {
 
   @override
   void readInto(int offset, Uint8List buffer) {
+    _beforeRead();
     RangeError.checkValidRange(offset, offset + buffer.length, length);
     buffer.setRange(0, buffer.length, _bytes, offset);
   }
@@ -1210,6 +1408,23 @@ class _MemoryStorage implements Storage {
     }
     RangeError.checkValidRange(offset, offset + bytes.length, length);
     _bytes.setRange(offset, offset + bytes.length, bytes);
+  }
+
+  void _beforeRead() {
+    readCount++;
+    if (failReads) {
+      throw const FileSystemException('Simulated read failure');
+    }
+  }
+}
+
+/// Records messages logged with [logInfo].
+class _RecordingInstrumentationService extends NoopInstrumentationService {
+  final List<String> infoMessages = [];
+
+  @override
+  void logInfo(String message, [Object? exception]) {
+    infoMessages.add(message);
   }
 }
 
@@ -1250,14 +1465,16 @@ class _SetLastModifiedFailingFile implements File {
 /// file locked. [unlockSync] checks that it is locked, clears that state, and
 /// counts unlocks. These methods check usage without providing actual locking.
 ///
-/// [failFlush], [failLength], [failTruncate], and [failLock] simulate file-system
-/// exceptions in the corresponding methods. Unimplemented methods throw through
+/// [failClose], [failFlush], [failLength], [failTruncate], and [failLock]
+/// simulate file-system exceptions in the corresponding methods, [closeSync]
+/// after counting the call. Unimplemented methods throw through
 /// [noSuchMethod].
 class _TestFile implements RandomAccessFile {
   final List<int> bytes = [];
 
   bool endOfFile = false;
   bool locked = false;
+  bool failClose = false;
   bool failFlush = false;
   bool failLength = false;
   bool failLock = false;
@@ -1276,6 +1493,9 @@ class _TestFile implements RandomAccessFile {
   @override
   void closeSync() {
     closeCount++;
+    if (failClose) {
+      throw const FileSystemException('Simulated close failure');
+    }
   }
 
   @override

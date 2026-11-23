@@ -10,6 +10,7 @@ import 'dart:typed_data';
 import 'package:_fe_analyzer_shared/src/scanner/characters.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/xxh64.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as pkg_path;
 
@@ -181,15 +182,20 @@ class FileStorage implements Storage {
 /// the cache, discarding all table entries, data page allocations, etc.
 ///
 /// The storage constructor leaves ownership with the caller;
-/// [SingleFileByteStore.inDirectory] owns its file until [close]. This instance
+/// [SingleFileByteStore.inDirectory] owns its file until [close] or a storage
+/// failure, see [storageFailure]. This instance
 /// is the only byte store in its process accessing the file. Multiple processes
 /// can keep live instances:
 /// committed reads, commits, and recovery hold exclusive storage access and
 /// reread the header and invalidate metadata when its commit ID changes. Pending
 /// values are private to each instance; the last committed batch wins for a key.
 ///
-/// After an I/O error, close and reopen the file before further operations; an
-/// error during publication can mean either the old or new state was committed.
+/// A [FileSystemException] from storage after construction, such as a full
+/// disk, disables this instance instead of propagating, see [storageFailure].
+/// A cache is an optimization, so its clients should keep working without it,
+/// and the instance cannot continue safely: an error during publication can
+/// mean that either the old or the new state was committed, and in-memory state
+/// may disagree with storage. A new instance recovers from the valid header.
 class SingleFileByteStore implements ByteStore {
   /// Counter for published transactions and newly initialized stores.
   /// A random high word and time-seeded low word make uniqueness across isolates
@@ -200,14 +206,22 @@ class SingleFileByteStore implements ByteStore {
 
   final _BufferPool _bufferPool;
 
-  /// The file owned by this store, which is closed on [close].
+  /// The file owned by this store, which is closed on [close] or a storage
+  /// failure, and then set to `null`.
   ///
   /// This is only set if the store was created via
   /// [SingleFileByteStore.inDirectory]. If the store was created via
   /// [SingleFileByteStore.new], this is `null` and the caller is responsible
   /// for closing their own file.
   RandomAccessFile? _ownedFile;
+
+  /// See [filePath].
+  String? _filePath;
+
   bool _closed = false;
+
+  /// See [storageFailure].
+  FileSystemException? _storageFailure;
 
   /// The committed state represented by cached metadata pages.
   int? _cachedCommitId;
@@ -394,7 +408,9 @@ class SingleFileByteStore implements ByteStore {
         bufferPoolCapacityLog2: bufferPoolCapacityLog2,
         maxPendingValueBytes: maxPendingValueBytes,
         maxPendingEntryCount: maxPendingEntryCount,
-      ).._ownedFile = file;
+      );
+      store._ownedFile = file;
+      store._filePath = file.path;
     } catch (_) {
       file.closeSync();
       rethrow;
@@ -419,8 +435,9 @@ class SingleFileByteStore implements ByteStore {
 
   /// The path opened by [SingleFileByteStore.inDirectory], or null if storage
   /// was supplied by constructing this object using the
-  /// [SingleFileByteStore.new] constructor.
-  String? get filePath => _ownedFile?.path;
+  /// [SingleFileByteStore.new] constructor. Still available after the file
+  /// is closed.
+  String? get filePath => _filePath;
 
   /// The number of free pages in the data area, as of the last header that
   /// this instance read or wrote. Other instances sharing the storage may have
@@ -430,6 +447,17 @@ class SingleFileByteStore implements ByteStore {
   int get pendingEntryCount => _pendingValues.length;
 
   int get pendingValueBytes => _pendingValueBytes;
+
+  /// The first storage failure after construction, or null if none.
+  ///
+  /// Once set, this store discards its pending values and no longer accesses
+  /// storage: [get] and [tableBucketEntryCounts] return null, [putGet] does
+  /// not queue values, and [flush] does nothing. The file owned by this store,
+  /// if any, is closed immediately, which releases its lock, and the disk
+  /// space if the file was deleted. The failure is logged to the
+  /// instrumentation service. Failures while constructing the store still
+  /// propagate.
+  FileSystemException? get storageFailure => _storageFailure;
 
   int get tableSlotCount => 1 << _tableSlotCountLog2;
 
@@ -462,13 +490,20 @@ class SingleFileByteStore implements ByteStore {
   /// Caller-owned storage remains open. Even if flushing fails, the owned file
   /// is closed and this store cannot be used again. Further calls to [close] do
   /// nothing; [get], [putGet], and [flush] throw [StateError] after closing.
+  ///
+  /// A failure to close the owned file is recorded as [storageFailure].
   void close() {
     if (_closed) return;
     try {
       flush();
     } finally {
       _closed = true;
-      _ownedFile?.closeSync();
+      try {
+        _closeOwnedFile();
+      } on FileSystemException catch (exception, stackTrace) {
+        // An earlier failure has already closed the file, so this is the first.
+        _disable(exception, stackTrace);
+      }
     }
   }
 
@@ -478,34 +513,43 @@ class SingleFileByteStore implements ByteStore {
   ///
   /// Discards an intrinsically oversized batch without evicting anything.
   /// Otherwise, eviction may commit before insertion so freed pages can safely
-  /// be reused. Storage failures propagate without clearing the pending values.
+  /// be reused. A storage failure discards the pending values and sets
+  /// [storageFailure].
   void flush() {
     _checkOpen();
+
+    if (_storageFailure != null) return;
     if (_pendingValues.isEmpty) return;
+
     var timer = Stopwatch()..start();
     var valueBytes = _pendingValueBytes;
-    _withExclusiveAccess((header) {
-      try {
-        header = _prepareCapacity(header);
+    try {
+      _withExclusiveAccess((header) {
+        try {
+          header = _prepareCapacity(header);
 
-        // Now that we have enough capacity, after evicting old values,
-        // put pending values shadow pages and commit.
-        var transaction = _WriteTransaction(this, header);
-        for (var entry in _pendingValues.entries) {
-          transaction.put(entry.key, entry.value);
+          // Now that we have enough capacity, after evicting old values,
+          // put pending values shadow pages and commit.
+          var transaction = _WriteTransaction(this, header);
+          for (var entry in _pendingValues.entries) {
+            transaction.put(entry.key, entry.value);
+          }
+          transaction.commit();
+          statistics._committedEntryCount += _pendingValues.length;
+          statistics._committedValueBytes += _pendingValueBytes;
+        } on _CapacityException {
+          // `_prepareCapacity` rejected the batch as too large.
+          statistics._capacityDiscardedBatchCount++;
+        } on FormatException {
+          _reset();
         }
-        transaction.commit();
-        statistics._committedEntryCount += _pendingValues.length;
-        statistics._committedValueBytes += _pendingValueBytes;
-      } on _CapacityException {
-        // `_prepareCapacity` rejected the batch as too large.
-        statistics._capacityDiscardedBatchCount++;
-      } on FormatException {
-        _reset();
-      }
-      _pendingValues.clear();
-      _pendingValueBytes = 0;
-    });
+        _pendingValues.clear();
+        _pendingValueBytes = 0;
+      });
+    } on FileSystemException catch (exception, stackTrace) {
+      _disable(exception, stackTrace);
+      return;
+    }
     onFlush?.call(valueBytes, timer.elapsed);
   }
 
@@ -516,7 +560,8 @@ class SingleFileByteStore implements ByteStore {
   /// valid across subsequent store operations.
   ///
   /// Detected corruption resets the committed cache, including its page
-  /// allocations; pending values remain queued.
+  /// allocations; pending values remain queued. A storage failure returns null
+  /// and sets [storageFailure].
   @override
   Uint8List? get(String key) {
     _checkOpen();
@@ -527,60 +572,69 @@ class SingleFileByteStore implements ByteStore {
       return pendingValue;
     }
 
-    return _withExclusiveAccess((storeHeader) {
-      try {
-        var selectors = _readSelectors(storeHeader.selectorSlot);
+    if (_storageFailure != null) {
+      return null;
+    }
 
-        // Lookup in the commited table.
-        var entry = _lookup(selectors, key);
-        var header = entry.header;
-        if (header == null) {
+    try {
+      return _withExclusiveAccess((storeHeader) {
+        try {
+          var selectors = _readSelectors(storeHeader.selectorSlot);
+
+          // Lookup in the commited table.
+          var entry = _lookup(selectors, key);
+          var header = entry.header;
+          if (header == null) {
+            return null;
+          }
+
+          var value = Uint8List(header.valueLength);
+
+          // Copy the start of the value from the header page.
+          var inlineValueLength = min(
+            value.length,
+            pageSize - header.inlineOffset,
+          );
+          if (inlineValueLength > 0) {
+            var page = _bufferPool.readPage(
+              _dataPageIndexToFilePageIndex(header.firstDataPageIndex),
+            );
+            try {
+              value.setRange(
+                0,
+                inlineValueLength,
+                page.bytes,
+                header.inlineOffset,
+              );
+            } finally {
+              page.release();
+            }
+          }
+
+          // Read the remaining of the value from continuation pages.
+          _bufferPool.readPagesInto([
+            for (var index in header.continuationPages)
+              _dataPageIndexToFilePageIndex(index),
+          ], Uint8List.sublistView(value, inlineValueLength));
+
+          // Verify the complete value, including inline and continuation bytes.
+          if (_xxh64_32(value) != header.valueChecksum) {
+            throw const FormatException('Invalid value checksum');
+          }
+
+          // Mark the entry as recently used so CLOCK gives it a second chance.
+          _clockBits.setBit(entry.entryIndex, true);
+
+          return value;
+        } on FormatException {
+          _reset();
           return null;
         }
-
-        var value = Uint8List(header.valueLength);
-
-        // Copy the start of the value from the header page.
-        var inlineValueLength = min(
-          value.length,
-          pageSize - header.inlineOffset,
-        );
-        if (inlineValueLength > 0) {
-          var page = _bufferPool.readPage(
-            _dataPageIndexToFilePageIndex(header.firstDataPageIndex),
-          );
-          try {
-            value.setRange(
-              0,
-              inlineValueLength,
-              page.bytes,
-              header.inlineOffset,
-            );
-          } finally {
-            page.release();
-          }
-        }
-
-        // Read the remaining of the value from continuation pages.
-        _bufferPool.readPagesInto([
-          for (var index in header.continuationPages)
-            _dataPageIndexToFilePageIndex(index),
-        ], Uint8List.sublistView(value, inlineValueLength));
-
-        // Verify the complete value, including inline and continuation bytes.
-        if (_xxh64_32(value) != header.valueChecksum) {
-          throw const FormatException('Invalid value checksum');
-        }
-
-        // Mark the entry as recently used so CLOCK gives it a second chance.
-        _clockBits.setBit(entry.entryIndex, true);
-
-        return value;
-      } on FormatException {
-        _reset();
-        return null;
-      }
-    });
+      });
+    } on FileSystemException catch (exception, stackTrace) {
+      _disable(exception, stackTrace);
+      return null;
+    }
   }
 
   /// Queues [bytes] for [key] and returns them, taking ownership and replacing
@@ -591,8 +645,8 @@ class SingleFileByteStore implements ByteStore {
   /// Values longer than [maxValueLength] bytes are ignored, preserving any
   /// existing value for [key]. Reaching either queue limit flushes the batch.
   /// Before exceeding the byte limit, the preceding batch is flushed first.
-  /// A failed flush propagates without clearing pending values. If the preceding
-  /// batch cannot be flushed, [bytes] have not yet been queued.
+  /// After a storage failure, including one while flushing the preceding
+  /// batch, [bytes] are not queued.
   ///
   /// Returns [bytes] even when the value is too large or its batch cannot fit
   /// in persistent storage.
@@ -604,6 +658,11 @@ class SingleFileByteStore implements ByteStore {
   Uint8List putGet(String key, Uint8List bytes) {
     _checkOpen();
     _checkKey(key);
+
+    if (_storageFailure != null) {
+      return bytes;
+    }
+
     if (bytes.length > maxValueLength) {
       statistics._oversizedValueCount++;
       statistics._oversizedValueBytes += bytes.length;
@@ -616,6 +675,9 @@ class SingleFileByteStore implements ByteStore {
     var valueLengthDelta = bytes.length - previousValueLength;
     if (_pendingValueBytes + valueLengthDelta > _maxPendingValueBytes) {
       flush();
+      if (_storageFailure != null) {
+        return bytes;
+      }
       valueLengthDelta = bytes.length;
     }
 
@@ -638,31 +700,43 @@ class SingleFileByteStore implements ByteStore {
   ///
   /// Pending values are not included. Reads the whole table directly from
   /// storage, so this is for diagnostics, not for regular operations.
-  Uint8List tableBucketEntryCounts() {
+  ///
+  /// A storage failure returns null and sets [storageFailure].
+  Uint8List? tableBucketEntryCounts() {
     // A full bucket must fit into a byte.
     assert(_tableEntriesPerPage < 256);
 
     _checkOpen();
-    return _withExclusiveAccess((header) {
-      // Bypass the page cache, to keep the pages that lookups use.
-      var selectors = _readSelectors(header.selectorSlot);
-      var tableBytes = Uint8List(_tablePageCount * pageSize);
-      _bufferPool.readPagesInto([
-        for (var index = 0; index < _tablePageCount; index++)
-          _committedTableFilePageIndex(selectors, _TablePageIndex(index)),
-      ], tableBytes);
 
-      // A zero page reference marks an empty slot.
-      var data = ByteData.sublistView(tableBytes);
-      var counts = Uint8List(_tablePageCount);
-      for (var slot = 0; slot < tableSlotCount; slot++) {
-        var offset = slot * _tableEntrySize + _tableEntryPageReferenceOffset;
-        if (data.getUint32(offset, Endian.little) != 0) {
-          counts[slot ~/ _tableEntriesPerPage]++;
+    if (_storageFailure != null) {
+      return null;
+    }
+
+    try {
+      return _withExclusiveAccess((header) {
+        // Bypass the page cache, to keep the pages that lookups use.
+        var selectors = _readSelectors(header.selectorSlot);
+        var tableBytes = Uint8List(_tablePageCount * pageSize);
+        _bufferPool.readPagesInto([
+          for (var index = 0; index < _tablePageCount; index++)
+            _committedTableFilePageIndex(selectors, _TablePageIndex(index)),
+        ], tableBytes);
+
+        // A zero page reference marks an empty slot.
+        var data = ByteData.sublistView(tableBytes);
+        var counts = Uint8List(_tablePageCount);
+        for (var slot = 0; slot < tableSlotCount; slot++) {
+          var offset = slot * _tableEntrySize + _tableEntryPageReferenceOffset;
+          if (data.getUint32(offset, Endian.little) != 0) {
+            counts[slot ~/ _tableEntriesPerPage]++;
+          }
         }
-      }
-      return counts;
-    });
+        return counts;
+      });
+    } on FileSystemException catch (exception, stackTrace) {
+      _disable(exception, stackTrace);
+      return null;
+    }
   }
 
   _FilePageIndex _allocationBitmapChunkIndexToFilePageIndex(
@@ -677,6 +751,16 @@ class SingleFileByteStore implements ByteStore {
     if (_closed) {
       throw StateError('The byte store is closed');
     }
+  }
+
+  /// Closes [_ownedFile], if it is still open.
+  ///
+  /// The field is cleared before closing, so a failed close is not retried:
+  /// the state of a file whose close failed is unspecified.
+  void _closeOwnedFile() {
+    var file = _ownedFile;
+    _ownedFile = null;
+    file?.closeSync();
   }
 
   _FilePageIndex _committedTableFilePageIndex(
@@ -697,6 +781,26 @@ class SingleFileByteStore implements ByteStore {
       dataPageCount,
     );
     return _dataAreaFirstPageIndex + dataPageIndex.value;
+  }
+
+  /// Discards pending values, which could not be persisted after this, records
+  /// [exception] as [storageFailure], closes the owned file, and logs it.
+  void _disable(FileSystemException exception, StackTrace stackTrace) {
+    _pendingValues.clear();
+    _pendingValueBytes = 0;
+
+    _storageFailure = exception;
+    try {
+      _closeOwnedFile();
+    } on FileSystemException {
+      // The first failure is the one to record.
+    }
+
+    // A storage failure, such as a full disk, is expected, not a bug.
+    AnalysisEngine.instance.instrumentationService.logInfo(
+      'SingleFileByteStore is disabled after a storage failure: '
+      '$exception\n$stackTrace',
+    );
   }
 
   /// Probes only within the key's table page, wrapping at its bucket boundary.
