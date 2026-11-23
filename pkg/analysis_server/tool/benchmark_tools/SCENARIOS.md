@@ -113,6 +113,48 @@ Profile:
 
 After this change, `isWithin` reached from `_isIncluded` (36.8%, once per file, but still over all included and excluded paths) and in `ContextRootImpl._isExcluded` (23.4%) is most of the remaining path cost.
 
+#### [CL 580600](https://dart-review.googlesource.com/c/sdk/+/580600): Scan names under the root once in `ContextRootImpl._isExcluded`
+
+Files and folders whose name, or the name of an ancestor under the context root, starts with `.` are excluded. This was checked by walking the ancestors with `Folder.contains`, `Context.basename`, and `Context.dirname`, each parsing the whole path, for every file, with or without excludes; now the names after the root are scanned once.
+
+Warm medians:
+
+| Packages | legacy_3p_excludes | lsp_3p_excludes | lsp_no_excludes |
+|---:|---:|---:|---:|
+| 25 | 241 → 226 ms | 226 → 213 ms | 183 → 170 ms |
+| 50 | 554 → 534 ms | 529 → 508 ms | 364 → 339 ms |
+| 100 | 1420 → 1388 ms | 1383 → 1331 ms | 708 → 685 ms |
+
+Exclude overhead:
+
+| Packages | legacy_3p_excludes | lsp_3p_excludes |
+|---:|---:|---:|
+| 25 | 59 → 56 ms | 43 → 43 ms |
+| 50 | 190 → 195 ms | 165 → 170 ms |
+| 100 | 713 → 703 ms | 676 → 646 ms |
+
+The overhead does not change, because the check runs for every file in every scenario, including `lsp_no_excludes`.
+
+Profile:
+
+| | Before | After | Change |
+|---|---:|---:|---:|
+| All server instructions | 21.73G | 20.70G | −5% |
+| `ContextRootImpl._isExcluded`, with callees | 6.51G (30.0%) | 5.51G (26.6%) | −15% |
+| Ancestor walk in `_isExcluded` (`Context.basename`, `Context.dirname`, `Folder.contains`) | 0.98G (4.5%) | none | |
+| `ContextRootImpl._hasDotNameUnderRoot`, with callees | none | 0.013G (0.06%) | |
+| Fallback walk of the ancestors | none | 0 samples | |
+| `package:path` code, with callees | 14.71G (67.7%) | 13.89G (67.1%) | −6% |
+
+The check matters more for `dart analyze` of one large package with a filled cache, where everything else is cached, and the paths are long and deep. A second `dart analyze` of the `stable_analysis` tarball (a separate cache for each build, 7 interleaved rounds, product AOT) went from 7.72G to 6.69G instructions (−13%), and from 673 to 622 ms wall time (−8%). Its profile (non-product AOT, all processes, sampled every 200,000 instructions, which this workload allows without throttling):
+
+| | Before | After | Change |
+|---|---:|---:|---:|
+| All instructions | 10.01G | 9.22G | −8% |
+| `ContextRootImpl._isExcluded`, with callees | 0.958G (9.6%) | 0.010G (0.1%) | −99% |
+| `ContextRootImpl._hasDotNameUnderRoot`, with callees | none | 0.008G (0.1%) | |
+| `package:path` code, with callees | 1.375G (13.7%) | 0.437G (4.7%) | −68% |
+
 ### Limitations
 
 - It covers excludes sent by the IDE, not `analyzer: exclude:` globs in `analysis_options.yaml`, which go through `ContextRootImpl.excludedGlobs`.

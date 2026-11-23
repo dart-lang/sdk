@@ -181,6 +181,19 @@ class ContextRootTest with ResourceProviderMixin {
     expect(_isAnalyzed(contextRoot, 'lib/.bar/a.dart'), isFalse);
   }
 
+  test_isAnalyzed_implicitlyExcluded_dotFolder_rootIsFileSystemRoot() {
+    var contextRoot = _createContextRoot('/');
+
+    expect(_isAnalyzed(contextRoot, 'lib/a.dart'), isTrue);
+    expect(_isAnalyzed(contextRoot, '.foo/a.dart'), isFalse);
+    expect(_isAnalyzed(contextRoot, 'lib/.bar/a.dart'), isFalse);
+  }
+
+  test_isAnalyzed_implicitlyExcluded_dotFolder_startsWithTwoDots() {
+    String filePath = convertPath('/test/root/lib/..aaa/a.dart');
+    expect(contextRoot.isAnalyzed(filePath), isFalse);
+  }
+
   /// https://github.com/flutter/flutter/issues/76911
   test_isAnalyzed_implicitlyExcluded_dotFolder_windows() {
     if (resourceProvider.pathContext.rootPrefix(rootPath) == r'C:\') {
