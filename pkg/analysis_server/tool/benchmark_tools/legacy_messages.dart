@@ -81,13 +81,17 @@ class LegacyMessages {
     };
   }
 
-  static Map<String, dynamic> setAnalysisRoots(int id, List<Uri> includes) {
+  static Map<String, dynamic> setAnalysisRoots(
+    int id,
+    List<Uri> includes, {
+    List<Uri> excludes = const [],
+  }) {
     return {
       'id': '$id',
       'method': 'analysis.setAnalysisRoots',
       'params': {
         'included': [...includes.map(_uriToStringWithoutEndingSlash)],
-        'excluded': [],
+        'excluded': [...excludes.map(_uriToStringWithoutEndingSlash)],
       },
       'clientRequestTime': DateTime.now().millisecondsSinceEpoch,
     };
@@ -123,6 +127,14 @@ class LegacyMessages {
       'params': {
         'subscriptions': ['STATUS'],
       },
+      'clientRequestTime': DateTime.now().millisecondsSinceEpoch,
+    };
+  }
+
+  static Map<String, dynamic> shutdown(int id) {
+    return {
+      'id': '$id',
+      'method': 'server.shutdown',
       'clientRequestTime': DateTime.now().millisecondsSinceEpoch,
     };
   }

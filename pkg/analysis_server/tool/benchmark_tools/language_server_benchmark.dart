@@ -33,7 +33,7 @@ abstract class DartLanguageServerBenchmark {
   final RegExp _newLineRegExp = RegExp('\r?\n');
   final Map<int, OutstandingRequest> _outstandingRequestsWithId = {};
 
-  bool _addedInitialAnalysisDuration = false;
+  Duration? _initialAnalysisDuration;
   List<DurationInfo> durationInfo = [];
   List<MemoryInfo> memoryInfo = [];
 
@@ -47,6 +47,17 @@ abstract class DartLanguageServerBenchmark {
 
   List<Uri> get additionalWorkspaceUris => const [];
   Uri? get cacheFolder => null;
+  int? get diagnosticPort => 9102;
+  List<Uri> get excludedRootUris => const [];
+
+  /// Duration of initial analysis from sending `analysis.setAnalysisRoots`
+  /// (legacy) or `initialized` (LSP) until analysis finishes, or `null` before
+  /// initial analysis completes.
+  ///
+  /// Includes root discovery, exclusions, and file-watcher setup, and excludes
+  /// process launch and initial handshake. Matches the `'Initial analysis'`
+  /// entry recorded in [durationInfo].
+  Duration? get initialAnalysisDuration => _initialAnalysisDuration;
 
   LaunchFrom get launchFrom => LaunchFrom.source;
 
@@ -119,7 +130,7 @@ abstract class DartLanguageServerBenchmark {
     if (!_lsp && possibleId is String && int.tryParse(possibleId) != null) {
       possibleId = int.tryParse(possibleId);
     }
-    if (possibleId is int) {
+    if (possibleId is int && json.containsKey('method')) {
       if (possibleId > largestIdSeen) {
         largestIdSeen = possibleId;
       }
@@ -147,23 +158,51 @@ abstract class DartLanguageServerBenchmark {
     return result;
   }
 
+  Future<void> shutdown() async {
+    if (_exited) return;
+    _exited = true;
+    longRunningRequestsTimer.cancel();
+    if (_lsp) {
+      try {
+        var req = await send(LspMessages.shutdown(largestIdSeen + 1));
+        await req?.completer.future.timeout(const Duration(seconds: 5));
+        await send(LspMessages.exitNotification);
+      } catch (_) {
+        // Ignore if process already closed stdin.
+      }
+    } else {
+      try {
+        await send(LegacyMessages.shutdown(largestIdSeen + 1));
+      } catch (_) {
+        // Ignore if process already closed stdin.
+      }
+    }
+    try {
+      await p.exitCode.timeout(const Duration(seconds: 10));
+    } on TimeoutException {
+      p.kill();
+      await p.exitCode;
+    }
+  }
+
   Future<bool> waitUntilIsAnalyzingChanges() async {
     return await _analyzingCompleter.future;
   }
 
-  Future<void> waitWhileAnalyzing() async {
+  Future<void> waitWhileAnalyzing({Stopwatch? stopwatch}) async {
     // Wait until it's done analyzing.
     bool isAnalyzing = await _analyzingCompleter.future;
-    Stopwatch stopwatch = Stopwatch()..start();
+    stopwatch ??= Stopwatch()..start();
     while (isAnalyzing) {
       isAnalyzing = await _analyzingCompleter.future;
     }
+    var elapsed = stopwatch.elapsed;
     if (verbosity >= 0) {
-      print('isAnalyzing is now done after ${stopwatch.elapsed}');
+      print('isAnalyzing is now done after $elapsed');
     }
-    if (!_addedInitialAnalysisDuration) {
-      _addedInitialAnalysisDuration = true;
-      durationInfo.add(DurationInfo('Initial analysis', stopwatch.elapsed));
+    if (_initialAnalysisDuration == null) {
+      _initialAnalysisDuration = elapsed;
+      durationInfo.add(DurationInfo('Initial analysis', elapsed));
     }
   }
 
@@ -230,38 +269,47 @@ abstract class DartLanguageServerBenchmark {
     await send(LegacyMessages.getVersion(largestIdSeen + 1));
     await send(LegacyMessages.setSubscriptionsStatus(largestIdSeen + 1));
     await send(LegacyMessages.updateOptions(largestIdSeen + 1));
-    await send(LegacyMessages.setClientCapabilities(largestIdSeen + 1));
+    var capabilitiesRequest = await send(
+      LegacyMessages.setClientCapabilities(largestIdSeen + 1),
+    );
+    await capabilitiesRequest?.completer.future;
+    var stopwatch = Stopwatch()..start();
     await send(
       LegacyMessages.setAnalysisRoots(largestIdSeen + 1, [
         rootUri,
         ...additionalWorkspaceUris,
-      ]),
+      ], excludes: excludedRootUris),
     );
 
     // Wait until it's done analyzing.
-    await waitWhileAnalyzing();
+    await waitWhileAnalyzing(stopwatch: stopwatch);
   }
 
   Future<void> _initializeLsp() async {
     OutstandingRequest? request = await send(
-      LspMessages.initMessage(pid, rootUri, additionalWorkspaceUris),
+      LspMessages.initMessage(
+        pid,
+        rootUri,
+        additionalWorkspaceUris,
+        supportsConfiguration: excludedRootUris.isNotEmpty,
+      ),
     );
     await request?.completer.future;
+    var stopwatch = Stopwatch()..start();
     await send(LspMessages.initNotification);
 
     // Wait until it's done analyzing.
-    await waitWhileAnalyzing();
+    await waitWhileAnalyzing(stopwatch: stopwatch);
   }
 
   Future<void> _launch({required bool lsp}) async {
     if (_launched) throw 'Already launched';
     _launched = true;
 
-    List<String> cacheFolderArgs = [];
-    if (cacheFolder != null) {
-      cacheFolderArgs.add('--cache');
-      cacheFolderArgs.add(cacheFolder!.toFilePath());
-    }
+    List<String> extraServerArgs = [
+      if (diagnosticPort case var port?) '--port=$port',
+      if (cacheFolder case var folder?) ...['--cache', folder.toFilePath()],
+    ];
 
     switch (launchFrom) {
       case LaunchFrom.source:
@@ -279,16 +327,14 @@ abstract class DartLanguageServerBenchmark {
           '--profiler',
           serverFile.path,
           lsp ? '--protocol=lsp' : '--protocol=analyzer',
-          '--port=9102',
-          ...cacheFolderArgs,
+          ...extraServerArgs,
         ]);
       case LaunchFrom.dart:
         // TODO(jensj): Option of wrapping in `perf record -g` call.
         p = await Process.start(executableToUse, [
           'language-server',
           lsp ? '--protocol=lsp' : '--protocol=analyzer',
-          '--port=9102',
-          ...cacheFolderArgs,
+          ...extraServerArgs,
         ]);
       case LaunchFrom.aotWithPerf:
       case LaunchFrom.aot:
@@ -310,8 +356,7 @@ abstract class DartLanguageServerBenchmark {
         p = await Process.start(aotRuntime.path, [
           serverFile.path,
           lsp ? '--protocol=lsp' : '--protocol=analyzer',
-          '--port=9102',
-          ...cacheFolderArgs,
+          ...extraServerArgs,
         ]);
 
         if (launchFrom == LaunchFrom.aotWithPerf) {
@@ -406,6 +451,24 @@ abstract class DartLanguageServerBenchmark {
         // send the progress notification.
         if (_lsp && message['method'] == r'window/workDoneProgress/create') {
           sendNoFlush(LspMessages.response(message['id'], null));
+        }
+
+        if (_lsp && message['method'] == 'workspace/configuration') {
+          var items = message['params']?['items'];
+          var itemCount = items is List ? items.length : 1;
+          var config = {
+            'analysisExcludedFolders': [
+              ...excludedRootUris.map((uri) => uri.toFilePath()),
+            ],
+          };
+          unawaited(
+            send(
+              LspMessages.response(
+                message['id'],
+                List<Map<String, Object?>>.filled(itemCount, config),
+              ),
+            ),
+          );
         }
 
         // LSP: {"jsonrpc":"2.0","method":"$/progress","params":{"token":"ANALYZING","value":{"kind":"begin"...
