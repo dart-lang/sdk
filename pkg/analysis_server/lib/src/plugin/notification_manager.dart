@@ -384,7 +384,9 @@ abstract class AbstractNotificationManager {
       }
 
       for (var excludedPath in _excludedPaths) {
-        if (_pathContext.isWithin(excludedPath, path)) {
+        if (_pathContext.isWithin(excludedPath, path) ||
+            excludedPath.length == path.length &&
+                _pathContext.equals(excludedPath, path)) {
           return false;
         }
       }

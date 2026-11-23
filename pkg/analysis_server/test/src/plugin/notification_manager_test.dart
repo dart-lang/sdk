@@ -143,6 +143,18 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     _verifyErrors(fileA, [errorA]);
   }
 
+  void test_recordAnalysisErrors_excluded_file() {
+    manager.setAnalysisRoots([testDir], [fileC]);
+
+    var errorC = analysisError(0, 0, file: fileC);
+    manager.recordAnalysisErrors('a', fileC, [errorC]);
+    expect(channel.sentNotification, isNull);
+
+    var errorA = analysisError(0, 0, file: fileA);
+    manager.recordAnalysisErrors('a', fileA, [errorA]);
+    _verifyErrors(fileA, [errorA]);
+  }
+
   void test_recordAnalysisErrors_noSubscription() {
     var error = analysisError(0, 0, file: fileA);
     manager.recordAnalysisErrors('a', fileA, [error]);
