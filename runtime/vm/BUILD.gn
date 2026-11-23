@@ -87,16 +87,19 @@ library_for_all_configs("libdart_vm") {
   ]
   if (is_fuchsia) {
     extra_deps += [
-      "$fuchsia_sdk/fidl/fuchsia.intl",
-      "$fuchsia_sdk/fidl/fuchsia.kernel",
+      "$fuchsia_sdk/fidl/fuchsia.intl:fuchsia.intl_cpp",
+      "$fuchsia_sdk/fidl/fuchsia.io:fuchsia.io_cpp",
+      "$fuchsia_sdk/fidl/fuchsia.kernel:fuchsia.kernel_cpp",
       "$fuchsia_sdk/pkg/async",
       "$fuchsia_sdk/pkg/async-default",
       "$fuchsia_sdk/pkg/async-loop",
       "$fuchsia_sdk/pkg/async-loop-default",
+      "$fuchsia_sdk/pkg/component_incoming_cpp",
+      "$fuchsia_sdk/pkg/fdio",
       "$fuchsia_sdk/pkg/inspect",
       "$fuchsia_sdk/pkg/inspect_component_cpp",
-      "$fuchsia_sdk/pkg/sys_cpp",
       "$fuchsia_sdk/pkg/trace-engine",
+      "$fuchsia_sdk/pkg/zx",
       "//third_party/icu:icui18n",
     ]
   }
@@ -166,6 +169,7 @@ template("gen_vm_platform") {
   if (defined(invoker.product_mode)) {
     is_product_flag = invoker.product_mode
   }
+
   compile_platform(target_name) {
     output_postfix = invoker.output_postfix
     single_root_scheme = "org-dartlang-sdk"

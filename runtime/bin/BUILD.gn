@@ -61,7 +61,7 @@ template("build_libdart_builtin") {
     public_configs = [ ":libdart_builtin_config" ]
     deps = []
     if (is_fuchsia) {
-      deps += [ "$fuchsia_sdk/fidl/fuchsia.io" ]
+      deps += [ "$fuchsia_sdk/fidl/fuchsia.io:fuchsia.io_cpp" ]
       public_deps = [ "$fuchsia_sdk/pkg/fdio" ]
     }
     if (is_mac || is_ios) {
@@ -449,7 +449,7 @@ template("build_gen_snapshot_dart_io") {
     deps = [ "//third_party/zlib" ]
 
     if (is_fuchsia) {
-      deps += [ "$fuchsia_sdk/fidl/fuchsia.io" ]
+      deps += [ "$fuchsia_sdk/fidl/fuchsia.io:fuchsia.io_cpp" ]
       public_deps = [ "$fuchsia_sdk/pkg/fdio" ]
     }
 
@@ -568,7 +568,7 @@ template("dart_io") {
     deps += [ "//third_party/boringssl" ]
 
     if (is_fuchsia) {
-      deps += [ "$fuchsia_sdk/fidl/fuchsia.io" ]
+      deps += [ "$fuchsia_sdk/fidl/fuchsia.io:fuchsia.io_cpp" ]
       public_deps = [ "$fuchsia_sdk/pkg/fdio" ]
     }
 

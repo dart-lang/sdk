@@ -5,10 +5,10 @@
 #include "vm/ffi_callback_metadata.h"
 
 #if defined(DART_HOST_OS_FUCHSIA)
-#include <fuchsia/io/cpp/fidl.h>
-#include <fuchsia/kernel/cpp/fidl.h>
+#include <fidl/fuchsia.io/cpp/fidl.h>
 #include <lib/fdio/directory.h>
 #include <lib/fdio/io.h>
+#include <zircon/process.h>
 #include <zircon/status.h>
 #include <zircon/syscalls.h>
 #endif
@@ -64,8 +64,8 @@ void FfiCallbackMetadata::EnsureStubPageLocked() {
     const char* path = "pkg/lib/ffi_callback_stub.bin";
     zx_status_t status =
         fdio_open3_fd(path,
-                      static_cast<uint64_t>(fuchsia::io::PERM_READABLE |
-                                            fuchsia::io::PERM_EXECUTABLE),
+                      static_cast<uint64_t>(fuchsia_io::kPermReadable |
+                                            fuchsia_io::kPermExecutable),
                       &fd);
     if (status != ZX_OK) {
       FATAL("fdio_open3_fd(%s) failed: %s\n", path,
