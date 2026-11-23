@@ -679,3 +679,45 @@ ConstantPool {
   [1] = Reserved
 }
 
+Class 'M', script = 'DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart'
+    extends dart:core::Object
+
+
+Function '', constructor, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::M
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Push                 FP[-5]
+  DirectCall           CP#0, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+}
+
+
+Function 'redirecting', factory, static, reflectable, debuggable, redirecting-factory
+    parameters [] (required: 0)
+    return-type DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::M
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  Allocate             CP#0
+  Dup
+  DirectCall           CP#1, 1
+  Drop1
+  ReturnTOS
+}
+ConstantPool {
+  [0] = Class DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::M
+  [1] = DirectCall 'DART_SDK/pkg/dart2bytecode/testcases/instance_creation.dart::M:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [2] = Reserved
+}
+

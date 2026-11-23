@@ -47,7 +47,7 @@ which reside in different sections such as libraries, classes, members, code, et
 ```
 type BytecodeFile {
   UInt32 magic = 0x44424333; // 'DBC3'
-  UInt32 formatVersion = 6;
+  UInt32 formatVersion = 7;
 
   // Descriptors of the sections below.
   // Each section has a fixed index in the descriptors array.
@@ -575,7 +575,8 @@ type FunctionDeclaration {
                 isAsync, isAsyncStar, isSyncStar,
                 isNoSuchMethodForwarder, isExternal, isNative,
                 hasSourcePositions, hasAnnotations, hasPragma,
-                hasCustomScript, isExtensionTypeMember, isInvisible);
+                hasCustomScript, isExtensionTypeMember, isInvisible,
+                isRedirectingFactory);
 
   PackedObject name;
 

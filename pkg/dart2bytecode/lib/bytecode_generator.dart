@@ -687,6 +687,9 @@ class BytecodeGenerator extends RecursiveVisitor {
         flags |= FunctionDeclaration.isSetterFlag;
       } else if (member.isFactory) {
         flags |= FunctionDeclaration.isFactoryFlag;
+        if (member.isRedirectingFactory) {
+          flags |= FunctionDeclaration.isRedirectingFactoryFlag;
+        }
       }
       if (member.isStatic) {
         flags |= FunctionDeclaration.isStaticFlag;
