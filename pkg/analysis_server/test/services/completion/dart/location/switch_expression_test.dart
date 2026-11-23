@@ -41,15 +41,15 @@ suggestions
     kind: class
   c01
     kind: topLevelVariable
-  const
-    kind: keyword
   false
     kind: keyword
-  final
+  true
     kind: keyword
   null
     kind: keyword
-  true
+  const
+    kind: keyword
+  final
     kind: keyword
   var
     kind: keyword
@@ -111,15 +111,15 @@ class A1 {}
 suggestions
   A1
     kind: class
-  const
-    kind: keyword
   false
     kind: keyword
-  final
+  true
     kind: keyword
   null
     kind: keyword
-  true
+  const
+    kind: keyword
+  final
     kind: keyword
   var
     kind: keyword
@@ -177,15 +177,15 @@ suggestions
     kind: class
   c01
     kind: topLevelVariable
-  const
-    kind: keyword
   false
     kind: keyword
-  final
+  true
     kind: keyword
   null
     kind: keyword
-  true
+  const
+    kind: keyword
+  final
     kind: keyword
   var
     kind: keyword
