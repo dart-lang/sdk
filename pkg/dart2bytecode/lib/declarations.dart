@@ -670,6 +670,7 @@ class FunctionDeclaration {
   static const hasCustomScriptFlag = 1 << 23;
   static const isExtensionTypeMemberFlag = 1 << 24;
   static const isInvisibleFlag = 1 << 25;
+  static const isRedirectingFactoryFlag = 1 << 26;
 
   final int flags;
   final ObjectHandle name;
@@ -864,6 +865,9 @@ class FunctionDeclaration {
     }
     if ((flags & isInvisibleFlag) != 0) {
       sb.write(', invisible');
+    }
+    if ((flags & isRedirectingFactoryFlag) != 0) {
+      sb.write(', redirecting-factory');
     }
     if ((flags & hasPragmaFlag) != 0) {
       sb.write(', has-pragma');

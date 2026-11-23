@@ -78,6 +78,11 @@ abstract class L<S, T> {
 
 class TestTypeArgReuse<P, Q> extends Base<P, Q> implements L<P, Q> {}
 
+class M {
+  M();
+  factory M.redirecting() = M;
+}
+
 foo6() => List<String>.empty();
 
 foo7(int n) => List<int>.filled(n, 0);

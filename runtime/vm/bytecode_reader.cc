@@ -2170,6 +2170,7 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
   const int kHasCustomScriptFlag = 1 << 23;
   const int kIsExtensionTypeMemberFlag = 1 << 24;
   const int kIsInvisibleFlag = 1 << 25;
+  const int kIsRedirectingFactoryFlag = 1 << 26;
 
   const intptr_t num_functions = reader_.ReadListLength();
   ASSERT(function_index_ + num_functions == functions_->Length());
@@ -2252,6 +2253,11 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
     function.set_is_reflectable((flags & kIsReflectableFlag) != 0);
     function.set_is_debuggable((flags & kIsDebuggableFlag) != 0);
     function.set_is_visible((flags & kIsInvisibleFlag) == 0);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    function.SetIsRedirectingFactory((flags & kIsRedirectingFactoryFlag) != 0);
+#else
+    USE(kIsRedirectingFactoryFlag);
+#endif
     function.set_is_extension_member(is_extension_member);
     function.set_is_extension_type_member(is_extension_type_member);
 
