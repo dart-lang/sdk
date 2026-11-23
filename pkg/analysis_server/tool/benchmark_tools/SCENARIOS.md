@@ -15,11 +15,12 @@ It accepts only `--dart=<path>` and `--json`; the scenarios and the sweep are fi
 
 ### What it simulates
 
-A pub workspace with 25, 50, or 100 packages, 50 small Dart libraries per package, one shared `.dart_tool/package_config.json`, opened as a single included root. For each package count, three scenarios run AOT `dart language-server` with a persistent disk cache (`--cache`):
+A pub workspace with 25, 50, or 100 packages, 50 small Dart libraries per package, one shared `.dart_tool/package_config.json`, opened as a single included root. For each package count, four scenarios run AOT `dart language-server` with a persistent disk cache (`--cache`):
 
 - `legacy_3p_excludes`: `--protocol=analyzer`, 3 excludes per package (`<package>/.dart_tool`, `<package>/.pub`, `<package>/build`) sent in `analysis.setAnalysisRoots`. This is IntelliJ and Android Studio today.
+- `legacy_no_excludes`: `--protocol=analyzer`, no excludes. This is the control for `legacy_3p_excludes`.
 - `lsp_3p_excludes`: `--protocol=lsp`, the same excludes sent as `analysisExcludedFolders` in the `workspace/configuration` response. VS Code sends none by default (Dart-Code 3.147), so this models users who configured excludes, and a possible future IntelliJ client that uses LSP.
-- `lsp_no_excludes`: `--protocol=lsp`, no excludes. This is the control, and the default for VS Code.
+- `lsp_no_excludes`: `--protocol=lsp`, no excludes. This is the control for `lsp_3p_excludes`, and the default for VS Code.
 
 Each scenario first runs a cold analysis to fill the cache, then 3 fresh server processes against the filled cache. The measured time is from sending `analysis.setAnalysisRoots` (legacy) or `initialized` (LSP) until analysis finishes, so it includes root discovery, file listing, and watcher setup, but not process launch.
 
@@ -40,7 +41,7 @@ The server checks every analyzed file against every included and excluded root, 
 ### Metrics
 
 - Primary: warm initial analysis time, median of 3 runs, for each scenario and package count.
-- Headline: the exclude overhead, the warm median of a scenario with excludes minus that of `lsp_no_excludes`, printed as a separate table. Fixes should bring it close to zero at every package count. If it grows with the package count again, that is a regression. A change that speeds up every file, with or without excludes, also speeds up the control, so the overhead does not show it; compare the warm medians too.
+- Headline: the exclude overhead, the warm median of a scenario with excludes minus that of the scenario without excludes with the same protocol, printed as a separate table. The protocols differ in costs that do not depend on the excludes: for example, the legacy server sends `analysis.errors` for every file, even without errors, while the LSP server publishes diagnostics only for files that have them. Fixes should bring it close to zero at every package count. If it grows with the package count again, that is a regression. A change that speeds up every file, with or without excludes, also speeds up the control, so the overhead does not show it; compare the warm medians too.
 
 The generated libraries are tiny, so reading, linking, and diagnostics cost much less than in real code. Relative speedups here are therefore much larger than in real repositories. Report the absolute milliseconds saved, and check the real impact on a real repository, as in the calibration below.
 
@@ -77,6 +78,8 @@ Exclude overhead:
 | 100 | +1067 ms | +1032 ms |
 
 Each doubling of the package count multiplies the overhead by about 3.7–4.1, consistent with quadratic growth. At 100 packages, the excludes take 59% of the warm startup. With a 48-character `TMPDIR`, the overhead at 100 packages was +1073 ms and +1019 ms, so the padding works.
+
+Here and in the Optimizations entries below, up to "A control for each protocol", the overhead of both scenarios was computed against `lsp_no_excludes`. So the overhead of `legacy_3p_excludes` there includes costs of the legacy protocol that do not depend on the excludes: 58 ms at 100 packages with the server of CL 580800.
 
 ### Optimizations
 
@@ -216,7 +219,38 @@ Profile:
 | `PathSubtreeSet.containsSelfOrAncestor`, with callees | 0.065G (0.5%) | 0.090G (1.3%) | |
 | `package:path` code, with callees | 5.92G (46.7%) | 0.62G (8.9%) | −89% |
 
-One of the 3 profiled runs after the change spent 0.56G more in GC than the other two, which adds 0.19G to the mean. The overhead of `lsp_3p_excludes` is now within the noise. The 66 ms of `legacy_3p_excludes` at 100 packages that remain must come from code that only the legacy protocol runs, because both scenarios send the same excludes; the profiles of `lsp_3p_excludes` cannot show it.
+One of the 3 profiled runs after the change spent 0.56G more in GC than the other two, which adds 0.19G to the mean. The overhead of `lsp_3p_excludes` is now within the noise. The 66 ms of `legacy_3p_excludes` at 100 packages that remain do not depend on the excludes, see the next entry.
+
+#### [CL 580820](https://dart-review.googlesource.com/c/sdk/+/580820): A control for each protocol
+
+The overhead of `legacy_3p_excludes` was computed against `lsp_no_excludes`, so it included costs of the legacy protocol that do not depend on the excludes. Now each scenario with excludes is compared with the scenario without excludes with the same protocol, and the new `legacy_no_excludes` is the legacy control.
+
+Measured with the server of CL 580800.
+
+Warm medians:
+
+| Packages | legacy_3p_excludes | legacy_no_excludes | lsp_3p_excludes | lsp_no_excludes |
+|---:|---:|---:|---:|---:|
+| 25 | 193 ms | 191 ms | 176 ms | 174 ms |
+| 50 | 383 ms | 383 ms | 353 ms | 346 ms |
+| 100 | 762 ms | 751 ms | 706 ms | 694 ms |
+
+Exclude overhead, against `lsp_no_excludes` → against the control with the same protocol:
+
+| Packages | legacy_3p_excludes | lsp_3p_excludes |
+|---:|---:|---:|
+| 25 | 19 → 2 ms | 3 ms |
+| 50 | 37 → 0 ms | 7 ms |
+| 100 | 69 → 11 ms | 12 ms |
+
+The overhead of both scenarios is within the noise, so with the optimizations above, the IDE excludes cost about 10 ms at 100 packages in either protocol.
+
+The legacy protocol costs more than LSP: `legacy_no_excludes` minus `lsp_no_excludes` is 17, 37, and 58 ms at 25, 50, and 100 packages. In a profile of the 3 warm runs of both controls at 100 packages, the legacy server executes 1.34G more instructions (7.04G → 8.38G):
+
+- 0.57G to send `analysis.errors` for every file, even without errors, while the LSP server publishes diagnostics only for files that have them. Of these, 0.35G convert the path of the file to a URI in `Context.toUri`, about half of it in `Context.current`, which reads `Uri.base` on every call, even for an absolute path.
+- 0.38G to send `analysis.flushResults` for every file at shutdown, after the measured time.
+- 0.17G in `BulkFixProcessor`, which lists the files of every context root for `DartFixPromptManager`.
+- 0.17G in GC and other threads.
 
 ### Limitations
 
