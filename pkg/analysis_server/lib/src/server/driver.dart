@@ -520,7 +520,9 @@ class Driver implements ServerStarter {
         if (exitCode != 0) exit(exitCode);
 
         diagnosticServer.httpServer.close();
-        unawaited(socketServer.analysisServer!.shutdown());
+
+        // Close the byte store, so that Windows can delete its files.
+        await socketServer.analysisServer!.shutdown();
 
         try {
           tempDriverDir.deleteSync(recursive: true);
