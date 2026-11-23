@@ -43,6 +43,14 @@ abstract class AbstractNotificationManager {
   /// analysis.
   List<String> _excludedPaths = <String>[];
 
+  /// The results of [_isIncluded] for file paths.
+  ///
+  /// The path is checked against every included and excluded path, and
+  /// [_isIncluded] is asked for every result for every file, so the result is
+  /// cached. It depends only on the path and the analysis roots, so the cache
+  /// is cleared in [setAnalysisRoots].
+  final Map<String, bool> _isIncludedCache = {};
+
   /// The current set of subscriptions to which the client has subscribed.
   Map<server.AnalysisService, Set<String>> _currentSubscriptions =
       <server.AnalysisService, Set<String>>{};
@@ -297,6 +305,7 @@ abstract class AbstractNotificationManager {
   void setAnalysisRoots(List<String> included, List<String> excluded) {
     _includedPaths = included;
     _excludedPaths = excluded;
+    _isIncludedCache.clear();
   }
 
   /// Set the current subscriptions to the given set of [newSubscriptions].
@@ -361,25 +370,29 @@ abstract class AbstractNotificationManager {
   bool _isIncluded(String path) {
     // TODO(brianwilkerson): Return false if error notifications are globally
     // disabled.
-    var isIncluded = false;
-    for (var includedPath in _includedPaths) {
-      if (_pathContext.isWithin(includedPath, path) ||
-          _pathContext.equals(includedPath, path)) {
-        isIncluded = true;
-        break;
+    bool compute() {
+      var isIncluded = false;
+      for (var includedPath in _includedPaths) {
+        if (_pathContext.isWithin(includedPath, path) ||
+            _pathContext.equals(includedPath, path)) {
+          isIncluded = true;
+          break;
+        }
       }
-    }
-    if (!isIncluded) {
-      return false;
-    }
-
-    for (var excludedPath in _excludedPaths) {
-      if (_pathContext.isWithin(excludedPath, path)) {
+      if (!isIncluded) {
         return false;
       }
+
+      for (var excludedPath in _excludedPaths) {
+        if (_pathContext.isWithin(excludedPath, path)) {
+          return false;
+        }
+      }
+
+      return true;
     }
 
-    return true;
+    return _isIncludedCache[path] ??= compute();
   }
 
   /// Records a print notification from the analyzer plugin.

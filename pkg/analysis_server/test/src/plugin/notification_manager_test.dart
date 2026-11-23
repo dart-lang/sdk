@@ -36,6 +36,8 @@ class NotificationManagerTest extends ProtocolTestUtilities {
   late String testDir;
   late String fileA;
   late String fileB;
+  late String subDir;
+  late String fileC;
 
   late TestChannel channel;
 
@@ -46,6 +48,8 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     testDir = provider.convertPath('/test');
     fileA = provider.convertPath('/test/a.dart');
     fileB = provider.convertPath('/test/b.dart');
+    subDir = provider.convertPath('/test/sub');
+    fileC = provider.convertPath('/test/sub/c.dart');
     channel = TestChannel();
     manager = NotificationManager(channel, provider.pathContext);
   }
@@ -127,10 +131,39 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     _verifyPluginError(isFatal, message, stackTrace);
   }
 
+  void test_recordAnalysisErrors_excluded() {
+    manager.setAnalysisRoots([testDir], [subDir]);
+
+    var errorC = analysisError(0, 0, file: fileC);
+    manager.recordAnalysisErrors('a', fileC, [errorC]);
+    expect(channel.sentNotification, isNull);
+
+    var errorA = analysisError(0, 0, file: fileA);
+    manager.recordAnalysisErrors('a', fileA, [errorA]);
+    _verifyErrors(fileA, [errorA]);
+  }
+
   void test_recordAnalysisErrors_noSubscription() {
     var error = analysisError(0, 0, file: fileA);
     manager.recordAnalysisErrors('a', fileA, [error]);
     expect(channel.sentNotification, isNull);
+  }
+
+  void test_recordAnalysisErrors_rootsChanged() {
+    manager.setAnalysisRoots([testDir], []);
+    var error1 = analysisError(0, 0, file: fileC);
+    manager.recordAnalysisErrors('a', fileC, [error1]);
+    _verifyErrors(fileC, [error1]);
+
+    manager.setAnalysisRoots([testDir], [subDir]);
+    var error2 = analysisError(3, 4, file: fileC);
+    manager.recordAnalysisErrors('a', fileC, [error2]);
+    expect(channel.sentNotification, isNull);
+
+    manager.setAnalysisRoots([testDir], []);
+    var error3 = analysisError(6, 8, file: fileC);
+    manager.recordAnalysisErrors('a', fileC, [error3]);
+    _verifyErrors(fileC, [error3]);
   }
 
   void test_recordAnalysisErrors_withSubscription() {

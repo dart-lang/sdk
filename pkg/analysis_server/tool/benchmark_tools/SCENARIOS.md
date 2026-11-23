@@ -52,7 +52,7 @@ The Dart SDK repository, opened in IntelliJ, sends 32 included and 292 excluded 
 - In a separate run under the sampling profiler (250 µs period), `isWithin` takes about 24% of CPU (about 1.5 s of the 6.3 s), two thirds of it in `AbstractNotificationManager._isIncluded`.
 - Control: `pkg/analyzer` alone (1,625 files, no excludes) has a warm median of 1,984 ms, of which `isWithin` is about 3% (about 60 ms). Adding 496 excludes raises the median to 2,250 ms and `isWithin` to about 18%.
 
-### Baseline
+### Baseline before the optimizations
 
 Linux x64, AMD Ryzen 9 PRO 8945HS, 2026-11-21, server from an SDK built at `51133fc5559` (2026-11-18), workspace root path length 64.
 
@@ -77,6 +77,41 @@ Exclude overhead:
 | 100 | +1067 ms | +1032 ms |
 
 Each doubling of the package count multiplies the overhead by about 3.7–4.1, consistent with quadratic growth. At 100 packages, the excludes take 59% of the warm startup. With a 48-character `TMPDIR`, the overhead at 100 packages was +1073 ms and +1019 ms, so the padding works.
+
+### Optimizations
+
+Each entry is measured against its parent commit, on the machine of the baseline above (product AOT, mean of 2 interleaved rounds). Profiles are of the whole server process, from launch to exit, all threads, in the 3 warm runs of `lsp_3p_excludes` at 100 packages (non-product AOT, `perf record -e instructions:u -c 1000000 -g`, mean of the 3 runs). A row "with callees" counts every sample that has that code anywhere on its stack, including inlined frames. With smaller sampling periods the kernel throttles sampling, and the profile undercounts by up to 3 times; with this one, the totals match `perf stat` within 1%. Without `perf`, the non-product server's warm medians are within 1% of the product ones, so the profiles represent the product build.
+
+#### [CL 580541](https://dart-review.googlesource.com/c/sdk/+/580541): Cache `AbstractNotificationManager._isIncluded` per file path
+
+`_isIncluded` ran for every analysis result, twice for the first result for each file. Its result depends only on the path and the analysis roots, so it is now cached per path, and the cache is cleared when the roots change.
+
+Warm medians:
+
+| Packages | legacy_3p_excludes | lsp_3p_excludes | lsp_no_excludes |
+|---:|---:|---:|---:|
+| 25 | 266 → 241 ms | 252 → 226 ms | 184 → 184 ms |
+| 50 | 651 → 561 ms | 625 → 533 ms | 367 → 369 ms |
+| 100 | 1779 → 1437 ms | 1758 → 1381 ms | 713 → 710 ms |
+
+Exclude overhead:
+
+| Packages | legacy_3p_excludes | lsp_3p_excludes |
+|---:|---:|---:|
+| 25 | 82 → 57 ms | 68 → 42 ms |
+| 50 | 285 → 193 ms | 258 → 165 ms |
+| 100 | 1066 → 728 ms | 1045 → 672 ms |
+
+Profile:
+
+| | Before | After | Change |
+|---|---:|---:|---:|
+| All server instructions | 29.73G | 21.73G | −27% |
+| `AbstractNotificationManager._isIncluded`, with callees | 16.21G (54.5%) | 8.08G (37.2%) | −50% |
+| `ContextRootImpl._isExcluded`, with callees | 6.37G (21.4%) | 6.51G (30.0%) | unchanged |
+| `package:path` code, with callees | 22.67G (76.2%) | 14.71G (67.7%) | −35% |
+
+After this change, `isWithin` reached from `_isIncluded` (36.8%, once per file, but still over all included and excluded paths) and in `ContextRootImpl._isExcluded` (23.4%) is most of the remaining path cost.
 
 ### Limitations
 
