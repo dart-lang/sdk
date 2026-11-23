@@ -252,6 +252,38 @@ The legacy protocol costs more than LSP: `legacy_no_excludes` minus `lsp_no_excl
 - 0.17G in `BulkFixProcessor`, which lists the files of every context root for `DartFixPromptManager`.
 - 0.17G in GC and other threads.
 
+#### [CL 580840](https://dart-review.googlesource.com/c/sdk/+/580840): Convert file paths to URIs without `Context.toUri` in `ClientUriConverter`
+
+When the client sends `supportsUris: true`, as IntelliJ does with SDK 3.4 and newer, the legacy server converts the path of every file in `analysis.errors` and other notifications to a `file:` URI. `Context.toUri` did this by reading `Context.current`, which reads `Uri.base` on every call, splitting the path into segments, building a `Uri`, and converting it back to a string. Now `toClientFilePath` writes `file://` and the path, with the characters that are not allowed in a URI path percent-encoded. Windows UNC paths still use `Context.toUri`.
+
+Measured with 4 interleaved rounds.
+
+Warm medians:
+
+| Packages | legacy_3p_excludes | legacy_no_excludes | lsp_3p_excludes | lsp_no_excludes |
+|---:|---:|---:|---:|---:|
+| 25 | 190 → 186 ms | 192 → 184 ms | 176 → 176 ms | 174 → 174 ms |
+| 50 | 377 → 369 ms | 376 → 368 ms | 354 → 354 ms | 348 → 349 ms |
+| 100 | 755 → 741 ms | 749 → 737 ms | 704 → 707 ms | 695 → 694 ms |
+
+The cost of the legacy protocol, `legacy_no_excludes` minus `lsp_no_excludes`:
+
+| Packages | Before | After |
+|---:|---:|---:|
+| 25 | 17 ms | 10 ms |
+| 50 | 29 ms | 19 ms |
+| 100 | 55 ms | 43 ms |
+
+Profile of the 3 warm runs of `legacy_no_excludes` at 100 packages:
+
+| | Before | After | Change |
+|---|---:|---:|---:|
+| All server instructions | 8.37G | 7.75G | −7% |
+| `ClientUriConverter.toClientFilePath`, with callees | 0.66G (7.9%) | 0.038G (0.5%) | −94% |
+| `AnalysisServer.handleAnalysisEvent`, with callees | 0.69G (8.2%) | 0.37G (4.8%) | −46% |
+
+About half of the conversions are in `analysis.flushResults` at shutdown, after the measured time.
+
 ### Limitations
 
 - It covers excludes sent by the IDE, not `analyzer: exclude:` globs in `analysis_options.yaml`, which go through `ContextRootImpl.excludedGlobs`.

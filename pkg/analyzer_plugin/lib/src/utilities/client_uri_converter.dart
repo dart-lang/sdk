@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:path/path.dart' as path;
 
 /// The file suffix used for virtual macro files in the analyzer.
@@ -9,6 +11,8 @@ const macroClientFileSuffix = '.macro.dart';
 
 /// The URI scheme used for virtual macro files on the client.
 const macroClientUriScheme = 'dart-macro+file';
+
+const _hexDigits = '0123456789ABCDEF';
 
 /// A class for converting between internal analyzer file paths/references and
 /// URIs used by clients.
@@ -128,13 +132,17 @@ class _VirtualFileClientUriConverter extends ClientUriConverter {
   }
 
   @override
-  String toClientFilePath(String filePath) => toClientUri(filePath).toString();
+  String toClientFilePath(String filePath) {
+    if (_isMacroFile(filePath)) {
+      return toClientUri(filePath).toString();
+    }
+    return _fileUriString(filePath);
+  }
 
   @override
   Uri toClientUri(String filePath) {
     // Map '/.../x.macro.dart' onto macro scheme.
-    if (filePath.endsWith(macroClientFileSuffix) &&
-        supportedSchemes.contains(macroClientUriScheme)) {
+    if (_isMacroFile(filePath)) {
       var pathWithoutSuffix = filePath.substring(
         0,
         filePath.length - macroClientFileSuffix.length,
@@ -144,5 +152,77 @@ class _VirtualFileClientUriConverter extends ClientUriConverter {
     }
 
     return _context.toUri(filePath);
+  }
+
+  /// Returns the `file:` URI of [filePath], the same as
+  /// `_context.toUri(filePath).toString()`.
+  ///
+  /// The [filePath] must be absolute and normalized.
+  String _fileUriString(String filePath) {
+    if (_context.style == path.Style.posix) {
+      return _encodeFileUri('file://', filePath);
+    }
+    if (_context.style == path.Style.windows && _hasDriveRoot(filePath)) {
+      return _encodeFileUri('file:///', filePath.replaceAll(r'\', '/'));
+    }
+    return _context.toUri(filePath).toString();
+  }
+
+  bool _isMacroFile(String filePath) {
+    return filePath.endsWith(macroClientFileSuffix) &&
+        supportedSchemes.contains(macroClientUriScheme);
+  }
+
+  /// Returns [prefix] followed by [uriPath], with the characters that are not
+  /// allowed in a URI path percent-encoded as UTF-8, like [Uri] does.
+  static String _encodeFileUri(String prefix, String uriPath) {
+    StringBuffer? buffer;
+    var start = 0;
+    var length = uriPath.length;
+    for (var i = 0; i < length; i++) {
+      if (_isPathCharacter(uriPath.codeUnitAt(i))) {
+        continue;
+      }
+      var end = i + 1;
+      while (end < length && !_isPathCharacter(uriPath.codeUnitAt(end))) {
+        end++;
+      }
+      buffer ??= StringBuffer(prefix);
+      buffer.write(uriPath.substring(start, i));
+      for (var byte in utf8.encode(uriPath.substring(i, end))) {
+        buffer.writeCharCode(0x25); // %
+        buffer.writeCharCode(_hexDigits.codeUnitAt(byte >> 4));
+        buffer.writeCharCode(_hexDigits.codeUnitAt(byte & 0xF));
+      }
+      start = end;
+      i = end - 1;
+    }
+    if (buffer == null) {
+      return '$prefix$uriPath';
+    }
+    buffer.write(uriPath.substring(start));
+    return buffer.toString();
+  }
+
+  /// Whether [filePath] starts with a drive letter, `:`, and `\`.
+  static bool _hasDriveRoot(String filePath) {
+    if (filePath.length < 3) return false;
+    if (filePath.codeUnitAt(1) != 0x3A) return false; // :
+    if (filePath.codeUnitAt(2) != 0x5C) return false; // \
+    var letter = filePath.codeUnitAt(0) | 0x20;
+    return letter >= 0x61 && letter <= 0x7A; // a-z
+  }
+
+  /// Whether [codeUnit] is written to a URI path as is: an unreserved
+  /// character, a sub-delimiter, `:`, `@`, or the separator `/`.
+  static bool _isPathCharacter(int codeUnit) {
+    if (codeUnit >= 0x61 && codeUnit <= 0x7A) return true; // a-z
+    if (codeUnit >= 0x40 && codeUnit <= 0x5A) return true; // @ A-Z
+    if (codeUnit >= 0x26 && codeUnit <= 0x3B) return true; // &'()*+,-./0-9:;
+    return codeUnit == 0x21 || // !
+        codeUnit == 0x24 || // $
+        codeUnit == 0x3D || // =
+        codeUnit == 0x5F || // _
+        codeUnit == 0x7E; // ~
   }
 }
