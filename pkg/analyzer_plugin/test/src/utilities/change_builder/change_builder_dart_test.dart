@@ -3580,6 +3580,137 @@ import 'package:test/all.dart';
     expect(cache[futureOrElement], resolvedFakeUnit.libraryElement);
   }
 
+  Future<void> test_importLibrary_afterImport_trailingComment() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = '''
+import 'package:foo/a.dart'; // comment
+''';
+    addSource(path, content);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.importLibrary(Uri.parse('package:foo/z.dart'));
+    });
+
+    var result = SourceEdit.applySequence(content, getEdits(builder));
+    expect(result, '''
+import 'package:foo/a.dart'; // comment
+import 'package:foo/z.dart';
+''');
+  }
+
+  Future<void> test_importLibrary_afterLibrary_trailingComment() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = '''
+library; // comment
+
+class C {}
+''';
+    addSource(path, content);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.importLibrary(Uri.parse('package:foo/a.dart'));
+    });
+
+    var result = SourceEdit.applySequence(content, getEdits(builder));
+    expect(result, '''
+library; // comment
+
+import 'package:foo/a.dart';
+
+class C {}
+''');
+  }
+
+  /// Annotations on the first export are NOT treated as file-level.
+  Future<void> test_importLibrary_annotationOnFirstExport() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = '''
+@deprecated
+export 'package:foo/b.dart';
+''';
+    addSource(path, content);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.importLibrary(Uri.parse('package:foo/a.dart'));
+    });
+
+    var result = SourceEdit.applySequence(content, getEdits(builder));
+    expect(result, '''
+import 'package:foo/a.dart';
+
+@deprecated
+export 'package:foo/b.dart';
+''');
+  }
+
+  /// Annotations on the first import ARE treated as file-level.
+  Future<void> test_importLibrary_annotationOnFirstImport() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = '''
+@deprecated
+import 'package:foo/b.dart';
+''';
+    addSource(path, content);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.importLibrary(Uri.parse('package:foo/a.dart'));
+    });
+
+    var result = SourceEdit.applySequence(content, getEdits(builder));
+    expect(result, '''
+@deprecated
+import 'package:foo/a.dart';
+import 'package:foo/b.dart';
+''');
+  }
+
+  /// Annotations on the first part are NOT treated as file-level.
+  Future<void> test_importLibrary_annotationOnFirstPart() async {
+    var partPath = convertPath('/home/test/lib/part.dart');
+    addSource(partPath, "part of 'test.dart';\n");
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = '''
+@deprecated
+part 'part.dart';
+''';
+    addSource(path, content);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.importLibrary(Uri.parse('package:foo/a.dart'));
+    });
+
+    var result = SourceEdit.applySequence(content, getEdits(builder));
+    expect(result, '''
+import 'package:foo/a.dart';
+
+@deprecated
+part 'part.dart';
+''');
+  }
+
+  Future<void> test_importLibrary_quotes_fromExistingExport() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'export "dart:bbb";\n';
+    addSource(path, content);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.importLibrary(Uri.parse('dart:aaa'));
+    });
+
+    var result = SourceEdit.applySequence(content, getEdits(builder));
+    expect(result, '''
+import "dart:aaa";
+
+export "dart:bbb";
+''');
+  }
+
   /// Ensure that trying to add an import to show a symbol works with an
   /// explicit empty prefix (to ensure an import with a prefix is not reused nor
   /// a prefix generated).

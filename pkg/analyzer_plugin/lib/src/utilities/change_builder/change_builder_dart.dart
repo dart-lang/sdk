@@ -2556,7 +2556,22 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     var sortCombinators = resolvedUnit.session.analysisContext
         .getAnalysisOptionsForFile(resolvedUnit.file)
         .isLintEnabled('combinators_ordering');
-    var quote = _codeStyleOptions.preferredQuoteForUris(importDirectives);
+    var quote = _codeStyleOptions.preferredQuoteForUris(
+      unit.directives.whereType<NamespaceDirective>(),
+    );
+    var lineInfo = resolvedUnit.lineInfo;
+    int endOfLineFor(Directive directive) {
+      var offset = directive.end;
+      Token? comment = directive.endToken.next?.precedingComments;
+      while (comment != null) {
+        if (lineInfo.onSameLine(comment.offset, offset)) {
+          offset = comment.end;
+        }
+        comment = comment.next;
+      }
+      return offset;
+    }
+
     void writeImport(EditBuilder builder, _LibraryImport import) {
       assert(import.prefixes.isNotEmpty);
       var isFirst = true;
@@ -2691,17 +2706,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
           );
           assert(prev != null || replace != null || next != null);
 
-          var lineInfo = resolvedUnit.lineInfo;
           if (prev != null) {
-            var offset = prev.end;
-            Token? comment = prev.endToken.next?.precedingComments;
-            while (comment != null) {
-              if (lineInfo.onSameLine(comment.offset, offset)) {
-                offset = comment.end;
-              }
-              comment = comment.next;
-            }
-            addInsertion(offset, (EditBuilder builder) {
+            addInsertion(endOfLineFor(prev), (EditBuilder builder) {
               builder.writeln();
               writeImport(builder, import);
             });
@@ -2709,14 +2715,10 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
             updateHideCombinators(replace);
             updateShowCombinators(replace);
           } else {
-            // Annotations attached to the first directive should remain above
-            // the newly inserted import, as they are treated as being for the
-            // file.
-            var isFirst =
-                next == (next!.parent as CompilationUnit).directives.first;
-            var offset = isFirst
-                ? next.firstTokenAfterCommentAndMetadata.offset
-                : next.offset;
+            var directive = next!;
+            var offset = directive == unit.directives.first
+                ? directive.firstTokenAfterCommentAndMetadata.offset
+                : directive.offset;
             addInsertion(offset, (EditBuilder builder) {
               writeImport(builder, import);
               builder.writeln();
@@ -2782,7 +2784,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
           isLastExistingPackage = isExistingPackage;
         }
         if (!inserted) {
-          addInsertion(lastExisting!.end, (EditBuilder builder) {
+          addInsertion(endOfLineFor(lastExisting!), (EditBuilder builder) {
             if (isPackage) {
               if (isLastExistingDart) {
                 builder.writeln();
@@ -2802,7 +2804,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
     // Insert imports: after the library directive.
     if (libraryDirective != null) {
-      addInsertion(libraryDirective.end, (EditBuilder builder) {
+      addInsertion(endOfLineFor(libraryDirective), (EditBuilder builder) {
         builder.writeln();
         builder.writeln();
         for (var i = 0; i < importList.length; i++) {
