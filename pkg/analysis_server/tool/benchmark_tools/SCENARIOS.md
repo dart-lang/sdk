@@ -53,6 +53,26 @@ The Dart SDK repository, opened in IntelliJ, sends 32 included and 292 excluded 
 - In a separate run under the sampling profiler (250 µs period), `isWithin` takes about 24% of CPU (about 1.5 s of the 6.3 s), two thirds of it in `AbstractNotificationManager._isIncluded`.
 - Control: `pkg/analyzer` alone (1,625 files, no excludes) has a warm median of 1,984 ms, of which `isWithin` is about 3% (about 60 ms). Adding 496 excludes raises the median to 2,250 ms and `isWithin` to about 18%.
 
+After the optimizations below, the same IntelliJ project was replayed on Linux x64 (AMD Ryzen 9 PRO 8945HS), with the server from before the optimizations (`f3091555445`) and the server after CL 580840 (product AOT, 3 interleaved rounds of 3 warm runs, mean of the warm medians). The payload is built from the `.iml` files of the project, as `DartServerRootsHandler` does: the content root of each module with the Dart SDK enabled is included, and its excluded folders and the `.idea` directory of the project are excluded. Six modules whose `.iml` files are not in this checkout, three of them outside the repository, are left out, which gives 30 included and 287 excluded roots.
+
+| Scenario | Before | After |
+|---|---:|---:|
+| With the excludes | 5,022 ms | 3,724 ms (−26%) |
+| The same included roots, without excludes | 3,967 ms | 3,755 ms (−5%) |
+| Exclude overhead | +1,055 ms | −31 ms |
+
+After the optimizations the overhead is negative, because without the excludes the server also analyzes the files in the excluded folders.
+
+The same replay on macOS (Apple M4 Pro, 32 included and 292 excluded roots, 6,720 analyzed files, product AOT from the same commits, 3 interleaved rounds of 3 warm runs against a shared filled cache) hits frequent `+1,000 ms` retries inside `analysis.setAnalysisRoots` when registering 32 FSEvents watchers (`TimerUtils::Sleep(1000)` in `runtime/bin/file_system_watcher_macos.cc`, occurring on 20 of the 36 runs, including one 10-second spike). Combining the median 0-retry `analysis.setAnalysisRoots` response time with the median post-`analysis.setAnalysisRoots` analysis time across all 9 warm runs (taking the median of only the 0-retry runs directly gives `6,955 → 5,410 ms`, −22%):
+
+| Scenario | Before | After |
+|---|---:|---:|
+| With the excludes | 6,960 ms | 5,466 ms (−21%) |
+| The same included roots, without excludes | 5,736 ms | 5,457 ms (−5%) |
+| Exclude overhead | +1,224 ms | +9 ms |
+
+The −1,494 ms saved with excludes matches the ~1.5 s sampling-profiler estimate above; the percentage is smaller than on Linux (−21% vs −26%) because macOS pays ~2.3 s in `analysis.setAnalysisRoots` watcher setup even at 0 retries. Both scenarios analyze the same 6,720 files here (the only existing non-dot excluded directory with Dart files is `pkg/front_end/testcases`, already excluded by `pkg/front_end/analysis_options_no_lints.yaml`), so the exclude overhead drops to noise (+9 ms) rather than turning negative.
+
 ### Baseline before the optimizations
 
 Linux x64, AMD Ryzen 9 PRO 8945HS, 2026-11-21, server from an SDK built at `51133fc5559` (2026-11-18), workspace root path length 64.
