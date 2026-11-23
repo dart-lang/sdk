@@ -202,6 +202,38 @@ testNumbers() {
   testJson("[1e-18446744073709551616]", [0.0]);
   testJson("[-1e-18446744073709551616]", [-0.0]);
 
+  // Exponents exceeding +/-400 combined with mantissa digits, plus long
+  // leading-zero exponents, must match `double.parse` across string and UTF-8
+  // decoders.
+  for (var literal in [
+    '1${'0' * 100}e-401', // 1e-301
+    '-1${'0' * 100}e-401', // -1e-301
+    '0.${'0' * 400}1e401', // 1.0
+    '-0.${'0' * 400}1e+401', // -1.0
+    '0.${'0' * 400}15E401', // 1.5
+    '1${'0' * 30}e-401', // Underflows to 0.0.
+    '1e401', // Overflows to Infinity.
+    '-1e401', // -Infinity
+    '1e-401', // 0.0
+    '-1e-401', // -0.0
+    '0e999', // 0.0
+    '-0e999', // -0.0
+    '1e0000000000000000000000000000001', // Leading zeros in the exponent.
+  ]) {
+    var expected = double.parse(literal);
+    testJson('[$literal]', [expected]);
+    testJson('{"k":$literal}', {'k': expected});
+    testJson('[$literal,0]', [expected, 0]);
+    for (var source in ['[$literal]', '{"k":$literal}', '[$literal,0]']) {
+      var decoded = utf8.decoder
+          .fuse(json.decoder)
+          .convert(utf8.encode(source));
+      var value = decoded is List ? decoded.first : (decoded as Map)['k'];
+      Expect.type<double>(value, source);
+      Expect.isTrue(expected.compareTo(value as double) == 0, source);
+    }
+  }
+
   // Negative tests (syntax error).
   // testError thoroughly tests the given parts with a lot of valid
   // values for the other parts.

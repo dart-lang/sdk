@@ -7,6 +7,7 @@ library test;
 import "package:expect/expect.dart";
 
 import "dart:convert";
+import "dart:typed_data";
 
 import "unicode_tests.dart" show UNICODE_TESTS;
 
@@ -17,6 +18,7 @@ main() {
   testAll();
   testMalformed();
   testUnicodeTests();
+  testNonByteValues();
 }
 
 // Create an UTF-8 sink from a chunked JSON decoder, then let [action]
@@ -729,5 +731,45 @@ void testUnicodeTests() {
         });
       }
     }
+  }
+}
+
+void testNonByteValues() {
+  Object? decodeChunked(List<int> bytes) {
+    Object? result;
+    final sink = json.decoder
+        .startChunkedConversion(
+          ChunkedConversionSink<Object?>.withCallback((v) => result = v.single),
+        )
+        .asUtf8Sink(false);
+    sink
+      ..add(bytes)
+      ..close();
+    return result;
+  }
+
+  final invalid = <List<int>>[
+    [0x22, 0x141, 0x22],
+    [0x5B, 0x131, 0x5D],
+    [0x22, -1, 0x22],
+    Int8List.fromList([0x22, 0xC3, 0xA9, 0x22]),
+  ];
+  for (final bytes in invalid) {
+    Expect.throwsFormatException(() => utf8.decode(bytes), '$bytes');
+    Expect.throwsFormatException(
+      () => utf8.decoder.fuse(json.decoder).convert(bytes),
+      '$bytes',
+    );
+    Expect.throwsFormatException(() => json.fuse(utf8).decode(bytes), '$bytes');
+    Expect.throwsFormatException(() => decodeChunked(bytes), '$bytes');
+  }
+
+  for (final bytes in <List<int>>[
+    [0x22, 0xC3, 0xA9, 0x22],
+    Uint8ClampedList.fromList([0x22, 0xC3, 0xA9, 0x22]),
+    Uint16List.fromList([0x22, 0xC3, 0xA9, 0x22]),
+  ]) {
+    Expect.equals("\u00e9", utf8.decoder.fuse(json.decoder).convert(bytes));
+    Expect.equals("\u00e9", decodeChunked(bytes));
   }
 }

@@ -32,6 +32,7 @@ main() {
   testNumbers();
   testStrings();
   testKeywords();
+  testLongNumbers();
 }
 
 void testStrings() {
@@ -172,4 +173,57 @@ void testKeywords() {
       }
     }
   }
+}
+
+void testLongNumbers() {
+  Object? decodeStringChunks(String source, int chunkSize) {
+    Object? result;
+    final sink = json.decoder.startChunkedConversion(
+      ChunkedConversionSink<Object?>.withCallback((v) => result = v.single),
+    );
+    for (var i = 0; i < source.length; i += chunkSize) {
+      final end = i + chunkSize < source.length ? i + chunkSize : source.length;
+      sink.add(source.substring(i, end));
+    }
+    sink.close();
+    return result;
+  }
+
+  Object? decodeByteChunks(List<int> source, int chunkSize) {
+    Object? result;
+    final sink = utf8.decoder
+        .fuse(json.decoder)
+        .startChunkedConversion(
+          ChunkedConversionSink<Object?>.withCallback((v) => result = v.single),
+        );
+    for (var i = 0; i < source.length; i += chunkSize) {
+      final end = i + chunkSize < source.length ? i + chunkSize : source.length;
+      sink.add(source.sublist(i, end));
+    }
+    sink.close();
+    return result;
+  }
+
+  for (final literal in [
+    '1' * 40,
+    '-${'9' * 40}',
+    '0.${'1' * 40}',
+    '1${'0' * 40}e-20',
+    '12345678901234567890.5e-3',
+  ]) {
+    final expected = jsonDecode('[$literal]');
+    for (final chunkSize in [1, 2, 3, 7]) {
+      Expect.deepEquals(expected, decodeStringChunks('[$literal]', chunkSize));
+      Expect.deepEquals(
+        expected,
+        decodeByteChunks(utf8.encode('[$literal]'), chunkSize),
+      );
+    }
+  }
+
+  final long = '[${'1' * 10000}]';
+  final value = decodeStringChunks(long, 1) as List;
+  Expect.equals(double.infinity, value.single);
+  final bytesValue = decodeByteChunks(utf8.encode(long), 1) as List;
+  Expect.equals(double.infinity, bytesValue.single);
 }
