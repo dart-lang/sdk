@@ -53,6 +53,7 @@ _ddc_builder(
     category = "ddc|chrome|w",
     dimensions = windows,
     properties = [chrome],
+    caches = [swarming.cache("builder", name = "dart_win_release_x64")],
 )
 
 _ddc_builder(
