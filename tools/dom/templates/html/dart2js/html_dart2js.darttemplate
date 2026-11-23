@@ -9,10 +9,11 @@
 /// HTML elements and other resources for web-based applications that need to
 /// interact with the browser and the DOM (Document Object Model).
 ///
-/// > [!Note]
-/// > This core library is deprecated, and scheduled for removal in late 2025.
-/// > It has been replaced by [package:web](https://pub.dev/packages/web).
-/// > The [migration guide](https://dart.dev/go/package-web) has more details.
+/// > [!Warning]
+/// > This core library is deprecated and scheduled for removal in Dart 4.0.
+/// > Use [package:web](https://pub.dev/packages/web) and `dart:js_interop`
+/// > instead. See the [migration guide](https://dart.dev/go/package-web) for
+/// > details.
 ///
 /// This library includes DOM element types, CSS styling, local storage,
 /// media, speech, events, and more.
@@ -22,9 +23,12 @@
 ///
 /// For information on writing web apps with Dart, see https://dart.dev/web.
 ///
-/// {@category Web (Legacy)}
+/// {@category Deprecated}
 /// {@canonicalFor dart:_internal.HttpStatus}
-@Deprecated('Use package:web and dart:js_interop instead.')
+@Deprecated(
+  'Scheduled for removal in Dart 4.0. Use package:web and dart:js_interop '
+  'instead. See https://dart.dev/go/package-web.',
+)
 library dart.dom.html;
 
 import 'dart:async';

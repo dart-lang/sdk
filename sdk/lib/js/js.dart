@@ -4,10 +4,11 @@
 
 /// Low-level support for interoperating with JavaScript.
 ///
-/// > [!Note]
-/// > You should usually use `dart:js_interop` instead of this library.
-/// > To learn more, check out the
-/// > [JS interop documentation](https://dart.dev/interop/js-interop).
+/// > [!Warning]
+/// > This core library is deprecated and scheduled for removal in Dart 4.0.
+/// > Use `dart:js_interop` instead. See the
+/// > [JS interop documentation](https://dart.dev/interop/js-interop) for
+/// > details.
 ///
 /// This library provides access to JavaScript objects from Dart, allowing
 /// Dart code to get and set properties, and call methods of JavaScript objects
@@ -83,8 +84,11 @@
 ///
 ///     var jsArray = JsObject.jsify([1, 2, 3]);
 ///
-/// {@category Web (Legacy)}
-@Deprecated('Use dart:js_interop instead.')
+/// {@category Deprecated}
+@Deprecated(
+  'Scheduled for removal in Dart 4.0. Use dart:js_interop instead. '
+  'See https://dart.dev/interop/js-interop.',
+)
 library dart.js;
 
 import 'dart:collection' show ListMixin;

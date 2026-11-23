@@ -15,6 +15,16 @@
 /// Basic reflection in Dart,
 /// with support for introspection and dynamic invocation.
 ///
+/// > [!Warning]
+/// > This core library is deprecated and scheduled for removal in Dart 4.0.
+/// > Depending on your use case, migrate to `Isolate.resolvePackageUriSync`,
+/// > [package:analyzer](https://pub.dev/packages/analyzer), code generation
+/// > ([package:build](https://pub.dev/packages/build) /
+/// > [package:source_gen](https://pub.dev/packages/source_gen)), or
+/// > [package:reflectable](https://pub.dev/packages/reflectable).
+/// > See [dart-lang/sdk#44489](https://github.com/dart-lang/sdk/issues/44489)
+/// > for migration details.
+///
 /// *Introspection* is that subset of reflection by which a running
 /// program can examine its own structure. For example, a function
 /// that prints out the names of all the members of an arbitrary object.
@@ -45,16 +55,16 @@
 /// across isolates, or a map with keys and values that are all serializable across
 /// isolates.
 ///
-/// ## Status: Deprecated
-///
-/// The `dart:mirrors` library is `@deprecated` and will be removed in a future
-/// release. For details, see https://github.com/dart-lang/sdk/issues/44489.
+/// ## Platform support
 ///
 /// This library is only supported by the Dart VM and only available on some
 /// platforms.
 ///
-/// {@category VM}
-@deprecated
+/// {@category Deprecated}
+@Deprecated(
+  'Scheduled for removal in Dart 4.0. '
+  'See https://github.com/dart-lang/sdk/issues/44489 for migration options.',
+)
 library dart.mirrors;
 
 import "dart:core";
