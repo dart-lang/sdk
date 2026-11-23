@@ -187,6 +187,37 @@ Profile:
 
 After this change, `isWithin` in `ContextRootImpl._isExcluded` (41.9%) is most of the remaining exclude overhead.
 
+#### [CL 580800](https://dart-review.googlesource.com/c/sdk/+/580800): Look up the ancestors of a path in `ContextRootImpl._isExcluded`
+
+`_isExcluded` checked each file against every excluded path with `Context.isWithin`, both while listing the files of the context root and in `isAnalyzed` for every analysis result. Now `ContextRootImpl` keeps the excluded paths in a `PathSubtreeSet`, which `addExcluded` updates, so the cost no longer depends on the number of excludes.
+
+Warm medians:
+
+| Packages | legacy_3p_excludes | lsp_3p_excludes | lsp_no_excludes |
+|---:|---:|---:|---:|
+| 25 | 206 → 192 ms | 190 → 174 ms | 175 → 172 ms |
+| 50 | 443 → 380 ms | 418 → 350 ms | 348 → 347 ms |
+| 100 | 996 → 760 ms | 948 → 703 ms | 696 → 694 ms |
+
+Exclude overhead:
+
+| Packages | legacy_3p_excludes | lsp_3p_excludes |
+|---:|---:|---:|
+| 25 | 30 → 20 ms | 15 → 2 ms |
+| 50 | 95 → 33 ms | 70 → 3 ms |
+| 100 | 301 → 66 ms | 252 → 9 ms |
+
+Profile:
+
+| | Before | After | Change |
+|---|---:|---:|---:|
+| All server instructions | 12.68G | 6.97G | −45% |
+| `ContextRootImpl._isExcluded`, with callees | 5.50G (43.4%) | 0.044G (0.6%) | −99% |
+| `PathSubtreeSet.containsSelfOrAncestor`, with callees | 0.065G (0.5%) | 0.090G (1.3%) | |
+| `package:path` code, with callees | 5.92G (46.7%) | 0.62G (8.9%) | −89% |
+
+One of the 3 profiled runs after the change spent 0.56G more in GC than the other two, which adds 0.19G to the mean. The overhead of `lsp_3p_excludes` is now within the noise. The 66 ms of `legacy_3p_excludes` at 100 packages that remain must come from code that only the legacy protocol runs, because both scenarios send the same excludes; the profiles of `lsp_3p_excludes` cannot show it.
+
 ### Limitations
 
 - It covers excludes sent by the IDE, not `analyzer: exclude:` globs in `analysis_options.yaml`, which go through `ContextRootImpl.excludedGlobs`.

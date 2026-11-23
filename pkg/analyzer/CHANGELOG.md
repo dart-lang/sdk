@@ -13,6 +13,8 @@
   macro expansion. Templates in documentation comments on `library` directives, declarations, and members remain supported.
 * Dartdoc templates in documentation comments on declaring formal parameters of primary constructors, including the
   representation of an extension type, are collected for macro expansion. These comments document the declared fields.
+* `ContextRoot.excluded` is unmodifiable. Previously, files and directories added to it were excluded from analysis.
+  `ContextRoot.isAnalyzed` requires an absolute and normalized path, as documented for the other paths of `ContextRoot`.
 * Deprecated the methods `logLogEntry`, `logNotification`, `logRequest`,
   `logResponse`, `logVersion`, and  `logWatchEvent` in the class
   `InstrumentationService` and its subclasses. These were only used by the

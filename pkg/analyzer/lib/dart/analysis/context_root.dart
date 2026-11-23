@@ -11,6 +11,8 @@ import 'package:analyzer/src/workspace/workspace.dart';
 abstract class ContextRoot {
   /// A list of the files and directories within the root directory that should
   /// not be analyzed.
+  ///
+  /// The list is unmodifiable.
   List<Resource> get excluded;
 
   /// A collection of the absolute, normalized paths of files and directories
@@ -66,5 +68,7 @@ abstract class ContextRoot {
   /// either the same as or contained in one of the [includedPaths] and, if it
   /// is contained in one of the [includedPaths], is not the same as or
   /// contained in one of the [excludedPaths].
+  ///
+  /// The [path] must be absolute and normalized.
   bool isAnalyzed(String path);
 }

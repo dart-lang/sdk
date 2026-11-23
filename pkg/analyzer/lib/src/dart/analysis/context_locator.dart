@@ -420,7 +420,7 @@ class _ContextLocator {
         packagesFile: packageConfigFileToUse,
       );
       root.included.add(folder);
-      containingRoot.excluded.add(folder);
+      containingRoot.addExcluded(folder);
       _roots.add(root);
       containingRoot = root;
       containingRootEnabledLegacyPlugins = localEnabledPlugins;
@@ -812,7 +812,7 @@ class _ContextLocator {
             // because it's also a project and had a context root created as
             // part of the parent analysis root).
             if (!existingRoot.excluded.contains(folder)) {
-              existingRoot.excluded.add(folder);
+              existingRoot.addExcluded(folder);
             }
           }
         }
@@ -868,7 +868,7 @@ class _ContextLocator {
     for (var resource in _excludedByClient) {
       for (var root in _roots) {
         if (root.isAnalyzed(resource.path)) {
-          root.excluded.add(resource);
+          root.addExcluded(resource);
         }
       }
     }
