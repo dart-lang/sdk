@@ -166,7 +166,7 @@ _vm_builder(
     category = "vm|jit|windows|r",
     dimensions = windows,
     location_filters = paths.to_location_filters(paths.windows + paths.io),
-    caches = [swarming.cache("builder", name = "dart_win_release_x64")],
+    caches = [swarming.cache("builder", name = "builder_dart_win_release_x64")],
 )
 _nightly_builder(
     "vm-win-debug-arm64",
@@ -269,7 +269,7 @@ _vm_builder(
     "vm-aot-win-release-x64",
     category = "vm|aot|windows|r",
     dimensions = windows,
-    caches = [swarming.cache("builder", name = "dart_win_release_x64")],
+    caches = [swarming.cache("builder", name = "builder_dart_win_release_x64")],
 )
 _nightly_builder(
     "vm-aot-win-debug-arm64",

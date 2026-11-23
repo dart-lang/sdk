@@ -82,7 +82,7 @@ _pkg_builder(
     category = "pkg|w",
     dimensions = windows,
     properties = [chrome],
-    caches = [swarming.cache("builder", name = "dart_win_release_x64")],
+    caches = [swarming.cache("builder", name = "builder_dart_win_release_x64")],
 )
 _pkg_builder(
     "pkg-win-release-arm64",

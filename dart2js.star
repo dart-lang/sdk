@@ -78,7 +78,7 @@ _dart2js_builder(
     category = "dart2js|chrome|w",
     dimensions = windows,
     properties = [chrome],
-    caches = [swarming.cache("builder", name = "dart_win_release_x64")],
+    caches = [swarming.cache("builder", name = "builder_dart_win_release_x64")],
 )
 _dart2js_builder(
     "dart2js-linux-firefox",
