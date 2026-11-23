@@ -8,6 +8,7 @@ import 'package:_js_interop_checks/js_interop_checks.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as analyzer_diag;
 import 'package:collection/collection.dart';
 import 'package:front_end/src/api_prototype/codes.dart'
     show Message, LocatedMessage;
@@ -51,7 +52,8 @@ enum _DryRunErrorCode {
   noPackageJs(14),
   noDartJsUtil(15),
   noDartFfiWithoutFlag(16),
-  invalidRuntimeCheckWithJsInteropTypesCatchClauseJsInteropType(17);
+  invalidRuntimeCheckWithJsInteropTypesCatchClauseJsInteropType(17),
+  deprecatedWebConfiguration(18);
 
   const _DryRunErrorCode(this.code);
 
@@ -198,21 +200,21 @@ class DryRunSummarizer {
   Future<List<_DryRunError>> _lintChecks() async {
     final errors = <_DryRunError>[];
 
-    final pathUriMap = <String, Uri>{};
+    final pathLibraryMap = <String, Library>{};
     for (final library in component.libraries) {
       if (_shouldSkipLibrary(library)) continue;
       final uri = library.fileUri;
       if (uri.isScheme('file')) {
-        pathUriMap[p.normalize(
+        pathLibraryMap[p.normalize(
               p.absolute(uri.toFilePath(windows: Platform.isWindows)),
             )] =
-            uri;
+            library;
       }
     }
-    if (pathUriMap.isEmpty) return [];
+    if (pathLibraryMap.isEmpty) return [];
 
     final collection = AnalysisContextCollectionImpl(
-      includedPaths: pathUriMap.keys.toList(),
+      includedPaths: pathLibraryMap.keys.toList(),
       configureAnalysisOptionsBuilder: ({required analysisOptionsBuilder}) {
         analysisOptionsBuilder.lintRules = [
           _avoidDoubleAndIntChecks,
@@ -223,7 +225,7 @@ class DryRunSummarizer {
     );
     for (var context in collection.contexts) {
       for (var filePath in context.contextRoot.analyzedFiles()) {
-        final uri = pathUriMap[filePath]!;
+        final library = pathLibraryMap[filePath]!;
         var result = await context.currentSession.getErrors(filePath);
         if (result is ErrorsResult) {
           for (final diagnostic in result.diagnostics) {
@@ -234,9 +236,9 @@ class DryRunSummarizer {
                   errorCode,
                   '${diagnostic.diagnosticCode.lowerCaseName} lint violation: '
                   '${diagnostic.message}',
-                  errorSourceUri: uri,
+                  errorSourceUri: library.importUri,
                   errorLocation: component.getLocation(
-                    uri,
+                    library.fileUri,
                     diagnostic.problemMessage.offset,
                   ),
                 ),
@@ -272,6 +274,8 @@ class DryRunSummarizer {
     diag.invalidRuntimeCheckWithJsInteropTypesJsIsUnrelatedJs =>
       _DryRunErrorCode.invalidRuntimeCheckWithJsInteropTypesJsIsUnrelatedJs,
     diag.avoidDoubleAndIntChecks => _DryRunErrorCode.avoidDoubleAndIntChecks,
+    analyzer_diag.deprecatedWebConfiguration =>
+      _DryRunErrorCode.deprecatedWebConfiguration,
     _ => null,
   };
 

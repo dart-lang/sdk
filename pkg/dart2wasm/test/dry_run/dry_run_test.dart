@@ -4,10 +4,13 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:args/args.dart';
 import 'package:collection/collection.dart';
 import 'package:expect/expect.dart';
+
+const _testPackageName = 'dry_run_testcases';
 
 final dartAotExecutable = Uri.parse(Platform.resolvedExecutable)
     .resolve('dartaotruntime')
@@ -130,15 +133,24 @@ class TestResults {
 
 class TestCase {
   final Uri path;
+  final Uri expectedSourceUri;
   final List<String> compilerFlags;
   final List<TestExpectation> expectations;
 
-  TestCase(this.path, this.compilerFlags, this.expectations);
+  TestCase(
+    this.path,
+    this.expectedSourceUri,
+    this.compilerFlags,
+    this.expectations,
+  );
 
   String get name => path.pathSegments.last.replaceAll('.dart', '');
 }
 
-Future<TestResults> runTest(TestCase testCase) async {
+Future<TestResults> runTest(
+  TestCase testCase, {
+  required File packagesFile,
+}) async {
   print('Executing test: ${testCase.name}');
   final timer = Stopwatch();
   timer.start();
@@ -148,6 +160,7 @@ Future<TestResults> runTest(TestCase testCase) async {
       dart2wasmSnapshot,
       testCase.path.toFilePath(),
       '--platform=$platformDill',
+      '--packages=${packagesFile.path}',
       '--dry-run',
       ...testCase.compilerFlags,
       'out.wasm',
@@ -169,7 +182,7 @@ Future<TestResults> runTest(TestCase testCase) async {
       'Unexpected stderr:\n${result.stderr}',
     );
     final findings = _parseTestFindings(result.stdout);
-    _checkFindings(findings, testCase.expectations);
+    _checkFindings(findings, testCase.expectations, testCase.expectedSourceUri);
   } catch (e, s) {
     return TestResults(testCase.name, Status.fail, timer.elapsed, '$e\n$s');
   }
@@ -218,18 +231,53 @@ int reportResults(
   return 0;
 }
 
-Future<List<TestCase>> _loadTestCases() async {
-  final testCaseDir = Directory.fromUri(Platform.script.resolve('testcases'));
+Future<File> _writeTestPackageConfig(
+  Directory tempDir,
+  Uri testCaseDirUri,
+) async {
+  final baseConfigUri = (await Isolate.packageConfig)!;
+  final baseConfig = jsonDecode(
+    await File.fromUri(baseConfigUri).readAsString(),
+  ) as Map<String, Object?>;
+  final packages = [
+    for (final entry
+        in (baseConfig['packages'] as List<Object?>)
+            .cast<Map<String, Object?>>())
+      {
+        ...entry,
+        'rootUri': baseConfigUri.resolve(entry['rootUri'] as String).toString(),
+      },
+    {
+      'name': _testPackageName,
+      'rootUri': testCaseDirUri.toString(),
+      'packageUri': './',
+    },
+  ];
+  final configFile = File.fromUri(tempDir.uri.resolve('package_config.json'));
+  await configFile.writeAsString(
+    jsonEncode({...baseConfig, 'packages': packages}),
+  );
+  return configFile;
+}
+
+Future<List<TestCase>> _loadTestCases(Uri testCaseDirUri) async {
+  final testCaseDir = Directory.fromUri(testCaseDirUri);
   final testCases = <TestCase>[];
   for (final file in testCaseDir.listSync(recursive: true)) {
     if (file is File && file.path.endsWith('.dart')) {
-      testCases.add(await _parseTestCase(file.uri));
+      final relativePath = file.uri.toString().substring(
+        testCaseDirUri.toString().length,
+      );
+      final expectedSourceUri = Uri.parse(
+        'package:$_testPackageName/$relativePath',
+      );
+      testCases.add(await _parseTestCase(file.uri, expectedSourceUri));
     }
   }
   return testCases;
 }
 
-Future<TestCase> _parseTestCase(Uri path) async {
+Future<TestCase> _parseTestCase(Uri path, Uri expectedSourceUri) async {
   final fileContents = await File.fromUri(path).readAsString();
   final lines = fileContents.split('\n');
   // Bespoke flags syntax over the SDK test syntax of `// dart2wasmOptions=`
@@ -255,7 +303,7 @@ Future<TestCase> _parseTestCase(Uri path) async {
     }
     lineIndex++;
   }
-  return TestCase(path, compilerFlags, expectations);
+  return TestCase(path, expectedSourceUri, compilerFlags, expectations);
 }
 
 List<TestFinding> _parseTestFindings(String result) {
@@ -272,6 +320,7 @@ List<TestFinding> _parseTestFindings(String result) {
 void _checkFindings(
   List<TestFinding> findings,
   List<TestExpectation> expectations,
+  Uri expectedSourceUri,
 ) {
   Expect.equals(
     findings.length,
@@ -299,6 +348,12 @@ void _checkFindings(
       matchingFinding!.errorCode,
       'Unexpected error code for expectation on line $lineNumber. '
       'Expected: ${expectation.expectedErrorCode}, Actual: ${matchingFinding.errorCode}',
+    );
+    Expect.equals(
+      expectedSourceUri,
+      matchingFinding.errorSourceUri,
+      'Unexpected error source URI for expectation on line $lineNumber. '
+      'Expected: $expectedSourceUri, Actual: ${matchingFinding.errorSourceUri}',
     );
     if (expectation.expectedErrorSubstring != null) {
       Expect.contains(
@@ -331,15 +386,25 @@ Future<int> main(List<String> args) async {
   final outputDirectory = parsedArgs.option('output-directory');
   final verbose = parsedArgs.flag('verbose');
 
-  final testCases = await _loadTestCases();
+  final testCaseDir = Directory.fromUri(Platform.script.resolve('testcases'));
+  final testCases = await _loadTestCases(testCaseDir.uri);
 
   final results = <TestResults>[];
-  for (final testCase in testCases) {
-    final testResult = await runTest(testCase);
-    results.add(testResult);
-    if (verbose && testResult.status != Status.pass) {
-      print(testResult.details);
+  final tempDir = await Directory.systemTemp.createTemp('dry_run_test_');
+  try {
+    final packagesFile = await _writeTestPackageConfig(
+      tempDir,
+      testCaseDir.uri,
+    );
+    for (final testCase in testCases) {
+      final testResult = await runTest(testCase, packagesFile: packagesFile);
+      results.add(testResult);
+      if (verbose && testResult.status != Status.pass) {
+        print(testResult.details);
+      }
     }
+  } finally {
+    await tempDir.delete(recursive: true);
   }
 
   return reportResults(

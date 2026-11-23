@@ -4,5 +4,6 @@ analyzer:
   errors:
     depend_on_referenced_packages: ignore
     deprecated_member_use: ignore
+    deprecated_web_configuration: ignore
     invalid_runtime_check_with_js_interop_types: ignore
     unused_import: ignore
