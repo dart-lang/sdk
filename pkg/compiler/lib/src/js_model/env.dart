@@ -786,17 +786,13 @@ class FunctionDataImpl extends JMemberDataImpl
   final ir.FunctionNode functionNode;
   FunctionType? _type;
 
-  FunctionDataImpl(
-    ir.Member node,
-    this.functionNode,
-    MemberDefinition definition,
-  ) : super(node, definition);
+  FunctionDataImpl(super.node, this.functionNode, super.definition);
 
   FunctionDataImpl._deserialized(
-    ir.Member node,
+    super.node,
     this.functionNode,
-    MemberDefinition definition,
-  ) : super._deserialized(node, definition);
+    super.definition,
+  ) : super._deserialized();
 
   factory FunctionDataImpl.readFromDataSource(DataSourceReader source) {
     source.begin(tag);

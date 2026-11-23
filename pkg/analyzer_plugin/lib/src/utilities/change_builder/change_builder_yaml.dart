@@ -49,12 +49,12 @@ class YamlFileEditBuilderImpl extends FileEditBuilderImpl
   /// change being built by the given [changeBuilder]. The file being edited has
   /// the given [filePath], [document], and [timeStamp].
   new(
-    ChangeBuilderImpl changeBuilder,
-    String filePath,
+    super.changeBuilder,
+    super.filePath,
     this.document,
-    int timeStamp, {
+    super.timeStamp, {
     required super.eol,
-  }) : super(changeBuilder, filePath, timeStamp);
+  });
 
   @override
   void addInsertion(

@@ -183,10 +183,10 @@ class MockCustomDartCliDebugAdapter extends MockDartCliDebugAdapter {
 
   MockCustomDartCliDebugAdapter._(
     Map<String, Uri>? customMappings,
-    StreamSink<List<int>> stdin,
-    Stream<List<int>> stdout,
-    ByteStreamServerChannel channel,
-  ) : super.withStreams(stdin, stdout, channel) {
+    super.stdin,
+    super.stdout,
+    super.channel,
+  ) : super.withStreams() {
     if (customMappings != null) {
       orgDartlangSdkMappings
         ..clear()

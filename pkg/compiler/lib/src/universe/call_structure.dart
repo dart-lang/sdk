@@ -262,12 +262,12 @@ class _NamedCallStructure extends CallStructure {
   List<String>? _orderedNamedArguments;
 
   _NamedCallStructure(
-    int argumentCount,
+    super.argumentCount,
     this.namedArguments,
-    int typeArgumentCount,
+    super.typeArgumentCount,
     this._orderedNamedArguments,
   ) : assert(namedArguments.isNotEmpty),
-      super._(argumentCount, typeArgumentCount);
+      super._();
 
   @override
   bool get isNamed => true;

@@ -112,10 +112,9 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     this.responseRequiresRequestTime,
     this.clientUriConverterKind,
     this.isServer,
-    Api api,
+    super.api,
   ) : toHtmlVisitor = ToHtmlVisitor(api),
-      impliedTypes = computeImpliedTypes(api),
-      super(api) {
+      impliedTypes = computeImpliedTypes(api) {
     codeGeneratorSettings.commentLineLength = 79;
     codeGeneratorSettings.docCommentStartMarker = null;
     codeGeneratorSettings.docCommentLineLeader = '/// ';

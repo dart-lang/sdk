@@ -112,7 +112,7 @@ class NonAsciiIdentifierToken extends ErrorToken {
   @override
   final int character;
 
-  new(this.character, int charOffset) : super(charOffset);
+  new(this.character, super.charOffset);
 
   @override
   String toString() => "NonAsciiIdentifierToken($character)";
@@ -129,7 +129,7 @@ class NonAsciiWhitespaceToken extends ErrorToken {
   @override
   final int character;
 
-  new(this.character, int charOffset) : super(charOffset);
+  new(this.character, super.charOffset);
 
   @override
   String toString() => "NonAsciiWhitespaceToken($character)";
@@ -144,7 +144,7 @@ class AsciiControlCharacterToken extends ErrorToken {
   @override
   final int character;
 
-  new(this.character, int charOffset) : super(charOffset);
+  new(this.character, super.charOffset);
 
   @override
   String toString() => "AsciiControlCharacterToken($character)";
@@ -158,7 +158,7 @@ class AsciiControlCharacterToken extends ErrorToken {
 class UnsupportedOperator extends ErrorToken {
   Token token;
 
-  new(this.token, int charOffset) : super(charOffset);
+  new(this.token, super.charOffset);
 
   @override
   Message get assertionMessage =>
@@ -175,7 +175,7 @@ class UnterminatedString extends ErrorToken {
   @override
   final int endOffset;
 
-  new(this.start, int charOffset, this.endOffset) : super(charOffset);
+  new(this.start, super.charOffset, this.endOffset);
 
   @override
   String toString() => "UnterminatedString($start)";
@@ -200,8 +200,7 @@ class UnterminatedToken extends ErrorToken {
   @override
   final int endOffset;
 
-  new(this.assertionMessage, int charOffset, this.endOffset)
-    : super(charOffset);
+  new(this.assertionMessage, super.charOffset, this.endOffset);
 
   @override
   String toString() => "UnterminatedToken(${assertionMessage.code.name})";

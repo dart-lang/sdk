@@ -596,7 +596,7 @@ class For extends Loop {
   final Expression? condition;
   final Expression? update;
 
-  For(this.init, this.condition, this.update, Statement body) : super(body);
+  For(this.init, this.condition, this.update, super.body);
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitFor(this);
@@ -619,7 +619,7 @@ class ForIn extends Loop {
   final Expression leftHandSide;
   final Expression object;
 
-  ForIn(this.leftHandSide, this.object, Statement body) : super(body);
+  ForIn(this.leftHandSide, this.object, super.body);
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitForIn(this);
@@ -641,7 +641,7 @@ class ForOf extends Loop {
   final Expression leftHandSide;
   final Expression iterable;
 
-  ForOf(this.leftHandSide, this.iterable, Statement body) : super(body);
+  ForOf(this.leftHandSide, this.iterable, super.body);
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitForOf(this);
@@ -660,7 +660,7 @@ class ForOf extends Loop {
 class While extends Loop {
   final Expression condition;
 
-  While(this.condition, Statement body) : super(body);
+  While(this.condition, super.body);
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitWhile(this);
@@ -856,7 +856,7 @@ abstract class SwitchClause extends Node {
 class Case extends SwitchClause {
   final Expression expression;
 
-  Case(this.expression, Block body) : super(body);
+  Case(this.expression, super.body);
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitCase(this);

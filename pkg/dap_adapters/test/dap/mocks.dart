@@ -31,11 +31,7 @@ class MockDartCliDebugAdapter extends DartCliDebugAdapter {
     );
   }
 
-  MockDartCliDebugAdapter.withStreams(
-    this.stdin,
-    this.stdout,
-    ByteStreamServerChannel channel,
-  ) : super(channel) {
+  MockDartCliDebugAdapter.withStreams(this.stdin, this.stdout, super.channel) {
     vmService = mockService;
   }
   final StreamSink<List<int>> stdin;
@@ -113,11 +109,7 @@ class MockDartTestDebugAdapter extends DartTestDebugAdapter {
     );
   }
 
-  MockDartTestDebugAdapter._(
-    this.stdin,
-    this.stdout,
-    ByteStreamServerChannel channel,
-  ) : super(channel);
+  MockDartTestDebugAdapter._(this.stdin, this.stdout, super.channel);
   final StreamSink<List<int>> stdin;
   final Stream<List<int>> stdout;
 

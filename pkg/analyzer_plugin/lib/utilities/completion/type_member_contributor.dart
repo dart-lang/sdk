@@ -119,10 +119,8 @@ class TypeMemberContributor implements CompletionContributor {
 
     // In recovery, `g.^ int y;` is parsed as the type `g.int`, so the
     // receiver `g` is an import prefix that references a variable.
-    if (target.containingNode case NamedType(
-      :var importPrefix?,
-      :var name,
-    ) when identical(name, target.entity)) {
+    if (target.containingNode case NamedType(:var importPrefix?, :var name)
+        when identical(name, target.entity)) {
       var element = importPrefix.element;
       if (importPrefix.name.isSynthetic || _isStaticReceiver(element)) {
         return;
@@ -185,7 +183,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   DartType? typeFound;
 
   /// Construct a new instance to search for a declaration
-  new(this.targetName, int offset) : super(offset);
+  new(this.targetName, super.offset);
 
   @override
   void declaredClass(ClassDeclaration declaration) {

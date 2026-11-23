@@ -93,10 +93,9 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     this.packageName,
     this.responseRequiresRequestTime,
     this.clientUriConverterKind,
-    Api api,
+    super.api,
   ) : toHtmlVisitor = ToHtmlVisitor(api),
-      impliedTypes = computeImpliedTypes(api),
-      super(api) {
+      impliedTypes = computeImpliedTypes(api) {
     codeGeneratorSettings.commentLineLength = 79;
     codeGeneratorSettings.docCommentStartMarker = null;
     codeGeneratorSettings.docCommentLineLeader = '/// ';
@@ -654,9 +653,8 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         writeln('if (json case {$fieldNameString: var $fieldAccessor}) {');
         indent(() {
           var fieldType = field.type;
-          var fromJson = fromJsonCode(
-            fieldType,
-          ).asSnippet(jsonPath, fieldAccessor);
+          var fromJson = fromJsonCode(fieldType)
+              .asSnippet(jsonPath, fieldAccessor);
           writeln('${field.name} = $fromJson;');
         });
         write('}');

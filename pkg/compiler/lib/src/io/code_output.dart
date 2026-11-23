@@ -274,8 +274,7 @@ class StreamCodeOutput extends AbstractCodeOutput {
   int length = 0;
   final api.OutputSink output;
 
-  StreamCodeOutput(this.output, [List<CodeOutputListener>? listeners])
-    : super(listeners);
+  StreamCodeOutput(this.output, [super.listeners]);
 
   @override
   void _addInternal(String text) {

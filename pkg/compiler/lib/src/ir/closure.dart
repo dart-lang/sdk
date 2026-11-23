@@ -134,26 +134,16 @@ class KernelCapturedLoopScope extends KernelCapturedScope {
   final List<ir.Variable> boxedLoopVariables;
 
   KernelCapturedLoopScope(
-    Set<ir.Variable> boxedVariables,
-    NodeBox? capturedVariablesAccessor,
+    super.boxedVariables,
+    super.capturedVariablesAccessor,
     this.boxedLoopVariables,
-    Set<ir.Variable> localsUsedInTryOrSync,
-    Set<ir.Node /* VariableDeclaration | TypeVariableTypeWithContext */>
-    freeVariables,
-    Map<TypeVariableTypeWithContext, Set<VariableUse>> freeVariablesForRti,
-    bool thisUsedAsFreeVariable,
-    Set<VariableUse> thisUsedAsFreeVariableIfNeedsRti,
-    bool hasThisLocal,
-  ) : super(
-        boxedVariables,
-        capturedVariablesAccessor,
-        localsUsedInTryOrSync,
-        freeVariables,
-        freeVariablesForRti,
-        thisUsedAsFreeVariable,
-        thisUsedAsFreeVariableIfNeedsRti,
-        hasThisLocal,
-      );
+    super.localsUsedInTryOrSync,
+    super.freeVariables,
+    super.freeVariablesForRti,
+    super.thisUsedAsFreeVariable,
+    super.thisUsedAsFreeVariableIfNeedsRti,
+    super.hasThisLocal,
+  );
 
   bool get hasBoxedLoopVariables => boxedLoopVariables.isNotEmpty;
 }

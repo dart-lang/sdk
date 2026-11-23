@@ -22,9 +22,9 @@ class Api extends ApiNode {
     this.domains,
     this.types,
     this.refactorings,
-    dom.Element html, {
+    dom.Element super.html, {
     super.experimental = false,
-  }) : super(html, deprecated: false);
+  }) : super(deprecated: false);
 }
 
 /// Base class for objects in the API model.
@@ -64,10 +64,10 @@ class Domain extends ApiNode {
     this.name,
     this.requests,
     this.notifications,
-    dom.Element html, {
+    dom.Element super.html, {
     super.experimental = false,
     super.deprecated = false,
-  }) : super(html);
+  });
 
   @override
   dom.Element get html => super.html!;
@@ -202,9 +202,9 @@ class Notification extends ApiNode {
     this.domainName,
     this.event,
     this.params,
-    dom.Element html, {
+    dom.Element super.html, {
     super.experimental = false,
-  }) : super(html, deprecated: false);
+  }) : super(deprecated: false);
 
   /// Get the name of the notification, including the domain prefix.
   String get longEvent => '$domainName.$event';
@@ -248,17 +248,17 @@ class Refactoring extends ApiNode {
     this.kind,
     this.feedback,
     this.options,
-    dom.Element html, {
+    dom.Element super.html, {
     super.experimental = false,
-  }) : super(html, deprecated: false);
+  }) : super(deprecated: false);
 }
 
 /// A collection of refactoring definitions.
 class Refactorings extends ApiNode with IterableMixin<Refactoring> {
   final List<Refactoring> refactorings;
 
-  new(this.refactorings, dom.Element? html, {super.experimental = false})
-    : super(html, deprecated: false);
+  new(this.refactorings, super.html, {super.experimental = false})
+    : super(deprecated: false);
 
   @override
   Iterator<Refactoring> get iterator => refactorings.iterator;
@@ -285,10 +285,10 @@ class Request extends ApiNode {
     this.method,
     this.params,
     this.result,
-    dom.Element html, {
+    dom.Element super.html, {
     super.experimental = false,
     super.deprecated = false,
-  }) : super(html);
+  });
 
   /// Get the name of the request, including the domain prefix.
   String get longMethod => '$domainName.$method';
@@ -353,10 +353,10 @@ class TypeDefinition extends ApiNode {
   new(
     this.name,
     this.type,
-    dom.Element html, {
+    dom.Element super.html, {
     super.experimental = false,
     super.deprecated = false,
-  }) : super(html);
+  });
 }
 
 /// Type of an enum.  We represent enums in JSON as strings, so this type
@@ -366,10 +366,10 @@ class TypeEnum extends TypeDecl {
 
   new(
     this.values,
-    dom.Element html, {
+    dom.Element super.html, {
     super.experimental = false,
     super.deprecated = false,
-  }) : super(html);
+  });
 
   @override
   T accept<T>(ApiVisitor<T> visitor) => visitor.visitTypeEnum(this);
@@ -381,10 +381,10 @@ class TypeEnumValue extends ApiNode {
 
   new(
     this.value,
-    dom.Element html, {
+    dom.Element super.html, {
     super.experimental = false,
     super.deprecated = false,
-  }) : super(html);
+  });
 
   @override
   dom.Element get html => super.html!;
@@ -394,8 +394,8 @@ class TypeEnumValue extends ApiNode {
 class TypeList extends TypeDecl {
   final TypeDecl itemType;
 
-  new(this.itemType, dom.Element html, {super.experimental = false})
-    : super(html, deprecated: false);
+  new(this.itemType, dom.Element super.html, {super.experimental = false})
+    : super(deprecated: false);
 
   @override
   T accept<T>(ApiVisitor<T> visitor) => visitor.visitTypeList(this);
@@ -415,9 +415,9 @@ class TypeMap extends TypeDecl {
   new(
     this.keyType,
     this.valueType,
-    dom.Element html, {
+    dom.Element super.html, {
     super.experimental = false,
-  }) : super(html, deprecated: false);
+  }) : super(deprecated: false);
 
   @override
   T accept<T>(ApiVisitor<T> visitor) => visitor.visitTypeMap(this);
@@ -429,10 +429,10 @@ class TypeObject extends TypeDecl {
 
   new(
     this.fields,
-    dom.Element? html, {
+    super.html, {
     super.experimental = false,
     super.deprecated = false,
-  }) : super(html);
+  });
 
   @override
   T accept<T>(ApiVisitor<T> visitor) => visitor.visitTypeObject(this);
@@ -460,12 +460,12 @@ class TypeObjectField extends ApiNode {
   new(
     this.name,
     this.type,
-    dom.Element? html, {
+    super.html, {
     this.optional = false,
     this.value,
     super.experimental = false,
     super.deprecated = false,
-  }) : super(html);
+  });
 
   @override
   String toString() => name;
@@ -476,8 +476,8 @@ class TypeObjectField extends ApiNode {
 class TypeReference extends TypeDecl {
   final String typeName;
 
-  new(this.typeName, dom.Element? html, {super.experimental = false})
-    : super(html, deprecated: false) {
+  new(this.typeName, super.html, {super.experimental = false})
+    : super(deprecated: false) {
     if (typeName.isEmpty) {
       throw Exception('Empty type name');
     }
@@ -493,8 +493,8 @@ class Types extends ApiNode with IterableMixin<TypeDefinition> {
 
   List<String> importUris = <String>[];
 
-  new(this.types, dom.Element? html, {super.experimental = false})
-    : super(html, deprecated: false);
+  new(this.types, super.html, {super.experimental = false})
+    : super(deprecated: false);
 
   @override
   Iterator<TypeDefinition> get iterator => types.values.iterator;
@@ -513,8 +513,12 @@ class TypeUnion extends TypeDecl {
   /// The field that is used to disambiguate this union
   final String field;
 
-  new(this.choices, this.field, dom.Element html, {super.experimental = false})
-    : super(html, deprecated: false);
+  new(
+    this.choices,
+    this.field,
+    dom.Element super.html, {
+    super.experimental = false,
+  }) : super(deprecated: false);
 
   @override
   T accept<T>(ApiVisitor<T> visitor) => visitor.visitTypeUnion(this);

@@ -739,7 +739,7 @@ class _FbGenericList<E> extends _FbList<E> {
 
   List<E?>? _items;
 
-  new(this.elementReader, BufferContext bp, int offset) : super(bp, offset);
+  new(this.elementReader, super.bp, super.offset);
 
   @override
   E operator [](int i) {

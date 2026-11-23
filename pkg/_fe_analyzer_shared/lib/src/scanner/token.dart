@@ -731,18 +731,10 @@ class Keyword extends TokenType {
     String lexeme,
     String name,
     this.keywordStyle, {
-    bool isModifier = false,
-    bool isTopLevelKeyword = false,
+    super.isModifier,
+    super.isTopLevelKeyword,
     int precedence = NO_PRECEDENCE,
-  }) : super(
-         index,
-         lexeme,
-         name,
-         precedence,
-         KEYWORD_TOKEN,
-         isModifier: isModifier,
-         isTopLevelKeyword: isTopLevelKeyword,
-       );
+  }) : super(index, lexeme, name, precedence, KEYWORD_TOKEN);
 
   @override
   bool get isBuiltIn => keywordStyle == KeywordStyle.builtIn;

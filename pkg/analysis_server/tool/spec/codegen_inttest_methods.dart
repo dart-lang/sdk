@@ -39,9 +39,7 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
   /// for dispatching notifications.
   List<String> notificationSwitchContents = <String>[];
 
-  new(this.packageName, Api api)
-    : toHtmlVisitor = ToHtmlVisitor(api),
-      super(api) {
+  new(this.packageName, super.api) : toHtmlVisitor = ToHtmlVisitor(api) {
     codeGeneratorSettings.commentLineLength = 79;
     codeGeneratorSettings.docCommentStartMarker = null;
     codeGeneratorSettings.docCommentLineLeader = '/// ';

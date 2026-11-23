@@ -117,8 +117,7 @@ class _Utf8Node extends _Node {
   final int start;
   final int end;
 
-  new(this.data, this.start, this.end, String payload, _Node? next)
-    : super(payload, next);
+  new(this.data, this.start, this.end, super.payload, super.next);
 
   @override
   int get hash => _StringCanonicalizer.hashBytes(data, start, end);

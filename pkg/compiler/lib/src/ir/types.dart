@@ -91,7 +91,7 @@ class KernelDartTypes extends DartTypes {
 class KernelOrderedTypeSetBuilder extends OrderedTypeSetBuilderBase {
   final IrToElementMap elementMap;
 
-  KernelOrderedTypeSetBuilder(this.elementMap, ClassEntity cls) : super(cls);
+  KernelOrderedTypeSetBuilder(this.elementMap, super.cls);
 
   @override
   InterfaceType getThisType(ClassEntity cls) {
