@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/scanner/characters.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
@@ -97,6 +98,61 @@ class ContextRootImpl implements ContextRoot {
     return false;
   }
 
+  /// Whether [path], or one of its ancestors under [root], has a name that
+  /// starts with `.`, such as `.dart_tool`.
+  bool _hasDotNameUnderRoot(String path) {
+    var context = resourceProvider.pathContext;
+
+    bool walkAncestors() {
+      for (var current = path; root.contains(current);) {
+        if (context.basename(current).startsWith('.')) {
+          return true;
+        }
+        current = context.dirname(current);
+      }
+      return false;
+    }
+
+    // This runs for every file, so for the usual normalized [path] that starts
+    // with the path of [root], the names after it are scanned once, instead
+    // of parsing the whole path for every ancestor. Any other path, such as
+    // one with a different case on Windows, or with `.` or `..` segments,
+    // walks the ancestors.
+    var separator = context.separator.codeUnitAt(0);
+    bool isSeparator(int c) => c == separator || c == $SLASH;
+    bool isNameEnd(int i) =>
+        i == path.length || isSeparator(path.codeUnitAt(i));
+
+    var rootPath = root.path;
+    var start = rootPath.length;
+    if (!isSeparator(rootPath.codeUnitAt(start - 1))) {
+      start++;
+    }
+    if (path.length <= start ||
+        !path.startsWith(rootPath) ||
+        !isSeparator(path.codeUnitAt(start - 1))) {
+      return walkAncestors();
+    }
+
+    var isNameStart = true;
+    for (var i = start; i < path.length; i++) {
+      var c = path.codeUnitAt(i);
+      if (isSeparator(c)) {
+        isNameStart = true;
+        continue;
+      }
+      if (isNameStart && c == $PERIOD) {
+        if (isNameEnd(i + 1) ||
+            path.codeUnitAt(i + 1) == $PERIOD && isNameEnd(i + 2)) {
+          return walkAncestors();
+        }
+        return true;
+      }
+      isNameStart = false;
+    }
+    return false;
+  }
+
   /// Return the absolute paths of all of the files that are included in the
   /// given [folder]. Ignore globs that match the explicit [includedPath].
   Iterable<String> _includedFilesInFolder(
@@ -141,15 +197,11 @@ class ContextRootImpl implements ContextRoot {
   /// This method is invoked while processing an explicitly [includedPath],
   /// and so we should ignore globs that would have excluded it.
   bool _isExcluded(String path, String includedPath) {
-    Context context = resourceProvider.pathContext;
-
-    for (var current = path; root.contains(current);) {
-      if (context.basename(current).startsWith('.')) {
-        return true;
-      }
-      current = context.dirname(current);
+    if (_hasDotNameUnderRoot(path)) {
+      return true;
     }
 
+    Context context = resourceProvider.pathContext;
     for (String excludedPath in excludedPaths) {
       if (context.isAbsolute(excludedPath)) {
         if (path == excludedPath || context.isWithin(excludedPath, path)) {

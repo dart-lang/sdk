@@ -10,7 +10,6 @@
 
 #include "lib/async/default.h"
 #include "lib/inspect/component/cpp/component.h"
-#include "lib/sys/cpp/component_context.h"
 #include "platform/utils.h"
 #include "platform/utils_fuchsia.h"
 
@@ -52,12 +51,6 @@ size_t Utils::Read(int filedes, void* buf, size_t nbyte) {
 }
 int Utils::Unlink(const char* path) {
   return unlink(path);
-}
-
-sys::ComponentContext* ComponentContext() {
-  static std::unique_ptr<sys::ComponentContext> context =
-      sys::ComponentContext::CreateAndServeOutgoingDirectory();
-  return context.get();
 }
 
 std::unique_ptr<inspect::Node> vm_node;

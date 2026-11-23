@@ -6,6 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'either_test.dart' as either_test;
 import 'glob_test.dart' as glob_test;
+import 'path_subtree_set_test.dart' as path_subtree_set_test;
 import 'yaml_test.dart' as yaml_test;
 
 /// Utility for manually running all tests.
@@ -13,6 +14,7 @@ main() {
   defineReflectiveSuite(() {
     either_test.main();
     glob_test.main();
+    path_subtree_set_test.main();
     yaml_test.main();
   }, name: 'util');
 }

@@ -15,14 +15,13 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <fuchsia/intl/cpp/fidl.h>
+#include <fidl/fuchsia.intl/cpp/fidl.h>
 #include <lib/async-loop/default.h>
 #include <lib/async-loop/loop.h>
 #include <lib/async/default.h>
+#include <lib/component/incoming/cpp/protocol.h>
 #include <lib/inspect/component/cpp/component.h>
 #include <lib/inspect/cpp/inspect.h>
-#include <lib/sys/cpp/component_context.h>
-#include <lib/sys/cpp/service_directory.h>
 #include <zircon/process.h>
 #include <zircon/syscalls.h>
 #include <zircon/syscalls/object.h>
@@ -30,7 +29,13 @@
 #include <zircon/time.h>
 #include <zircon/types.h>
 
+#include <functional>
+#include <memory>
+#include <optional>
 #include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "unicode/errorcode.h"
 #include "unicode/timezone.h"
@@ -172,25 +177,27 @@ class InspectMetrics {
 //
 // Keeps an up to date timezone cache, updating if needed through the
 // asynchronous update interface.  Access to this class is thread-safe.
-class TimezoneName final {
+class TimezoneName final : public std::enable_shared_from_this<TimezoneName> {
  public:
   // Creates a new instance of TimezoneName.  Does not take ownership of
   // metrics.
   static std::shared_ptr<TimezoneName> New(
-      fuchsia::intl::PropertyProviderPtr proxy,
+      fidl::ClientEnd<fuchsia_intl::PropertyProvider> client_end,
+      async_dispatcher_t* dispatcher,
       std::weak_ptr<InspectMetrics> metrics) {
-    auto timezone_name =
-        std::make_shared<TimezoneName>(std::move(proxy), metrics);
-    timezone_name->InitHandlers(timezone_name);
+    auto timezone_name = std::make_shared<TimezoneName>(std::move(metrics));
+    timezone_name->Init(std::move(client_end), dispatcher);
     return timezone_name;
   }
 
-  TimezoneName(fuchsia::intl::PropertyProviderPtr proxy,
-               std::weak_ptr<InspectMetrics> metrics)
-      : m_(),
-        metrics_(std::move(metrics)),
-        proxy_(std::move(proxy)),
-        timezone_name_(kDefaultTimezone) {
+  // Creates an unbound TimezoneName that always returns the default timezone.
+  static std::shared_ptr<TimezoneName> NewDefault(
+      std::weak_ptr<InspectMetrics> metrics) {
+    return std::make_shared<TimezoneName>(std::move(metrics));
+  }
+
+  explicit TimezoneName(std::weak_ptr<InspectMetrics> metrics)
+      : m_(), metrics_(std::move(metrics)), timezone_name_(kDefaultTimezone) {
     ASSERT(metrics_.lock() != nullptr);
   }
 
@@ -203,36 +210,59 @@ class TimezoneName final {
   }
 
  private:
-  // Sets the event handlers in this resolver.  Intended to resolve a circular
-  // reference between the shared timezone name and this.
-  void InitHandlers(std::shared_ptr<TimezoneName> timezone_name) {
-    ASSERT(timezone_name.get() == this);
-    timezone_name->proxy_.set_error_handler(
-        [weak_this =
-             std::weak_ptr<TimezoneName>(timezone_name)](zx_status_t status) {
-          if (!weak_this.expired()) {
-            weak_this.lock()->ErrorHandler(status);
-          }
-        });
-    timezone_name->proxy_.events().OnChange =
-        [weak_this = std::weak_ptr<TimezoneName>(timezone_name)]() {
-          if (!weak_this.expired()) {
-            weak_this.lock()->OnChangeCallback();
-          }
-        };
-    timezone_name->proxy_->GetProfile(
-        [weak_this = std::weak_ptr<TimezoneName>(timezone_name)](
-            fuchsia::intl::Profile profile) {
-          if (!weak_this.expired()) {
-            weak_this.lock()->GetProfileCallback(std::move(profile));
+  // Owned by |client_| via two-phase async teardown so it stays alive until
+  // the binding has finished tearing down on the dispatcher thread.
+  class EventHandler final
+      : public fidl::AsyncEventHandler<fuchsia_intl::PropertyProvider> {
+   public:
+    explicit EventHandler(std::weak_ptr<TimezoneName> owner)
+        : owner_(std::move(owner)) {}
+
+    void OnChange() override {
+      if (auto owner = owner_.lock()) {
+        owner->OnChangeCallback();
+      }
+    }
+
+    void on_fidl_error(fidl::UnbindInfo info) override {
+      if (auto owner = owner_.lock()) {
+        owner->ErrorHandler(info);
+      }
+    }
+
+   private:
+    std::weak_ptr<TimezoneName> owner_;
+  };
+
+  void Init(fidl::ClientEnd<fuchsia_intl::PropertyProvider> client_end,
+            async_dispatcher_t* dispatcher) {
+    ASSERT(dispatcher != nullptr);
+    {
+      // Hold m_ across Bind() so any immediate OnChange() arriving on the
+      // dispatcher thread synchronizes with |client_| initialization before
+      // calling RequestProfile().
+      MutexLocker lock(&m_);
+      client_.Bind(std::move(client_end), dispatcher,
+                   std::make_unique<EventHandler>(weak_from_this()));
+    }
+    RequestProfile();
+  }
+
+  void RequestProfile() {
+    client_->GetProfile().Then(
+        [weak_this = weak_from_this()](
+            fidl::Result<fuchsia_intl::PropertyProvider::GetProfile>& result) {
+          if (auto self = weak_this.lock()) {
+            self->GetProfileCallback(result);
           }
         });
   }
 
   // Called on a profile provider error in the context of the event loop
   // thread.
-  void ErrorHandler(zx_status_t status) {
+  void ErrorHandler(fidl::UnbindInfo info) {
     MutexLocker lock(&m_);
+    const zx_status_t status = info.status();
     WithMetrics([status](std::shared_ptr<InspectMetrics> metrics) {
       metrics->SetProfileStatus(status);
       metrics->RegisterIntlProviderError();
@@ -243,29 +273,35 @@ class TimezoneName final {
   // thread.  The only action here is to trigger an asynchronous update of the
   // intl profile.
   void OnChangeCallback() {
-    MutexLocker lock(&m_);
-    WithMetrics([](std::shared_ptr<InspectMetrics> metrics) {
-      metrics->RegisterOnChangeCall();
-    });
-    proxy_->GetProfile([this](fuchsia::intl::Profile profile) {
-      this->GetProfileCallback(std::move(profile));
-    });
+    {
+      MutexLocker lock(&m_);
+      WithMetrics([](std::shared_ptr<InspectMetrics> metrics) {
+        metrics->RegisterOnChangeCall();
+      });
+    }
+    RequestProfile();
   }
 
   // Called when a GetProfile async request is resolved, in the context of the
   // event loop thread.
-  void GetProfileCallback(fuchsia::intl::Profile profile) {
+  void GetProfileCallback(
+      fidl::Result<fuchsia_intl::PropertyProvider::GetProfile>& result) {
+    if (result.is_error()) {
+      // Transport/channel errors are recorded once in ErrorHandler() via
+      // on_fidl_error() to avoid double-counting num_intl_provider_errors_.
+      return;
+    }
     MutexLocker lock(&m_);
     WithMetrics([](std::shared_ptr<InspectMetrics> metrics) {
       metrics->RegisterGetProfileCall();
     });
-    const std::vector<fuchsia::intl::TimeZoneId>& timezones =
-        profile.time_zones();
-    if (timezones.empty()) {
+    const std::optional<std::vector<fuchsia_intl::TimeZoneId>>& timezones =
+        result->profile().time_zones();
+    if (!timezones.has_value() || timezones->empty()) {
       WithMetrics([](std::shared_ptr<InspectMetrics> metrics) {
         metrics->SetTimeZoneContentStatus(U_ILLEGAL_ARGUMENT_ERROR);
       });
-      // Empty timezone array is not up to fuchsia::intl spec.  The serving
+      // Empty timezone array is not up to fuchsia.intl spec.  The serving
       // endpoint is broken and should be fixed.
       Syslog::PrintErr("got empty timezone value\n");
       return;
@@ -275,7 +311,7 @@ class TimezoneName final {
       metrics->SetTimeZoneContentStatus(ZX_OK);
     });
 
-    timezone_name_ = timezones[0].id;
+    timezone_name_ = (*timezones)[0].id();
   }
 
   // Runs the provided function only on valid metrics.
@@ -293,12 +329,13 @@ class TimezoneName final {
   // Used to keep tally on the update events. Not owned.
   std::weak_ptr<InspectMetrics> metrics_;
 
-  // A client-side proxy for a connection to the property provider service.
-  fuchsia::intl::PropertyProviderPtr proxy_;
-
   // Caches the current timezone name.  This is updated asynchronously through
   // GetProfileCallback.
   std::string timezone_name_;
+
+  // Client for the property provider service. Declared last so teardown begins
+  // before sibling members are destroyed.
+  fidl::SharedClient<fuchsia_intl::PropertyProvider> client_;
 };
 
 // The timezone names encountered so far.  The timezone names must live forever.
@@ -364,14 +401,6 @@ DEFINE_FLAG(bool,
 intptr_t OS::ProcessId() {
   return static_cast<intptr_t>(getpid());
 }
-
-// TODO(FL-98): Change this to talk to fuchsia.dart to get timezone service to
-// directly get timezone.
-//
-// Putting this hack right now due to CP-120 as I need to remove
-// component:ConnectToEnvironmentServices and this is the only thing that is
-// blocking it and FL-98 will take time.
-static fuchsia::intl::PropertyProviderPtr property_provider;
 
 static zx_status_t GetLocalAndDstOffsetInSeconds(int64_t seconds_since_epoch,
                                                  int32_t* local_offset,
@@ -597,11 +626,14 @@ void OS::PrintErr(const char* format, ...) {
 }
 
 void OS::Init() {
-  if (async_get_default_dispatcher() == nullptr) {
+  async_dispatcher_t* dispatcher = async_get_default_dispatcher();
+  if (dispatcher == nullptr) {
     async_loop_create(&kAsyncLoopConfigAttachToCurrentThread, &message_loop);
-    async_set_default_dispatcher(async_loop_get_dispatcher(message_loop));
+    dispatcher = async_loop_get_dispatcher(message_loop);
+    async_set_default_dispatcher(dispatcher);
     async_loop_start_thread(message_loop, "Fuchsia async loop", nullptr);
   }
+  ASSERT(dispatcher != nullptr);
 
   auto vm_node = dart::TakeDartVmNode();
 
@@ -610,10 +642,15 @@ void OS::Init() {
   metrics = std::make_shared<InspectMetrics>(std::move(vm_node));
 
   InitializeTZData();
-  auto services = sys::ServiceDirectory::CreateFromNamespace();
-  services->Connect(property_provider.NewRequest());
-
-  timezone_name = TimezoneName::New(std::move(property_provider), metrics);
+  if (auto client_end = component::Connect<fuchsia_intl::PropertyProvider>();
+      client_end.is_ok()) {
+    timezone_name =
+        TimezoneName::New(std::move(*client_end), dispatcher, metrics);
+  } else {
+    metrics->SetProfileStatus(client_end.error_value());
+    metrics->RegisterIntlProviderError();
+    timezone_name = TimezoneName::NewDefault(metrics);
+  }
 }
 
 void OS::Cleanup() {

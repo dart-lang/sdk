@@ -2849,6 +2849,10 @@ void f(E0 e) {
 suggestions
   E0
     kind: enum
+  E0.one
+    kind: enumConstant
+  E0.two
+    kind: enumConstant
   F0
     kind: enum
 ''');

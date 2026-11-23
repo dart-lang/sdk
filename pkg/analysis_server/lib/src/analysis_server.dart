@@ -1312,7 +1312,8 @@ abstract class AnalysisServer {
   }
 
   /// Returns the number of committed entries in each hash table bucket of the
-  /// single file byte store, or `null` if the server does not use it.
+  /// single file byte store, or `null` if the server does not use it, or it
+  /// is disabled after a storage failure.
   ///
   /// Unlike [byteStoreStats], this reads the whole table from the disk.
   Uint8List? singleFileTableBucketEntryCounts() =>

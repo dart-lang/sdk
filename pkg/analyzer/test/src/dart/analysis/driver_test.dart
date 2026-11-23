@@ -47427,7 +47427,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H2
+    hashForRequirements: #H2(new)
     declaredClasses
       B: #M4
         declaredFields
@@ -47435,12 +47435,12 @@ class B extends A {
         declaredGetters
           _foo: #M6
         declaredMethods
-          zzz: #M9
-        interface: #M10
+          zzz: #M9(new)
+        interface: #M10(new)
           map
-            zzz: #M9
+            zzz: #M9(new)
           implemented
-            zzz: #M9
+            zzz: #M9(new)
     exportMapId: #M8
     exportMap
       B: #M4
@@ -47527,7 +47527,7 @@ class C extends B {
     exportMap
       B: #M0
   package:test/test.dart
-    hashForRequirements: #H2
+    hashForRequirements: #H2(new)
     declaredClasses
       A: #M4
         declaredFields
@@ -47541,12 +47541,12 @@ class C extends B {
         declaredSetters
           _foo=: #M10
         declaredMethods
-          zzz: #M13
-        interface: #M14
+          zzz: #M13(new)
+        interface: #M14(new)
           map
-            zzz: #M13
+            zzz: #M13(new)
           implemented
-            zzz: #M13
+            zzz: #M13(new)
     exportMapId: #M12
     exportMap
       A: #M4
@@ -47585,18 +47585,18 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          zzz: #M4
+          zzz: #M4(new)
         declaredConstructors
           foo: #M1
-        interface: #M5
+        interface: #M5(new)
           map
-            zzz: #M4
+            zzz: #M4(new)
           implemented
-            zzz: #M4
+            zzz: #M4(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -47637,19 +47637,19 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M4(new)
+          foo=: #M4(new)
         declaredMethods
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
-            zzz: #M5
+            zzz: #M5(new)
           implemented
-            zzz: #M5
+            zzz: #M5(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -47697,7 +47697,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -47705,16 +47705,16 @@ class A {
         declaredGetters
           foo: #M2
         declaredMethods
-          zzz: #M6
+          zzz: #M6(new)
         declaredConstructors
           foo: #M3
-        interface: #M7
+        interface: #M7(new)
           map
             foo: #M2
-            zzz: #M6
+            zzz: #M6(new)
           implemented
             foo: #M2
-            zzz: #M6
+            zzz: #M6(new)
     exportMapId: #M5
     exportMap
       A: #M0
@@ -47761,21 +47761,21 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M4(new)
+          foo=: #M4(new)
         declaredMethods
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
-            foo: #M4
-            zzz: #M5
+            foo: #M4(new)
+            zzz: #M5(new)
           implemented
-            foo: #M4
-            zzz: #M5
+            foo: #M4(new)
+            zzz: #M5(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -47829,7 +47829,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -47839,18 +47839,18 @@ class A {
         declaredSetters
           foo=: #M3
         declaredMethods
-          zzz: #M7
+          zzz: #M7(new)
         declaredConstructors
           foo: #M4
-        interface: #M8
+        interface: #M8(new)
           map
             foo: #M2
             foo=: #M3
-            zzz: #M7
+            zzz: #M7(new)
           implemented
             foo: #M2
             foo=: #M3
-            zzz: #M7
+            zzz: #M7(new)
     exportMapId: #M6
     exportMap
       A: #M0
@@ -47901,23 +47901,23 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M4(new)
+          foo=: #M4(new)
         declaredMethods
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
-            foo: #M4
-            foo=: #M4
-            zzz: #M5
+            foo: #M4(new)
+            foo=: #M4(new)
+            zzz: #M5(new)
           implemented
-            foo: #M4
-            foo=: #M4
-            zzz: #M5
+            foo: #M4(new)
+            foo=: #M4(new)
+            zzz: #M5(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -47995,7 +47995,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -48015,18 +48015,18 @@ class B extends A {
         declaredSetters
           foo=: #M7
         declaredMethods
-          zzz: #M11
+          zzz: #M11(new)
         declaredConstructors
           foo: #M8
-        interface: #M12
+        interface: #M12(new)
           map
             foo: #M6
             foo=: #M7
-            zzz: #M11
+            zzz: #M11(new)
           implemented
             foo: #M6
             foo=: #M7
-            zzz: #M11
+            zzz: #M11(new)
           superImplemented
             [0]
               foo: #M2
@@ -48118,7 +48118,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -48142,18 +48142,18 @@ class B extends A {
         declaredSetters
           foo=: #M8
         declaredMethods
-          zzz: #M12
+          zzz: #M12(new)
         declaredConstructors
           foo: #M9
-        interface: #M13
+        interface: #M13(new)
           map
             foo: #M7
             foo=: #M8
-            zzz: #M12
+            zzz: #M12(new)
           implemented
             foo: #M7
             foo=: #M8
-            zzz: #M12
+            zzz: #M12(new)
           superImplemented
             [0]
               foo: #M2
@@ -48237,7 +48237,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -48255,18 +48255,18 @@ class B extends A {
         declaredSetters
           foo=: #M6
         declaredMethods
-          zzz: #M10
+          zzz: #M10(new)
         declaredConstructors
           foo: #M7
-        interface: #M11
+        interface: #M11(new)
           map
             foo: #M5
             foo=: #M6
-            zzz: #M10
+            zzz: #M10(new)
           implemented
             foo: #M5
             foo=: #M6
-            zzz: #M10
+            zzz: #M10(new)
           superImplemented
             [0]
               foo: #M1
@@ -48350,7 +48350,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -48370,18 +48370,18 @@ class B extends A {
         declaredSetters
           foo=: #M7
         declaredMethods
-          zzz: #M11
+          zzz: #M11(new)
         declaredConstructors
           foo: #M8
-        interface: #M12
+        interface: #M12(new)
           map
             foo: #M6
             foo=: #M7
-            zzz: #M11
+            zzz: #M11(new)
           implemented
             foo: #M6
             foo=: #M7
-            zzz: #M11
+            zzz: #M11(new)
           superImplemented
             [0]
               foo=: #M2
@@ -48434,21 +48434,21 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M4(new)
+          foo=: #M4(new)
         declaredMethods
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
-            foo: #M4
-            zzz: #M5
+            foo: #M4(new)
+            zzz: #M5(new)
           implemented
-            foo: #M4
-            zzz: #M5
+            foo: #M4(new)
+            zzz: #M5(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -48519,7 +48519,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -48533,17 +48533,17 @@ class B extends A {
             foo: #M2
       B: #M4
         declaredConflicts
-          foo: #M8
-          foo=: #M8
+          foo: #M8(new)
+          foo=: #M8(new)
         declaredMethods
-          zzz: #M9
-        interface: #M10
+          zzz: #M9(new)
+        interface: #M10(new)
           map
-            foo: #M8
-            zzz: #M9
+            foo: #M8(new)
+            zzz: #M9(new)
           implemented
-            foo: #M8
-            zzz: #M9
+            foo: #M8(new)
+            zzz: #M9(new)
           superImplemented
             [0]
               foo: #M2
@@ -48630,7 +48630,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -48648,19 +48648,19 @@ class B extends A {
             foo=: #M3
       B: #M5
         declaredConflicts
-          foo: #M9
-          foo=: #M9
+          foo: #M9(new)
+          foo=: #M9(new)
         declaredMethods
-          zzz: #M10
-        interface: #M11
+          zzz: #M10(new)
+        interface: #M11(new)
           map
-            foo: #M9
+            foo: #M9(new)
             foo=: #M3
-            zzz: #M10
+            zzz: #M10(new)
           implemented
-            foo: #M9
+            foo: #M9(new)
             foo=: #M3
-            zzz: #M10
+            zzz: #M10(new)
           superImplemented
             [0]
               foo: #M2
@@ -48737,7 +48737,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -48749,17 +48749,17 @@ class B extends A {
             foo: #M1
       B: #M3
         declaredConflicts
-          foo: #M7
-          foo=: #M7
+          foo: #M7(new)
+          foo=: #M7(new)
         declaredMethods
-          zzz: #M8
-        interface: #M9
+          zzz: #M8(new)
+        interface: #M9(new)
           map
-            foo: #M7
-            zzz: #M8
+            foo: #M7(new)
+            zzz: #M8(new)
           implemented
-            foo: #M7
-            zzz: #M8
+            foo: #M7(new)
+            zzz: #M8(new)
           superImplemented
             [0]
               foo: #M1
@@ -48838,7 +48838,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -48852,19 +48852,19 @@ class B extends A {
             foo=: #M2
       B: #M4
         declaredConflicts
-          foo: #M8
-          foo=: #M8
+          foo: #M8(new)
+          foo=: #M8(new)
         declaredMethods
-          zzz: #M9
-        interface: #M10
+          zzz: #M9(new)
+        interface: #M10(new)
           map
-            foo: #M8
+            foo: #M8(new)
             foo=: #M2
-            zzz: #M9
+            zzz: #M9(new)
           implemented
-            foo: #M8
+            foo: #M8(new)
             foo=: #M2
-            zzz: #M9
+            zzz: #M9(new)
           superImplemented
             [0]
               foo=: #M2
@@ -48942,7 +48942,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -48960,16 +48960,16 @@ class B extends A {
         declaredGetters
           foo: #M6
         declaredMethods
-          zzz: #M10
+          zzz: #M10(new)
         declaredConstructors
           foo: #M7
-        interface: #M11
+        interface: #M11(new)
           map
             foo: #M6
-            zzz: #M10
+            zzz: #M10(new)
           implemented
             foo: #M6
-            zzz: #M10
+            zzz: #M10(new)
           superImplemented
             [0]
               foo: #M2
@@ -49057,7 +49057,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -49079,18 +49079,18 @@ class B extends A {
         declaredGetters
           foo: #M7
         declaredMethods
-          zzz: #M11
+          zzz: #M11(new)
         declaredConstructors
           foo: #M8
-        interface: #M12
+        interface: #M12(new)
           map
             foo: #M7
             foo=: #M3
-            zzz: #M11
+            zzz: #M11(new)
           implemented
             foo: #M7
             foo=: #M3
-            zzz: #M11
+            zzz: #M11(new)
           superImplemented
             [0]
               foo: #M2
@@ -49168,7 +49168,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -49184,16 +49184,16 @@ class B extends A {
         declaredGetters
           foo: #M5
         declaredMethods
-          zzz: #M9
+          zzz: #M9(new)
         declaredConstructors
           foo: #M6
-        interface: #M10
+        interface: #M10(new)
           map
             foo: #M5
-            zzz: #M9
+            zzz: #M9(new)
           implemented
             foo: #M5
-            zzz: #M9
+            zzz: #M9(new)
           superImplemented
             [0]
               foo: #M1
@@ -49273,7 +49273,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -49291,18 +49291,18 @@ class B extends A {
         declaredGetters
           foo: #M6
         declaredMethods
-          zzz: #M10
+          zzz: #M10(new)
         declaredConstructors
           foo: #M7
-        interface: #M11
+        interface: #M11(new)
           map
             foo: #M6
             foo=: #M2
-            zzz: #M10
+            zzz: #M10(new)
           implemented
             foo: #M6
             foo=: #M2
-            zzz: #M10
+            zzz: #M10(new)
           superImplemented
             [0]
               foo=: #M2
@@ -49354,21 +49354,21 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
-          zzz: #M5
+          zzz: #M5(new)
         declaredConstructors
           foo: #M2
-        interface: #M6
+        interface: #M6(new)
           map
             foo: #M1
-            zzz: #M5
+            zzz: #M5(new)
           implemented
             foo: #M1
-            zzz: #M5
+            zzz: #M5(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -49415,21 +49415,21 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M4(new)
+          foo=: #M4(new)
         declaredMethods
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
-            foo: #M4
-            zzz: #M5
+            foo: #M4(new)
+            zzz: #M5(new)
           implemented
-            foo: #M4
-            zzz: #M5
+            foo: #M4(new)
+            zzz: #M5(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -49478,21 +49478,21 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M4(new)
+          foo=: #M4(new)
         declaredMethods
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
-            foo: #M4
-            zzz: #M5
+            foo: #M4(new)
+            zzz: #M5(new)
           implemented
-            foo: #M4
-            zzz: #M5
+            foo: #M4(new)
+            zzz: #M5(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -49543,23 +49543,23 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M4(new)
+          foo=: #M4(new)
         declaredMethods
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
-            foo: #M4
-            foo=: #M4
-            zzz: #M5
+            foo: #M4(new)
+            foo=: #M4(new)
+            zzz: #M5(new)
           implemented
-            foo: #M4
-            foo=: #M4
-            zzz: #M5
+            foo: #M4(new)
+            foo=: #M4(new)
+            zzz: #M5(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -49606,21 +49606,21 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M4(new)
+          foo=: #M4(new)
         declaredMethods
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
-            foo: #M4
-            zzz: #M5
+            foo: #M4(new)
+            zzz: #M5(new)
           implemented
-            foo: #M4
-            zzz: #M5
+            foo: #M4(new)
+            zzz: #M5(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -49669,23 +49669,23 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M4(new)
+          foo=: #M4(new)
         declaredMethods
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
-            foo: #M4
-            foo=: #M4
-            zzz: #M5
+            foo: #M4(new)
+            foo=: #M4(new)
+            zzz: #M5(new)
           implemented
-            foo: #M4
-            foo=: #M4
-            zzz: #M5
+            foo: #M4(new)
+            foo=: #M4(new)
+            zzz: #M5(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -49736,23 +49736,23 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M4(new)
+          foo=: #M4(new)
         declaredMethods
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
-            foo: #M4
-            foo=: #M4
-            zzz: #M5
+            foo: #M4(new)
+            foo=: #M4(new)
+            zzz: #M5(new)
           implemented
-            foo: #M4
-            foo=: #M4
-            zzz: #M5
+            foo: #M4(new)
+            foo=: #M4(new)
+            zzz: #M5(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -49822,7 +49822,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -49837,16 +49837,16 @@ class B extends A {
       B: #M4
         declaredMethods
           foo: #M5
-          zzz: #M9
+          zzz: #M9(new)
         declaredConstructors
           foo: #M6
-        interface: #M10
+        interface: #M10(new)
           map
             foo: #M5
-            zzz: #M9
+            zzz: #M9(new)
           implemented
             foo: #M5
-            zzz: #M9
+            zzz: #M9(new)
           superImplemented
             [0]
               foo: #M2
@@ -49932,7 +49932,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -49951,18 +49951,18 @@ class B extends A {
       B: #M5
         declaredMethods
           foo: #M6
-          zzz: #M10
+          zzz: #M10(new)
         declaredConstructors
           foo: #M7
-        interface: #M11
+        interface: #M11(new)
           map
             foo: #M6
             foo=: #M3
-            zzz: #M10
+            zzz: #M10(new)
           implemented
             foo: #M6
             foo=: #M3
-            zzz: #M10
+            zzz: #M10(new)
           superImplemented
             [0]
               foo: #M2
@@ -50038,7 +50038,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -50051,16 +50051,16 @@ class B extends A {
       B: #M3
         declaredMethods
           foo: #M4
-          zzz: #M8
+          zzz: #M8(new)
         declaredConstructors
           foo: #M5
-        interface: #M9
+        interface: #M9(new)
           map
             foo: #M4
-            zzz: #M8
+            zzz: #M8(new)
           implemented
             foo: #M4
-            zzz: #M8
+            zzz: #M8(new)
           superImplemented
             [0]
               foo: #M1
@@ -50138,7 +50138,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -50153,18 +50153,18 @@ class B extends A {
       B: #M4
         declaredMethods
           foo: #M5
-          zzz: #M9
+          zzz: #M9(new)
         declaredConstructors
           foo: #M6
-        interface: #M10
+        interface: #M10(new)
           map
             foo: #M5
             foo=: #M2
-            zzz: #M9
+            zzz: #M9(new)
           implemented
             foo: #M5
             foo=: #M2
-            zzz: #M9
+            zzz: #M9(new)
           superImplemented
             [0]
               foo=: #M2
@@ -50218,7 +50218,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -50226,16 +50226,16 @@ class A {
         declaredSetters
           foo=: #M2
         declaredMethods
-          zzz: #M6
+          zzz: #M6(new)
         declaredConstructors
           foo: #M3
-        interface: #M7
+        interface: #M7(new)
           map
             foo=: #M2
-            zzz: #M6
+            zzz: #M6(new)
           implemented
             foo=: #M2
-            zzz: #M6
+            zzz: #M6(new)
     exportMapId: #M5
     exportMap
       A: #M0
@@ -50282,21 +50282,21 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M4(new)
+          foo=: #M4(new)
         declaredMethods
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
-            foo=: #M4
-            zzz: #M5
+            foo=: #M4(new)
+            zzz: #M5(new)
           implemented
-            foo=: #M4
-            zzz: #M5
+            foo=: #M4(new)
+            zzz: #M5(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -50370,7 +50370,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -50388,18 +50388,18 @@ class B extends A {
         declaredSetters
           foo=: #M6
         declaredMethods
-          zzz: #M10
+          zzz: #M10(new)
         declaredConstructors
           foo: #M7
-        interface: #M11
+        interface: #M11(new)
           map
             foo: #M2
             foo=: #M6
-            zzz: #M10
+            zzz: #M10(new)
           implemented
             foo: #M2
             foo=: #M6
-            zzz: #M10
+            zzz: #M10(new)
           superImplemented
             [0]
               foo: #M2
@@ -50487,7 +50487,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -50509,18 +50509,18 @@ class B extends A {
         declaredSetters
           foo=: #M7
         declaredMethods
-          zzz: #M11
+          zzz: #M11(new)
         declaredConstructors
           foo: #M8
-        interface: #M12
+        interface: #M12(new)
           map
             foo: #M2
             foo=: #M7
-            zzz: #M11
+            zzz: #M11(new)
           implemented
             foo: #M2
             foo=: #M7
-            zzz: #M11
+            zzz: #M11(new)
           superImplemented
             [0]
               foo: #M2
@@ -50600,7 +50600,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -50616,18 +50616,18 @@ class B extends A {
         declaredSetters
           foo=: #M5
         declaredMethods
-          zzz: #M9
+          zzz: #M9(new)
         declaredConstructors
           foo: #M6
-        interface: #M10
+        interface: #M10(new)
           map
             foo: #M1
             foo=: #M5
-            zzz: #M9
+            zzz: #M9(new)
           implemented
             foo: #M1
             foo=: #M5
-            zzz: #M9
+            zzz: #M9(new)
           superImplemented
             [0]
               foo: #M1
@@ -50705,7 +50705,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -50723,16 +50723,16 @@ class B extends A {
         declaredSetters
           foo=: #M6
         declaredMethods
-          zzz: #M10
+          zzz: #M10(new)
         declaredConstructors
           foo: #M7
-        interface: #M11
+        interface: #M11(new)
           map
             foo=: #M6
-            zzz: #M10
+            zzz: #M10(new)
           implemented
             foo=: #M6
-            zzz: #M10
+            zzz: #M10(new)
           superImplemented
             [0]
               foo=: #M2
@@ -50779,19 +50779,19 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M4(new)
+          foo=: #M4(new)
         declaredMethods
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
-            zzz: #M5
+            zzz: #M5(new)
           implemented
-            zzz: #M5
+            zzz: #M5(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -50838,21 +50838,21 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M4(new)
+          foo=: #M4(new)
         declaredMethods
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
-            foo=: #M4
-            zzz: #M5
+            foo=: #M4(new)
+            zzz: #M5(new)
           implemented
-            foo=: #M4
-            zzz: #M5
+            foo=: #M4(new)
+            zzz: #M5(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -50925,7 +50925,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -50939,19 +50939,19 @@ class B extends A {
             foo: #M2
       B: #M4
         declaredConflicts
-          foo: #M8
-          foo=: #M8
+          foo: #M8(new)
+          foo=: #M8(new)
         declaredMethods
-          zzz: #M9
-        interface: #M10
+          zzz: #M9(new)
+        interface: #M10(new)
           map
             foo: #M2
-            foo=: #M8
-            zzz: #M9
+            foo=: #M8(new)
+            zzz: #M9(new)
           implemented
             foo: #M2
-            foo=: #M8
-            zzz: #M9
+            foo=: #M8(new)
+            zzz: #M9(new)
           superImplemented
             [0]
               foo: #M2
@@ -51038,7 +51038,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -51056,19 +51056,19 @@ class B extends A {
             foo=: #M3
       B: #M5
         declaredConflicts
-          foo: #M9
-          foo=: #M9
+          foo: #M9(new)
+          foo=: #M9(new)
         declaredMethods
-          zzz: #M10
-        interface: #M11
+          zzz: #M10(new)
+        interface: #M11(new)
           map
             foo: #M2
-            foo=: #M9
-            zzz: #M10
+            foo=: #M9(new)
+            zzz: #M10(new)
           implemented
             foo: #M2
-            foo=: #M9
-            zzz: #M10
+            foo=: #M9(new)
+            zzz: #M10(new)
           superImplemented
             [0]
               foo: #M2
@@ -51147,7 +51147,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -51159,19 +51159,19 @@ class B extends A {
             foo: #M1
       B: #M3
         declaredConflicts
-          foo: #M7
-          foo=: #M7
+          foo: #M7(new)
+          foo=: #M7(new)
         declaredMethods
-          zzz: #M8
-        interface: #M9
+          zzz: #M8(new)
+        interface: #M9(new)
           map
             foo: #M1
-            foo=: #M7
-            zzz: #M8
+            foo=: #M7(new)
+            zzz: #M8(new)
           implemented
             foo: #M1
-            foo=: #M7
-            zzz: #M8
+            foo=: #M7(new)
+            zzz: #M8(new)
           superImplemented
             [0]
               foo: #M1
@@ -51248,7 +51248,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -51262,17 +51262,17 @@ class B extends A {
             foo=: #M2
       B: #M4
         declaredConflicts
-          foo: #M8
-          foo=: #M8
+          foo: #M8(new)
+          foo=: #M8(new)
         declaredMethods
-          zzz: #M9
-        interface: #M10
+          zzz: #M9(new)
+        interface: #M10(new)
           map
-            foo=: #M8
-            zzz: #M9
+            foo=: #M8(new)
+            zzz: #M9(new)
           implemented
-            foo=: #M8
-            zzz: #M9
+            foo=: #M8(new)
+            zzz: #M9(new)
           superImplemented
             [0]
               foo=: #M2
@@ -51321,19 +51321,19 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M4(new)
+          foo=: #M4(new)
         declaredMethods
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
-            zzz: #M5
+            zzz: #M5(new)
           implemented
-            zzz: #M5
+            zzz: #M5(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -51404,7 +51404,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -51418,17 +51418,17 @@ class B extends A {
             foo: #M2
       B: #M4
         declaredConflicts
-          foo: #M8
-          foo=: #M8
+          foo: #M8(new)
+          foo=: #M8(new)
         declaredMethods
-          zzz: #M9
-        interface: #M10
+          zzz: #M9(new)
+        interface: #M10(new)
           map
             foo: #M2
-            zzz: #M9
+            zzz: #M9(new)
           implemented
             foo: #M2
-            zzz: #M9
+            zzz: #M9(new)
           superImplemented
             [0]
               foo: #M2
@@ -51515,7 +51515,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -51533,19 +51533,19 @@ class B extends A {
             foo=: #M3
       B: #M5
         declaredConflicts
-          foo: #M9
-          foo=: #M9
+          foo: #M9(new)
+          foo=: #M9(new)
         declaredMethods
-          zzz: #M10
-        interface: #M11
+          zzz: #M10(new)
+        interface: #M11(new)
           map
             foo: #M2
             foo=: #M3
-            zzz: #M10
+            zzz: #M10(new)
           implemented
             foo: #M2
             foo=: #M3
-            zzz: #M10
+            zzz: #M10(new)
           superImplemented
             [0]
               foo: #M2
@@ -51622,7 +51622,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -51634,17 +51634,17 @@ class B extends A {
             foo: #M1
       B: #M3
         declaredConflicts
-          foo: #M7
-          foo=: #M7
+          foo: #M7(new)
+          foo=: #M7(new)
         declaredMethods
-          zzz: #M8
-        interface: #M9
+          zzz: #M8(new)
+        interface: #M9(new)
           map
             foo: #M1
-            zzz: #M8
+            zzz: #M8(new)
           implemented
             foo: #M1
-            zzz: #M8
+            zzz: #M8(new)
           superImplemented
             [0]
               foo: #M1
@@ -51721,7 +51721,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -51735,17 +51735,17 @@ class B extends A {
             foo=: #M2
       B: #M4
         declaredConflicts
-          foo: #M8
-          foo=: #M8
+          foo: #M8(new)
+          foo=: #M8(new)
         declaredMethods
-          zzz: #M9
-        interface: #M10
+          zzz: #M9(new)
+        interface: #M10(new)
           map
             foo=: #M2
-            zzz: #M9
+            zzz: #M9(new)
           implemented
             foo=: #M2
-            zzz: #M9
+            zzz: #M9(new)
           superImplemented
             [0]
               foo=: #M2
@@ -51820,7 +51820,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -51834,17 +51834,17 @@ class B extends A {
             foo: #M2
       B: #M4
         declaredConflicts
-          foo: #M8
-          foo=: #M8
+          foo: #M8(new)
+          foo=: #M8(new)
         declaredMethods
-          zzz: #M9
-        interface: #M10
+          zzz: #M9(new)
+        interface: #M10(new)
           map
             foo: #M2
-            zzz: #M9
+            zzz: #M9(new)
           implemented
             foo: #M2
-            zzz: #M9
+            zzz: #M9(new)
           superImplemented
             [0]
               foo: #M2
@@ -51929,7 +51929,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -51947,19 +51947,19 @@ class B extends A {
             foo=: #M3
       B: #M5
         declaredConflicts
-          foo: #M9
-          foo=: #M9
+          foo: #M9(new)
+          foo=: #M9(new)
         declaredMethods
-          zzz: #M10
-        interface: #M11
+          zzz: #M10(new)
+        interface: #M11(new)
           map
             foo: #M2
             foo=: #M3
-            zzz: #M10
+            zzz: #M10(new)
           implemented
             foo: #M2
             foo=: #M3
-            zzz: #M10
+            zzz: #M10(new)
           superImplemented
             [0]
               foo: #M2
@@ -52034,7 +52034,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -52046,17 +52046,17 @@ class B extends A {
             foo: #M1
       B: #M3
         declaredConflicts
-          foo: #M7
-          foo=: #M7
+          foo: #M7(new)
+          foo=: #M7(new)
         declaredMethods
-          zzz: #M8
-        interface: #M9
+          zzz: #M8(new)
+        interface: #M9(new)
           map
             foo: #M1
-            zzz: #M8
+            zzz: #M8(new)
           implemented
             foo: #M1
-            zzz: #M8
+            zzz: #M8(new)
           superImplemented
             [0]
               foo: #M1
@@ -52131,7 +52131,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -52145,17 +52145,17 @@ class B extends A {
             foo=: #M2
       B: #M4
         declaredConflicts
-          foo: #M8
-          foo=: #M8
+          foo: #M8(new)
+          foo=: #M8(new)
         declaredMethods
-          zzz: #M9
-        interface: #M10
+          zzz: #M9(new)
+        interface: #M10(new)
           map
             foo=: #M2
-            zzz: #M9
+            zzz: #M9(new)
           implemented
             foo=: #M2
-            zzz: #M9
+            zzz: #M9(new)
           superImplemented
             [0]
               foo=: #M2
@@ -52202,19 +52202,19 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M4(new)
+          foo=: #M4(new)
         declaredMethods
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
-            zzz: #M5
+            zzz: #M5(new)
           implemented
-            zzz: #M5
+            zzz: #M5(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -52283,7 +52283,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -52297,17 +52297,17 @@ class B extends A {
             foo: #M2
       B: #M4
         declaredConflicts
-          foo: #M8
-          foo=: #M8
+          foo: #M8(new)
+          foo=: #M8(new)
         declaredMethods
-          zzz: #M9
-        interface: #M10
+          zzz: #M9(new)
+        interface: #M10(new)
           map
             foo: #M2
-            zzz: #M9
+            zzz: #M9(new)
           implemented
             foo: #M2
-            zzz: #M9
+            zzz: #M9(new)
           superImplemented
             [0]
               foo: #M2
@@ -52392,7 +52392,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -52410,19 +52410,19 @@ class B extends A {
             foo=: #M3
       B: #M5
         declaredConflicts
-          foo: #M9
-          foo=: #M9
+          foo: #M9(new)
+          foo=: #M9(new)
         declaredMethods
-          zzz: #M10
-        interface: #M11
+          zzz: #M10(new)
+        interface: #M11(new)
           map
             foo: #M2
             foo=: #M3
-            zzz: #M10
+            zzz: #M10(new)
           implemented
             foo: #M2
             foo=: #M3
-            zzz: #M10
+            zzz: #M10(new)
           superImplemented
             [0]
               foo: #M2
@@ -52497,7 +52497,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -52509,17 +52509,17 @@ class B extends A {
             foo: #M1
       B: #M3
         declaredConflicts
-          foo: #M7
-          foo=: #M7
+          foo: #M7(new)
+          foo=: #M7(new)
         declaredMethods
-          zzz: #M8
-        interface: #M9
+          zzz: #M8(new)
+        interface: #M9(new)
           map
             foo: #M1
-            zzz: #M8
+            zzz: #M8(new)
           implemented
             foo: #M1
-            zzz: #M8
+            zzz: #M8(new)
           superImplemented
             [0]
               foo: #M1
@@ -52594,7 +52594,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -52608,17 +52608,17 @@ class B extends A {
             foo=: #M2
       B: #M4
         declaredConflicts
-          foo: #M8
-          foo=: #M8
+          foo: #M8(new)
+          foo=: #M8(new)
         declaredMethods
-          zzz: #M9
-        interface: #M10
+          zzz: #M9(new)
+        interface: #M10(new)
           map
             foo=: #M2
-            zzz: #M9
+            zzz: #M9(new)
           implemented
             foo=: #M2
-            zzz: #M9
+            zzz: #M9(new)
           superImplemented
             [0]
               foo=: #M2
@@ -52665,19 +52665,19 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M4(new)
+          foo=: #M4(new)
         declaredMethods
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
-            zzz: #M5
+            zzz: #M5(new)
           implemented
-            zzz: #M5
+            zzz: #M5(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -52746,7 +52746,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -52760,17 +52760,17 @@ class B extends A {
             foo: #M2
       B: #M4
         declaredConflicts
-          foo: #M8
-          foo=: #M8
+          foo: #M8(new)
+          foo=: #M8(new)
         declaredMethods
-          zzz: #M9
-        interface: #M10
+          zzz: #M9(new)
+        interface: #M10(new)
           map
             foo: #M2
-            zzz: #M9
+            zzz: #M9(new)
           implemented
             foo: #M2
-            zzz: #M9
+            zzz: #M9(new)
           superImplemented
             [0]
               foo: #M2
@@ -52855,7 +52855,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -52873,19 +52873,19 @@ class B extends A {
             foo=: #M3
       B: #M5
         declaredConflicts
-          foo: #M9
-          foo=: #M9
+          foo: #M9(new)
+          foo=: #M9(new)
         declaredMethods
-          zzz: #M10
-        interface: #M11
+          zzz: #M10(new)
+        interface: #M11(new)
           map
             foo: #M2
             foo=: #M3
-            zzz: #M10
+            zzz: #M10(new)
           implemented
             foo: #M2
             foo=: #M3
-            zzz: #M10
+            zzz: #M10(new)
           superImplemented
             [0]
               foo: #M2
@@ -52960,7 +52960,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -52972,17 +52972,17 @@ class B extends A {
             foo: #M1
       B: #M3
         declaredConflicts
-          foo: #M7
-          foo=: #M7
+          foo: #M7(new)
+          foo=: #M7(new)
         declaredMethods
-          zzz: #M8
-        interface: #M9
+          zzz: #M8(new)
+        interface: #M9(new)
           map
             foo: #M1
-            zzz: #M8
+            zzz: #M8(new)
           implemented
             foo: #M1
-            zzz: #M8
+            zzz: #M8(new)
           superImplemented
             [0]
               foo: #M1
@@ -53057,7 +53057,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -53071,17 +53071,17 @@ class B extends A {
             foo=: #M2
       B: #M4
         declaredConflicts
-          foo: #M8
-          foo=: #M8
+          foo: #M8(new)
+          foo=: #M8(new)
         declaredMethods
-          zzz: #M9
-        interface: #M10
+          zzz: #M9(new)
+        interface: #M10(new)
           map
             foo=: #M2
-            zzz: #M9
+            zzz: #M9(new)
           implemented
             foo=: #M2
-            zzz: #M9
+            zzz: #M9(new)
           superImplemented
             [0]
               foo=: #M2
@@ -53153,7 +53153,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -53167,16 +53167,16 @@ class B extends A {
             foo: #M2
       B: #M4
         declaredMethods
-          zzz: #M8
+          zzz: #M8(new)
         declaredConstructors
           foo: #M5
-        interface: #M9
+        interface: #M9(new)
           map
             foo: #M2
-            zzz: #M8
+            zzz: #M8(new)
           implemented
             foo: #M2
-            zzz: #M8
+            zzz: #M8(new)
           superImplemented
             [0]
               foo: #M2
@@ -53258,7 +53258,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -53276,18 +53276,18 @@ class B extends A {
             foo=: #M3
       B: #M5
         declaredMethods
-          zzz: #M9
+          zzz: #M9(new)
         declaredConstructors
           foo: #M6
-        interface: #M10
+        interface: #M10(new)
           map
             foo: #M2
             foo=: #M3
-            zzz: #M9
+            zzz: #M9(new)
           implemented
             foo: #M2
             foo=: #M3
-            zzz: #M9
+            zzz: #M9(new)
           superImplemented
             [0]
               foo: #M2
@@ -53359,7 +53359,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -53371,16 +53371,16 @@ class B extends A {
             foo: #M1
       B: #M3
         declaredMethods
-          zzz: #M7
+          zzz: #M7(new)
         declaredConstructors
           foo: #M4
-        interface: #M8
+        interface: #M8(new)
           map
             foo: #M1
-            zzz: #M7
+            zzz: #M7(new)
           implemented
             foo: #M1
-            zzz: #M7
+            zzz: #M7(new)
           superImplemented
             [0]
               foo: #M1
@@ -53452,7 +53452,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -53466,16 +53466,16 @@ class B extends A {
             foo=: #M2
       B: #M4
         declaredMethods
-          zzz: #M8
+          zzz: #M8(new)
         declaredConstructors
           foo: #M5
-        interface: #M9
+        interface: #M9(new)
           map
             foo=: #M2
-            zzz: #M8
+            zzz: #M8(new)
           implemented
             foo=: #M2
-            zzz: #M8
+            zzz: #M8(new)
           superImplemented
             [0]
               foo=: #M2
@@ -53523,19 +53523,19 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
           []: #M1
-          zzz: #M4
-        interface: #M5
+          zzz: #M4(new)
+        interface: #M5(new)
           map
             []: #M1
-            zzz: #M4
+            zzz: #M4(new)
           implemented
             []: #M1
-            zzz: #M4
+            zzz: #M4(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -53580,21 +53580,21 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          []: #M4
-          []=: #M4
+          []: #M4(new)
+          []=: #M4(new)
         declaredMethods
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
-            []: #M4
-            zzz: #M5
+            []: #M4(new)
+            zzz: #M5(new)
           implemented
-            []: #M4
-            zzz: #M5
+            []: #M4(new)
+            zzz: #M5(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -53641,22 +53641,22 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
           []: #M1
           []=: #M2
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
             []: #M1
             []=: #M2
-            zzz: #M5
+            zzz: #M5(new)
           implemented
             []: #M1
             []=: #M2
-            zzz: #M5
+            zzz: #M5(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -53705,23 +53705,23 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          []: #M4
-          []=: #M4
+          []: #M4(new)
+          []=: #M4(new)
         declaredMethods
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
-            []: #M4
-            []=: #M4
-            zzz: #M5
+            []: #M4(new)
+            []=: #M4(new)
+            zzz: #M5(new)
           implemented
-            []: #M4
-            []=: #M4
-            zzz: #M5
+            []: #M4(new)
+            []=: #M4(new)
+            zzz: #M5(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -53790,7 +53790,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -53804,16 +53804,16 @@ class B extends A {
         declaredMethods
           []: #M4
           []=: #M5
-          zzz: #M8
-        interface: #M9
+          zzz: #M8(new)
+        interface: #M9(new)
           map
             []: #M4
             []=: #M5
-            zzz: #M8
+            zzz: #M8(new)
           implemented
             []: #M4
             []=: #M5
-            zzz: #M8
+            zzz: #M8(new)
           superImplemented
             [0]
               []: #M1
@@ -53888,7 +53888,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -53902,16 +53902,16 @@ class B extends A {
         declaredMethods
           []: #M4
           []=: #M5
-          zzz: #M8
-        interface: #M9
+          zzz: #M8(new)
+        interface: #M9(new)
           map
             []: #M4
             []=: #M5
-            zzz: #M8
+            zzz: #M8(new)
           implemented
             []: #M4
             []=: #M5
-            zzz: #M8
+            zzz: #M8(new)
           superImplemented
             [0]
               []=: #M1
@@ -53981,7 +53981,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -53994,14 +53994,14 @@ class B extends A {
       B: #M3
         declaredMethods
           []: #M4
-          zzz: #M7
-        interface: #M8
+          zzz: #M7(new)
+        interface: #M8(new)
           map
             []: #M4
-            zzz: #M7
+            zzz: #M7(new)
           implemented
             []: #M4
-            zzz: #M7
+            zzz: #M7(new)
           superImplemented
             [0]
               []: #M1
@@ -54073,7 +54073,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -54086,16 +54086,16 @@ class B extends A {
       B: #M3
         declaredMethods
           []: #M4
-          zzz: #M7
-        interface: #M8
+          zzz: #M7(new)
+        interface: #M8(new)
           map
             []: #M4
             []=: #M1
-            zzz: #M7
+            zzz: #M7(new)
           implemented
             []: #M4
             []=: #M1
-            zzz: #M7
+            zzz: #M7(new)
           superImplemented
             [0]
               []=: #M1
@@ -54143,19 +54143,19 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
           []=: #M1
-          zzz: #M4
-        interface: #M5
+          zzz: #M4(new)
+        interface: #M5(new)
           map
             []=: #M1
-            zzz: #M4
+            zzz: #M4(new)
           implemented
             []=: #M1
-            zzz: #M4
+            zzz: #M4(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -54211,7 +54211,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         interface: #M1
@@ -54219,16 +54219,16 @@ class B extends A {
         declaredMethods
           []: #M3
           []=: #M4
-          zzz: #M7
-        interface: #M8
+          zzz: #M7(new)
+        interface: #M8(new)
           map
             []: #M3
             []=: #M4
-            zzz: #M7
+            zzz: #M7(new)
           implemented
             []: #M3
             []=: #M4
-            zzz: #M7
+            zzz: #M7(new)
     exportMapId: #M6
     exportMap
       A: #M0
@@ -54274,21 +54274,21 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          []: #M4
-          []=: #M4
+          []: #M4(new)
+          []=: #M4(new)
         declaredMethods
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
-            []=: #M4
-            zzz: #M5
+            []=: #M4(new)
+            zzz: #M5(new)
           implemented
-            []=: #M4
-            zzz: #M5
+            []=: #M4(new)
+            zzz: #M5(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -54354,7 +54354,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -54367,16 +54367,16 @@ class B extends A {
       B: #M3
         declaredMethods
           []=: #M4
-          zzz: #M7
-        interface: #M8
+          zzz: #M7(new)
+        interface: #M8(new)
           map
             []: #M1
             []=: #M4
-            zzz: #M7
+            zzz: #M7(new)
           implemented
             []: #M1
             []=: #M4
-            zzz: #M7
+            zzz: #M7(new)
           superImplemented
             [0]
               []: #M1
@@ -54446,7 +54446,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -54459,14 +54459,14 @@ class B extends A {
       B: #M3
         declaredMethods
           []=: #M4
-          zzz: #M7
-        interface: #M8
+          zzz: #M7(new)
+        interface: #M8(new)
           map
             []=: #M4
-            zzz: #M7
+            zzz: #M7(new)
           implemented
             []=: #M4
-            zzz: #M7
+            zzz: #M7(new)
           superImplemented
             [0]
               []=: #M1
@@ -54516,7 +54516,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -54524,14 +54524,14 @@ class A {
         declaredGetters
           foo: #M2
         declaredMethods
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
             foo: #M2
-            zzz: #M5
+            zzz: #M5(new)
           implemented
             foo: #M2
-            zzz: #M5
+            zzz: #M5(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -54576,21 +54576,21 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M4(new)
+          foo=: #M4(new)
         declaredMethods
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
-            foo: #M4
-            zzz: #M5
+            foo: #M4(new)
+            zzz: #M5(new)
           implemented
-            foo: #M4
-            zzz: #M5
+            foo: #M4(new)
+            zzz: #M5(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -54640,7 +54640,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -54650,16 +54650,16 @@ class A {
         declaredSetters
           foo=: #M3
         declaredMethods
-          zzz: #M6
-        interface: #M7
+          zzz: #M6(new)
+        interface: #M7(new)
           map
             foo: #M2
             foo=: #M3
-            zzz: #M6
+            zzz: #M6(new)
           implemented
             foo: #M2
             foo=: #M3
-            zzz: #M6
+            zzz: #M6(new)
     exportMapId: #M5
     exportMap
       A: #M0
@@ -54708,23 +54708,23 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M4(new)
+          foo=: #M4(new)
         declaredMethods
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
-            foo: #M4
-            foo=: #M4
-            zzz: #M5
+            foo: #M4(new)
+            foo=: #M4(new)
+            zzz: #M5(new)
           implemented
-            foo: #M4
-            foo=: #M4
-            zzz: #M5
+            foo: #M4(new)
+            foo=: #M4(new)
+            zzz: #M5(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -54798,7 +54798,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -54818,16 +54818,16 @@ class B extends A {
         declaredSetters
           foo=: #M7
         declaredMethods
-          zzz: #M10
-        interface: #M11
+          zzz: #M10(new)
+        interface: #M11(new)
           map
             foo: #M6
             foo=: #M7
-            zzz: #M10
+            zzz: #M10(new)
           implemented
             foo: #M6
             foo=: #M7
-            zzz: #M10
+            zzz: #M10(new)
           superImplemented
             [0]
               foo: #M2
@@ -54915,7 +54915,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -54939,16 +54939,16 @@ class B extends A {
         declaredSetters
           foo=: #M8
         declaredMethods
-          zzz: #M11
-        interface: #M12
+          zzz: #M11(new)
+        interface: #M12(new)
           map
             foo: #M7
             foo=: #M8
-            zzz: #M11
+            zzz: #M11(new)
           implemented
             foo: #M7
             foo=: #M8
-            zzz: #M11
+            zzz: #M11(new)
           superImplemented
             [0]
               foo: #M2
@@ -55028,7 +55028,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -55046,16 +55046,16 @@ class B extends A {
         declaredSetters
           foo=: #M6
         declaredMethods
-          zzz: #M9
-        interface: #M10
+          zzz: #M9(new)
+        interface: #M10(new)
           map
             foo: #M5
             foo=: #M6
-            zzz: #M9
+            zzz: #M9(new)
           implemented
             foo: #M5
             foo=: #M6
-            zzz: #M9
+            zzz: #M9(new)
           superImplemented
             [0]
               foo: #M1
@@ -55135,7 +55135,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -55155,16 +55155,16 @@ class B extends A {
         declaredSetters
           foo=: #M7
         declaredMethods
-          zzz: #M10
-        interface: #M11
+          zzz: #M10(new)
+        interface: #M11(new)
           map
             foo: #M6
             foo=: #M7
-            zzz: #M10
+            zzz: #M10(new)
           implemented
             foo: #M6
             foo=: #M7
-            zzz: #M10
+            zzz: #M10(new)
           superImplemented
             [0]
               foo=: #M2
@@ -55215,21 +55215,21 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M4(new)
+          foo=: #M4(new)
         declaredMethods
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
-            foo: #M4
-            zzz: #M5
+            foo: #M4(new)
+            zzz: #M5(new)
           implemented
-            foo: #M4
-            zzz: #M5
+            foo: #M4(new)
+            zzz: #M5(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -55298,7 +55298,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -55312,17 +55312,17 @@ class B extends A {
             foo: #M2
       B: #M4
         declaredConflicts
-          foo: #M8
-          foo=: #M8
+          foo: #M8(new)
+          foo=: #M8(new)
         declaredMethods
-          zzz: #M9
-        interface: #M10
+          zzz: #M9(new)
+        interface: #M10(new)
           map
-            foo: #M8
-            zzz: #M9
+            foo: #M8(new)
+            zzz: #M9(new)
           implemented
-            foo: #M8
-            zzz: #M9
+            foo: #M8(new)
+            zzz: #M9(new)
           superImplemented
             [0]
               foo: #M2
@@ -55407,7 +55407,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -55425,19 +55425,19 @@ class B extends A {
             foo=: #M3
       B: #M5
         declaredConflicts
-          foo: #M9
-          foo=: #M9
+          foo: #M9(new)
+          foo=: #M9(new)
         declaredMethods
-          zzz: #M10
-        interface: #M11
+          zzz: #M10(new)
+        interface: #M11(new)
           map
-            foo: #M9
+            foo: #M9(new)
             foo=: #M3
-            zzz: #M10
+            zzz: #M10(new)
           implemented
-            foo: #M9
+            foo: #M9(new)
             foo=: #M3
-            zzz: #M10
+            zzz: #M10(new)
           superImplemented
             [0]
               foo: #M2
@@ -55512,7 +55512,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -55524,17 +55524,17 @@ class B extends A {
             foo: #M1
       B: #M3
         declaredConflicts
-          foo: #M7
-          foo=: #M7
+          foo: #M7(new)
+          foo=: #M7(new)
         declaredMethods
-          zzz: #M8
-        interface: #M9
+          zzz: #M8(new)
+        interface: #M9(new)
           map
-            foo: #M7
-            zzz: #M8
+            foo: #M7(new)
+            zzz: #M8(new)
           implemented
-            foo: #M7
-            zzz: #M8
+            foo: #M7(new)
+            zzz: #M8(new)
           superImplemented
             [0]
               foo: #M1
@@ -55611,7 +55611,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -55625,19 +55625,19 @@ class B extends A {
             foo=: #M2
       B: #M4
         declaredConflicts
-          foo: #M8
-          foo=: #M8
+          foo: #M8(new)
+          foo=: #M8(new)
         declaredMethods
-          zzz: #M9
-        interface: #M10
+          zzz: #M9(new)
+        interface: #M10(new)
           map
-            foo: #M8
+            foo: #M8(new)
             foo=: #M2
-            zzz: #M9
+            zzz: #M9(new)
           implemented
-            foo: #M8
+            foo: #M8(new)
             foo=: #M2
-            zzz: #M9
+            zzz: #M9(new)
           superImplemented
             [0]
               foo=: #M2
@@ -55711,7 +55711,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -55729,14 +55729,14 @@ class B extends A {
         declaredGetters
           foo: #M6
         declaredMethods
-          zzz: #M9
-        interface: #M10
+          zzz: #M9(new)
+        interface: #M10(new)
           map
             foo: #M6
-            zzz: #M9
+            zzz: #M9(new)
           implemented
             foo: #M6
-            zzz: #M9
+            zzz: #M9(new)
           superImplemented
             [0]
               foo: #M2
@@ -55820,7 +55820,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -55842,16 +55842,16 @@ class B extends A {
         declaredGetters
           foo: #M7
         declaredMethods
-          zzz: #M10
-        interface: #M11
+          zzz: #M10(new)
+        interface: #M11(new)
           map
             foo: #M7
             foo=: #M3
-            zzz: #M10
+            zzz: #M10(new)
           implemented
             foo: #M7
             foo=: #M3
-            zzz: #M10
+            zzz: #M10(new)
           superImplemented
             [0]
               foo: #M2
@@ -55925,7 +55925,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -55941,14 +55941,14 @@ class B extends A {
         declaredGetters
           foo: #M5
         declaredMethods
-          zzz: #M8
-        interface: #M9
+          zzz: #M8(new)
+        interface: #M9(new)
           map
             foo: #M5
-            zzz: #M8
+            zzz: #M8(new)
           implemented
             foo: #M5
-            zzz: #M8
+            zzz: #M8(new)
           superImplemented
             [0]
               foo: #M1
@@ -56024,7 +56024,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -56042,16 +56042,16 @@ class B extends A {
         declaredGetters
           foo: #M6
         declaredMethods
-          zzz: #M9
-        interface: #M10
+          zzz: #M9(new)
+        interface: #M10(new)
           map
             foo: #M6
             foo=: #M2
-            zzz: #M9
+            zzz: #M9(new)
           implemented
             foo: #M6
             foo=: #M2
-            zzz: #M9
+            zzz: #M9(new)
           superImplemented
             [0]
               foo=: #M2
@@ -56099,19 +56099,19 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
-          zzz: #M4
-        interface: #M5
+          zzz: #M4(new)
+        interface: #M5(new)
           map
             foo: #M1
-            zzz: #M4
+            zzz: #M4(new)
           implemented
             foo: #M1
-            zzz: #M4
+            zzz: #M4(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -56156,21 +56156,21 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M4(new)
+          foo=: #M4(new)
         declaredMethods
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
-            foo: #M4
-            zzz: #M5
+            foo: #M4(new)
+            zzz: #M5(new)
           implemented
-            foo: #M4
-            zzz: #M5
+            foo: #M4(new)
+            zzz: #M5(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -56217,21 +56217,21 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M4(new)
+          foo=: #M4(new)
         declaredMethods
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
-            foo: #M4
-            zzz: #M5
+            foo: #M4(new)
+            zzz: #M5(new)
           implemented
-            foo: #M4
-            zzz: #M5
+            foo: #M4(new)
+            zzz: #M5(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -56280,23 +56280,23 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M4(new)
+          foo=: #M4(new)
         declaredMethods
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
-            foo: #M4
-            foo=: #M4
-            zzz: #M5
+            foo: #M4(new)
+            foo=: #M4(new)
+            zzz: #M5(new)
           implemented
-            foo: #M4
-            foo=: #M4
-            zzz: #M5
+            foo: #M4(new)
+            foo=: #M4(new)
+            zzz: #M5(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -56347,23 +56347,23 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M4(new)
+          foo=: #M4(new)
         declaredMethods
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
-            foo: #M4
-            foo=: #M4
-            zzz: #M5
+            foo: #M4(new)
+            foo=: #M4(new)
+            zzz: #M5(new)
           implemented
-            foo: #M4
-            foo=: #M4
-            zzz: #M5
+            foo: #M4(new)
+            foo=: #M4(new)
+            zzz: #M5(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -56408,21 +56408,21 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M4(new)
+          foo=: #M4(new)
         declaredMethods
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
-            foo: #M4
-            zzz: #M5
+            foo: #M4(new)
+            zzz: #M5(new)
           implemented
-            foo: #M4
-            zzz: #M5
+            foo: #M4(new)
+            zzz: #M5(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -56469,23 +56469,23 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M4(new)
+          foo=: #M4(new)
         declaredMethods
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
-            foo: #M4
-            foo=: #M4
-            zzz: #M5
+            foo: #M4(new)
+            foo=: #M4(new)
+            zzz: #M5(new)
           implemented
-            foo: #M4
-            foo=: #M4
-            zzz: #M5
+            foo: #M4(new)
+            foo=: #M4(new)
+            zzz: #M5(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -56534,23 +56534,23 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M4(new)
+          foo=: #M4(new)
         declaredMethods
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
-            foo: #M4
-            foo=: #M4
-            zzz: #M5
+            foo: #M4(new)
+            foo=: #M4(new)
+            zzz: #M5(new)
           implemented
-            foo: #M4
-            foo=: #M4
-            zzz: #M5
+            foo: #M4(new)
+            foo=: #M4(new)
+            zzz: #M5(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -56616,7 +56616,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -56631,14 +56631,14 @@ class B extends A {
       B: #M4
         declaredMethods
           foo: #M5
-          zzz: #M8
-        interface: #M9
+          zzz: #M8(new)
+        interface: #M9(new)
           map
             foo: #M5
-            zzz: #M8
+            zzz: #M8(new)
           implemented
             foo: #M5
-            zzz: #M8
+            zzz: #M8(new)
           superImplemented
             [0]
               foo: #M2
@@ -56720,7 +56720,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -56739,16 +56739,16 @@ class B extends A {
       B: #M5
         declaredMethods
           foo: #M6
-          zzz: #M9
-        interface: #M10
+          zzz: #M9(new)
+        interface: #M10(new)
           map
             foo: #M6
             foo=: #M3
-            zzz: #M9
+            zzz: #M9(new)
           implemented
             foo: #M6
             foo=: #M3
-            zzz: #M9
+            zzz: #M9(new)
           superImplemented
             [0]
               foo: #M2
@@ -56820,7 +56820,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -56833,14 +56833,14 @@ class B extends A {
       B: #M3
         declaredMethods
           foo: #M4
-          zzz: #M7
-        interface: #M8
+          zzz: #M7(new)
+        interface: #M8(new)
           map
             foo: #M4
-            zzz: #M7
+            zzz: #M7(new)
           implemented
             foo: #M4
-            zzz: #M7
+            zzz: #M7(new)
           superImplemented
             [0]
               foo: #M1
@@ -56914,7 +56914,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -56929,16 +56929,16 @@ class B extends A {
       B: #M4
         declaredMethods
           foo: #M5
-          zzz: #M8
-        interface: #M9
+          zzz: #M8(new)
+        interface: #M9(new)
           map
             foo: #M5
             foo=: #M2
-            zzz: #M8
+            zzz: #M8(new)
           implemented
             foo: #M5
             foo=: #M2
-            zzz: #M8
+            zzz: #M8(new)
           superImplemented
             [0]
               foo=: #M2
@@ -56988,7 +56988,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -56996,14 +56996,14 @@ class A {
         declaredSetters
           foo=: #M2
         declaredMethods
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
             foo=: #M2
-            zzz: #M5
+            zzz: #M5(new)
           implemented
             foo=: #M2
-            zzz: #M5
+            zzz: #M5(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -57048,21 +57048,21 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M4(new)
+          foo=: #M4(new)
         declaredMethods
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
-            foo=: #M4
-            zzz: #M5
+            foo=: #M4(new)
+            zzz: #M5(new)
           implemented
-            foo=: #M4
-            zzz: #M5
+            foo=: #M4(new)
+            zzz: #M5(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -57132,7 +57132,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -57150,16 +57150,16 @@ class B extends A {
         declaredSetters
           foo=: #M6
         declaredMethods
-          zzz: #M9
-        interface: #M10
+          zzz: #M9(new)
+        interface: #M10(new)
           map
             foo: #M2
             foo=: #M6
-            zzz: #M9
+            zzz: #M9(new)
           implemented
             foo: #M2
             foo=: #M6
-            zzz: #M9
+            zzz: #M9(new)
           superImplemented
             [0]
               foo: #M2
@@ -57243,7 +57243,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -57265,16 +57265,16 @@ class B extends A {
         declaredSetters
           foo=: #M7
         declaredMethods
-          zzz: #M10
-        interface: #M11
+          zzz: #M10(new)
+        interface: #M11(new)
           map
             foo: #M2
             foo=: #M7
-            zzz: #M10
+            zzz: #M10(new)
           implemented
             foo: #M2
             foo=: #M7
-            zzz: #M10
+            zzz: #M10(new)
           superImplemented
             [0]
               foo: #M2
@@ -57350,7 +57350,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -57366,16 +57366,16 @@ class B extends A {
         declaredSetters
           foo=: #M5
         declaredMethods
-          zzz: #M8
-        interface: #M9
+          zzz: #M8(new)
+        interface: #M9(new)
           map
             foo: #M1
             foo=: #M5
-            zzz: #M8
+            zzz: #M8(new)
           implemented
             foo: #M1
             foo=: #M5
-            zzz: #M8
+            zzz: #M8(new)
           superImplemented
             [0]
               foo: #M1
@@ -57449,7 +57449,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -57467,14 +57467,14 @@ class B extends A {
         declaredSetters
           foo=: #M6
         declaredMethods
-          zzz: #M9
-        interface: #M10
+          zzz: #M9(new)
+        interface: #M10(new)
           map
             foo=: #M6
-            zzz: #M9
+            zzz: #M9(new)
           implemented
             foo=: #M6
-            zzz: #M9
+            zzz: #M9(new)
           superImplemented
             [0]
               foo=: #M2
@@ -57520,7 +57520,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -57528,12 +57528,12 @@ class A {
         declaredGetters
           foo: #M2
         declaredMethods
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
-            zzz: #M5
+            zzz: #M5(new)
           implemented
-            zzz: #M5
+            zzz: #M5(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -57578,21 +57578,21 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M4(new)
+          foo=: #M4(new)
         declaredMethods
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
-            foo=: #M4
-            zzz: #M5
+            foo=: #M4(new)
+            zzz: #M5(new)
           implemented
-            foo=: #M4
-            zzz: #M5
+            foo=: #M4(new)
+            zzz: #M5(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -57663,7 +57663,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -57677,19 +57677,19 @@ class B extends A {
             foo: #M2
       B: #M4
         declaredConflicts
-          foo: #M8
-          foo=: #M8
+          foo: #M8(new)
+          foo=: #M8(new)
         declaredMethods
-          zzz: #M9
-        interface: #M10
+          zzz: #M9(new)
+        interface: #M10(new)
           map
             foo: #M2
-            foo=: #M8
-            zzz: #M9
+            foo=: #M8(new)
+            zzz: #M9(new)
           implemented
             foo: #M2
-            foo=: #M8
-            zzz: #M9
+            foo=: #M8(new)
+            zzz: #M9(new)
           superImplemented
             [0]
               foo: #M2
@@ -57774,7 +57774,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -57792,19 +57792,19 @@ class B extends A {
             foo=: #M3
       B: #M5
         declaredConflicts
-          foo: #M9
-          foo=: #M9
+          foo: #M9(new)
+          foo=: #M9(new)
         declaredMethods
-          zzz: #M10
-        interface: #M11
+          zzz: #M10(new)
+        interface: #M11(new)
           map
             foo: #M2
-            foo=: #M9
-            zzz: #M10
+            foo=: #M9(new)
+            zzz: #M10(new)
           implemented
             foo: #M2
-            foo=: #M9
-            zzz: #M10
+            foo=: #M9(new)
+            zzz: #M10(new)
           superImplemented
             [0]
               foo: #M2
@@ -57881,7 +57881,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -57893,19 +57893,19 @@ class B extends A {
             foo: #M1
       B: #M3
         declaredConflicts
-          foo: #M7
-          foo=: #M7
+          foo: #M7(new)
+          foo=: #M7(new)
         declaredMethods
-          zzz: #M8
-        interface: #M9
+          zzz: #M8(new)
+        interface: #M9(new)
           map
             foo: #M1
-            foo=: #M7
-            zzz: #M8
+            foo=: #M7(new)
+            zzz: #M8(new)
           implemented
             foo: #M1
-            foo=: #M7
-            zzz: #M8
+            foo=: #M7(new)
+            zzz: #M8(new)
           superImplemented
             [0]
               foo: #M1
@@ -57980,7 +57980,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -57994,17 +57994,17 @@ class B extends A {
             foo=: #M2
       B: #M4
         declaredConflicts
-          foo: #M8
-          foo=: #M8
+          foo: #M8(new)
+          foo=: #M8(new)
         declaredMethods
-          zzz: #M9
-        interface: #M10
+          zzz: #M9(new)
+        interface: #M10(new)
           map
-            foo=: #M8
-            zzz: #M9
+            foo=: #M8(new)
+            zzz: #M9(new)
           implemented
-            foo=: #M8
-            zzz: #M9
+            foo=: #M8(new)
+            zzz: #M9(new)
           superImplemented
             [0]
               foo=: #M2
@@ -58054,7 +58054,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -58064,12 +58064,12 @@ class A {
         declaredSetters
           foo=: #M3
         declaredMethods
-          zzz: #M6
-        interface: #M7
+          zzz: #M6(new)
+        interface: #M7(new)
           map
-            zzz: #M6
+            zzz: #M6(new)
           implemented
-            zzz: #M6
+            zzz: #M6(new)
     exportMapId: #M5
     exportMap
       A: #M0
@@ -58141,7 +58141,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -58161,14 +58161,14 @@ class B extends A {
         declaredSetters
           foo=: #M7
         declaredMethods
-          zzz: #M10
-        interface: #M11
+          zzz: #M10(new)
+        interface: #M11(new)
           map
             foo: #M2
-            zzz: #M10
+            zzz: #M10(new)
           implemented
             foo: #M2
-            zzz: #M10
+            zzz: #M10(new)
           superImplemented
             [0]
               foo: #M2
@@ -58256,7 +58256,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -58280,16 +58280,16 @@ class B extends A {
         declaredSetters
           foo=: #M8
         declaredMethods
-          zzz: #M11
-        interface: #M12
+          zzz: #M11(new)
+        interface: #M12(new)
           map
             foo: #M2
             foo=: #M3
-            zzz: #M11
+            zzz: #M11(new)
           implemented
             foo: #M2
             foo=: #M3
-            zzz: #M11
+            zzz: #M11(new)
           superImplemented
             [0]
               foo: #M2
@@ -58367,7 +58367,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -58385,14 +58385,14 @@ class B extends A {
         declaredSetters
           foo=: #M6
         declaredMethods
-          zzz: #M9
-        interface: #M10
+          zzz: #M9(new)
+        interface: #M10(new)
           map
             foo: #M1
-            zzz: #M9
+            zzz: #M9(new)
           implemented
             foo: #M1
-            zzz: #M9
+            zzz: #M9(new)
           superImplemented
             [0]
               foo: #M1
@@ -58470,7 +58470,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -58490,14 +58490,14 @@ class B extends A {
         declaredSetters
           foo=: #M7
         declaredMethods
-          zzz: #M10
-        interface: #M11
+          zzz: #M10(new)
+        interface: #M11(new)
           map
             foo=: #M2
-            zzz: #M10
+            zzz: #M10(new)
           implemented
             foo=: #M2
-            zzz: #M10
+            zzz: #M10(new)
           superImplemented
             [0]
               foo=: #M2
@@ -58571,7 +58571,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -58589,14 +58589,14 @@ class B extends A {
         declaredGetters
           foo: #M6
         declaredMethods
-          zzz: #M9
-        interface: #M10
+          zzz: #M9(new)
+        interface: #M10(new)
           map
             foo: #M2
-            zzz: #M9
+            zzz: #M9(new)
           implemented
             foo: #M2
-            zzz: #M9
+            zzz: #M9(new)
           superImplemented
             [0]
               foo: #M2
@@ -58680,7 +58680,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -58702,16 +58702,16 @@ class B extends A {
         declaredGetters
           foo: #M7
         declaredMethods
-          zzz: #M10
-        interface: #M11
+          zzz: #M10(new)
+        interface: #M11(new)
           map
             foo: #M2
             foo=: #M3
-            zzz: #M10
+            zzz: #M10(new)
           implemented
             foo: #M2
             foo=: #M3
-            zzz: #M10
+            zzz: #M10(new)
           superImplemented
             [0]
               foo: #M2
@@ -58785,7 +58785,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -58801,14 +58801,14 @@ class B extends A {
         declaredGetters
           foo: #M5
         declaredMethods
-          zzz: #M8
-        interface: #M9
+          zzz: #M8(new)
+        interface: #M9(new)
           map
             foo: #M1
-            zzz: #M8
+            zzz: #M8(new)
           implemented
             foo: #M1
-            zzz: #M8
+            zzz: #M8(new)
           superImplemented
             [0]
               foo: #M1
@@ -58882,7 +58882,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -58900,14 +58900,14 @@ class B extends A {
         declaredGetters
           foo: #M6
         declaredMethods
-          zzz: #M9
-        interface: #M10
+          zzz: #M9(new)
+        interface: #M10(new)
           map
             foo=: #M2
-            zzz: #M9
+            zzz: #M9(new)
           implemented
             foo=: #M2
-            zzz: #M9
+            zzz: #M9(new)
           superImplemented
             [0]
               foo=: #M2
@@ -58951,17 +58951,17 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
           foo: #M1
-          zzz: #M4
-        interface: #M5
+          zzz: #M4(new)
+        interface: #M5(new)
           map
-            zzz: #M4
+            zzz: #M4(new)
           implemented
-            zzz: #M4
+            zzz: #M4(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -59027,7 +59027,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -59042,14 +59042,14 @@ class B extends A {
       B: #M4
         declaredMethods
           foo: #M5
-          zzz: #M8
-        interface: #M9
+          zzz: #M8(new)
+        interface: #M9(new)
           map
             foo: #M2
-            zzz: #M8
+            zzz: #M8(new)
           implemented
             foo: #M2
-            zzz: #M8
+            zzz: #M8(new)
           superImplemented
             [0]
               foo: #M2
@@ -59131,7 +59131,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -59150,16 +59150,16 @@ class B extends A {
       B: #M5
         declaredMethods
           foo: #M6
-          zzz: #M9
-        interface: #M10
+          zzz: #M9(new)
+        interface: #M10(new)
           map
             foo: #M2
             foo=: #M3
-            zzz: #M9
+            zzz: #M9(new)
           implemented
             foo: #M2
             foo=: #M3
-            zzz: #M9
+            zzz: #M9(new)
           superImplemented
             [0]
               foo: #M2
@@ -59231,7 +59231,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -59244,14 +59244,14 @@ class B extends A {
       B: #M3
         declaredMethods
           foo: #M4
-          zzz: #M7
-        interface: #M8
+          zzz: #M7(new)
+        interface: #M8(new)
           map
             foo: #M1
-            zzz: #M7
+            zzz: #M7(new)
           implemented
             foo: #M1
-            zzz: #M7
+            zzz: #M7(new)
           superImplemented
             [0]
               foo: #M1
@@ -59323,7 +59323,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -59338,14 +59338,14 @@ class B extends A {
       B: #M4
         declaredMethods
           foo: #M5
-          zzz: #M8
-        interface: #M9
+          zzz: #M8(new)
+        interface: #M9(new)
           map
             foo=: #M2
-            zzz: #M8
+            zzz: #M8(new)
           implemented
             foo=: #M2
-            zzz: #M8
+            zzz: #M8(new)
           superImplemented
             [0]
               foo=: #M2
@@ -59391,7 +59391,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -59399,12 +59399,12 @@ class A {
         declaredSetters
           foo=: #M2
         declaredMethods
-          zzz: #M5
-        interface: #M6
+          zzz: #M5(new)
+        interface: #M6(new)
           map
-            zzz: #M5
+            zzz: #M5(new)
           implemented
-            zzz: #M5
+            zzz: #M5(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -59472,7 +59472,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -59490,14 +59490,14 @@ class B extends A {
         declaredSetters
           foo=: #M6
         declaredMethods
-          zzz: #M9
-        interface: #M10
+          zzz: #M9(new)
+        interface: #M10(new)
           map
             foo: #M2
-            zzz: #M9
+            zzz: #M9(new)
           implemented
             foo: #M2
-            zzz: #M9
+            zzz: #M9(new)
           superImplemented
             [0]
               foo: #M2
@@ -59581,7 +59581,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -59603,16 +59603,16 @@ class B extends A {
         declaredSetters
           foo=: #M7
         declaredMethods
-          zzz: #M10
-        interface: #M11
+          zzz: #M10(new)
+        interface: #M11(new)
           map
             foo: #M2
             foo=: #M3
-            zzz: #M10
+            zzz: #M10(new)
           implemented
             foo: #M2
             foo=: #M3
-            zzz: #M10
+            zzz: #M10(new)
           superImplemented
             [0]
               foo: #M2
@@ -59686,7 +59686,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -59702,14 +59702,14 @@ class B extends A {
         declaredSetters
           foo=: #M5
         declaredMethods
-          zzz: #M8
-        interface: #M9
+          zzz: #M8(new)
+        interface: #M9(new)
           map
             foo: #M1
-            zzz: #M8
+            zzz: #M8(new)
           implemented
             foo: #M1
-            zzz: #M8
+            zzz: #M8(new)
           superImplemented
             [0]
               foo: #M1
@@ -59783,7 +59783,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -59801,14 +59801,14 @@ class B extends A {
         declaredSetters
           foo=: #M6
         declaredMethods
-          zzz: #M9
-        interface: #M10
+          zzz: #M9(new)
+        interface: #M10(new)
           map
             foo=: #M2
-            zzz: #M9
+            zzz: #M9(new)
           implemented
             foo=: #M2
-            zzz: #M9
+            zzz: #M9(new)
           superImplemented
             [0]
               foo=: #M2
@@ -59869,7 +59869,7 @@ class Z {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConstructors
@@ -59879,17 +59879,17 @@ class Z {}
         inheritedConstructors
           foo: #M1
         interface: #M4
-      Z: #M8
-        interface: #M9
+      Z: #M8(new)
+        interface: #M9(new)
     declaredMixins
       M: #M5
         interface: #M6
-    exportMapId: #M10
+    exportMapId: #M10(new)
     exportMap
       A: #M0
       B: #M3
       M: #M5
-      Z: #M8
+      Z: #M8(new)
 ''',
     );
   }
@@ -59944,28 +59944,28 @@ class Z {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M8
-          foo=: #M8
+          foo: #M8(new)
+          foo=: #M8(new)
         interface: #M2
       B: #M3
         inheritedConstructors
-          foo: #M8
+          foo: #M8(new)
         interface: #M4
-      Z: #M9
-        interface: #M10
+      Z: #M9(new)
+        interface: #M10(new)
     declaredMixins
       M: #M5
         interface: #M6
-    exportMapId: #M11
+    exportMapId: #M11(new)
     exportMap
       A: #M0
       B: #M3
       M: #M5
-      Z: #M9
+      Z: #M9(new)
 ''',
     );
   }
@@ -60038,7 +60038,7 @@ class Z {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -60067,17 +60067,17 @@ class Z {}
               foo: #M2
           inherited
             foo: #M2
-      Z: #M10
-        interface: #M11
+      Z: #M10(new)
+        interface: #M11(new)
     declaredMixins
       M: #M7
         interface: #M8
-    exportMapId: #M12
+    exportMapId: #M12(new)
     exportMap
       A: #M0
       B: #M5
       M: #M7
-      Z: #M10
+      Z: #M10(new)
 ''',
     );
   }
@@ -60161,7 +60161,7 @@ class Z {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -60199,17 +60199,17 @@ class Z {}
           inherited
             foo: #M2
             foo=: #M3
-      Z: #M11
-        interface: #M12
+      Z: #M11(new)
+        interface: #M12(new)
     declaredMixins
       M: #M8
         interface: #M9
-    exportMapId: #M13
+    exportMapId: #M13(new)
     exportMap
       A: #M0
       B: #M6
       M: #M8
-      Z: #M11
+      Z: #M11(new)
 ''',
     );
   }
@@ -60280,7 +60280,7 @@ class Z {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -60307,17 +60307,17 @@ class Z {}
               foo: #M1
           inherited
             foo: #M1
-      Z: #M9
-        interface: #M10
+      Z: #M9(new)
+        interface: #M10(new)
     declaredMixins
       M: #M6
         interface: #M7
-    exportMapId: #M11
+    exportMapId: #M11(new)
     exportMap
       A: #M0
       B: #M4
       M: #M6
-      Z: #M9
+      Z: #M9(new)
 ''',
     );
   }
@@ -60390,7 +60390,7 @@ class Z {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -60419,17 +60419,17 @@ class Z {}
               foo=: #M2
           inherited
             foo=: #M2
-      Z: #M10
-        interface: #M11
+      Z: #M10(new)
+        interface: #M11(new)
     declaredMixins
       M: #M7
         interface: #M8
-    exportMapId: #M12
+    exportMapId: #M12(new)
     exportMap
       A: #M0
       B: #M5
       M: #M7
-      Z: #M10
+      Z: #M10(new)
 ''',
     );
   }
@@ -60486,7 +60486,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -60498,14 +60498,14 @@ class B extends A {
             []: #M1
       B: #M3
         declaredMethods
-          zzz: #M6
-        interface: #M7
+          zzz: #M6(new)
+        interface: #M7(new)
           map
             []: #M1
-            zzz: #M6
+            zzz: #M6(new)
           implemented
             []: #M1
-            zzz: #M6
+            zzz: #M6(new)
           superImplemented
             [0]
               []: #M1
@@ -60580,7 +60580,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -60595,16 +60595,16 @@ class B extends A {
             []=: #M2
       B: #M4
         declaredMethods
-          zzz: #M7
-        interface: #M8
+          zzz: #M7(new)
+        interface: #M8(new)
           map
             []: #M1
             []=: #M2
-            zzz: #M7
+            zzz: #M7(new)
           implemented
             []: #M1
             []=: #M2
-            zzz: #M7
+            zzz: #M7(new)
           superImplemented
             [0]
               []: #M1
@@ -60672,7 +60672,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -60684,14 +60684,14 @@ class B extends A {
             []=: #M1
       B: #M3
         declaredMethods
-          zzz: #M6
-        interface: #M7
+          zzz: #M6(new)
+        interface: #M7(new)
           map
             []=: #M1
-            zzz: #M6
+            zzz: #M6(new)
           implemented
             []=: #M1
-            zzz: #M6
+            zzz: #M6(new)
           superImplemented
             [0]
               []=: #M1
@@ -60766,7 +60766,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -60781,16 +60781,16 @@ class B extends A {
             []=: #M2
       B: #M4
         declaredMethods
-          zzz: #M7
-        interface: #M8
+          zzz: #M7(new)
+        interface: #M8(new)
           map
             []: #M1
             []=: #M2
-            zzz: #M7
+            zzz: #M7(new)
           implemented
             []: #M1
             []=: #M2
-            zzz: #M7
+            zzz: #M7(new)
           superImplemented
             [0]
               []: #M1
@@ -60860,7 +60860,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -60874,14 +60874,14 @@ class B extends A {
             foo: #M2
       B: #M4
         declaredMethods
-          zzz: #M7
-        interface: #M8
+          zzz: #M7(new)
+        interface: #M8(new)
           map
             foo: #M2
-            zzz: #M7
+            zzz: #M7(new)
           implemented
             foo: #M2
-            zzz: #M7
+            zzz: #M7(new)
           superImplemented
             [0]
               foo: #M2
@@ -60959,7 +60959,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -60977,16 +60977,16 @@ class B extends A {
             foo=: #M3
       B: #M5
         declaredMethods
-          zzz: #M8
-        interface: #M9
+          zzz: #M8(new)
+        interface: #M9(new)
           map
             foo: #M2
             foo=: #M3
-            zzz: #M8
+            zzz: #M8(new)
           implemented
             foo: #M2
             foo=: #M3
-            zzz: #M8
+            zzz: #M8(new)
           superImplemented
             [0]
               foo: #M2
@@ -61054,7 +61054,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -61066,14 +61066,14 @@ class B extends A {
             foo: #M1
       B: #M3
         declaredMethods
-          zzz: #M6
-        interface: #M7
+          zzz: #M6(new)
+        interface: #M7(new)
           map
             foo: #M1
-            zzz: #M6
+            zzz: #M6(new)
           implemented
             foo: #M1
-            zzz: #M6
+            zzz: #M6(new)
           superImplemented
             [0]
               foo: #M1
@@ -61141,7 +61141,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -61155,14 +61155,14 @@ class B extends A {
             foo=: #M2
       B: #M4
         declaredMethods
-          zzz: #M7
-        interface: #M8
+          zzz: #M7(new)
+        interface: #M8(new)
           map
             foo=: #M2
-            zzz: #M7
+            zzz: #M7(new)
           implemented
             foo=: #M2
-            zzz: #M7
+            zzz: #M7(new)
           superImplemented
             [0]
               foo=: #M2
@@ -61200,16 +61200,16 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         interface: #M1
-      B: #M3
-        interface: #M4
-    exportMapId: #M5
+      B: #M3(new)
+        interface: #M4(new)
+    exportMapId: #M5(new)
     exportMap
       A: #M0
-      B: #M3
+      B: #M3(new)
 ''',
     );
   }
@@ -61258,33 +61258,33 @@ final class D extends B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isFinal isSimplyBounded
         supertype: Object @ dart:core
-        allSubtypes: #M1 #M7
+        allSubtypes: #M1 #M7(new)
         interface: #M2
       B: #M1
         flags: isFinal isSimplyBounded
         supertype: A @ package:test/test.dart
-        allSubtypes: #M7
+        allSubtypes: #M7(new)
         interface: #M3
       C: #M4
         flags: isSimplyBounded
         supertype: Object @ dart:core
         interface: #M5
-      D: #M7
+      D: #M7(new)
         flags: isFinal isSimplyBounded
         supertype: B @ package:test/test.dart
         allSubtypes: []
-        interface: #M8
-    exportMapId: #M9
+        interface: #M8(new)
+    exportMapId: #M9(new)
     exportMap
       A: #M0
       B: #M1
       C: #M4
-      D: #M7
+      D: #M7(new)
 ''',
     );
   }
@@ -61320,22 +61320,22 @@ final class C extends A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isFinal isSimplyBounded
         supertype: Object @ dart:core
-        allSubtypes: #M3
+        allSubtypes: #M3(new)
         interface: #M1
-      C: #M3
+      C: #M3(new)
         flags: isFinal isSimplyBounded
         supertype: A @ package:test/test.dart
         allSubtypes: []
-        interface: #M4
-    exportMapId: #M5
+        interface: #M4(new)
+    exportMapId: #M5(new)
     exportMap
       A: #M0
-      C: #M3
+      C: #M3(new)
 ''',
     );
   }
@@ -61377,7 +61377,7 @@ base mixin C implements A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isFinal isSimplyBounded
@@ -61389,18 +61389,18 @@ base mixin C implements A {}
         allSubtypes: []
         interface: #M3
     declaredMixins
-      C: #M5
+      C: #M5(new)
         flags: isBase isSimplyBounded
         superclassConstraints
           Object @ dart:core
         interfaces
           A @ package:test/test.dart
-        interface: #M6
-    exportMapId: #M7
+        interface: #M6(new)
+    exportMapId: #M7(new)
     exportMap
       A: #M0
       B: #M1
-      C: #M5
+      C: #M5(new)
 ''',
     );
   }
@@ -61433,20 +61433,20 @@ class B extends A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isSimplyBounded
         supertype: Object @ dart:core
         interface: #M1
-      B: #M3
+      B: #M3(new)
         flags: isSimplyBounded
         supertype: A @ package:test/test.dart
-        interface: #M4
-    exportMapId: #M5
+        interface: #M4(new)
+    exportMapId: #M5(new)
     exportMap
       A: #M0
-      B: #M3
+      B: #M3(new)
 ''',
     );
   }
@@ -61496,34 +61496,34 @@ final class D extends B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isAbstract isSealed isSimplyBounded
         supertype: Object @ dart:core
-        allSubtypes: #M1 #M7
+        allSubtypes: #M1 #M7(new)
         directSubtypesOfSealed: #M1
         interface: #M2
       B: #M1
         flags: isFinal isSimplyBounded
         supertype: A @ package:test/test.dart
-        allSubtypes: #M7
+        allSubtypes: #M7(new)
         interface: #M3
       C: #M4
         flags: isSimplyBounded
         supertype: Object @ dart:core
         interface: #M5
-      D: #M7
+      D: #M7(new)
         flags: isFinal isSimplyBounded
         supertype: B @ package:test/test.dart
         allSubtypes: []
-        interface: #M8
-    exportMapId: #M9
+        interface: #M8(new)
+    exportMapId: #M9(new)
     exportMap
       A: #M0
       B: #M1
       C: #M4
-      D: #M7
+      D: #M7(new)
 ''',
     );
   }
@@ -61566,27 +61566,27 @@ class C extends A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isAbstract isSealed isSimplyBounded
         supertype: Object @ dart:core
-        directSubtypesOfSealed: #M1 #M5
+        directSubtypesOfSealed: #M1 #M5(new)
         interface: #M2
       B: #M1
         flags: isFinal isSimplyBounded
         supertype: A @ package:test/test.dart
         allSubtypes: []
         interface: #M3
-      C: #M5
+      C: #M5(new)
         flags: isSimplyBounded
         supertype: A @ package:test/test.dart
-        interface: #M6
-    exportMapId: #M7
+        interface: #M6(new)
+    exportMapId: #M7(new)
     exportMap
       A: #M0
       B: #M1
-      C: #M5
+      C: #M5(new)
 ''',
     );
   }
@@ -61621,11 +61621,11 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConstructors
-          bar: #M4
+          bar: #M4(new)
           foo: #M1
         interface: #M2
     exportMapId: #M3
@@ -61665,11 +61665,11 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConstructors
-          bar: #M4
+          bar: #M4(new)
           foo: #M1
         interface: #M2
     exportMapId: #M3
@@ -61709,12 +61709,12 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConstructors
-          bar: #M4
-          foo: #M5
+          bar: #M4(new)
+          foo: #M5(new)
         interface: #M2
     exportMapId: #M3
     exportMap
@@ -61753,11 +61753,11 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConstructors
-          bar: #M4
+          bar: #M4(new)
           foo: #M1
         interface: #M2
     exportMapId: #M3
@@ -61797,12 +61797,12 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConstructors
-          bar: #M4
-          foo: #M5
+          bar: #M4(new)
+          foo: #M5(new)
         interface: #M2
     exportMapId: #M3
     exportMap
@@ -61859,7 +61859,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -61869,8 +61869,8 @@ class A {
         declaredConstructors
           foo1: #M3
           foo2: #M4
-          foo3: #M9
-          foo4: #M10
+          foo3: #M9(new)
+          foo4: #M10(new)
         interface: #M7
           map
             x: #M2
@@ -61932,7 +61932,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         interface: #M1
@@ -61940,8 +61940,8 @@ class B extends A {
         declaredConstructors
           foo1: #M3
           foo2: #M4
-          foo3: #M9
-          foo4: #M10
+          foo3: #M9(new)
+          foo4: #M10(new)
         interface: #M7
     exportMapId: #M8
     exportMap
@@ -61982,11 +61982,11 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConstructors
-          bar: #M4
+          bar: #M4(new)
           foo: #M1
         interface: #M2
     exportMapId: #M3
@@ -62026,11 +62026,11 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConstructors
-          new: #M4
+          new: #M4(new)
         interface: #M2
     exportMapId: #M3
     exportMap
@@ -62087,7 +62087,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -62097,8 +62097,8 @@ class A {
         declaredConstructors
           foo1: #M3
           foo2: #M4
-          foo3: #M9
-          foo4: #M10
+          foo3: #M9(new)
+          foo4: #M10(new)
         interface: #M7
           map
             x: #M2
@@ -62140,11 +62140,11 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConstructors
-          foo: #M4
+          foo: #M4(new)
         interface: #M2
     exportMapId: #M3
     exportMap
@@ -62189,16 +62189,16 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConstructors
-          foo: #M6
+          foo: #M6(new)
         interface: #M2
     declaredGetters
       a: #M3
     declaredVariables
-      a: #M7
+      a: #M7(new)
     exportMapId: #M5
     exportMap
       A: #M0
@@ -62256,7 +62256,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         interface: #M1
@@ -62264,8 +62264,8 @@ class B extends A {
         declaredConstructors
           foo1: #M3
           foo2: #M4
-          foo3: #M9
-          foo4: #M10
+          foo3: #M9(new)
+          foo4: #M10(new)
         interface: #M7
     exportMapId: #M8
     exportMap
@@ -62314,21 +62314,21 @@ class C extends B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         interface: #M1
-      B: #M8
-        interface: #M9
-      C: #M10
+      B: #M8(new)
+        interface: #M9(new)
+      C: #M10(new)
         declaredConstructors
-          named: #M11
-        interface: #M12
-    exportMapId: #M13
+          named: #M11(new)
+        interface: #M12(new)
+    exportMapId: #M13(new)
     exportMap
       A: #M0
-      B: #M8
-      C: #M10
+      B: #M8(new)
+      C: #M10(new)
 ''',
     );
   }
@@ -62362,11 +62362,11 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConstructors
-          named: #M4
+          named: #M4(new)
         interface: #M2
     exportMapId: #M3
     exportMap
@@ -62407,12 +62407,12 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConstructors
           c1: #M1
-          c2: #M5
+          c2: #M5(new)
         interface: #M3
     exportMapId: #M4
     exportMap
@@ -62460,7 +62460,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -62468,7 +62468,7 @@ class A {
         declaredGetters
           foo: #M2
         declaredConstructors
-          named: #M6
+          named: #M6(new)
         interface: #M4
           map
             foo: #M2
@@ -62581,7 +62581,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -62589,7 +62589,7 @@ class A {
         declaredGetters
           foo: #M2
         declaredConstructors
-          named: #M6
+          named: #M6(new)
         interface: #M4
           map
             foo: #M2
@@ -62631,11 +62631,11 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConstructors
-          named: #M4
+          named: #M4(new)
         interface: #M2
     exportMapId: #M3
     exportMap
@@ -62686,7 +62686,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -62695,7 +62695,7 @@ class A {
           f: #M2
         declaredConstructors
           c1: #M3
-          c2: #M7
+          c2: #M7(new)
         interface: #M5
           map
             f: #M2
@@ -62753,7 +62753,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -62763,7 +62763,7 @@ class A {
         declaredConstructors
           c1: #M3
           c2: #M4
-          c3: #M8
+          c3: #M8(new)
         interface: #M6
           map
             f: #M2
@@ -62805,11 +62805,11 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConstructors
-          named: #M4
+          named: #M4(new)
         interface: #M2
     exportMapId: #M3
     exportMap
@@ -62860,7 +62860,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConstructors
@@ -62868,7 +62868,7 @@ class B extends A {
         interface: #M2
       B: #M3
         declaredConstructors
-          named: #M7
+          named: #M7(new)
         interface: #M5
     exportMapId: #M6
     exportMap
@@ -62942,7 +62942,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -62959,7 +62959,7 @@ class B extends A {
             f: #M2
       B: #M6
         declaredConstructors
-          named: #M10
+          named: #M10(new)
         interface: #M8
           map
             f: #M2
@@ -63039,7 +63039,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -63047,7 +63047,7 @@ class B extends A {
         declaredGetters
           f: #M2
         declaredConstructors
-          named: #M9
+          named: #M9(new)
         interface: #M4
           map
             f: #M2
@@ -63055,7 +63055,7 @@ class B extends A {
             f: #M2
       B: #M5
         declaredConstructors
-          named: #M10
+          named: #M10(new)
         interface: #M7
           map
             f: #M2
@@ -63329,11 +63329,11 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConstructors
-          foo: #M4
+          foo: #M4(new)
         interface: #M2
     exportMapId: #M3
     exportMap
@@ -63379,15 +63379,15 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConstructors
-          new: #M7
+          new: #M7(new)
         interface: #M2
       B: #M3
         declaredConstructors
-          new: #M8
+          new: #M8(new)
         interface: #M5
     exportMapId: #M6
     exportMap
@@ -63433,12 +63433,12 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConstructors
           bar: #M1
-          foo: #M5
+          foo: #M5(new)
         interface: #M3
     exportMapId: #M4
     exportMap
@@ -63504,7 +63504,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isSimplyBounded
@@ -63520,12 +63520,12 @@ class A {
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
-          foo3: #M8
+          foo3: #M8(new)
               flags: isConst isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
-          foo4: #M9
+          foo4: #M9(new)
               flags: isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
@@ -63595,7 +63595,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isSimplyBounded
@@ -63611,12 +63611,12 @@ class A {
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
-          foo3: #M8
+          foo3: #M8(new)
               flags: isExternal isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
-          foo4: #M9
+          foo4: #M9(new)
               flags: isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
@@ -63684,7 +63684,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isSimplyBounded
@@ -63699,11 +63699,11 @@ class A {
               flags: isFactory isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
-          foo3: #M8
+          foo3: #M8(new)
               flags: isFactory isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
-          foo4: #M9
+          foo4: #M9(new)
               flags: isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
@@ -63748,16 +63748,16 @@ class A.foo(int a, @a int b);
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConstructors
-          foo: #M6
+          foo: #M6(new)
         interface: #M2
     declaredGetters
       a: #M3
     declaredVariables
-      a: #M7
+      a: #M7(new)
     exportMapId: #M5
     exportMap
       A: #M0
@@ -63796,12 +63796,12 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConstructors
           _foo: #M1
-          bar: #M4
+          bar: #M4(new)
         interface: #M2
     exportMapId: #M3
     exportMap
@@ -63840,12 +63840,12 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConstructors
           _foo: #M1
-          bar: #M4
+          bar: #M4(new)
         interface: #M2
     exportMapId: #M3
     exportMap
@@ -63892,14 +63892,14 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConstructors
           foo1: #M1
-          foo2: #M7
+          foo2: #M7(new)
           foo3: #M3
-          foo4: #M8
+          foo4: #M8(new)
         interface: #M5
     exportMapId: #M6
     exportMap
@@ -63956,17 +63956,17 @@ class B implements A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConstructors
           foo1: #M1
-          foo2: #M9
+          foo2: #M9(new)
         interface: #M3
       B: #M4
         declaredConstructors
           bar1: #M5
-          bar2: #M10
+          bar2: #M10(new)
         interface: #M7
     exportMapId: #M8
     exportMap
@@ -64024,17 +64024,17 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConstructors
           foo1: #M1
-          foo2: #M9
+          foo2: #M9(new)
         interface: #M3
       B: #M4
         declaredConstructors
           bar1: #M5
-          bar2: #M10
+          bar2: #M10(new)
         interface: #M7
     exportMapId: #M8
     exportMap
@@ -64087,12 +64087,12 @@ class D extends A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isAbstract isSealed isSimplyBounded
         supertype: Object @ dart:core
-        directSubtypesOfSealed: #M1 #M7
+        directSubtypesOfSealed: #M1 #M7(new)
         interface: #M2
       B: #M1
         flags: isSimplyBounded
@@ -64102,16 +64102,16 @@ class D extends A {}
         flags: isSimplyBounded
         supertype: B @ package:test/test.dart
         interface: #M5
-      D: #M7
+      D: #M7(new)
         flags: isSimplyBounded
         supertype: A @ package:test/test.dart
-        interface: #M8
-    exportMapId: #M9
+        interface: #M8(new)
+    exportMapId: #M9(new)
     exportMap
       A: #M0
       B: #M1
       C: #M4
-      D: #M7
+      D: #M7(new)
 ''',
     );
   }
@@ -64144,15 +64144,15 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
-      A: #M5
-        interface: #M6
+      A: #M5(new)
+        interface: #M6(new)
       B: #M2
         interface: #M3
-    exportMapId: #M7
+    exportMapId: #M7(new)
     exportMap
-      A: #M5
+      A: #M5(new)
       B: #M2
 ''',
     );
@@ -64191,18 +64191,18 @@ class C {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
-      A: #M7
-        interface: #M8
-      B: #M9
-        interface: #M10
+      A: #M7(new)
+        interface: #M8(new)
+      B: #M9(new)
+        interface: #M10(new)
       C: #M4
         interface: #M5
-    exportMapId: #M11
+    exportMapId: #M11(new)
     exportMap
-      A: #M7
-      B: #M9
+      A: #M7(new)
+      B: #M9(new)
       C: #M4
 ''',
     );
@@ -64241,17 +64241,17 @@ class C {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
-      A: #M7
-        interface: #M8
+      A: #M7(new)
+        interface: #M8(new)
       B: #M2
         interface: #M3
       C: #M4
         interface: #M5
-    exportMapId: #M9
+    exportMapId: #M9(new)
     exportMap
-      A: #M7
+      A: #M7(new)
       B: #M2
       C: #M4
 ''',
@@ -64294,22 +64294,22 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
           a: #M1
-          b: #M5
+          b: #M5(new)
         declaredGetters
           a: #M2
-          b: #M6
-        interface: #M7
+          b: #M6(new)
+        interface: #M7(new)
           map
             a: #M2
-            b: #M6
+            b: #M6(new)
           implemented
             a: #M2
-            b: #M6
+            b: #M6(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -64352,11 +64352,11 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
-          a: #M7
+          a: #M7(new)
           b: #M2
         declaredGetters
           a: #M3
@@ -64418,31 +64418,31 @@ class C extends B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         interface: #M1
-      B: #M10
-        interface: #M11
-      C: #M12
+      B: #M10(new)
+        interface: #M11(new)
+      C: #M12(new)
         declaredFields
-          foo: #M13
+          foo: #M13(new)
         declaredGetters
-          foo: #M14
+          foo: #M14(new)
         declaredSetters
-          foo=: #M15
-        interface: #M16
+          foo=: #M15(new)
+        interface: #M16(new)
           map
-            foo: #M14
-            foo=: #M15
+            foo: #M14(new)
+            foo=: #M15(new)
           implemented
-            foo: #M14
-            foo=: #M15
-    exportMapId: #M17
+            foo: #M14(new)
+            foo=: #M15(new)
+    exportMapId: #M17(new)
     exportMap
       A: #M0
-      B: #M10
-      C: #M12
+      B: #M10(new)
+      C: #M12(new)
 ''',
     );
   }
@@ -64608,13 +64608,13 @@ class const A(int foo, int bar) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
-          a: #M5
+          a: #M5(new)
             flags: hasImplicitType hasInitializer isFinal isOriginDeclaration isTypeInferredFromInitializer
             type: int @ dart:core
             constInitializer
@@ -64686,7 +64686,7 @@ class const A(int foo) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isSimplyBounded
@@ -64700,7 +64700,7 @@ class const A(int foo) {
               tokenLengthList: [3]
               elementIndexList
                 2 = formalParameter 0
-          b: #M5
+          b: #M5(new)
             flags: hasImplicitType hasInitializer isFinal isOriginDeclaration isTypeInferredFromInitializer
             type: int @ dart:core
             constInitializer
@@ -64710,16 +64710,16 @@ class const A(int foo) {
           a: #M2
             flags: isOriginVariable isSimplyBounded
             returnType: int @ dart:core
-          b: #M6
+          b: #M6(new)
             flags: isOriginVariable isSimplyBounded
             returnType: int @ dart:core
-        interface: #M7
+        interface: #M7(new)
           map
             a: #M2
-            b: #M6
+            b: #M6(new)
           implemented
             a: #M2
-            b: #M6
+            b: #M6(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -64762,18 +64762,18 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
-          a: #M5
+          a: #M5(new)
         declaredGetters
-          a: #M6
-        interface: #M7
+          a: #M6(new)
+        interface: #M7(new)
           map
-            a: #M6
+            a: #M6(new)
           implemented
-            a: #M6
+            a: #M6(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -64866,11 +64866,11 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
-          a: #M5
+          a: #M5(new)
         declaredGetters
           a: #M2
         interface: #M3
@@ -64979,27 +64979,27 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
-          a: #M9
+          a: #M9(new)
           b: #M2
         declaredGetters
-          a: #M10
+          a: #M10(new)
           b: #M4
         declaredSetters
-          a=: #M11
+          a=: #M11(new)
           b=: #M6
-        interface: #M12
+        interface: #M12(new)
           map
-            a: #M10
-            a=: #M11
+            a: #M10(new)
+            a=: #M11(new)
             b: #M4
             b=: #M6
           implemented
-            a: #M10
-            a=: #M11
+            a: #M10(new)
+            a=: #M11(new)
             b: #M4
             b=: #M6
     exportMapId: #M8
@@ -65053,22 +65053,22 @@ class A(int p) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
-          x: #M7
+          x: #M7(new)
         declaredGetters
-          x: #M8
-        interface: #M9
+          x: #M8(new)
+        interface: #M9(new)
           map
-            x: #M8
+            x: #M8(new)
           implemented
-            x: #M8
+            x: #M8(new)
     declaredGetters
       p: #M4
     declaredVariables
-      p: #M10
+      p: #M10(new)
     exportMapId: #M6
     exportMap
       A: #M0
@@ -65121,7 +65121,7 @@ class A<T> {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -65136,7 +65136,7 @@ class A<T> {
     declaredGetters
       T: #M4
     declaredVariables
-      T: #M7
+      T: #M7(new)
     exportMapId: #M6
     exportMap
       A: #M0
@@ -65221,7 +65221,7 @@ class A<T> {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isSimplyBounded
@@ -65236,10 +65236,10 @@ class A<T> {
           foo2: #M2
             flags: isFinal isOriginDeclaration
             type: int? @ dart:core
-          foo3: #M11
+          foo3: #M11(new)
             flags: isFinal isOriginDeclaration
             type: int? @ dart:core
-          foo4: #M12
+          foo4: #M12(new)
             flags: hasEnclosingTypeParameterReference isFinal isOriginDeclaration
             type: typeParameter#0?
         declaredGetters
@@ -65249,23 +65249,23 @@ class A<T> {
           foo2: #M6
             flags: isOriginVariable isSimplyBounded
             returnType: int? @ dart:core
-          foo3: #M13
+          foo3: #M13(new)
             flags: isOriginVariable isSimplyBounded
             returnType: int? @ dart:core
-          foo4: #M14
+          foo4: #M14(new)
             flags: hasEnclosingTypeParameterReference isOriginVariable isSimplyBounded
             returnType: typeParameter#0?
-        interface: #M15
+        interface: #M15(new)
           map
             foo1: #M5
             foo2: #M6
-            foo3: #M13
-            foo4: #M14
+            foo3: #M13(new)
+            foo4: #M14(new)
           implemented
             foo1: #M5
             foo2: #M6
-            foo3: #M13
-            foo4: #M14
+            foo3: #M13(new)
+            foo4: #M14(new)
     exportMapId: #M10
     exportMap
       A: #M0
@@ -65346,7 +65346,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isSimplyBounded
@@ -65358,10 +65358,10 @@ class A {
           foo2: #M2
             flags: hasInitializer isFinal isOriginDeclaration
             type: int @ dart:core
-          foo3: #M11
+          foo3: #M11(new)
             flags: hasInitializer isFinal isOriginDeclaration
             type: int @ dart:core
-          foo4: #M12
+          foo4: #M12(new)
             flags: hasImplicitType hasInitializer isFinal isOriginDeclaration isTypeInferredFromInitializer
             type: int @ dart:core
         declaredGetters
@@ -65468,7 +65468,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isSimplyBounded
@@ -65480,10 +65480,10 @@ class A {
           foo2: #M2
             flags: isFinal isOriginDeclaration
             type: int? @ dart:core
-          foo3: #M11
+          foo3: #M11(new)
             flags: isFinal isOriginDeclaration
             type: int? @ dart:core
-          foo4: #M12
+          foo4: #M12(new)
             flags: hasInitializer isFinal isOriginDeclaration
             type: int? @ dart:core
         declaredGetters
@@ -65619,7 +65619,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: hasNonFinalField isSimplyBounded
@@ -65631,10 +65631,10 @@ class A {
           foo2: #M2
             flags: isOriginDeclaration
             type: int? @ dart:core
-          foo3: #M15
+          foo3: #M15(new)
             flags: isOriginDeclaration
             type: int? @ dart:core
-          foo4: #M16
+          foo4: #M16(new)
             flags: isAbstract isOriginDeclaration
             type: int? @ dart:core
         declaredGetters
@@ -65644,10 +65644,10 @@ class A {
           foo2: #M6
             flags: isOriginVariable isSimplyBounded
             returnType: int? @ dart:core
-          foo3: #M17
+          foo3: #M17(new)
             flags: isOriginVariable isSimplyBounded
             returnType: int? @ dart:core
-          foo4: #M18
+          foo4: #M18(new)
             flags: isAbstract isOriginVariable isSimplyBounded
             returnType: int? @ dart:core
         declaredSetters
@@ -65663,33 +65663,33 @@ class A {
               positional
                 required int? @ dart:core
               returnType: void
-          foo3=: #M19
+          foo3=: #M19(new)
             flags: isOriginVariable isSimplyBounded
             functionType: FunctionType
               positional
                 required int? @ dart:core
               returnType: void
-          foo4=: #M20
+          foo4=: #M20(new)
             flags: isAbstract isOriginVariable isSimplyBounded
             functionType: FunctionType
               positional
                 required int? @ dart:core
               returnType: void
-        interface: #M21
+        interface: #M21(new)
           map
             foo1: #M5
             foo1=: #M9
             foo2: #M6
             foo2=: #M10
-            foo3: #M17
-            foo3=: #M19
-            foo4: #M18
-            foo4=: #M20
+            foo3: #M17(new)
+            foo3=: #M19(new)
+            foo4: #M18(new)
+            foo4=: #M20(new)
           implemented
             foo2: #M6
             foo2=: #M10
-            foo3: #M17
-            foo3=: #M19
+            foo3: #M17(new)
+            foo3=: #M19(new)
     exportMapId: #M14
     exportMap
       A: #M0
@@ -65736,13 +65736,13 @@ class C {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       C: #M0
         declaredFields
           a: #M1
-          b: #M9
-          c: #M10
+          b: #M9(new)
+          c: #M10(new)
         declaredGetters
           a: #M4
           b: #M5
@@ -65861,7 +65861,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: hasNonFinalField isSimplyBounded
@@ -65873,10 +65873,10 @@ class A {
           foo2: #M2
             flags: isOriginDeclaration
             type: int? @ dart:core
-          foo3: #M15
+          foo3: #M15(new)
             flags: isOriginDeclaration
             type: int? @ dart:core
-          foo4: #M16
+          foo4: #M16(new)
             flags: isCovariant isOriginDeclaration
             type: int? @ dart:core
         declaredGetters
@@ -65905,37 +65905,37 @@ class A {
               positional
                 required int? @ dart:core
               returnType: void
-          foo3=: #M17
+          foo3=: #M17(new)
             flags: isOriginVariable isSimplyBounded
             functionType: FunctionType
               positional
                 required int? @ dart:core
               returnType: void
-          foo4=: #M18
+          foo4=: #M18(new)
             flags: isOriginVariable isSimplyBounded
             functionType: FunctionType
               positional
                 required int? @ dart:core
               returnType: void
-        interface: #M19
+        interface: #M19(new)
           map
             foo1: #M5
             foo1=: #M9
             foo2: #M6
             foo2=: #M10
             foo3: #M7
-            foo3=: #M17
+            foo3=: #M17(new)
             foo4: #M8
-            foo4=: #M18
+            foo4=: #M18(new)
           implemented
             foo1: #M5
             foo1=: #M9
             foo2: #M6
             foo2=: #M10
             foo3: #M7
-            foo3=: #M17
+            foo3=: #M17(new)
             foo4: #M8
-            foo4=: #M18
+            foo4=: #M18(new)
     exportMapId: #M14
     exportMap
       A: #M0
@@ -66016,7 +66016,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isSimplyBounded
@@ -66028,10 +66028,10 @@ class A {
           foo2: #M2
             flags: isFinal isOriginDeclaration
             type: int? @ dart:core
-          foo3: #M11
+          foo3: #M11(new)
             flags: isFinal isOriginDeclaration
             type: int? @ dart:core
-          foo4: #M12
+          foo4: #M12(new)
             flags: isExternal isFinal isOriginDeclaration
             type: int? @ dart:core
         declaredGetters
@@ -66116,29 +66116,29 @@ class C {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       C: #M0
         declaredFields
           a: #M1
-          b: #M10
-          c: #M11
+          b: #M10(new)
+          c: #M11(new)
         declaredGetters
           a: #M4
           b: #M5
           c: #M6
         declaredSetters
-          b=: #M12
-        interface: #M13
+          b=: #M12(new)
+        interface: #M13(new)
           map
             a: #M4
             b: #M5
-            b=: #M12
+            b=: #M12(new)
             c: #M6
           implemented
             a: #M4
             b: #M5
-            b=: #M12
+            b=: #M12(new)
             c: #M6
     exportMapId: #M9
     exportMap
@@ -66194,13 +66194,13 @@ class C {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       C: #M0
         declaredFields
           a: #M1
-          b: #M9
-          c: #M10
+          b: #M9(new)
+          c: #M10(new)
         declaredGetters
           a: #M4
           b: #M5
@@ -66313,7 +66313,7 @@ class B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isSimplyBounded
@@ -66325,10 +66325,10 @@ class B {
           _foo2: #M2
             flags: isFinal isOriginDeclaration
             type: int? @ dart:core
-          _foo3: #M17
+          _foo3: #M17(new)
             flags: isFinal isOriginDeclaration
             type: int? @ dart:core
-          _foo4: #M18
+          _foo4: #M18(new)
             flags: isFinal isOriginDeclaration isPromotable
             type: int? @ dart:core
         declaredGetters
@@ -66352,14 +66352,14 @@ class B {
           _foo2: #M11
             flags: isOriginGetterSetter
             type: int? @ dart:core
-          _foo3: #M19
+          _foo3: #M19(new)
             flags: isOriginGetterSetter
             type: int? @ dart:core
         declaredGetters
           _foo2: #M13
             flags: isAbstract isOriginDeclaration isSimplyBounded
             returnType: int? @ dart:core
-          _foo3: #M20
+          _foo3: #M20(new)
             flags: isAbstract isOriginDeclaration isSimplyBounded
             returnType: int? @ dart:core
         interface: #M15
@@ -66440,7 +66440,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isSimplyBounded
@@ -66452,10 +66452,10 @@ class A {
           foo2: #M2
             flags: isFinal isOriginDeclaration
             type: int? @ dart:core
-          foo3: #M11
+          foo3: #M11(new)
             flags: isFinal isOriginDeclaration
             type: int? @ dart:core
-          foo4: #M12
+          foo4: #M12(new)
             flags: isFinal isOriginDeclaration isStatic
             type: int? @ dart:core
         declaredGetters
@@ -66465,19 +66465,19 @@ class A {
           foo2: #M6
             flags: isOriginVariable isSimplyBounded
             returnType: int? @ dart:core
-          foo3: #M13
+          foo3: #M13(new)
             flags: isOriginVariable isSimplyBounded
             returnType: int? @ dart:core
-          foo4: #M14
+          foo4: #M14(new)
             flags: isOriginVariable isSimplyBounded isStatic
             returnType: int? @ dart:core
-        interface: #M15
+        interface: #M15(new)
           map
             foo2: #M6
-            foo3: #M13
+            foo3: #M13(new)
           implemented
             foo2: #M6
-            foo3: #M13
+            foo3: #M13(new)
     exportMapId: #M10
     exportMap
       A: #M0
@@ -66558,7 +66558,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isSimplyBounded
@@ -66570,10 +66570,10 @@ class A {
           foo2: #M2
             flags: isFinal isOriginDeclaration
             type: int? @ dart:core
-          foo3: #M11
+          foo3: #M11(new)
             flags: isFinal isOriginDeclaration
             type: int? @ dart:core
-          foo4: #M12
+          foo4: #M12(new)
             flags: isOriginGetterSetter
             type: int? @ dart:core
         declaredGetters
@@ -66583,23 +66583,23 @@ class A {
           foo2: #M6
             flags: isOriginVariable isSimplyBounded
             returnType: int? @ dart:core
-          foo3: #M13
+          foo3: #M13(new)
             flags: isOriginVariable isSimplyBounded
             returnType: int? @ dart:core
-          foo4: #M14
+          foo4: #M14(new)
             flags: isOriginDeclaration isSimplyBounded
             returnType: int? @ dart:core
-        interface: #M15
+        interface: #M15(new)
           map
             foo1: #M5
             foo2: #M6
-            foo3: #M13
-            foo4: #M14
+            foo3: #M13(new)
+            foo4: #M14(new)
           implemented
             foo1: #M5
             foo2: #M6
-            foo3: #M13
-            foo4: #M14
+            foo3: #M13(new)
+            foo4: #M14(new)
     exportMapId: #M10
     exportMap
       A: #M0
@@ -66639,20 +66639,20 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
           _a: #M1
-          b: #M5
+          b: #M5(new)
         declaredGetters
           _a: #M2
-          b: #M6
-        interface: #M7
+          b: #M6(new)
+        interface: #M7(new)
           map
-            b: #M6
+            b: #M6(new)
           implemented
-            b: #M6
+            b: #M6(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -66692,15 +66692,15 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
           _a: #M1
-          b: #M5
+          b: #M5(new)
         declaredGetters
           _a: #M2
-          b: #M6
+          b: #M6(new)
         interface: #M3
     exportMapId: #M4
     exportMap
@@ -66743,25 +66743,25 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
           _a: #M1
-          b: #M6
+          b: #M6(new)
         declaredGetters
           _a: #M2
-          b: #M7
+          b: #M7(new)
         declaredSetters
           _a=: #M3
-          b=: #M8
-        interface: #M9
+          b=: #M8(new)
+        interface: #M9(new)
           map
-            b: #M7
-            b=: #M8
+            b: #M7(new)
+            b=: #M8(new)
           implemented
-            b: #M7
-            b=: #M8
+            b: #M7(new)
+            b=: #M8(new)
     exportMapId: #M5
     exportMap
       A: #M0
@@ -66808,22 +66808,22 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
-          a: #M6
+          a: #M6(new)
         declaredGetters
-          a: #M7
+          a: #M7(new)
         declaredSetters
-          a=: #M8
-        interface: #M9
+          a=: #M8(new)
+        interface: #M9(new)
           map
-            a: #M7
-            a=: #M8
+            a: #M7(new)
+            a=: #M8(new)
           implemented
-            a: #M7
-            a=: #M8
+            a: #M7(new)
+            a=: #M8(new)
     exportMapId: #M5
     exportMap
       A: #M0
@@ -66883,36 +66883,36 @@ class B extends A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M7(new)
           foo: #M1
         declaredGetters
-          bar: #M8
+          bar: #M8(new)
           foo: #M2
-        interface: #M9
+        interface: #M9(new)
           map
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
           implemented
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
       B: #M4
-        interface: #M10
+        interface: #M10(new)
           map
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
           implemented
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
           superImplemented
             [0]
-              bar: #M8
+              bar: #M8(new)
               foo: #M2
           inherited
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
     exportMapId: #M6
     exportMap
@@ -66974,36 +66974,36 @@ class B extends A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M7(new)
           foo: #M1
         declaredGetters
-          bar: #M8
+          bar: #M8(new)
           foo: #M2
-        interface: #M9
+        interface: #M9(new)
           map
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
           implemented
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
       B: #M4
-        interface: #M10
+        interface: #M10(new)
           map
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
           implemented
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
           superImplemented
             [0]
-              bar: #M8
+              bar: #M8(new)
               foo: #M2
           inherited
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
     exportMapId: #M6
     exportMap
@@ -67060,29 +67060,29 @@ class B implements A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M7(new)
           foo: #M1
         declaredGetters
-          bar: #M8
+          bar: #M8(new)
           foo: #M2
-        interface: #M9
+        interface: #M9(new)
           map
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
           implemented
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
       B: #M4
-        interface: #M10
+        interface: #M10(new)
           map
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
           inherited
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
     exportMapId: #M6
     exportMap
@@ -67139,29 +67139,29 @@ class B implements A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M7(new)
           foo: #M1
         declaredGetters
-          bar: #M8
+          bar: #M8(new)
           foo: #M2
-        interface: #M9
+        interface: #M9(new)
           map
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
           implemented
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
       B: #M4
-        interface: #M10
+        interface: #M10(new)
           map
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
           inherited
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
     exportMapId: #M6
     exportMap
@@ -67223,36 +67223,36 @@ class B with A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M7(new)
           foo: #M1
         declaredGetters
-          bar: #M8
+          bar: #M8(new)
           foo: #M2
-        interface: #M9
+        interface: #M9(new)
           map
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
           implemented
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
       B: #M4
-        interface: #M10
+        interface: #M10(new)
           map
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
           implemented
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
           superImplemented
             [1]
-              bar: #M8
+              bar: #M8(new)
               foo: #M2
           inherited
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
     exportMapId: #M6
     exportMap
@@ -67314,36 +67314,36 @@ class B with A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M7(new)
           foo: #M1
         declaredGetters
-          bar: #M8
+          bar: #M8(new)
           foo: #M2
-        interface: #M9
+        interface: #M9(new)
           map
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
           implemented
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
       B: #M4
-        interface: #M10
+        interface: #M10(new)
           map
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
           implemented
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
           superImplemented
             [1]
-              bar: #M8
+              bar: #M8(new)
               foo: #M2
           inherited
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
     exportMapId: #M6
     exportMap
@@ -67418,7 +67418,7 @@ abstract class C implements A, B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -67438,11 +67438,11 @@ abstract class C implements A, B {
             foo: #M6
       C: #M8
         declaredMethods
-          zzz: #M12
-        interface: #M13
+          zzz: #M12(new)
+        interface: #M13(new)
           map
             foo: #M10
-            zzz: #M12
+            zzz: #M12(new)
           combinedIds
             [#M2, #M6]: #M10
           inherited
@@ -67532,7 +67532,7 @@ abstract class D implements C {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -67552,25 +67552,25 @@ abstract class D implements C {}
             foo: #M6
       C: #M8
         declaredMethods
-          xxx: #M14
-        interface: #M15
+          xxx: #M14(new)
+        interface: #M15(new)
           map
             foo: #M10
-            xxx: #M14
+            xxx: #M14(new)
           combinedIds
             [#M2, #M6]: #M10
           implemented
-            xxx: #M14
+            xxx: #M14(new)
           inherited
             foo: #M10
       D: #M11
-        interface: #M16
+        interface: #M16(new)
           map
             foo: #M10
-            xxx: #M14
+            xxx: #M14(new)
           inherited
             foo: #M10
-            xxx: #M14
+            xxx: #M14(new)
     exportMapId: #M13
     exportMap
       A: #M0
@@ -67626,27 +67626,27 @@ class C extends B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         interface: #M1
-      B: #M9
-        interface: #M10
-      C: #M11
+      B: #M9(new)
+        interface: #M10(new)
+      C: #M11(new)
         declaredFields
-          foo: #M12
+          foo: #M12(new)
         declaredGetters
-          foo: #M13
-        interface: #M14
+          foo: #M13(new)
+        interface: #M14(new)
           map
-            foo: #M13
+            foo: #M13(new)
           implemented
-            foo: #M13
-    exportMapId: #M15
+            foo: #M13(new)
+    exportMapId: #M15(new)
     exportMap
       A: #M0
-      B: #M9
-      C: #M11
+      B: #M9(new)
+      C: #M11(new)
 ''',
     );
   }
@@ -67692,22 +67692,22 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
-          foo1: #M7
-          foo2: #M8
+          foo1: #M7(new)
+          foo2: #M8(new)
         declaredGetters
-          foo1: #M9
-          foo2: #M10
-        interface: #M11
+          foo1: #M9(new)
+          foo2: #M10(new)
+        interface: #M11(new)
           map
-            foo1: #M9
-            foo2: #M10
+            foo1: #M9(new)
+            foo2: #M10(new)
           implemented
-            foo1: #M9
-            foo2: #M10
+            foo1: #M9(new)
+            foo2: #M10(new)
     exportMapId: #M6
     exportMap
       A: #M0
@@ -67760,7 +67760,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -67768,14 +67768,14 @@ class A {
           foo: #M2
         declaredGetters
           bar: #M3
-          foo: #M7
-        interface: #M8
+          foo: #M7(new)
+        interface: #M8(new)
           map
             bar: #M3
-            foo: #M7
+            foo: #M7(new)
           implemented
             bar: #M3
-            foo: #M7
+            foo: #M7(new)
     exportMapId: #M6
     exportMap
       A: #M0
@@ -67853,7 +67853,7 @@ abstract class A<T> {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isAbstract isSimplyBounded
@@ -67868,10 +67868,10 @@ abstract class A<T> {
           foo2: #M2
             flags: isOriginGetterSetter
             type: int @ dart:core
-          foo3: #M11
+          foo3: #M11(new)
             flags: isOriginGetterSetter
             type: int @ dart:core
-          foo4: #M12
+          foo4: #M12(new)
             flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
         declaredGetters
@@ -67881,18 +67881,18 @@ abstract class A<T> {
           foo2: #M6
             flags: isAbstract isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
-          foo3: #M13
+          foo3: #M13(new)
             flags: isAbstract isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
-          foo4: #M14
+          foo4: #M14(new)
             flags: hasEnclosingTypeParameterReference isAbstract isOriginDeclaration isSimplyBounded
             returnType: typeParameter#0
-        interface: #M15
+        interface: #M15(new)
           map
             foo1: #M5
             foo2: #M6
-            foo3: #M13
-            foo4: #M14
+            foo3: #M13(new)
+            foo4: #M14(new)
     exportMapId: #M10
     exportMap
       A: #M0
@@ -67962,7 +67962,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isSimplyBounded
@@ -67971,31 +67971,31 @@ class A {
           foo1: #M1
             flags: isOriginGetterSetter
             type: dynamic
-          foo2: #M9
+          foo2: #M9(new)
             flags: isOriginGetterSetter
             type: dynamic
-          foo3: #M10
+          foo3: #M10(new)
             flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           foo1: #M4
             flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             returnType: dynamic
-          foo2: #M11
+          foo2: #M11(new)
             flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             returnType: dynamic
-          foo3: #M12
+          foo3: #M12(new)
             flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
-        interface: #M13
+        interface: #M13(new)
           map
             foo1: #M4
-            foo2: #M11
-            foo3: #M12
+            foo2: #M11(new)
+            foo3: #M12(new)
           implemented
             foo1: #M4
-            foo2: #M11
-            foo3: #M12
+            foo2: #M11(new)
+            foo3: #M12(new)
     exportMapId: #M8
     exportMap
       A: #M0
@@ -68139,7 +68139,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isSimplyBounded
@@ -68204,23 +68204,23 @@ class B extends A {
           foo2: #M16
             flags: invokesSuperSelf isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
-          foo3: #M21
+          foo3: #M21(new)
             flags: invokesSuperSelf isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
-          foo4: #M22
+          foo4: #M22(new)
             flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
-        interface: #M23
+        interface: #M23(new)
           map
             foo1: #M15
             foo2: #M16
-            foo3: #M21
-            foo4: #M22
+            foo3: #M21(new)
+            foo4: #M22(new)
           implemented
             foo1: #M15
             foo2: #M16
-            foo3: #M21
-            foo4: #M22
+            foo3: #M21(new)
+            foo4: #M22(new)
           superImplemented
             [0]
               foo1: #M5
@@ -68310,7 +68310,7 @@ abstract class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isAbstract isSimplyBounded
@@ -68335,21 +68335,21 @@ abstract class A {
           foo2: #M6
             flags: isAbstract isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
-          foo3: #M11
+          foo3: #M11(new)
             flags: isAbstract isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
-          foo4: #M12
+          foo4: #M12(new)
             flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
-        interface: #M13
+        interface: #M13(new)
           map
             foo1: #M5
             foo2: #M6
-            foo3: #M11
-            foo4: #M12
+            foo3: #M11(new)
+            foo4: #M12(new)
           implemented
             foo1: #M5
-            foo4: #M12
+            foo4: #M12(new)
     exportMapId: #M10
     exportMap
       A: #M0
@@ -68429,7 +68429,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isSimplyBounded
@@ -68454,23 +68454,23 @@ class A {
           foo2: #M6
             flags: isExternal isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
-          foo3: #M11
+          foo3: #M11(new)
             flags: isExternal isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
-          foo4: #M12
+          foo4: #M12(new)
             flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
-        interface: #M13
+        interface: #M13(new)
           map
             foo1: #M5
             foo2: #M6
-            foo3: #M11
-            foo4: #M12
+            foo3: #M11(new)
+            foo4: #M12(new)
           implemented
             foo1: #M5
             foo2: #M6
-            foo3: #M11
-            foo4: #M12
+            foo3: #M11(new)
+            foo4: #M12(new)
     exportMapId: #M10
     exportMap
       A: #M0
@@ -68546,7 +68546,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isSimplyBounded
@@ -68558,10 +68558,10 @@ class A {
           foo2: #M2
             flags: isOriginGetterSetter isStatic
             type: int @ dart:core
-          foo3: #M11
+          foo3: #M11(new)
             flags: isOriginGetterSetter isStatic
             type: int @ dart:core
-          foo4: #M12
+          foo4: #M12(new)
             flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
@@ -68571,19 +68571,19 @@ class A {
           foo2: #M6
             flags: isOriginDeclaration isSimplyBounded isStatic
             returnType: int @ dart:core
-          foo3: #M13
+          foo3: #M13(new)
             flags: isOriginDeclaration isSimplyBounded isStatic
             returnType: int @ dart:core
-          foo4: #M14
+          foo4: #M14(new)
             flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
-        interface: #M15
+        interface: #M15(new)
           map
             foo1: #M5
-            foo4: #M14
+            foo4: #M14(new)
           implemented
             foo1: #M5
-            foo4: #M14
+            foo4: #M14(new)
     exportMapId: #M10
     exportMap
       A: #M0
@@ -68623,20 +68623,20 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
           _foo: #M1
-          bar: #M5
+          bar: #M5(new)
         declaredGetters
           _foo: #M2
-          bar: #M6
-        interface: #M7
+          bar: #M6(new)
+        interface: #M7(new)
           map
-            bar: #M6
+            bar: #M6(new)
           implemented
-            bar: #M6
+            bar: #M6(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -68676,20 +68676,20 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
           _foo: #M1
-          bar: #M5
+          bar: #M5(new)
         declaredGetters
           _foo: #M2
-          bar: #M6
-        interface: #M7
+          bar: #M6(new)
+        interface: #M7(new)
           map
-            bar: #M6
+            bar: #M6(new)
           implemented
-            bar: #M6
+            bar: #M6(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -68739,24 +68739,24 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
-          foo: #M5
+          foo: #M5(new)
             flags: isOriginGetterSetter
             type: double @ dart:core
         declaredGetters
-          foo: #M6
+          foo: #M6(new)
             flags: isOriginDeclaration isSimplyBounded
             returnType: double @ dart:core
-        interface: #M7
+        interface: #M7(new)
           map
-            foo: #M6
+            foo: #M6(new)
           implemented
-            foo: #M6
+            foo: #M6(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -68796,14 +68796,14 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M5
+          bar: #M5(new)
           foo: #M1
         declaredGetters
-          bar: #M6
+          bar: #M6(new)
           foo: #M2
         interface: #M3
     exportMapId: #M4
@@ -68848,14 +68848,14 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M5
+          foo: #M5(new)
         declaredGetters
-          foo: #M6
-        interface: #M7
+          foo: #M6(new)
+        interface: #M7(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -68894,13 +68894,13 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M5
+          foo: #M5(new)
         declaredGetters
-          foo: #M6
+          foo: #M6(new)
         interface: #M3
     exportMapId: #M4
     exportMap
@@ -68940,18 +68940,18 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M5
+          foo: #M5(new)
         declaredGetters
-          foo: #M6
-        interface: #M7
+          foo: #M6(new)
+        interface: #M7(new)
           map
-            foo: #M6
+            foo: #M6(new)
           implemented
-            foo: #M6
+            foo: #M6(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -68995,17 +68995,17 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M5
-          foo=: #M5
-        interface: #M6
+          foo: #M5(new)
+          foo=: #M5(new)
+        interface: #M6(new)
           map
-            foo: #M5
+            foo: #M5(new)
           implemented
-            foo: #M5
+            foo: #M5(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -69049,17 +69049,17 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M5
-          foo=: #M5
-        interface: #M6
+          foo: #M5(new)
+          foo=: #M5(new)
+        interface: #M6(new)
           map
-            foo: #M5
+            foo: #M5(new)
           implemented
-            foo: #M5
+            foo: #M5(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -69103,17 +69103,17 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M5
-          foo=: #M5
-        interface: #M6
+          foo: #M5(new)
+          foo=: #M5(new)
+        interface: #M6(new)
           map
-            foo: #M5
+            foo: #M5(new)
           implemented
-            foo: #M5
+            foo: #M5(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -69157,17 +69157,17 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M5
-          foo=: #M5
-        interface: #M6
+          foo: #M5(new)
+          foo=: #M5(new)
+        interface: #M6(new)
           map
-            foo: #M5
+            foo: #M5(new)
           implemented
-            foo: #M5
+            foo: #M5(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -69207,12 +69207,12 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M5
-          foo=: #M5
+          foo: #M5(new)
+          foo=: #M5(new)
         interface: #M3
     exportMapId: #M4
     exportMap
@@ -69253,12 +69253,12 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M5
-          foo=: #M5
+          foo: #M5(new)
+          foo=: #M5(new)
         interface: #M3
     exportMapId: #M4
     exportMap
@@ -69342,13 +69342,13 @@ class B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: hasNonFinalField isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
-          a: #M10
+          a: #M10(new)
             flags: isOriginDeclaration
             type: int? @ dart:core
         declaredGetters
@@ -69356,31 +69356,31 @@ class B {
             flags: isOriginVariable isSimplyBounded
             returnType: int? @ dart:core
         declaredSetters
-          a=: #M11
+          a=: #M11(new)
             flags: isOriginVariable isSimplyBounded
             functionType: FunctionType
               positional
                 required int? @ dart:core
               returnType: void
-        interface: #M12
+        interface: #M12(new)
           map
             a: #M2
-            a=: #M11
+            a=: #M11(new)
           implemented
             a: #M2
-            a=: #M11
+            a=: #M11(new)
       B: #M4
         flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
-          a: #M13
+          a: #M13(new)
             flags: isFinal isOriginDeclaration
             type: int? @ dart:core
         declaredGetters
           a: #M6
             flags: isOriginVariable isSimplyBounded
             returnType: int? @ dart:core
-        interface: #M14
+        interface: #M14(new)
           map
             a: #M6
           implemented
@@ -69434,30 +69434,30 @@ abstract class B extends A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M6
+          bar: #M6(new)
           foo: #M1
-        interface: #M7
+        interface: #M7(new)
           map
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
           implemented
-            bar: #M6
+            bar: #M6(new)
       B: #M3
-        interface: #M8
+        interface: #M8(new)
           map
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
           implemented
-            bar: #M6
+            bar: #M6(new)
           superImplemented
             [0]
-              bar: #M6
+              bar: #M6(new)
           inherited
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
     exportMapId: #M5
     exportMap
@@ -69530,7 +69530,7 @@ class X extends S with M {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       S: #M0
         declaredMethods
@@ -69541,7 +69541,7 @@ class X extends S with M {}
           implemented
             foo: #M1
       X: #M3
-        interface: #M9
+        interface: #M9(new)
           map
             foo: #M1
           implemented
@@ -69555,7 +69555,7 @@ class X extends S with M {}
             foo: #M1
     declaredMixins
       M: #M6
-        interface: #M10
+        interface: #M10(new)
     exportMapId: #M8
     exportMap
       M: #M6
@@ -69639,7 +69639,7 @@ class X extends S with M1, M2 {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       S: #M0
         declaredMethods
@@ -69650,12 +69650,12 @@ class X extends S with M1, M2 {}
           implemented
             foo: #M1
       X: #M3
-        interface: #M11
+        interface: #M11(new)
           map
-            bar: #M12
+            bar: #M12(new)
             foo: #M5
           implemented
-            bar: #M12
+            bar: #M12(new)
             foo: #M5
           superImplemented
             [0]
@@ -69663,10 +69663,10 @@ class X extends S with M1, M2 {}
             [1]
               foo: #M5
             [2]
-              bar: #M12
+              bar: #M12(new)
               foo: #M5
           inherited
-            bar: #M12
+            bar: #M12(new)
             foo: #M5
     declaredMixins
       M1: #M6
@@ -69679,12 +69679,12 @@ class X extends S with M1, M2 {}
             foo: #M5
       M2: #M8
         declaredMethods
-          bar: #M12
-        interface: #M13
+          bar: #M12(new)
+        interface: #M13(new)
           map
-            bar: #M12
+            bar: #M12(new)
           implemented
-            bar: #M12
+            bar: #M12(new)
     exportMapId: #M10
     exportMap
       M1: #M6
@@ -69743,33 +69743,33 @@ class B extends A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M6
+          bar: #M6(new)
           foo: #M1
-        interface: #M7
+        interface: #M7(new)
           map
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
           implemented
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
       B: #M3
-        interface: #M8
+        interface: #M8(new)
           map
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
           implemented
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
           superImplemented
             [0]
-              bar: #M6
+              bar: #M6(new)
               foo: #M1
           inherited
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
     exportMapId: #M5
     exportMap
@@ -69833,35 +69833,35 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M7
+          bar: #M7(new)
           foo: #M1
-        interface: #M8
+        interface: #M8(new)
           map
-            bar: #M7
+            bar: #M7(new)
             foo: #M1
           implemented
-            bar: #M7
+            bar: #M7(new)
             foo: #M1
       B: #M3
         declaredMethods
           foo: #M4
-        interface: #M9
+        interface: #M9(new)
           map
-            bar: #M7
+            bar: #M7(new)
             foo: #M4
           implemented
-            bar: #M7
+            bar: #M7(new)
             foo: #M4
           superImplemented
             [0]
-              bar: #M7
+              bar: #M7(new)
               foo: #M1
           inherited
-            bar: #M7
+            bar: #M7(new)
             foo: #M1
     exportMapId: #M6
     exportMap
@@ -69906,11 +69906,11 @@ class B extends A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          _bar: #M6
+          _bar: #M6(new)
           _foo: #M1
         interface: #M2
       B: #M3
@@ -69951,15 +69951,15 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
-      A: #M5
-        interface: #M6
+      A: #M5(new)
+        interface: #M6(new)
       B: #M2
         interface: #M3
-    exportMapId: #M7
+    exportMapId: #M7(new)
     exportMap
-      A: #M5
+      A: #M5(new)
       B: #M2
 ''',
     );
@@ -69993,15 +69993,15 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
-      A: #M5
-        interface: #M6
+      A: #M5(new)
+        interface: #M6(new)
       B: #M2
         interface: #M3
-    exportMapId: #M7
+    exportMapId: #M7(new)
     exportMap
-      A: #M5
+      A: #M5(new)
       B: #M2
 ''',
     );
@@ -70040,17 +70040,17 @@ class C {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
-      A: #M7
-        interface: #M8
+      A: #M7(new)
+        interface: #M8(new)
       B: #M2
         interface: #M3
       C: #M4
         interface: #M5
-    exportMapId: #M9
+    exportMapId: #M9(new)
     exportMap
-      A: #M7
+      A: #M7(new)
       B: #M2
       C: #M4
 ''',
@@ -70089,16 +70089,16 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         interface: #M1
-      B: #M5
-        interface: #M6
-    exportMapId: #M7
+      B: #M5(new)
+        interface: #M6(new)
+    exportMapId: #M7(new)
     exportMap
       A: #M0
-      B: #M5
+      B: #M5(new)
 ''',
     );
   }
@@ -70135,17 +70135,17 @@ class A<T> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
-      A: #M5
-        interface: #M6
+      A: #M5(new)
+        interface: #M6(new)
     declaredGetters
       T: #M2
     declaredVariables
-      T: #M7
-    exportMapId: #M8
+      T: #M7(new)
+    exportMapId: #M8(new)
     exportMap
-      A: #M5
+      A: #M5(new)
       T: #M2
 ''',
     );
@@ -70185,18 +70185,18 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M4
+          bar: #M4(new)
           foo: #M1
-        interface: #M5
+        interface: #M5(new)
           map
-            bar: #M4
+            bar: #M4(new)
             foo: #M1
           implemented
-            bar: #M4
+            bar: #M4(new)
             foo: #M1
     exportMapId: #M3
     exportMap
@@ -70255,33 +70255,33 @@ class B extends A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M6
+          bar: #M6(new)
           foo: #M1
-        interface: #M7
+        interface: #M7(new)
           map
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
           implemented
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
       B: #M3
-        interface: #M8
+        interface: #M8(new)
           map
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
           implemented
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
           superImplemented
             [0]
-              bar: #M6
+              bar: #M6(new)
               foo: #M1
           inherited
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
     exportMapId: #M5
     exportMap
@@ -70341,33 +70341,33 @@ class B extends A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M6
+          bar: #M6(new)
           foo: #M1
-        interface: #M7
+        interface: #M7(new)
           map
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
           implemented
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
       B: #M3
-        interface: #M8
+        interface: #M8(new)
           map
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
           implemented
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
           superImplemented
             [0]
-              bar: #M6
+              bar: #M6(new)
               foo: #M1
           inherited
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
     exportMapId: #M5
     exportMap
@@ -70443,48 +70443,48 @@ class C extends B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M8
+          bar: #M8(new)
           foo: #M1
-        interface: #M9
+        interface: #M9(new)
           map
-            bar: #M8
+            bar: #M8(new)
             foo: #M1
           implemented
-            bar: #M8
+            bar: #M8(new)
             foo: #M1
       B: #M3
-        interface: #M10
+        interface: #M10(new)
           map
-            bar: #M8
+            bar: #M8(new)
             foo: #M1
           implemented
-            bar: #M8
+            bar: #M8(new)
             foo: #M1
           superImplemented
             [0]
-              bar: #M8
+              bar: #M8(new)
               foo: #M1
           inherited
-            bar: #M8
+            bar: #M8(new)
             foo: #M1
       C: #M5
-        interface: #M11
+        interface: #M11(new)
           map
-            bar: #M8
+            bar: #M8(new)
             foo: #M1
           implemented
-            bar: #M8
+            bar: #M8(new)
             foo: #M1
           superImplemented
             [0]
-              bar: #M8
+              bar: #M8(new)
               foo: #M1
           inherited
-            bar: #M8
+            bar: #M8(new)
             foo: #M1
     exportMapId: #M7
     exportMap
@@ -70540,26 +70540,26 @@ class B implements A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M6
+          bar: #M6(new)
           foo: #M1
-        interface: #M7
+        interface: #M7(new)
           map
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
           implemented
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
       B: #M3
-        interface: #M8
+        interface: #M8(new)
           map
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
           inherited
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
     exportMapId: #M5
     exportMap
@@ -70614,26 +70614,26 @@ class B implements A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M6
+          bar: #M6(new)
           foo: #M1
-        interface: #M7
+        interface: #M7(new)
           map
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
           implemented
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
       B: #M3
-        interface: #M8
+        interface: #M8(new)
           map
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
           inherited
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
     exportMapId: #M5
     exportMap
@@ -70693,33 +70693,33 @@ class B with A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M6
+          bar: #M6(new)
           foo: #M1
-        interface: #M7
+        interface: #M7(new)
           map
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
           implemented
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
       B: #M3
-        interface: #M8
+        interface: #M8(new)
           map
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
           implemented
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
           superImplemented
             [1]
-              bar: #M6
+              bar: #M6(new)
               foo: #M1
           inherited
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
     exportMapId: #M5
     exportMap
@@ -70779,33 +70779,33 @@ class B with A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M6
+          bar: #M6(new)
           foo: #M1
-        interface: #M7
+        interface: #M7(new)
           map
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
           implemented
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
       B: #M3
-        interface: #M8
+        interface: #M8(new)
           map
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
           implemented
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
           superImplemented
             [1]
-              bar: #M6
+              bar: #M6(new)
               foo: #M1
           inherited
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
     exportMapId: #M5
     exportMap
@@ -70866,7 +70866,7 @@ abstract class C implements A, B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -70875,9 +70875,9 @@ abstract class C implements A, B {}
           map
             foo: #M1
       B: #M3
-        interface: #M9
+        interface: #M9(new)
       C: #M6
-        interface: #M10
+        interface: #M10(new)
           map
             foo: #M1
           inherited
@@ -70961,14 +70961,14 @@ abstract class D implements C {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M12
-        interface: #M13
+          foo: #M12(new)
+        interface: #M13(new)
           map
-            foo: #M12
+            foo: #M12(new)
       B: #M3
         declaredMethods
           foo: #M4
@@ -70976,15 +70976,15 @@ abstract class D implements C {}
           map
             foo: #M4
       C: #M6
-        interface: #M14
+        interface: #M14(new)
           map
-            foo: #M15
+            foo: #M15(new)
           combinedIds
-            [#M12, #M4]: #M15
+            [#M12(new), #M4]: #M15(new)
           inherited
             foo: #M4
       D: #M9
-        interface: #M16
+        interface: #M16(new)
           map
             foo: #M4
           inherited
@@ -71059,7 +71059,7 @@ abstract class C implements A, B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -71070,21 +71070,21 @@ abstract class C implements A, B {}
       B: #M3
         declaredMethods
           foo: #M4
-          zzz: #M10
-        interface: #M11
+          zzz: #M10(new)
+        interface: #M11(new)
           map
             foo: #M4
-            zzz: #M10
+            zzz: #M10(new)
       C: #M6
-        interface: #M12
+        interface: #M12(new)
           map
             foo: #M8
-            zzz: #M10
+            zzz: #M10(new)
           combinedIds
             [#M1, #M4]: #M8
           inherited
             foo: #M8
-            zzz: #M10
+            zzz: #M10(new)
     exportMapId: #M9
     exportMap
       A: #M0
@@ -71166,7 +71166,7 @@ abstract class D implements A, B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -71181,24 +71181,24 @@ abstract class D implements A, B {
           map
             foo: #M4
       C: #M6
-        interface: #M12
+        interface: #M12(new)
           map
             foo: #M8
-            xxx: #M13
+            xxx: #M13(new)
           inherited
             foo: #M8
-            xxx: #M13
+            xxx: #M13(new)
       D: #M9
         declaredMethods
-          xxx: #M13
-        interface: #M14
+          xxx: #M13(new)
+        interface: #M14(new)
           map
             foo: #M8
-            xxx: #M13
+            xxx: #M13(new)
           combinedIds
             [#M1, #M4]: #M8
           implemented
-            xxx: #M13
+            xxx: #M13(new)
           inherited
             foo: #M8
     exportMapId: #M11
@@ -71283,7 +71283,7 @@ abstract class D implements C {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -71299,25 +71299,25 @@ abstract class D implements C {}
             foo: #M4
       C: #M6
         declaredMethods
-          xxx: #M12
-        interface: #M13
+          xxx: #M12(new)
+        interface: #M13(new)
           map
             foo: #M8
-            xxx: #M12
+            xxx: #M12(new)
           combinedIds
             [#M1, #M4]: #M8
           implemented
-            xxx: #M12
+            xxx: #M12(new)
           inherited
             foo: #M8
       D: #M9
-        interface: #M14
+        interface: #M14(new)
           map
             foo: #M8
-            xxx: #M12
+            xxx: #M12(new)
           inherited
             foo: #M8
-            xxx: #M12
+            xxx: #M12(new)
     exportMapId: #M11
     exportMap
       A: #M0
@@ -71385,10 +71385,10 @@ abstract class C implements A, B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
-        interface: #M10
+        interface: #M10(new)
       B: #M3
         declaredMethods
           foo: #M4
@@ -71396,7 +71396,7 @@ abstract class C implements A, B {}
           map
             foo: #M4
       C: #M6
-        interface: #M11
+        interface: #M11(new)
           map
             foo: #M4
           inherited
@@ -71476,7 +71476,7 @@ abstract class D implements B, C {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -71498,13 +71498,13 @@ abstract class D implements B, C {
             foo: #M1
       D: #M7
         declaredMethods
-          zzz: #M10
-        interface: #M11
+          zzz: #M10(new)
+        interface: #M11(new)
           map
             foo: #M1
-            zzz: #M10
+            zzz: #M10(new)
           implemented
-            zzz: #M10
+            zzz: #M10(new)
           inherited
             foo: #M1
     exportMapId: #M9
@@ -71576,7 +71576,7 @@ abstract class C implements A, B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -71586,18 +71586,18 @@ abstract class C implements A, B {}
             foo: #M1
       B: #M3
         declaredMethods
-          foo: #M10
-        interface: #M11
+          foo: #M10(new)
+        interface: #M11(new)
           map
-            foo: #M10
+            foo: #M10(new)
       C: #M6
-        interface: #M12
+        interface: #M12(new)
           map
-            foo: #M13
+            foo: #M13(new)
           combinedIds
-            [#M1, #M10]: #M13
+            [#M1, #M10(new)]: #M13(new)
           inherited
-            foo: #M10
+            foo: #M10(new)
     exportMapId: #M9
     exportMap
       A: #M0
@@ -71641,18 +71641,18 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M4
+          bar: #M4(new)
           foo: #M1
-        interface: #M5
+        interface: #M5(new)
           map
-            bar: #M4
+            bar: #M4(new)
             foo: #M1
           implemented
-            bar: #M4
+            bar: #M4(new)
             foo: #M1
     exportMapId: #M3
     exportMap
@@ -71745,18 +71745,18 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M4
+          bar: #M4(new)
           foo: #M1
-        interface: #M5
+        interface: #M5(new)
           map
-            bar: #M4
+            bar: #M4(new)
             foo: #M1
           implemented
-            bar: #M4
+            bar: #M4(new)
             foo: #M1
     exportMapId: #M3
     exportMap
@@ -71807,18 +71807,18 @@ class B<U> {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         interface: #M1
       B: #M2
         declaredMethods
-          foo: #M6
-        interface: #M7
+          foo: #M6(new)
+        interface: #M7(new)
           map
-            foo: #M6
+            foo: #M6(new)
           implemented
-            foo: #M6
+            foo: #M6(new)
     exportMapId: #M5
     exportMap
       A: #M0
@@ -71870,20 +71870,20 @@ class B<U> {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         interface: #M1
       B: #M2
         declaredMethods
-          bar: #M6
+          bar: #M6(new)
           foo: #M3
-        interface: #M7
+        interface: #M7(new)
           map
-            bar: #M6
+            bar: #M6(new)
             foo: #M3
           implemented
-            bar: #M6
+            bar: #M6(new)
             foo: #M3
     exportMapId: #M5
     exportMap
@@ -71927,18 +71927,18 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M4
+          bar: #M4(new)
           foo: #M1
-        interface: #M5
+        interface: #M5(new)
           map
-            bar: #M4
+            bar: #M4(new)
             foo: #M1
           implemented
-            bar: #M4
+            bar: #M4(new)
             foo: #M1
     exportMapId: #M3
     exportMap
@@ -71980,16 +71980,16 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M4
-        interface: #M5
+          foo: #M4(new)
+        interface: #M5(new)
           map
-            foo: #M4
+            foo: #M4(new)
           implemented
-            foo: #M4
+            foo: #M4(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -72088,23 +72088,23 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredMethods
-          foo: #M4
+          foo: #M4(new)
             flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               named
                 a: required double @ dart:core
               returnType: void
-        interface: #M5
+        interface: #M5(new)
           map
-            foo: #M4
+            foo: #M4(new)
           implemented
-            foo: #M4
+            foo: #M4(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -72146,18 +72146,18 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M4
+          bar: #M4(new)
           foo: #M1
-        interface: #M5
+        interface: #M5(new)
           map
-            bar: #M4
+            bar: #M4(new)
             foo: #M1
           implemented
-            bar: #M4
+            bar: #M4(new)
             foo: #M1
     exportMapId: #M3
     exportMap
@@ -72214,25 +72214,25 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
           foo1: #M1
           foo2: #M2
-          foo3: #M7
-          foo4: #M8
-        interface: #M9
+          foo3: #M7(new)
+          foo4: #M8(new)
+        interface: #M9(new)
           map
             foo1: #M1
             foo2: #M2
-            foo3: #M7
-            foo4: #M8
+            foo3: #M7(new)
+            foo4: #M8(new)
           implemented
             foo1: #M1
             foo2: #M2
-            foo3: #M7
-            foo4: #M8
+            foo3: #M7(new)
+            foo4: #M8(new)
     exportMapId: #M6
     exportMap
       A: #M0
@@ -72288,25 +72288,25 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
           foo1: #M1
           foo2: #M2
-          foo3: #M7
-          foo4: #M8
-        interface: #M9
+          foo3: #M7(new)
+          foo4: #M8(new)
+        interface: #M9(new)
           map
             foo1: #M1
             foo2: #M2
-            foo3: #M7
-            foo4: #M8
+            foo3: #M7(new)
+            foo4: #M8(new)
           implemented
             foo1: #M1
             foo2: #M2
-            foo3: #M7
-            foo4: #M8
+            foo3: #M7(new)
+            foo4: #M8(new)
     exportMapId: #M6
     exportMap
       A: #M0
@@ -72354,7 +72354,7 @@ class A<T> {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -72367,7 +72367,7 @@ class A<T> {
     declaredGetters
       T: #M3
     declaredVariables
-      T: #M6
+      T: #M6(new)
     exportMapId: #M5
     exportMap
       A: #M0
@@ -72459,16 +72459,16 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M4
-        interface: #M5
+          foo: #M4(new)
+        interface: #M5(new)
           map
-            foo: #M4
+            foo: #M4(new)
           implemented
-            foo: #M4
+            foo: #M4(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -72511,16 +72511,16 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M4
-        interface: #M5
+          foo: #M4(new)
+        interface: #M5(new)
           map
-            foo: #M4
+            foo: #M4(new)
           implemented
-            foo: #M4
+            foo: #M4(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -72563,16 +72563,16 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M4
-        interface: #M5
+          foo: #M4(new)
+        interface: #M5(new)
           map
-            foo: #M4
+            foo: #M4(new)
           implemented
-            foo: #M4
+            foo: #M4(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -72615,12 +72615,12 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M4
-        interface: #M5
+          foo: #M4(new)
+        interface: #M5(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -72663,16 +72663,16 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M4
-        interface: #M5
+          foo: #M4(new)
+        interface: #M5(new)
           map
-            foo: #M4
+            foo: #M4(new)
           implemented
-            foo: #M4
+            foo: #M4(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -72715,16 +72715,16 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M4
-        interface: #M5
+          foo: #M4(new)
+        interface: #M5(new)
           map
-            foo: #M4
+            foo: #M4(new)
           implemented
-            foo: #M4
+            foo: #M4(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -72767,12 +72767,12 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M4
-        interface: #M5
+          foo: #M4(new)
+        interface: #M5(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -72811,11 +72811,11 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M4
+          foo: #M4(new)
         interface: #M2
     exportMapId: #M3
     exportMap
@@ -72855,11 +72855,11 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M4
+          foo: #M4(new)
         interface: #M2
     exportMapId: #M3
     exportMap
@@ -72911,25 +72911,25 @@ class C extends B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         interface: #M1
-      B: #M8
-        interface: #M9
-      C: #M10
+      B: #M8(new)
+        interface: #M9(new)
+      C: #M10(new)
         declaredMethods
-          foo: #M11
-        interface: #M12
+          foo: #M11(new)
+        interface: #M12(new)
           map
-            foo: #M11
+            foo: #M11(new)
           implemented
-            foo: #M11
-    exportMapId: #M13
+            foo: #M11(new)
+    exportMapId: #M13(new)
     exportMap
       A: #M0
-      B: #M8
-      C: #M10
+      B: #M8(new)
+      C: #M10(new)
 ''',
     );
   }
@@ -72976,19 +72976,19 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
           bar: #M1
-          foo: #M5
-        interface: #M6
+          foo: #M5(new)
+        interface: #M6(new)
           map
             bar: #M1
-            foo: #M5
+            foo: #M5(new)
           implemented
             bar: #M1
-            foo: #M5
+            foo: #M5(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -73038,20 +73038,20 @@ class A(int p) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M6
-        interface: #M7
+          foo: #M6(new)
+        interface: #M7(new)
           map
-            foo: #M6
+            foo: #M6(new)
           implemented
-            foo: #M6
+            foo: #M6(new)
     declaredGetters
       p: #M3
     declaredVariables
-      p: #M8
+      p: #M8(new)
     exportMapId: #M5
     exportMap
       A: #M0
@@ -73102,7 +73102,7 @@ class A<T> {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -73115,7 +73115,7 @@ class A<T> {
     declaredGetters
       T: #M3
     declaredVariables
-      T: #M6
+      T: #M6(new)
     exportMapId: #M5
     exportMap
       A: #M0
@@ -73185,7 +73185,7 @@ abstract class A<T> {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isAbstract isSimplyBounded
@@ -73202,20 +73202,20 @@ abstract class A<T> {
             flags: isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-          foo3: #M7
+          foo3: #M7(new)
             flags: isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-          foo4: #M8
+          foo4: #M8(new)
             flags: hasEnclosingTypeParameterReference isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: typeParameter#0
-        interface: #M9
+        interface: #M9(new)
           map
             foo1: #M1
             foo2: #M2
-            foo3: #M7
-            foo4: #M8
+            foo3: #M7(new)
+            foo4: #M8(new)
     exportMapId: #M6
     exportMap
       A: #M0
@@ -73278,7 +73278,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isSimplyBounded
@@ -73288,23 +73288,23 @@ class A {
             flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: dynamic
-          foo2: #M6
+          foo2: #M6(new)
             flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: dynamic
-          foo3: #M7
+          foo3: #M7(new)
             flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-        interface: #M8
+        interface: #M8(new)
           map
             foo1: #M1
-            foo2: #M6
-            foo3: #M7
+            foo2: #M6(new)
+            foo3: #M7(new)
           implemented
             foo1: #M1
-            foo2: #M6
-            foo3: #M7
+            foo2: #M6(new)
+            foo3: #M7(new)
     exportMapId: #M5
     exportMap
       A: #M0
@@ -73438,7 +73438,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isSimplyBounded
@@ -73483,25 +73483,25 @@ class B extends A {
             flags: invokesSuperSelf isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-          foo3: #M13
+          foo3: #M13(new)
             flags: invokesSuperSelf isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-          foo4: #M14
+          foo4: #M14(new)
             flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-        interface: #M15
+        interface: #M15(new)
           map
             foo1: #M7
             foo2: #M8
-            foo3: #M13
-            foo4: #M14
+            foo3: #M13(new)
+            foo4: #M14(new)
           implemented
             foo1: #M7
             foo2: #M8
-            foo3: #M13
-            foo4: #M14
+            foo3: #M13(new)
+            foo4: #M14(new)
           superImplemented
             [0]
               foo1: #M1
@@ -73582,7 +73582,7 @@ abstract class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isAbstract isSimplyBounded
@@ -73596,23 +73596,23 @@ abstract class A {
             flags: isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-          foo3: #M7
+          foo3: #M7(new)
             flags: isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-          foo4: #M8
+          foo4: #M8(new)
             flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-        interface: #M9
+        interface: #M9(new)
           map
             foo1: #M1
             foo2: #M2
-            foo3: #M7
-            foo4: #M8
+            foo3: #M7(new)
+            foo4: #M8(new)
           implemented
             foo1: #M1
-            foo4: #M8
+            foo4: #M8(new)
     exportMapId: #M6
     exportMap
       A: #M0
@@ -73683,7 +73683,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isSimplyBounded
@@ -73697,25 +73697,25 @@ class A {
             flags: isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-          foo3: #M7
+          foo3: #M7(new)
             flags: isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-          foo4: #M8
+          foo4: #M8(new)
             flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-        interface: #M9
+        interface: #M9(new)
           map
             foo1: #M1
             foo2: #M2
-            foo3: #M7
-            foo4: #M8
+            foo3: #M7(new)
+            foo4: #M8(new)
           implemented
             foo1: #M1
             foo2: #M2
-            foo3: #M7
-            foo4: #M8
+            foo3: #M7(new)
+            foo4: #M8(new)
     exportMapId: #M6
     exportMap
       A: #M0
@@ -73799,21 +73799,21 @@ abstract class B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isAbstract isSimplyBounded
         supertype: Object @ dart:core
         declaredMethods
-          ==: #M8
+          ==: #M8(new)
             flags: isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required Object? @ dart:core
               returnType: bool @ dart:core
-        interface: #M9
+        interface: #M9(new)
           map
-            ==: #M8
+            ==: #M8(new)
           implemented
             ==: #M3
           superImplemented
@@ -73825,15 +73825,15 @@ abstract class B {
         flags: isAbstract isSimplyBounded
         supertype: Object @ dart:core
         declaredMethods
-          ==: #M10
+          ==: #M10(new)
             flags: isAbstract isOperatorEqualWithParameterTypeFromObject isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required Object @ dart:core
               returnType: bool @ dart:core
-        interface: #M11
+        interface: #M11(new)
           map
-            ==: #M10
+            ==: #M10(new)
           implemented
             ==: #M3
           superImplemented
@@ -73908,7 +73908,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isSimplyBounded
@@ -73922,21 +73922,21 @@ class A {
             flags: isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               returnType: void
-          foo3: #M7
+          foo3: #M7(new)
             flags: isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               returnType: void
-          foo4: #M8
+          foo4: #M8(new)
             flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-        interface: #M9
+        interface: #M9(new)
           map
             foo1: #M1
-            foo4: #M8
+            foo4: #M8(new)
           implemented
             foo1: #M1
-            foo4: #M8
+            foo4: #M8(new)
     exportMapId: #M6
     exportMap
       A: #M0
@@ -74030,21 +74030,21 @@ class C implements A, B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isAbstract isSimplyBounded
         supertype: Object @ dart:core
         declaredMethods
-          foo: #M10
+          foo: #M10(new)
             flags: isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required String @ dart:core
               returnType: void
-        interface: #M11
+        interface: #M11(new)
           map
-            foo: #M10
+            foo: #M10(new)
       B: #M3
         flags: isAbstract isSimplyBounded
         supertype: Object @ dart:core
@@ -74065,18 +74065,18 @@ class C implements A, B {
           A @ package:test/test.dart
           B @ package:test/test.dart
         declaredMethods
-          foo: #M12
+          foo: #M12(new)
             flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required dynamic
               returnType: void
             inferenceError: overrideNoCombinedSuperSignature(A.foo (void Function(String)), B.foo (void Function(int)))
-        interface: #M13
+        interface: #M13(new)
           map
-            foo: #M12
+            foo: #M12(new)
           implemented
-            foo: #M12
+            foo: #M12(new)
     exportMapId: #M9
     exportMap
       A: #M0
@@ -74116,17 +74116,17 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
           _foo: #M1
-          bar: #M4
-        interface: #M5
+          bar: #M4(new)
+        interface: #M5(new)
           map
-            bar: #M4
+            bar: #M4(new)
           implemented
-            bar: #M4
+            bar: #M4(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -74164,17 +74164,17 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
           _foo: #M1
-          bar: #M4
-        interface: #M5
+          bar: #M4(new)
+        interface: #M5(new)
           map
-            bar: #M4
+            bar: #M4(new)
           implemented
-            bar: #M4
+            bar: #M4(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -74219,12 +74219,12 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
           foo: #M2
-        interface: #M5
+        interface: #M5(new)
           map
             foo: #M2
           implemented
@@ -74275,21 +74275,21 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredMethods
-          foo: #M4
+          foo: #M4(new)
             flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: double @ dart:core
-        interface: #M5
+        interface: #M5(new)
           map
-            foo: #M4
+            foo: #M4(new)
           implemented
-            foo: #M4
+            foo: #M4(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -74331,17 +74331,17 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
-        interface: #M5
+          foo: #M4(new)
+          foo=: #M4(new)
+        interface: #M5(new)
           map
-            foo: #M4
+            foo: #M4(new)
           implemented
-            foo: #M4
+            foo: #M4(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -74383,17 +74383,17 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
-        interface: #M5
+          foo: #M4(new)
+          foo=: #M4(new)
+        interface: #M5(new)
           map
-            foo: #M4
+            foo: #M4(new)
           implemented
-            foo: #M4
+            foo: #M4(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -74435,17 +74435,17 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
-        interface: #M5
+          foo: #M4(new)
+          foo=: #M4(new)
+        interface: #M5(new)
           map
-            foo: #M4
+            foo: #M4(new)
           implemented
-            foo: #M4
+            foo: #M4(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -74487,17 +74487,17 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
-        interface: #M5
+          foo: #M4(new)
+          foo=: #M4(new)
+        interface: #M5(new)
           map
-            foo: #M4
+            foo: #M4(new)
           implemented
-            foo: #M4
+            foo: #M4(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -74535,17 +74535,17 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
-        interface: #M5
+          foo: #M4(new)
+          foo=: #M4(new)
+        interface: #M5(new)
           map
-            foo: #M4
+            foo: #M4(new)
           implemented
-            foo: #M4
+            foo: #M4(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -74583,17 +74583,17 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
-        interface: #M5
+          foo: #M4(new)
+          foo=: #M4(new)
+        interface: #M5(new)
           map
-            foo: #M4
+            foo: #M4(new)
           implemented
-            foo: #M4
+            foo: #M4(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -74631,12 +74631,12 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M4(new)
+          foo=: #M4(new)
         interface: #M2
     exportMapId: #M3
     exportMap
@@ -74675,12 +74675,12 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M4
-          foo=: #M4
+          foo: #M4(new)
+          foo=: #M4(new)
         interface: #M2
     exportMapId: #M3
     exportMap
@@ -74770,7 +74770,7 @@ class D with B, C implements A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -74780,12 +74780,12 @@ class D with B, C implements A {}
             foo: #M1
       B: #M3
         declaredMethods
-          foo: #M12
-        interface: #M13
+          foo: #M12(new)
+        interface: #M13(new)
           map
-            foo: #M12
+            foo: #M12(new)
           implemented
-            foo: #M12
+            foo: #M12(new)
           inherited
             foo: #M1
       C: #M6
@@ -74795,20 +74795,20 @@ class D with B, C implements A {}
           inherited
             foo: #M1
       D: #M8
-        interface: #M14
+        interface: #M14(new)
           map
-            foo: #M15
+            foo: #M15(new)
           combinedIds
-            [#M12, #M1]: #M15
+            [#M12(new), #M1]: #M15(new)
           implemented
-            foo: #M12
+            foo: #M12(new)
           superImplemented
             [1]
-              foo: #M12
+              foo: #M12(new)
             [2]
-              foo: #M12
+              foo: #M12(new)
           inherited
-            foo: #M12
+            foo: #M12(new)
     exportMapId: #M11
     exportMap
       A: #M0
@@ -74867,7 +74867,7 @@ class A<T> {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isSimplyBounded
@@ -74876,7 +74876,7 @@ class A<T> {
             bound: <null>
         supertype: Object @ dart:core
         declaredMethods
-          bar: #M4
+          bar: #M4(new)
             flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
@@ -74889,12 +74889,12 @@ class A<T> {
               returnType: Map @ dart:core
                 typeParameter#1
                 typeParameter#0
-        interface: #M5
+        interface: #M5(new)
           map
-            bar: #M4
+            bar: #M4(new)
             foo: #M1
           implemented
-            bar: #M4
+            bar: #M4(new)
             foo: #M1
     exportMapId: #M3
     exportMap
@@ -74936,16 +74936,16 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M4
-        interface: #M5
+          foo: #M4(new)
+        interface: #M5(new)
           map
-            foo: #M4
+            foo: #M4(new)
           implemented
-            foo: #M4
+            foo: #M4(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -74986,16 +74986,16 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M4
-        interface: #M5
+          foo: #M4(new)
+        interface: #M5(new)
           map
-            foo: #M4
+            foo: #M4(new)
           implemented
-            foo: #M4
+            foo: #M4(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -75041,22 +75041,22 @@ class D {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         interface: #M1
       B: #M2
         interface: #M3
-      C: #M9
-        interface: #M10
-      D: #M11
-        interface: #M12
-    exportMapId: #M13
+      C: #M9(new)
+        interface: #M10(new)
+      D: #M11(new)
+        interface: #M12(new)
+    exportMapId: #M13(new)
     exportMap
       A: #M0
       B: #M2
-      C: #M9
-      D: #M11
+      C: #M9(new)
+      D: #M11(new)
 ''',
     );
   }
@@ -75099,22 +75099,22 @@ class D {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         interface: #M1
       B: #M2
         interface: #M3
-      C: #M9
-        interface: #M10
-      D: #M11
-        interface: #M12
-    exportMapId: #M13
+      C: #M9(new)
+        interface: #M10(new)
+      D: #M11(new)
+        interface: #M12(new)
+    exportMapId: #M13(new)
     exportMap
       A: #M0
       B: #M2
-      C: #M9
-      D: #M11
+      C: #M9(new)
+      D: #M11(new)
 ''',
     );
   }
@@ -75168,7 +75168,7 @@ class D {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isSimplyBounded
@@ -75179,21 +75179,21 @@ class D {}
         supertype: Object @ dart:core
         allSubtypes: []
         interface: #M3
-      C: #M9
+      C: #M9(new)
         flags: isFinal isSimplyBounded
         supertype: Object @ dart:core
         allSubtypes: []
-        interface: #M10
-      D: #M11
+        interface: #M10(new)
+      D: #M11(new)
         flags: isSimplyBounded
         supertype: Object @ dart:core
-        interface: #M12
-    exportMapId: #M13
+        interface: #M12(new)
+    exportMapId: #M13(new)
     exportMap
       A: #M0
       B: #M2
-      C: #M9
-      D: #M11
+      C: #M9(new)
+      D: #M11(new)
 ''',
     );
   }
@@ -75236,22 +75236,22 @@ class D {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         interface: #M1
       B: #M2
         interface: #M3
-      C: #M9
-        interface: #M10
-      D: #M11
-        interface: #M12
-    exportMapId: #M13
+      C: #M9(new)
+        interface: #M10(new)
+      D: #M11(new)
+        interface: #M12(new)
+    exportMapId: #M13(new)
     exportMap
       A: #M0
       B: #M2
-      C: #M9
-      D: #M11
+      C: #M9(new)
+      D: #M11(new)
 ''',
     );
   }
@@ -75300,25 +75300,25 @@ mixin M {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         interface: #M1
       B: #M2
         interface: #M3
-      C: #M11
-        interface: #M12
-      D: #M13
-        interface: #M14
+      C: #M11(new)
+        interface: #M12(new)
+      D: #M13(new)
+        interface: #M14(new)
     declaredMixins
       M: #M8
         interface: #M9
-    exportMapId: #M15
+    exportMapId: #M15(new)
     exportMap
       A: #M0
       B: #M2
-      C: #M11
-      D: #M13
+      C: #M11(new)
+      D: #M13(new)
       M: #M8
 ''',
     );
@@ -75362,22 +75362,22 @@ class D {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         interface: #M1
       B: #M2
         interface: #M3
-      C: #M9
-        interface: #M10
-      D: #M11
-        interface: #M12
-    exportMapId: #M13
+      C: #M9(new)
+        interface: #M10(new)
+      D: #M11(new)
+        interface: #M12(new)
+    exportMapId: #M13(new)
     exportMap
       A: #M0
       B: #M2
-      C: #M9
-      D: #M11
+      C: #M9(new)
+      D: #M11(new)
 ''',
     );
   }
@@ -75433,7 +75433,7 @@ class D {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isSimplyBounded
@@ -75445,22 +75445,22 @@ class D {}
         allSubtypes: []
         directSubtypesOfSealed: []
         interface: #M3
-      C: #M9
+      C: #M9(new)
         flags: isAbstract isSealed isSimplyBounded
         supertype: Object @ dart:core
         allSubtypes: []
         directSubtypesOfSealed: []
-        interface: #M10
-      D: #M11
+        interface: #M10(new)
+      D: #M11(new)
         flags: isSimplyBounded
         supertype: Object @ dart:core
-        interface: #M12
-    exportMapId: #M13
+        interface: #M12(new)
+    exportMapId: #M13(new)
     exportMap
       A: #M0
       B: #M2
-      C: #M9
-      D: #M11
+      C: #M9(new)
+      D: #M11(new)
 ''',
     );
   }
@@ -75493,16 +75493,16 @@ class B<T> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
-      A: #M5
-        interface: #M6
-      B: #M7
-        interface: #M8
-    exportMapId: #M9
+      A: #M5(new)
+        interface: #M6(new)
+      B: #M7(new)
+        interface: #M8(new)
+    exportMapId: #M9(new)
     exportMap
-      A: #M5
-      B: #M7
+      A: #M5(new)
+      B: #M7(new)
 ''',
     );
   }
@@ -75531,15 +75531,15 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
-      B: #M3
-        interface: #M4
+      B: #M3(new)
+        interface: #M4(new)
       _A: #M0
         interface: #M1
-    exportMapId: #M5
+    exportMapId: #M5(new)
     exportMap
-      B: #M3
+      B: #M3(new)
       _A: #M0
 ''',
     );
@@ -75566,8 +75566,8 @@ class A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
-    exportMapId: #M3
+    hashForRequirements: #H1(new)
+    exportMapId: #M3(new)
 ''',
     );
   }
@@ -75624,36 +75624,36 @@ class B extends A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M7(new)
           foo: #M1
         declaredSetters
-          bar=: #M8
+          bar=: #M8(new)
           foo=: #M2
-        interface: #M9
+        interface: #M9(new)
           map
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
           implemented
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
       B: #M4
-        interface: #M10
+        interface: #M10(new)
           map
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
           implemented
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
           superImplemented
             [0]
-              bar=: #M8
+              bar=: #M8(new)
               foo=: #M2
           inherited
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
     exportMapId: #M6
     exportMap
@@ -75715,36 +75715,36 @@ class B extends A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M7(new)
           foo: #M1
         declaredSetters
-          bar=: #M8
+          bar=: #M8(new)
           foo=: #M2
-        interface: #M9
+        interface: #M9(new)
           map
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
           implemented
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
       B: #M4
-        interface: #M10
+        interface: #M10(new)
           map
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
           implemented
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
           superImplemented
             [0]
-              bar=: #M8
+              bar=: #M8(new)
               foo=: #M2
           inherited
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
     exportMapId: #M6
     exportMap
@@ -75801,29 +75801,29 @@ class B implements A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M7(new)
           foo: #M1
         declaredSetters
-          bar=: #M8
+          bar=: #M8(new)
           foo=: #M2
-        interface: #M9
+        interface: #M9(new)
           map
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
           implemented
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
       B: #M4
-        interface: #M10
+        interface: #M10(new)
           map
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
           inherited
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
     exportMapId: #M6
     exportMap
@@ -75880,29 +75880,29 @@ class B implements A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M7(new)
           foo: #M1
         declaredSetters
-          bar=: #M8
+          bar=: #M8(new)
           foo=: #M2
-        interface: #M9
+        interface: #M9(new)
           map
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
           implemented
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
       B: #M4
-        interface: #M10
+        interface: #M10(new)
           map
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
           inherited
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
     exportMapId: #M6
     exportMap
@@ -75964,36 +75964,36 @@ class B with A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M7(new)
           foo: #M1
         declaredSetters
-          bar=: #M8
+          bar=: #M8(new)
           foo=: #M2
-        interface: #M9
+        interface: #M9(new)
           map
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
           implemented
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
       B: #M4
-        interface: #M10
+        interface: #M10(new)
           map
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
           implemented
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
           superImplemented
             [1]
-              bar=: #M8
+              bar=: #M8(new)
               foo=: #M2
           inherited
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
     exportMapId: #M6
     exportMap
@@ -76055,36 +76055,36 @@ class B with A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M7(new)
           foo: #M1
         declaredSetters
-          bar=: #M8
+          bar=: #M8(new)
           foo=: #M2
-        interface: #M9
+        interface: #M9(new)
           map
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
           implemented
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
       B: #M4
-        interface: #M10
+        interface: #M10(new)
           map
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
           implemented
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
           superImplemented
             [1]
-              bar=: #M8
+              bar=: #M8(new)
               foo=: #M2
           inherited
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
     exportMapId: #M6
     exportMap
@@ -76159,7 +76159,7 @@ abstract class C implements A, B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -76179,11 +76179,11 @@ abstract class C implements A, B {
             foo=: #M6
       C: #M8
         declaredMethods
-          zzz: #M12
-        interface: #M13
+          zzz: #M12(new)
+        interface: #M13(new)
           map
             foo=: #M10
-            zzz: #M12
+            zzz: #M12(new)
           combinedIds
             [#M2, #M6]: #M10
           inherited
@@ -76273,7 +76273,7 @@ abstract class D implements C {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -76293,25 +76293,25 @@ abstract class D implements C {}
             foo=: #M6
       C: #M8
         declaredMethods
-          xxx: #M14
-        interface: #M15
+          xxx: #M14(new)
+        interface: #M15(new)
           map
             foo=: #M10
-            xxx: #M14
+            xxx: #M14(new)
           combinedIds
             [#M2, #M6]: #M10
           implemented
-            xxx: #M14
+            xxx: #M14(new)
           inherited
             foo=: #M10
       D: #M11
-        interface: #M16
+        interface: #M16(new)
           map
             foo=: #M10
-            xxx: #M14
+            xxx: #M14(new)
           inherited
             foo=: #M10
-            xxx: #M14
+            xxx: #M14(new)
     exportMapId: #M13
     exportMap
       A: #M0
@@ -76375,7 +76375,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -76386,19 +76386,19 @@ class A {
         declaredSetters
           foo1=: #M5
           foo2=: #M6
-          foo3=: #M11
-          foo4=: #M12
-        interface: #M13
+          foo3=: #M11(new)
+          foo4=: #M12(new)
+        interface: #M13(new)
           map
             foo1=: #M5
             foo2=: #M6
-            foo3=: #M11
-            foo4=: #M12
+            foo3=: #M11(new)
+            foo4=: #M12(new)
           implemented
             foo1=: #M5
             foo2=: #M6
-            foo3=: #M11
-            foo4=: #M12
+            foo3=: #M11(new)
+            foo4=: #M12(new)
     exportMapId: #M10
     exportMap
       A: #M0
@@ -76459,7 +76459,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -76470,19 +76470,19 @@ class A {
         declaredSetters
           foo1=: #M5
           foo2=: #M6
-          foo3=: #M11
-          foo4=: #M12
-        interface: #M13
+          foo3=: #M11(new)
+          foo4=: #M12(new)
+        interface: #M13(new)
           map
             foo1=: #M5
             foo2=: #M6
-            foo3=: #M11
-            foo4=: #M12
+            foo3=: #M11(new)
+            foo4=: #M12(new)
           implemented
             foo1=: #M5
             foo2=: #M6
-            foo3=: #M11
-            foo4=: #M12
+            foo3=: #M11(new)
+            foo4=: #M12(new)
     exportMapId: #M10
     exportMap
       A: #M0
@@ -76535,27 +76535,27 @@ class C extends B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         interface: #M1
-      B: #M9
-        interface: #M10
-      C: #M11
+      B: #M9(new)
+        interface: #M10(new)
+      C: #M11(new)
         declaredFields
-          foo: #M12
+          foo: #M12(new)
         declaredSetters
-          foo=: #M13
-        interface: #M14
+          foo=: #M13(new)
+        interface: #M14(new)
           map
-            foo=: #M13
+            foo=: #M13(new)
           implemented
-            foo=: #M13
-    exportMapId: #M15
+            foo=: #M13(new)
+    exportMapId: #M15(new)
     exportMap
       A: #M0
-      B: #M9
-      C: #M11
+      B: #M9(new)
+      C: #M11(new)
 ''',
     );
   }
@@ -76600,22 +76600,22 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M6
+          foo: #M6(new)
         declaredGetters
-          foo: #M7
+          foo: #M7(new)
         declaredSetters
-          foo=: #M8
-        interface: #M9
+          foo=: #M8(new)
+        interface: #M9(new)
           map
-            foo: #M7
-            foo=: #M8
+            foo: #M7(new)
+            foo=: #M8(new)
           implemented
-            foo: #M7
-            foo=: #M8
+            foo: #M7(new)
+            foo=: #M8(new)
     exportMapId: #M5
     exportMap
       A: #M0
@@ -76668,7 +76668,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -76676,14 +76676,14 @@ class A {
           foo: #M2
         declaredSetters
           bar=: #M3
-          foo=: #M7
-        interface: #M8
+          foo=: #M7(new)
+        interface: #M8(new)
           map
             bar=: #M3
-            foo=: #M7
+            foo=: #M7(new)
           implemented
             bar=: #M3
-            foo=: #M7
+            foo=: #M7(new)
     exportMapId: #M6
     exportMap
       A: #M0
@@ -76773,7 +76773,7 @@ abstract class A<T> {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isAbstract isSimplyBounded
@@ -76788,10 +76788,10 @@ abstract class A<T> {
           foo2: #M2
             flags: isOriginGetterSetter
             type: int @ dart:core
-          foo3: #M11
+          foo3: #M11(new)
             flags: isOriginGetterSetter
             type: int @ dart:core
-          foo4: #M12
+          foo4: #M12(new)
             flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
         declaredSetters
@@ -76807,24 +76807,24 @@ abstract class A<T> {
               positional
                 required int @ dart:core
               returnType: void
-          foo3=: #M13
+          foo3=: #M13(new)
             flags: hasImplicitReturnType isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
-          foo4=: #M14
+          foo4=: #M14(new)
             flags: hasEnclosingTypeParameterReference hasImplicitReturnType isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required typeParameter#0
               returnType: void
-        interface: #M15
+        interface: #M15(new)
           map
             foo1=: #M5
             foo2=: #M6
-            foo3=: #M13
-            foo4=: #M14
+            foo3=: #M13(new)
+            foo4=: #M14(new)
     exportMapId: #M10
     exportMap
       A: #M0
@@ -76992,7 +76992,7 @@ class B extends A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isSimplyBounded
@@ -77075,29 +77075,29 @@ class B extends A {
               positional
                 required int @ dart:core
               returnType: void
-          foo3=: #M21
+          foo3=: #M21(new)
             flags: hasImplicitReturnType invokesSuperSelf isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
-          foo4=: #M22
+          foo4=: #M22(new)
             flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
-        interface: #M23
+        interface: #M23(new)
           map
             foo1=: #M15
             foo2=: #M16
-            foo3=: #M21
-            foo4=: #M22
+            foo3=: #M21(new)
+            foo4=: #M22(new)
           implemented
             foo1=: #M15
             foo2=: #M16
-            foo3=: #M21
-            foo4=: #M22
+            foo3=: #M21(new)
+            foo4=: #M22(new)
           superImplemented
             [0]
               foo1=: #M5
@@ -77199,7 +77199,7 @@ abstract class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isAbstract isSimplyBounded
@@ -77230,27 +77230,27 @@ abstract class A {
               positional
                 required int @ dart:core
               returnType: void
-          foo3=: #M11
+          foo3=: #M11(new)
             flags: hasImplicitReturnType isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
-          foo4=: #M12
+          foo4=: #M12(new)
             flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
-        interface: #M13
+        interface: #M13(new)
           map
             foo1=: #M5
             foo2=: #M6
-            foo3=: #M11
-            foo4=: #M12
+            foo3=: #M11(new)
+            foo4=: #M12(new)
           implemented
             foo1=: #M5
-            foo4=: #M12
+            foo4=: #M12(new)
     exportMapId: #M10
     exportMap
       A: #M0
@@ -77342,7 +77342,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isSimplyBounded
@@ -77373,29 +77373,29 @@ class A {
               positional
                 required int @ dart:core
               returnType: void
-          foo3=: #M11
+          foo3=: #M11(new)
             flags: hasImplicitReturnType isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
-          foo4=: #M12
+          foo4=: #M12(new)
             flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
-        interface: #M13
+        interface: #M13(new)
           map
             foo1=: #M5
             foo2=: #M6
-            foo3=: #M11
-            foo4=: #M12
+            foo3=: #M11(new)
+            foo4=: #M12(new)
           implemented
             foo1=: #M5
             foo2=: #M6
-            foo3=: #M11
-            foo4=: #M12
+            foo3=: #M11(new)
+            foo4=: #M12(new)
     exportMapId: #M10
     exportMap
       A: #M0
@@ -77483,7 +77483,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isSimplyBounded
@@ -77495,10 +77495,10 @@ class A {
           foo2: #M2
             flags: isOriginGetterSetter isStatic
             type: int @ dart:core
-          foo3: #M11
+          foo3: #M11(new)
             flags: isOriginGetterSetter isStatic
             type: int @ dart:core
-          foo4: #M12
+          foo4: #M12(new)
             flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
@@ -77514,25 +77514,25 @@ class A {
               positional
                 required int @ dart:core
               returnType: void
-          foo3=: #M13
+          foo3=: #M13(new)
             flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
-          foo4=: #M14
+          foo4=: #M14(new)
             flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
-        interface: #M15
+        interface: #M15(new)
           map
             foo1=: #M5
-            foo4=: #M14
+            foo4=: #M14(new)
           implemented
             foo1=: #M5
-            foo4=: #M14
+            foo4=: #M14(new)
     exportMapId: #M10
     exportMap
       A: #M0
@@ -77572,20 +77572,20 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
           _foo: #M1
-          bar: #M5
+          bar: #M5(new)
         declaredSetters
           _foo=: #M2
-          bar=: #M6
-        interface: #M7
+          bar=: #M6(new)
+        interface: #M7(new)
           map
-            bar=: #M6
+            bar=: #M6(new)
           implemented
-            bar=: #M6
+            bar=: #M6(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -77625,20 +77625,20 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
           _foo: #M1
-          bar: #M5
+          bar: #M5(new)
         declaredSetters
           _foo=: #M2
-          bar=: #M6
-        interface: #M7
+          bar=: #M6(new)
+        interface: #M7(new)
           map
-            bar=: #M6
+            bar=: #M6(new)
           implemented
-            bar=: #M6
+            bar=: #M6(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -77678,14 +77678,14 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
-          bar: #M5
+          bar: #M5(new)
           foo: #M1
         declaredSetters
-          bar=: #M6
+          bar=: #M6(new)
           foo=: #M2
         interface: #M3
     exportMapId: #M4
@@ -77730,14 +77730,14 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M5
+          foo: #M5(new)
         declaredSetters
-          foo=: #M6
-        interface: #M7
+          foo=: #M6(new)
+        interface: #M7(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -77776,18 +77776,18 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M5
+          foo: #M5(new)
         declaredSetters
-          foo=: #M6
-        interface: #M7
+          foo=: #M6(new)
+        interface: #M7(new)
           map
-            foo=: #M6
+            foo=: #M6(new)
           implemented
-            foo=: #M6
+            foo=: #M6(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -77826,13 +77826,13 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
-          foo: #M5
+          foo: #M5(new)
         declaredSetters
-          foo=: #M6
+          foo=: #M6(new)
         interface: #M3
     exportMapId: #M4
     exportMap
@@ -77877,17 +77877,17 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M5
-          foo=: #M5
-        interface: #M6
+          foo: #M5(new)
+          foo=: #M5(new)
+        interface: #M6(new)
           map
-            foo=: #M5
+            foo=: #M5(new)
           implemented
-            foo=: #M5
+            foo=: #M5(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -77931,17 +77931,17 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M5
-          foo=: #M5
-        interface: #M6
+          foo: #M5(new)
+          foo=: #M5(new)
+        interface: #M6(new)
           map
-            foo=: #M5
+            foo=: #M5(new)
           implemented
-            foo=: #M5
+            foo=: #M5(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -77985,17 +77985,17 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M5
-          foo=: #M5
-        interface: #M6
+          foo: #M5(new)
+          foo=: #M5(new)
+        interface: #M6(new)
           map
-            foo=: #M5
+            foo=: #M5(new)
           implemented
-            foo=: #M5
+            foo=: #M5(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -78039,17 +78039,17 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M5
-          foo=: #M5
-        interface: #M6
+          foo: #M5(new)
+          foo=: #M5(new)
+        interface: #M6(new)
           map
-            foo=: #M5
+            foo=: #M5(new)
           implemented
-            foo=: #M5
+            foo=: #M5(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -78089,12 +78089,12 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M5
-          foo=: #M5
+          foo: #M5(new)
+          foo=: #M5(new)
         interface: #M3
     exportMapId: #M4
     exportMap
@@ -78135,12 +78135,12 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConflicts
-          foo: #M5
-          foo=: #M5
+          foo: #M5(new)
+          foo=: #M5(new)
         interface: #M3
     exportMapId: #M4
     exportMap
@@ -78240,7 +78240,7 @@ abstract class C implements A, B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isAbstract isSimplyBounded
@@ -78265,32 +78265,32 @@ abstract class C implements A, B {}
         flags: isAbstract isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
-          foo: #M12
+          foo: #M12(new)
             flags: isOriginGetterSetter
             type: List @ dart:core
               int @ dart:core
         declaredSetters
-          foo=: #M13
+          foo=: #M13(new)
             flags: hasImplicitReturnType isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required List @ dart:core
                   int @ dart:core
               returnType: void
-        interface: #M14
+        interface: #M14(new)
           map
-            foo=: #M13
+            foo=: #M13(new)
       C: #M8
         flags: isAbstract isSimplyBounded
         supertype: Object @ dart:core
         interfaces
           A @ package:test/test.dart
           B @ package:test/test.dart
-        interface: #M15
+        interface: #M15(new)
           map
-            foo=: #M16
+            foo=: #M16(new)
           combinedIds
-            [#M2, #M13]: #M16
+            [#M2, #M13(new)]: #M16(new)
           inherited
             foo=: #M2
     exportMapId: #M11
@@ -78347,27 +78347,27 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isSimplyBounded
         supertype: Object @ dart:core
         declaredFields
-          foo: #M5
+          foo: #M5(new)
             flags: isOriginGetterSetter
             type: double @ dart:core
         declaredSetters
-          foo=: #M6
+          foo=: #M6(new)
             flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required double @ dart:core
               returnType: void
-        interface: #M7
+        interface: #M7(new)
           map
-            foo=: #M6
+            foo=: #M6(new)
           implemented
-            foo=: #M6
+            foo=: #M6(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -78409,18 +78409,18 @@ class A<T> {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          bar: #M4
+          bar: #M4(new)
           foo: #M1
-        interface: #M5
+        interface: #M5(new)
           map
-            bar: #M4
+            bar: #M4(new)
             foo: #M1
           implemented
-            bar: #M4
+            bar: #M4(new)
             foo: #M1
     exportMapId: #M3
     exportMap
@@ -78452,13 +78452,13 @@ class A<T, U> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
-      A: #M3
-        interface: #M4
-    exportMapId: #M5
+      A: #M3(new)
+        interface: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      A: #M3
+      A: #M3(new)
 ''',
     );
   }
@@ -78486,13 +78486,13 @@ class A<T extends int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
-      A: #M3
-        interface: #M4
-    exportMapId: #M5
+      A: #M3(new)
+        interface: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      A: #M3
+      A: #M3(new)
 ''',
     );
   }
@@ -78520,13 +78520,13 @@ class A<T> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
-      A: #M3
-        interface: #M4
-    exportMapId: #M5
+      A: #M3(new)
+        interface: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      A: #M3
+      A: #M3(new)
 ''',
     );
   }
@@ -78569,22 +78569,22 @@ class D<in T> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         interface: #M1
       B: #M2
         interface: #M3
-      C: #M9
-        interface: #M10
-      D: #M11
-        interface: #M12
-    exportMapId: #M13
+      C: #M9(new)
+        interface: #M10(new)
+      D: #M11(new)
+        interface: #M12(new)
+    exportMapId: #M13(new)
     exportMap
       A: #M0
       B: #M2
-      C: #M9
-      D: #M11
+      C: #M9(new)
+      D: #M11(new)
 ''',
     );
   }
@@ -78674,17 +78674,17 @@ class X = A with M;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConstructors
           c1: #M1
-          c2: #M8
+          c2: #M8(new)
         interface: #M2
       X: #M3
         inheritedConstructors
           c1: #M1
-          c2: #M8
+          c2: #M8(new)
         interface: #M4
     declaredMixins
       M: #M5
@@ -78748,22 +78748,22 @@ class X2 = A with M;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConstructors
           c1: #M1
-          c2: #M10
+          c2: #M10(new)
         interface: #M2
       X1: #M3
         inheritedConstructors
           c1: #M1
-          c2: #M10
+          c2: #M10(new)
         interface: #M4
       X2: #M5
         inheritedConstructors
           c1: #M1
-          c2: #M10
+          c2: #M10(new)
         interface: #M6
     declaredMixins
       M: #M7
@@ -78828,22 +78828,22 @@ class X2 = X1 with M;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConstructors
           c1: #M1
-          c2: #M10
+          c2: #M10(new)
         interface: #M2
       X1: #M3
         inheritedConstructors
           c1: #M1
-          c2: #M10
+          c2: #M10(new)
         interface: #M4
       X2: #M5
         inheritedConstructors
           c1: #M1
-          c2: #M10
+          c2: #M10(new)
         interface: #M6
     declaredMixins
       M: #M7
@@ -78923,16 +78923,16 @@ mixin M1 {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/a.dart
-    hashForRequirements: #H2
+    hashForRequirements: #H2(new)
     declaredClasses
       A: #M0
         declaredConstructors
-          bar: #M13
+          bar: #M13(new)
           foo: #M1
         interface: #M2
       B: #M3
         inheritedConstructors
-          bar: #M13
+          bar: #M13(new)
           foo: #M1
         interface: #M4
     declaredMixins
@@ -78950,14 +78950,14 @@ mixin M1 {}
     interfaceName: B
     childrenPropertyName: inheritedConstructors
     expectedIds: #M1
-    actualIds: #M1 #M13
+    actualIds: #M1 #M13(new)
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H3
+    hashForRequirements: #H3(new)
     declaredClasses
       C: #M8
         inheritedConstructors
-          bar: #M13
+          bar: #M13(new)
           foo: #M1
         interface: #M9
     declaredMixins
@@ -79017,17 +79017,17 @@ class X = A with M;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConstructors
           c1: #M1
-          c2: #M9
+          c2: #M9(new)
         interface: #M3
       X: #M4
         inheritedConstructors
           c1: #M1
-          c2: #M9
+          c2: #M9(new)
         interface: #M5
     declaredMixins
       M: #M6
@@ -79086,7 +79086,7 @@ class X = A with M;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConstructors
@@ -79152,7 +79152,7 @@ class Y = B with M;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         interface: #M1
@@ -79160,18 +79160,18 @@ class Y = B with M;
         interface: #M3
       X: #M4
         interface: #M5
-      Y: #M11
-        interface: #M12
+      Y: #M11(new)
+        interface: #M12(new)
     declaredMixins
       M: #M8
         interface: #M9
-    exportMapId: #M13
+    exportMapId: #M13(new)
     exportMap
       A: #M0
       B: #M2
       M: #M8
       X: #M4
-      Y: #M11
+      Y: #M11(new)
 ''',
     );
   }
@@ -79274,63 +79274,63 @@ class X = A with M;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
           foo1: #M1
-          foo2: #M15
+          foo2: #M15(new)
         declaredGetters
           foo1: #M3
-          foo2: #M16
-        interface: #M17
+          foo2: #M16(new)
+        interface: #M17(new)
           map
             foo1: #M3
-            foo2: #M16
+            foo2: #M16(new)
           implemented
             foo1: #M3
-            foo2: #M16
+            foo2: #M16(new)
       X: #M6
-        interface: #M18
+        interface: #M18(new)
           map
             foo1: #M3
-            foo2: #M16
+            foo2: #M16(new)
             foo3: #M8
-            foo4: #M19
+            foo4: #M19(new)
           implemented
             foo1: #M3
-            foo2: #M16
+            foo2: #M16(new)
             foo3: #M8
-            foo4: #M19
+            foo4: #M19(new)
           superImplemented
             [0]
               foo1: #M3
-              foo2: #M16
+              foo2: #M16(new)
             [1]
               foo1: #M3
-              foo2: #M16
+              foo2: #M16(new)
               foo3: #M8
-              foo4: #M19
+              foo4: #M19(new)
           inherited
             foo1: #M3
-            foo2: #M16
+            foo2: #M16(new)
             foo3: #M8
-            foo4: #M19
+            foo4: #M19(new)
     declaredMixins
       M: #M10
         declaredFields
           foo3: #M11
-          foo4: #M20
+          foo4: #M20(new)
         declaredGetters
           foo3: #M8
-          foo4: #M19
-        interface: #M21
+          foo4: #M19(new)
+        interface: #M21(new)
           map
             foo3: #M8
-            foo4: #M19
+            foo4: #M19(new)
           implemented
             foo3: #M8
-            foo4: #M19
+            foo4: #M19(new)
     exportMapId: #M14
     exportMap
       A: #M0
@@ -79389,7 +79389,7 @@ class X4 = Object with M;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         interface: #M1
@@ -79397,21 +79397,21 @@ class X4 = Object with M;
         interface: #M3
       X2: #M4
         interface: #M5
-      X3: #M13
-        interface: #M14
-      X4: #M15
-        interface: #M16
+      X3: #M13(new)
+        interface: #M14(new)
+      X4: #M15(new)
+        interface: #M16(new)
     declaredMixins
       M: #M10
         interface: #M11
-    exportMapId: #M17
+    exportMapId: #M17(new)
     exportMap
       A: #M0
       M: #M10
       X1: #M2
       X2: #M4
-      X3: #M13
-      X4: #M15
+      X3: #M13(new)
+      X4: #M15(new)
 ''',
     );
   }
@@ -79454,20 +79454,20 @@ class Y = Object with M;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       X: #M0
         interface: #M1
-      Y: #M7
-        interface: #M8
+      Y: #M7(new)
+        interface: #M8(new)
     declaredMixins
       M: #M4
         interface: #M5
-    exportMapId: #M9
+    exportMapId: #M9(new)
     exportMap
       M: #M4
       X: #M0
-      Y: #M7
+      Y: #M7(new)
 ''',
     );
   }
@@ -79564,57 +79564,57 @@ class X = A with M;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
           foo1: #M1
-          foo2: #M11
-        interface: #M12
+          foo2: #M11(new)
+        interface: #M12(new)
           map
             foo1: #M1
-            foo2: #M11
+            foo2: #M11(new)
           implemented
             foo1: #M1
-            foo2: #M11
+            foo2: #M11(new)
       X: #M4
-        interface: #M13
+        interface: #M13(new)
           map
             foo1: #M1
-            foo2: #M11
+            foo2: #M11(new)
             foo3: #M6
-            foo4: #M14
+            foo4: #M14(new)
           implemented
             foo1: #M1
-            foo2: #M11
+            foo2: #M11(new)
             foo3: #M6
-            foo4: #M14
+            foo4: #M14(new)
           superImplemented
             [0]
               foo1: #M1
-              foo2: #M11
+              foo2: #M11(new)
             [1]
               foo1: #M1
-              foo2: #M11
+              foo2: #M11(new)
               foo3: #M6
-              foo4: #M14
+              foo4: #M14(new)
           inherited
             foo1: #M1
-            foo2: #M11
+            foo2: #M11(new)
             foo3: #M6
-            foo4: #M14
+            foo4: #M14(new)
     declaredMixins
       M: #M8
         declaredMethods
           foo3: #M6
-          foo4: #M14
-        interface: #M15
+          foo4: #M14(new)
+        interface: #M15(new)
           map
             foo3: #M6
-            foo4: #M14
+            foo4: #M14(new)
           implemented
             foo3: #M6
-            foo4: #M14
+            foo4: #M14(new)
     exportMapId: #M10
     exportMap
       A: #M0
@@ -79722,63 +79722,63 @@ class X = A with M;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
           foo1: #M1
-          foo2: #M15
+          foo2: #M15(new)
         declaredSetters
           foo1=: #M3
-          foo2=: #M16
-        interface: #M17
+          foo2=: #M16(new)
+        interface: #M17(new)
           map
             foo1=: #M3
-            foo2=: #M16
+            foo2=: #M16(new)
           implemented
             foo1=: #M3
-            foo2=: #M16
+            foo2=: #M16(new)
       X: #M6
-        interface: #M18
+        interface: #M18(new)
           map
             foo1=: #M3
-            foo2=: #M16
+            foo2=: #M16(new)
             foo3=: #M8
-            foo4=: #M19
+            foo4=: #M19(new)
           implemented
             foo1=: #M3
-            foo2=: #M16
+            foo2=: #M16(new)
             foo3=: #M8
-            foo4=: #M19
+            foo4=: #M19(new)
           superImplemented
             [0]
               foo1=: #M3
-              foo2=: #M16
+              foo2=: #M16(new)
             [1]
               foo1=: #M3
-              foo2=: #M16
+              foo2=: #M16(new)
               foo3=: #M8
-              foo4=: #M19
+              foo4=: #M19(new)
           inherited
             foo1=: #M3
-            foo2=: #M16
+            foo2=: #M16(new)
             foo3=: #M8
-            foo4=: #M19
+            foo4=: #M19(new)
     declaredMixins
       M: #M10
         declaredFields
           foo3: #M11
-          foo4: #M20
+          foo4: #M20(new)
         declaredSetters
           foo3=: #M8
-          foo4=: #M19
-        interface: #M21
+          foo4=: #M19(new)
+        interface: #M21(new)
           map
             foo3=: #M8
-            foo4=: #M19
+            foo4=: #M19(new)
           implemented
             foo3=: #M8
-            foo4=: #M19
+            foo4=: #M19(new)
     exportMapId: #M14
     exportMap
       A: #M0
@@ -79832,7 +79832,7 @@ const e = '$b' 'x';
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
       b: #M1
@@ -79840,10 +79840,10 @@ const e = '$b' 'x';
       d: #M3
       e: #M4
     declaredVariables
-      a: #M11
+      a: #M11(new)
       b: #M6
-      c: #M12
-      d: #M13
+      c: #M12(new)
+      d: #M13(new)
       e: #M9
     exportMapId: #M10
     exportMap
@@ -79895,7 +79895,7 @@ const d = b as int;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
       b: #M1
@@ -79903,9 +79903,9 @@ const d = b as int;
       d: #M3
     declaredVariables
       a: #M4
-      b: #M9
+      b: #M9(new)
       c: #M6
-      d: #M10
+      d: #M10(new)
     exportMapId: #M8
     exportMap
       a: #M0
@@ -79941,17 +79941,17 @@ const b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
-      b: #M3
+      b: #M3(new)
     declaredVariables
       a: #M1
-      b: #M4
-    exportMapId: #M5
+      b: #M4(new)
+    exportMapId: #M5(new)
     exportMap
       a: #M0
-      b: #M3
+      b: #M3(new)
 ''',
     );
   }
@@ -79985,13 +79985,13 @@ const b = a + 2;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
       b: #M1
     declaredVariables
-      a: #M5
-      b: #M6
+      a: #M5(new)
+      b: #M6(new)
     exportMapId: #M4
     exportMap
       a: #M0
@@ -80024,11 +80024,11 @@ const a = 2 + 1;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
     declaredVariables
-      a: #M3
+      a: #M3(new)
     exportMapId: #M2
     exportMap
       a: #M0
@@ -80083,27 +80083,27 @@ const x = a + 1;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          +: #M8
-        interface: #M9
+          +: #M8(new)
+        interface: #M9(new)
           map
-            +: #M8
+            +: #M8(new)
           implemented
-            +: #M8
+            +: #M8(new)
     declaredGetters
       a: #M3
-      x: #M10
+      x: #M10(new)
     declaredVariables
       a: #M5
-      x: #M11
-    exportMapId: #M12
+      x: #M11(new)
+    exportMapId: #M12(new)
     exportMap
       A: #M0
       a: #M3
-      x: #M10
+      x: #M10(new)
 ''',
     );
   }
@@ -80132,11 +80132,11 @@ const a = 0 - 1;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
     declaredVariables
-      a: #M3
+      a: #M3(new)
     exportMapId: #M2
     exportMap
       a: #M0
@@ -80173,13 +80173,13 @@ const b = 2 + a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
       b: #M1
     declaredVariables
-      a: #M5
-      b: #M6
+      a: #M5(new)
+      b: #M6(new)
     exportMapId: #M4
     exportMap
       a: #M0
@@ -80226,22 +80226,22 @@ const b = 0 + a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M4
+      a: #M4(new)
         flags: isOriginVariable isSimplyBounded isStatic
         returnType: int @ dart:core
-      b: #M5
+      b: #M5(new)
         flags: isOriginVariable isSimplyBounded isStatic
         returnType: int @ dart:core
     declaredVariables
-      a: #M6
+      a: #M6(new)
         flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           tokenBuffer: 1
           tokenLengthList: [1]
-      b: #M7
+      b: #M7(new)
         flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
@@ -80255,10 +80255,10 @@ const b = 0 + a;
             7 = element 0
             23 = element 1
             39 = element 2
-    exportMapId: #M8
+    exportMapId: #M8(new)
     exportMap
-      a: #M4
-      b: #M5
+      a: #M4(new)
+      b: #M5(new)
 ''',
     );
   }
@@ -80314,13 +80314,13 @@ const b = 1 + a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      b: #M6
+      b: #M6(new)
         flags: isOriginVariable isSimplyBounded isStatic
         returnType: double @ dart:core
     declaredVariables
-      b: #M7
+      b: #M7(new)
         flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: double @ dart:core
         constInitializer
@@ -80331,9 +80331,9 @@ const b = 1 + a;
           elementIndexList
             0 = null
             7 = element 0
-    exportMapId: #M8
+    exportMapId: #M8(new)
     exportMap
-      b: #M6
+      b: #M6(new)
 ''',
     );
   }
@@ -80363,17 +80363,17 @@ const b = false;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
-      b: #M3
+      b: #M3(new)
     declaredVariables
       a: #M1
-      b: #M4
-    exportMapId: #M5
+      b: #M4(new)
+    exportMapId: #M5(new)
     exportMap
       a: #M0
-      b: #M3
+      b: #M3(new)
 ''',
     );
   }
@@ -80410,30 +80410,30 @@ const b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
         flags: isOriginVariable isSimplyBounded isStatic
         returnType: int @ dart:core
-      b: #M3
+      b: #M3(new)
         flags: isOriginVariable isSimplyBounded isStatic
         returnType: int @ dart:core
     declaredVariables
-      a: #M4
+      a: #M4(new)
         flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           isValid: false
-      b: #M5
+      b: #M5(new)
         flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
           tokenLengthList: [1]
-    exportMapId: #M6
+    exportMapId: #M6(new)
     exportMap
       a: #M0
-      b: #M3
+      b: #M3(new)
 ''',
     );
   }
@@ -80477,7 +80477,7 @@ const d = b ? 0 : 1;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
       b: #M1
@@ -80485,9 +80485,9 @@ const d = b ? 0 : 1;
       d: #M3
     declaredVariables
       a: #M4
-      b: #M9
+      b: #M9(new)
       c: #M6
-      d: #M10
+      d: #M10(new)
     exportMapId: #M8
     exportMap
       a: #M0
@@ -80534,16 +80534,16 @@ const a = A.named();
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConstructors
-          named: #M6
+          named: #M6(new)
         interface: #M2
     declaredGetters
       a: #M3
     declaredVariables
-      a: #M7
+      a: #M7(new)
     exportMapId: #M5
     exportMap
       A: #M0
@@ -80589,16 +80589,16 @@ const a = A();
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredConstructors
-          new: #M6
+          new: #M6(new)
         interface: #M2
     declaredGetters
       a: #M3
     declaredVariables
-      a: #M7
+      a: #M7(new)
     exportMapId: #M5
     exportMap
       A: #M0
@@ -80645,18 +80645,18 @@ const a = A();
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M6
+          foo: #M6(new)
         declaredConstructors
           new: #M1
-        interface: #M7
+        interface: #M7(new)
           map
-            foo: #M6
+            foo: #M6(new)
           implemented
-            foo: #M6
+            foo: #M6(new)
     declaredGetters
       a: #M3
     declaredVariables
@@ -80698,17 +80698,17 @@ const b = 0 as int;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
-      b: #M5
+      b: #M5(new)
     declaredVariables
       a: #M2
-      b: #M6
-    exportMapId: #M7
+      b: #M6(new)
+    exportMapId: #M7(new)
     exportMap
       a: #M0
-      b: #M5
+      b: #M5(new)
 ''',
     );
   }
@@ -80776,13 +80776,13 @@ const a = -'' + 2;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H2
+    hashForRequirements: #H2(new)
     declaredGetters
       a: #M3
         flags: isOriginVariable isSimplyBounded isStatic
         returnType: int @ dart:core
     declaredVariables
-      a: #M7
+      a: #M7(new)
         flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
@@ -80846,13 +80846,13 @@ const b = 0.length + 2;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       b: #M0
         flags: isOriginVariable isSimplyBounded isStatic
         returnType: int @ dart:core
     declaredVariables
-      b: #M4
+      b: #M4(new)
         flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
@@ -80915,13 +80915,13 @@ const a = -'' + 2;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
         flags: isOriginVariable isSimplyBounded isStatic
         returnType: int @ dart:core
     declaredVariables
-      a: #M4
+      a: #M4(new)
         flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
@@ -80964,17 +80964,17 @@ class A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
-      A: #M3
-        interface: #M4
+      A: #M3(new)
+        interface: #M4(new)
     declaredGetters
       f: #M0
     declaredVariables
       f: #M1
-    exportMapId: #M5
+    exportMapId: #M5(new)
     exportMap
-      A: #M3
+      A: #M3(new)
       f: #M0
 ''',
     );
@@ -81014,9 +81014,9 @@ class A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
-      A: #M3
+      A: #M3(new)
         flags: isSimplyBounded
         metadata
           [0]
@@ -81026,10 +81026,10 @@ class A {}
               0 = null
               0 = null
         supertype: Object @ dart:core
-        interface: #M4
-    exportMapId: #M5
+        interface: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      A: #M3
+      A: #M3(new)
 ''',
     );
   }
@@ -81069,9 +81069,9 @@ class A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
-      A: #M3
+      A: #M3(new)
         flags: isSimplyBounded
         metadata
           [0]
@@ -81080,10 +81080,10 @@ class A {}
             elementIndexList
               0 = null
         supertype: Object @ dart:core
-        interface: #M4
-    exportMapId: #M5
+        interface: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      A: #M3
+      A: #M3(new)
 ''',
     );
   }
@@ -81128,12 +81128,12 @@ const b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
         flags: isOriginVariable isSimplyBounded isStatic
         returnType: int @ dart:core
-      b: #M4
+      b: #M4(new)
         flags: isOriginVariable isSimplyBounded isStatic
         returnType: int @ dart:core
     declaredVariables
@@ -81148,16 +81148,16 @@ const b = 0;
           elementIndexList
             3 = importPrefix
             7 = element 0
-      b: #M5
+      b: #M5(new)
         flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
           tokenLengthList: [1]
-    exportMapId: #M6
+    exportMapId: #M6(new)
     exportMap
       a: #M0
-      b: #M4
+      b: #M4(new)
 ''',
     );
   }
@@ -81194,30 +81194,30 @@ const b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
         flags: isOriginVariable isSimplyBounded isStatic
         returnType: int @ dart:core
-      b: #M3
+      b: #M3(new)
         flags: isOriginVariable isSimplyBounded isStatic
         returnType: int @ dart:core
     declaredVariables
-      a: #M4
+      a: #M4(new)
         flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           isValid: false
-      b: #M5
+      b: #M5(new)
         flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
           tokenLengthList: [1]
-    exportMapId: #M6
+    exportMapId: #M6(new)
     exportMap
       a: #M0
-      b: #M3
+      b: #M3(new)
 ''',
     );
   }
@@ -81271,7 +81271,7 @@ const d = A(b);
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         interface: #M1
@@ -81281,9 +81281,9 @@ const d = A(b);
       c: #M4
       d: #M5
     declaredVariables
-      a: #M11
+      a: #M11(new)
       b: #M7
-      c: #M12
+      c: #M12(new)
       d: #M9
     exportMapId: #M10
     exportMap
@@ -81321,17 +81321,17 @@ const b = 1;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
-      b: #M3
+      b: #M3(new)
     declaredVariables
       a: #M1
-      b: #M4
-    exportMapId: #M5
+      b: #M4(new)
+    exportMapId: #M5(new)
     exportMap
       a: #M0
-      b: #M3
+      b: #M3(new)
 ''',
     );
   }
@@ -81360,11 +81360,11 @@ const a = 1;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
     declaredVariables
-      a: #M3
+      a: #M3(new)
     exportMapId: #M2
     exportMap
       a: #M0
@@ -81411,16 +81411,16 @@ const d = [b];
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
       b: #M1
       c: #M2
       d: #M3
     declaredVariables
-      a: #M9
+      a: #M9(new)
       b: #M5
-      c: #M10
+      c: #M10(new)
       d: #M7
     exportMapId: #M8
     exportMap
@@ -81471,16 +81471,16 @@ const d = {b: 0};
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
       b: #M1
       c: #M2
       d: #M3
     declaredVariables
-      a: #M9
+      a: #M9(new)
       b: #M5
-      c: #M10
+      c: #M10(new)
       d: #M7
     exportMapId: #M8
     exportMap
@@ -81531,16 +81531,16 @@ const d = {0: b};
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
       b: #M1
       c: #M2
       d: #M3
     declaredVariables
-      a: #M9
+      a: #M9(new)
       b: #M5
-      c: #M10
+      c: #M10(new)
       d: #M7
     exportMapId: #M8
     exportMap
@@ -81584,30 +81584,30 @@ const b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
         flags: isOriginVariable isSimplyBounded isStatic
         returnType: int @ dart:core
-      b: #M3
+      b: #M3(new)
         flags: isOriginVariable isSimplyBounded isStatic
         returnType: int @ dart:core
     declaredVariables
-      a: #M4
+      a: #M4(new)
         flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           isValid: false
-      b: #M5
+      b: #M5(new)
         flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
           tokenLengthList: [1]
-    exportMapId: #M6
+    exportMapId: #M6(new)
     exportMap
       a: #M0
-      b: #M3
+      b: #M3(new)
 ''',
     );
   }
@@ -81649,12 +81649,12 @@ const b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
         flags: isOriginVariable isSimplyBounded isStatic
         returnType: bool @ dart:core
-      b: #M4
+      b: #M4(new)
         flags: isOriginVariable isSimplyBounded isStatic
         returnType: int @ dart:core
     declaredVariables
@@ -81668,16 +81668,16 @@ const b = 0;
             [0] (dart:core, topLevelFunction, identical) #M2
           elementIndexList
             7 = element 0
-      b: #M5
+      b: #M5(new)
         flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
           tokenLengthList: [1]
-    exportMapId: #M6
+    exportMapId: #M6(new)
     exportMap
       a: #M0
-      b: #M4
+      b: #M4(new)
 ''',
     );
   }
@@ -81763,12 +81763,12 @@ class A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H3
+    hashForRequirements: #H3(new)
     declaredClasses
-      A: #M9
+      A: #M9(new)
         flags: isSimplyBounded
         supertype: Object @ dart:core
-        interface: #M10
+        interface: #M10(new)
     declaredGetters
       x: #M6
         flags: isOriginVariable isSimplyBounded isStatic
@@ -81782,9 +81782,9 @@ class A {}
           tokenLengthList: [3]
           elementIndexList
             8 = multiplyDefined
-    exportMapId: #M11
+    exportMapId: #M11(new)
     exportMap
-      A: #M9
+      A: #M9(new)
       x: #M6
 ''',
     );
@@ -81830,22 +81830,22 @@ const b = B;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         interface: #M1
-      B: #M9
-        interface: #M10
+      B: #M9(new)
+        interface: #M10(new)
     declaredGetters
       a: #M4
       b: #M5
     declaredVariables
       a: #M6
-      b: #M11
-    exportMapId: #M12
+      b: #M11(new)
+    exportMapId: #M12(new)
     exportMap
       A: #M0
-      B: #M9
+      B: #M9(new)
       a: #M4
       b: #M5
 ''',
@@ -81877,17 +81877,17 @@ const b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
-      b: #M3
+      b: #M3(new)
     declaredVariables
       a: #M1
-      b: #M4
-    exportMapId: #M5
+      b: #M4(new)
+    exportMapId: #M5(new)
     exportMap
       a: #M0
-      b: #M3
+      b: #M3(new)
 ''',
     );
   }
@@ -81925,12 +81925,12 @@ const b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
         flags: isOriginVariable isSimplyBounded isStatic
         returnType: int @ dart:core
-      b: #M3
+      b: #M3(new)
         flags: isOriginVariable isSimplyBounded isStatic
         returnType: int @ dart:core
     declaredVariables
@@ -81940,16 +81940,16 @@ const b = 0;
         constInitializer
           tokenBuffer: 0!
           tokenLengthList: [1, 1]
-      b: #M4
+      b: #M4(new)
         flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
           tokenLengthList: [1]
-    exportMapId: #M5
+    exportMapId: #M5(new)
     exportMap
       a: #M0
-      b: #M3
+      b: #M3(new)
 ''',
     );
   }
@@ -81998,7 +81998,7 @@ const c = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
         flags: isOriginVariable isSimplyBounded isStatic
@@ -82006,7 +82006,7 @@ const c = 0;
       b: #M1
         flags: isOriginVariable isSimplyBounded isStatic
         returnType: int @ dart:core
-      c: #M5
+      c: #M5(new)
         flags: isOriginVariable isSimplyBounded isStatic
         returnType: int @ dart:core
     declaredVariables
@@ -82016,22 +82016,22 @@ const c = 0;
         constInitializer
           tokenBuffer: 0
           tokenLengthList: [1]
-      b: #M6
+      b: #M6(new)
         flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           isValid: false
-      c: #M7
+      c: #M7(new)
         flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
           tokenLengthList: [1]
-    exportMapId: #M8
+    exportMapId: #M8(new)
     exportMap
       a: #M0
       b: #M1
-      c: #M5
+      c: #M5(new)
 ''',
     );
   }
@@ -82085,12 +82085,12 @@ const d = A.b;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
           a: #M1
-          b: #M11
+          b: #M11(new)
         declaredGetters
           a: #M3
           b: #M4
@@ -82100,7 +82100,7 @@ const d = A.b;
       d: #M7
     declaredVariables
       c: #M8
-      d: #M12
+      d: #M12(new)
     exportMapId: #M10
     exportMap
       A: #M0
@@ -82159,12 +82159,12 @@ const d = A.b;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensions
       A: #M0
         declaredFields
           a: #M1
-          b: #M10
+          b: #M10(new)
         declaredGetters
           a: #M3
           b: #M4
@@ -82173,7 +82173,7 @@ const d = A.b;
       d: #M6
     declaredVariables
       c: #M7
-      d: #M11
+      d: #M11(new)
     exportMapId: #M9
     exportMap
       A: #M0
@@ -82289,7 +82289,7 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/a.dart
-    hashForRequirements: #H2
+    hashForRequirements: #H2(new)
     declaredClasses
       A: #M0
         flags: isSimplyBounded
@@ -82301,7 +82301,7 @@ class A {
             constInitializer
               tokenBuffer: 0
               tokenLengthList: [1]
-          b: #M12
+          b: #M12(new)
             flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
             type: int @ dart:core
             constInitializer
@@ -82325,10 +82325,10 @@ class A {
     interfaceName: A
     fieldName: b
     expectedId: #M2
-    actualId: #M12
+    actualId: #M12(new)
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H3
+    hashForRequirements: #H3(new)
     declaredGetters
       c: #M7
         flags: isOriginVariable isSimplyBounded isStatic
@@ -82352,7 +82352,7 @@ class A {
             7 = element 0
             23 = element 1
             39 = element 2
-      d: #M13
+      d: #M13(new)
         flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
@@ -82361,7 +82361,7 @@ class A {
           elements
             [0] (package:test/a.dart, class_, A) #M0
             [1] (package:test/a.dart, instanceGetter, A, b) #M4
-            [2] (package:test/a.dart, instanceField, A, b) #M12
+            [2] (package:test/a.dart, instanceField, A, b) #M12(new)
           elementIndexList
             3 = importPrefix
             7 = element 0
@@ -82416,7 +82416,7 @@ const d = self.b;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
       b: #M1
@@ -82424,9 +82424,9 @@ const d = self.b;
       d: #M3
     declaredVariables
       a: #M4
-      b: #M9
+      b: #M9(new)
       c: #M6
-      d: #M10
+      d: #M10(new)
     exportMapId: #M8
     exportMap
       a: #M0
@@ -82469,11 +82469,11 @@ const z = x.x + y.y;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H2
+    hashForRequirements: #H2(new)
     declaredGetters
       z: #M1
     declaredVariables
-      z: #M4
+      z: #M4(new)
     exportMapId: #M3
     exportMap
       z: #M1
@@ -82525,21 +82525,21 @@ const z = p.x;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/b.dart
-    hashForRequirements: #H2
+    hashForRequirements: #H2(new)
     declaredGetters
-      x: #M6
+      x: #M6(new)
     declaredVariables
-      x: #M7
-    exportMapId: #M8
+      x: #M7(new)
+    exportMapId: #M8(new)
     exportMap
-      x: #M6
+      x: #M6(new)
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H3
+    hashForRequirements: #H3(new)
     declaredGetters
       z: #M3
     declaredVariables
-      z: #M9
+      z: #M9(new)
     exportMapId: #M5
     exportMap
       z: #M3
@@ -82592,27 +82592,27 @@ const b = -a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          unary-: #M8
-        interface: #M9
+          unary-: #M8(new)
+        interface: #M9(new)
           map
-            unary-: #M8
+            unary-: #M8(new)
           implemented
-            unary-: #M8
+            unary-: #M8(new)
     declaredGetters
       a: #M3
-      b: #M10
+      b: #M10(new)
     declaredVariables
       a: #M5
-      b: #M11
-    exportMapId: #M12
+      b: #M11(new)
+    exportMapId: #M12(new)
     exportMap
       A: #M0
       a: #M3
-      b: #M10
+      b: #M10(new)
 ''',
     );
   }
@@ -82663,18 +82663,18 @@ const b = -a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
-          foo: #M8
+          foo: #M8(new)
           unary-: #M1
-        interface: #M9
+        interface: #M9(new)
           map
-            foo: #M8
+            foo: #M8(new)
             unary-: #M1
           implemented
-            foo: #M8
+            foo: #M8(new)
             unary-: #M1
     declaredGetters
       a: #M3
@@ -82715,11 +82715,11 @@ const a = '1'.length;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
     declaredVariables
-      a: #M3
+      a: #M3(new)
     exportMapId: #M2
     exportMap
       a: #M0
@@ -82766,16 +82766,16 @@ const d = {b};
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
       b: #M1
       c: #M2
       d: #M3
     declaredVariables
-      a: #M9
+      a: #M9(new)
       b: #M5
-      c: #M10
+      c: #M10(new)
       d: #M7
     exportMapId: #M8
     exportMap
@@ -82830,14 +82830,14 @@ class A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
           a: #M1
-          b: #M11
+          b: #M11(new)
           c: #M3
-          d: #M12
+          d: #M12(new)
         declaredGetters
           a: #M5
           b: #M6
@@ -82890,7 +82890,7 @@ const d = b;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
       b: #M1
@@ -82898,9 +82898,9 @@ const d = b;
       d: #M3
     declaredVariables
       a: #M4
-      b: #M9
+      b: #M9(new)
       c: #M6
-      d: #M10
+      d: #M10(new)
     exportMapId: #M8
     exportMap
       a: #M0
@@ -82936,17 +82936,17 @@ const b = 1;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
-      b: #M3
+      b: #M3(new)
     declaredVariables
       a: #M1
-      b: #M4
-    exportMapId: #M5
+      b: #M4(new)
+    exportMapId: #M5(new)
     exportMap
       a: #M0
-      b: #M3
+      b: #M3(new)
 ''',
     );
   }
@@ -83004,12 +83004,12 @@ const y = double;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H2
+    hashForRequirements: #H2(new)
     declaredGetters
       x: #M2
         flags: isOriginVariable isSimplyBounded isStatic
         returnType: Type @ dart:core
-      y: #M5
+      y: #M5(new)
         flags: isOriginVariable isSimplyBounded isStatic
         returnType: Type @ dart:core
     declaredVariables
@@ -83023,20 +83023,20 @@ const y = double;
             [0] (package:test/a.dart, typeAlias, A) #M0
           elementIndexList
             7 = element 0
-      y: #M6
+      y: #M6(new)
         flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: Type @ dart:core
         constInitializer
           tokenBuffer: double
           tokenLengthList: [6]
           elements
-            [0] (dart:core, class_, double) #M7
+            [0] (dart:core, class_, double) #M7(new)
           elementIndexList
             7 = element 0
-    exportMapId: #M8
+    exportMapId: #M8(new)
     exportMap
       x: #M2
-      y: #M5
+      y: #M5(new)
 ''',
     );
   }
@@ -83080,7 +83080,7 @@ const d = b;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
       b: #M1
@@ -83088,9 +83088,9 @@ const d = b;
       d: #M3
     declaredVariables
       a: #M4
-      b: #M9
+      b: #M9(new)
       c: #M6
-      d: #M10
+      d: #M10(new)
     exportMapId: #M8
     exportMap
       a: #M0
@@ -83145,13 +83145,13 @@ enum A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredEnums
       A: #M0
         declaredFields
           c1: #M1
           c2: #M2
-          values: #M10
+          values: #M10(new)
         declaredGetters
           c1: #M4
           c2: #M5
@@ -83217,16 +83217,16 @@ enum A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredEnums
       A: #M0
         declaredFields
           c1: #M1
-          c3: #M10
-          values: #M11
+          c3: #M10(new)
+          values: #M11(new)
         declaredGetters
           c1: #M4
-          c3: #M12
+          c3: #M12(new)
           values: #M6
         interface: #M7
           map
@@ -83297,14 +83297,14 @@ enum A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredEnums
       A: #M0
         declaredFields
           c1: #M1
-          c2: #M12
+          c2: #M12(new)
           c3: #M3
-          values: #M13
+          values: #M13(new)
         declaredGetters
           c1: #M5
           c2: #M6
@@ -83379,17 +83379,17 @@ enum A<T> {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredEnums
       A: #M0
         declaredFields
           c1: #M1
-          c2: #M12
+          c2: #M12(new)
           c3: #M3
-          values: #M13
+          values: #M13(new)
         declaredGetters
           c1: #M5
-          c2: #M14
+          c2: #M14(new)
           c3: #M7
           values: #M8
         interface: #M9
@@ -83547,26 +83547,26 @@ enum A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredEnums
       A: #M0
         declaredFields
-          bar: #M12
+          bar: #M12(new)
           foo: #M2
           v: #M3
           values: #M4
         declaredGetters
-          bar: #M13
+          bar: #M13(new)
           foo: #M6
           v: #M7
           values: #M8
-        interface: #M14
+        interface: #M14(new)
           map
-            bar: #M13
+            bar: #M13(new)
             foo: #M6
             index: #M10
           implemented
-            bar: #M13
+            bar: #M13(new)
             foo: #M6
             index: #M10
           superImplemented
@@ -83635,26 +83635,26 @@ enum A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredEnums
       A: #M0
         declaredFields
-          bar: #M12
+          bar: #M12(new)
           foo: #M2
           v: #M3
           values: #M4
         declaredGetters
-          bar: #M13
+          bar: #M13(new)
           foo: #M6
           v: #M7
           values: #M8
-        interface: #M14
+        interface: #M14(new)
           map
-            bar: #M13
+            bar: #M13(new)
             foo: #M6
             index: #M10
           implemented
-            bar: #M13
+            bar: #M13(new)
             foo: #M6
             index: #M10
           superImplemented
@@ -83713,19 +83713,19 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       B: #M0
         interface: #M1
     declaredEnums
-      A: #M10
+      A: #M10(new)
         declaredFields
-          v: #M11
-          values: #M12
+          v: #M11(new)
+          values: #M12(new)
         declaredGetters
-          v: #M13
-          values: #M14
-        interface: #M15
+          v: #M13(new)
+          values: #M14(new)
+        interface: #M15(new)
           map
             index: #M8
           implemented
@@ -83735,9 +83735,9 @@ class B {}
               index: #M8
           inherited
             index: #M8
-    exportMapId: #M16
+    exportMapId: #M16(new)
     exportMap
-      A: #M10
+      A: #M10(new)
       B: #M0
 ''',
     );
@@ -83787,19 +83787,19 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       B: #M0
         interface: #M1
     declaredEnums
-      A: #M10
+      A: #M10(new)
         declaredFields
-          v: #M11
-          values: #M12
+          v: #M11(new)
+          values: #M12(new)
         declaredGetters
-          v: #M13
-          values: #M14
-        interface: #M15
+          v: #M13(new)
+          values: #M14(new)
+        interface: #M15(new)
           map
             index: #M8
           implemented
@@ -83809,9 +83809,9 @@ class B {}
               index: #M8
           inherited
             index: #M8
-    exportMapId: #M16
+    exportMapId: #M16(new)
     exportMap
-      A: #M10
+      A: #M10(new)
       B: #M0
 ''',
     );
@@ -83856,7 +83856,7 @@ enum B { v }
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredEnums
       A: #M0
         declaredFields
@@ -83875,14 +83875,14 @@ enum B { v }
               index: #M6
           inherited
             index: #M6
-      B: #M8
+      B: #M8(new)
         declaredFields
-          v: #M9
-          values: #M10
+          v: #M9(new)
+          values: #M10(new)
         declaredGetters
-          v: #M11
-          values: #M12
-        interface: #M13
+          v: #M11(new)
+          values: #M12(new)
+        interface: #M13(new)
           map
             index: #M6
           implemented
@@ -83892,10 +83892,10 @@ enum B { v }
               index: #M6
           inherited
             index: #M6
-    exportMapId: #M14
+    exportMapId: #M14(new)
     exportMap
       A: #M0
-      B: #M8
+      B: #M8(new)
 ''',
     );
   }
@@ -83957,7 +83957,7 @@ enum A { v }
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredEnums
       A: #M0
         declaredFields
@@ -83976,7 +83976,7 @@ enum A { v }
               index: #M6
           inherited
             index: #M6
-    exportMapId: #M14
+    exportMapId: #M14(new)
     exportMap
       A: #M0
 ''',
@@ -84036,7 +84036,7 @@ enum A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredEnums
       A: #M0
         declaredFields
@@ -84046,15 +84046,15 @@ enum A {
           v: #M3
           values: #M4
         declaredMethods
-          bar: #M10
+          bar: #M10(new)
           foo: #M6
-        interface: #M11
+        interface: #M11(new)
           map
-            bar: #M10
+            bar: #M10(new)
             foo: #M6
             index: #M8
           implemented
-            bar: #M10
+            bar: #M10(new)
             foo: #M6
             index: #M8
           superImplemented
@@ -84124,11 +84124,11 @@ enum A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredEnums
       A: #M0
         declaredFields
-          bar: #M12
+          bar: #M12(new)
           foo: #M2
           v: #M3
           values: #M4
@@ -84136,15 +84136,15 @@ enum A {
           v: #M5
           values: #M6
         declaredSetters
-          bar=: #M13
+          bar=: #M13(new)
           foo=: #M8
-        interface: #M14
+        interface: #M14(new)
           map
-            bar=: #M13
+            bar=: #M13(new)
             foo=: #M8
             index: #M10
           implemented
-            bar=: #M13
+            bar=: #M13(new)
             foo=: #M8
             index: #M10
           superImplemented
@@ -84208,7 +84208,7 @@ enum A<T> {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredEnums
       A: #M0
         declaredFields
@@ -84218,15 +84218,15 @@ enum A<T> {
           v: #M3
           values: #M4
         declaredMethods
-          bar: #M9
+          bar: #M9(new)
           foo: #M5
-        interface: #M10
+        interface: #M10(new)
           map
-            bar: #M9
+            bar: #M9(new)
             foo: #M5
             index: #M7
           implemented
-            bar: #M9
+            bar: #M9(new)
             foo: #M5
             index: #M7
           superImplemented
@@ -84279,16 +84279,16 @@ enum A<T, U> { v }
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredEnums
-      A: #M8
+      A: #M8(new)
         declaredFields
-          v: #M9
-          values: #M10
+          v: #M9(new)
+          values: #M10(new)
         declaredGetters
-          v: #M11
-          values: #M12
-        interface: #M13
+          v: #M11(new)
+          values: #M12(new)
+        interface: #M13(new)
           map
             index: #M6
           implemented
@@ -84298,9 +84298,9 @@ enum A<T, U> { v }
               index: #M6
           inherited
             index: #M6
-    exportMapId: #M14
+    exportMapId: #M14(new)
     exportMap
-      A: #M8
+      A: #M8(new)
 ''',
     );
   }
@@ -84361,16 +84361,16 @@ mixin M {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredEnums
-      A: #M11
+      A: #M11(new)
         declaredFields
-          v: #M12
-          values: #M13
+          v: #M12(new)
+          values: #M13(new)
         declaredGetters
-          v: #M14
-          values: #M15
-        interface: #M16
+          v: #M14(new)
+          values: #M15(new)
+        interface: #M16(new)
           map
             foo: #M8
             index: #M6
@@ -84395,9 +84395,9 @@ mixin M {
             foo: #M8
           implemented
             foo: #M8
-    exportMapId: #M17
+    exportMapId: #M17(new)
     exportMap
-      A: #M11
+      A: #M11(new)
       M: #M7
 ''',
     );
@@ -84465,16 +84465,16 @@ mixin M {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredEnums
-      A: #M11
+      A: #M11(new)
         declaredFields
-          v: #M12
-          values: #M13
+          v: #M12(new)
+          values: #M13(new)
         declaredGetters
-          v: #M14
-          values: #M15
-        interface: #M16
+          v: #M14(new)
+          values: #M15(new)
+        interface: #M16(new)
           map
             index: #M7
           implemented
@@ -84493,9 +84493,9 @@ mixin M {
             foo: #M6
           implemented
             foo: #M6
-    exportMapId: #M17
+    exportMapId: #M17(new)
     exportMap
-      A: #M11
+      A: #M11(new)
       M: #M8
 ''',
     );
@@ -84548,11 +84548,11 @@ extension B on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensions
       A: #M0
         declaredMethods
-          bar: #M7
+          bar: #M7(new)
           foo: #M2
       B: #M3
         declaredMethods
@@ -84625,11 +84625,11 @@ extension A on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/a.dart
-    hashForRequirements: #H2
+    hashForRequirements: #H2(new)
     declaredExtensions
       A: #M0
         declaredMethods
-          bar: #M8
+          bar: #M8(new)
           foo: #M2
     exportMapId: #M3
     exportMap
@@ -84695,14 +84695,14 @@ extension B on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/a.dart
-    hashForRequirements: #H2
+    hashForRequirements: #H2(new)
     declaredExtensions
       A: #M0
         declaredMethods
           foo: #M1
       B: #M2
         declaredMethods
-          bar: #M6
+          bar: #M6(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -84768,14 +84768,14 @@ extension B on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/a.dart
-    hashForRequirements: #H2
+    hashForRequirements: #H2(new)
     declaredExtensions
       A: #M0
         declaredMethods
           foo: #M1
       B: #M2
         declaredMethods
-          bar: #M6
+          bar: #M6(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -84859,11 +84859,11 @@ extension A on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/a.dart
-    hashForRequirements: #H3
+    hashForRequirements: #H3(new)
     declaredExtensions
       A: #M0
         declaredMethods
-          bar: #M9
+          bar: #M9(new)
           foo: #M2
     exportMapId: #M3
     exportMap
@@ -84939,11 +84939,11 @@ extension B on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/a.dart
-    hashForRequirements: #H2
+    hashForRequirements: #H2(new)
     declaredExtensions
       A: #M0
         declaredMethods
-          foo: #M8
+          foo: #M8(new)
       B: #M2
         declaredMethods
           bar: #M3
@@ -84990,11 +84990,11 @@ extension A on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensions
       A: #M0
         declaredMethods
-          _bar: #M4
+          _bar: #M4(new)
           foo: #M2
     exportMapId: #M3
     exportMap
@@ -85092,11 +85092,11 @@ extension A on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensions
       A: #M0
         declaredMethods
-          bar: #M4
+          bar: #M4(new)
           foo: #M2
     exportMapId: #M3
     exportMap
@@ -85140,19 +85140,19 @@ extension A on double {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensions
-      A: #M3
+      A: #M3(new)
         extendedType: double @ dart:core
         declaredMethods
-          foo: #M4
+          foo: #M4(new)
             flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-    exportMapId: #M5
+    exportMapId: #M5(new)
     exportMap
-      A: #M3
-    exportedExtensions: #M3
+      A: #M3(new)
+    exportedExtensions: #M3(new)
 ''',
     );
   }
@@ -85244,14 +85244,14 @@ extension A on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensions
       A: #M0
         declaredFields
-          bar: #M6
+          bar: #M6(new)
           foo: #M2
         declaredGetters
-          bar: #M7
+          bar: #M7(new)
           foo: #M4
     exportMapId: #M5
     exportMap
@@ -85303,24 +85303,24 @@ extension E on B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         interface: #M1
-      B: #M8
-        interface: #M9
+      B: #M8(new)
+        interface: #M9(new)
     declaredExtensions
-      E: #M10
+      E: #M10(new)
         declaredFields
-          foo: #M11
+          foo: #M11(new)
         declaredGetters
-          foo: #M12
-    exportMapId: #M13
+          foo: #M12(new)
+    exportMapId: #M13(new)
     exportMap
       A: #M0
-      B: #M8
-      E: #M10
-    exportedExtensions: #M10
+      B: #M8(new)
+      E: #M10(new)
+    exportedExtensions: #M10(new)
 ''',
     );
   }
@@ -85389,7 +85389,7 @@ extension E<T> on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensions
       E: #M0
         typeParameters
@@ -85403,10 +85403,10 @@ extension E<T> on int {
           foo2: #M2
             flags: isOriginGetterSetter
             type: int @ dart:core
-          foo3: #M10
+          foo3: #M10(new)
             flags: isOriginGetterSetter
             type: int @ dart:core
-          foo4: #M11
+          foo4: #M11(new)
             flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
         declaredGetters
@@ -85416,10 +85416,10 @@ extension E<T> on int {
           foo2: #M6
             flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
-          foo3: #M12
+          foo3: #M12(new)
             flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
-          foo4: #M13
+          foo4: #M13(new)
             flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
             returnType: typeParameter#0
     exportMapId: #M9
@@ -85483,7 +85483,7 @@ extension E on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -85491,20 +85491,20 @@ extension E on int {
           foo1: #M1
             flags: isOriginGetterSetter
             type: dynamic
-          foo2: #M8
+          foo2: #M8(new)
             flags: isOriginGetterSetter
             type: dynamic
-          foo3: #M9
+          foo3: #M9(new)
             flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           foo1: #M4
             flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             returnType: dynamic
-          foo2: #M10
+          foo2: #M10(new)
             flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             returnType: dynamic
-          foo3: #M11
+          foo3: #M11(new)
             flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
     exportMapId: #M7
@@ -85576,7 +85576,7 @@ extension E on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -85600,10 +85600,10 @@ extension E on int {
           foo2: #M6
             flags: isExternal isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
-          foo3: #M10
+          foo3: #M10(new)
             flags: isExternal isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
-          foo4: #M11
+          foo4: #M11(new)
             flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
     exportMapId: #M9
@@ -85675,7 +85675,7 @@ extension E on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -85686,10 +85686,10 @@ extension E on int {
           foo2: #M2
             flags: isOriginGetterSetter isStatic
             type: int @ dart:core
-          foo3: #M10
+          foo3: #M10(new)
             flags: isOriginGetterSetter isStatic
             type: int @ dart:core
-          foo4: #M11
+          foo4: #M11(new)
             flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
@@ -85699,10 +85699,10 @@ extension E on int {
           foo2: #M6
             flags: isOriginDeclaration isSimplyBounded isStatic
             returnType: int @ dart:core
-          foo3: #M12
+          foo3: #M12(new)
             flags: isOriginDeclaration isSimplyBounded isStatic
             returnType: int @ dart:core
-          foo4: #M13
+          foo4: #M13(new)
             flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
     exportMapId: #M9
@@ -85746,15 +85746,15 @@ extension B on int {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensions
       A: #M0
-      B: #M3
-    exportMapId: #M4
+      B: #M3(new)
+    exportMapId: #M4(new)
     exportMap
       A: #M0
-      B: #M3
-    exportedExtensions: #M0 #M3
+      B: #M3(new)
+    exportedExtensions: #M0 #M3(new)
 ''',
     );
   }
@@ -85791,11 +85791,11 @@ extension A on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensions
       A: #M0
         declaredMethods
-          bar: #M4
+          bar: #M4(new)
           foo: #M2
     exportMapId: #M3
     exportMap
@@ -85845,22 +85845,22 @@ extension E on B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         interface: #M1
-      B: #M7
-        interface: #M8
+      B: #M7(new)
+        interface: #M8(new)
     declaredExtensions
-      E: #M9
+      E: #M9(new)
         declaredMethods
-          foo: #M10
-    exportMapId: #M11
+          foo: #M10(new)
+    exportMapId: #M11(new)
     exportMap
       A: #M0
-      B: #M7
-      E: #M9
-    exportedExtensions: #M9
+      B: #M7(new)
+      E: #M9(new)
+    exportedExtensions: #M9(new)
 ''',
     );
   }
@@ -85920,7 +85920,7 @@ extension E<T> on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensions
       E: #M0
         typeParameters
@@ -85936,11 +85936,11 @@ extension E<T> on int {
             flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-          foo3: #M6
+          foo3: #M6(new)
             flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-          foo4: #M7
+          foo4: #M7(new)
             flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: typeParameter#0
@@ -85998,7 +85998,7 @@ extension E on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -86007,11 +86007,11 @@ extension E on int {
             flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: dynamic
-          foo2: #M5
+          foo2: #M5(new)
             flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: dynamic
-          foo3: #M6
+          foo3: #M6(new)
             flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
@@ -86075,7 +86075,7 @@ extension E on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -86088,11 +86088,11 @@ extension E on int {
             flags: isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-          foo3: #M6
+          foo3: #M6(new)
             flags: isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-          foo4: #M7
+          foo4: #M7(new)
             flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
@@ -86156,7 +86156,7 @@ extension E on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -86169,11 +86169,11 @@ extension E on int {
             flags: isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               returnType: void
-          foo3: #M6
+          foo3: #M6(new)
             flags: isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               returnType: void
-          foo4: #M7
+          foo4: #M7(new)
             flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
@@ -86249,14 +86249,14 @@ extension A on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensions
       A: #M0
         declaredFields
-          bar: #M6
+          bar: #M6(new)
           foo: #M2
         declaredSetters
-          bar=: #M7
+          bar=: #M7(new)
           foo=: #M4
     exportMapId: #M5
     exportMap
@@ -86308,24 +86308,24 @@ extension E on B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         interface: #M1
-      B: #M8
-        interface: #M9
+      B: #M8(new)
+        interface: #M9(new)
     declaredExtensions
-      E: #M10
+      E: #M10(new)
         declaredFields
-          foo: #M11
+          foo: #M11(new)
         declaredSetters
-          foo=: #M12
-    exportMapId: #M13
+          foo=: #M12(new)
+    exportMapId: #M13(new)
     exportMap
       A: #M0
-      B: #M8
-      E: #M10
-    exportedExtensions: #M10
+      B: #M8(new)
+      E: #M10(new)
+    exportedExtensions: #M10(new)
 ''',
     );
   }
@@ -86406,7 +86406,7 @@ extension E<T> on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensions
       E: #M0
         typeParameters
@@ -86420,10 +86420,10 @@ extension E<T> on int {
           foo2: #M2
             flags: isOriginGetterSetter
             type: int @ dart:core
-          foo3: #M10
+          foo3: #M10(new)
             flags: isOriginGetterSetter
             type: int @ dart:core
-          foo4: #M11
+          foo4: #M11(new)
             flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
         declaredSetters
@@ -86439,13 +86439,13 @@ extension E<T> on int {
               positional
                 required int @ dart:core
               returnType: void
-          foo3=: #M12
+          foo3=: #M12(new)
             flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
-          foo4=: #M13
+          foo4=: #M13(new)
             flags: hasEnclosingTypeParameterReference hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
@@ -86532,7 +86532,7 @@ extension E on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -86562,13 +86562,13 @@ extension E on int {
               positional
                 required int @ dart:core
               returnType: void
-          foo3=: #M10
+          foo3=: #M10(new)
             flags: hasImplicitReturnType isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
-          foo4=: #M11
+          foo4=: #M11(new)
             flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
@@ -86655,7 +86655,7 @@ extension E on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensions
       E: #M0
         extendedType: int @ dart:core
@@ -86666,10 +86666,10 @@ extension E on int {
           foo2: #M2
             flags: isOriginGetterSetter isStatic
             type: int @ dart:core
-          foo3: #M10
+          foo3: #M10(new)
             flags: isOriginGetterSetter isStatic
             type: int @ dart:core
-          foo4: #M11
+          foo4: #M11(new)
             flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
@@ -86685,13 +86685,13 @@ extension E on int {
               positional
                 required int @ dart:core
               returnType: void
-          foo3=: #M12
+          foo3=: #M12(new)
             flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
-          foo4=: #M13
+          foo4=: #M13(new)
             flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
@@ -86735,11 +86735,11 @@ extension A<T> on int {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensions
       A: #M0
         declaredMethods
-          bar: #M3
+          bar: #M3(new)
           foo: #M1
     exportMapId: #M2
     exportMap
@@ -86772,13 +86772,13 @@ extension A<T, U> on int {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensions
-      A: #M2
-    exportMapId: #M3
+      A: #M2(new)
+    exportMapId: #M3(new)
     exportMap
-      A: #M2
-    exportedExtensions: #M2
+      A: #M2(new)
+    exportedExtensions: #M2(new)
 ''',
     );
   }
@@ -86824,14 +86824,14 @@ extension type E(List<int> it) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredConflicts
-      E: #M7
-      E=: #M7
-    exportMapId: #M8
+      E: #M7(new)
+      E=: #M7(new)
+    exportMapId: #M8(new)
     exportMap
-      E: #M7
-      E=: #M7
+      E: #M7(new)
+      E=: #M7(new)
 ''',
     );
   }
@@ -86884,30 +86884,30 @@ extension type ET(B it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         interface: #M1
-      B: #M10
-        interface: #M11
+      B: #M10(new)
+        interface: #M11(new)
     declaredExtensionTypes
-      ET: #M12
+      ET: #M12(new)
         declaredFields
-          it: #M13
+          it: #M13(new)
         declaredGetters
-          it: #M14
+          it: #M14(new)
         declaredConstructors
-          named: #M15
-        interface: #M16
+          named: #M15(new)
+        interface: #M16(new)
           map
-            it: #M14
+            it: #M14(new)
           implemented
-            it: #M14
-    exportMapId: #M17
+            it: #M14(new)
+    exportMapId: #M17(new)
     exportMap
       A: #M0
-      B: #M10
-      ET: #M12
+      B: #M10(new)
+      ET: #M12(new)
 ''',
     );
   }
@@ -86986,7 +86986,7 @@ extension type E(int it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensionTypes
       E: #M0
         flags: isSimplyBounded
@@ -87013,13 +87013,13 @@ extension type E(int it) {
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
-          foo3: #M9
+          foo3: #M9(new)
               flags: isConst isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
-          foo4: #M10
+          foo4: #M10(new)
               flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
@@ -87111,7 +87111,7 @@ extension type E(int it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensionTypes
       E: #M0
         flags: isSimplyBounded
@@ -87138,13 +87138,13 @@ extension type E(int it) {
                 positional
                   required int @ dart:core
                 returnType: E @ package:test/test.dart
-          foo3: #M9
+          foo3: #M9(new)
               flags: isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required int @ dart:core
                 returnType: E @ package:test/test.dart
-          foo4: #M10
+          foo4: #M10(new)
               flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
@@ -87236,7 +87236,7 @@ extension type E(int it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensionTypes
       E: #M0
         flags: isSimplyBounded
@@ -87263,13 +87263,13 @@ extension type E(int it) {
                 positional
                   required int @ dart:core
                 returnType: E @ package:test/test.dart
-          foo3: #M9
+          foo3: #M9(new)
               flags: isExtensionTypeMember isFactory isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required int @ dart:core
                 returnType: E @ package:test/test.dart
-          foo4: #M10
+          foo4: #M10(new)
               flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
@@ -87396,24 +87396,24 @@ extension type A(int it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensionTypes
       A: #M0
         declaredFields
-          bar: #M9
+          bar: #M9(new)
           foo: #M2
           it: #M3
         declaredGetters
-          bar: #M10
+          bar: #M10(new)
           foo: #M5
           it: #M6
-        interface: #M11
+        interface: #M11(new)
           map
-            bar: #M10
+            bar: #M10(new)
             foo: #M5
             it: #M6
           implemented
-            bar: #M10
+            bar: #M10(new)
             foo: #M5
             it: #M6
     exportMapId: #M8
@@ -87473,32 +87473,32 @@ extension type ET(B it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         interface: #M1
-      B: #M11
-        interface: #M12
+      B: #M11(new)
+        interface: #M12(new)
     declaredExtensionTypes
-      ET: #M13
+      ET: #M13(new)
         declaredFields
-          foo: #M14
-          it: #M15
+          foo: #M14(new)
+          it: #M15(new)
         declaredGetters
-          foo: #M16
-          it: #M17
-        interface: #M18
+          foo: #M16(new)
+          it: #M17(new)
+        interface: #M18(new)
           map
-            foo: #M16
-            it: #M17
+            foo: #M16(new)
+            it: #M17(new)
           implemented
-            foo: #M16
-            it: #M17
-    exportMapId: #M19
+            foo: #M16(new)
+            it: #M17(new)
+    exportMapId: #M19(new)
     exportMap
       A: #M0
-      B: #M11
-      ET: #M13
+      B: #M11(new)
+      ET: #M13(new)
 ''',
     );
   }
@@ -87587,7 +87587,7 @@ extension type E<T>(T it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensionTypes
       E: #M0
         flags: isSimplyBounded
@@ -87603,10 +87603,10 @@ extension type E<T>(T it) {
           foo2: #M2
             flags: isOriginGetterSetter
             type: int @ dart:core
-          foo3: #M13
+          foo3: #M13(new)
             flags: isOriginGetterSetter
             type: int @ dart:core
-          foo4: #M14
+          foo4: #M14(new)
             flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
           it: #M5
@@ -87619,27 +87619,27 @@ extension type E<T>(T it) {
           foo2: #M7
             flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
-          foo3: #M15
+          foo3: #M15(new)
             flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
-          foo4: #M16
+          foo4: #M16(new)
             flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
             returnType: typeParameter#0
           it: #M10
             flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginVariable isSimplyBounded
             returnType: typeParameter#0
-        interface: #M17
+        interface: #M17(new)
           map
             foo1: #M6
             foo2: #M7
-            foo3: #M15
-            foo4: #M16
+            foo3: #M15(new)
+            foo4: #M16(new)
             it: #M10
           implemented
             foo1: #M6
             foo2: #M7
-            foo3: #M15
-            foo4: #M16
+            foo3: #M15(new)
+            foo4: #M16(new)
             it: #M10
     exportMapId: #M12
     exportMap
@@ -87719,7 +87719,7 @@ extension type E(int it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensionTypes
       E: #M0
         flags: isSimplyBounded
@@ -87729,10 +87729,10 @@ extension type E(int it) {
           foo1: #M1
             flags: isOriginGetterSetter
             type: dynamic
-          foo2: #M11
+          foo2: #M11(new)
             flags: isOriginGetterSetter
             type: dynamic
-          foo3: #M12
+          foo3: #M12(new)
             flags: isOriginGetterSetter
             type: int @ dart:core
           it: #M4
@@ -87742,25 +87742,25 @@ extension type E(int it) {
           foo1: #M5
             flags: hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded
             returnType: dynamic
-          foo2: #M13
+          foo2: #M13(new)
             flags: hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded
             returnType: dynamic
-          foo3: #M14
+          foo3: #M14(new)
             flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           it: #M8
             flags: isExtensionTypeMember isOriginVariable isSimplyBounded
             returnType: int @ dart:core
-        interface: #M15
+        interface: #M15(new)
           map
             foo1: #M5
-            foo2: #M13
-            foo3: #M14
+            foo2: #M13(new)
+            foo3: #M14(new)
             it: #M8
           implemented
             foo1: #M5
-            foo2: #M13
-            foo3: #M14
+            foo2: #M13(new)
+            foo3: #M14(new)
             it: #M8
     exportMapId: #M10
     exportMap
@@ -87850,7 +87850,7 @@ extension type E(int it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensionTypes
       E: #M0
         flags: isSimplyBounded
@@ -87879,27 +87879,27 @@ extension type E(int it) {
           foo2: #M7
             flags: isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
-          foo3: #M13
+          foo3: #M13(new)
             flags: isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
-          foo4: #M14
+          foo4: #M14(new)
             flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           it: #M10
             flags: isExtensionTypeMember isOriginVariable isSimplyBounded
             returnType: int @ dart:core
-        interface: #M15
+        interface: #M15(new)
           map
             foo1: #M6
             foo2: #M7
-            foo3: #M13
-            foo4: #M14
+            foo3: #M13(new)
+            foo4: #M14(new)
             it: #M10
           implemented
             foo1: #M6
             foo2: #M7
-            foo3: #M13
-            foo4: #M14
+            foo3: #M13(new)
+            foo4: #M14(new)
             it: #M10
     exportMapId: #M12
     exportMap
@@ -87985,7 +87985,7 @@ extension type E(int it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensionTypes
       E: #M0
         flags: isSimplyBounded
@@ -87998,10 +87998,10 @@ extension type E(int it) {
           foo2: #M2
             flags: isOriginGetterSetter isStatic
             type: int @ dart:core
-          foo3: #M13
+          foo3: #M13(new)
             flags: isOriginGetterSetter isStatic
             type: int @ dart:core
-          foo4: #M14
+          foo4: #M14(new)
             flags: isOriginGetterSetter
             type: int @ dart:core
           it: #M5
@@ -88014,23 +88014,23 @@ extension type E(int it) {
           foo2: #M7
             flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded isStatic
             returnType: int @ dart:core
-          foo3: #M15
+          foo3: #M15(new)
             flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded isStatic
             returnType: int @ dart:core
-          foo4: #M16
+          foo4: #M16(new)
             flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
           it: #M10
             flags: isExtensionTypeMember isOriginVariable isSimplyBounded
             returnType: int @ dart:core
-        interface: #M17
+        interface: #M17(new)
           map
             foo1: #M6
-            foo4: #M16
+            foo4: #M16(new)
             it: #M10
           implemented
             foo1: #M6
-            foo4: #M16
+            foo4: #M16(new)
             it: #M10
     exportMapId: #M12
     exportMap
@@ -88070,21 +88070,21 @@ extension type A(int it) implements A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensionTypes
-      A: #M5
+      A: #M5(new)
         declaredFields
-          it: #M6
+          it: #M6(new)
         declaredGetters
-          it: #M7
-        interface: #M8
+          it: #M7(new)
+        interface: #M8(new)
           map
-            it: #M7
+            it: #M7(new)
           implemented
-            it: #M7
-    exportMapId: #M9
+            it: #M7(new)
+    exportMapId: #M9(new)
     exportMap
-      A: #M5
+      A: #M5(new)
 ''',
     );
   }
@@ -88120,21 +88120,21 @@ extension type A(A it) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensionTypes
-      A: #M5
+      A: #M5(new)
         declaredFields
-          it: #M6
+          it: #M6(new)
         declaredGetters
-          it: #M7
-        interface: #M8
+          it: #M7(new)
+        interface: #M8(new)
           map
-            it: #M7
+            it: #M7(new)
           implemented
-            it: #M7
-    exportMapId: #M9
+            it: #M7(new)
+    exportMapId: #M9(new)
     exportMap
-      A: #M5
+      A: #M5(new)
 ''',
     );
   }
@@ -88170,21 +88170,21 @@ extension type A(int it) implements Object {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensionTypes
-      A: #M5
+      A: #M5(new)
         declaredFields
-          it: #M6
+          it: #M6(new)
         declaredGetters
-          it: #M7
-        interface: #M8
+          it: #M7(new)
+        interface: #M8(new)
           map
-            it: #M7
+            it: #M7(new)
           implemented
-            it: #M7
-    exportMapId: #M9
+            it: #M7(new)
+    exportMapId: #M9(new)
     exportMap
-      A: #M5
+      A: #M5(new)
 ''',
     );
   }
@@ -88220,21 +88220,21 @@ extension type A(int it) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensionTypes
-      A: #M5
+      A: #M5(new)
         declaredFields
-          it: #M6
+          it: #M6(new)
         declaredGetters
-          it: #M7
-        interface: #M8
+          it: #M7(new)
+        interface: #M8(new)
           map
-            it: #M7
+            it: #M7(new)
           implemented
-            it: #M7
-    exportMapId: #M9
+            it: #M7(new)
+    exportMapId: #M9(new)
     exportMap
-      A: #M5
+      A: #M5(new)
 ''',
     );
   }
@@ -88289,7 +88289,7 @@ extension type B(int it) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -88301,20 +88301,20 @@ extension type B(int it) {}
             it: #M2
           implemented
             it: #M2
-      B: #M9
+      B: #M9(new)
         declaredFields
-          it: #M10
+          it: #M10(new)
         declaredGetters
-          it: #M11
-        interface: #M12
+          it: #M11(new)
+        interface: #M12(new)
           map
-            it: #M11
+            it: #M11(new)
           implemented
-            it: #M11
-    exportMapId: #M13
+            it: #M11(new)
+    exportMapId: #M13(new)
     exportMap
       A: #M0
-      B: #M9
+      B: #M9(new)
 ''',
     );
   }
@@ -88377,7 +88377,7 @@ extension type A(int it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensionTypes
       A: #M0
         flags: isSimplyBounded
@@ -88392,7 +88392,7 @@ extension type A(int it) {
             flags: isExtensionTypeMember isOriginVariable isSimplyBounded
             returnType: int @ dart:core
         declaredMethods
-          bar: #M7
+          bar: #M7(new)
             flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: double @ dart:core
@@ -88400,13 +88400,13 @@ extension type A(int it) {
             flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: int @ dart:core
-        interface: #M8
+        interface: #M8(new)
           map
-            bar: #M7
+            bar: #M7(new)
             foo: #M4
             it: #M2
           implemented
-            bar: #M7
+            bar: #M7(new)
             foo: #M4
             it: #M2
     exportMapId: #M6
@@ -88466,32 +88466,32 @@ extension type ET(B it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         interface: #M1
-      B: #M10
-        interface: #M11
+      B: #M10(new)
+        interface: #M11(new)
     declaredExtensionTypes
-      ET: #M12
+      ET: #M12(new)
         declaredFields
-          it: #M13
+          it: #M13(new)
         declaredGetters
-          it: #M14
+          it: #M14(new)
         declaredMethods
-          foo: #M15
-        interface: #M16
+          foo: #M15(new)
+        interface: #M16(new)
           map
-            foo: #M15
-            it: #M14
+            foo: #M15(new)
+            it: #M14(new)
           implemented
-            foo: #M15
-            it: #M14
-    exportMapId: #M17
+            foo: #M15(new)
+            it: #M14(new)
+    exportMapId: #M17(new)
     exportMap
       A: #M0
-      B: #M10
-      ET: #M12
+      B: #M10(new)
+      ET: #M12(new)
 ''',
     );
   }
@@ -88573,7 +88573,7 @@ extension type E<T>(T it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensionTypes
       E: #M0
         flags: isSimplyBounded
@@ -88599,26 +88599,26 @@ extension type E<T>(T it) {
             flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-          foo3: #M9
+          foo3: #M9(new)
             flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-          foo4: #M10
+          foo4: #M10(new)
             flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: typeParameter#0
-        interface: #M11
+        interface: #M11(new)
           map
             foo1: #M3
             foo2: #M4
-            foo3: #M9
-            foo4: #M10
+            foo3: #M9(new)
+            foo4: #M10(new)
             it: #M2
           implemented
             foo1: #M3
             foo2: #M4
-            foo3: #M9
-            foo4: #M10
+            foo3: #M9(new)
+            foo4: #M10(new)
             it: #M2
     exportMapId: #M8
     exportMap
@@ -88693,7 +88693,7 @@ extension type E(int it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensionTypes
       E: #M0
         flags: isSimplyBounded
@@ -88712,24 +88712,24 @@ extension type E(int it) {
             flags: hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: dynamic
-          foo2: #M8
+          foo2: #M8(new)
             flags: hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: dynamic
-          foo3: #M9
+          foo3: #M9(new)
             flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-        interface: #M10
+        interface: #M10(new)
           map
             foo1: #M3
-            foo2: #M8
-            foo3: #M9
+            foo2: #M8(new)
+            foo3: #M9(new)
             it: #M2
           implemented
             foo1: #M3
-            foo2: #M8
-            foo3: #M9
+            foo2: #M8(new)
+            foo3: #M9(new)
             it: #M2
     exportMapId: #M7
     exportMap
@@ -88812,7 +88812,7 @@ extension type E(int it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensionTypes
       E: #M0
         flags: isSimplyBounded
@@ -88835,26 +88835,26 @@ extension type E(int it) {
             flags: isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-          foo3: #M9
+          foo3: #M9(new)
             flags: isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-          foo4: #M10
+          foo4: #M10(new)
             flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-        interface: #M11
+        interface: #M11(new)
           map
             foo1: #M3
             foo2: #M4
-            foo3: #M9
-            foo4: #M10
+            foo3: #M9(new)
+            foo4: #M10(new)
             it: #M2
           implemented
             foo1: #M3
             foo2: #M4
-            foo3: #M9
-            foo4: #M10
+            foo3: #M9(new)
+            foo4: #M10(new)
             it: #M2
     exportMapId: #M8
     exportMap
@@ -88933,7 +88933,7 @@ extension type E(int it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensionTypes
       E: #M0
         flags: isSimplyBounded
@@ -88956,22 +88956,22 @@ extension type E(int it) {
             flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               returnType: void
-          foo3: #M9
+          foo3: #M9(new)
             flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               returnType: void
-          foo4: #M10
+          foo4: #M10(new)
             flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-        interface: #M11
+        interface: #M11(new)
           map
             foo1: #M3
-            foo4: #M10
+            foo4: #M10(new)
             it: #M2
           implemented
             foo1: #M3
-            foo4: #M10
+            foo4: #M10(new)
             it: #M2
     exportMapId: #M8
     exportMap
@@ -89021,7 +89021,7 @@ extension type A.bar(int it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -89031,7 +89031,7 @@ extension type A.bar(int it) {
         declaredMethods
           baz: #M3
         declaredConstructors
-          bar: #M7
+          bar: #M7(new)
         interface: #M5
           map
             baz: #M3
@@ -89085,16 +89085,16 @@ extension type A(int _it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensionTypes
       A: #M0
         declaredFields
-          _it: #M6
+          _it: #M6(new)
         declaredGetters
-          _it: #M7
+          _it: #M7(new)
         declaredMethods
           foo: #M3
-        interface: #M8
+        interface: #M8(new)
           map
             foo: #M3
           implemented
@@ -89145,25 +89145,25 @@ extension type A(double it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensionTypes
-      A: #M6
+      A: #M6(new)
         declaredFields
-          it: #M7
+          it: #M7(new)
         declaredGetters
-          it: #M8
+          it: #M8(new)
         declaredMethods
-          foo: #M9
-        interface: #M10
+          foo: #M9(new)
+        interface: #M10(new)
           map
-            foo: #M9
-            it: #M8
+            foo: #M9(new)
+            it: #M8(new)
           implemented
-            foo: #M9
-            it: #M8
-    exportMapId: #M11
+            foo: #M9(new)
+            it: #M8(new)
+    exportMapId: #M11(new)
     exportMap
-      A: #M6
+      A: #M6(new)
 ''',
     );
   }
@@ -89214,25 +89214,25 @@ extension type A(int it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensionTypes
       A: #M0
         declaredFields
-          bar: #M9
+          bar: #M9(new)
           foo: #M2
           it: #M3
         declaredGetters
           it: #M4
         declaredSetters
-          bar=: #M10
+          bar=: #M10(new)
           foo=: #M6
-        interface: #M11
+        interface: #M11(new)
           map
-            bar=: #M10
+            bar=: #M10(new)
             foo=: #M6
             it: #M4
           implemented
-            bar=: #M10
+            bar=: #M10(new)
             foo=: #M6
             it: #M4
     exportMapId: #M8
@@ -89293,33 +89293,33 @@ extension type ET(B it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         interface: #M1
-      B: #M11
-        interface: #M12
+      B: #M11(new)
+        interface: #M12(new)
     declaredExtensionTypes
-      ET: #M13
+      ET: #M13(new)
         declaredFields
-          foo: #M14
-          it: #M15
+          foo: #M14(new)
+          it: #M15(new)
         declaredGetters
-          it: #M16
+          it: #M16(new)
         declaredSetters
-          foo=: #M17
-        interface: #M18
+          foo=: #M17(new)
+        interface: #M18(new)
           map
-            foo=: #M17
-            it: #M16
+            foo=: #M17(new)
+            it: #M16(new)
           implemented
-            foo=: #M17
-            it: #M16
-    exportMapId: #M19
+            foo=: #M17(new)
+            it: #M16(new)
+    exportMapId: #M19(new)
     exportMap
       A: #M0
-      B: #M11
-      ET: #M13
+      B: #M11(new)
+      ET: #M13(new)
 ''',
     );
   }
@@ -89421,7 +89421,7 @@ extension type E<T>(T it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensionTypes
       E: #M0
         flags: isSimplyBounded
@@ -89437,10 +89437,10 @@ extension type E<T>(T it) {
           foo2: #M2
             flags: isOriginGetterSetter
             type: int @ dart:core
-          foo3: #M13
+          foo3: #M13(new)
             flags: isOriginGetterSetter
             type: int @ dart:core
-          foo4: #M14
+          foo4: #M14(new)
             flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
           it: #M5
@@ -89463,30 +89463,30 @@ extension type E<T>(T it) {
               positional
                 required int @ dart:core
               returnType: void
-          foo3=: #M15
+          foo3=: #M15(new)
             flags: hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
-          foo4=: #M16
+          foo4=: #M16(new)
             flags: hasEnclosingTypeParameterReference hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required typeParameter#0
               returnType: void
-        interface: #M17
+        interface: #M17(new)
           map
             foo1=: #M7
             foo2=: #M8
-            foo3=: #M15
-            foo4=: #M16
+            foo3=: #M15(new)
+            foo4=: #M16(new)
             it: #M6
           implemented
             foo1=: #M7
             foo2=: #M8
-            foo3=: #M15
-            foo4=: #M16
+            foo3=: #M15(new)
+            foo4=: #M16(new)
             it: #M6
     exportMapId: #M12
     exportMap
@@ -89589,7 +89589,7 @@ extension type E(int it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensionTypes
       E: #M0
         flags: isSimplyBounded
@@ -89628,30 +89628,30 @@ extension type E(int it) {
               positional
                 required int @ dart:core
               returnType: void
-          foo3=: #M13
+          foo3=: #M13(new)
             flags: hasImplicitReturnType isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
-          foo4=: #M14
+          foo4=: #M14(new)
             flags: hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
-        interface: #M15
+        interface: #M15(new)
           map
             foo1=: #M7
             foo2=: #M8
-            foo3=: #M13
-            foo4=: #M14
+            foo3=: #M13(new)
+            foo4=: #M14(new)
             it: #M6
           implemented
             foo1=: #M7
             foo2=: #M8
-            foo3=: #M13
-            foo4=: #M14
+            foo3=: #M13(new)
+            foo4=: #M14(new)
             it: #M6
     exportMapId: #M12
     exportMap
@@ -89750,7 +89750,7 @@ extension type E(int it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensionTypes
       E: #M0
         flags: isSimplyBounded
@@ -89763,10 +89763,10 @@ extension type E(int it) {
           foo2: #M2
             flags: isOriginGetterSetter isStatic
             type: int @ dart:core
-          foo3: #M13
+          foo3: #M13(new)
             flags: isOriginGetterSetter isStatic
             type: int @ dart:core
-          foo4: #M14
+          foo4: #M14(new)
             flags: isOriginGetterSetter
             type: int @ dart:core
           it: #M5
@@ -89789,26 +89789,26 @@ extension type E(int it) {
               positional
                 required int @ dart:core
               returnType: void
-          foo3=: #M15
+          foo3=: #M15(new)
             flags: hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
-          foo4=: #M16
+          foo4=: #M16(new)
             flags: hasImplicitReturnType isExtensionTypeMember isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
-        interface: #M17
+        interface: #M17(new)
           map
             foo1=: #M7
-            foo4=: #M16
+            foo4=: #M16(new)
             it: #M6
           implemented
             foo1=: #M7
-            foo4=: #M16
+            foo4=: #M16(new)
             it: #M6
     exportMapId: #M12
     exportMap
@@ -89848,21 +89848,21 @@ extension type A(int it) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensionTypes
-      A: #M5
+      A: #M5(new)
         declaredFields
-          it: #M6
+          it: #M6(new)
         declaredGetters
-          it: #M7
-        interface: #M8
+          it: #M7(new)
+        interface: #M8(new)
           map
-            it: #M7
+            it: #M7(new)
           implemented
-            it: #M7
-    exportMapId: #M9
+            it: #M7(new)
+    exportMapId: #M9(new)
     exportMap
-      A: #M5
+      A: #M5(new)
 ''',
     );
   }
@@ -89907,7 +89907,7 @@ extension type A<T>(int it) {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensionTypes
       A: #M0
         declaredFields
@@ -89915,15 +89915,15 @@ extension type A<T>(int it) {
         declaredGetters
           it: #M2
         declaredMethods
-          bar: #M6
+          bar: #M6(new)
           foo: #M3
-        interface: #M7
+        interface: #M7(new)
           map
-            bar: #M6
+            bar: #M6(new)
             foo: #M3
             it: #M2
           implemented
-            bar: #M6
+            bar: #M6(new)
             foo: #M3
             it: #M2
     exportMapId: #M5
@@ -89964,21 +89964,21 @@ extension type A<T, U>(int it) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredExtensionTypes
-      A: #M5
+      A: #M5(new)
         declaredFields
-          it: #M6
+          it: #M6(new)
         declaredGetters
-          it: #M7
-        interface: #M8
+          it: #M7(new)
+        interface: #M8(new)
           map
-            it: #M7
+            it: #M7(new)
           implemented
-            it: #M7
-    exportMapId: #M9
+            it: #M7(new)
+    exportMapId: #M9(new)
     exportMap
-      A: #M5
+      A: #M5(new)
 ''',
     );
   }
@@ -90022,17 +90022,17 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
-      b: #M3
+      b: #M3(new)
     declaredVariables
       a: #M1
-      b: #M4
-    exportMapId: #M5
+      b: #M4(new)
+    exportMapId: #M5(new)
     exportMap
       a: #M0
-      b: #M3
+      b: #M3(new)
 ''',
     );
   }
@@ -90384,8 +90384,8 @@ library;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
-    libraryMetadata: #M1
+    hashForRequirements: #H1(new)
+    libraryMetadata: #M1(new)
     exportMapId: #M0
 ''',
     );
@@ -90412,8 +90412,8 @@ library;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
-    libraryMetadata: #M2
+    hashForRequirements: #H1(new)
+    libraryMetadata: #M2(new)
     exportMapId: #M1
 ''',
     );
@@ -90441,13 +90441,13 @@ void foo() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     libraryMetadata: #M0
     declaredFunctions
-      foo: #M2
-    exportMapId: #M3
+      foo: #M2(new)
+    exportMapId: #M3(new)
     exportMap
-      foo: #M2
+      foo: #M2(new)
 ''',
     );
   }
@@ -90472,7 +90472,7 @@ library;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     exportMapId: #M1
 ''',
     );
@@ -90505,17 +90505,17 @@ int get b => 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
-      b: #M3
+      b: #M3(new)
     declaredVariables
       a: #M1
-      b: #M4
-    exportMapId: #M5
+      b: #M4(new)
+    exportMapId: #M5(new)
     exportMap
       a: #M0
-      b: #M3
+      b: #M3(new)
 ''',
     );
   }
@@ -90545,14 +90545,14 @@ int get a => 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
       a: #M1
-    exportMapId: #M4
+    exportMapId: #M4(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -90610,14 +90610,14 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isSimplyBounded
         supertype: Object @ dart:core
         interface: #M1
     declaredGetters
-      b: #M4
+      b: #M4(new)
         flags: isOriginVariable isSimplyBounded isStatic
         returnType: int @ dart:core
     declaredFunctions
@@ -90638,13 +90638,13 @@ final b = 0;
         functionType: FunctionType
           returnType: void
     declaredVariables
-      b: #M5
+      b: #M5(new)
         flags: hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
-    exportMapId: #M6
+    exportMapId: #M6(new)
     exportMap
       A: #M0
-      b: #M4
+      b: #M4(new)
       foo: #M2
 ''',
     );
@@ -90706,14 +90706,14 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         flags: isSimplyBounded
         supertype: Object @ dart:core
         interface: #M1
     declaredGetters
-      b: #M4
+      b: #M4(new)
         flags: isOriginVariable isSimplyBounded isStatic
         returnType: int @ dart:core
     declaredFunctions
@@ -90737,13 +90737,13 @@ final b = 0;
         functionType: FunctionType
           returnType: void
     declaredVariables
-      b: #M5
+      b: #M5(new)
         flags: hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
-    exportMapId: #M6
+    exportMapId: #M6(new)
     exportMap
       A: #M0
-      b: #M4
+      b: #M4(new)
       foo: #M2
 ''',
     );
@@ -90774,14 +90774,14 @@ int get a => 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
       a: #M1
-    exportMapId: #M4
+    exportMapId: #M4(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -90817,17 +90817,17 @@ int get foo => 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
-      foo: #M5
+      foo: #M5(new)
     declaredVariables
-      a: #M6
+      a: #M6(new)
       foo: #M3
-    exportMapId: #M7
+    exportMapId: #M7(new)
     exportMap
       a: #M0
-      foo: #M5
+      foo: #M5(new)
 ''',
     );
   }
@@ -90858,14 +90858,14 @@ int get a => 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
       a: #M1
-    exportMapId: #M4
+    exportMapId: #M4(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -90894,16 +90894,16 @@ mixin B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         interface: #M1
-      B: #M3
-        interface: #M4
-    exportMapId: #M5
+      B: #M3(new)
+        interface: #M4(new)
+    exportMapId: #M5(new)
     exportMap
       A: #M0
-      B: #M3
+      B: #M3(new)
 ''',
     );
   }
@@ -90944,22 +90944,22 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredFields
           a: #M1
-          b: #M5
+          b: #M5(new)
         declaredGetters
           a: #M2
-          b: #M6
-        interface: #M7
+          b: #M6(new)
+        interface: #M7(new)
           map
             a: #M2
-            b: #M6
+            b: #M6(new)
           implemented
             a: #M2
-            b: #M6
+            b: #M6(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -91016,31 +91016,31 @@ mixin C on B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         interface: #M1
-      B: #M10
-        interface: #M11
-      C: #M12
+      B: #M10(new)
+        interface: #M11(new)
+      C: #M12(new)
         declaredFields
-          foo: #M13
+          foo: #M13(new)
         declaredGetters
-          foo: #M14
+          foo: #M14(new)
         declaredSetters
-          foo=: #M15
-        interface: #M16
+          foo=: #M15(new)
+        interface: #M16(new)
           map
-            foo: #M14
-            foo=: #M15
+            foo: #M14(new)
+            foo=: #M15(new)
           implemented
-            foo: #M14
-            foo=: #M15
-    exportMapId: #M17
+            foo: #M14(new)
+            foo=: #M15(new)
+    exportMapId: #M17(new)
     exportMap
       A: #M0
-      B: #M10
-      C: #M12
+      B: #M10(new)
+      C: #M12(new)
 ''',
     );
   }
@@ -91140,18 +91140,18 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredFields
-          a: #M5
+          a: #M5(new)
         declaredGetters
-          a: #M6
-        interface: #M7
+          a: #M6(new)
+        interface: #M7(new)
           map
-            a: #M6
+            a: #M6(new)
           implemented
-            a: #M6
+            a: #M6(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -91244,11 +91244,11 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredFields
-          a: #M5
+          a: #M5(new)
         declaredGetters
           a: #M2
         interface: #M3
@@ -91357,29 +91357,29 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredFields
           a: #M1
-          b: #M9
+          b: #M9(new)
         declaredGetters
           a: #M3
-          b: #M10
+          b: #M10(new)
         declaredSetters
           a=: #M5
-          b=: #M11
-        interface: #M12
+          b=: #M11(new)
+        interface: #M12(new)
           map
             a: #M3
             a=: #M5
-            b: #M10
-            b=: #M11
+            b: #M10(new)
+            b=: #M11(new)
           implemented
             a: #M3
             a=: #M5
-            b: #M10
-            b=: #M11
+            b: #M10(new)
+            b=: #M11(new)
     exportMapId: #M8
     exportMap
       A: #M0
@@ -91419,20 +91419,20 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredFields
           _a: #M1
-          b: #M5
+          b: #M5(new)
         declaredGetters
           _a: #M2
-          b: #M6
-        interface: #M7
+          b: #M6(new)
+        interface: #M7(new)
           map
-            b: #M6
+            b: #M6(new)
           implemented
-            b: #M6
+            b: #M6(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -91472,15 +91472,15 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredFields
           _a: #M1
-          b: #M5
+          b: #M5(new)
         declaredGetters
           _a: #M2
-          b: #M6
+          b: #M6(new)
         interface: #M3
     exportMapId: #M4
     exportMap
@@ -91523,25 +91523,25 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredFields
           _a: #M1
-          b: #M6
+          b: #M6(new)
         declaredGetters
           _a: #M2
-          b: #M7
+          b: #M7(new)
         declaredSetters
           _a=: #M3
-          b=: #M8
-        interface: #M9
+          b=: #M8(new)
+        interface: #M9(new)
           map
-            b: #M7
-            b=: #M8
+            b: #M7(new)
+            b=: #M8(new)
           implemented
-            b: #M7
-            b=: #M8
+            b: #M7(new)
+            b=: #M8(new)
     exportMapId: #M5
     exportMap
       A: #M0
@@ -91588,22 +91588,22 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredFields
-          a: #M6
+          a: #M6(new)
         declaredGetters
-          a: #M7
+          a: #M7(new)
         declaredSetters
-          a=: #M8
-        interface: #M9
+          a=: #M8(new)
+        interface: #M9(new)
           map
-            a: #M7
-            a=: #M8
+            a: #M7(new)
+            a=: #M8(new)
           implemented
-            a: #M7
-            a=: #M8
+            a: #M7(new)
+            a=: #M8(new)
     exportMapId: #M5
     exportMap
       A: #M0
@@ -91658,29 +91658,29 @@ mixin B implements A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M7(new)
           foo: #M1
         declaredGetters
-          bar: #M8
+          bar: #M8(new)
           foo: #M2
-        interface: #M9
+        interface: #M9(new)
           map
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
           implemented
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
       B: #M4
-        interface: #M10
+        interface: #M10(new)
           map
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
           inherited
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
     exportMapId: #M6
     exportMap
@@ -91737,29 +91737,29 @@ mixin B implements A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M7(new)
           foo: #M1
         declaredGetters
-          bar: #M8
+          bar: #M8(new)
           foo: #M2
-        interface: #M9
+        interface: #M9(new)
           map
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
           implemented
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
       B: #M4
-        interface: #M10
+        interface: #M10(new)
           map
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
           inherited
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
     exportMapId: #M6
     exportMap
@@ -91819,33 +91819,33 @@ mixin B on A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M7(new)
           foo: #M1
         declaredGetters
-          bar: #M8
+          bar: #M8(new)
           foo: #M2
-        interface: #M9
+        interface: #M9(new)
           map
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
           implemented
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
       B: #M4
-        interface: #M10
+        interface: #M10(new)
           map
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
           superImplemented
             [0]
-              bar: #M8
+              bar: #M8(new)
               foo: #M2
           inherited
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
     exportMapId: #M6
     exportMap
@@ -91905,33 +91905,33 @@ mixin B on A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M7(new)
           foo: #M1
         declaredGetters
-          bar: #M8
+          bar: #M8(new)
           foo: #M2
-        interface: #M9
+        interface: #M9(new)
           map
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
           implemented
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
       B: #M4
-        interface: #M10
+        interface: #M10(new)
           map
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
           superImplemented
             [0]
-              bar: #M8
+              bar: #M8(new)
               foo: #M2
           inherited
-            bar: #M8
+            bar: #M8(new)
             foo: #M2
     exportMapId: #M6
     exportMap
@@ -91986,27 +91986,27 @@ mixin C on B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         interface: #M1
-      B: #M9
-        interface: #M10
-      C: #M11
+      B: #M9(new)
+        interface: #M10(new)
+      C: #M11(new)
         declaredFields
-          foo: #M12
+          foo: #M12(new)
         declaredGetters
-          foo: #M13
-        interface: #M14
+          foo: #M13(new)
+        interface: #M14(new)
           map
-            foo: #M13
+            foo: #M13(new)
           implemented
-            foo: #M13
-    exportMapId: #M15
+            foo: #M13(new)
+    exportMapId: #M15(new)
     exportMap
       A: #M0
-      B: #M9
-      C: #M11
+      B: #M9(new)
+      C: #M11(new)
 ''',
     );
   }
@@ -92056,7 +92056,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredFields
@@ -92064,14 +92064,14 @@ mixin A {
           foo: #M2
         declaredGetters
           bar: #M3
-          foo: #M7
-        interface: #M8
+          foo: #M7(new)
+        interface: #M8(new)
           map
             bar: #M3
-            foo: #M7
+            foo: #M7(new)
           implemented
             bar: #M3
-            foo: #M7
+            foo: #M7(new)
     exportMapId: #M6
     exportMap
       A: #M0
@@ -92150,7 +92150,7 @@ mixin M<T> {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       M: #M0
         flags: isSimplyBounded
@@ -92166,10 +92166,10 @@ mixin M<T> {
           foo2: #M2
             flags: isOriginGetterSetter
             type: int @ dart:core
-          foo3: #M11
+          foo3: #M11(new)
             flags: isOriginGetterSetter
             type: int @ dart:core
-          foo4: #M12
+          foo4: #M12(new)
             flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
         declaredGetters
@@ -92179,18 +92179,18 @@ mixin M<T> {
           foo2: #M6
             flags: isAbstract isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
-          foo3: #M13
+          foo3: #M13(new)
             flags: isAbstract isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
-          foo4: #M14
+          foo4: #M14(new)
             flags: hasEnclosingTypeParameterReference isAbstract isOriginDeclaration isSimplyBounded
             returnType: typeParameter#0
-        interface: #M15
+        interface: #M15(new)
           map
             foo1: #M5
             foo2: #M6
-            foo3: #M13
-            foo4: #M14
+            foo3: #M13(new)
+            foo4: #M14(new)
     exportMapId: #M10
     exportMap
       M: #M0
@@ -92261,7 +92261,7 @@ mixin M {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       M: #M0
         flags: isSimplyBounded
@@ -92271,31 +92271,31 @@ mixin M {
           foo1: #M1
             flags: isOriginGetterSetter
             type: dynamic
-          foo2: #M9
+          foo2: #M9(new)
             flags: isOriginGetterSetter
             type: dynamic
-          foo3: #M10
+          foo3: #M10(new)
             flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           foo1: #M4
             flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             returnType: dynamic
-          foo2: #M11
+          foo2: #M11(new)
             flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             returnType: dynamic
-          foo3: #M12
+          foo3: #M12(new)
             flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
-        interface: #M13
+        interface: #M13(new)
           map
             foo1: #M4
-            foo2: #M11
-            foo3: #M12
+            foo2: #M11(new)
+            foo3: #M12(new)
           implemented
             foo1: #M4
-            foo2: #M11
-            foo3: #M12
+            foo2: #M11(new)
+            foo3: #M12(new)
     exportMapId: #M8
     exportMap
       M: #M0
@@ -92441,7 +92441,7 @@ mixin M on S {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       S: #M0
         flags: isSimplyBounded
@@ -92484,47 +92484,47 @@ mixin M on S {
             foo3: #M7
             foo4: #M8
     declaredMixins
-      M: #M21
+      M: #M21(new)
         flags: isSimplyBounded
         superclassConstraints
           S @ package:test/test.dart
         declaredFields
-          foo1: #M22
+          foo1: #M22(new)
             flags: isOriginGetterSetter
             type: int @ dart:core
-          foo2: #M23
+          foo2: #M23(new)
             flags: isOriginGetterSetter
             type: int @ dart:core
-          foo3: #M24
+          foo3: #M24(new)
             flags: isOriginGetterSetter
             type: int @ dart:core
-          foo4: #M25
+          foo4: #M25(new)
             flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
-          foo1: #M26
+          foo1: #M26(new)
             flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
-          foo2: #M27
+          foo2: #M27(new)
             flags: invokesSuperSelf isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
-          foo3: #M28
+          foo3: #M28(new)
             flags: invokesSuperSelf isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
-          foo4: #M29
+          foo4: #M29(new)
             flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
-        interface: #M30
+        interface: #M30(new)
           map
-            foo1: #M26
-            foo2: #M27
-            foo3: #M28
-            foo4: #M29
+            foo1: #M26(new)
+            foo2: #M27(new)
+            foo3: #M28(new)
+            foo4: #M29(new)
           implemented
-            foo1: #M26
-            foo2: #M27
-            foo3: #M28
-            foo4: #M29
+            foo1: #M26(new)
+            foo2: #M27(new)
+            foo3: #M28(new)
+            foo4: #M29(new)
           superImplemented
             [0]
               foo1: #M5
@@ -92536,9 +92536,9 @@ mixin M on S {
             foo2: #M6
             foo3: #M7
             foo4: #M8
-    exportMapId: #M31
+    exportMapId: #M31(new)
     exportMap
-      M: #M21
+      M: #M21(new)
       S: #M0
 ''',
     );
@@ -92615,7 +92615,7 @@ mixin M {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       M: #M0
         flags: isSimplyBounded
@@ -92641,21 +92641,21 @@ mixin M {
           foo2: #M6
             flags: isAbstract isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
-          foo3: #M11
+          foo3: #M11(new)
             flags: isAbstract isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
-          foo4: #M12
+          foo4: #M12(new)
             flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
-        interface: #M13
+        interface: #M13(new)
           map
             foo1: #M5
             foo2: #M6
-            foo3: #M11
-            foo4: #M12
+            foo3: #M11(new)
+            foo4: #M12(new)
           implemented
             foo1: #M5
-            foo4: #M12
+            foo4: #M12(new)
     exportMapId: #M10
     exportMap
       M: #M0
@@ -92736,7 +92736,7 @@ mixin M {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       M: #M0
         flags: isSimplyBounded
@@ -92762,23 +92762,23 @@ mixin M {
           foo2: #M6
             flags: isExternal isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
-          foo3: #M11
+          foo3: #M11(new)
             flags: isExternal isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
-          foo4: #M12
+          foo4: #M12(new)
             flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
-        interface: #M13
+        interface: #M13(new)
           map
             foo1: #M5
             foo2: #M6
-            foo3: #M11
-            foo4: #M12
+            foo3: #M11(new)
+            foo4: #M12(new)
           implemented
             foo1: #M5
             foo2: #M6
-            foo3: #M11
-            foo4: #M12
+            foo3: #M11(new)
+            foo4: #M12(new)
     exportMapId: #M10
     exportMap
       M: #M0
@@ -92855,7 +92855,7 @@ mixin M {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       M: #M0
         flags: isSimplyBounded
@@ -92868,10 +92868,10 @@ mixin M {
           foo2: #M2
             flags: isOriginGetterSetter isStatic
             type: int @ dart:core
-          foo3: #M11
+          foo3: #M11(new)
             flags: isOriginGetterSetter isStatic
             type: int @ dart:core
-          foo4: #M12
+          foo4: #M12(new)
             flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
@@ -92881,19 +92881,19 @@ mixin M {
           foo2: #M6
             flags: isOriginDeclaration isSimplyBounded isStatic
             returnType: int @ dart:core
-          foo3: #M13
+          foo3: #M13(new)
             flags: isOriginDeclaration isSimplyBounded isStatic
             returnType: int @ dart:core
-          foo4: #M14
+          foo4: #M14(new)
             flags: isOriginDeclaration isSimplyBounded
             returnType: int @ dart:core
-        interface: #M15
+        interface: #M15(new)
           map
             foo1: #M5
-            foo4: #M14
+            foo4: #M14(new)
           implemented
             foo1: #M5
-            foo4: #M14
+            foo4: #M14(new)
     exportMapId: #M10
     exportMap
       M: #M0
@@ -92933,20 +92933,20 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredFields
           _foo: #M1
-          bar: #M5
+          bar: #M5(new)
         declaredGetters
           _foo: #M2
-          bar: #M6
-        interface: #M7
+          bar: #M6(new)
+        interface: #M7(new)
           map
-            bar: #M6
+            bar: #M6(new)
           implemented
-            bar: #M6
+            bar: #M6(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -92986,20 +92986,20 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredFields
           _foo: #M1
-          bar: #M5
+          bar: #M5(new)
         declaredGetters
           _foo: #M2
-          bar: #M6
-        interface: #M7
+          bar: #M6(new)
+        interface: #M7(new)
           map
-            bar: #M6
+            bar: #M6(new)
           implemented
-            bar: #M6
+            bar: #M6(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -93050,25 +93050,25 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         declaredFields
-          foo: #M5
+          foo: #M5(new)
             flags: isOriginGetterSetter
             type: double @ dart:core
         declaredGetters
-          foo: #M6
+          foo: #M6(new)
             flags: isOriginDeclaration isSimplyBounded
             returnType: double @ dart:core
-        interface: #M7
+        interface: #M7(new)
           map
-            foo: #M6
+            foo: #M6(new)
           implemented
-            foo: #M6
+            foo: #M6(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -93108,14 +93108,14 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredFields
-          bar: #M5
+          bar: #M5(new)
           foo: #M1
         declaredGetters
-          bar: #M6
+          bar: #M6(new)
           foo: #M2
         interface: #M3
     exportMapId: #M4
@@ -93160,14 +93160,14 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredFields
-          foo: #M5
+          foo: #M5(new)
         declaredGetters
-          foo: #M6
-        interface: #M7
+          foo: #M6(new)
+        interface: #M7(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -93206,13 +93206,13 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredFields
-          foo: #M5
+          foo: #M5(new)
         declaredGetters
-          foo: #M6
+          foo: #M6(new)
         interface: #M3
     exportMapId: #M4
     exportMap
@@ -93252,18 +93252,18 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredFields
-          foo: #M5
+          foo: #M5(new)
         declaredGetters
-          foo: #M6
-        interface: #M7
+          foo: #M6(new)
+        interface: #M7(new)
           map
-            foo: #M6
+            foo: #M6(new)
           implemented
-            foo: #M6
+            foo: #M6(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -93299,15 +93299,15 @@ mixin B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
-      A: #M5
-        interface: #M6
+      A: #M5(new)
+        interface: #M6(new)
       B: #M2
         interface: #M3
-    exportMapId: #M7
+    exportMapId: #M7(new)
     exportMap
-      A: #M5
+      A: #M5(new)
       B: #M2
 ''',
     );
@@ -93341,15 +93341,15 @@ mixin B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
-      A: #M5
-        interface: #M6
+      A: #M5(new)
+        interface: #M6(new)
       B: #M2
         interface: #M3
-    exportMapId: #M7
+    exportMapId: #M7(new)
     exportMap
-      A: #M5
+      A: #M5(new)
       B: #M2
 ''',
     );
@@ -93388,17 +93388,17 @@ mixin C {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
-      A: #M7
-        interface: #M8
+      A: #M7(new)
+        interface: #M8(new)
       B: #M2
         interface: #M3
       C: #M4
         interface: #M5
-    exportMapId: #M9
+    exportMapId: #M9(new)
     exportMap
-      A: #M7
+      A: #M7(new)
       B: #M2
       C: #M4
 ''',
@@ -93437,16 +93437,16 @@ mixin B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         interface: #M1
-      B: #M5
-        interface: #M6
-    exportMapId: #M7
+      B: #M5(new)
+        interface: #M6(new)
+    exportMapId: #M7(new)
     exportMap
       A: #M0
-      B: #M5
+      B: #M5(new)
 ''',
     );
   }
@@ -93485,18 +93485,18 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredMethods
-          bar: #M4
+          bar: #M4(new)
           foo: #M1
-        interface: #M5
+        interface: #M5(new)
           map
-            bar: #M4
+            bar: #M4(new)
             foo: #M1
           implemented
-            bar: #M4
+            bar: #M4(new)
             foo: #M1
     exportMapId: #M3
     exportMap
@@ -93550,26 +93550,26 @@ mixin B implements A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredMethods
-          bar: #M6
+          bar: #M6(new)
           foo: #M1
-        interface: #M7
+        interface: #M7(new)
           map
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
           implemented
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
       B: #M3
-        interface: #M8
+        interface: #M8(new)
           map
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
           inherited
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
     exportMapId: #M5
     exportMap
@@ -93624,26 +93624,26 @@ mixin B implements A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredMethods
-          bar: #M6
+          bar: #M6(new)
           foo: #M1
-        interface: #M7
+        interface: #M7(new)
           map
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
           implemented
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
       B: #M3
-        interface: #M8
+        interface: #M8(new)
           map
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
           inherited
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
     exportMapId: #M5
     exportMap
@@ -93701,30 +93701,30 @@ mixin B extends A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredMethods
-          bar: #M6
+          bar: #M6(new)
           foo: #M1
-        interface: #M7
+        interface: #M7(new)
           map
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
           implemented
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
       B: #M3
-        interface: #M8
+        interface: #M8(new)
           map
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
           superImplemented
             [0]
-              bar: #M6
+              bar: #M6(new)
               foo: #M1
           inherited
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
     exportMapId: #M5
     exportMap
@@ -93782,30 +93782,30 @@ mixin B extends A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredMethods
-          bar: #M6
+          bar: #M6(new)
           foo: #M1
-        interface: #M7
+        interface: #M7(new)
           map
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
           implemented
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
       B: #M3
-        interface: #M8
+        interface: #M8(new)
           map
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
           superImplemented
             [0]
-              bar: #M6
+              bar: #M6(new)
               foo: #M1
           inherited
-            bar: #M6
+            bar: #M6(new)
             foo: #M1
     exportMapId: #M5
     exportMap
@@ -93858,25 +93858,25 @@ mixin C on B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         interface: #M1
-      B: #M8
-        interface: #M9
-      C: #M10
+      B: #M8(new)
+        interface: #M9(new)
+      C: #M10(new)
         declaredMethods
-          foo: #M11
-        interface: #M12
+          foo: #M11(new)
+        interface: #M12(new)
           map
-            foo: #M11
+            foo: #M11(new)
           implemented
-            foo: #M11
-    exportMapId: #M13
+            foo: #M11(new)
+    exportMapId: #M13(new)
     exportMap
       A: #M0
-      B: #M8
-      C: #M10
+      B: #M8(new)
+      C: #M10(new)
 ''',
     );
   }
@@ -93923,19 +93923,19 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredMethods
           bar: #M1
-          foo: #M5
-        interface: #M6
+          foo: #M5(new)
+        interface: #M6(new)
           map
             bar: #M1
-            foo: #M5
+            foo: #M5(new)
           implemented
             bar: #M1
-            foo: #M5
+            foo: #M5(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -94005,7 +94005,7 @@ mixin M<T> {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       M: #M0
         flags: isSimplyBounded
@@ -94023,20 +94023,20 @@ mixin M<T> {
             flags: isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-          foo3: #M7
+          foo3: #M7(new)
             flags: isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-          foo4: #M8
+          foo4: #M8(new)
             flags: hasEnclosingTypeParameterReference isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: typeParameter#0
-        interface: #M9
+        interface: #M9(new)
           map
             foo1: #M1
             foo2: #M2
-            foo3: #M7
-            foo4: #M8
+            foo3: #M7(new)
+            foo4: #M8(new)
     exportMapId: #M6
     exportMap
       M: #M0
@@ -94100,7 +94100,7 @@ mixin M {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       M: #M0
         flags: isSimplyBounded
@@ -94111,23 +94111,23 @@ mixin M {
             flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: dynamic
-          foo2: #M6
+          foo2: #M6(new)
             flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: dynamic
-          foo3: #M7
+          foo3: #M7(new)
             flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-        interface: #M8
+        interface: #M8(new)
           map
             foo1: #M1
-            foo2: #M6
-            foo3: #M7
+            foo2: #M6(new)
+            foo3: #M7(new)
           implemented
             foo1: #M1
-            foo2: #M6
-            foo3: #M7
+            foo2: #M6(new)
+            foo3: #M7(new)
     exportMapId: #M5
     exportMap
       M: #M0
@@ -94255,7 +94255,7 @@ mixin M on S {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       S: #M0
         flags: isSimplyBounded
@@ -94289,38 +94289,38 @@ mixin M on S {
             foo3: #M3
             foo4: #M4
     declaredMixins
-      M: #M13
+      M: #M13(new)
         flags: isSimplyBounded
         superclassConstraints
           S @ package:test/test.dart
         declaredMethods
-          foo1: #M14
+          foo1: #M14(new)
             flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-          foo2: #M15
+          foo2: #M15(new)
             flags: invokesSuperSelf isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-          foo3: #M16
+          foo3: #M16(new)
             flags: invokesSuperSelf isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-          foo4: #M17
+          foo4: #M17(new)
             flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-        interface: #M18
+        interface: #M18(new)
           map
-            foo1: #M14
-            foo2: #M15
-            foo3: #M16
-            foo4: #M17
+            foo1: #M14(new)
+            foo2: #M15(new)
+            foo3: #M16(new)
+            foo4: #M17(new)
           implemented
-            foo1: #M14
-            foo2: #M15
-            foo3: #M16
-            foo4: #M17
+            foo1: #M14(new)
+            foo2: #M15(new)
+            foo3: #M16(new)
+            foo4: #M17(new)
           superImplemented
             [0]
               foo1: #M1
@@ -94332,9 +94332,9 @@ mixin M on S {
             foo2: #M2
             foo3: #M3
             foo4: #M4
-    exportMapId: #M19
+    exportMapId: #M19(new)
     exportMap
-      M: #M13
+      M: #M13(new)
       S: #M0
 ''',
     );
@@ -94402,7 +94402,7 @@ mixin M {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       M: #M0
         flags: isSimplyBounded
@@ -94417,23 +94417,23 @@ mixin M {
             flags: isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-          foo3: #M7
+          foo3: #M7(new)
             flags: isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-          foo4: #M8
+          foo4: #M8(new)
             flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-        interface: #M9
+        interface: #M9(new)
           map
             foo1: #M1
             foo2: #M2
-            foo3: #M7
-            foo4: #M8
+            foo3: #M7(new)
+            foo4: #M8(new)
           implemented
             foo1: #M1
-            foo4: #M8
+            foo4: #M8(new)
     exportMapId: #M6
     exportMap
       M: #M0
@@ -94505,7 +94505,7 @@ mixin M {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       M: #M0
         flags: isSimplyBounded
@@ -94520,25 +94520,25 @@ mixin M {
             flags: isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-          foo3: #M7
+          foo3: #M7(new)
             flags: isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-          foo4: #M8
+          foo4: #M8(new)
             flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-        interface: #M9
+        interface: #M9(new)
           map
             foo1: #M1
             foo2: #M2
-            foo3: #M7
-            foo4: #M8
+            foo3: #M7(new)
+            foo4: #M8(new)
           implemented
             foo1: #M1
             foo2: #M2
-            foo3: #M7
-            foo4: #M8
+            foo3: #M7(new)
+            foo4: #M8(new)
     exportMapId: #M6
     exportMap
       M: #M0
@@ -94606,7 +94606,7 @@ mixin M {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       M: #M0
         flags: isSimplyBounded
@@ -94621,21 +94621,21 @@ mixin M {
             flags: isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               returnType: void
-          foo3: #M7
+          foo3: #M7(new)
             flags: isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               returnType: void
-          foo4: #M8
+          foo4: #M8(new)
             flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
-        interface: #M9
+        interface: #M9(new)
           map
             foo1: #M1
-            foo4: #M8
+            foo4: #M8(new)
           implemented
             foo1: #M1
-            foo4: #M8
+            foo4: #M8(new)
     exportMapId: #M6
     exportMap
       M: #M0
@@ -94673,17 +94673,17 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredMethods
           _foo: #M1
-          bar: #M4
-        interface: #M5
+          bar: #M4(new)
+        interface: #M5(new)
           map
-            bar: #M4
+            bar: #M4(new)
           implemented
-            bar: #M4
+            bar: #M4(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -94721,17 +94721,17 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredMethods
           _foo: #M1
-          bar: #M4
-        interface: #M5
+          bar: #M4(new)
+        interface: #M5(new)
           map
-            bar: #M4
+            bar: #M4(new)
           implemented
-            bar: #M4
+            bar: #M4(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -94776,12 +94776,12 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredMethods
           foo: #M2
-        interface: #M5
+        interface: #M5(new)
           map
             foo: #M2
           implemented
@@ -94833,22 +94833,22 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         declaredMethods
-          foo: #M4
+          foo: #M4(new)
             flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: double @ dart:core
-        interface: #M5
+        interface: #M5(new)
           map
-            foo: #M4
+            foo: #M4(new)
           implemented
-            foo: #M4
+            foo: #M4(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -94889,12 +94889,12 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredMethods
-          foo: #M4
-        interface: #M5
+          foo: #M4(new)
+        interface: #M5(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -94931,11 +94931,11 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredMethods
-          foo: #M4
+          foo: #M4(new)
         interface: #M2
     exportMapId: #M3
     exportMap
@@ -94973,16 +94973,16 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredMethods
-          foo: #M4
-        interface: #M5
+          foo: #M4(new)
+        interface: #M5(new)
           map
-            foo: #M4
+            foo: #M4(new)
           implemented
-            foo: #M4
+            foo: #M4(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -95039,7 +95039,7 @@ mixin A<T> {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         flags: isSimplyBounded
@@ -95049,7 +95049,7 @@ mixin A<T> {
         superclassConstraints
           Object @ dart:core
         declaredMethods
-          bar: #M4
+          bar: #M4(new)
             flags: isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               returnType: void
@@ -95062,12 +95062,12 @@ mixin A<T> {
               returnType: Map @ dart:core
                 typeParameter#1
                 typeParameter#0
-        interface: #M5
+        interface: #M5(new)
           map
-            bar: #M4
+            bar: #M4(new)
             foo: #M1
           implemented
-            bar: #M4
+            bar: #M4(new)
             foo: #M1
     exportMapId: #M3
     exportMap
@@ -95109,16 +95109,16 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredMethods
-          foo: #M4
-        interface: #M5
+          foo: #M4(new)
+        interface: #M5(new)
           map
-            foo: #M4
+            foo: #M4(new)
           implemented
-            foo: #M4
+            foo: #M4(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -95159,16 +95159,16 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredMethods
-          foo: #M4
-        interface: #M5
+          foo: #M4(new)
+        interface: #M5(new)
           map
-            foo: #M4
+            foo: #M4(new)
           implemented
-            foo: #M4
+            foo: #M4(new)
     exportMapId: #M3
     exportMap
       A: #M0
@@ -95228,7 +95228,7 @@ mixin D {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         flags: isSimplyBounded
@@ -95240,22 +95240,22 @@ mixin D {}
         superclassConstraints
           Object @ dart:core
         interface: #M3
-      C: #M9
+      C: #M9(new)
         flags: isBase isSimplyBounded
         superclassConstraints
           Object @ dart:core
-        interface: #M10
-      D: #M11
+        interface: #M10(new)
+      D: #M11(new)
         flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
-        interface: #M12
-    exportMapId: #M13
+        interface: #M12(new)
+    exportMapId: #M13(new)
     exportMap
       A: #M0
       B: #M2
-      C: #M9
-      D: #M11
+      C: #M9(new)
+      D: #M11(new)
 ''',
     );
   }
@@ -95288,15 +95288,15 @@ mixin B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
-      A: #M5
-        interface: #M6
+      A: #M5(new)
+        interface: #M6(new)
       B: #M2
         interface: #M3
-    exportMapId: #M7
+    exportMapId: #M7(new)
     exportMap
-      A: #M5
+      A: #M5(new)
       B: #M2
 ''',
     );
@@ -95335,18 +95335,18 @@ mixin C {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
-      A: #M7
-        interface: #M8
-      B: #M9
-        interface: #M10
+      A: #M7(new)
+        interface: #M8(new)
+      B: #M9(new)
+        interface: #M10(new)
       C: #M4
         interface: #M5
-    exportMapId: #M11
+    exportMapId: #M11(new)
     exportMap
-      A: #M7
-      B: #M9
+      A: #M7(new)
+      B: #M9(new)
       C: #M4
 ''',
     );
@@ -95385,17 +95385,17 @@ mixin C {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
-      A: #M7
-        interface: #M8
+      A: #M7(new)
+        interface: #M8(new)
       B: #M2
         interface: #M3
       C: #M4
         interface: #M5
-    exportMapId: #M9
+    exportMapId: #M9(new)
     exportMap
-      A: #M7
+      A: #M7(new)
       B: #M2
       C: #M4
 ''',
@@ -95426,15 +95426,15 @@ mixin B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
-      B: #M3
-        interface: #M4
+      B: #M3(new)
+        interface: #M4(new)
       _A: #M0
         interface: #M1
-    exportMapId: #M5
+    exportMapId: #M5(new)
     exportMap
-      B: #M3
+      B: #M3(new)
       _A: #M0
 ''',
     );
@@ -95467,11 +95467,11 @@ mixin B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       B: #M2
         interface: #M3
-    exportMapId: #M5
+    exportMapId: #M5(new)
     exportMap
       B: #M2
 ''',
@@ -95525,29 +95525,29 @@ mixin B implements A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M7(new)
           foo: #M1
         declaredSetters
-          bar=: #M8
+          bar=: #M8(new)
           foo=: #M2
-        interface: #M9
+        interface: #M9(new)
           map
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
           implemented
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
       B: #M4
-        interface: #M10
+        interface: #M10(new)
           map
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
           inherited
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
     exportMapId: #M6
     exportMap
@@ -95604,29 +95604,29 @@ mixin B implements A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M7(new)
           foo: #M1
         declaredSetters
-          bar=: #M8
+          bar=: #M8(new)
           foo=: #M2
-        interface: #M9
+        interface: #M9(new)
           map
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
           implemented
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
       B: #M4
-        interface: #M10
+        interface: #M10(new)
           map
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
           inherited
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
     exportMapId: #M6
     exportMap
@@ -95686,33 +95686,33 @@ mixin B on A {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M7(new)
           foo: #M1
         declaredSetters
-          bar=: #M8
+          bar=: #M8(new)
           foo=: #M2
-        interface: #M9
+        interface: #M9(new)
           map
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
           implemented
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
       B: #M4
-        interface: #M10
+        interface: #M10(new)
           map
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
           superImplemented
             [0]
-              bar=: #M8
+              bar=: #M8(new)
               foo=: #M2
           inherited
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
     exportMapId: #M6
     exportMap
@@ -95772,33 +95772,33 @@ mixin B on A<int> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredFields
-          bar: #M7
+          bar: #M7(new)
           foo: #M1
         declaredSetters
-          bar=: #M8
+          bar=: #M8(new)
           foo=: #M2
-        interface: #M9
+        interface: #M9(new)
           map
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
           implemented
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
       B: #M4
-        interface: #M10
+        interface: #M10(new)
           map
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
           superImplemented
             [0]
-              bar=: #M8
+              bar=: #M8(new)
               foo=: #M2
           inherited
-            bar=: #M8
+            bar=: #M8(new)
             foo=: #M2
     exportMapId: #M6
     exportMap
@@ -95853,27 +95853,27 @@ mixin C on B {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         interface: #M1
-      B: #M9
-        interface: #M10
-      C: #M11
+      B: #M9(new)
+        interface: #M10(new)
+      C: #M11(new)
         declaredFields
-          foo: #M12
+          foo: #M12(new)
         declaredSetters
-          foo=: #M13
-        interface: #M14
+          foo=: #M13(new)
+        interface: #M14(new)
           map
-            foo=: #M13
+            foo=: #M13(new)
           implemented
-            foo=: #M13
-    exportMapId: #M15
+            foo=: #M13(new)
+    exportMapId: #M15(new)
     exportMap
       A: #M0
-      B: #M9
-      C: #M11
+      B: #M9(new)
+      C: #M11(new)
 ''',
     );
   }
@@ -95923,7 +95923,7 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredFields
@@ -95931,14 +95931,14 @@ mixin A {
           foo: #M2
         declaredSetters
           bar=: #M3
-          foo=: #M7
-        interface: #M8
+          foo=: #M7(new)
+        interface: #M8(new)
           map
             bar=: #M3
-            foo=: #M7
+            foo=: #M7(new)
           implemented
             bar=: #M3
-            foo=: #M7
+            foo=: #M7(new)
     exportMapId: #M6
     exportMap
       A: #M0
@@ -96029,7 +96029,7 @@ mixin M<T> {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       M: #M0
         flags: isSimplyBounded
@@ -96045,10 +96045,10 @@ mixin M<T> {
           foo2: #M2
             flags: isOriginGetterSetter
             type: int @ dart:core
-          foo3: #M11
+          foo3: #M11(new)
             flags: isOriginGetterSetter
             type: int @ dart:core
-          foo4: #M12
+          foo4: #M12(new)
             flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
         declaredSetters
@@ -96064,24 +96064,24 @@ mixin M<T> {
               positional
                 required int @ dart:core
               returnType: void
-          foo3=: #M13
+          foo3=: #M13(new)
             flags: hasImplicitReturnType isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
-          foo4=: #M14
+          foo4=: #M14(new)
             flags: hasEnclosingTypeParameterReference hasImplicitReturnType isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required typeParameter#0
               returnType: void
-        interface: #M15
+        interface: #M15(new)
           map
             foo1=: #M5
             foo2=: #M6
-            foo3=: #M13
-            foo4=: #M14
+            foo3=: #M13(new)
+            foo4=: #M14(new)
     exportMapId: #M10
     exportMap
       M: #M0
@@ -96251,7 +96251,7 @@ mixin M on S {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       S: #M0
         flags: isSimplyBounded
@@ -96306,59 +96306,59 @@ mixin M on S {
             foo3=: #M7
             foo4=: #M8
     declaredMixins
-      M: #M21
+      M: #M21(new)
         flags: isSimplyBounded
         superclassConstraints
           S @ package:test/test.dart
         declaredFields
-          foo1: #M22
+          foo1: #M22(new)
             flags: isOriginGetterSetter
             type: int @ dart:core
-          foo2: #M23
+          foo2: #M23(new)
             flags: isOriginGetterSetter
             type: int @ dart:core
-          foo3: #M24
+          foo3: #M24(new)
             flags: isOriginGetterSetter
             type: int @ dart:core
-          foo4: #M25
+          foo4: #M25(new)
             flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
-          foo1=: #M26
+          foo1=: #M26(new)
             flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
-          foo2=: #M27
+          foo2=: #M27(new)
             flags: hasImplicitReturnType invokesSuperSelf isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
-          foo3=: #M28
+          foo3=: #M28(new)
             flags: hasImplicitReturnType invokesSuperSelf isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
-          foo4=: #M29
+          foo4=: #M29(new)
             flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
-        interface: #M30
+        interface: #M30(new)
           map
-            foo1=: #M26
-            foo2=: #M27
-            foo3=: #M28
-            foo4=: #M29
+            foo1=: #M26(new)
+            foo2=: #M27(new)
+            foo3=: #M28(new)
+            foo4=: #M29(new)
           implemented
-            foo1=: #M26
-            foo2=: #M27
-            foo3=: #M28
-            foo4=: #M29
+            foo1=: #M26(new)
+            foo2=: #M27(new)
+            foo3=: #M28(new)
+            foo4=: #M29(new)
           superImplemented
             [0]
               foo1=: #M5
@@ -96370,9 +96370,9 @@ mixin M on S {
             foo2=: #M6
             foo3=: #M7
             foo4=: #M8
-    exportMapId: #M31
+    exportMapId: #M31(new)
     exportMap
-      M: #M21
+      M: #M21(new)
       S: #M0
 ''',
     );
@@ -96461,7 +96461,7 @@ mixin M {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       M: #M0
         flags: isSimplyBounded
@@ -96493,27 +96493,27 @@ mixin M {
               positional
                 required int @ dart:core
               returnType: void
-          foo3=: #M11
+          foo3=: #M11(new)
             flags: hasImplicitReturnType isAbstract isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
-          foo4=: #M12
+          foo4=: #M12(new)
             flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
-        interface: #M13
+        interface: #M13(new)
           map
             foo1=: #M5
             foo2=: #M6
-            foo3=: #M11
-            foo4=: #M12
+            foo3=: #M11(new)
+            foo4=: #M12(new)
           implemented
             foo1=: #M5
-            foo4=: #M12
+            foo4=: #M12(new)
     exportMapId: #M10
     exportMap
       M: #M0
@@ -96606,7 +96606,7 @@ mixin M {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       M: #M0
         flags: isSimplyBounded
@@ -96638,29 +96638,29 @@ mixin M {
               positional
                 required int @ dart:core
               returnType: void
-          foo3=: #M11
+          foo3=: #M11(new)
             flags: hasImplicitReturnType isExternal isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
-          foo4=: #M12
+          foo4=: #M12(new)
             flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
-        interface: #M13
+        interface: #M13(new)
           map
             foo1=: #M5
             foo2=: #M6
-            foo3=: #M11
-            foo4=: #M12
+            foo3=: #M11(new)
+            foo4=: #M12(new)
           implemented
             foo1=: #M5
             foo2=: #M6
-            foo3=: #M11
-            foo4=: #M12
+            foo3=: #M11(new)
+            foo4=: #M12(new)
     exportMapId: #M10
     exportMap
       M: #M0
@@ -96749,7 +96749,7 @@ mixin M {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       M: #M0
         flags: isSimplyBounded
@@ -96762,10 +96762,10 @@ mixin M {
           foo2: #M2
             flags: isOriginGetterSetter isStatic
             type: int @ dart:core
-          foo3: #M11
+          foo3: #M11(new)
             flags: isOriginGetterSetter isStatic
             type: int @ dart:core
-          foo4: #M12
+          foo4: #M12(new)
             flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
@@ -96781,25 +96781,25 @@ mixin M {
               positional
                 required int @ dart:core
               returnType: void
-          foo3=: #M13
+          foo3=: #M13(new)
             flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
-          foo4=: #M14
+          foo4=: #M14(new)
             flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required int @ dart:core
               returnType: void
-        interface: #M15
+        interface: #M15(new)
           map
             foo1=: #M5
-            foo4=: #M14
+            foo4=: #M14(new)
           implemented
             foo1=: #M5
-            foo4=: #M14
+            foo4=: #M14(new)
     exportMapId: #M10
     exportMap
       M: #M0
@@ -96839,20 +96839,20 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredFields
           _foo: #M1
-          bar: #M5
+          bar: #M5(new)
         declaredSetters
           _foo=: #M2
-          bar=: #M6
-        interface: #M7
+          bar=: #M6(new)
+        interface: #M7(new)
           map
-            bar=: #M6
+            bar=: #M6(new)
           implemented
-            bar=: #M6
+            bar=: #M6(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -96892,20 +96892,20 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredFields
           _foo: #M1
-          bar: #M5
+          bar: #M5(new)
         declaredSetters
           _foo=: #M2
-          bar=: #M6
-        interface: #M7
+          bar=: #M6(new)
+        interface: #M7(new)
           map
-            bar=: #M6
+            bar=: #M6(new)
           implemented
-            bar=: #M6
+            bar=: #M6(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -96945,14 +96945,14 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredFields
-          bar: #M5
+          bar: #M5(new)
           foo: #M1
         declaredSetters
-          bar=: #M6
+          bar=: #M6(new)
           foo=: #M2
         interface: #M3
     exportMapId: #M4
@@ -96997,14 +96997,14 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredFields
-          foo: #M5
+          foo: #M5(new)
         declaredSetters
-          foo=: #M6
-        interface: #M7
+          foo=: #M6(new)
+        interface: #M7(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -97043,18 +97043,18 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredFields
-          foo: #M5
+          foo: #M5(new)
         declaredSetters
-          foo=: #M6
-        interface: #M7
+          foo=: #M6(new)
+        interface: #M7(new)
           map
-            foo=: #M6
+            foo=: #M6(new)
           implemented
-            foo=: #M6
+            foo=: #M6(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -97093,13 +97093,13 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredFields
-          foo: #M5
+          foo: #M5(new)
         declaredSetters
-          foo=: #M6
+          foo=: #M6(new)
         interface: #M3
     exportMapId: #M4
     exportMap
@@ -97154,28 +97154,28 @@ mixin A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         flags: isSimplyBounded
         superclassConstraints
           Object @ dart:core
         declaredFields
-          foo: #M5
+          foo: #M5(new)
             flags: isOriginGetterSetter
             type: double @ dart:core
         declaredSetters
-          foo=: #M6
+          foo=: #M6(new)
             flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded
             functionType: FunctionType
               positional
                 required double @ dart:core
               returnType: void
-        interface: #M7
+        interface: #M7(new)
           map
-            foo=: #M6
+            foo=: #M6(new)
           implemented
-            foo=: #M6
+            foo=: #M6(new)
     exportMapId: #M4
     exportMap
       A: #M0
@@ -97225,10 +97225,10 @@ mixin M {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
-      A: #M4
-        interface: #M5
+      A: #M4(new)
+        interface: #M5(new)
     declaredMixins
       M: #M0
         declaredMethods
@@ -97238,9 +97238,9 @@ mixin M {
             f: #M1
           implemented
             f: #M1
-    exportMapId: #M6
+    exportMapId: #M6(new)
     exportMap
-      A: #M4
+      A: #M4(new)
       M: #M0
 ''',
     );
@@ -97307,7 +97307,7 @@ mixin M on A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -97320,24 +97320,24 @@ mixin M on A {
           implemented
             foo: #M2
     declaredMixins
-      M: #M8
+      M: #M8(new)
         declaredMethods
-          f: #M9
-        interface: #M10
+          f: #M9(new)
+        interface: #M10(new)
           map
-            f: #M9
+            f: #M9(new)
             foo: #M2
           implemented
-            f: #M9
+            f: #M9(new)
           superImplemented
             [0]
               foo: #M2
           inherited
             foo: #M2
-    exportMapId: #M11
+    exportMapId: #M11(new)
     exportMap
       A: #M0
-      M: #M8
+      M: #M8(new)
 ''',
     );
   }
@@ -97401,7 +97401,7 @@ mixin M on A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -97412,24 +97412,24 @@ mixin M on A {
           implemented
             foo: #M1
     declaredMixins
-      M: #M7
+      M: #M7(new)
         declaredMethods
-          f: #M8
-        interface: #M9
+          f: #M8(new)
+        interface: #M9(new)
           map
-            f: #M8
+            f: #M8(new)
             foo: #M1
           implemented
-            f: #M8
+            f: #M8(new)
           superImplemented
             [0]
               foo: #M1
           inherited
             foo: #M1
-    exportMapId: #M10
+    exportMapId: #M10(new)
     exportMap
       A: #M0
-      M: #M7
+      M: #M7(new)
 ''',
     );
   }
@@ -97495,7 +97495,7 @@ mixin M on A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -97508,24 +97508,24 @@ mixin M on A {
           implemented
             foo=: #M2
     declaredMixins
-      M: #M8
+      M: #M8(new)
         declaredMethods
-          f: #M9
-        interface: #M10
+          f: #M9(new)
+        interface: #M10(new)
           map
-            f: #M9
+            f: #M9(new)
             foo=: #M2
           implemented
-            f: #M9
+            f: #M9(new)
           superImplemented
             [0]
               foo=: #M2
           inherited
             foo=: #M2
-    exportMapId: #M11
+    exportMapId: #M11(new)
     exportMap
       A: #M0
-      M: #M8
+      M: #M8(new)
 ''',
     );
   }
@@ -97591,7 +97591,7 @@ mixin M on A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -97604,24 +97604,24 @@ mixin M on A {
           implemented
             foo: #M2
     declaredMixins
-      M: #M8
+      M: #M8(new)
         declaredMethods
-          f: #M9
-        interface: #M10
+          f: #M9(new)
+        interface: #M10(new)
           map
-            f: #M9
+            f: #M9(new)
             foo: #M2
           implemented
-            f: #M9
+            f: #M9(new)
           superImplemented
             [0]
               foo: #M2
           inherited
             foo: #M2
-    exportMapId: #M11
+    exportMapId: #M11(new)
     exportMap
       A: #M0
-      M: #M8
+      M: #M8(new)
 ''',
     );
   }
@@ -97685,7 +97685,7 @@ mixin M on A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredMethods
@@ -97696,24 +97696,24 @@ mixin M on A {
           implemented
             foo: #M1
     declaredMixins
-      M: #M7
+      M: #M7(new)
         declaredMethods
-          f: #M8
-        interface: #M9
+          f: #M8(new)
+        interface: #M9(new)
           map
-            f: #M8
+            f: #M8(new)
             foo: #M1
           implemented
-            f: #M8
+            f: #M8(new)
           superImplemented
             [0]
               foo: #M1
           inherited
             foo: #M1
-    exportMapId: #M10
+    exportMapId: #M10(new)
     exportMap
       A: #M0
-      M: #M7
+      M: #M7(new)
 ''',
     );
   }
@@ -97779,7 +97779,7 @@ mixin M on A {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         declaredFields
@@ -97792,24 +97792,24 @@ mixin M on A {
           implemented
             foo=: #M2
     declaredMixins
-      M: #M8
+      M: #M8(new)
         declaredMethods
-          f: #M9
-        interface: #M10
+          f: #M9(new)
+        interface: #M10(new)
           map
-            f: #M9
+            f: #M9(new)
             foo=: #M2
           implemented
-            f: #M9
+            f: #M9(new)
           superImplemented
             [0]
               foo=: #M2
           inherited
             foo=: #M2
-    exportMapId: #M11
+    exportMapId: #M11(new)
     exportMap
       A: #M0
-      M: #M8
+      M: #M8(new)
 ''',
     );
   }
@@ -97848,18 +97848,18 @@ mixin A<T> {
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         declaredMethods
-          bar: #M4
+          bar: #M4(new)
           foo: #M1
-        interface: #M5
+        interface: #M5(new)
           map
-            bar: #M4
+            bar: #M4(new)
             foo: #M1
           implemented
-            bar: #M4
+            bar: #M4(new)
             foo: #M1
     exportMapId: #M3
     exportMap
@@ -97891,13 +97891,13 @@ mixin A<T, U> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
-      A: #M3
-        interface: #M4
-    exportMapId: #M5
+      A: #M3(new)
+        interface: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      A: #M3
+      A: #M3(new)
 ''',
     );
   }
@@ -97940,22 +97940,22 @@ mixin D<in T> {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredMixins
       A: #M0
         interface: #M1
       B: #M2
         interface: #M3
-      C: #M9
-        interface: #M10
-      D: #M11
-        interface: #M12
-    exportMapId: #M13
+      C: #M9(new)
+        interface: #M10(new)
+      D: #M11(new)
+        interface: #M12(new)
+    exportMapId: #M13(new)
     exportMap
       A: #M0
       B: #M2
-      C: #M9
-      D: #M11
+      C: #M9(new)
+      D: #M11(new)
 ''',
     );
   }
@@ -98001,18 +98001,18 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredConflicts
-      A: #M2
-      A=: #M2
+      A: #M2(new)
+      A=: #M2(new)
     declaredClasses
-      B: #M3
-        interface: #M4
-    exportMapId: #M5
+      B: #M3(new)
+        interface: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      A: #M2
-      A=: #M2
-      B: #M3
+      A: #M2(new)
+      A=: #M2(new)
+      B: #M3(new)
 ''',
     );
   }
@@ -98087,37 +98087,37 @@ class C {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/b.dart
-    hashForRequirements: #H2
+    hashForRequirements: #H2(new)
     declaredClasses
-      B: #M6
+      B: #M6(new)
         declaredMethods
-          foo: #M7
-        interface: #M8
+          foo: #M7(new)
+        interface: #M8(new)
           map
-            foo: #M7
+            foo: #M7(new)
           implemented
-            foo: #M7
+            foo: #M7(new)
           superImplemented
             [0]
-              foo: #M9
+              foo: #M9(new)
           inherited
-            foo: #M9
-    exportMapId: #M10
+            foo: #M9(new)
+    exportMapId: #M10(new)
     exportMap
-      B: #M6
+      B: #M6(new)
   package:test/test.dart
-    hashForRequirements: #H3
+    hashForRequirements: #H3(new)
     declaredConflicts
-      A: #M9
-      A=: #M9
+      A: #M9(new)
+      A=: #M9(new)
     declaredClasses
-      C: #M11
-        interface: #M12
-    exportMapId: #M13
+      C: #M11(new)
+        interface: #M12(new)
+    exportMapId: #M13(new)
     exportMap
-      A: #M9
-      A=: #M9
-      C: #M11
+      A: #M9(new)
+      A=: #M9(new)
+      C: #M11(new)
 ''',
     );
   }
@@ -98149,18 +98149,18 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredConflicts
-      A: #M2
-      A=: #M2
+      A: #M2(new)
+      A=: #M2(new)
     declaredClasses
-      B: #M3
-        interface: #M4
-    exportMapId: #M5
+      B: #M3(new)
+        interface: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      A: #M2
-      A=: #M2
-      B: #M3
+      A: #M2(new)
+      A=: #M2(new)
+      B: #M3(new)
 ''',
     );
   }
@@ -98207,22 +98207,22 @@ class B = A with M;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M1
         declaredConstructors
           named: #M2
         interface: #M3
-      B: #M7
+      B: #M7(new)
         inheritedConstructors
           named: #M2
-        interface: #M8
+        interface: #M8(new)
       M: #M4
         interface: #M5
-    exportMapId: #M9
+    exportMapId: #M9(new)
     exportMap
       A: #M1
-      B: #M7
+      B: #M7(new)
       M: #M4
 ''',
     );
@@ -98257,18 +98257,18 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredConflicts
-      A: #M2
-      A=: #M2
+      A: #M2(new)
+      A=: #M2(new)
     declaredClasses
-      B: #M3
-        interface: #M4
-    exportMapId: #M5
+      B: #M3(new)
+        interface: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      A: #M2
-      A=: #M2
-      B: #M3
+      A: #M2(new)
+      A=: #M2(new)
+      B: #M3(new)
 ''',
     );
   }
@@ -98314,18 +98314,18 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredConflicts
-      A: #M2
-      A=: #M2
+      A: #M2(new)
+      A=: #M2(new)
     declaredClasses
-      B: #M3
-        interface: #M4
-    exportMapId: #M5
+      B: #M3(new)
+        interface: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      A: #M2
-      A=: #M2
-      B: #M3
+      A: #M2(new)
+      A=: #M2(new)
+      B: #M3(new)
 ''',
     );
   }
@@ -98371,18 +98371,18 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredConflicts
-      A: #M2
-      A=: #M2
+      A: #M2(new)
+      A=: #M2(new)
     declaredClasses
-      B: #M3
-        interface: #M4
-    exportMapId: #M5
+      B: #M3(new)
+        interface: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      A: #M2
-      A=: #M2
-      B: #M3
+      A: #M2(new)
+      A=: #M2(new)
+      B: #M3(new)
 ''',
     );
   }
@@ -98414,18 +98414,18 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredConflicts
-      A: #M2
-      A=: #M2
+      A: #M2(new)
+      A=: #M2(new)
     declaredClasses
-      B: #M3
-        interface: #M4
-    exportMapId: #M5
+      B: #M3(new)
+        interface: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      A: #M2
-      A=: #M2
-      B: #M3
+      A: #M2(new)
+      A=: #M2(new)
+      B: #M3(new)
 ''',
     );
   }
@@ -98459,18 +98459,18 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredConflicts
-      foo: #M2
-      foo=: #M2
+      foo: #M2(new)
+      foo=: #M2(new)
     declaredClasses
-      B: #M3
-        interface: #M4
-    exportMapId: #M5
+      B: #M3(new)
+        interface: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      B: #M3
-      foo: #M2
-      foo=: #M2
+      B: #M3(new)
+      foo: #M2(new)
+      foo=: #M2(new)
 ''',
     );
   }
@@ -98504,18 +98504,18 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredConflicts
-      foo: #M2
-      foo=: #M2
+      foo: #M2(new)
+      foo=: #M2(new)
     declaredClasses
-      B: #M3
-        interface: #M4
-    exportMapId: #M5
+      B: #M3(new)
+        interface: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      B: #M3
-      foo: #M2
-      foo=: #M2
+      B: #M3(new)
+      foo: #M2(new)
+      foo=: #M2(new)
 ''',
     );
   }
@@ -98550,19 +98550,19 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
-      B: #M4
-        interface: #M5
+      B: #M4(new)
+        interface: #M5(new)
     declaredGetters
       foo: #M0
     declaredSetters
       foo=: #M1
     declaredVariables
       foo: #M2
-    exportMapId: #M6
+    exportMapId: #M6(new)
     exportMap
-      B: #M4
+      B: #M4(new)
       foo: #M0
       foo=: #M1
 ''',
@@ -98598,18 +98598,18 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredConflicts
-      foo: #M2
-      foo=: #M2
+      foo: #M2(new)
+      foo=: #M2(new)
     declaredClasses
-      B: #M3
-        interface: #M4
-    exportMapId: #M5
+      B: #M3(new)
+        interface: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      B: #M3
-      foo: #M2
-      foo=: #M2
+      B: #M3(new)
+      foo: #M2(new)
+      foo=: #M2(new)
 ''',
     );
   }
@@ -98655,18 +98655,18 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredConflicts
-      A: #M2
-      A=: #M2
+      A: #M2(new)
+      A=: #M2(new)
     declaredClasses
-      B: #M3
-        interface: #M4
-    exportMapId: #M5
+      B: #M3(new)
+        interface: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      A: #M2
-      A=: #M2
-      B: #M3
+      A: #M2(new)
+      A=: #M2(new)
+      B: #M3(new)
 ''',
     );
   }
@@ -98701,19 +98701,19 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
-      B: #M4
-        interface: #M5
+      B: #M4(new)
+        interface: #M5(new)
     declaredGetters
       foo: #M0
     declaredSetters
       foo=: #M1
     declaredVariables
       foo: #M2
-    exportMapId: #M6
+    exportMapId: #M6(new)
     exportMap
-      B: #M4
+      B: #M4(new)
       foo: #M0
       foo=: #M1
 ''',
@@ -98749,18 +98749,18 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredConflicts
-      foo: #M2
-      foo=: #M2
+      foo: #M2(new)
+      foo=: #M2(new)
     declaredClasses
-      B: #M3
-        interface: #M4
-    exportMapId: #M5
+      B: #M3(new)
+        interface: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      B: #M3
-      foo: #M2
-      foo=: #M2
+      B: #M3(new)
+      foo: #M2(new)
+      foo=: #M2(new)
 ''',
     );
   }
@@ -98792,16 +98792,16 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
-      B: #M2
-        interface: #M3
+      B: #M2(new)
+        interface: #M3(new)
     declaredFunctions
-      foo: #M4
-    exportMapId: #M5
+      foo: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      B: #M2
-      foo: #M4
+      B: #M2(new)
+      foo: #M4(new)
 ''',
     );
   }
@@ -98835,18 +98835,18 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredConflicts
-      foo: #M2
-      foo=: #M2
+      foo: #M2(new)
+      foo=: #M2(new)
     declaredClasses
-      B: #M3
-        interface: #M4
-    exportMapId: #M5
+      B: #M3(new)
+        interface: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      B: #M3
-      foo: #M2
-      foo=: #M2
+      B: #M3(new)
+      foo: #M2(new)
+      foo=: #M2(new)
 ''',
     );
   }
@@ -98878,18 +98878,18 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredConflicts
-      A: #M2
-      A=: #M2
+      A: #M2(new)
+      A=: #M2(new)
     declaredClasses
-      B: #M3
-        interface: #M4
-    exportMapId: #M5
+      B: #M3(new)
+        interface: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      A: #M2
-      A=: #M2
-      B: #M3
+      A: #M2(new)
+      A=: #M2(new)
+      B: #M3(new)
 ''',
     );
   }
@@ -98924,19 +98924,19 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
-      B: #M4
-        interface: #M5
+      B: #M4(new)
+        interface: #M5(new)
     declaredGetters
       foo: #M0
     declaredSetters
       foo=: #M1
     declaredVariables
       foo: #M2
-    exportMapId: #M6
+    exportMapId: #M6(new)
     exportMap
-      B: #M4
+      B: #M4(new)
       foo: #M0
       foo=: #M1
 ''',
@@ -98970,18 +98970,18 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredConflicts
-      foo: #M2
-      foo=: #M2
+      foo: #M2(new)
+      foo=: #M2(new)
     declaredClasses
-      B: #M3
-        interface: #M4
-    exportMapId: #M5
+      B: #M3(new)
+        interface: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      B: #M3
-      foo: #M2
-      foo=: #M2
+      B: #M3(new)
+      foo: #M2(new)
+      foo=: #M2(new)
 ''',
     );
   }
@@ -99013,18 +99013,18 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredConflicts
-      foo: #M2
-      foo=: #M2
+      foo: #M2(new)
+      foo=: #M2(new)
     declaredClasses
-      B: #M3
-        interface: #M4
-    exportMapId: #M5
+      B: #M3(new)
+        interface: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      B: #M3
-      foo: #M2
-      foo=: #M2
+      B: #M3(new)
+      foo: #M2(new)
+      foo=: #M2(new)
 ''',
     );
   }
@@ -99058,18 +99058,18 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredConflicts
-      foo: #M2
-      foo=: #M2
+      foo: #M2(new)
+      foo=: #M2(new)
     declaredClasses
-      B: #M3
-        interface: #M4
-    exportMapId: #M5
+      B: #M3(new)
+        interface: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      B: #M3
-      foo: #M2
-      foo=: #M2
+      B: #M3(new)
+      foo: #M2(new)
+      foo=: #M2(new)
 ''',
     );
   }
@@ -99103,18 +99103,18 @@ class B {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredConflicts
-      A: #M2
-      A=: #M2
+      A: #M2(new)
+      A=: #M2(new)
     declaredClasses
-      B: #M3
-        interface: #M4
-    exportMapId: #M5
+      B: #M3(new)
+        interface: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      A: #M2
-      A=: #M2
-      B: #M3
+      A: #M2(new)
+      A=: #M2(new)
+      B: #M3(new)
 ''',
     );
   }
@@ -99142,13 +99142,13 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
-      bar: #M2
+      bar: #M2(new)
       foo: #M0
-    exportMapId: #M3
+    exportMapId: #M3(new)
     exportMap
-      bar: #M2
+      bar: #M2(new)
       foo: #M0
 ''',
     );
@@ -99177,13 +99177,13 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
-      bar: #M2
+      bar: #M2(new)
       foo: #M0
-    exportMapId: #M3
+    exportMapId: #M3(new)
     exportMap
-      bar: #M2
+      bar: #M2(new)
       foo: #M0
 ''',
     );
@@ -99212,13 +99212,13 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
-      bar: #M2
+      bar: #M2(new)
       foo: #M0
-    exportMapId: #M3
+    exportMapId: #M3(new)
     exportMap
-      bar: #M2
+      bar: #M2(new)
       foo: #M0
 ''',
     );
@@ -99247,14 +99247,14 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
-      bar: #M2
-      foo: #M3
-    exportMapId: #M4
+      bar: #M2(new)
+      foo: #M3(new)
+    exportMapId: #M4(new)
     exportMap
-      bar: #M2
-      foo: #M3
+      bar: #M2(new)
+      foo: #M3(new)
 ''',
     );
   }
@@ -99313,12 +99313,12 @@ void foo({int b = 0, int a = 1}) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
-      foo: #M2
-    exportMapId: #M3
+      foo: #M2(new)
+    exportMapId: #M3(new)
     exportMap
-      foo: #M2
+      foo: #M2(new)
 ''',
     );
   }
@@ -99345,12 +99345,12 @@ void foo({@deprecated int a}) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
-      foo: #M2
-    exportMapId: #M3
+      foo: #M2(new)
+    exportMapId: #M3(new)
     exportMap
-      foo: #M2
+      foo: #M2(new)
 ''',
     );
   }
@@ -99377,12 +99377,12 @@ void foo({int? a, @deprecated int? b}) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
-      foo: #M2
-    exportMapId: #M3
+      foo: #M2(new)
+    exportMapId: #M3(new)
     exportMap
-      foo: #M2
+      foo: #M2(new)
 ''',
     );
   }
@@ -99409,12 +99409,12 @@ void foo({int a}) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
-      foo: #M2
-    exportMapId: #M3
+      foo: #M2(new)
+    exportMapId: #M3(new)
     exportMap
-      foo: #M2
+      foo: #M2(new)
 ''',
     );
   }
@@ -99473,12 +99473,12 @@ void foo({@deprecated int? b, int? a}) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
-      foo: #M2
-    exportMapId: #M3
+      foo: #M2(new)
+    exportMapId: #M3(new)
     exportMap
-      foo: #M2
+      foo: #M2(new)
 ''',
     );
   }
@@ -99506,14 +99506,14 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
-      bar: #M2
-      foo: #M3
-    exportMapId: #M4
+      bar: #M2(new)
+      foo: #M3(new)
+    exportMapId: #M4(new)
     exportMap
-      bar: #M2
-      foo: #M3
+      bar: #M2(new)
+      foo: #M3(new)
 ''',
     );
   }
@@ -99541,14 +99541,14 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
-      bar: #M2
-      foo: #M3
-    exportMapId: #M4
+      bar: #M2(new)
+      foo: #M3(new)
+    exportMapId: #M4(new)
     exportMap
-      bar: #M2
-      foo: #M3
+      bar: #M2(new)
+      foo: #M3(new)
 ''',
     );
   }
@@ -99576,13 +99576,13 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
-      bar: #M2
+      bar: #M2(new)
       foo: #M0
-    exportMapId: #M3
+    exportMapId: #M3(new)
     exportMap
-      bar: #M2
+      bar: #M2(new)
       foo: #M0
 ''',
     );
@@ -99611,13 +99611,13 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
-      bar: #M2
+      bar: #M2(new)
       foo: #M0
-    exportMapId: #M3
+    exportMapId: #M3(new)
     exportMap
-      bar: #M2
+      bar: #M2(new)
       foo: #M0
 ''',
     );
@@ -99646,14 +99646,14 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
-      bar: #M2
-      foo: #M3
-    exportMapId: #M4
+      bar: #M2(new)
+      foo: #M3(new)
+    exportMapId: #M4(new)
     exportMap
-      bar: #M2
-      foo: #M3
+      bar: #M2(new)
+      foo: #M3(new)
 ''',
     );
   }
@@ -99691,17 +99691,17 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
       A: #M0
         interface: #M1
     declaredFunctions
-      bar: #M4
+      bar: #M4(new)
       foo: #M2
-    exportMapId: #M5
+    exportMapId: #M5(new)
     exportMap
       A: #M0
-      bar: #M4
+      bar: #M4(new)
       foo: #M2
 ''',
     );
@@ -99729,12 +99729,12 @@ void foo([@deprecated int a]) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
-      foo: #M2
-    exportMapId: #M3
+      foo: #M2(new)
+    exportMapId: #M3(new)
     exportMap
-      foo: #M2
+      foo: #M2(new)
 ''',
     );
   }
@@ -99761,12 +99761,12 @@ void foo([int a]) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
-      foo: #M2
-    exportMapId: #M3
+      foo: #M2(new)
+    exportMapId: #M3(new)
     exportMap
-      foo: #M2
+      foo: #M2(new)
 ''',
     );
   }
@@ -99794,13 +99794,13 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
-      bar: #M2
+      bar: #M2(new)
       foo: #M0
-    exportMapId: #M3
+    exportMapId: #M3(new)
     exportMap
-      bar: #M2
+      bar: #M2(new)
       foo: #M0
 ''',
     );
@@ -99829,14 +99829,14 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
-      bar: #M2
-      foo: #M3
-    exportMapId: #M4
+      bar: #M2(new)
+      foo: #M3(new)
+    exportMapId: #M4(new)
     exportMap
-      bar: #M2
-      foo: #M3
+      bar: #M2(new)
+      foo: #M3(new)
 ''',
     );
   }
@@ -99916,13 +99916,13 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
-      bar: #M2
+      bar: #M2(new)
       foo: #M0
-    exportMapId: #M3
+    exportMapId: #M3(new)
     exportMap
-      bar: #M2
+      bar: #M2(new)
       foo: #M0
 ''',
     );
@@ -99951,14 +99951,14 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
-      bar: #M2
-      foo: #M3
-    exportMapId: #M4
+      bar: #M2(new)
+      foo: #M3(new)
+    exportMapId: #M4(new)
     exportMap
-      bar: #M2
-      foo: #M3
+      bar: #M2(new)
+      foo: #M3(new)
 ''',
     );
   }
@@ -99985,12 +99985,12 @@ void foo(int a) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
-      foo: #M2
-    exportMapId: #M3
+      foo: #M2(new)
+    exportMapId: #M3(new)
     exportMap
-      foo: #M2
+      foo: #M2(new)
 ''',
     );
   }
@@ -100018,14 +100018,14 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
-      bar: #M2
-      foo: #M3
-    exportMapId: #M4
+      bar: #M2(new)
+      foo: #M3(new)
+    exportMapId: #M4(new)
     exportMap
-      bar: #M2
-      foo: #M3
+      bar: #M2(new)
+      foo: #M3(new)
 ''',
     );
   }
@@ -100053,13 +100053,13 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
-      bar: #M2
+      bar: #M2(new)
       foo: #M0
-    exportMapId: #M3
+    exportMapId: #M3(new)
     exportMap
-      bar: #M2
+      bar: #M2(new)
       foo: #M0
 ''',
     );
@@ -100094,17 +100094,17 @@ void foo(int a, @a int b) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
     declaredFunctions
-      foo: #M4
+      foo: #M4(new)
     declaredVariables
-      a: #M5
-    exportMapId: #M6
+      a: #M5(new)
+    exportMapId: #M6(new)
     exportMap
       a: #M0
-      foo: #M4
+      foo: #M4(new)
 ''',
     );
   }
@@ -100131,12 +100131,12 @@ void foo(int a, @deprecated int b) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
-      foo: #M2
-    exportMapId: #M3
+      foo: #M2(new)
+    exportMapId: #M3(new)
     exportMap
-      foo: #M2
+      foo: #M2(new)
 ''',
     );
   }
@@ -100179,11 +100179,11 @@ const x = 1;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/a.dart
-    hashForRequirements: #H2
+    hashForRequirements: #H2(new)
     declaredGetters
       x: #M0
     declaredVariables
-      x: #M5
+      x: #M5(new)
     exportMapId: #M2
     exportMap
       x: #M0
@@ -100193,20 +100193,20 @@ const x = 1;
     libraryUri: package:test/a.dart
     name: x
     expectedId: #M1
-    actualId: #M5
+    actualId: #M5(new)
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H3
+    hashForRequirements: #H3(new)
     declaredFunctions
-      foo: #M6
-    exportMapId: #M7
+      foo: #M6(new)
+    exportMapId: #M7(new)
     exportMap
-      foo: #M6
+      foo: #M6(new)
 ''',
     );
   }
 
-  test_manifest_topLevelFunction_formalParameter_requiredPositional_metadata_typeParameterNotInScope() async {
+  test_manifest_topLevelFunction_formalParameter_requiredPositional_metadata_typeParameterInScope() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
 const T = 0;
@@ -100235,17 +100235,17 @@ void foo<T>(@T int a) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       T: #M0
     declaredFunctions
-      foo: #M4
+      foo: #M1
     declaredVariables
-      T: #M5
-    exportMapId: #M6
+      T: #M4(new)
+    exportMapId: #M3
     exportMap
       T: #M0
-      foo: #M4
+      foo: #M1
 ''',
     );
   }
@@ -100273,13 +100273,13 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
-      bar: #M2
+      bar: #M2(new)
       foo: #M0
-    exportMapId: #M3
+    exportMapId: #M3(new)
     exportMap
-      bar: #M2
+      bar: #M2(new)
       foo: #M0
 ''',
     );
@@ -100307,12 +100307,12 @@ void foo({required int a}) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
-      foo: #M2
-    exportMapId: #M3
+      foo: #M2(new)
+    exportMapId: #M3(new)
     exportMap
-      foo: #M2
+      foo: #M2(new)
 ''',
     );
   }
@@ -100340,14 +100340,14 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
-      bar: #M2
-      foo: #M3
-    exportMapId: #M4
+      bar: #M2(new)
+      foo: #M3(new)
+    exportMapId: #M4(new)
     exportMap
-      bar: #M2
-      foo: #M3
+      bar: #M2(new)
+      foo: #M3(new)
 ''',
     );
   }
@@ -100382,14 +100382,14 @@ void b() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
       a: #M0
-      b: #M3
-    exportMapId: #M4
+      b: #M3(new)
+    exportMapId: #M4(new)
     exportMap
       a: #M0
-      b: #M3
+      b: #M3(new)
 ''',
     );
   }
@@ -100425,17 +100425,17 @@ void foo<T>() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       T: #M0
     declaredFunctions
-      foo: #M4
+      foo: #M4(new)
     declaredVariables
-      T: #M5
-    exportMapId: #M6
+      T: #M5(new)
+    exportMapId: #M6(new)
     exportMap
       T: #M0
-      foo: #M4
+      foo: #M4(new)
 ''',
     );
   }
@@ -100480,25 +100480,25 @@ void foo3() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
       foo1: #M0
         flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: dynamic
-      foo2: #M4
+      foo2: #M4(new)
         flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: dynamic
-      foo3: #M5
+      foo3: #M5(new)
         flags: isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
-    exportMapId: #M6
+    exportMapId: #M6(new)
     exportMap
       foo1: #M0
-      foo2: #M4
-      foo3: #M5
+      foo2: #M4(new)
+      foo3: #M5(new)
 ''',
     );
   }
@@ -100550,7 +100550,7 @@ void foo4() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
       foo1: #M0
         flags: isOriginDeclaration isSimplyBounded isStatic
@@ -100560,20 +100560,20 @@ void foo4() {}
         flags: isExternal isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
-      foo3: #M5
+      foo3: #M5(new)
         flags: isExternal isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
-      foo4: #M6
+      foo4: #M6(new)
         flags: isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
-    exportMapId: #M7
+    exportMapId: #M7(new)
     exportMap
       foo1: #M0
       foo2: #M1
-      foo3: #M5
-      foo4: #M6
+      foo3: #M5(new)
+      foo4: #M6(new)
 ''',
     );
   }
@@ -100601,14 +100601,14 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
       _foo: #M0
-      bar: #M2
-    exportMapId: #M3
+      bar: #M2(new)
+    exportMapId: #M3(new)
     exportMap
       _foo: #M0
-      bar: #M2
+      bar: #M2(new)
 ''',
     );
   }
@@ -100635,12 +100635,12 @@ double foo() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
-      foo: #M2
-    exportMapId: #M3
+      foo: #M2(new)
+    exportMapId: #M3(new)
     exportMap
-      foo: #M2
+      foo: #M2(new)
 ''',
     );
   }
@@ -100668,14 +100668,14 @@ void bar() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
-      bar: #M2
-      foo: #M3
-    exportMapId: #M4
+      bar: #M2(new)
+      foo: #M3(new)
+    exportMapId: #M4(new)
     exportMap
-      bar: #M2
-      foo: #M3
+      bar: #M2(new)
+      foo: #M3(new)
 ''',
     );
   }
@@ -100702,12 +100702,12 @@ void foo<T, U>() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
-      foo: #M2
-    exportMapId: #M3
+      foo: #M2(new)
+    exportMapId: #M3(new)
     exportMap
-      foo: #M2
+      foo: #M2(new)
 ''',
     );
   }
@@ -100734,12 +100734,12 @@ void foo<T extends int>() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
-      foo: #M2
-    exportMapId: #M3
+      foo: #M2(new)
+    exportMapId: #M3(new)
     exportMap
-      foo: #M2
+      foo: #M2(new)
 ''',
     );
   }
@@ -100766,12 +100766,12 @@ void foo<T>() {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredFunctions
-      foo: #M2
-    exportMapId: #M3
+      foo: #M2(new)
+    exportMapId: #M3(new)
     exportMap
-      foo: #M2
+      foo: #M2(new)
 ''',
     );
   }
@@ -100801,17 +100801,17 @@ int get b => 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
-      b: #M3
+      b: #M3(new)
     declaredVariables
       a: #M1
-      b: #M4
-    exportMapId: #M5
+      b: #M4(new)
+    exportMapId: #M5(new)
     exportMap
       a: #M0
-      b: #M3
+      b: #M3(new)
 ''',
     );
   }
@@ -100868,14 +100868,14 @@ int get foo => 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      foo: #M3
+      foo: #M3(new)
     declaredVariables
-      foo: #M4
-    exportMapId: #M5
+      foo: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      foo: #M3
+      foo: #M3(new)
 ''',
     );
   }
@@ -100913,17 +100913,17 @@ int get b => 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
-      b: #M5
+      b: #M5(new)
     declaredVariables
       a: #M2
       b: #M3
-    exportMapId: #M6
+    exportMapId: #M6(new)
     exportMap
       a: #M0
-      b: #M5
+      b: #M5(new)
 ''',
     );
   }
@@ -100975,32 +100975,32 @@ int get foo3 => 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       foo1: #M0
         flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
         returnType: dynamic
-      foo2: #M7
+      foo2: #M7(new)
         flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
         returnType: dynamic
-      foo3: #M8
+      foo3: #M8(new)
         flags: isOriginDeclaration isSimplyBounded isStatic
         returnType: int @ dart:core
     declaredVariables
       foo1: #M3
         flags: isOriginGetterSetter isStatic
         type: dynamic
-      foo2: #M9
+      foo2: #M9(new)
         flags: isOriginGetterSetter isStatic
         type: dynamic
-      foo3: #M10
+      foo3: #M10(new)
         flags: isOriginGetterSetter isStatic
         type: int @ dart:core
-    exportMapId: #M11
+    exportMapId: #M11(new)
     exportMap
       foo1: #M0
-      foo2: #M7
-      foo3: #M8
+      foo2: #M7(new)
+      foo3: #M8(new)
 ''',
     );
   }
@@ -101061,7 +101061,7 @@ int get foo4 => 4;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       foo1: #M0
         flags: isOriginDeclaration isSimplyBounded isStatic
@@ -101069,10 +101069,10 @@ int get foo4 => 4;
       foo2: #M1
         flags: isExternal isOriginDeclaration isSimplyBounded isStatic
         returnType: int @ dart:core
-      foo3: #M9
+      foo3: #M9(new)
         flags: isExternal isOriginDeclaration isSimplyBounded isStatic
         returnType: int @ dart:core
-      foo4: #M10
+      foo4: #M10(new)
         flags: isOriginDeclaration isSimplyBounded isStatic
         returnType: int @ dart:core
     declaredVariables
@@ -101088,12 +101088,12 @@ int get foo4 => 4;
       foo4: #M7
         flags: isOriginGetterSetter isStatic
         type: int @ dart:core
-    exportMapId: #M11
+    exportMapId: #M11(new)
     exportMap
       foo1: #M0
       foo2: #M1
-      foo3: #M9
-      foo4: #M10
+      foo3: #M9(new)
+      foo4: #M10(new)
 ''',
     );
   }
@@ -101123,17 +101123,17 @@ int get b => 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       _a: #M0
-      b: #M3
+      b: #M3(new)
     declaredVariables
       _a: #M1
-      b: #M4
-    exportMapId: #M5
+      b: #M4(new)
+    exportMapId: #M5(new)
     exportMap
       _a: #M0
-      b: #M3
+      b: #M3(new)
 ''',
     );
   }
@@ -101162,14 +101162,14 @@ double get a => 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -101199,17 +101199,17 @@ set b(int _) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredSetters
       a=: #M0
-      b=: #M3
+      b=: #M3(new)
     declaredVariables
       a: #M1
-      b: #M4
-    exportMapId: #M5
+      b: #M4(new)
+    exportMapId: #M5(new)
     exportMap
       a=: #M0
-      b=: #M3
+      b=: #M3(new)
 ''',
     );
   }
@@ -101270,17 +101270,17 @@ set foo(int _) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      foo: #M4
+      foo: #M4(new)
     declaredSetters
-      foo=: #M5
+      foo=: #M5(new)
     declaredVariables
-      foo: #M6
-    exportMapId: #M7
+      foo: #M6(new)
+    exportMapId: #M7(new)
     exportMap
-      foo: #M4
-      foo=: #M5
+      foo: #M4(new)
+      foo=: #M5(new)
 ''',
     );
   }
@@ -101318,17 +101318,17 @@ set b(int _) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredSetters
       a=: #M0
-      b=: #M5
+      b=: #M5(new)
     declaredVariables
       a: #M2
       b: #M3
-    exportMapId: #M6
+    exportMapId: #M6(new)
     exportMap
       a=: #M0
-      b=: #M5
+      b=: #M5(new)
 ''',
     );
   }
@@ -101389,7 +101389,7 @@ void set foo3(int value) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredSetters
       foo1=: #M0
         flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
@@ -101397,13 +101397,13 @@ void set foo3(int value) {}
           positional
             required int @ dart:core
           returnType: void
-      foo2=: #M7
+      foo2=: #M7(new)
         flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           positional
             required int @ dart:core
           returnType: void
-      foo3=: #M8
+      foo3=: #M8(new)
         flags: isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           positional
@@ -101419,11 +101419,11 @@ void set foo3(int value) {}
       foo3: #M5
         flags: isOriginGetterSetter isStatic
         type: int @ dart:core
-    exportMapId: #M9
+    exportMapId: #M9(new)
     exportMap
       foo1=: #M0
-      foo2=: #M7
-      foo3=: #M8
+      foo2=: #M7(new)
+      foo3=: #M8(new)
 ''',
     );
   }
@@ -101496,7 +101496,7 @@ set foo4(int value) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredSetters
       foo1=: #M0
         flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
@@ -101510,13 +101510,13 @@ set foo4(int value) {}
           positional
             required int @ dart:core
           returnType: void
-      foo3=: #M9
+      foo3=: #M9(new)
         flags: hasImplicitReturnType isExternal isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           positional
             required int @ dart:core
           returnType: void
-      foo4=: #M10
+      foo4=: #M10(new)
         flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           positional
@@ -101535,12 +101535,12 @@ set foo4(int value) {}
       foo4: #M7
         flags: isOriginGetterSetter isStatic
         type: int @ dart:core
-    exportMapId: #M11
+    exportMapId: #M11(new)
     exportMap
       foo1=: #M0
       foo2=: #M1
-      foo3=: #M9
-      foo4=: #M10
+      foo3=: #M9(new)
+      foo4=: #M10(new)
 ''',
     );
   }
@@ -101577,21 +101577,21 @@ set a(double _) {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredSetters
-      a=: #M3
+      a=: #M3(new)
         flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           positional
             required double @ dart:core
           returnType: void
     declaredVariables
-      a: #M4
+      a: #M4(new)
         flags: isOriginGetterSetter isStatic
         type: double @ dart:core
-    exportMapId: #M5
+    exportMapId: #M5(new)
     exportMap
-      a=: #M3
+      a=: #M3(new)
 ''',
     );
   }
@@ -101621,17 +101621,17 @@ final b = 1;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
-      b: #M3
+      b: #M3(new)
     declaredVariables
       a: #M1
-      b: #M4
-    exportMapId: #M5
+      b: #M4(new)
+    exportMapId: #M5(new)
     exportMap
       a: #M0
-      b: #M3
+      b: #M3(new)
 ''',
     );
   }
@@ -102026,14 +102026,14 @@ final a = 1.2;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -102062,11 +102062,11 @@ const a = 1;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
     declaredVariables
-      a: #M3
+      a: #M3(new)
     exportMapId: #M2
     exportMap
       a: #M0
@@ -102148,22 +102148,22 @@ var b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
-      b: #M7
+      b: #M7(new)
     declaredSetters
       a=: #M2
-      b=: #M8
+      b=: #M8(new)
     declaredVariables
       a: #M4
-      b: #M9
-    exportMapId: #M10
+      b: #M9(new)
+    exportMapId: #M10(new)
     exportMap
       a: #M0
       a=: #M2
-      b: #M7
-      b=: #M8
+      b: #M7(new)
+      b=: #M8(new)
 ''',
     );
   }
@@ -102225,7 +102225,7 @@ final foo4 = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       foo1: #M0
         flags: isOriginVariable isSimplyBounded isStatic
@@ -102246,10 +102246,10 @@ final foo4 = 0;
       foo2: #M5
         flags: hasInitializer isFinal isOriginDeclaration isStatic
         type: int @ dart:core
-      foo3: #M9
+      foo3: #M9(new)
         flags: hasInitializer isFinal isOriginDeclaration isStatic
         type: int @ dart:core
-      foo4: #M10
+      foo4: #M10(new)
         flags: hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
     exportMapId: #M8
@@ -102319,7 +102319,7 @@ final int? foo4 = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       foo1: #M0
         flags: isOriginVariable isSimplyBounded isStatic
@@ -102340,10 +102340,10 @@ final int? foo4 = 0;
       foo2: #M5
         flags: isFinal isOriginDeclaration isStatic
         type: int? @ dart:core
-      foo3: #M9
+      foo3: #M9(new)
         flags: isFinal isOriginDeclaration isStatic
         type: int? @ dart:core
-      foo4: #M10
+      foo4: #M10(new)
         flags: hasInitializer isFinal isOriginDeclaration isStatic
         type: int? @ dart:core
     exportMapId: #M8
@@ -102390,15 +102390,15 @@ const c = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
       b: #M1
       c: #M2
     declaredVariables
       a: #M3
-      b: #M7
-      c: #M8
+      b: #M7(new)
+      c: #M8(new)
     exportMapId: #M6
     exportMap
       a: #M0
@@ -102465,7 +102465,7 @@ external final int? foo4;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       foo1: #M0
         flags: isOriginVariable isSimplyBounded isStatic
@@ -102486,10 +102486,10 @@ external final int? foo4;
       foo2: #M5
         flags: isFinal isOriginDeclaration isStatic
         type: int? @ dart:core
-      foo3: #M9
+      foo3: #M9(new)
         flags: isFinal isOriginDeclaration isStatic
         type: int? @ dart:core
-      foo4: #M10
+      foo4: #M10(new)
         flags: isExternal isFinal isOriginDeclaration isStatic
         type: int? @ dart:core
     exportMapId: #M8
@@ -102539,22 +102539,22 @@ final c = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
       b: #M1
       c: #M2
     declaredSetters
-      b=: #M8
+      b=: #M8(new)
     declaredVariables
       a: #M4
-      b: #M9
-      c: #M10
-    exportMapId: #M11
+      b: #M9(new)
+      c: #M10(new)
+    exportMapId: #M11(new)
     exportMap
       a: #M0
       b: #M1
-      b=: #M8
+      b=: #M8(new)
       c: #M2
 ''',
     );
@@ -102594,15 +102594,15 @@ late final c = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
       b: #M1
       c: #M2
     declaredVariables
       a: #M3
-      b: #M7
-      c: #M8
+      b: #M7(new)
+      c: #M8(new)
     exportMapId: #M6
     exportMap
       a: #M0
@@ -102669,7 +102669,7 @@ int? get foo4 => 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       foo1: #M0
         flags: isOriginDeclaration isSimplyBounded isStatic
@@ -102677,10 +102677,10 @@ int? get foo4 => 0;
       foo2: #M1
         flags: isOriginVariable isSimplyBounded isStatic
         returnType: int? @ dart:core
-      foo3: #M9
+      foo3: #M9(new)
         flags: isOriginVariable isSimplyBounded isStatic
         returnType: int? @ dart:core
-      foo4: #M10
+      foo4: #M10(new)
         flags: isOriginDeclaration isSimplyBounded isStatic
         returnType: int? @ dart:core
     declaredVariables
@@ -102690,18 +102690,18 @@ int? get foo4 => 0;
       foo2: #M5
         flags: isFinal isOriginDeclaration isStatic
         type: int? @ dart:core
-      foo3: #M11
+      foo3: #M11(new)
         flags: isFinal isOriginDeclaration isStatic
         type: int? @ dart:core
-      foo4: #M12
+      foo4: #M12(new)
         flags: isOriginGetterSetter isStatic
         type: int? @ dart:core
-    exportMapId: #M13
+    exportMapId: #M13(new)
     exportMap
       foo1: #M0
       foo2: #M1
-      foo3: #M9
-      foo4: #M10
+      foo3: #M9(new)
+      foo4: #M10(new)
 ''',
     );
   }
@@ -102731,17 +102731,17 @@ const b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       _a: #M0
-      b: #M3
+      b: #M3(new)
     declaredVariables
       _a: #M1
-      b: #M4
-    exportMapId: #M5
+      b: #M4(new)
+    exportMapId: #M5(new)
     exportMap
       _a: #M0
-      b: #M3
+      b: #M3(new)
 ''',
     );
   }
@@ -102771,17 +102771,17 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       _a: #M0
-      b: #M3
+      b: #M3(new)
     declaredVariables
       _a: #M1
-      b: #M4
-    exportMapId: #M5
+      b: #M4(new)
+    exportMapId: #M5(new)
     exportMap
       _a: #M0
-      b: #M3
+      b: #M3(new)
 ''',
     );
   }
@@ -102814,22 +102814,22 @@ var b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       _a: #M0
-      b: #M4
+      b: #M4(new)
     declaredSetters
       _a=: #M1
-      b=: #M5
+      b=: #M5(new)
     declaredVariables
       _a: #M2
-      b: #M6
-    exportMapId: #M7
+      b: #M6(new)
+    exportMapId: #M7(new)
     exportMap
       _a: #M0
       _a=: #M1
-      b: #M4
-      b=: #M5
+      b: #M4(new)
+      b=: #M5(new)
 ''',
     );
   }
@@ -102861,17 +102861,17 @@ double? a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M4
+      a: #M4(new)
     declaredSetters
-      a=: #M5
+      a=: #M5(new)
     declaredVariables
-      a: #M6
-    exportMapId: #M7
+      a: #M6(new)
+    exportMapId: #M7(new)
     exportMap
-      a: #M4
-      a=: #M5
+      a: #M4(new)
+      a=: #M5(new)
 ''',
     );
   }
@@ -102943,17 +102943,17 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
-      b: #M3
+      b: #M3(new)
     declaredVariables
       a: #M1
-      b: #M4
-    exportMapId: #M5
+      b: #M4(new)
+    exportMapId: #M5(new)
     exportMap
       a: #M0
-      b: #M3
+      b: #M3(new)
 ''',
     );
   }
@@ -102982,14 +102982,14 @@ final int a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -103019,17 +103019,17 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
-      b: #M3
+      b: #M3(new)
     declaredVariables
       a: #M1
-      b: #M4
-    exportMapId: #M5
+      b: #M4(new)
+    exportMapId: #M5(new)
     exportMap
       a: #M0
-      b: #M3
+      b: #M3(new)
 ''',
     );
   }
@@ -103123,17 +103123,17 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
-      b: #M3
+      b: #M3(new)
     declaredVariables
       a: #M1
-      b: #M4
-    exportMapId: #M5
+      b: #M4(new)
+    exportMapId: #M5(new)
     exportMap
       a: #M0
-      b: #M3
+      b: #M3(new)
 ''',
     );
   }
@@ -103162,14 +103162,14 @@ final void Function({int p1, double p2}) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -103198,14 +103198,14 @@ final void Function({int p1}) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -103234,14 +103234,14 @@ final void Function(int p1) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -103270,14 +103270,14 @@ final void Function({int p2}) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -103342,14 +103342,14 @@ final void Function(int p) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -103378,14 +103378,14 @@ final void Function({int p1}) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -103414,14 +103414,14 @@ final void Function({required int p1}) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -103450,14 +103450,14 @@ final void Function({double p1}) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -103486,14 +103486,14 @@ final int Function()? a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -103523,17 +103523,17 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
-      b: #M3
+      b: #M3(new)
     declaredVariables
       a: #M1
-      b: #M4
-    exportMapId: #M5
+      b: #M4(new)
+    exportMapId: #M5(new)
     exportMap
       a: #M0
-      b: #M3
+      b: #M3(new)
 ''',
     );
   }
@@ -103562,14 +103562,14 @@ final void Function(int p1, double p2) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -103670,14 +103670,14 @@ final void Function(int p1) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -103706,14 +103706,14 @@ final void Function({double p2}) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -103814,14 +103814,14 @@ final void Function([double p2, int p1]) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -103850,14 +103850,14 @@ final void Function(double p2, int p1) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -103886,14 +103886,14 @@ final void Function({int p}) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -103922,14 +103922,14 @@ final void Function([int p1]) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -103958,14 +103958,14 @@ final void Function(int p1) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -103994,14 +103994,14 @@ final void Function(double p1) a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -104030,14 +104030,14 @@ final double Function() a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -104067,17 +104067,17 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
-      b: #M3
+      b: #M3(new)
     declaredVariables
       a: #M1
-      b: #M4
-    exportMapId: #M5
+      b: #M4(new)
+    exportMapId: #M5(new)
     exportMap
       a: #M0
-      b: #M3
+      b: #M3(new)
 ''',
     );
   }
@@ -104106,14 +104106,14 @@ final void Function<E1, E2>() a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -104142,14 +104142,14 @@ final T Function<T extends double>() a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -104178,14 +104178,14 @@ final void Function<E1>() a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -104280,12 +104280,12 @@ typedef F = void Function<U, T>(T, U);
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredTypeAliases
-      F: #M2
-    exportMapId: #M3
+      F: #M2(new)
+    exportMapId: #M3(new)
     exportMap
-      F: #M2
+      F: #M2(new)
 ''',
     );
   }
@@ -104312,12 +104312,12 @@ typedef F = void Function<U extends int, T extends num>(U, T);
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredTypeAliases
-      F: #M2
-    exportMapId: #M3
+      F: #M2(new)
+    exportMapId: #M3(new)
     exportMap
-      F: #M2
+      F: #M2(new)
 ''',
     );
   }
@@ -104346,14 +104346,14 @@ final double a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -104382,14 +104382,14 @@ final int? a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -104418,14 +104418,14 @@ final List<double> a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -104455,17 +104455,17 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
-      b: #M3
+      b: #M3(new)
     declaredVariables
       a: #M1
-      b: #M4
-    exportMapId: #M5
+      b: #M4(new)
+    exportMapId: #M5(new)
     exportMap
       a: #M0
-      b: #M3
+      b: #M3(new)
 ''',
     );
   }
@@ -104495,17 +104495,17 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
-      b: #M3
+      b: #M3(new)
     declaredVariables
       a: #M1
-      b: #M4
-    exportMapId: #M5
+      b: #M4(new)
+    exportMapId: #M5(new)
     exportMap
       a: #M0
-      b: #M3
+      b: #M3(new)
 ''',
     );
   }
@@ -104534,14 +104534,14 @@ final Never? a;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -104571,17 +104571,17 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
-      b: #M3
+      b: #M3(new)
     declaredVariables
       a: #M1
-      b: #M4
-    exportMapId: #M5
+      b: #M4(new)
+    exportMapId: #M5(new)
     exportMap
       a: #M0
-      b: #M3
+      b: #M3(new)
 ''',
     );
   }
@@ -104610,14 +104610,14 @@ final ({int f1, double f2}) a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -104646,14 +104646,14 @@ final ({int f2}) a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -104682,14 +104682,14 @@ final ({int f1}) a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -104754,14 +104754,14 @@ final ({double f1}) a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -104790,14 +104790,14 @@ final (int,)? a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -104827,17 +104827,17 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
-      b: #M3
+      b: #M3(new)
     declaredVariables
       a: #M1
-      b: #M4
-    exportMapId: #M5
+      b: #M4(new)
+    exportMapId: #M5(new)
     exportMap
       a: #M0
-      b: #M3
+      b: #M3(new)
 ''',
     );
   }
@@ -104866,14 +104866,14 @@ final (int, double) a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -104938,14 +104938,14 @@ final (int,) a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -104974,14 +104974,14 @@ final (double,) a = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
-      a: #M3
+      a: #M3(new)
     declaredVariables
-      a: #M4
-    exportMapId: #M5
+      a: #M4(new)
+    exportMapId: #M5(new)
     exportMap
-      a: #M3
+      a: #M3(new)
 ''',
     );
   }
@@ -105011,17 +105011,17 @@ final b = 0;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredGetters
       a: #M0
-      b: #M3
+      b: #M3(new)
     declaredVariables
       a: #M1
-      b: #M4
-    exportMapId: #M5
+      b: #M4(new)
+    exportMapId: #M5(new)
     exportMap
       a: #M0
-      b: #M3
+      b: #M3(new)
 ''',
     );
   }
@@ -105052,14 +105052,14 @@ typedef B = double Function();
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredTypeAliases
       A: #M0
-      B: #M3
-    exportMapId: #M4
+      B: #M3(new)
+    exportMapId: #M4(new)
     exportMap
       A: #M0
-      B: #M3
+      B: #M3(new)
 ''',
     );
   }
@@ -105086,12 +105086,12 @@ typedef A = double;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredTypeAliases
-      A: #M2
-    exportMapId: #M3
+      A: #M2(new)
+    exportMapId: #M3(new)
     exportMap
-      A: #M2
+      A: #M2(new)
 ''',
     );
   }
@@ -105128,14 +105128,14 @@ typedef B = int;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredTypeAliases
       A: #M0
-      B: #M3
-    exportMapId: #M4
+      B: #M3(new)
+    exportMapId: #M4(new)
     exportMap
       A: #M0
-      B: #M3
+      B: #M3(new)
 ''',
     );
   }
@@ -105277,7 +105277,7 @@ typedef D<T extends List<T>> = (D<T>, T) Function();
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredTypeAliases
       A: #M0
         flags: hasSelfReference
@@ -105300,7 +105300,7 @@ typedef D<T extends List<T>> = (D<T>, T) Function();
             positional
               dynamic
               typeParameter#0
-      C: #M5
+      C: #M5(new)
         typeParameters
           #0 covariant
             bound: List @ dart:core
@@ -105310,7 +105310,7 @@ typedef D<T extends List<T>> = (D<T>, T) Function();
             positional
               dynamic
               typeParameter#0
-      D: #M6
+      D: #M6(new)
         flags: hasSelfReference
         typeParameters
           #0 covariant
@@ -105321,12 +105321,12 @@ typedef D<T extends List<T>> = (D<T>, T) Function();
             positional
               dynamic
               typeParameter#0
-    exportMapId: #M7
+    exportMapId: #M7(new)
     exportMap
       A: #M0
       B: #M1
-      C: #M5
-      D: #M6
+      C: #M5(new)
+      D: #M6(new)
 ''',
     );
   }
@@ -105390,7 +105390,7 @@ typedef D<T> = List<T>;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredTypeAliases
       A: #M0
         flags: isProperRename isSimplyBounded
@@ -105406,26 +105406,26 @@ typedef D<T> = List<T>;
             bound: num @ dart:core
         aliasedType: List @ dart:core
           typeParameter#0
-      C: #M5
+      C: #M5(new)
         flags: isSimplyBounded
         typeParameters
           #0 covariant
             bound: num @ dart:core
         aliasedType: List @ dart:core
           typeParameter#0
-      D: #M6
+      D: #M6(new)
         flags: isProperRename isSimplyBounded
         typeParameters
           #0 covariant
             bound: <null>
         aliasedType: List @ dart:core
           typeParameter#0
-    exportMapId: #M7
+    exportMapId: #M7(new)
     exportMap
       A: #M0
       B: #M1
-      C: #M5
-      D: #M6
+      C: #M5(new)
+      D: #M6(new)
 ''',
     );
   }
@@ -105485,7 +105485,7 @@ typedef D<T> = int;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredTypeAliases
       A: #M0
         flags: isSimplyBounded
@@ -105499,24 +105499,24 @@ typedef D<T> = int;
             bound: List @ dart:core
               typeParameter#0
         aliasedType: int @ dart:core
-      C: #M5
+      C: #M5(new)
         typeParameters
           #0 unrelated
             bound: List @ dart:core
               typeParameter#0
         aliasedType: int @ dart:core
-      D: #M6
+      D: #M6(new)
         flags: isSimplyBounded
         typeParameters
           #0 unrelated
             bound: <null>
         aliasedType: int @ dart:core
-    exportMapId: #M7
+    exportMapId: #M7(new)
     exportMap
       A: #M0
       B: #M1
-      C: #M5
-      D: #M6
+      C: #M5(new)
+      D: #M6(new)
 ''',
     );
   }
@@ -105550,18 +105550,18 @@ typedef F<X extends int> = List<X>;
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredTypeAliases
-      F: #M2
+      F: #M2(new)
         flags: isSimplyBounded
         typeParameters
           #0 covariant
             bound: int @ dart:core
         aliasedType: List @ dart:core
           typeParameter#0
-    exportMapId: #M3
+    exportMapId: #M3(new)
     exportMap
-      F: #M2
+      F: #M2(new)
 ''',
     );
   }
@@ -105623,16 +105623,16 @@ mixin M {}
       expectedUpdatedEvents: r'''
 [operation] linkLibraryCycle
   package:test/test.dart
-    hashForRequirements: #H1
+    hashForRequirements: #H1(new)
     declaredClasses
-      A: #M3
-        interface: #M4
+      A: #M3(new)
+        interface: #M4(new)
     declaredMixins
       M: #M0
         interface: #M1
-    exportMapId: #M5
+    exportMapId: #M5(new)
     exportMap
-      A: #M3
+      A: #M3(new)
       M: #M0
 ''',
     );
@@ -109148,7 +109148,7 @@ void f(A _) {}
 
   Future<void> _runLibraryManifestScenario({
     required String initialCode,
-    String? expectedInitialEvents,
+    required String expectedInitialEvents,
     String? expectedInitialDriverState,
     List<File> Function()? updateFiles,
     File? updatedCodeFile,
@@ -109174,17 +109174,14 @@ void f(A _) {}
     var libraryUri = Uri.parse('package:test/test.dart');
     collector.getLibraryByUri('T1', '$libraryUri');
 
-    if (expectedInitialEvents != null) {
-      setId('expectedInitialEvents');
-      await assertEventsText(collector, expectedInitialEvents);
-    } else {
-      await collector.nextStatusIdle();
-      collector.take();
-    }
+    setId('expectedInitialEvents');
+    await assertEventsText(collector, expectedInitialEvents);
 
     if (expectedInitialDriverState != null) {
       assertDriverStateString(testFile, expectedInitialDriverState);
     }
+
+    idProvider.markBaseline();
 
     if (updateFiles != null) {
       var updatedFiles = updateFiles();

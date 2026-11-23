@@ -14,8 +14,10 @@ library_for_all_configs("libdart_platform") {
 
   if (is_fuchsia) {
     extra_deps += [
+      "$fuchsia_sdk/fidl/fuchsia.io:fuchsia.io_cpp",
+      "$fuchsia_sdk/pkg/async-default",
+      "$fuchsia_sdk/pkg/fdio",
       "$fuchsia_sdk/pkg/inspect_component_cpp",
-      "$fuchsia_sdk/pkg/sys_cpp",
     ]
   }
 }

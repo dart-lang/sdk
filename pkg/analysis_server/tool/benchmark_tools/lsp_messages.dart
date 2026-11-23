@@ -14,6 +14,12 @@ class Location {
 }
 
 class LspMessages {
+  static Map<String, dynamic> exitNotification = {
+    'jsonrpc': '2.0',
+    'method': 'exit',
+    'params': {},
+  };
+
   static Map<String, dynamic> initNotification = {
     'jsonrpc': '2.0',
     'method': 'initialized',
@@ -181,8 +187,9 @@ class LspMessages {
   static Map<String, dynamic> initMessage(
     int processId,
     Uri rootUri,
-    List<Uri> additionalWorkspaceUris,
-  ) {
+    List<Uri> additionalWorkspaceUris, {
+    bool supportsConfiguration = false,
+  }) {
     String rootPath = rootUri.toFilePath();
     String name = rootUri.pathSegments.last;
     if (name.isEmpty) {
@@ -199,6 +206,7 @@ class LspMessages {
         'rootPath': rootPath,
         'rootUri': '$rootUri',
         'capabilities': {
+          if (supportsConfiguration) 'workspace': {'configuration': true},
           'textDocument': {
             'codeAction': {
               // needed for the plugin to trigger on codeAction.
@@ -282,6 +290,16 @@ class LspMessages {
       'params': {
         'textDocument': {'uri': '$uri'},
       },
+      'clientRequestTime': DateTime.now().millisecondsSinceEpoch,
+    };
+  }
+
+  static Map<String, dynamic> shutdown(int id) {
+    return {
+      'jsonrpc': '2.0',
+      'id': id,
+      'method': 'shutdown',
+      'params': null,
       'clientRequestTime': DateTime.now().millisecondsSinceEpoch,
     };
   }

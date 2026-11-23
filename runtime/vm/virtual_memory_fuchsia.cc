@@ -7,8 +7,8 @@
 
 #include "vm/virtual_memory.h"
 
-#include <fuchsia/kernel/cpp/fidl.h>
-#include <lib/fdio/directory.h>
+#include <fidl/fuchsia.kernel/cpp/fidl.h>
+#include <lib/component/incoming/cpp/protocol.h>
 #include <lib/zx/resource.h>
 #include <zircon/process.h>
 #include <zircon/status.h>
@@ -72,12 +72,12 @@ void VirtualMemory::Init() {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // If VmexResource is unavailable or does not return a valid handle then
   // this will be observed as failures from vmo_replace_as_executable below.
-  zx::resource vmex_resource;
-  fuchsia::kernel::VmexResourceSyncPtr vmex_resource_svc;
-  fdio_service_connect("/svc/fuchsia.kernel.VmexResource",
-                       vmex_resource_svc.NewRequest().TakeChannel().release());
-  vmex_resource_svc->Get(&vmex_resource);
-  vmex_resource_ = vmex_resource.release();
+  if (auto client_end = component::Connect<fuchsia_kernel::VmexResource>();
+      client_end.is_ok()) {
+    if (auto result = fidl::Call(*client_end)->Get(); result.is_ok()) {
+      vmex_resource_ = result->resource().release();
+    }
+  }
 #endif
 }
 

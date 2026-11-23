@@ -1276,11 +1276,29 @@ parent3: ${node.parent?.parent?.parent}
   }
 
   @override
+  DartType? visitSwitchExpression(SwitchExpression node) {
+    if (range.endStart(node.leftBracket, node.rightBracket).contains(offset)) {
+      return node.expression.staticType;
+    }
+    return super.visitSwitchExpression(node);
+  }
+
+  @override
   DartType? visitSwitchExpressionCase(SwitchExpressionCase node) {
-    if (node.parent case SwitchExpression(:var parent?)) {
-      return parent.accept(this);
+    if (!node.arrow.isSynthetic && node.arrow.end <= offset) {
+      if (node.parent case SwitchExpression(:var parent?)) {
+        return parent.accept(this);
+      }
     }
     return super.visitSwitchExpressionCase(node);
+  }
+
+  @override
+  DartType? visitSwitchPatternCase(SwitchPatternCase node) {
+    if (range.endStart(node.keyword, node.colon).contains(offset)) {
+      return node.guardedPattern.accept(this);
+    }
+    return super.visitSwitchPatternCase(node);
   }
 
   @override

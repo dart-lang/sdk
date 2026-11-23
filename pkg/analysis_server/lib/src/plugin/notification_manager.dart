@@ -14,6 +14,7 @@ import 'package:analysis_server/src/lsp/mapping.dart' as lsp;
 import 'package:analysis_server/src/plugin/result_collector.dart';
 import 'package:analysis_server/src/plugin/result_converter.dart';
 import 'package:analysis_server/src/plugin/result_merger.dart';
+import 'package:analyzer/src/util/path_subtree_set.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
@@ -35,13 +36,18 @@ abstract class AbstractNotificationManager {
   /// The path context.
   final Context _pathContext;
 
-  /// A list of the paths of files and directories that are included for
-  /// analysis.
-  List<String> _includedPaths = <String>[];
+  /// The files and directories that are included for analysis.
+  late PathSubtreeSet _includedPaths = PathSubtreeSet(_pathContext, const []);
 
-  /// A list of the paths of files and directories that are excluded from
-  /// analysis.
-  List<String> _excludedPaths = <String>[];
+  /// The files and directories that are excluded from analysis.
+  late PathSubtreeSet _excludedPaths = PathSubtreeSet(_pathContext, const []);
+
+  /// The results of [_isIncluded] for file paths.
+  ///
+  /// [_isIncluded] is asked for every result for every file, so the result is
+  /// cached. It depends only on the path and the analysis roots, so the cache
+  /// is cleared in [setAnalysisRoots].
+  final Map<String, bool> _isIncludedCache = {};
 
   /// The current set of subscriptions to which the client has subscribed.
   Map<server.AnalysisService, Set<String>> _currentSubscriptions =
@@ -295,8 +301,9 @@ abstract class AbstractNotificationManager {
 
   /// Set the lists of [included] and [excluded] files.
   void setAnalysisRoots(List<String> included, List<String> excluded) {
-    _includedPaths = included;
-    _excludedPaths = excluded;
+    _includedPaths = PathSubtreeSet(_pathContext, included);
+    _excludedPaths = PathSubtreeSet(_pathContext, excluded);
+    _isIncludedCache.clear();
   }
 
   /// Set the current subscriptions to the given set of [newSubscriptions].
@@ -361,25 +368,12 @@ abstract class AbstractNotificationManager {
   bool _isIncluded(String path) {
     // TODO(brianwilkerson): Return false if error notifications are globally
     // disabled.
-    var isIncluded = false;
-    for (var includedPath in _includedPaths) {
-      if (_pathContext.isWithin(includedPath, path) ||
-          _pathContext.equals(includedPath, path)) {
-        isIncluded = true;
-        break;
-      }
-    }
-    if (!isIncluded) {
-      return false;
+    bool compute() {
+      return _includedPaths.containsSelfOrAncestor(path) &&
+          !_excludedPaths.containsSelfOrAncestor(path);
     }
 
-    for (var excludedPath in _excludedPaths) {
-      if (_pathContext.isWithin(excludedPath, path)) {
-        return false;
-      }
-    }
-
-    return true;
+    return _isIncludedCache[path] ??= compute();
   }
 
   /// Records a print notification from the analyzer plugin.

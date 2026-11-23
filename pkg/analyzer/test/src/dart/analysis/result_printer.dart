@@ -1160,8 +1160,12 @@ final class GetUnitElementEvent extends GetDriverEvent {
 
 class IdProvider {
   final Map<Object, String> _map = Map.identity();
+
   final Map<ManifestItemId, String> _manifestIdMap = {};
+  Set<ManifestItemId>? _baselineManifestIds;
+
   final Map<Hash, String> _hashIdMap = {};
+  Set<Hash>? _baselineHashes;
 
   String operator [](Object object) {
     return _map[object] ??= '#${_map.length}';
@@ -1172,12 +1176,29 @@ class IdProvider {
   }
 
   String hashId(Hash hash) {
-    return _hashIdMap[hash] ??= '#H${_hashIdMap.length}';
+    var name = _hashIdMap[hash] ??= '#H${_hashIdMap.length}';
+    var baseline = _baselineHashes;
+    if (baseline != null && !baseline.contains(hash)) {
+      return '$name(new)';
+    }
+    return name;
   }
 
   String manifestId(ManifestItemId? id) {
     if (id == null) return '<null>';
-    return _manifestIdMap[id] ??= '#M${_manifestIdMap.length}';
+    var name = _manifestIdMap[id] ??= '#M${_manifestIdMap.length}';
+    var baseline = _baselineManifestIds;
+    if (baseline != null && !baseline.contains(id)) {
+      return '$name(new)';
+    }
+    return name;
+  }
+
+  /// Remembers the manifest IDs and hashes named so far, so that the ones
+  /// named later are marked as new.
+  void markBaseline() {
+    _baselineManifestIds = _manifestIdMap.keys.toSet();
+    _baselineHashes = _hashIdMap.keys.toSet();
   }
 }
 

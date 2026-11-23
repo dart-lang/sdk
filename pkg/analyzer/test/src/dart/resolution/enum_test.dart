@@ -3274,6 +3274,141 @@ V1: FieldDeclaration
 ''');
   }
 
+  test_primaryInitializerScope_fieldInitializer_instance_inAugmentation() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+enum A(int foo) {
+  v(0);
+}
+
+augment enum A {
+  ;
+  final bar = foo;
+}
+''');
+
+    var node = result.findNode.singleFieldsDeclaration;
+    assertResolvedNodeText(node, r'''
+FieldsDeclaration
+  constFinalOrVarKeyword: final
+  fields
+    Field
+      name: bar
+      equals: =
+      initializer: UnqualifiedNameExpression
+        name: foo
+        resolution: VariableReadResolution
+          element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
+          type: int
+        staticType: int
+      declaredFragment: <testLibraryFragment> bar@58
+  semicolon: ;
+V1: FieldDeclaration
+  fields: VariableDeclarationList
+    keyword: final
+    variables
+      VariableDeclaration
+        name: bar
+        equals: =
+        initializer: SimpleIdentifier
+          token: foo
+          element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
+          staticType: int
+        declaredFragment: <testLibraryFragment> bar@58
+  semicolon: ;
+  declaredFragment: <null>
+''');
+  }
+
+  test_primaryInitializerScope_fieldInitializer_instance_inAugmentation_part() async {
+    var results = await resolveFilesWithDiagnostics({
+      getFile('$testPackageLibPath/b.dart'): r'''
+class B {}
+''',
+      testFile: r'''
+part 'part.dart';
+
+enum A(int foo) {
+  v(0);
+}
+''',
+      getFile('$testPackageLibPath/part.dart'): r'''
+part of 'test.dart';
+
+import 'b.dart';
+
+augment enum A {
+  ;
+  final bar = (foo, B());
+}
+''',
+    });
+    var result = results[getFile('$testPackageLibPath/part.dart')]!;
+
+    var node = result.findNode.singleFieldsDeclaration;
+    assertResolvedNodeText(node, r'''
+FieldsDeclaration
+  constFinalOrVarKeyword: final
+  fields
+    Field
+      name: bar
+      equals: =
+      initializer: RecordLiteral
+        leftParenthesis: (
+        fields2
+          UnqualifiedNameExpression
+            name: foo
+            resolution: VariableReadResolution
+              element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
+              type: int
+            staticType: int
+          ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: B
+                element: package:test/b.dart::@class::B
+                type: B
+              element: package:test/b.dart::@class::B::@constructor::new
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+            staticType: B
+        rightParenthesis: )
+        staticType: (int, B)
+      declaredFragment: package:test/part.dart bar@69
+  semicolon: ;
+V1: FieldDeclaration
+  fields: VariableDeclarationList
+    keyword: final
+    variables
+      VariableDeclaration
+        name: bar
+        equals: =
+        initializer: RecordLiteral
+          leftParenthesis: (
+          fields
+            SimpleIdentifier
+              token: foo
+              element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
+              staticType: int
+            InstanceCreationExpression
+              constructorName: ConstructorName
+                type: NamedType
+                  name: B
+                  element: package:test/b.dart::@class::B
+                  type: B
+                element: package:test/b.dart::@class::B::@constructor::new
+              argumentList: ArgumentList
+                leftParenthesis: (
+                rightParenthesis: )
+              staticType: B
+          rightParenthesis: )
+          staticType: (int, B)
+        declaredFragment: package:test/part.dart bar@69
+  semicolon: ;
+  declaredFragment: <null>
+''');
+  }
+
   test_primaryInitializerScope_fieldInitializer_instance_late() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 enum A(int foo) {

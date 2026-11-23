@@ -4309,6 +4309,291 @@ library
 ''');
   }
 
+  test_metadata_extensionType_representation_scope() async {
+    var library = await buildLibrary(r'''
+const tag = 1;
+
+extension type E(@tag int it) {
+  static const tag = 2;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensionTypes
+        #F1 extension type E (nameOffset:31) (firstTokenOffset:16) (offset:31)
+          element: <testLibrary>::@extensionType::E
+          fields
+            #F2 isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+              element: <testLibrary>::@extensionType::E::@field::it
+              inducedGetter: #F3
+            #F4 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic tag (nameOffset:63) (firstTokenOffset:63) (offset:63)
+              element: <testLibrary>::@extensionType::E::@field::tag
+              constantInitializer2: expression_0
+                IntegerLiteral
+                  literal: 2 @69
+                  staticType: int
+              inducedGetter: #F5
+          constructors
+            #F6 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
+              element: <testLibrary>::@extensionType::E::@constructor::new
+              typeName: E
+              typeNameOffset: 31
+              primaryHeaderCodeRange: 32 + 13
+              formalParameters
+                #F7 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:42) (firstTokenOffset:33) (offset:42)
+                  element: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
+                  metadata
+                    annotation_0: Annotation
+                      atSign: @ @33
+                      expression: UnqualifiedNameExpression
+                        name: tag @34
+                        resolution: GetterInvocationResolution
+                          element: <testLibrary>::@extensionType::E::@getter::tag
+                          type: int
+                        staticType: int
+                      name: SimpleIdentifier
+                        token: tag @34
+                        element: <testLibrary>::@extensionType::E::@getter::tag
+                        staticType: null
+                      element: <testLibrary>::@extensionType::E::@getter::tag
+          getters
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+              element: <testLibrary>::@extensionType::E::@getter::it
+              inducingVariable: #F2
+            #F5 isComplete isOriginVariable isStatic tag (nameOffset:<null>) (firstTokenOffset:<null>) (offset:63)
+              element: <testLibrary>::@extensionType::E::@getter::tag
+              inducingVariable: #F4
+      topLevelVariables
+        #F8 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic tag (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::tag
+          constantInitializer2: expression_1
+            IntegerLiteral
+              literal: 1 @12
+              staticType: int
+          inducedGetter: #F9
+      getters
+        #F9 isComplete isOriginVariable isStatic tag (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::tag
+          inducingVariable: #F8
+  extensionTypes
+    isSimplyBounded extension type E
+      reference: <testLibrary>::@extensionType::E
+      firstFragment: #F1
+      representation: <testLibrary>::@extensionType::E::@field::it
+      primaryConstructor: <testLibrary>::@extensionType::E::@constructor::new
+      typeErasure: int
+      fields
+        isFinal isOriginDeclaringFormalParameter it
+          reference: <testLibrary>::@extensionType::E::@field::it
+          firstFragment: #F2
+          metadata
+            annotation_1: Annotation
+              atSign: @ @33
+              expression: UnqualifiedNameExpression
+                name: tag @34
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@extensionType::E::@getter::tag
+                  type: int
+                staticType: int
+              name: SimpleIdentifier
+                token: tag @34
+                element: <testLibrary>::@extensionType::E::@getter::tag
+                staticType: null
+              element: <testLibrary>::@extensionType::E::@getter::tag
+          type: int
+          getter: <testLibrary>::@extensionType::E::@getter::it
+          declaringFormalParameter: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
+        hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer tag
+          reference: <testLibrary>::@extensionType::E::@field::tag
+          firstFragment: #F4
+          type: int
+          constantInitializer2: expression_0
+          getter: <testLibrary>::@extensionType::E::@getter::tag
+      constructors
+        isExtensionTypeMember isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@extensionType::E::@constructor::new
+          firstFragment: #F6
+          formalParameters
+            #E0 requiredPositional isDeclaring isFinal this.it
+              firstFragment: #F7
+              type: int
+              metadata
+                annotation_0
+              field: <testLibrary>::@extensionType::E::@field::it
+      getters
+        isExtensionTypeMember isOriginVariable it
+          reference: <testLibrary>::@extensionType::E::@getter::it
+          firstFragment: #F3
+          returnType: int
+          variable: <testLibrary>::@extensionType::E::@field::it
+        isExtensionTypeMember isOriginVariable isStatic tag
+          reference: <testLibrary>::@extensionType::E::@getter::tag
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@extensionType::E::@field::tag
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer tag
+      reference: <testLibrary>::@topLevelVariable::tag
+      firstFragment: #F8
+      type: int
+      constantInitializer2: expression_1
+      getter: <testLibrary>::@getter::tag
+  getters
+    isOriginVariable isStatic tag
+      reference: <testLibrary>::@getter::tag
+      firstFragment: #F9
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::tag
+''');
+  }
+
+  test_metadata_extensionType_representation_scope_beforePrimaryConstructors() async {
+    var library = await buildLibrary(r'''
+// %before-language-feature: primary-constructors
+const tag = 1;
+
+extension type E(@tag int it) {
+  static const tag = 2;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensionTypes
+        #F1 extension type E (nameOffset:47) (firstTokenOffset:32) (offset:47)
+          element: <testLibrary>::@extensionType::E
+          fields
+            #F2 isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
+              element: <testLibrary>::@extensionType::E::@field::it
+              inducedGetter: #F3
+            #F4 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic tag (nameOffset:79) (firstTokenOffset:79) (offset:79)
+              element: <testLibrary>::@extensionType::E::@field::tag
+              constantInitializer2: expression_0
+                IntegerLiteral
+                  literal: 2 @85
+                  staticType: int
+              inducedGetter: #F5
+          constructors
+            #F6 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:47) (offset:47)
+              element: <testLibrary>::@extensionType::E::@constructor::new
+              typeName: E
+              typeNameOffset: 47
+              primaryHeaderCodeRange: 48 + 13
+              formalParameters
+                #F7 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:58) (firstTokenOffset:49) (offset:58)
+                  element: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
+                  metadata
+                    annotation_0: Annotation
+                      atSign: @ @49
+                      expression: UnqualifiedNameExpression
+                        name: tag @50
+                        resolution: GetterInvocationResolution
+                          element: <testLibrary>::@getter::tag
+                          type: int
+                        staticType: int
+                      name: SimpleIdentifier
+                        token: tag @50
+                        element: <testLibrary>::@getter::tag
+                        staticType: null
+                      element: <testLibrary>::@getter::tag
+          getters
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
+              element: <testLibrary>::@extensionType::E::@getter::it
+              inducingVariable: #F2
+            #F5 isComplete isOriginVariable isStatic tag (nameOffset:<null>) (firstTokenOffset:<null>) (offset:79)
+              element: <testLibrary>::@extensionType::E::@getter::tag
+              inducingVariable: #F4
+      topLevelVariables
+        #F8 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic tag (nameOffset:22) (firstTokenOffset:22) (offset:22)
+          element: <testLibrary>::@topLevelVariable::tag
+          constantInitializer2: expression_1
+            IntegerLiteral
+              literal: 1 @28
+              staticType: int
+          inducedGetter: #F9
+      getters
+        #F9 isComplete isOriginVariable isStatic tag (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+          element: <testLibrary>::@getter::tag
+          inducingVariable: #F8
+  extensionTypes
+    isSimplyBounded extension type E
+      reference: <testLibrary>::@extensionType::E
+      firstFragment: #F1
+      representation: <testLibrary>::@extensionType::E::@field::it
+      primaryConstructor: <testLibrary>::@extensionType::E::@constructor::new
+      typeErasure: int
+      fields
+        isFinal isOriginDeclaringFormalParameter it
+          reference: <testLibrary>::@extensionType::E::@field::it
+          firstFragment: #F2
+          metadata
+            annotation_1: Annotation
+              atSign: @ @49
+              expression: UnqualifiedNameExpression
+                name: tag @50
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::tag
+                  type: int
+                staticType: int
+              name: SimpleIdentifier
+                token: tag @50
+                element: <testLibrary>::@getter::tag
+                staticType: null
+              element: <testLibrary>::@getter::tag
+          type: int
+          getter: <testLibrary>::@extensionType::E::@getter::it
+          declaringFormalParameter: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
+        hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer tag
+          reference: <testLibrary>::@extensionType::E::@field::tag
+          firstFragment: #F4
+          type: int
+          constantInitializer2: expression_0
+          getter: <testLibrary>::@extensionType::E::@getter::tag
+      constructors
+        isExtensionTypeMember isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@extensionType::E::@constructor::new
+          firstFragment: #F6
+          formalParameters
+            #E0 requiredPositional isDeclaring isFinal this.it
+              firstFragment: #F7
+              type: int
+              metadata
+                annotation_0
+              field: <testLibrary>::@extensionType::E::@field::it
+      getters
+        isExtensionTypeMember isOriginVariable it
+          reference: <testLibrary>::@extensionType::E::@getter::it
+          firstFragment: #F3
+          returnType: int
+          variable: <testLibrary>::@extensionType::E::@field::it
+        isExtensionTypeMember isOriginVariable isStatic tag
+          reference: <testLibrary>::@extensionType::E::@getter::tag
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@extensionType::E::@field::tag
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer tag
+      reference: <testLibrary>::@topLevelVariable::tag
+      firstFragment: #F8
+      type: int
+      constantInitializer2: expression_1
+      getter: <testLibrary>::@getter::tag
+  getters
+    isOriginVariable isStatic tag
+      reference: <testLibrary>::@getter::tag
+      firstFragment: #F9
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::tag
+''');
+  }
+
   test_metadata_extensionTypeDeclaration_augmentation_inBoth_first() async {
     var library = await buildLibrary(r'''
 const a = 0;
@@ -12214,6 +12499,652 @@ library
 ''');
   }
 
+  test_metadata_simpleFormalParameter_typeParameterInScope_method_inClass() async {
+    var library = await buildLibrary(r'''
+const T = 0;
+class A {
+  void foo<T>(@T int a) {}
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:19) (firstTokenOffset:13) (offset:19)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F3 isComplete isOriginDeclaration foo (nameOffset:30) (firstTokenOffset:25) (offset:30)
+              element: <testLibrary>::@class::A::@method::foo
+              typeParameters
+                #F4 T (nameOffset:34) (firstTokenOffset:34) (offset:34)
+                  element: #E0 T
+              formalParameters
+                #F5 requiredPositional isOriginDeclaration a (nameOffset:44) (firstTokenOffset:37) (offset:44)
+                  element: <testLibrary>::@class::A::@method::foo::@formalParameter::a
+                  metadata
+                    annotation_0: Annotation
+                      atSign: @ @37
+                      expression: TypeLiteral
+                        type: NamedType
+                          name: T @38
+                          element: #E0 T
+                          type: T
+                        staticType: Type
+                      name: SimpleIdentifier
+                        token: T @38
+                        element: #E0 T
+                        staticType: null
+                      element: <null>
+      topLevelVariables
+        #F6 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic T (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::T
+          constantInitializer2: expression_0
+            IntegerLiteral
+              literal: 0 @10
+              staticType: int
+          inducedGetter: #F7
+      getters
+        #F7 isComplete isOriginVariable isStatic T (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::T
+          inducingVariable: #F6
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+      methods
+        isOriginDeclaration foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          typeParameters
+            #E0 T
+              firstFragment: #F4
+          formalParameters
+            #E1 requiredPositional a
+              firstFragment: #F5
+              type: int
+              metadata
+                annotation_0
+          returnType: void
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer T
+      reference: <testLibrary>::@topLevelVariable::T
+      firstFragment: #F6
+      type: int
+      constantInitializer2: expression_0
+      getter: <testLibrary>::@getter::T
+  getters
+    isOriginVariable isStatic T
+      reference: <testLibrary>::@getter::T
+      firstFragment: #F7
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::T
+''');
+  }
+
+  test_metadata_simpleFormalParameter_typeParameterInScope_method_inEnum() async {
+    var library = await buildLibrary(r'''
+const T = 0;
+enum E {
+  v;
+  void foo<T>(@T int a) {}
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      enums
+        #F1 enum E (nameOffset:18) (firstTokenOffset:13) (offset:18)
+          element: <testLibrary>::@enum::E
+          fields
+            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:24) (firstTokenOffset:24) (offset:24)
+              element: <testLibrary>::@enum::E::@field::v
+              constantInitializer2: expression_0
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
+              inducedGetter: #F3
+            #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+              element: <testLibrary>::@enum::E::@field::values
+              constantInitializer2: expression_2
+                ListLiteral
+                  leftBracket: [ @0
+                  elements2
+                    UnqualifiedNameExpression
+                      name: v @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::E::@getter::v
+                        type: E
+                      staticType: E
+                  elements(v1)
+                    SimpleIdentifier
+                      token: v @-1
+                      element: <testLibrary>::@enum::E::@getter::v
+                      staticType: E
+                  rightBracket: ] @0
+                  staticType: List<E>
+              inducedGetter: #F5
+          constructors
+            #F6 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+              element: <testLibrary>::@enum::E::@constructor::new
+              typeName: E
+          getters
+            #F3 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+              element: <testLibrary>::@enum::E::@getter::v
+              inducingVariable: #F2
+            #F5 isComplete isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+              element: <testLibrary>::@enum::E::@getter::values
+              inducingVariable: #F4
+          methods
+            #F7 isComplete isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:29) (offset:34)
+              element: <testLibrary>::@enum::E::@method::foo
+              typeParameters
+                #F8 T (nameOffset:38) (firstTokenOffset:38) (offset:38)
+                  element: #E0 T
+              formalParameters
+                #F9 requiredPositional isOriginDeclaration a (nameOffset:48) (firstTokenOffset:41) (offset:48)
+                  element: <testLibrary>::@enum::E::@method::foo::@formalParameter::a
+                  metadata
+                    annotation_0: Annotation
+                      atSign: @ @41
+                      expression: TypeLiteral
+                        type: NamedType
+                          name: T @42
+                          element: #E0 T
+                          type: T
+                        staticType: Type
+                      name: SimpleIdentifier
+                        token: T @42
+                        element: #E0 T
+                        staticType: null
+                      element: <null>
+      topLevelVariables
+        #F10 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic T (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::T
+          constantInitializer2: expression_3
+            IntegerLiteral
+              literal: 0 @10
+              staticType: int
+          inducedGetter: #F11
+      getters
+        #F11 isComplete isOriginVariable isStatic T (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::T
+          inducingVariable: #F10
+  enums
+    isSimplyBounded enum E
+      reference: <testLibrary>::@enum::E
+      firstFragment: #F1
+      supertype: Enum
+      fields
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
+          reference: <testLibrary>::@enum::E::@field::v
+          firstFragment: #F2
+          type: E
+          constantInitializer2: expression_0
+          constantInitializer: expression_1
+          getter: <testLibrary>::@enum::E::@getter::v
+        isConst isOriginEnumValues isStatic values
+          reference: <testLibrary>::@enum::E::@field::values
+          firstFragment: #F4
+          type: List<E>
+          constantInitializer2: expression_2
+          getter: <testLibrary>::@enum::E::@getter::values
+      constructors
+        isConst isOriginImplicitDefault new
+          reference: <testLibrary>::@enum::E::@constructor::new
+          firstFragment: #F6
+          superConstructor: dart:core::@class::Enum::@constructor::new
+      getters
+        isOriginVariable isStatic v
+          reference: <testLibrary>::@enum::E::@getter::v
+          firstFragment: #F3
+          returnType: E
+          variable: <testLibrary>::@enum::E::@field::v
+        isOriginVariable isStatic values
+          reference: <testLibrary>::@enum::E::@getter::values
+          firstFragment: #F5
+          returnType: List<E>
+          variable: <testLibrary>::@enum::E::@field::values
+      methods
+        isOriginDeclaration foo
+          reference: <testLibrary>::@enum::E::@method::foo
+          firstFragment: #F7
+          typeParameters
+            #E0 T
+              firstFragment: #F8
+          formalParameters
+            #E1 requiredPositional a
+              firstFragment: #F9
+              type: int
+              metadata
+                annotation_0
+          returnType: void
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer T
+      reference: <testLibrary>::@topLevelVariable::T
+      firstFragment: #F10
+      type: int
+      constantInitializer2: expression_3
+      getter: <testLibrary>::@getter::T
+  getters
+    isOriginVariable isStatic T
+      reference: <testLibrary>::@getter::T
+      firstFragment: #F11
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::T
+''');
+  }
+
+  test_metadata_simpleFormalParameter_typeParameterInScope_method_inExtension() async {
+    var library = await buildLibrary(r'''
+const T = 0;
+extension E on int {
+  void foo<T>(@T int a) {}
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        #F1 extension E (nameOffset:23) (firstTokenOffset:13) (offset:23)
+          element: <testLibrary>::@extension::E
+          methods
+            #F2 isComplete isOriginDeclaration foo (nameOffset:41) (firstTokenOffset:36) (offset:41)
+              element: <testLibrary>::@extension::E::@method::foo
+              typeParameters
+                #F3 T (nameOffset:45) (firstTokenOffset:45) (offset:45)
+                  element: #E0 T
+              formalParameters
+                #F4 requiredPositional isOriginDeclaration a (nameOffset:55) (firstTokenOffset:48) (offset:55)
+                  element: <testLibrary>::@extension::E::@method::foo::@formalParameter::a
+                  metadata
+                    annotation_0: Annotation
+                      atSign: @ @48
+                      expression: TypeLiteral
+                        type: NamedType
+                          name: T @49
+                          element: #E0 T
+                          type: T
+                        staticType: Type
+                      name: SimpleIdentifier
+                        token: T @49
+                        element: #E0 T
+                        staticType: null
+                      element: <null>
+      topLevelVariables
+        #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic T (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::T
+          constantInitializer2: expression_0
+            IntegerLiteral
+              literal: 0 @10
+              staticType: int
+          inducedGetter: #F6
+      getters
+        #F6 isComplete isOriginVariable isStatic T (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::T
+          inducingVariable: #F5
+  extensions
+    extension E
+      reference: <testLibrary>::@extension::E
+      firstFragment: #F1
+      extendedType: int
+      onDeclaration: dart:core::@class::int
+      methods
+        isOriginDeclaration foo
+          reference: <testLibrary>::@extension::E::@method::foo
+          firstFragment: #F2
+          typeParameters
+            #E0 T
+              firstFragment: #F3
+          formalParameters
+            #E1 requiredPositional a
+              firstFragment: #F4
+              type: int
+              metadata
+                annotation_0
+          returnType: void
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer T
+      reference: <testLibrary>::@topLevelVariable::T
+      firstFragment: #F5
+      type: int
+      constantInitializer2: expression_0
+      getter: <testLibrary>::@getter::T
+  getters
+    isOriginVariable isStatic T
+      reference: <testLibrary>::@getter::T
+      firstFragment: #F6
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::T
+''');
+  }
+
+  test_metadata_simpleFormalParameter_typeParameterInScope_method_inExtensionType() async {
+    var library = await buildLibrary(r'''
+const T = 0;
+extension type E(int it) {
+  void foo<T>(@T int a) {}
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensionTypes
+        #F1 extension type E (nameOffset:28) (firstTokenOffset:13) (offset:28)
+          element: <testLibrary>::@extensionType::E
+          fields
+            #F2 isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+              element: <testLibrary>::@extensionType::E::@field::it
+              inducedGetter: #F3
+          constructors
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:28) (offset:28)
+              element: <testLibrary>::@extensionType::E::@constructor::new
+              typeName: E
+              typeNameOffset: 28
+              primaryHeaderCodeRange: 29 + 8
+              formalParameters
+                #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:34) (firstTokenOffset:30) (offset:34)
+                  element: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
+          getters
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+              element: <testLibrary>::@extensionType::E::@getter::it
+              inducingVariable: #F2
+          methods
+            #F6 isComplete isOriginDeclaration foo (nameOffset:47) (firstTokenOffset:42) (offset:47)
+              element: <testLibrary>::@extensionType::E::@method::foo
+              typeParameters
+                #F7 T (nameOffset:51) (firstTokenOffset:51) (offset:51)
+                  element: #E0 T
+              formalParameters
+                #F8 requiredPositional isOriginDeclaration a (nameOffset:61) (firstTokenOffset:54) (offset:61)
+                  element: <testLibrary>::@extensionType::E::@method::foo::@formalParameter::a
+                  metadata
+                    annotation_0: Annotation
+                      atSign: @ @54
+                      expression: TypeLiteral
+                        type: NamedType
+                          name: T @55
+                          element: #E0 T
+                          type: T
+                        staticType: Type
+                      name: SimpleIdentifier
+                        token: T @55
+                        element: #E0 T
+                        staticType: null
+                      element: <null>
+      topLevelVariables
+        #F9 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic T (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::T
+          constantInitializer2: expression_0
+            IntegerLiteral
+              literal: 0 @10
+              staticType: int
+          inducedGetter: #F10
+      getters
+        #F10 isComplete isOriginVariable isStatic T (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::T
+          inducingVariable: #F9
+  extensionTypes
+    isSimplyBounded extension type E
+      reference: <testLibrary>::@extensionType::E
+      firstFragment: #F1
+      representation: <testLibrary>::@extensionType::E::@field::it
+      primaryConstructor: <testLibrary>::@extensionType::E::@constructor::new
+      typeErasure: int
+      fields
+        isFinal isOriginDeclaringFormalParameter it
+          reference: <testLibrary>::@extensionType::E::@field::it
+          firstFragment: #F2
+          type: int
+          getter: <testLibrary>::@extensionType::E::@getter::it
+          declaringFormalParameter: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
+      constructors
+        isExtensionTypeMember isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@extensionType::E::@constructor::new
+          firstFragment: #F4
+          formalParameters
+            #E1 requiredPositional isDeclaring isFinal this.it
+              firstFragment: #F5
+              type: int
+              field: <testLibrary>::@extensionType::E::@field::it
+      getters
+        isExtensionTypeMember isOriginVariable it
+          reference: <testLibrary>::@extensionType::E::@getter::it
+          firstFragment: #F3
+          returnType: int
+          variable: <testLibrary>::@extensionType::E::@field::it
+      methods
+        isExtensionTypeMember isOriginDeclaration foo
+          reference: <testLibrary>::@extensionType::E::@method::foo
+          firstFragment: #F6
+          typeParameters
+            #E0 T
+              firstFragment: #F7
+          formalParameters
+            #E2 requiredPositional a
+              firstFragment: #F8
+              type: int
+              metadata
+                annotation_0
+          returnType: void
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer T
+      reference: <testLibrary>::@topLevelVariable::T
+      firstFragment: #F9
+      type: int
+      constantInitializer2: expression_0
+      getter: <testLibrary>::@getter::T
+  getters
+    isOriginVariable isStatic T
+      reference: <testLibrary>::@getter::T
+      firstFragment: #F10
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::T
+''');
+  }
+
+  test_metadata_simpleFormalParameter_typeParameterInScope_method_inMixin() async {
+    var library = await buildLibrary(r'''
+const T = 0;
+mixin M {
+  void foo<T>(@T int a) {}
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      mixins
+        #F1 mixin M (nameOffset:19) (firstTokenOffset:13) (offset:19)
+          element: <testLibrary>::@mixin::M
+          methods
+            #F2 isComplete isOriginDeclaration foo (nameOffset:30) (firstTokenOffset:25) (offset:30)
+              element: <testLibrary>::@mixin::M::@method::foo
+              typeParameters
+                #F3 T (nameOffset:34) (firstTokenOffset:34) (offset:34)
+                  element: #E0 T
+              formalParameters
+                #F4 requiredPositional isOriginDeclaration a (nameOffset:44) (firstTokenOffset:37) (offset:44)
+                  element: <testLibrary>::@mixin::M::@method::foo::@formalParameter::a
+                  metadata
+                    annotation_0: Annotation
+                      atSign: @ @37
+                      expression: TypeLiteral
+                        type: NamedType
+                          name: T @38
+                          element: #E0 T
+                          type: T
+                        staticType: Type
+                      name: SimpleIdentifier
+                        token: T @38
+                        element: #E0 T
+                        staticType: null
+                      element: <null>
+      topLevelVariables
+        #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic T (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::T
+          constantInitializer2: expression_0
+            IntegerLiteral
+              literal: 0 @10
+              staticType: int
+          inducedGetter: #F6
+      getters
+        #F6 isComplete isOriginVariable isStatic T (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::T
+          inducingVariable: #F5
+  mixins
+    isSimplyBounded mixin M
+      reference: <testLibrary>::@mixin::M
+      firstFragment: #F1
+      superclassConstraints
+        Object
+      methods
+        isOriginDeclaration foo
+          reference: <testLibrary>::@mixin::M::@method::foo
+          firstFragment: #F2
+          typeParameters
+            #E0 T
+              firstFragment: #F3
+          formalParameters
+            #E1 requiredPositional a
+              firstFragment: #F4
+              type: int
+              metadata
+                annotation_0
+          returnType: void
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer T
+      reference: <testLibrary>::@topLevelVariable::T
+      firstFragment: #F5
+      type: int
+      constantInitializer2: expression_0
+      getter: <testLibrary>::@getter::T
+  getters
+    isOriginVariable isStatic T
+      reference: <testLibrary>::@getter::T
+      firstFragment: #F6
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::T
+''');
+  }
+
+  test_metadata_simpleFormalParameter_typeParameterInScope_topLevelFunction() async {
+    var library = await buildLibrary(r'''
+const T = 0;
+void foo<T>(@T int a) {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic T (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::T
+          constantInitializer2: expression_0
+            IntegerLiteral
+              literal: 0 @10
+              staticType: int
+          inducedGetter: #F2
+      getters
+        #F2 isComplete isOriginVariable isStatic T (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::T
+          inducingVariable: #F1
+      functions
+        #F3 isComplete isOriginDeclaration isStatic foo (nameOffset:18) (firstTokenOffset:13) (offset:18)
+          element: <testLibrary>::@function::foo
+          typeParameters
+            #F4 T (nameOffset:22) (firstTokenOffset:22) (offset:22)
+              element: #E0 T
+          formalParameters
+            #F5 requiredPositional isOriginDeclaration a (nameOffset:32) (firstTokenOffset:25) (offset:32)
+              element: <testLibrary>::@function::foo::@formalParameter::a
+              metadata
+                annotation_0: Annotation
+                  atSign: @ @25
+                  expression: TypeLiteral
+                    type: NamedType
+                      name: T @26
+                      element: #E0 T
+                      type: T
+                    staticType: Type
+                  name: SimpleIdentifier
+                    token: T @26
+                    element: #E0 T
+                    staticType: null
+                  element: <null>
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer T
+      reference: <testLibrary>::@topLevelVariable::T
+      firstFragment: #F1
+      type: int
+      constantInitializer2: expression_0
+      getter: <testLibrary>::@getter::T
+  getters
+    isOriginVariable isStatic T
+      reference: <testLibrary>::@getter::T
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::T
+  functions
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@function::foo
+      firstFragment: #F3
+      typeParameters
+        #E0 T
+          firstFragment: #F4
+      formalParameters
+        #E1 requiredPositional a
+          firstFragment: #F5
+          type: int
+          metadata
+            annotation_0
+      returnType: void
+''');
+  }
+
   test_metadata_simpleFormalParameter_unit_setter() async {
     var library = await buildLibrary(r'''
 const a = null;
@@ -12897,6 +13828,1334 @@ library
       firstFragment: #F4
       returnType: dynamic
       variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_metadata_typeParameter_typeParameterInScope_class() async {
+    var library = await buildLibrary(r'''
+const T = 0;
+class A<@T T> {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:19) (firstTokenOffset:13) (offset:19)
+          element: <testLibrary>::@class::A
+          typeParameters
+            #F2 T (nameOffset:24) (firstTokenOffset:21) (offset:24)
+              element: #E0 T
+              metadata
+                annotation_0: Annotation
+                  atSign: @ @21
+                  expression: TypeLiteral
+                    type: NamedType
+                      name: T @22
+                      element: #E0 T
+                      type: T
+                    staticType: Type
+                  name: SimpleIdentifier
+                    token: T @22
+                    element: #E0 T
+                    staticType: null
+                  element: <null>
+          constructors
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+      topLevelVariables
+        #F4 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic T (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::T
+          constantInitializer2: expression_0
+            IntegerLiteral
+              literal: 0 @10
+              staticType: int
+          inducedGetter: #F5
+      getters
+        #F5 isComplete isOriginVariable isStatic T (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::T
+          inducingVariable: #F4
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+          metadata
+            annotation_0
+      constructors
+        hasEnclosingTypeParameterReference isOriginImplicitDefault new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer T
+      reference: <testLibrary>::@topLevelVariable::T
+      firstFragment: #F4
+      type: int
+      constantInitializer2: expression_0
+      getter: <testLibrary>::@getter::T
+  getters
+    isOriginVariable isStatic T
+      reference: <testLibrary>::@getter::T
+      firstFragment: #F5
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::T
+''');
+  }
+
+  test_metadata_typeParameter_typeParameterInScope_classTypeAlias() async {
+    var library = await buildLibrary(r'''
+const T = 0;
+class A<@T T> = Object with M;
+mixin M {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 isMixinApplication class A (nameOffset:19) (firstTokenOffset:13) (offset:19)
+          element: <testLibrary>::@class::A
+          typeParameters
+            #F2 T (nameOffset:24) (firstTokenOffset:21) (offset:24)
+              element: #E0 T
+              metadata
+                annotation_0: Annotation
+                  atSign: @ @21
+                  expression: TypeLiteral
+                    type: NamedType
+                      name: T @22
+                      element: #E0 T
+                      type: T
+                    staticType: Type
+                  name: SimpleIdentifier
+                    token: T @22
+                    element: #E0 T
+                    staticType: null
+                  element: <null>
+          constructors
+            #F3 isConst isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+      mixins
+        #F4 mixin M (nameOffset:50) (firstTokenOffset:44) (offset:50)
+          element: <testLibrary>::@mixin::M
+      topLevelVariables
+        #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic T (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::T
+          constantInitializer2: expression_0
+            IntegerLiteral
+              literal: 0 @10
+              staticType: int
+          inducedGetter: #F6
+      getters
+        #F6 isComplete isOriginVariable isStatic T (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::T
+          inducingVariable: #F5
+  classes
+    isMixinApplication isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+          metadata
+            annotation_0
+      supertype: Object
+      mixins
+        M
+      constructors
+        hasEnclosingTypeParameterReference isConst isOriginMixinApplication new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              element: dart:core::@class::Object::@constructor::new
+  mixins
+    isSimplyBounded mixin M
+      reference: <testLibrary>::@mixin::M
+      firstFragment: #F4
+      superclassConstraints
+        Object
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer T
+      reference: <testLibrary>::@topLevelVariable::T
+      firstFragment: #F5
+      type: int
+      constantInitializer2: expression_0
+      getter: <testLibrary>::@getter::T
+  getters
+    isOriginVariable isStatic T
+      reference: <testLibrary>::@getter::T
+      firstFragment: #F6
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::T
+''');
+  }
+
+  test_metadata_typeParameter_typeParameterInScope_enum() async {
+    var library = await buildLibrary(r'''
+const T = 0;
+enum E<@T T> {
+  v
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      enums
+        #F1 enum E (nameOffset:18) (firstTokenOffset:13) (offset:18)
+          element: <testLibrary>::@enum::E
+          typeParameters
+            #F2 T (nameOffset:23) (firstTokenOffset:20) (offset:23)
+              element: #E0 T
+              metadata
+                annotation_0: Annotation
+                  atSign: @ @20
+                  expression: TypeLiteral
+                    type: NamedType
+                      name: T @21
+                      element: #E0 T
+                      type: T
+                    staticType: Type
+                  name: SimpleIdentifier
+                    token: T @21
+                    element: #E0 T
+                    staticType: null
+                  element: <null>
+          fields
+            #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:30) (firstTokenOffset:30) (offset:30)
+              element: <testLibrary>::@enum::E::@field::v
+              constantInitializer2: expression_0
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E<dynamic>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@enum::E::@constructor::new
+                      substitution: {T: dynamic}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E<dynamic>
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E<dynamic>
+                    element: SubstitutedConstructorElementImpl
+                      baseElement: <testLibrary>::@enum::E::@constructor::new
+                      substitution: {T: dynamic}
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E<dynamic>
+              inducedGetter: #F4
+            #F5 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+              element: <testLibrary>::@enum::E::@field::values
+              constantInitializer2: expression_2
+                ListLiteral
+                  leftBracket: [ @0
+                  elements2
+                    UnqualifiedNameExpression
+                      name: v @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::E::@getter::v
+                        type: E<dynamic>
+                      staticType: E<dynamic>
+                  elements(v1)
+                    SimpleIdentifier
+                      token: v @-1
+                      element: <testLibrary>::@enum::E::@getter::v
+                      staticType: E<dynamic>
+                  rightBracket: ] @0
+                  staticType: List<E<dynamic>>
+              inducedGetter: #F6
+          constructors
+            #F7 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+              element: <testLibrary>::@enum::E::@constructor::new
+              typeName: E
+          getters
+            #F4 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+              element: <testLibrary>::@enum::E::@getter::v
+              inducingVariable: #F3
+            #F6 isComplete isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+              element: <testLibrary>::@enum::E::@getter::values
+              inducingVariable: #F5
+      topLevelVariables
+        #F8 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic T (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::T
+          constantInitializer2: expression_3
+            IntegerLiteral
+              literal: 0 @10
+              staticType: int
+          inducedGetter: #F9
+      getters
+        #F9 isComplete isOriginVariable isStatic T (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::T
+          inducingVariable: #F8
+  enums
+    isSimplyBounded enum E
+      reference: <testLibrary>::@enum::E
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+          metadata
+            annotation_0
+      supertype: Enum
+      fields
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
+          reference: <testLibrary>::@enum::E::@field::v
+          firstFragment: #F3
+          type: E<dynamic>
+          constantInitializer2: expression_0
+          constantInitializer: expression_1
+          getter: <testLibrary>::@enum::E::@getter::v
+        isConst isOriginEnumValues isStatic values
+          reference: <testLibrary>::@enum::E::@field::values
+          firstFragment: #F5
+          type: List<E<dynamic>>
+          constantInitializer2: expression_2
+          getter: <testLibrary>::@enum::E::@getter::values
+      constructors
+        hasEnclosingTypeParameterReference isConst isOriginImplicitDefault new
+          reference: <testLibrary>::@enum::E::@constructor::new
+          firstFragment: #F7
+          superConstructor: dart:core::@class::Enum::@constructor::new
+      getters
+        isOriginVariable isStatic v
+          reference: <testLibrary>::@enum::E::@getter::v
+          firstFragment: #F4
+          returnType: E<dynamic>
+          variable: <testLibrary>::@enum::E::@field::v
+        isOriginVariable isStatic values
+          reference: <testLibrary>::@enum::E::@getter::values
+          firstFragment: #F6
+          returnType: List<E<dynamic>>
+          variable: <testLibrary>::@enum::E::@field::values
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer T
+      reference: <testLibrary>::@topLevelVariable::T
+      firstFragment: #F8
+      type: int
+      constantInitializer2: expression_3
+      getter: <testLibrary>::@getter::T
+  getters
+    isOriginVariable isStatic T
+      reference: <testLibrary>::@getter::T
+      firstFragment: #F9
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::T
+''');
+  }
+
+  test_metadata_typeParameter_typeParameterInScope_extension() async {
+    var library = await buildLibrary(r'''
+const T = 0;
+extension E<@T T> on List<T> {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        #F1 extension E (nameOffset:23) (firstTokenOffset:13) (offset:23)
+          element: <testLibrary>::@extension::E
+          typeParameters
+            #F2 T (nameOffset:28) (firstTokenOffset:25) (offset:28)
+              element: #E0 T
+              metadata
+                annotation_0: Annotation
+                  atSign: @ @25
+                  expression: TypeLiteral
+                    type: NamedType
+                      name: T @26
+                      element: #E0 T
+                      type: T
+                    staticType: Type
+                  name: SimpleIdentifier
+                    token: T @26
+                    element: #E0 T
+                    staticType: null
+                  element: <null>
+      topLevelVariables
+        #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic T (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::T
+          constantInitializer2: expression_0
+            IntegerLiteral
+              literal: 0 @10
+              staticType: int
+          inducedGetter: #F4
+      getters
+        #F4 isComplete isOriginVariable isStatic T (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::T
+          inducingVariable: #F3
+  extensions
+    extension E
+      reference: <testLibrary>::@extension::E
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+          metadata
+            annotation_0
+      extendedType: List<T>
+      onDeclaration: dart:core::@class::List
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer T
+      reference: <testLibrary>::@topLevelVariable::T
+      firstFragment: #F3
+      type: int
+      constantInitializer2: expression_0
+      getter: <testLibrary>::@getter::T
+  getters
+    isOriginVariable isStatic T
+      reference: <testLibrary>::@getter::T
+      firstFragment: #F4
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::T
+''');
+  }
+
+  test_metadata_typeParameter_typeParameterInScope_extensionType() async {
+    var library = await buildLibrary(r'''
+const T = 0;
+extension type E<@T T>(int it) {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensionTypes
+        #F1 extension type E (nameOffset:28) (firstTokenOffset:13) (offset:28)
+          element: <testLibrary>::@extensionType::E
+          typeParameters
+            #F2 T (nameOffset:33) (firstTokenOffset:30) (offset:33)
+              element: #E0 T
+              metadata
+                annotation_0: Annotation
+                  atSign: @ @30
+                  expression: TypeLiteral
+                    type: NamedType
+                      name: T @31
+                      element: #E0 T
+                      type: T
+                    staticType: Type
+                  name: SimpleIdentifier
+                    token: T @31
+                    element: #E0 T
+                    staticType: null
+                  element: <null>
+          fields
+            #F3 isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+              element: <testLibrary>::@extensionType::E::@field::it
+              inducedGetter: #F4
+          constructors
+            #F5 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:28) (offset:28)
+              element: <testLibrary>::@extensionType::E::@constructor::new
+              typeName: E
+              typeNameOffset: 28
+              primaryHeaderCodeRange: 35 + 8
+              formalParameters
+                #F6 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:40) (firstTokenOffset:36) (offset:40)
+                  element: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
+          getters
+            #F4 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+              element: <testLibrary>::@extensionType::E::@getter::it
+              inducingVariable: #F3
+      topLevelVariables
+        #F7 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic T (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::T
+          constantInitializer2: expression_0
+            IntegerLiteral
+              literal: 0 @10
+              staticType: int
+          inducedGetter: #F8
+      getters
+        #F8 isComplete isOriginVariable isStatic T (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::T
+          inducingVariable: #F7
+  extensionTypes
+    isSimplyBounded extension type E
+      reference: <testLibrary>::@extensionType::E
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+          metadata
+            annotation_0
+      representation: <testLibrary>::@extensionType::E::@field::it
+      primaryConstructor: <testLibrary>::@extensionType::E::@constructor::new
+      typeErasure: int
+      fields
+        isFinal isOriginDeclaringFormalParameter it
+          reference: <testLibrary>::@extensionType::E::@field::it
+          firstFragment: #F3
+          type: int
+          getter: <testLibrary>::@extensionType::E::@getter::it
+          declaringFormalParameter: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
+      constructors
+        hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@extensionType::E::@constructor::new
+          firstFragment: #F5
+          formalParameters
+            #E1 requiredPositional isDeclaring isFinal this.it
+              firstFragment: #F6
+              type: int
+              field: <testLibrary>::@extensionType::E::@field::it
+      getters
+        isExtensionTypeMember isOriginVariable it
+          reference: <testLibrary>::@extensionType::E::@getter::it
+          firstFragment: #F4
+          returnType: int
+          variable: <testLibrary>::@extensionType::E::@field::it
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer T
+      reference: <testLibrary>::@topLevelVariable::T
+      firstFragment: #F7
+      type: int
+      constantInitializer2: expression_0
+      getter: <testLibrary>::@getter::T
+  getters
+    isOriginVariable isStatic T
+      reference: <testLibrary>::@getter::T
+      firstFragment: #F8
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::T
+''');
+  }
+
+  test_metadata_typeParameter_typeParameterInScope_functionTypeAlias() async {
+    var library = await buildLibrary(r'''
+const T = 0;
+typedef void F<@T T>();
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      typeAliases
+        #F1 F (nameOffset:26) (firstTokenOffset:13) (offset:26)
+          element: <testLibrary>::@typeAlias::F
+          typeParameters
+            #F2 T (nameOffset:31) (firstTokenOffset:28) (offset:31)
+              element: #E0 T
+              metadata
+                annotation_0: Annotation
+                  atSign: @ @28
+                  expression: TypeLiteral
+                    type: NamedType
+                      name: T @29
+                      element: #E0 T
+                      type: T
+                    staticType: Type
+                  name: SimpleIdentifier
+                    token: T @29
+                    element: #E0 T
+                    staticType: null
+                  element: <null>
+      topLevelVariables
+        #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic T (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::T
+          constantInitializer2: expression_0
+            IntegerLiteral
+              literal: 0 @10
+              staticType: int
+          inducedGetter: #F4
+      getters
+        #F4 isComplete isOriginVariable isStatic T (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::T
+          inducingVariable: #F3
+  typeAliases
+    isSimplyBounded F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+          metadata
+            annotation_0
+      aliasedType: void Function()
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer T
+      reference: <testLibrary>::@topLevelVariable::T
+      firstFragment: #F3
+      type: int
+      constantInitializer2: expression_0
+      getter: <testLibrary>::@getter::T
+  getters
+    isOriginVariable isStatic T
+      reference: <testLibrary>::@getter::T
+      firstFragment: #F4
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::T
+''');
+  }
+
+  test_metadata_typeParameter_typeParameterInScope_genericTypeAlias() async {
+    var library = await buildLibrary(r'''
+const T = 0;
+typedef F<@T T> = void Function();
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      typeAliases
+        #F1 F (nameOffset:21) (firstTokenOffset:13) (offset:21)
+          element: <testLibrary>::@typeAlias::F
+          typeParameters
+            #F2 T (nameOffset:26) (firstTokenOffset:23) (offset:26)
+              element: #E0 T
+              metadata
+                annotation_0: Annotation
+                  atSign: @ @23
+                  expression: TypeLiteral
+                    type: NamedType
+                      name: T @24
+                      element: #E0 T
+                      type: T
+                    staticType: Type
+                  name: SimpleIdentifier
+                    token: T @24
+                    element: #E0 T
+                    staticType: null
+                  element: <null>
+      topLevelVariables
+        #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic T (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::T
+          constantInitializer2: expression_0
+            IntegerLiteral
+              literal: 0 @10
+              staticType: int
+          inducedGetter: #F4
+      getters
+        #F4 isComplete isOriginVariable isStatic T (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::T
+          inducingVariable: #F3
+  typeAliases
+    isSimplyBounded F
+      reference: <testLibrary>::@typeAlias::F
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+          metadata
+            annotation_0
+      aliasedType: void Function()
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer T
+      reference: <testLibrary>::@topLevelVariable::T
+      firstFragment: #F3
+      type: int
+      constantInitializer2: expression_0
+      getter: <testLibrary>::@getter::T
+  getters
+    isOriginVariable isStatic T
+      reference: <testLibrary>::@getter::T
+      firstFragment: #F4
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::T
+''');
+  }
+
+  test_metadata_typeParameter_typeParameterInScope_method_inClass() async {
+    var library = await buildLibrary(r'''
+const T = 0;
+class A {
+  void foo<@T T>() {}
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:19) (firstTokenOffset:13) (offset:19)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F3 isComplete isOriginDeclaration foo (nameOffset:30) (firstTokenOffset:25) (offset:30)
+              element: <testLibrary>::@class::A::@method::foo
+              typeParameters
+                #F4 T (nameOffset:37) (firstTokenOffset:34) (offset:37)
+                  element: #E0 T
+                  metadata
+                    annotation_0: Annotation
+                      atSign: @ @34
+                      expression: TypeLiteral
+                        type: NamedType
+                          name: T @35
+                          element: #E0 T
+                          type: T
+                        staticType: Type
+                      name: SimpleIdentifier
+                        token: T @35
+                        element: #E0 T
+                        staticType: null
+                      element: <null>
+      topLevelVariables
+        #F5 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic T (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::T
+          constantInitializer2: expression_0
+            IntegerLiteral
+              literal: 0 @10
+              staticType: int
+          inducedGetter: #F6
+      getters
+        #F6 isComplete isOriginVariable isStatic T (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::T
+          inducingVariable: #F5
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+      methods
+        isOriginDeclaration foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          typeParameters
+            #E0 T
+              firstFragment: #F4
+              metadata
+                annotation_0
+          returnType: void
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer T
+      reference: <testLibrary>::@topLevelVariable::T
+      firstFragment: #F5
+      type: int
+      constantInitializer2: expression_0
+      getter: <testLibrary>::@getter::T
+  getters
+    isOriginVariable isStatic T
+      reference: <testLibrary>::@getter::T
+      firstFragment: #F6
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::T
+''');
+  }
+
+  test_metadata_typeParameter_typeParameterInScope_method_inEnum() async {
+    var library = await buildLibrary(r'''
+const T = 0;
+enum E {
+  v;
+  void foo<@T T>() {}
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      enums
+        #F1 enum E (nameOffset:18) (firstTokenOffset:13) (offset:18)
+          element: <testLibrary>::@enum::E
+          fields
+            #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:24) (firstTokenOffset:24) (offset:24)
+              element: <testLibrary>::@enum::E::@field::v
+              constantInitializer2: expression_0
+                ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
+              constantInitializer: expression_1
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
+              inducedGetter: #F3
+            #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+              element: <testLibrary>::@enum::E::@field::values
+              constantInitializer2: expression_2
+                ListLiteral
+                  leftBracket: [ @0
+                  elements2
+                    UnqualifiedNameExpression
+                      name: v @-1
+                      resolution: GetterInvocationResolution
+                        element: <testLibrary>::@enum::E::@getter::v
+                        type: E
+                      staticType: E
+                  elements(v1)
+                    SimpleIdentifier
+                      token: v @-1
+                      element: <testLibrary>::@enum::E::@getter::v
+                      staticType: E
+                  rightBracket: ] @0
+                  staticType: List<E>
+              inducedGetter: #F5
+          constructors
+            #F6 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+              element: <testLibrary>::@enum::E::@constructor::new
+              typeName: E
+          getters
+            #F3 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+              element: <testLibrary>::@enum::E::@getter::v
+              inducingVariable: #F2
+            #F5 isComplete isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+              element: <testLibrary>::@enum::E::@getter::values
+              inducingVariable: #F4
+          methods
+            #F7 isComplete isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:29) (offset:34)
+              element: <testLibrary>::@enum::E::@method::foo
+              typeParameters
+                #F8 T (nameOffset:41) (firstTokenOffset:38) (offset:41)
+                  element: #E0 T
+                  metadata
+                    annotation_0: Annotation
+                      atSign: @ @38
+                      expression: TypeLiteral
+                        type: NamedType
+                          name: T @39
+                          element: #E0 T
+                          type: T
+                        staticType: Type
+                      name: SimpleIdentifier
+                        token: T @39
+                        element: #E0 T
+                        staticType: null
+                      element: <null>
+      topLevelVariables
+        #F9 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic T (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::T
+          constantInitializer2: expression_3
+            IntegerLiteral
+              literal: 0 @10
+              staticType: int
+          inducedGetter: #F10
+      getters
+        #F10 isComplete isOriginVariable isStatic T (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::T
+          inducingVariable: #F9
+  enums
+    isSimplyBounded enum E
+      reference: <testLibrary>::@enum::E
+      firstFragment: #F1
+      supertype: Enum
+      fields
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
+          reference: <testLibrary>::@enum::E::@field::v
+          firstFragment: #F2
+          type: E
+          constantInitializer2: expression_0
+          constantInitializer: expression_1
+          getter: <testLibrary>::@enum::E::@getter::v
+        isConst isOriginEnumValues isStatic values
+          reference: <testLibrary>::@enum::E::@field::values
+          firstFragment: #F4
+          type: List<E>
+          constantInitializer2: expression_2
+          getter: <testLibrary>::@enum::E::@getter::values
+      constructors
+        isConst isOriginImplicitDefault new
+          reference: <testLibrary>::@enum::E::@constructor::new
+          firstFragment: #F6
+          superConstructor: dart:core::@class::Enum::@constructor::new
+      getters
+        isOriginVariable isStatic v
+          reference: <testLibrary>::@enum::E::@getter::v
+          firstFragment: #F3
+          returnType: E
+          variable: <testLibrary>::@enum::E::@field::v
+        isOriginVariable isStatic values
+          reference: <testLibrary>::@enum::E::@getter::values
+          firstFragment: #F5
+          returnType: List<E>
+          variable: <testLibrary>::@enum::E::@field::values
+      methods
+        isOriginDeclaration foo
+          reference: <testLibrary>::@enum::E::@method::foo
+          firstFragment: #F7
+          typeParameters
+            #E0 T
+              firstFragment: #F8
+              metadata
+                annotation_0
+          returnType: void
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer T
+      reference: <testLibrary>::@topLevelVariable::T
+      firstFragment: #F9
+      type: int
+      constantInitializer2: expression_3
+      getter: <testLibrary>::@getter::T
+  getters
+    isOriginVariable isStatic T
+      reference: <testLibrary>::@getter::T
+      firstFragment: #F10
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::T
+''');
+  }
+
+  test_metadata_typeParameter_typeParameterInScope_method_inExtension() async {
+    var library = await buildLibrary(r'''
+const T = 0;
+extension E on int {
+  void foo<@T T>() {}
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        #F1 extension E (nameOffset:23) (firstTokenOffset:13) (offset:23)
+          element: <testLibrary>::@extension::E
+          methods
+            #F2 isComplete isOriginDeclaration foo (nameOffset:41) (firstTokenOffset:36) (offset:41)
+              element: <testLibrary>::@extension::E::@method::foo
+              typeParameters
+                #F3 T (nameOffset:48) (firstTokenOffset:45) (offset:48)
+                  element: #E0 T
+                  metadata
+                    annotation_0: Annotation
+                      atSign: @ @45
+                      expression: TypeLiteral
+                        type: NamedType
+                          name: T @46
+                          element: #E0 T
+                          type: T
+                        staticType: Type
+                      name: SimpleIdentifier
+                        token: T @46
+                        element: #E0 T
+                        staticType: null
+                      element: <null>
+      topLevelVariables
+        #F4 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic T (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::T
+          constantInitializer2: expression_0
+            IntegerLiteral
+              literal: 0 @10
+              staticType: int
+          inducedGetter: #F5
+      getters
+        #F5 isComplete isOriginVariable isStatic T (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::T
+          inducingVariable: #F4
+  extensions
+    extension E
+      reference: <testLibrary>::@extension::E
+      firstFragment: #F1
+      extendedType: int
+      onDeclaration: dart:core::@class::int
+      methods
+        isOriginDeclaration foo
+          reference: <testLibrary>::@extension::E::@method::foo
+          firstFragment: #F2
+          typeParameters
+            #E0 T
+              firstFragment: #F3
+              metadata
+                annotation_0
+          returnType: void
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer T
+      reference: <testLibrary>::@topLevelVariable::T
+      firstFragment: #F4
+      type: int
+      constantInitializer2: expression_0
+      getter: <testLibrary>::@getter::T
+  getters
+    isOriginVariable isStatic T
+      reference: <testLibrary>::@getter::T
+      firstFragment: #F5
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::T
+''');
+  }
+
+  test_metadata_typeParameter_typeParameterInScope_method_inExtensionType() async {
+    var library = await buildLibrary(r'''
+const T = 0;
+extension type E(int it) {
+  void foo<@T T>() {}
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensionTypes
+        #F1 extension type E (nameOffset:28) (firstTokenOffset:13) (offset:28)
+          element: <testLibrary>::@extensionType::E
+          fields
+            #F2 isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+              element: <testLibrary>::@extensionType::E::@field::it
+              inducedGetter: #F3
+          constructors
+            #F4 isComplete isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:28) (offset:28)
+              element: <testLibrary>::@extensionType::E::@constructor::new
+              typeName: E
+              typeNameOffset: 28
+              primaryHeaderCodeRange: 29 + 8
+              formalParameters
+                #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:34) (firstTokenOffset:30) (offset:34)
+                  element: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
+          getters
+            #F3 isComplete isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+              element: <testLibrary>::@extensionType::E::@getter::it
+              inducingVariable: #F2
+          methods
+            #F6 isComplete isOriginDeclaration foo (nameOffset:47) (firstTokenOffset:42) (offset:47)
+              element: <testLibrary>::@extensionType::E::@method::foo
+              typeParameters
+                #F7 T (nameOffset:54) (firstTokenOffset:51) (offset:54)
+                  element: #E0 T
+                  metadata
+                    annotation_0: Annotation
+                      atSign: @ @51
+                      expression: TypeLiteral
+                        type: NamedType
+                          name: T @52
+                          element: #E0 T
+                          type: T
+                        staticType: Type
+                      name: SimpleIdentifier
+                        token: T @52
+                        element: #E0 T
+                        staticType: null
+                      element: <null>
+      topLevelVariables
+        #F8 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic T (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::T
+          constantInitializer2: expression_0
+            IntegerLiteral
+              literal: 0 @10
+              staticType: int
+          inducedGetter: #F9
+      getters
+        #F9 isComplete isOriginVariable isStatic T (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::T
+          inducingVariable: #F8
+  extensionTypes
+    isSimplyBounded extension type E
+      reference: <testLibrary>::@extensionType::E
+      firstFragment: #F1
+      representation: <testLibrary>::@extensionType::E::@field::it
+      primaryConstructor: <testLibrary>::@extensionType::E::@constructor::new
+      typeErasure: int
+      fields
+        isFinal isOriginDeclaringFormalParameter it
+          reference: <testLibrary>::@extensionType::E::@field::it
+          firstFragment: #F2
+          type: int
+          getter: <testLibrary>::@extensionType::E::@getter::it
+          declaringFormalParameter: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
+      constructors
+        isExtensionTypeMember isOriginDeclaration isPrimary new
+          reference: <testLibrary>::@extensionType::E::@constructor::new
+          firstFragment: #F4
+          formalParameters
+            #E1 requiredPositional isDeclaring isFinal this.it
+              firstFragment: #F5
+              type: int
+              field: <testLibrary>::@extensionType::E::@field::it
+      getters
+        isExtensionTypeMember isOriginVariable it
+          reference: <testLibrary>::@extensionType::E::@getter::it
+          firstFragment: #F3
+          returnType: int
+          variable: <testLibrary>::@extensionType::E::@field::it
+      methods
+        isExtensionTypeMember isOriginDeclaration foo
+          reference: <testLibrary>::@extensionType::E::@method::foo
+          firstFragment: #F6
+          typeParameters
+            #E0 T
+              firstFragment: #F7
+              metadata
+                annotation_0
+          returnType: void
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer T
+      reference: <testLibrary>::@topLevelVariable::T
+      firstFragment: #F8
+      type: int
+      constantInitializer2: expression_0
+      getter: <testLibrary>::@getter::T
+  getters
+    isOriginVariable isStatic T
+      reference: <testLibrary>::@getter::T
+      firstFragment: #F9
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::T
+''');
+  }
+
+  test_metadata_typeParameter_typeParameterInScope_method_inMixin() async {
+    var library = await buildLibrary(r'''
+const T = 0;
+mixin M {
+  void foo<@T T>() {}
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      mixins
+        #F1 mixin M (nameOffset:19) (firstTokenOffset:13) (offset:19)
+          element: <testLibrary>::@mixin::M
+          methods
+            #F2 isComplete isOriginDeclaration foo (nameOffset:30) (firstTokenOffset:25) (offset:30)
+              element: <testLibrary>::@mixin::M::@method::foo
+              typeParameters
+                #F3 T (nameOffset:37) (firstTokenOffset:34) (offset:37)
+                  element: #E0 T
+                  metadata
+                    annotation_0: Annotation
+                      atSign: @ @34
+                      expression: TypeLiteral
+                        type: NamedType
+                          name: T @35
+                          element: #E0 T
+                          type: T
+                        staticType: Type
+                      name: SimpleIdentifier
+                        token: T @35
+                        element: #E0 T
+                        staticType: null
+                      element: <null>
+      topLevelVariables
+        #F4 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic T (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::T
+          constantInitializer2: expression_0
+            IntegerLiteral
+              literal: 0 @10
+              staticType: int
+          inducedGetter: #F5
+      getters
+        #F5 isComplete isOriginVariable isStatic T (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::T
+          inducingVariable: #F4
+  mixins
+    isSimplyBounded mixin M
+      reference: <testLibrary>::@mixin::M
+      firstFragment: #F1
+      superclassConstraints
+        Object
+      methods
+        isOriginDeclaration foo
+          reference: <testLibrary>::@mixin::M::@method::foo
+          firstFragment: #F2
+          typeParameters
+            #E0 T
+              firstFragment: #F3
+              metadata
+                annotation_0
+          returnType: void
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer T
+      reference: <testLibrary>::@topLevelVariable::T
+      firstFragment: #F4
+      type: int
+      constantInitializer2: expression_0
+      getter: <testLibrary>::@getter::T
+  getters
+    isOriginVariable isStatic T
+      reference: <testLibrary>::@getter::T
+      firstFragment: #F5
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::T
+''');
+  }
+
+  test_metadata_typeParameter_typeParameterInScope_mixin() async {
+    var library = await buildLibrary(r'''
+const T = 0;
+mixin M<@T T> {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      mixins
+        #F1 mixin M (nameOffset:19) (firstTokenOffset:13) (offset:19)
+          element: <testLibrary>::@mixin::M
+          typeParameters
+            #F2 T (nameOffset:24) (firstTokenOffset:21) (offset:24)
+              element: #E0 T
+              metadata
+                annotation_0: Annotation
+                  atSign: @ @21
+                  expression: TypeLiteral
+                    type: NamedType
+                      name: T @22
+                      element: #E0 T
+                      type: T
+                    staticType: Type
+                  name: SimpleIdentifier
+                    token: T @22
+                    element: #E0 T
+                    staticType: null
+                  element: <null>
+      topLevelVariables
+        #F3 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic T (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::T
+          constantInitializer2: expression_0
+            IntegerLiteral
+              literal: 0 @10
+              staticType: int
+          inducedGetter: #F4
+      getters
+        #F4 isComplete isOriginVariable isStatic T (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::T
+          inducingVariable: #F3
+  mixins
+    isSimplyBounded mixin M
+      reference: <testLibrary>::@mixin::M
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+          metadata
+            annotation_0
+      superclassConstraints
+        Object
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer T
+      reference: <testLibrary>::@topLevelVariable::T
+      firstFragment: #F3
+      type: int
+      constantInitializer2: expression_0
+      getter: <testLibrary>::@getter::T
+  getters
+    isOriginVariable isStatic T
+      reference: <testLibrary>::@getter::T
+      firstFragment: #F4
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::T
+''');
+  }
+
+  test_metadata_typeParameter_typeParameterInScope_topLevelFunction() async {
+    var library = await buildLibrary(r'''
+const T = 0;
+void foo<@T T>() {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      topLevelVariables
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic T (nameOffset:6) (firstTokenOffset:6) (offset:6)
+          element: <testLibrary>::@topLevelVariable::T
+          constantInitializer2: expression_0
+            IntegerLiteral
+              literal: 0 @10
+              staticType: int
+          inducedGetter: #F2
+      getters
+        #F2 isComplete isOriginVariable isStatic T (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+          element: <testLibrary>::@getter::T
+          inducingVariable: #F1
+      functions
+        #F3 isComplete isOriginDeclaration isStatic foo (nameOffset:18) (firstTokenOffset:13) (offset:18)
+          element: <testLibrary>::@function::foo
+          typeParameters
+            #F4 T (nameOffset:25) (firstTokenOffset:22) (offset:25)
+              element: #E0 T
+              metadata
+                annotation_0: Annotation
+                  atSign: @ @22
+                  expression: TypeLiteral
+                    type: NamedType
+                      name: T @23
+                      element: #E0 T
+                      type: T
+                    staticType: Type
+                  name: SimpleIdentifier
+                    token: T @23
+                    element: #E0 T
+                    staticType: null
+                  element: <null>
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer T
+      reference: <testLibrary>::@topLevelVariable::T
+      firstFragment: #F1
+      type: int
+      constantInitializer2: expression_0
+      getter: <testLibrary>::@getter::T
+  getters
+    isOriginVariable isStatic T
+      reference: <testLibrary>::@getter::T
+      firstFragment: #F2
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::T
+  functions
+    isOriginDeclaration isStatic foo
+      reference: <testLibrary>::@function::foo
+      firstFragment: #F3
+      typeParameters
+        #E0 T
+          firstFragment: #F4
+          metadata
+            annotation_0
+      returnType: void
 ''');
   }
 

@@ -35,17 +35,17 @@ suggestions
     kind: class
   A01
     kind: constructorInvocation
-  const
-    kind: keyword
   false
     kind: keyword
-  final
+  true
     kind: keyword
   null
     kind: keyword
-  switch
+  const
     kind: keyword
-  true
+  final
+    kind: keyword
+  switch
     kind: keyword
   var
     kind: keyword
@@ -81,6 +81,59 @@ suggestions
     kind: class
   A02
     kind: class
+''');
+  }
+
+  Future<void> test_afterCase_enum_unqualified_ranksContextEnumFirst() async {
+    await computeSuggestions('''
+enum E02 { x01 }
+
+enum E01 {
+  v01,
+  v02;
+
+  String f() {
+    switch (this) {
+      case ^v01:
+        return '';
+    }
+  }
+}
+''');
+    assertResponse(r'''
+replacement
+  right: 3
+suggestions
+  E01
+    kind: enum
+  E01.v01
+    kind: enumConstant
+  E01.v02
+    kind: enumConstant
+  v01
+    kind: enumConstant
+  v02
+    kind: enumConstant
+  E02
+    kind: enum
+  false
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
+  const
+    kind: keyword
+  final
+    kind: keyword
+  super
+    kind: keyword
+  switch
+    kind: keyword
+  this
+    kind: keyword
+  var
+    kind: keyword
 ''');
   }
 

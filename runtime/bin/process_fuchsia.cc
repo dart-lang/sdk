@@ -9,7 +9,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
-#include <fuchsia/io/cpp/fidl.h>
+#include <fidl/fuchsia.io/cpp/fidl.h>
 #include <lib/fdio/directory.h>
 #include <lib/fdio/io.h>
 #include <lib/fdio/namespace.h>
@@ -586,12 +586,13 @@ class ProcessStarter {
     NamespaceScope ns(namespc_, path_);
     int pathfd = -1;
     zx_status_t status;
-    constexpr fuchsia::io::Flags kFlags =
-        fuchsia::io::PERM_READABLE | fuchsia::io::PERM_EXECUTABLE;
+    constexpr fuchsia_io::Flags kFlags =
+        fuchsia_io::kPermReadable | fuchsia_io::kPermExecutable;
     if (ns.fd() == AT_FDCWD) {
-      status = fdio_open3_fd(ns.path(), uint64_t{kFlags}, &pathfd);
+      status = fdio_open3_fd(ns.path(), static_cast<uint64_t>(kFlags), &pathfd);
     } else {
-      status = fdio_open3_fd_at(ns.fd(), ns.path(), uint64_t{kFlags}, &pathfd);
+      status = fdio_open3_fd_at(ns.fd(), ns.path(),
+                                static_cast<uint64_t>(kFlags), &pathfd);
     }
     if (status != ZX_OK) {
       close(exit_pipe_fds[0]);

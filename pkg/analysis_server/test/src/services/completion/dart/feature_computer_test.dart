@@ -1267,6 +1267,128 @@ String f(num n) => switch (n) {
 ''', 'String');
   }
 
+  Future<void> test_switchExpression_afterPattern_beforeArrow() async {
+    await assertContextType('''
+String f(Object o) => switch (o) {
+  var x ^ => '',
+};
+''');
+  }
+
+  Future<void> test_switchExpression_afterPattern_noArrow() async {
+    await assertContextType('''
+String f(Object o) => switch (o) {
+  var x ^
+};
+''');
+  }
+
+  Future<void> test_switchExpression_afterType_beforeArrow() async {
+    await assertContextType('''
+String f(Object o) => switch (o) {
+  int ^ => '',
+};
+''');
+  }
+
+  Future<void> test_switchExpression_empty() async {
+    await assertContextType('''
+enum E { a }
+int f(E e) => switch (e) {
+  ^
+};
+''', 'E');
+  }
+
+  Future<void> test_switchExpression_pattern() async {
+    await assertContextType('''
+enum E { a }
+int f(E e) => switch (e) {
+  ^ => 0,
+};
+''', 'E');
+  }
+
+  Future<void> test_switchExpression_pattern_qualified() async {
+    await assertContextType('''
+enum E { a }
+int f(E e) => switch (e) {
+  ^E.a => 0,
+};
+''', 'E');
+  }
+
+  Future<void> test_switchExpression_when() async {
+    await assertContextType('''
+enum E { a }
+int f(E e) => switch (e) {
+  var x when ^ => 0,
+};
+''', 'bool');
+  }
+
+  Future<void> test_switchPatternCase_empty() async {
+    await assertContextType('''
+enum E { a }
+void f(E e) {
+  switch (e) {
+    case ^:
+      break;
+  }
+}
+''', 'E');
+  }
+
+  Future<void> test_switchPatternCase_enumConstant() async {
+    await assertContextType('''
+enum E {
+  a;
+  void f() {
+    switch (this) {
+      case ^a:
+        break;
+    }
+  }
+}
+''', 'E');
+  }
+
+  Future<void> test_switchPatternCase_qualified() async {
+    await assertContextType('''
+enum E { a }
+void f(E e) {
+  switch (e) {
+    case ^E.a:
+      break;
+  }
+}
+''', 'E');
+  }
+
+  Future<void> test_switchPatternCase_statements() async {
+    await assertContextType('''
+enum E { a }
+void f(E e) {
+  switch (e) {
+    case E.a:
+      ^
+  }
+}
+''');
+  }
+
+  Future<void> test_switchPatternCase_when() async {
+    await assertContextType('''
+enum E { a }
+void f(E e) {
+  switch (e) {
+    case var x when ^:
+      break;
+  }
+}
+''', 'bool');
+  }
+
   Future<void> test_topLevelVariableDeclaration_int() async {
     await assertContextType('''
 int i=^;

@@ -9,7 +9,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
-#include <fuchsia/io/cpp/fidl.h>
+#include <fidl/fuchsia.io/cpp/fidl.h>
 #include <lib/fdio/directory.h>
 #include <lib/fdio/fdio.h>
 #include <lib/fdio/namespace.h>
@@ -246,10 +246,10 @@ File* File::Open(Namespace* namespc,
   flags |= O_CLOEXEC;
   int fd;
   if (executable) {
-    fuchsia::io::Flags flags =
-        fuchsia::io::PERM_READABLE | fuchsia::io::PERM_EXECUTABLE;
-    zx_status_t status =
-        fdio_open3_fd_at(ns.fd(), ns.path(), uint64_t{flags}, &fd);
+    constexpr fuchsia_io::Flags kFlags =
+        fuchsia_io::kPermReadable | fuchsia_io::kPermExecutable;
+    zx_status_t status = fdio_open3_fd_at(ns.fd(), ns.path(),
+                                          static_cast<uint64_t>(kFlags), &fd);
     if (status != ZX_OK) {
       return nullptr;
     }

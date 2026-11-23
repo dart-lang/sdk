@@ -226,12 +226,16 @@ class ScopeContext {
     withInStaticMember(isStatic, () {
       var fieldsScope = nameScope;
 
-      // Use different scope for instance non-late field initializers.
+      // Use the primary initializer scope for non-late instance field
+      // initializers. Augmenting declarations cannot declare a primary
+      // constructor, so take it from the class element.
       if (!isStatic && node.lateKeyword == null) {
-        var primaryConstructor = node.enclosingPrimaryConstructor;
-        if (primaryConstructor != null) {
+        var primaryConstructor = _enclosingInstanceElement
+            .tryCast<InterfaceElementImpl>()
+            ?.primaryConstructor;
+        if (primaryConstructor != null && primaryConstructor.isPrimary) {
           fieldsScope = _constructorInitializerScope(
-            primaryConstructor.declaredFragment!,
+            primaryConstructor.firstFragment,
           );
         }
       }
@@ -584,6 +588,11 @@ class ScopeContext {
     List<TypeParameterElementImpl> elements,
     void Function() operation,
   ) {
+    if (elements.isEmpty) {
+      operation();
+      return;
+    }
+
     withScope(
       TypeParameterScope(nameScope, elements, featureSet: _featureSet),
       operation,
@@ -639,16 +648,5 @@ extension LocalScopeExtension on LocalScope {
     for (var formalParameter in node.allFormalParameters) {
       add(formalParameter.declaredFragment!.element);
     }
-  }
-}
-
-extension _FieldsDeclarationExtension on FieldsDeclaration {
-  PrimaryConstructorDeclarationImpl? get enclosingPrimaryConstructor {
-    return switch (parent2?.parent2) {
-      ClassDeclaration2Impl(:var namePart) => namePart.tryCast(),
-      EnumDeclaration2Impl(:var namePart) => namePart.tryCast(),
-      ExtensionTypeDeclaration2Impl(:var namePart) => namePart.tryCast(),
-      _ => null,
-    };
   }
 }

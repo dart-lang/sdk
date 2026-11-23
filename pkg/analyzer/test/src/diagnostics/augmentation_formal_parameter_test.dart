@@ -308,8 +308,6 @@ abstract class A {
 class A(int p1);
 augment class A(int _) {
   final int value = p1;
-//                  ^^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'p1'.
 }
 ''');
   }
