@@ -155,6 +155,38 @@ The check matters more for `dart analyze` of one large package with a filled cac
 | `ContextRootImpl._hasDotNameUnderRoot`, with callees | none | 0.008G (0.1%) | |
 | `package:path` code, with callees | 1.375G (13.7%) | 0.437G (4.7%) | −68% |
 
+#### [CL 580660](https://dart-review.googlesource.com/c/sdk/+/580660): Look up the ancestors of a path in `AbstractNotificationManager._isIncluded`
+
+`_isIncluded` checked each file against every included and excluded path with `Context.isWithin` and `Context.equals`. Now a new `PathSubtreeSet` looks up the file and those of its ancestors that have the length of a root in a `PathSet` of `package:path`, so the cost no longer depends on the number of excludes.
+
+Warm medians:
+
+| Packages | legacy_3p_excludes | lsp_3p_excludes | lsp_no_excludes |
+|---:|---:|---:|---:|
+| 25 | 230 → 208 ms | 214 → 193 ms | 174 → 174 ms |
+| 50 | 536 → 440 ms | 511 → 418 ms | 344 → 352 ms |
+| 100 | 1386 → 1008 ms | 1337 → 950 ms | 690 → 694 ms |
+
+Exclude overhead:
+
+| Packages | legacy_3p_excludes | lsp_3p_excludes |
+|---:|---:|---:|
+| 25 | 56 → 34 ms | 41 → 18 ms |
+| 50 | 192 → 89 ms | 167 → 67 ms |
+| 100 | 696 → 314 ms | 647 → 257 ms |
+
+Profile:
+
+| | Before | After | Change |
+|---|---:|---:|---:|
+| All server instructions | 20.71G | 12.69G | −39% |
+| `AbstractNotificationManager._isIncluded`, with callees | 8.08G (39.0%) | 0.061G (0.5%) | −99% |
+| `PathSubtreeSet.containsSelfOrAncestor`, with callees | none | 0.056G (0.4%) | |
+| `ContextRootImpl._isExcluded`, with callees | 5.47G (26.4%) | 5.55G (43.7%) | unchanged |
+| `package:path` code, with callees | 13.87G (67.0%) | 6.00G (47.3%) | −57% |
+
+After this change, `isWithin` in `ContextRootImpl._isExcluded` (41.9%) is most of the remaining exclude overhead.
+
 ### Limitations
 
 - It covers excludes sent by the IDE, not `analyzer: exclude:` globs in `analysis_options.yaml`, which go through `ContextRootImpl.excludedGlobs`.
