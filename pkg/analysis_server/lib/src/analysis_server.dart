@@ -367,6 +367,7 @@ abstract class AnalysisServer {
       providedByteStore: providedByteStore,
       disableFileByteStore: options.disableFileByteStore ?? false,
       useSingleFileByteStore: options.useSingleFileByteStore,
+      sessionListener: sessionListener,
     );
 
     analysisDriverScheduler = analysis.AnalysisDriverScheduler(
