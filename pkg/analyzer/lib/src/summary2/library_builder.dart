@@ -7,6 +7,7 @@ import 'dart:typed_data';
 import 'package:_fe_analyzer_shared/src/field_promotability.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart' as file_state;
 import 'package:analyzer/src/dart/analysis/file_state.dart' hide DirectiveUri;
 import 'package:analyzer/src/dart/analysis/unlinked_data.dart';
@@ -439,8 +440,7 @@ class LibraryBuilder {
 
   void resolveMetadata() {
     for (var linkingUnit in units) {
-      var resolver = MetadataResolver(linker, linkingUnit.fragment, this);
-      linkingUnit.node.accept2(resolver);
+      MetadataResolver(linker, this, linkingUnit).resolve();
     }
   }
 
@@ -452,6 +452,7 @@ class LibraryBuilder {
         element.typeSystem,
         linkingUnit.fragment.scope,
         libraryFragment: linkingUnit.fragment,
+        declarationAnnotations: linkingUnit.declarationAnnotations,
       );
       linkingUnit.node.accept2(resolver);
     }
@@ -799,6 +800,15 @@ class LinkingUnit {
   final ast.CompilationUnitImpl node;
   final LibraryFragmentImpl fragment;
   final Uint8List informativeBytes;
+
+  /// The annotations of the declarations in [node], with the scopes in which
+  /// they are resolved.
+  ///
+  /// The scopes are recorded by `ReferenceResolver`, using `ScopeContext`,
+  /// so they are the same as during full resolution. The annotations are
+  /// resolved later by `MetadataResolver`, after types and constructors.
+  final List<({ast.AnnotationImpl annotation, Scope scope})>
+  declarationAnnotations = [];
 
   new({
     required this.node,

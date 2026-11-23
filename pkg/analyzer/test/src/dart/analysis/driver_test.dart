@@ -100206,7 +100206,7 @@ const x = 1;
     );
   }
 
-  test_manifest_topLevelFunction_formalParameter_requiredPositional_metadata_typeParameterNotInScope() async {
+  test_manifest_topLevelFunction_formalParameter_requiredPositional_metadata_typeParameterInScope() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
 const T = 0;
@@ -100239,13 +100239,13 @@ void foo<T>(@T int a) {}
     declaredGetters
       T: #M0
     declaredFunctions
-      foo: #M4
+      foo: #M1
     declaredVariables
-      T: #M5
-    exportMapId: #M6
+      T: #M4
+    exportMapId: #M3
     exportMap
       T: #M0
-      foo: #M4
+      foo: #M1
 ''',
     );
   }

@@ -584,6 +584,11 @@ class ScopeContext {
     List<TypeParameterElementImpl> elements,
     void Function() operation,
   ) {
+    if (elements.isEmpty) {
+      operation();
+      return;
+    }
+
     withScope(
       TypeParameterScope(nameScope, elements, featureSet: _featureSet),
       operation,

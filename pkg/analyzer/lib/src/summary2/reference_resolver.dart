@@ -34,6 +34,8 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   final Linker linker;
   final TypeSystemImpl typeSystem;
   final NodesToBuildType nodesToBuildType;
+  final List<({AnnotationImpl annotation, Scope scope})>
+  _declarationAnnotations;
 
   new(
     this.linker,
@@ -41,6 +43,7 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
     this.typeSystem,
     Scope scope, {
     required this.libraryFragment,
+    required this._declarationAnnotations,
   }) : _scopeContext = ScopeContext(
          libraryFragment: libraryFragment,
          nameScope: scope,
@@ -51,6 +54,7 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   @override
   void visitAnnotation(covariant AnnotationImpl node) {
     // Annotations are resolved after types, by `MetadataResolver`.
+    _declarationAnnotations.add((annotation: node, scope: nameScope));
   }
 
   @override
@@ -103,7 +107,9 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   void visitEmptyFunctionBody(EmptyFunctionBody node) {}
 
   @override
-  void visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) {}
+  void visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) {
+    node.metadata.accept2(this);
+  }
 
   @override
   void visitEnumDeclaration2(covariant EnumDeclaration2Impl node) {
@@ -398,6 +404,8 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
 
   @override
   void visitTypeParameter(covariant TypeParameterImpl node) {
+    node.metadata.accept2(this);
+
     var bound = node.bound;
     if (bound != null) {
       bound.accept2(this);

@@ -2,21 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/ast_resolver.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
-import 'package:analyzer/src/utilities/extensions/object.dart';
 
-class MetadataResolver extends ThrowingAstVisitor2<void> {
+class MetadataResolver {
   final Linker _linker;
-  final Scope _containerScope;
   final LibraryBuilder _libraryBuilder;
-  final LibraryFragmentImpl _libraryFragment;
-  late Scope _scope;
+  final LinkingUnit _linkingUnit;
 
   /// The resolver for annotations, and the scope that it was created for.
   ///
@@ -25,326 +21,49 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   /// the same, for example for all annotations of members of a class.
   ({Scope scope, AstResolver resolver})? _astResolverCache;
 
-  new(this._linker, this._libraryFragment, this._libraryBuilder)
-    : _containerScope = _libraryFragment.scope {
-    _scope = _containerScope;
+  new(this._linker, this._libraryBuilder, this._linkingUnit);
+
+  void resolve() {
+    var libraryScope = _linkingUnit.fragment.scope;
+    for (var directive in _linkingUnit.node.directives) {
+      for (var annotation in directive.metadata) {
+        _resolveAnnotation(annotation, libraryScope);
+      }
+      if (directive is ExportDirectiveImpl) {
+        // We access export directive metadata while building scopes.
+        // But for the current library cycle the metadata was not resolved yet.
+        // Now that we resolved it, reset the cache.
+        directive.libraryExport!.metadata.resetCache();
+      }
+    }
+
+    for (var (:annotation, :scope) in _linkingUnit.declarationAnnotations) {
+      _resolveAnnotation(annotation, scope);
+    }
   }
 
-  /// The resolver for annotations in [_scope].
-  AstResolver get _astResolver {
+  /// Returns the resolver for annotations in [scope].
+  AstResolver _astResolver(Scope scope) {
     var cache = _astResolverCache;
-    if (cache != null && identical(cache.scope, _scope)) {
+    if (cache != null && identical(cache.scope, scope)) {
       return cache.resolver;
     }
 
     var resolver = AstResolver.forLinking(
       inheritance: _linker.inheritance,
-      libraryFragment: _libraryFragment,
-      nameScope: _scope,
+      libraryFragment: _linkingUnit.fragment,
+      nameScope: scope,
       analysisOptions: _libraryBuilder.kind.file.analysisOptions,
       enclosingClassElement: null,
       enclosingExecutableElement: null,
     );
-    _astResolverCache = (scope: _scope, resolver: resolver);
+    _astResolverCache = (scope: scope, resolver: resolver);
     return resolver;
   }
 
-  @override
-  void visitAnnotation(covariant AnnotationImpl node) {
-    var annotationElement = node.elementAnnotation;
-    if (annotationElement is ElementAnnotationImpl) {
-      _astResolver.resolveAnnotation(node);
+  void _resolveAnnotation(AnnotationImpl node, Scope scope) {
+    if (node.elementAnnotation is ElementAnnotationImpl) {
+      _astResolver(scope).resolveAnnotation(node);
     }
-  }
-
-  @override
-  void visitBlockEnumDeclarationBody(BlockEnumDeclarationBody node) {
-    node.visitChildren2(this);
-  }
-
-  @override
-  void visitBlockInstanceDeclarationBody(BlockInstanceDeclarationBody node) {
-    node.visitChildren2(this);
-  }
-
-  @override
-  void visitClassDeclaration2(covariant ClassDeclaration2Impl node) {
-    node.metadata.accept2(this);
-    node.namePart.typeParameters?.accept2(this);
-
-    _scope = node.bodyScope!;
-    try {
-      node.namePart
-          .tryCast<PrimaryConstructorDeclaration>()
-          ?.formalParameters
-          .accept2(this);
-      node.body.accept2(this);
-    } finally {
-      _scope = _containerScope;
-    }
-  }
-
-  @override
-  void visitClassTypeAlias2(ClassTypeAlias2 node) {
-    node.metadata.accept2(this);
-    node.typeParameters?.accept2(this);
-  }
-
-  @override
-  void visitCompilationUnit(CompilationUnit node) {
-    node.directives.accept2(this);
-    node.declarations2.accept2(this);
-  }
-
-  @override
-  void visitConstructorDeclaration2(ConstructorDeclaration2 node) {
-    node.metadata.accept2(this);
-    node.formalParameters.accept2(this);
-  }
-
-  @override
-  void visitEnumConstantDeclaration2(EnumConstantDeclaration2 node) {
-    node.metadata.accept2(this);
-  }
-
-  @override
-  void visitEnumDeclaration2(covariant EnumDeclaration2Impl node) {
-    node.metadata.accept2(this);
-    node.namePart.typeParameters?.accept2(this);
-
-    _scope = node.bodyScope!;
-    try {
-      node.namePart
-          .tryCast<PrimaryConstructorDeclaration>()
-          ?.formalParameters
-          .accept2(this);
-      node.body.accept2(this);
-    } finally {
-      _scope = _containerScope;
-    }
-  }
-
-  @override
-  void visitExportDirective(covariant ExportDirectiveImpl node) {
-    node.metadata.accept2(this);
-
-    // We access export directive metadata while building scopes.
-    // But for the current library cycle the metadata was not resolved yet.
-    // Now that we resolved it, reset the cache.
-    node.libraryExport!.metadata.resetCache();
-  }
-
-  @override
-  void visitExtensionDeclaration2(covariant ExtensionDeclaration2Impl node) {
-    node.metadata.accept2(this);
-    node.typeParameters?.accept2(this);
-
-    _scope = node.bodyScope!;
-    try {
-      node.body.accept2(this);
-    } finally {
-      _scope = _containerScope;
-    }
-  }
-
-  @override
-  void visitExtensionTypeDeclaration2(
-    covariant ExtensionTypeDeclaration2Impl node,
-  ) {
-    node.metadata.accept2(this);
-    node.namePart.typeParameters?.accept2(this);
-
-    _scope = node.bodyScope!;
-    try {
-      node.namePart
-          .tryCast<PrimaryConstructorDeclaration>()
-          ?.formalParameters
-          .accept2(this);
-      node.body.accept2(this);
-    } finally {
-      _scope = _containerScope;
-    }
-  }
-
-  @override
-  void visitFieldFormalParameter(FieldFormalParameter node) {
-    node.metadata.accept2(this);
-    if (node.functionTypedSuffix case var functionTypedSuffix?) {
-      functionTypedSuffix.formalParameters.accept2(this);
-    }
-  }
-
-  @override
-  void visitFieldsDeclaration(FieldsDeclaration node) {
-    node.metadata.accept2(this);
-  }
-
-  @override
-  void visitFormalParameterList(FormalParameterList node) {
-    node.requiredPositionalFormalParameters.accept2(this);
-    node.delimitedFormalParameters?.formalParameters.accept2(this);
-  }
-
-  @override
-  void visitFunctionTypeAlias2(FunctionTypeAlias2 node) {
-    node.metadata.accept2(this);
-    node.typeParameters?.accept2(this);
-    node.parameters.accept2(this);
-  }
-
-  @override
-  void visitGenericFunctionType(GenericFunctionType node) {
-    node.typeParameters?.accept2(this);
-    node.parameters.accept2(this);
-  }
-
-  @override
-  void visitGenericTypeAlias2(GenericTypeAlias2 node) {
-    node.metadata.accept2(this);
-    node.typeParameters?.accept2(this);
-    // TODO(eernst): Extend this visitor to visit types.
-    // E.g., `List<Function<@m X>()> Function()` is not included now.
-    var type = node.type;
-    if (type is GenericFunctionType) type.accept2(this);
-  }
-
-  @override
-  void visitGetterDeclaration(covariant GetterDeclarationImpl node) {
-    _visitMethodDeclaration(node);
-  }
-
-  @override
-  void visitImportDirective(ImportDirective node) {
-    node.metadata.accept2(this);
-  }
-
-  @override
-  void visitLibraryDirective(LibraryDirective node) {
-    node.metadata.accept2(this);
-  }
-
-  @override
-  void visitMethodDeclaration2(covariant MethodDeclaration2Impl node) {
-    _visitMethodDeclaration(node);
-  }
-
-  @override
-  void visitMixinDeclaration2(covariant MixinDeclaration2Impl node) {
-    node.metadata.accept2(this);
-    node.typeParameters?.accept2(this);
-
-    _scope = node.bodyScope!;
-    try {
-      node.body.accept2(this);
-    } finally {
-      _scope = _containerScope;
-    }
-  }
-
-  @override
-  void visitNameWithTypeParameters(NameWithTypeParameters node) {
-    node.typeParameters?.accept2(this);
-  }
-
-  @override
-  void visitOperatorDeclaration(covariant OperatorDeclarationImpl node) {
-    _visitMethodDeclaration(node);
-  }
-
-  @override
-  void visitPartDirective(PartDirective node) {
-    node.metadata.accept2(this);
-  }
-
-  @override
-  void visitPartOfDirective(PartOfDirective node) {
-    node.metadata.accept2(this);
-  }
-
-  @override
-  void visitPrimaryConstructorBody2(PrimaryConstructorBody2 node) {
-    node.metadata.accept2(this);
-  }
-
-  @override
-  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
-    node.typeParameters?.accept2(this);
-    node.formalParameters.accept2(this);
-  }
-
-  @override
-  void visitRegularFormalParameter(RegularFormalParameter node) {
-    node.metadata.accept2(this);
-    if (node.functionTypedSuffix case var functionTypedSuffix?) {
-      functionTypedSuffix.typeParameters?.accept2(this);
-      functionTypedSuffix.formalParameters.accept2(this);
-    }
-  }
-
-  @override
-  void visitSemicolonEnumDeclarationBody(SemicolonEnumDeclarationBody node) {}
-
-  @override
-  void visitSemicolonInstanceDeclarationBody(
-    SemicolonInstanceDeclarationBody node,
-  ) {}
-
-  @override
-  void visitSetterDeclaration(covariant SetterDeclarationImpl node) {
-    _visitMethodDeclaration(node);
-  }
-
-  @override
-  void visitSuperFormalParameter(SuperFormalParameter node) {
-    node.metadata.accept2(this);
-    if (node.functionTypedSuffix case var functionTypedSuffix?) {
-      functionTypedSuffix.formalParameters.accept2(this);
-    }
-  }
-
-  @override
-  void visitTopLevelFunctionDeclaration(
-    covariant TopLevelFunctionDeclarationImpl node,
-  ) {
-    node.metadata.accept2(this);
-    node.typeParameters?.accept2(this);
-    node.formalParameters.accept2(this);
-  }
-
-  @override
-  void visitTopLevelGetterDeclaration(
-    covariant TopLevelGetterDeclarationImpl node,
-  ) {
-    node.metadata.accept2(this);
-    node.recoveryFormalParameters?.accept2(this);
-  }
-
-  @override
-  void visitTopLevelSetterDeclaration(
-    covariant TopLevelSetterDeclarationImpl node,
-  ) {
-    node.metadata.accept2(this);
-    node.formalParameters.accept2(this);
-  }
-
-  @override
-  void visitTopLevelVariablesDeclaration(TopLevelVariablesDeclaration node) {
-    node.metadata.accept2(this);
-  }
-
-  @override
-  void visitTypeParameter(TypeParameter node) {
-    node.metadata.accept2(this);
-  }
-
-  @override
-  void visitTypeParameterList(TypeParameterList node) {
-    node.typeParameters.accept2(this);
-  }
-
-  void _visitMethodDeclaration(MethodDeclarationV1OriginImpl node) {
-    node.metadata.accept2(this);
-    node.writtenTypeParameters?.accept2(this);
-    node.writtenFormalParameters?.accept2(this);
   }
 }
