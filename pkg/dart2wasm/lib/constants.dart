@@ -621,7 +621,15 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType>
   @override
   w.ValueType visitUnevaluatedConstant(UnevaluatedConstant constant) {
     if (constant == ParameterInfo.defaultValueSentinel) {
-      constants.instantiateDummyValueConstant(b, expectedType);
+      // Use a non-null dummy instance as the sentinel so an explicitly passed
+      // `null` is not mistaken for an omitted argument (except for `Null`/
+      // `none`, which has no non-null value).
+      final sentinelType = switch (expectedType) {
+        w.RefType(:final heapType) when heapType != w.HeapType.none =>
+          expectedType.withNullability(false),
+        _ => expectedType,
+      };
+      constants.instantiateDummyValueConstant(b, sentinelType);
       return expectedType;
     }
     return super.visitUnevaluatedConstant(constant);
