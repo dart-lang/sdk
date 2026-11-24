@@ -14,11 +14,11 @@ T check<T>(C<List<T>> f) {
 void main() {
   var x =
       check
-      /*cfe.T :> int,T :> int*/
-      /*analyzer.T :> int*/ (
+      /*T :> int*/
+      (
         C
-        /*cfe.X <: List<_>,X <: List<int>,X <: List<int>*/
-        /*analyzer.X <: List<_>,X <: List<int>*/ ((List<int> x) {}),
+        /*X <: List<_>,X <: List<int>*/
+        ((List<int> x) {}),
       );
   print(x); // VM prints 42
 }

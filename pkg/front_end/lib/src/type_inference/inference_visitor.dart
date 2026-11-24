@@ -11157,19 +11157,20 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             expression,
             contextType,
           );
+          DartType type = expressionResult.inferredType;
           if (contextType is! UnknownType) {
-            expressionResult =
-                coerceExpressionForAssignment(
-                  contextType,
-                  expressionResult,
-                  internalNodeForTesting: node,
-                ) ??
-                expressionResult;
+            CoercionResult? coercionResult = coerceExpressionForAssignment(
+              contextType,
+              expressionResult,
+              internalNodeForTesting: node,
+            );
+            if (coercionResult != null) {
+              type = coercionResult.type;
+              expressionResult = coercionResult.result;
+            }
           }
 
-          positionalTypes[positionalIndex] =
-              expressionResult.postCoercionType ??
-              expressionResult.inferredType;
+          positionalTypes[positionalIndex] = type;
           positional[positionalIndex] = expressionResult.expression;
           positionalIndex++;
         case NamedRecordField():
@@ -11179,19 +11180,19 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             field.value,
             contextType,
           );
+          DartType type = expressionResult.inferredType;
           if (contextType is! UnknownType) {
-            expressionResult =
-                coerceExpressionForAssignment(
-                  contextType,
-                  expressionResult,
-                  internalNodeForTesting: node,
-                ) ??
-                expressionResult;
+            CoercionResult? coercionResult = coerceExpressionForAssignment(
+              contextType,
+              expressionResult,
+              internalNodeForTesting: node,
+            );
+            if (coercionResult != null) {
+              type = coercionResult.type;
+              expressionResult = coercionResult.result;
+            }
           }
           Expression expression = expressionResult.expression;
-          DartType type =
-              expressionResult.postCoercionType ??
-              expressionResult.inferredType;
           namedResults[field.name] = new NamedRecordResult(
             expression: extern.createNamedExpression(
               field.name,
@@ -11381,7 +11382,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             context.unwrapTypeSchemaView(),
             expressionResult,
             internalNodeForTesting: node,
-          ) ??
+          )?.result ??
           expressionResult;
     }
 

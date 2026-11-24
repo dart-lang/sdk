@@ -1,0 +1,23 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class B extends core::Object {
+  field self::A? _a = null;
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+  get a() → self::A {
+    self::A? value = this.{self::B::_a}{self::A?};
+    if(!(value == null))
+      return value{self::A};
+    return let self::A? #t1 = this.{self::B::_a} = self::createA() as{TypeError,ForDynamic} self::A? in #t1 == null ?{self::A} #t1 as{TypeError,ForDynamic} self::A : #t1{self::A};
+  }
+}
+static method createA() → dynamic
+  return new self::A::•();

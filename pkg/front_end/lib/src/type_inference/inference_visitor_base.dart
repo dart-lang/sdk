@@ -422,7 +422,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// If the expression is assignable without coercion, [inferenceResult]
   /// is returned unchanged. If no coercion is possible for the given types,
   /// `null` is returned.
-  ExpressionInferenceResult? coerceExpressionForAssignment(
+  CoercionResult? coerceExpressionForAssignment(
     DartType contextType,
     ExpressionInferenceResult inferenceResult, {
     int? fileOffset,
@@ -446,22 +446,30 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       internalNodeForTesting: internalNodeForTesting,
     );
 
+    CoercionResult? coercionResult;
     if (assignabilityResult.needsTearOff) {
       TypedTearoff typedTearoff = _tearOffCall(
         inferenceResult.expression,
         inferenceResult.inferredType,
         fileOffset,
       );
-      inferenceResult = new ExpressionInferenceResult(
+      coercionResult = new CoercionResult(
+        new ExpressionInferenceResult(
+          typedTearoff.tearoffType,
+          typedTearoff.tearoff,
+        ),
         typedTearoff.tearoffType,
-        typedTearoff.tearoff,
       );
     }
-    if (assignabilityResult.implicitInstantiation != null) {
-      inferenceResult = _applyImplicitInstantiation(
-        assignabilityResult.implicitInstantiation,
-        inferenceResult.inferredType,
-        inferenceResult.expression,
+    ImplicitInstantiation? implicitInstantiation =
+        assignabilityResult.implicitInstantiation;
+    if (implicitInstantiation != null) {
+      coercionResult = new CoercionResult(
+        _applyImplicitInstantiation(
+          implicitInstantiation,
+          coercionResult?.result ?? inferenceResult,
+        ),
+        implicitInstantiation.instantiatedType,
       );
     }
 
@@ -469,7 +477,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Expression expression = inferenceResult.expression;
     switch (assignabilityResult.kind) {
       case AssignabilityKind.assignable:
-        return inferenceResult;
+        return coercionResult;
       case AssignabilityKind.assignableCast:
         // Insert an implicit downcast.
         Expression asExpression =
@@ -478,10 +486,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               ..isForDynamic = expressionType is DynamicType
               ..fileOffset = fileOffset;
         storeExpressionInfo(asExpression, getExpressionInfo(expression));
-        return new ExpressionInferenceResult(
-          expressionType,
-          asExpression,
-          postCoercionType: initialContextType,
+        return new CoercionResult(
+          new ExpressionInferenceResult(expressionType, asExpression),
+          initialContextType,
         );
       case AssignabilityKind.unassignable:
         // Error: not assignable.  Perform error recovery.
@@ -554,15 +561,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
     if (assignabilityResult.implicitInstantiation != null) {
       inferenceResult = _applyImplicitInstantiation(
-        assignabilityResult.implicitInstantiation,
-        inferenceResult.inferredType,
-        inferenceResult.expression,
+        assignabilityResult.implicitInstantiation!,
+        inferenceResult,
       );
     }
 
     DartType expressionType = inferenceResult.inferredType;
     Expression expression = inferenceResult.expression;
-    DartType? postCoercionType = inferenceResult.postCoercionType;
     Expression? result;
     switch (assignabilityResult.kind) {
       case AssignabilityKind.assignable:
@@ -639,11 +644,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
     if (result != null) {
       storeExpressionInfo(result, getExpressionInfo(expression));
-      return new ExpressionInferenceResult(
-        expressionType,
-        result,
-        postCoercionType: postCoercionType,
-      );
+      return new ExpressionInferenceResult(expressionType, result);
     } else {
       return inferenceResult;
     }
@@ -683,7 +684,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         isVoidAllowed: isVoidAllowed,
         coerceExpression: coerceExpression,
         internalNodeForTesting: assignedNode,
-      );
+      )?.result;
       if (coercionResult != null) {
         return coercionResult;
       }
@@ -2100,7 +2101,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               argumentResult,
               isVoidAllowed: expectedType is VoidType,
               internalNodeForTesting: argumentInfo.argument,
-            );
+            )?.result;
 
         if (coercionResult != null) {
           argumentResult = coercionResult;
@@ -4878,81 +4879,80 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   });
 
   ExpressionInferenceResult _applyImplicitInstantiation(
-    ImplicitInstantiation? implicitInstantiation,
-    DartType tearOffType,
-    Expression expression,
+    ImplicitInstantiation implicitInstantiation,
+    ExpressionInferenceResult expressionInferenceResult,
   ) {
-    if (implicitInstantiation != null) {
-      FunctionType uninstantiatedType = implicitInstantiation.functionType;
+    DartType tearOffType = expressionInferenceResult.inferredType;
+    Expression expression = expressionInferenceResult.expression;
+    FunctionType uninstantiatedType = implicitInstantiation.functionType;
 
-      DartTypeList typeArguments = implicitInstantiation.typeArguments;
-      checkBoundsInInstantiation(
-        uninstantiatedType,
-        typeArguments,
-        expression.fileOffset,
-        inferred: true,
+    DartTypeList typeArguments = implicitInstantiation.typeArguments;
+    checkBoundsInInstantiation(
+      uninstantiatedType,
+      typeArguments,
+      expression.fileOffset,
+      inferred: true,
+    );
+
+    if (expression is TypedefTearOff) {
+      FunctionTypeInstantiator instantiator =
+          new FunctionTypeInstantiator.fromIterables(
+            expression.structuralParameters,
+            typeArguments,
+          );
+      final DartTypeList targetTypeArguments = expression.typeArguments;
+      typeArguments = new DartTypeList.generate(
+        targetTypeArguments.length,
+        (i) => instantiator.substitute(targetTypeArguments[i]),
+      );
+      expression = expression.expression;
+    } else {
+      LoweredTypedefTearOff? loweredTypedefTearOff =
+          LoweredTypedefTearOff.fromExpression(expression);
+      if (loweredTypedefTearOff != null) {
+        Substitution substitution = Substitution.fromPairs(
+          loweredTypedefTearOff.typedefTearOff.function.typeParameters,
+          typeArguments,
+        );
+        typeArguments = new DartTypeList.generate(
+          loweredTypedefTearOff.typeArguments.length,
+          (i) => substitution.substituteType(
+            loweredTypedefTearOff.typeArguments[i],
+          ),
+        );
+        expression = loweredTypedefTearOff.targetTearOff;
+      }
+    }
+    tearOffType = implicitInstantiation.instantiatedType;
+    if (uninstantiatedType.isPotentiallyNullable) {
+      // Replace expression with:
+      // `let t = expression in t == null ? null : t<...>`
+      CachedExpression cache = extern.createCachedExpression(
+        expression: expression,
+        type: uninstantiatedType,
       );
 
-      if (expression is TypedefTearOff) {
-        FunctionTypeInstantiator instantiator =
-            new FunctionTypeInstantiator.fromIterables(
-              expression.structuralParameters,
-              typeArguments,
-            );
-        final DartTypeList targetTypeArguments = expression.typeArguments;
-        typeArguments = new DartTypeList.generate(
-          targetTypeArguments.length,
-          (i) => instantiator.substitute(targetTypeArguments[i]),
-        );
-        expression = expression.expression;
-      } else {
-        LoweredTypedefTearOff? loweredTypedefTearOff =
-            LoweredTypedefTearOff.fromExpression(expression);
-        if (loweredTypedefTearOff != null) {
-          Substitution substitution = Substitution.fromPairs(
-            loweredTypedefTearOff.typedefTearOff.function.typeParameters,
-            typeArguments,
-          );
-          typeArguments = new DartTypeList.generate(
-            loweredTypedefTearOff.typeArguments.length,
-            (i) => substitution.substituteType(
-              loweredTypedefTearOff.typeArguments[i],
-            ),
-          );
-          expression = loweredTypedefTearOff.targetTearOff;
-        }
-      }
-      tearOffType = implicitInstantiation.instantiatedType;
-      if (uninstantiatedType.isPotentiallyNullable) {
-        // Replace expression with:
-        // `let t = expression in t == null ? null : t<...>`
-        CachedExpression cache = extern.createCachedExpression(
-          expression: expression,
-          type: uninstantiatedType,
-        );
+      Expression nullCheck = new EqualsNull(
+        new VariableGet(cache.variable)..fileOffset = expression.fileOffset,
+      )..fileOffset = expression.fileOffset;
 
-        Expression nullCheck = new EqualsNull(
-          new VariableGet(cache.variable)..fileOffset = expression.fileOffset,
-        )..fileOffset = expression.fileOffset;
-
-        ConditionalExpression conditional = new ConditionalExpression(
-          nullCheck,
-          extern.createNullLiteral(fileOffset: expression.fileOffset),
-          new Instantiation(
-            new VariableGet(cache.variable, uninstantiatedType.toNonNull()),
-            typeArguments,
-          )..fileOffset = expression.fileOffset,
-          tearOffType,
-        );
-        expression = extern.createLet(
-          cache: cache,
-          body: conditional,
-          fileOffset: expression.fileOffset,
-        );
-      } else {
-        expression = new Instantiation(expression, typeArguments)
-          ..fileOffset = expression.fileOffset;
-      }
+      ConditionalExpression conditional = new ConditionalExpression(
+        nullCheck,
+        extern.createNullLiteral(fileOffset: expression.fileOffset),
+        new Instantiation(
+          new VariableGet(cache.variable, uninstantiatedType.toNonNull()),
+          typeArguments,
+        )..fileOffset = expression.fileOffset,
+        tearOffType,
+      );
+      expression = extern.createLet(
+        cache: cache,
+        body: conditional,
+        fileOffset: expression.fileOffset,
+      );
+    } else {
+      expression = new Instantiation(expression, typeArguments)
+        ..fileOffset = expression.fileOffset;
     }
     return new ExpressionInferenceResult(tearOffType, expression);
   }
@@ -4972,11 +4972,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       context,
       internalNodeForTesting: tearOffNode,
     );
-    return _applyImplicitInstantiation(
-      implicitInstantiation,
-      tearoffType,
-      expression,
-    );
+    ExpressionInferenceResult expressionInferenceResult =
+        new ExpressionInferenceResult(tearoffType, expression);
+    return implicitInstantiation != null
+        ? _applyImplicitInstantiation(
+            implicitInstantiation,
+            expressionInferenceResult,
+          )
+        : expressionInferenceResult;
   }
 
   /// True if the returned [type] has non-covariant occurrences of any of
@@ -6319,7 +6322,7 @@ extension on List<_ArgumentInfo> {
             argumentInfo.argumentInferenceResult!;
         argumentInfo.inferredExpression = _hoist(
           inferenceResult.expression,
-          inferenceResult.postCoercionType ?? inferenceResult.inferredType,
+          inferenceResult.inferredType,
           hoistedExpressions,
         );
       }

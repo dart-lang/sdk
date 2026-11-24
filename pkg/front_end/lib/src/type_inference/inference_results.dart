@@ -528,25 +528,29 @@ class ExpressionInferenceResult {
   /// The inferred expression.
   final Expression expression;
 
-  /// More precise type of the expression after coercion.
-  ///
-  /// Consider the following code:
-  ///
-  ///   dynamic foo = 3;
-  ///   int bar = foo;
-  ///
-  /// In the example above `foo` is coerced to `foo as int`, but
-  /// [inferredType]` of `foo` stays `dynamic`.  In some situations, like
-  /// coercing elements of record literals, we want to know the more precise
-  /// type of the expression after coercion, `int` in the example above.
-  final DartType? postCoercionType;
+  // TODO(johnniwinther): Support passing a "lowered type" holding the type
+  // after implicit type cast of `dynamic`. This can be used to improve the
+  // precision of lowered code by avoiding unnecessary recasts of dynamic
+  // variables.
 
-  new(this.inferredType, this.expression, {this.postCoercionType = null})
+  new(this.inferredType, this.expression)
     : assert(isKnown(inferredType), "$inferredType is not known.");
 
   @override
   String toString() => 'ExpressionInferenceResult($inferredType,$expression)';
 }
+
+/// The result of a coercion.
+class CoercionResult(
+  /// The coerced expression and its static type.
+  final ExpressionInferenceResult result,
+
+  /// The type to which the expression was coerced.
+  ///
+  /// This is the same as the static type in [result] except for implicit cast
+  /// from dynamic where the static type is still `dynamic`.
+  final DartType type,
+);
 
 /// The result of inference of an [InternalElement].
 class ElementInferenceResult({

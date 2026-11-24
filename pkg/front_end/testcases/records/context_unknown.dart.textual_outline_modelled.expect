@@ -1,0 +1,19 @@
+import 'package:expect/static_type_helper.dart';
+
+class C {
+  int call() => 0;
+}
+
+void contextRecordFunctionReturningUnknown<T>((T Function(),) x) {}
+
+void contextRecordListOfUnknown<T>((List<T>,) x) {}
+
+void contextRecordNamedFunctionReturningUnknown<T>(({T Function() f1}) x) {}
+
+void contextRecordNamedListOfUnknown<T>(({List<T> f1}) x) {}
+
+void contextRecordNamedUnknown<T>(({T f1}) x) {}
+
+void contextRecordUnknown<T>((T,) x) {}
+
+void main() {}
