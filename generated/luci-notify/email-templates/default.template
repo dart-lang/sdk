@@ -1,32 +1,48 @@
 Dart build {{ .Build.Status }} on {{ .Build.Builder.Builder }}
 
 {{ template "summary" .Build }}
-{{/* If the build is a failure, show failed steps. */}}
+{{/* If the build is a failure, show build summary, blamelist, and failed steps. */}}
 {{ if ne .Build.Status 12 -}}
-{{- if .Build.Input.GitilesCommit -}}
-<ul>
-<li>
-<a href="https://dart-ci.firebaseapp.com/#{{- .Build.Input.GitilesCommit.Id -}}">Test results</a>.
-</li>
-</ul>
-See the documentation at
-<a href="https://goto.google.com/dart-status-file-free-workflow">
-go/dart-status-file-free-workflow</a>.
-<br>
-<br>
-{{end -}}
+{{- if .Build.SummaryMarkdown }}
+{{ .Build.SummaryMarkdown | markdown }}
+{{- end }}
+{{- if and .Build.Input .Build.Input.GitilesCommit }}
+<p>
+<a href="https://ci.chromium.org/b/{{ .Build.Id }}/blamelist">Blamelist</a>
+(commit <a href="https://{{ .Build.Input.GitilesCommit.Host }}/{{ .Build.Input.GitilesCommit.Project }}/+/{{ .Build.Input.GitilesCommit.Id }}">{{ printf "%.10s" .Build.Input.GitilesCommit.Id }}</a> in <code>{{ .Build.Input.GitilesCommit.Project }}</code>)
+</p>
+{{- end }}
+{{- $hasFailedSteps := false }}
+{{- range $step := .Build.Steps }}
+{{- if or (eq $step.Status 20) (eq $step.Status 36) }}
+{{- if not $hasFailedSteps }}
+{{- $hasFailedSteps = true }}
 Failed Steps:
 <ul>
-{{ range $step := .Build.Steps -}}
-{{ if ne $step.Status 12 -}}
-<li>{{ $step.Name }}</li>
-<ul>
-  {{ range $log := .Logs -}}
-  <li><a href="{{ $log.ViewUrl }}">{{ $log.Name }}</a></li>
-  {{ end -}}
+{{- end }}
+  <li>{{ $step.Name }}
+    {{- if $step.SummaryMarkdown }}
+    {{ $step.SummaryMarkdown | markdown }}
+    {{- end }}
+    {{- if $step.Logs }}
+    <ul>
+      {{- range $log := $step.Logs }}
+      <li><a href="{{ $log.ViewUrl }}">{{ $log.Name }}</a></li>
+      {{- end }}
+    </ul>
+    {{- end }}
+  </li>
+{{- end }}
+{{- end }}
+{{- if $hasFailedSteps }}
 </ul>
-{{ end -}}
-{{ end -}}
-</ul>
+{{- end }}
+<p style="color: #666666; font-size: 12px;">
+{{- if and .Build.Input .Build.Input.GitilesCommit }}
+You received this email because you are on this builder's notification list or authored a commit in its <a href="https://ci.chromium.org/b/{{ .Build.Id }}/blamelist">blamelist</a>.
+{{- else }}
+You received this email because you are on this builder's notification list.
+{{- end }}<br>
 Completed at: {{ .Build.EndTime | time }}
+</p>
 {{ end -}}
