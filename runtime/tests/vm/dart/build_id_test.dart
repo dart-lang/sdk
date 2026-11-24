@@ -70,9 +70,9 @@ void main() {
   final buildId = NativeRuntime.buildId;
 
   if (Platform.script.toString().endsWith(".dll")) {
-    // The build ID of a DLL compiled from a PE/COFF snapshot is the signature
-    // of its PDB. DLLs assembled from assembly snapshots are linked without
-    // debugging information, and have no build ID.
+    // The build ID of a DLL, compiled from a PE/COFF or an assembly snapshot,
+    // is the signature of its PDB.
+    Expect.isNotNull(buildId);
     Expect.equals(pdbSignature(Platform.script.toFilePath()), buildId);
   } else if (isAOTRuntime) {
     Expect.isNotNull(buildId);

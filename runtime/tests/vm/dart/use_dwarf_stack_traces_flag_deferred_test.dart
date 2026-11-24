@@ -43,7 +43,8 @@ Future<void> main() async {
     [
       // Don't run ELF on MacOS since that requires allow-unsigned-executable-memory.
       if (!Platform.isMacOS) runElf,
-      // Don't run assembly on Windows since DLLs don't contain DWARF.
+      // Don't run assembly on Windows since there is no separate debugging
+      // information, which the manifest should refer to.
       if (!Platform.isWindows) runAssembly,
     ],
   );

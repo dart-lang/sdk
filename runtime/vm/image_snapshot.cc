@@ -12,7 +12,9 @@
 #include "platform/unaligned.h"
 #include "vm/bss_relocs.h"
 #include "vm/class_id.h"
+#include "vm/codeview.h"
 #include "vm/compiler/runtime_api.h"
+#include "vm/debug_info_stream.h"
 #include "vm/dwarf.h"
 #include "vm/elf.h"
 #include "vm/hash.h"
@@ -167,6 +169,13 @@ static_assert(offsetof(pe::codeview_pdb70_record, age) ==
                   offsetof(pe::codeview_pdb70_record, guid) +
                       sizeof(pe::codeview_pdb70_record::guid),
               "PE build ID is not contiguous");
+
+OS::BuildId Image::PEBuildId(const uint8_t* image) {
+  if (auto* const record = PECodeViewRecord(image)) {
+    return {kPEBuildIdLength, record->guid, OS::BuildId::Format::kPEGUID};
+  }
+  return {0, nullptr};
+}
 #endif
 
 OS::BuildId Image::build_id() const {
@@ -174,10 +183,7 @@ OS::BuildId Image::build_id() const {
   ASSERT(extra_info_ != nullptr);
 #if defined(DART_HOST_OS_WINDOWS)
   if (compiled_to_pe()) {
-    if (auto* const record = PECodeViewRecord(shared_object_start())) {
-      return {kPEBuildIdLength, record->guid, OS::BuildId::Format::kPEGUID};
-    }
-    return {0, nullptr};
+    return PEBuildId(shared_object_start());
   }
 #endif
   auto* const start = build_id_start();
@@ -1259,10 +1265,6 @@ static inline Dwarf* AddDwarfIfUnstripped(
     bool strip,
     SharedObjectWriter* writer,
     const Trie<const char>* deobfuscation_trie) {
-#if defined(DART_TARGET_OS_WINDOWS)
-  // PE uses PDB instead of DWARF.
-  return nullptr;
-#else
   if (!strip) {
     if (writer != nullptr) {
       // Reuse the existing DWARF object.
@@ -1272,7 +1274,6 @@ static inline Dwarf* AddDwarfIfUnstripped(
     return new (zone) Dwarf(zone, deobfuscation_trie);
   }
   return nullptr;
-#endif
 }
 
 AssemblyImageWriter::AssemblyImageWriter(
@@ -1301,6 +1302,10 @@ AssemblyImageWriter::AssemblyImageWriter(
 
 void AssemblyImageWriter::Finalize() {
   if (assembly_dwarf_ != nullptr) {
+#if defined(DART_TARGET_OS_WINDOWS)
+    // PE uses PDB instead of DWARF.
+    WriteCodeView();
+#else
     DwarfAssemblyStream dwarf_stream(zone_, assembly_stream_,
                                      label_to_symbol_name_);
     dwarf_stream.AbbreviationsPrologue();
@@ -1309,6 +1314,7 @@ void AssemblyImageWriter::Finalize() {
     assembly_dwarf_->WriteDebugInfo(&dwarf_stream);
     dwarf_stream.LineNumberProgramPrologue();
     assembly_dwarf_->WriteLineNumberProgram(&dwarf_stream);
+#endif
   }
   if (debug_so_ != nullptr) {
     TIMELINE_DURATION(thread_, Isolate, "FinalizeDebugInfo");
@@ -1378,6 +1384,42 @@ void AssemblyImageWriter::Finalize() {
   }
   assembly_stream_->WriteString("\"\n");
 #endif
+}
+
+void AssemblyImageWriter::WriteCodeView() {
+  ZoneWriteStream debug_s_stream(zone_, DebugInfoStream::kInitialBufferSize);
+  DebugInfoStream debug_s(zone_, &debug_s_stream);
+  ZoneWriteStream debug_t_stream(zone_, DebugInfoStream::kInitialBufferSize);
+  DebugInfoStream debug_t(zone_, &debug_t_stream);
+  CodeViewBuilder codeview(zone_, assembly_dwarf_, label_to_symbol_name_,
+                           &debug_s, &debug_t);
+  codeview.Build();
+
+  // Like compilers do, write the records as data, with the relocated fields
+  // written by directives that create the relocations.
+  assembly_stream_->WriteString(".section .debug$S,\"dr\"\n");
+  const uint8_t* const bytes = debug_s.buffer();
+  intptr_t position = 0;
+  for (const auto& relocation : codeview.relocations()) {
+    ASSERT(relocation.offset >= position);
+    WriteBytes(bytes + position, relocation.offset - position);
+    const char* const symbol = label_to_symbol_name_.Lookup(relocation.label);
+    ASSERT(symbol != nullptr);
+    switch (relocation.kind) {
+      case CodeViewBuilder::Relocation::Kind::kSectionOffset:
+        assembly_stream_->Printf(".secrel32 \"%s\"\n", symbol);
+        position = relocation.offset + sizeof(uint32_t);
+        break;
+      case CodeViewBuilder::Relocation::Kind::kSectionIndex:
+        assembly_stream_->Printf(".secidx \"%s\"\n", symbol);
+        position = relocation.offset + sizeof(uint16_t);
+        break;
+    }
+  }
+  WriteBytes(bytes + position, debug_s.bytes_written() - position);
+
+  assembly_stream_->WriteString(".section .debug$T,\"dr\"\n");
+  WriteBytes(debug_t.buffer(), debug_t.bytes_written());
 }
 
 void ImageWriter::SnapshotTextObjectNamer::AddNonUniqueNameFor(
@@ -1922,7 +1964,8 @@ intptr_t AssemblyImageWriter::WriteBytes(const void* bytes, intptr_t size) {
   for (auto cursor = reinterpret_cast<const compiler::target::word*>(start);
        cursor < reinterpret_cast<const compiler::target::word*>(end_of_words);
        cursor++) {
-    WriteTargetWord(*cursor);
+    // [bytes] may not be word aligned.
+    WriteTargetWord(LoadUnaligned(cursor));
   }
   auto const end = start + size;
   if (end != end_of_words) {

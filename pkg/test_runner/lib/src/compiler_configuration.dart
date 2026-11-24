@@ -1217,6 +1217,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       }
       ldFlags.add('-nostdlib');
       ldFlags.add('-Wl,/NOENTRY');
+      // Put the debugging information in a PDB.
+      ldFlags.add('-Wl,/DEBUG');
     } else {
       throw "Platform not supported: ${Platform.operatingSystem}";
     }

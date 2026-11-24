@@ -282,6 +282,7 @@ static constexpr uint8_t CV_CFL_RUST = 0x15;
 
 // Machine for S_COMPILE3.
 static constexpr uint16_t CV_CFL_X64 = 0xD0;
+static constexpr uint16_t CV_CFL_ARM64 = 0xF6;
 
 // Subsection (kind/size) header. Each subsection in .debug$S starts with this
 // followed by `length` bytes of payload, aligned to 4 on completion.
