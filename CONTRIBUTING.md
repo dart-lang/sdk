@@ -2,6 +2,10 @@ Want to contribute? Great!
 
 You can help the Dart project in many ways, by [giving feedback](#contributing-feedback), [improving documentation](#contributing-to-documentation), [contributing code](#contributing-code), or asking and answering [Dart questions on StackOverflow](https://stackoverflow.com/questions/tagged/dart).
 
+Dart follows a _request for comments_ (RFC) process [documented here](https://dart.googlesource.com/rfc). You can participate in it by providing feedback on active RFCs or propose new RFCs yourself to gather feedback from the Dart team on your planned code contributions. Note that [certain changes][when-to-use-rfc] to the Dart SDK require an RFC to be approved before any code can be submitted.
+
+[when-to-use-rfc]: https://dart.googlesource.com/rfc/+/refs/heads/main/rfcs/0001/0001_RFC_process.md#when-to-use-the-process
+
 # Contributing feedback
 
 The Dart projects tracks everything from features to bugs using GitHub issues. These are stored across a number of GitHub repos. Start by locating the relevant repo:
@@ -17,8 +21,6 @@ Once you have located the repo, you can contribute feedback in several ways:
 - **File a new issue**: If you've found a problem or bug in existing code, start by searching the current issues to see if it's already reported. If not, you can file a new issue.
 
 - **Upvote existing issue**: If you're experiencing an issue that has already been reported, or want to indicate interest in an issue tracking a new feature, consider upvoting it to help the Dart team understand its importance. You can upvote an issue by locating it in the GitHub issue tracker, and pressing the "thumbs up" reaction on the issue's top-most comment. Avoid otherwise empty +1, emoji, or similar comments. The Dart team reviews the highest voted issues on a regular basis for consideration into our roadmap.
-
-**Note**: Dart currently does _not_ have a formal *RFC* (request for comments) process to propose larger changes. We hope to add this soon.
 
 # Contributing to documentation
 
@@ -43,6 +45,8 @@ Please read the instructions below carefully (including [the small print](#the-s
 Before we can use your code, you must sign the [Google Individual Contributor License Agreement](https://developers.google.com/open-source/cla/individual) (CLA), which you can do online.  The CLA is necessary mainly because you own the copyright to your changes, even after your contribution becomes part of our codebase, so we need your permission to use and distribute your code.  We also need to be sure of various other things—for instance that you'll tell us if you know that your code infringes on other people's patents.  You don't have to sign the CLA until after you've submitted your code for review and a member has approved it, but you must do it before we can put your code into our codebase.
 
 Before you start working on a larger contribution, you should get in touch with us first through the  [Dart Issue Tracker](https://dartbug.com) with your idea so that we can help out and possibly guide you. Coordinating up front makes it much easier to avoid frustration later on.
+
+Certain types of changes [require an RFC][when-to-use-rfc] to be approved before the change can be implemented. In general we encourage authoring an RFC for any change which requires non-trivial design involving multiple stakeholders across the Dart project.
 
 All submissions, including submissions by project members, require review.  We use the same code-review tools and process as the chromium project.
 
