@@ -1,3 +1,13 @@
+## 3.14.2
+
+This is a patch release that:
+
+- Fixes `Process.start` and `Process.run` failing with `ENOENT` on macOS
+  versions before macOS 26 when `executable` is a relative path containing
+  `/` which resolves against `workingDirectory`. (issue [#64956])
+
+[#64956]: https://github.com/dart-lang/sdk/issues/64956
+
 ## 3.14.1
 
 **Released on:** 2026-11-17

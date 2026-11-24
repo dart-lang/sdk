@@ -378,9 +378,19 @@ class ProcessStarter {
         &attr, POSIX_SPAWN_CLOEXEC_DEFAULT |
                    (Process::ModeIsAttached(mode_) ? 0 : POSIX_SPAWN_SETSID)));
 
-    return posix_spawnp(pid, path_, &facts, &attr,
-                        const_cast<char* const*>(program_arguments_),
-                        program_environment_);
+    auto argv = const_cast<char* const*>(program_arguments_);
+
+    // posix_spawnp in macOS versions before macOS 26 returns ENOENT for paths
+    // containing '/' which do not resolve against the current working
+    // directory of the caller, even if the underlying posix_spawn call has
+    // succeeded (e.g. because the path resolves against the directory set
+    // via posix_spawn_file_actions_addchdir_np). Such paths do not require
+    // PATH lookup, so call posix_spawn directly.
+    // See https://github.com/dart-lang/sdk/issues/64956.
+    if (strchr(path_, '/') != nullptr) {
+      return posix_spawn(pid, path_, &facts, &attr, argv, program_environment_);
+    }
+    return posix_spawnp(pid, path_, &facts, &attr, argv, program_environment_);
 #undef TRY
   }
 
