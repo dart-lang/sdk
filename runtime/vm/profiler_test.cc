@@ -2572,6 +2572,59 @@ void main() {
   }
 }
 
+ISOLATE_UNIT_TEST_CASE(Profiler_TakeSamplesConsumesCompletedBlocksOnly) {
+  Dart_StopProfiling();
+  Isolate* isolate = thread->isolate();
+  isolate->set_current_sample_block(nullptr);
+  isolate->TakeHasCompletedBlocks();
+
+  SampleBlockBufferOverrideScope sbbos(new SampleBlockBuffer(3, 2));
+  SampleBlockBuffer* sample_buffer = Profiler::sample_block_buffer();
+
+  auto add_sample = [&](int64_t timestamp) {
+    Sample* s = sample_buffer->ReserveCPUSample(isolate);
+    EXPECT_NOTNULL(s);
+    s->Init(isolate->main_port(), timestamp, OSThread::kInvalidThreadId);
+    s->SetAt(0, kValidPc);
+    s->set_thread_task(Thread::kMutatorTask);
+  };
+
+  // Two samples fill block 0; the third allocates block 1 and marks block 0
+  // completed.
+  add_sample(10);
+  add_sample(20);
+  add_sample(30);
+  EXPECT(isolate->TakeHasCompletedBlocks());
+
+  StackZone zone(thread);
+  NoAllocationSampleFilter taking_filter(isolate->main_port(),
+                                         Thread::kMutatorTask, -1, -1,
+                                         /*take_samples=*/true);
+
+  // Consumes only completed block 0 without flushing active block 1 or
+  // re-arming has_completed_blocks.
+  ProcessedSampleBuffer* batch1 =
+      sample_buffer->BuildProcessedSampleBuffer(isolate, &taking_filter);
+  EXPECT_EQ(2, batch1->length());
+  EXPECT(!isolate->TakeHasCompletedBlocks());
+
+  // Completed block 0 was freed, so a second taking read sees 0 samples.
+  ProcessedSampleBuffer* batch2 =
+      sample_buffer->BuildProcessedSampleBuffer(isolate, &taking_filter);
+  EXPECT_EQ(0, batch2->length());
+
+  // A non-taking read flushes active block 1 and sees the remaining sample.
+  NoAllocationSampleFilter non_taking_filter(isolate->main_port(),
+                                             Thread::kMutatorTask, -1, -1);
+  ProcessedSampleBuffer* batch3 =
+      sample_buffer->BuildProcessedSampleBuffer(isolate, &non_taking_filter);
+  EXPECT_EQ(1, batch3->length());
+  EXPECT_EQ(30, batch3->At(0)->timestamp());
+
+  isolate->set_current_sample_block(nullptr);
+  isolate->TakeHasCompletedBlocks();
+}
+
 #endif  // !PRODUCT
 
 }  // namespace dart

@@ -83,6 +83,19 @@ expected to see a track descriptor for every track:
   );
 
   if (withProfiler) {
+    final perfSamples = <(int, int)>[
+      for (final packet in traceData.trace.packet)
+        if (packet.hasPerfSample())
+          (packet.perfSample.tid, packet.timestamp.toInt()),
+    ];
+    final uniqueCount = perfSamples.toSet().length;
+    Expect.isTrue(perfSamples.isNotEmpty);
+    Expect.equals(
+      uniqueCount,
+      perfSamples.length,
+      'Expected no duplicate (tid, timestamp) PerfSample packets '
+      '(unique=$uniqueCount, total=${perfSamples.length})',
+    );
     Expect.isTrue(
       traceData.hasSeenStack([
         'testPerfettoRecorder',

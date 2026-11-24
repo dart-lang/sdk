@@ -2707,8 +2707,8 @@ void Timeline::DrainCompletedSampleBlocksIntoRecorder(
   StackZone zone(thread);
   Profile profile;
   NoAllocationSampleFilter filter(isolate->main_port(), Thread::kMutatorTask,
-                                  streaming_start_micros,
-                                  streaming_stop_micros);
+                                  streaming_start_micros, kMaxInt64,
+                                  /*take_samples=*/true);
   profile.Build(thread, isolate, &filter, Profiler::sample_block_buffer());
 #endif
 

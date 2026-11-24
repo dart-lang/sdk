@@ -1004,11 +1004,13 @@ class NoAllocationSampleFilter : public SampleFilter {
   NoAllocationSampleFilter(Dart_Port port,
                            intptr_t thread_task_mask,
                            int64_t time_origin_micros,
-                           int64_t time_extent_micros)
+                           int64_t time_extent_micros,
+                           bool take_samples = false)
       : SampleFilter(port,
                      thread_task_mask,
                      time_origin_micros,
-                     time_extent_micros) {}
+                     time_extent_micros,
+                     take_samples) {}
 
   bool FilterSample(Sample* sample) { return !sample->is_allocation_sample(); }
 };
