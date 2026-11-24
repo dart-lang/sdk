@@ -301,8 +301,8 @@ class _AnalysisServerClient {
   }
 
   Future<void> start({bool setAnalysisRoots = true}) async {
-    var process = await _startDartProcess(_sdk, [
-      _sdk.analysisServerSnapshot,
+    var process = await _startProcess(_sdk, [
+      _sdk.analysisServerAotSnapshot,
       '--${Driver.suppressAnalyticsFlag}',
       '--${Driver.clientIdOption}=completion-metrics-client',
       '--sdk',
@@ -456,17 +456,17 @@ class _AnalysisServerClient {
     return _requestCompleters[id]!.future;
   }
 
-  /// A utility method to start a Dart VM instance with the given arguments and an
-  /// optional current working directory.
+  /// A utility method to start the analysis server AOT snapshot with the given
+  /// arguments and an optional current working directory.
   ///
   /// [arguments] should contain the snapshot path.
-  Future<Process> _startDartProcess(
+  Future<Process> _startProcess(
     _Sdk sdk,
     List<String> arguments, {
     String? cwd,
   }) {
-    logger.trace('${sdk.dart} ${arguments.join(' ')}');
-    return Process.start(sdk.dart, arguments, workingDirectory: cwd);
+    logger.trace('${sdk.dartAotRuntime} ${arguments.join(' ')}');
+    return Process.start(sdk.dartAotRuntime, arguments, workingDirectory: cwd);
   }
 
   StreamController<Map<String, dynamic>?> _streamController(String streamId) {
@@ -632,17 +632,18 @@ class _Sdk {
 
   new _(this.sdkPath);
 
-  String get analysisServerSnapshot => path.absolute(
+  String get analysisServerAotSnapshot => path.absolute(
     sdkPath,
     'bin',
     'snapshots',
-    'analysis_server.dart.snapshot',
+    'analysis_server_aot.dart.snapshot',
   );
 
-  // Assume that we want to use the same Dart executable that we used to spawn
-  // DartDev. We should be able to run programs with out/ReleaseX64/dart even
-  // if the SDK isn't completely built.
-  String get dart => Platform.resolvedExecutable;
+  String get dartAotRuntime => path.absolute(
+    sdkPath,
+    'bin',
+    Platform.isWindows ? 'dartaotruntime.exe' : 'dartaotruntime',
+  );
 
   static _Sdk _createSingleton() {
     // Find SDK path.
