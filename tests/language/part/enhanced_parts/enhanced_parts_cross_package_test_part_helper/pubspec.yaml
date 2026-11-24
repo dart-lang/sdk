@@ -1,0 +1,14 @@
+name: enhanced_parts_cross_package_test_part_helper
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+environment:
+  sdk: ^3.10.0-0
+
+Description: >-
+ Exists to have files that belong to different packages
+ for enhanced parts tests.
+
+resolution: workspace
+
+dependencies:
+  enhanced_parts_cross_package_test_lib_helper: any

@@ -90,6 +90,12 @@ Future<void> main(List<String> args) async {
     help: "Update error expectations for given front ends.",
     allowed: sources,
   );
+  parser.addFlag(
+    "single-test",
+    help:
+        "Test each file by itself in the CFE. "
+        "Use if parts are not attributed correctly.",
+  );
 
   var results = parser.parse(args);
 
@@ -106,6 +112,7 @@ Future<void> main(List<String> args) async {
 
   var includeContext = results["context"] as bool;
   var onlyStaticErrorTests = results["only-static-error-tests"] as bool;
+  var cfeSingleTest = results["single-test"] as bool;
 
   var removeSources = <ErrorSource>{};
   var insertSources = <ErrorSource>{};
@@ -157,7 +164,7 @@ Future<void> main(List<String> args) async {
   }
 
   if (insertSources.contains(ErrorSource.cfe)) {
-    cfeErrors = await _runCfe(testFiles);
+    cfeErrors = await _runCfe(testFiles, singleTest: cfeSingleTest);
   }
 
   if (insertSources.contains(ErrorSource.web)) {
@@ -217,8 +224,8 @@ List<TestFile> _listFiles(
     pathGlob = Uri.file(pathGlob).toFilePath(windows: false);
     if (Platform.isWindows && p.isAbsolute(pathGlob)) {
       // Trim absolute path's leading forward slash on Windows to accommodate
-      // Glob, which doesn't handle proper backslash-separated Windows paths
-      // and proper absolute file uri on Windows look like '/c:/abc/temp.txt'.
+      // Glob, which doesn't handle proper backslash-separated Windows paths,
+      // and proper absolute file URIs on Windows look like '/c:/abc/temp.txt'.
       pathGlob = pathGlob.substring(1);
     }
 
@@ -409,9 +416,16 @@ StaticError _convertAnalysisError(
 }
 
 /// Invoke CFE on all [allTestFiles] and gather the static errors it reports.
+///
+/// If [singleTest] is `true`, compile each test independently.
+/// This is much slower than compiling them all, and sorting out the
+/// errors afterwards. Use only if errors in part files are not correctly
+/// attributed to their tests, for example when testing invalid library
+/// structures.
 Future<Map<TestFile, List<StaticError>>> _runCfe(
-  List<TestFile> allTestFiles,
-) async {
+  List<TestFile> allTestFiles, {
+  bool singleTest = false,
+}) async {
   // For performance, we want to run CFE on batches of files, but we can't use
   // the same invocation for files with different options, so group by options
   // first.
@@ -437,54 +451,71 @@ Future<Map<TestFile, List<StaticError>>> _runCfe(
       );
     }
 
-    var absolutePaths = [
-      for (var testFile in testFiles)
-        File(testFile.path.toNativePath()).absolute.path,
-    ];
-
-    var result = await Process.run(dartPath, [
-      'pkg/front_end/tool/compile.dart',
-      ...options,
-      '--packages=.dart_tool/package_config.json',
-      '--verify',
-      '-o',
-      'dev:null', // Output is only created for file URIs.
-      ...absolutePaths,
-    ]);
-
-    // Running the above command may generate dill files next to the tests,
-    // which we don't want, so delete them if present.
-    for (var absolutePath in absolutePaths) {
-      var dill = File("$absolutePath.dill");
-      if (await dill.exists()) {
-        await dill.delete();
+    if (singleTest) {
+      for (var testFile in testFiles) {
+        var parsedErrors = await _runCfeOnTests(options, [testFile]);
+        (errors[testFile] ??= []).addAll(parsedErrors);
       }
-    }
-
-    if (result.exitCode != 0) {
-      print("CFE run failed: ${result.stdout}\n${result.stderr}");
-      exit(1);
-    }
-
-    var parsedErrors = <StaticError>[];
-    FastaCommandOutput.parseErrors(
-      result.stdout as String,
-      parsedErrors,
-      parsedErrors,
-    );
-    for (var error in parsedErrors) {
-      // If an error occurs in a file that is included in the current one, then
-      // `error.path` may not be found, and `testFile` will be null.
-      var testFile = testFiles.firstWhereOrNull(
-        (test) => test.path == Path(error.path),
-      );
-      if (testFile != null) {
-        errors.putIfAbsent(testFile, () => []).add(error);
+    } else {
+      var parsedErrors = await _runCfeOnTests(options, testFiles);
+      // Sort errors into tests.
+      for (var error in parsedErrors) {
+        // If an error occurs in a file that is included in the current one, then
+        // `error.path` may not be found, and `testFile` will be null.
+        var testFile = testFiles.firstWhereOrNull(
+          (test) => test.path == Path(error.path),
+        );
+        // TODO: Best effort "part"/"part-of" parsing.
+        if (testFile != null) {
+          errors.putIfAbsent(testFile, () => []).add(error);
+        }
       }
     }
   }
 
   return errors;
+}
+
+Future<List<StaticError>> _runCfeOnTests(
+  List<String> options,
+  List<TestFile> testFiles,
+) async {
+  var absolutePaths = [
+    for (var testFile in testFiles)
+      File(testFile.path.toNativePath()).absolute.path,
+  ];
+
+  var result = await Process.run(dartPath, [
+    'pkg/front_end/tool/compile.dart',
+    ...options,
+    '--packages=.dart_tool/package_config.json',
+    '--verify',
+    '-o',
+    'dev:null', // Output is only created for file URIs.
+    ...absolutePaths,
+  ]);
+
+  // Running the above command may generate dill files next to the tests,
+  // which we don't want, so delete them if present.
+  for (var absolutePath in absolutePaths) {
+    var dill = File("$absolutePath.dill");
+    if (await dill.exists()) {
+      await dill.delete();
+    }
+  }
+
+  if (result.exitCode != 0) {
+    print("CFE run failed: ${result.stdout}\n${result.stderr}");
+    throw UnsupportedError("CFE to run");
+  }
+
+  var parsedErrors = <StaticError>[];
+  FastaCommandOutput.parseErrors(
+    result.stdout as String,
+    parsedErrors,
+    parsedErrors,
+  );
+  return parsedErrors;
 }
 
 Future<Map<TestFile, List<StaticError>>> _runDart2js(
@@ -656,9 +687,7 @@ String _findBinary(String name, String windowsExtension) {
   return newestPath;
 }
 
-/// Returns a string with the number of [things] followed by [noun], pluralized
+/// A string with the number of [things] followed by [noun], pluralized
 /// as needed.
-String _plural(List<Object?> things, String noun) {
-  if (things.length == 1) return '1 $noun';
-  return '${things.length} ${noun}s';
-}
+String _plural(List<Object?> things, String noun) =>
+    '${things.length} $noun${things.length == 1 ? '' : 's'}';

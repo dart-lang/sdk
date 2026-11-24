@@ -98,6 +98,8 @@ workspace:
   - samples/ffi/http
   - samples/ffi/httpIG
   - tests/ffi
+  - tests/language/part/enhanced_parts/enhanced_parts_cross_package_test_lib_helper
+  - tests/language/part/enhanced_parts/enhanced_parts_cross_package_test_part_helper
   # dap and language_server_protocol are checked in to and
   # developed in the SDK repo, though they are located in `third_party/`.
   - third_party/pkg/dap
