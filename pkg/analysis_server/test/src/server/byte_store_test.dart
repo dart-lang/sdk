@@ -123,9 +123,9 @@ class ByteStoreTest {
     try {
       var stats = server.byteStoreStats!;
       expect(stats.singleFileStorePath, isNull);
-      expect(stats.singleFileStoreOpenFailure, contains('FileSystemException'));
+      expect(stats.singleFileStoreOpenFailure, contains(storePath));
       expect(stats.singleFileStoreStorageFailure, isNull);
-      _assertOpenFailureLogged();
+      _assertOpenFailureLogged(storePath);
 
       // The memory cache still works.
       var bytes = Uint8List.fromList([1, 2, 3]);
@@ -141,14 +141,15 @@ class ByteStoreTest {
 
   Future<void> test_singleFile_open_folderFailure_usesMemoryCache() async {
     // A file where the cache folder should be.
-    File(path.join(cacheFolder.path, '.analysis-cache')).createSync();
+    var folderPath = path.join(cacheFolder.path, '.analysis-cache');
+    File(folderPath).createSync();
 
     var (:server, :channel) = _startServer();
     try {
       var stats = server.byteStoreStats!;
       expect(stats.singleFileStorePath, isNull);
-      expect(stats.singleFileStoreOpenFailure, contains('FileSystemException'));
-      _assertOpenFailureLogged();
+      expect(stats.singleFileStoreOpenFailure, contains(folderPath));
+      _assertOpenFailureLogged(folderPath);
 
       // The memory cache still works.
       var bytes = Uint8List.fromList([1, 2, 3]);
@@ -192,9 +193,12 @@ class ByteStoreTest {
     }
   }
 
-  /// Asserts that the failure to open the store was logged once, with a stack
-  /// trace.
-  void _assertOpenFailureLogged() {
+  /// Asserts that the failure to open the store was logged once, with the
+  /// [failedPath] and a stack trace.
+  ///
+  /// The subclass of [FileSystemException] depends on the platform, and so does
+  /// the class name in the message, so the path is checked instead.
+  void _assertOpenFailureLogged(String failedPath) {
     var messages = sessionLogSink.capturedEntries
         .where((entry) => entry.kind == EntryKind.info)
         .map((entry) => entry.textMessage)
@@ -203,7 +207,7 @@ class ByteStoreTest {
     expect(messages, [
       allOf(
         startsWith('Could not open the single-file byte store: '),
-        contains('FileSystemException'),
+        contains(failedPath),
         contains('server_byte_store.dart'),
       ),
     ]);
