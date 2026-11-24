@@ -161,8 +161,19 @@ of 3.15 or greater. For more details, see
   the analyzer now reports `argument_type_not_assignable` instead of
   `invalid_assignment`, consistent with how it reports a non-assignable index.
   For more details, see SDK issue [#64561][].
+- The analysis server, which is used by IDEs and `dart analyze`, now stores
+  its persistent cache in a single file in `.analysis-cache`, instead of one
+  file per entry in `.analysis-driver`. This makes analysis with a populated
+  cache faster, and uses much less system CPU time, especially on machines
+  with antivirus or endpoint security software. Both directories are in
+  `~/.dartServer`, or `%LOCALAPPDATA%\.dartServer` on Windows. The cache file
+  has a fixed size of 4 GiB; on file systems without sparse files, such as
+  NTFS, it uses that much disk space from the start. This SDK no longer uses
+  `.analysis-driver`, so it can be deleted; older SDKs recreate it as needed.
+  For more details, see SDK issue [#64297][].
 
 [#64561]: https://github.com/dart-lang/sdk/issues/64561
+[#64297]: https://github.com/dart-lang/sdk/issues/64297
 
 #### Dart CLI
 

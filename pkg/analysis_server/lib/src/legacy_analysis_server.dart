@@ -156,9 +156,9 @@ class AnalysisServerOptions {
   /// stable, although it then doesn't benchmark that code.
   bool? disableFileByteStore;
 
-  /// Whether to use the experimental single-file persistent byte store.
+  /// Whether to use the single-file persistent byte store.
   /// Ignored when [disableFileByteStore] is `true` or a byte store is supplied.
-  bool useSingleFileByteStore = false;
+  bool useSingleFileByteStore = true;
 
   /// The path to the package config file override.
   /// If `null`, then the default discovery mechanism is used.

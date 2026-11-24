@@ -18,6 +18,7 @@ import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/diagnostics.dart';
 import 'package:analysis_server/src/status/pages/byte_store_page.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
+import 'package:analyzer/src/file_system/timing_resource_provider.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
@@ -49,8 +50,50 @@ class ByteStoreTest {
     cacheFolder.deleteSync(recursive: true);
   }
 
-  Future<void> test_singleFile_open() async {
+  Future<void> test_default_singleFile() async {
     var (:server, :channel) = _startServer();
+    try {
+      var stats = server.byteStoreStats!;
+      expect(
+        stats.singleFileStorePath,
+        startsWith(path.join(cacheFolder.path, '.analysis-cache')),
+      );
+      expect(stats.fileStorePath, isNull);
+    } finally {
+      await _shutDown(channel);
+    }
+  }
+
+  Future<void> test_evictingFile_open() async {
+    var (:server, :channel) = _startServer(useSingleFileByteStore: false);
+    try {
+      var stats = server.byteStoreStats!;
+      expect(stats.usesFileByteStore, isTrue);
+      expect(
+        stats.fileStorePath,
+        path.join(cacheFolder.path, '.analysis-driver'),
+      );
+      expect(stats.singleFileStorePath, isNull);
+
+      // The disk store is used through the timing resource provider.
+      expect(
+        server
+            .timingResourceProvider
+            .timings[ResourceProviderOperation.resourceGetStateLocation]
+            ?.count,
+        greaterThanOrEqualTo(1),
+      );
+
+      var bytes = Uint8List.fromList([1, 2, 3]);
+      server.byteStore.putGet('key', bytes);
+      expect(server.byteStore.get('key'), bytes);
+    } finally {
+      await _shutDown(channel);
+    }
+  }
+
+  Future<void> test_singleFile_open() async {
+    var (:server, :channel) = _startServer(useSingleFileByteStore: true);
     try {
       var stats = server.byteStoreStats!;
       expect(
@@ -70,13 +113,13 @@ class ByteStoreTest {
 
   Future<void> test_singleFile_open_failure_usesMemoryCache() async {
     // Find the path of the cache file, and put a directory there.
-    var first = _startServer();
+    var first = _startServer(useSingleFileByteStore: true);
     var storePath = first.server.byteStoreStats!.singleFileStorePath!;
     await _shutDown(first.channel);
     File(storePath).deleteSync();
     Directory(storePath).createSync();
 
-    var (:server, :channel) = _startServer();
+    var (:server, :channel) = _startServer(useSingleFileByteStore: true);
     try {
       var stats = server.byteStoreStats!;
       expect(stats.singleFileStorePath, isNull);
@@ -177,14 +220,20 @@ class ByteStoreTest {
     );
   }
 
-  ({AnalysisServer server, MockServerChannel channel}) _startServer() {
+  /// Starts a server that uses [cacheFolder], and [useSingleFileByteStore]
+  /// if not `null`, otherwise the default.
+  ({AnalysisServer server, MockServerChannel channel}) _startServer({
+    bool? useSingleFileByteStore,
+  }) {
     var sessionLogger = SessionLogger();
     sessionLogSink = sessionLogger.sink as SessionLoggerInMemorySink;
     sessionLogSink.startCapture();
+    var options = AnalysisServerOptions()..cacheFolder = cacheFolder.path;
+    if (useSingleFileByteStore != null) {
+      options.useSingleFileByteStore = useSingleFileByteStore;
+    }
     var socketServer = SocketServer(
-      AnalysisServerOptions()
-        ..cacheFolder = cacheFolder.path
-        ..useSingleFileByteStore = true,
+      options,
       DartSdkManager(''),
       CrashReportingAttachmentsBuilder.empty,
       sessionLogger,

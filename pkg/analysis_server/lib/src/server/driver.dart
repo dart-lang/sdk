@@ -157,7 +157,7 @@ class Driver implements ServerStarter {
   /// Flag to disable the persistent byte store.
   static const String disableFileByteStoreOption = 'disable-file-byte-store';
 
-  /// The name of the flag to use the experimental single-file byte store.
+  /// The name of the flag to use the single-file byte store (on by default).
   static const String useSingleFileByteStoreOption =
       'use-single-file-byte-store';
 
@@ -931,7 +931,11 @@ class Driver implements ServerStarter {
     );
     parser.addFlag(
       useSingleFileByteStoreOption,
-      help: 'Use the experimental single-file persistent byte store.',
+      help:
+          'Use the single-file persistent byte store. Use '
+          '--no-$useSingleFileByteStoreOption to fall back to the '
+          'file-per-entry byte store.',
+      defaultsTo: true,
       hide: true,
     );
     parser.addFlag(
