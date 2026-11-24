@@ -151,7 +151,7 @@ _nightly_builder(
     dimensions = [mac, arm64],
     location_filters = paths.to_location_filters(paths.mac + paths.io),
 )
-_vm_builder(
+_nightly_builder(
     "vm-mac-release-arm64",
     category = "vm|jit|mac|ra",
     dimensions = [mac, arm64],
@@ -255,7 +255,7 @@ _nightly_builder(
     category = "vm|aot|mac|da",
     dimensions = [mac, arm64],
 )
-_vm_builder(
+_nightly_builder(
     "vm-aot-mac-release-arm64",
     category = "vm|aot|mac|ra",
     dimensions = [mac, arm64],
