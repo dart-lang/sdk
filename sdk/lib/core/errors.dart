@@ -124,7 +124,14 @@ class Error {
   external static Never _throw(Object error, StackTrace stackTrace);
 }
 
-/// Error thrown by the runtime system when an assert statement fails.
+/// Error thrown by the runtime system when an `assert` statement fails.
+///
+/// Assertions are only checked when enabled, such as in debug builds. When
+/// they are disabled, neither the condition nor the message is evaluated.
+///
+/// The optional message is only evaluated if the assertion fails. Pass a
+/// [String], such as an interpolation, to include custom details, since other
+/// objects may not be formatted using their `toString` method.
 class AssertionError extends Error {
   /// Message describing the assertion error.
   final Object? message;
@@ -140,7 +147,15 @@ class AssertionError extends Error {
   }
 }
 
-/// Error thrown by the runtime system when a dynamic type error happens.
+/// Error thrown by the runtime system when a dynamic type check fails.
+///
+/// Examples include a failed `as` cast, a null check (`!`) on `null`, assigning
+/// a `dynamic` value to a variable of an incompatible type, and passing an
+/// argument that fails a covariant parameter check:
+/// ```dart
+/// List<num> numbers = <int>[1, 2];
+/// numbers.add(1.5); // Throws a TypeError.
+/// ```
 class TypeError extends Error {}
 
 /// Error thrown when a function is passed an unacceptable argument.
@@ -628,6 +643,15 @@ class StateError extends Error {
 /// Some modifications may be allowed for some collections, so each collection
 /// ([Iterable] or similar collection of values) should declare which operations
 /// are allowed during an iteration.
+///
+/// For example, the platform [List], [Set], and [Map] implementations throw
+/// this error if elements are added or removed while iterating them, or while
+/// iterating a lazy view such as [Iterable.where] or [Map.keys]. Replacing an
+/// existing list element or map value is allowed.
+/// ```dart
+/// final numbers = <int>[1, 2, 3, 4];
+/// numbers.removeWhere((n) => n.isEven); // Instead of removing in a loop.
+/// ```
 class ConcurrentModificationError extends Error {
   /// The object that was modified in an incompatible way.
   final Object? modifiedObject;
@@ -644,6 +668,12 @@ class ConcurrentModificationError extends Error {
 }
 
 /// Error that the platform can use in case of memory shortage.
+///
+/// Thrown when an allocation cannot be satisfied. Programs should generally not
+/// try to recover from it, and some platforms terminate instead of throwing it.
+///
+/// The [stackTrace] of this error is always `null`. Use the stack trace from
+/// `catch (e, s)` if one is needed.
 final class OutOfMemoryError implements Error {
   @pragma("vm:entry-point")
   const OutOfMemoryError();
@@ -653,6 +683,13 @@ final class OutOfMemoryError implements Error {
 }
 
 /// Error that the platform can use in case of stack overflow.
+///
+/// Thrown when execution exceeds the call stack limit, typically due to
+/// unbounded recursion. Some platforms instead report a host error or fail in a
+/// way that cannot be caught.
+///
+/// The [stackTrace] of this error is always `null`. Use the stack trace from
+/// `catch (e, s)` if one is needed.
 final class StackOverflowError implements Error {
   @pragma("vm:entry-point")
   const StackOverflowError();
