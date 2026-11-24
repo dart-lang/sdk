@@ -2105,6 +2105,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
         if (coercionResult != null) {
           argumentResult = coercionResult;
+          argumentInfo.hasBeenCoerced = true;
           argumentInfo.inferredExpression = argumentResult.expression;
 
           // Feed the coercion result back to the inference.
@@ -2180,14 +2181,25 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         DartType expectedType = argumentInfo.computeInferredFormalType(
           instantiator,
         );
-        argumentResultToCheck = reportAssignabilityErrors(
-          expectedType,
-          argumentResultToCheck,
-          isVoidAllowed: expectedType is VoidType,
-          isCoercionAllowed: argumentInfo.coerceExpression,
-          errorTemplate: diag.argumentTypeNotAssignable,
-          assignedNode: argumentInfo.argument,
-        );
+        if (argumentInfo.hasBeenCoerced) {
+          argumentResultToCheck = reportAssignabilityErrors(
+            expectedType,
+            argumentResultToCheck,
+            isVoidAllowed: expectedType is VoidType,
+            isCoercionAllowed: argumentInfo.coerceExpression,
+            errorTemplate: diag.argumentTypeNotAssignable,
+            assignedNode: argumentInfo.argument,
+          );
+        } else {
+          argumentResultToCheck = ensureAssignableResult(
+            expectedType,
+            argumentResultToCheck,
+            isVoidAllowed: expectedType is VoidType,
+            coerceExpression: argumentInfo.coerceExpression,
+            assignedNode: argumentInfo.argument,
+            errorTemplate: diag.argumentTypeNotAssignable,
+          );
+        }
 
         argumentInfo.inferredExpression = argumentResultToCheck.expression;
       }
@@ -6277,6 +6289,13 @@ class _ArgumentInfo {
 
   /// Returns `true` if the argument expression should be coerced.
   bool get coerceExpression => !argument.isSuperParameter;
+
+  /// Whether the argument has been coerced.
+  ///
+  /// This is needed because arguments are coerced both during and after
+  /// type argument inference, so we can avoid duplicate implicit casts in the
+  /// lowered code.
+  bool hasBeenCoerced = false;
 
   /// The inferred expression.
   late Expression inferredExpression;

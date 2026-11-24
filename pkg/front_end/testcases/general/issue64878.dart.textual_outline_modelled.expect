@@ -1,0 +1,8 @@
+import 'dart:convert';
+import 'dart:math';
+
+num calculate(Map values) {}
+
+throws(void Function() f) {}
+
+void main() {}

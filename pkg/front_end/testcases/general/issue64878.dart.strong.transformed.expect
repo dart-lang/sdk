@@ -1,0 +1,26 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:math" as math;
+import "dart:convert" as con;
+
+import "dart:convert";
+import "dart:math";
+
+static method calculate(core::Map<dynamic, dynamic> values) → core::num {
+  final core::int result = math::max<core::int>(0, values.{core::Map::[]}("value"){(core::Object?) → dynamic} as{TypeError,ForDynamic} core::int);
+  return result.{core::num::*}(0.5){(core::num) → core::double};
+}
+static method main() → void {
+  self::throws(() → void => self::calculate(con::jsonDecode("{\"value\":0.25}") as{TypeError,ForDynamic} core::Map<dynamic, dynamic>));
+}
+static method throws(() → void f) → dynamic {
+  try {
+    f(){() → void};
+  }
+  on core::Object catch(final core::Object e) {
+    core::print(e);
+    return;
+  }
+  throw "Missing exception.";
+}
