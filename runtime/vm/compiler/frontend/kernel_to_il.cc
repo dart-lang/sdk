@@ -525,6 +525,26 @@ Fragment FlowGraphBuilder::ThrowLateInitializationError(
   return instructions;
 }
 
+Fragment FlowGraphBuilder::ThrowUnsupportedError(TokenPosition position,
+                                                 const String& message) {
+  const Class& klass = Class::ZoneHandle(
+      Z, Library::LookupCoreClass(Symbols::UnsupportedError()));
+  ASSERT(!klass.IsNull());
+  const auto& error = klass.EnsureIsFinalized(thread_);
+  ASSERT(error == Error::null());
+  const Function& throw_function = Function::ZoneHandle(
+      Z, klass.LookupStaticFunctionAllowPrivate(Symbols::ThrowNew()));
+  ASSERT(!throw_function.IsNull());
+
+  Fragment instructions;
+  instructions += Constant(message);
+  instructions += StaticCall(position, throw_function, /*argument_count=*/1,
+                             ICData::kStatic);
+  instructions += Drop();
+  ASSERT(instructions.is_closed());
+  return instructions;
+}
+
 Fragment FlowGraphBuilder::StoreLateField(const Field& field,
                                           LocalVariable* instance,
                                           LocalVariable* setter_value) {
@@ -5476,6 +5496,22 @@ Fragment FlowGraphBuilder::FfiNativeFunctionBody(const Function& function) {
   auto const& native_instance =
       Instance::Handle(function.GetNativeAnnotation());
 
+#if defined(SIMULATOR_FFI)
+  if (FLAG_use_simulator) {
+    const char* error = nullptr;
+    const auto marshaller_ptr = compiler::ffi::CallMarshaller::FromFunction(
+        Z, function, /*function_params_start_at=*/0, c_signature, &error);
+    RELEASE_ASSERT(error == nullptr);
+    RELEASE_ASSERT(marshaller_ptr != nullptr);
+    if (!marshaller_ptr->IsSupportedOnSimulator()) {
+      return ThrowUnsupportedError(
+          TokenPosition::kNoSource,
+          String::ZoneHandle(
+              Z, Symbols::New(thread_, "Not supported on this simulator.")));
+    }
+  }
+#endif
+
   Fragment body;
   body += FfiNativeLookupAddress(native_instance);
   body += FfiCallFunctionBody(function, c_signature,
@@ -5501,6 +5537,17 @@ Fragment FlowGraphBuilder::FfiCallFunctionBody(
   RELEASE_ASSERT(error == nullptr);
   RELEASE_ASSERT(marshaller_ptr != nullptr);
   const auto& marshaller = *marshaller_ptr;
+
+#if defined(SIMULATOR_FFI)
+  if (FLAG_use_simulator && !marshaller.IsSupportedOnSimulator()) {
+    body += DropTemporary(&address);
+    body += ThrowUnsupportedError(
+        TokenPosition::kNoSource,
+        String::ZoneHandle(
+            Z, Symbols::New(thread_, "Not supported on this simulator.")));
+    return body;
+  }
+#endif
 
   const bool signature_contains_handles = marshaller.ContainsHandles();
 

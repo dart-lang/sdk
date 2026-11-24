@@ -6,6 +6,7 @@
 
 #include "vm/closure_functions_cache.h"
 #include "vm/compiler/ffi/callback.h"
+#include "vm/compiler/ffi/marshaller.h"
 #include "vm/compiler/ffi/recognized_method.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"  // For dart::FlowGraphBuilder::SimpleInstanceOfType.
 #include "vm/compiler/frontend/prologue_builder.h"
@@ -6307,6 +6308,21 @@ Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction(
   const Function& result = Function::ZoneHandle(
       Z, compiler::ffi::NativeCallbackFunction(native_sig, target,
                                                exceptional_return, kind));
+#if defined(SIMULATOR_FFI)
+  if (FLAG_use_simulator && kind != FfiCallbackKind::kAsyncCallback) {
+    const auto marshaller_ptr =
+        compiler::ffi::CallbackMarshaller::FromFunction(Z, result, &error);
+    if (error != nullptr || marshaller_ptr == nullptr ||
+        !marshaller_ptr->IsSupportedOnSimulator()) {
+      code += B->ThrowUnsupportedError(
+          TokenPosition::kNoSource,
+          String::ZoneHandle(
+              Z, Symbols::New(H.thread(), "Not supported on this simulator.")));
+      code += NullConstant();
+      return code;
+    }
+  }
+#endif
   code += Constant(result);
 
   return code;

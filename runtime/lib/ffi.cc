@@ -144,6 +144,14 @@ static uword UnwrapFunctionPointer(const Pointer& pointer) {
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_createNativeCallableListener, 1, 2) {
+#if defined(SIMULATOR_FFI) && !defined(HOST_ARCH_ARM64)
+  if (FLAG_use_simulator) {
+    const auto& port =
+        ReceivePort::CheckedHandle(zone, arguments->NativeArgAt(1));
+    isolate->CloseReceivePort(port);
+    Exceptions::ThrowUnsupportedError("Not supported on this simulator.");
+  }
+#endif
   const auto& send_function =
       Function::CheckedHandle(zone, arguments->NativeArg0());
   const auto& port =
@@ -154,7 +162,18 @@ DEFINE_NATIVE_ENTRY(Ffi_createNativeCallableListener, 1, 2) {
 
 DEFINE_NATIVE_ENTRY(Ffi_createNativeCallableIsolateLocal, 1, 3) {
   const auto& trampoline =
-      Function::CheckedHandle(zone, arguments->NativeArg0());
+      Function::CheckedZoneHandle(zone, arguments->NativeArg0());
+#if defined(SIMULATOR_FFI) && !defined(DART_PRECOMPILED_RUNTIME)
+  if (FLAG_use_simulator) {
+    const char* error = nullptr;
+    const auto marshaller_ptr = compiler::ffi::CallbackMarshaller::FromFunction(
+        zone, trampoline, &error);
+    if (error != nullptr || marshaller_ptr == nullptr ||
+        !marshaller_ptr->IsSupportedOnSimulator()) {
+      Exceptions::ThrowUnsupportedError("Not supported on this simulator.");
+    }
+  }
+#endif
   const auto& target = Closure::CheckedHandle(zone, arguments->NativeArgAt(1));
   const bool keep_isolate_alive =
       Bool::CheckedHandle(zone, arguments->NativeArgAt(2)).value();
@@ -170,7 +189,18 @@ DEFINE_NATIVE_ENTRY(Ffi_createNativeCallableIsolateGroupBound, 1, 2) {
   }
 
   const auto& trampoline =
-      Function::CheckedHandle(zone, arguments->NativeArg0());
+      Function::CheckedZoneHandle(zone, arguments->NativeArg0());
+#if defined(SIMULATOR_FFI) && !defined(DART_PRECOMPILED_RUNTIME)
+  if (FLAG_use_simulator) {
+    const char* error = nullptr;
+    const auto marshaller_ptr = compiler::ffi::CallbackMarshaller::FromFunction(
+        zone, trampoline, &error);
+    if (error != nullptr || marshaller_ptr == nullptr ||
+        !marshaller_ptr->IsSupportedOnSimulator()) {
+      Exceptions::ThrowUnsupportedError("Not supported on this simulator.");
+    }
+  }
+#endif
   const auto& target = Closure::CheckedHandle(zone, arguments->NativeArgAt(1));
   return WrapFunctionPointer(
       thread->isolate_group()->CreateIsolateGroupBoundFfiCallback(

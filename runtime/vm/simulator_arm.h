@@ -194,6 +194,7 @@ class Simulator {
   int32_t GetImm(Instr* instr, bool* carry_out);
   void HandleRList(Instr* instr, bool load);
   void SupervisorCall(Instr* instr);
+  void DoRedirectedFfiCall(Instr* instr);
 
   // Read and write memory.
   void UnalignedAccess(const char* msg, uword addr, Instr* instr);

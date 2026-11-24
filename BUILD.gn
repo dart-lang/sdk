@@ -115,6 +115,8 @@ group("runtime_precompiled") {
   import("runtime/runtime_args.gni")
   deps = [
     "runtime/bin:dartaotruntime",
+    "runtime/bin:ffi_test_dynamic_library",
+    "runtime/bin:ffi_test_functions",
     "runtime/bin:gen_snapshot",
     "runtime/bin:gen_snapshot($host_toolchain)",
     "runtime/bin:process_test",

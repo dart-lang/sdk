@@ -1004,6 +1004,8 @@ class Instr {
   static constexpr int32_t kSimulatorBreakCode =
       0xdeb2;  // For breakpoint in sim.
   static constexpr int32_t kSimulatorRedirectCode = 0xca11;  // For redirection.
+  static constexpr int32_t kSimulatorFfiRedirectCode =
+      0xca12;  // For FFI redirection.
 
   // Breakpoint instruction filling assembler code buffers in debug mode.
   static constexpr int32_t kBreakPointInstruction =  // bkpt(0xdeb0)
@@ -1019,6 +1021,10 @@ class Instr {
   // Runtime call redirection instruction used by the simulator.
   static constexpr int32_t kSimulatorRedirectInstruction =
       ((AL << kConditionShift) | (0xf << 24) | kSimulatorRedirectCode);
+
+  // FFI call redirection instruction used by the simulator.
+  static constexpr int32_t kSimulatorFfiRedirectInstruction =
+      ((AL << kConditionShift) | (0xf << 24) | kSimulatorFfiRedirectCode);
 
   // Get the raw instruction bits.
   inline int32_t InstructionBits() const {

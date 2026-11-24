@@ -927,7 +927,7 @@ group("create_sdk") {
   # but are included here as dependencies for the SDK builders, which will
   # upload them separately.
   if (dart_target_arch != "ia32" && dart_target_arch != "x86" &&
-      dart_target_arch != "arm") {
+      dart_target_arch != "arm" && dart_target_arch != "riscv32") {
     public_deps += [
       "../runtime/bin:gen_snapshot_product_linux_arm",
       "../runtime/bin:gen_snapshot_product_linux_arm64",
