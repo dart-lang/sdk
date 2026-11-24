@@ -19,6 +19,7 @@
 #include "vm/symbols.h"
 #include "vm/timer.h"
 #include "vm/unit_test.h"
+#include "vm/virtual_memory.h"
 
 namespace dart {
 
@@ -2043,6 +2044,67 @@ VM_UNIT_TEST_CASE(PostCObject) {
 
   Dart_ExitScope();
 }
+
+#if defined(DART_COMPRESSED_POINTERS) && !defined(DART_HOST_OS_FUCHSIA)
+// Dart_CObjects whose addresses differ by a multiple of 4GB must be serialized
+// as distinct objects, i.e. their addresses must not be compared as compressed
+// pointers.
+VM_UNIT_TEST_CASE(PostCObject_AddressesCongruentModulo4GB) {
+  TestIsolateScope __test_isolate__;
+  const char* kScriptChars =
+      "import 'dart:isolate';\n"
+      "main() {\n"
+      "  var port = new RawReceivePort();\n"
+      "  port.handler = (message) {\n"
+      "    throw new Exception('${message[0]},${message[1]}');\n"
+      "  };\n"
+      "  return port.sendPort;\n"
+      "}\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  Dart_EnterScope();
+
+  Dart_Handle send_port = Dart_Invoke(lib, NewString("main"), 0, nullptr);
+  EXPECT_VALID(send_port);
+  Dart_Port port_id;
+  Dart_Handle result = Dart_SendPortGetId(send_port, &port_id);
+  ASSERT(!Dart_IsError(result));
+
+  // Reserve the address range between the two objects without committing it.
+  const intptr_t kDistance = 4 * GB;
+  const intptr_t page_size = VirtualMemory::PageSize();
+  VirtualMemory* memory =
+      VirtualMemory::Reserve(kDistance + page_size, page_size);
+  EXPECT_NOTNULL(memory);
+  if (memory == nullptr) {
+    Dart_ExitScope();
+    return;
+  }
+  Dart_CObject* first = reinterpret_cast<Dart_CObject*>(memory->start());
+  Dart_CObject* second =
+      reinterpret_cast<Dart_CObject*>(memory->start() + kDistance);
+  VirtualMemory::Commit(first, page_size, "test");
+  VirtualMemory::Commit(second, page_size, "test");
+  first->type = Dart_CObject_kInt32;
+  first->value.as_int32 = 111;
+  second->type = Dart_CObject_kInt32;
+  second->value.as_int32 = 222;
+
+  Dart_CObject* values[] = {first, second};
+  Dart_CObject array;
+  array.type = Dart_CObject_kArray;
+  array.value.as_array.length = ARRAY_SIZE(values);
+  array.value.as_array.values = values;
+  EXPECT(Dart_PostCObject(port_id, &array));
+  delete memory;
+
+  result = Dart_RunLoop();
+  EXPECT(Dart_IsError(result));
+  EXPECT(Dart_ErrorHasException(result));
+  EXPECT_SUBSTRING("Exception: 111,222\n", Dart_GetError(result));
+
+  Dart_ExitScope();
+}
+#endif  // defined(DART_COMPRESSED_POINTERS) && !defined(DART_HOST_OS_FUCHSIA)
 
 TEST_CASE(IsKernelNegative) {
   EXPECT(!Dart_IsKernel(nullptr, 0));

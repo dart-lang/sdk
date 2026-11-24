@@ -159,16 +159,21 @@ class VirtualMemory {
   static VirtualMemory* ForImagePage(void* pointer, uword size);
   static VirtualMemory* Adopt(void* pointer, uword size);
 
+  // Reserves a virtual memory segment with size without committing it. Parts
+  // of the segment must be committed before they are accessed. If a segment of
+  // the requested size cannot be reserved, nullptr is returned.
+  //
+  // Not available on Fuchsia.
+  static VirtualMemory* Reserve(intptr_t size, intptr_t alignment);
+  static void Commit(void* address, intptr_t size, const char* name);
+  static void Decommit(void* address, intptr_t size);
+
  private:
   static intptr_t CalculatePageSize();
 
   // Free a sub segment. On operating systems that support it this
   // can give back the virtual memory to the system. Returns true on success.
   static bool FreeSubSegment(void* address, intptr_t size);
-
-  static VirtualMemory* Reserve(intptr_t size, intptr_t alignment);
-  static void Commit(void* address, intptr_t size, const char* name);
-  static void Decommit(void* address, intptr_t size);
 
 #if defined(DART_ENABLE_RX_WORKAROUNDS)
   // These constructors are only used internally when reserving new virtual
