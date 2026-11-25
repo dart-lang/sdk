@@ -4993,7 +4993,11 @@ class EagerStaticFieldInitializerCodeGenerator extends AstCodeGenerator {
     Translator translator,
     this.field,
     this.global,
-  ) : super(translator, w.FunctionType([], []), field);
+  ) : super(
+        translator,
+        translator.typesBuilder.defineFunction(const [], const []),
+        field,
+      );
 
   @override
   void generateInternal() {
