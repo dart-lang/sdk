@@ -126,7 +126,7 @@ struct CallbackContext {
                         bool print_stack_as_words = false) const;
 };
 
-#if defined(SIMULATOR_FFI) && defined(DART_INCLUDE_SIMULATOR)
+#if defined(HOST_ARCH_ARM64) && defined(SIMULATOR_FFI)
 // Called by the first-level trampoline for simulated callbacks.
 extern "C" void DoRedirectedFfiCallback(struct CallbackContext* ctxt,
                                         uword trampoline);

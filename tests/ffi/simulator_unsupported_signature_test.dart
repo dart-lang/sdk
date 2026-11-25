@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--experimental-shared-data
-
 import 'dart:ffi';
 
 import 'package:expect/expect.dart';
@@ -279,36 +277,6 @@ void testCallbacks() {
         IntPtr,
       )
     >.isolateLocal(dummy9ArgsCallback, exceptionalReturn: 0);
-  });
-
-  // NativeCallable.isolateGroupBound with float return/argument.
-  Expect.throws<UnsupportedError>(() {
-    NativeCallable<Double Function(Double)>.isolateGroupBound(
-      dummyFloatCallback,
-      exceptionalReturn: 0.0,
-    );
-  });
-
-  // NativeCallable.isolateGroupBound with struct by value argument.
-  Expect.throws<UnsupportedError>(() {
-    NativeCallable<Void Function(Coord)>.isolateGroupBound(dummyStructCallback);
-  });
-
-  // NativeCallable.isolateGroupBound with > 8 arguments (9 arguments).
-  Expect.throws<UnsupportedError>(() {
-    NativeCallable<
-      IntPtr Function(
-        IntPtr,
-        IntPtr,
-        IntPtr,
-        IntPtr,
-        IntPtr,
-        IntPtr,
-        IntPtr,
-        IntPtr,
-        IntPtr,
-      )
-    >.isolateGroupBound(dummy9ArgsCallback, exceptionalReturn: 0);
   });
 
   // Pointer.fromFunction with float return/argument.

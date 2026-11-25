@@ -13,8 +13,6 @@
 
 #include "vm/simulator.h"
 
-#include "platform/address_sanitizer.h"
-#include "platform/memory_sanitizer.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/constants.h"
 #include "vm/image_snapshot.h"
@@ -1815,44 +1813,21 @@ void Simulator::DoRedirectedFfiCall(Instr* instr) {
 #endif
 }
 
-#if defined(SIMULATOR_FFI)
-#if !defined(HOST_ARCH_X64)
-static NO_SANITIZE_ADDRESS NO_SANITIZE_MEMORY uword*
-CopyHostStackSlots(uword* sp, const uword* sp_in, intptr_t count) {
-  for (intptr_t i = count - 1; i >= 0; i--) {
-    *--sp = sp_in[i];
-  }
-  return sp;
-}
-#endif
-
+#if defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
 // Compare FfiCallbackTrampolineStub sans DART_DYNAMIC_MODULES-specific code.
 void Simulator::DoCompiledFfiCallback(Thread* thread,
                                       CallbackContext* ctxt,
                                       const CallbackMetadata* metadata) {
-  const uint64_t saved_pc = get_pc();
-  const uword saved_sp = get_register(R31, R31IsSP);
-#if defined(HOST_ARCH_X64)
-  // On HOST_ARCH_X64, simulator callbacks are restricted to <= 8 integer or
-  // pointer arguments, all of which fit in R0..R7, so no stack arguments need
-  // to be copied from the host stack.
-  constexpr intptr_t kStackSlotsCopied = 0;
-#else
   // The C caller might not be using frame pointers, so we just hard-code a
   // maximum frame size instead of using FP-SP like we do for callouts.
   constexpr intptr_t kStackSlotsCopied = 128;
-#endif
 
   {
-    uword aligned_sp = saved_sp;
-    if (OS::ActivationFrameAlignment() > 1) {
-      aligned_sp = Utils::RoundDown(aligned_sp, OS::ActivationFrameAlignment());
+    uword* sp = reinterpret_cast<uword*>(get_register(R31, R31IsSP));
+    uword* sp_in = reinterpret_cast<uword*>(ctxt->sp);
+    for (intptr_t i = kStackSlotsCopied - 1; i >= 0; i--) {
+      *--sp = sp_in[i];
     }
-    uword* sp = reinterpret_cast<uword*>(aligned_sp);
-#if !defined(HOST_ARCH_X64)
-    sp = CopyHostStackSlots(sp, reinterpret_cast<const uword*>(ctxt->sp),
-                            kStackSlotsCopied);
-#endif
     const uword* const delta_start = sp;
     *--sp = get_register(FP);
     *--sp = get_register(LR);
@@ -1911,9 +1886,8 @@ void Simulator::DoCompiledFfiCallback(Thread* thread,
     ASSERT_EQUAL(sp - delta_end,
                  FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta);
     sp += kStackSlotsCopied;
-    set_register(nullptr, R31, saved_sp);
+    set_register(nullptr, R31, reinterpret_cast<uword>(sp));
   }
-  set_pc(saved_pc);
 }
 
 void Simulator::DoRedirectedFfiCallback(Thread* thread,
@@ -1923,7 +1897,7 @@ void Simulator::DoRedirectedFfiCallback(Thread* thread,
   // DLRT_DoInterpretedFfiCallback directly.
   if (FfiCallbackMetadata::IsInterpretedTrampolineEntryPoint(
           metadata->entry_point)) {
-#if defined(DART_DYNAMIC_MODULES) && defined(HOST_ARCH_ARM64)
+#if defined(DART_DYNAMIC_MODULES)
     auto* const function_handle =
         reinterpret_cast<PersistentHandle*>(metadata->function_handle);
     DLRT_DoInterpretedFfiCallback(thread, ctxt, function_handle);
@@ -1949,7 +1923,7 @@ void Simulator::DoRedirectedFfiCallback(Thread* thread,
     epilogue(thread);
   }
 }
-#endif  // defined(SIMULATOR_FFI)
+#endif  // defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
 
 void Simulator::ClobberVolatileRegisters() {
   // Clear atomic reservation.

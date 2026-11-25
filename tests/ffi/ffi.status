@@ -81,7 +81,6 @@ function_callbacks_many_test/*: Skip # Test harness doesn't support multitest wi
 function_callbacks_structs_by_value_generated_test/*: Skip # Test harness doesn't support multitest with Fuchsia
 function_callbacks_structs_by_value_native_callable_generated_test/*: Skip # Test harness doesn't support multitest with Fuchsia
 function_callbacks_subtype_test/*: Skip # Test harness doesn't support multitest with Fuchsia
-intptr_and_pointer_isolate_group_bound_test: Skip # gen_snapshot requires experimental-shared-data flag
 isolate_group_bound_callback_test: Skip # gen_snapshot requires experimental-shared-data flag
 isolate_group_bound_captured_local_test: Skip # gen_snapshot requires experimental-shared-data flag
 isolate_group_bound_init_test: Skip # gen_snapshot requires experimental-shared-data flag
@@ -136,6 +135,7 @@ many_listener_callbacks_test: SkipSlow # Interpreter + simulator makes this very
 address_of_array_generated_test: SkipByDesign # >12 arguments not supported on simulator on x64 host.
 address_of_typeddata_generated_test: SkipByDesign # >12 arguments not supported on simulator on x64 host.
 c_types_test: SkipByDesign # char is unsigned on target, but signed on host x64.
+exceptional_return_const_test: SkipByDesign # Callbacks not supported on simulator on x64 host.
 extension_methods_test: SkipByDesign # Tests compound ref.
 function_test: SkipByDesign # Tests 8-bit/16-bit integer truncation in callee.
 function_varargs_*: SkipByDesign
@@ -150,11 +150,17 @@ regress_39063_test: SkipByDesign # Uses float/double.
 regress_46127_test: SkipByDesign # Uses float/double.
 regress_51504_test: SkipByDesign # Uses float/double.
 regress_flutter*: SkipByDesign
+regress_jump_to_frame_test: SkipByDesign # Callbacks not supported on simulator on x64 host.
+stacktrace_regress_37910_test: SkipByDesign # Callbacks not supported on simulator on x64 host.
 threading_*: SkipByDesign # Callbacks not supported on simulator on x64 host.
+variance_function_test: SkipByDesign # Callbacks not supported on simulator on x64 host.
 vmspecific_dynamic_library_test: SkipByDesign # Uses float/double.
 vmspecific_ffi_native_handles_test: SkipByDesign # Callbacks not supported on simulator on x64 host.
 vmspecific_function_gc_test: SkipByDesign # Uses float/double and >12 arguments.
+vmspecific_handle_dynamically_linked_test: SkipByDesign # Callbacks not supported on simulator on x64 host.
+vmspecific_handle_test: SkipByDesign # Callbacks not supported on simulator on x64 host.
 vmspecific_highmem_32bit_test: SkipByDesign
+vmspecific_leaf_call_test: SkipByDesign # Callbacks not supported on simulator on x64 host.
 vmspecific_pointer_load_il_test: SkipByDesign
 vmspecific_regress_37511_test: SkipByDesign # Uses float/double.
 

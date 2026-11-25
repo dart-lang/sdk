@@ -102,7 +102,7 @@ class Simulator {
                bool fp_return = false,
                bool fp_args = false);
 
-#if defined(SIMULATOR_FFI)
+#if defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
   void DoCompiledFfiCallback(Thread* thread,
                              CallbackContext* ctxt,
                              const CallbackMetadata* metadata);

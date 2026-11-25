@@ -2320,7 +2320,7 @@ const char* CallbackContext::ToCString(Zone* zone,
   return buffer.buffer();
 }
 
-#if defined(SIMULATOR_FFI) && defined(DART_INCLUDE_SIMULATOR)
+#if defined(HOST_ARCH_ARM64) && defined(SIMULATOR_FFI)
 extern "C" void DoRedirectedFfiCallback(CallbackContext* ctxt,
                                         uword trampoline) {
   CallbackMetadata out;
@@ -2336,7 +2336,7 @@ extern "C" void DoRedirectedFfiCallback(CallbackContext* ctxt,
   ASSERT(sim != nullptr);
   sim->DoRedirectedFfiCallback(thread, ctxt, &out);
 }
-#endif  // defined(SIMULATOR_FFI) && defined(DART_INCLUDE_SIMULATOR)
+#endif  // defined(HOST_ARCH_ARM64) && defined(SIMULATOR_FFI)
 
 // Check that argument types are valid for the given function.
 // Arg0: function

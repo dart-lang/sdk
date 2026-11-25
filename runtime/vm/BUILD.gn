@@ -122,9 +122,6 @@ library_for_all_configs("libdart_vm") {
   if (!is_win && current_cpu == "x64") {
     sources += [ "ffi_trampolines_x64.S" ]
   }
-  if (!is_win && current_cpu == "x86") {
-    sources += [ "ffi_trampolines_ia32.S" ]
-  }
   include_dirs = [
     "..",
     "../..",

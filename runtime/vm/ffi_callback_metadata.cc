@@ -24,47 +24,34 @@
 
 namespace dart {
 
-#if defined(SIMULATOR_FFI) && defined(DART_INCLUDE_SIMULATOR)
+#if defined(HOST_ARCH_ARM64) && defined(SIMULATOR_FFI)
 extern "C" void SimulatorFfiCallbackTrampoline();
 extern "C" void SimulatorFfiCallbackTrampolineEnd();
 
-// Constants used in ffi_trampolines_*.S that can't be checked there, so
-// update SimulatorFfiCallbackTrampoline in those files if any assert fails.
-COMPILE_ASSERT(sizeof(CallbackContext) == 18 * sizeof(uword));
+// Constants used in ffi_trampolines_arm64.S that can't be checked there, so
+// update SimulatorFfiCallbackTrampoline in that file if any assert below fails.
+COMPILE_ASSERT(sizeof(CallbackContext) == 144);
 COMPILE_ASSERT(FfiCallbackMetadata::kDoRedirectedFfiCallback == 1);
-#if defined(TARGET_ARCH_ARM64)
 #if defined(DART_TARGET_OS_FUCHSIA)
 COMPILE_ASSERT(FfiCallbackMetadata::kPageSize == 4 * KB);
-COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 482);
+COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 483);
 #elif defined(DART_TARGET_OS_MACOS)
 COMPILE_ASSERT(FfiCallbackMetadata::kPageSize == 16 * KB);
 COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 2010);
 #else
 COMPILE_ASSERT(FfiCallbackMetadata::kPageSize == 64 * KB);
-COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 8154);
+COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 8157);
 #endif
-#elif defined(TARGET_ARCH_RISCV64)
-COMPILE_ASSERT(FfiCallbackMetadata::kPageSize == 4 * KB);
-COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 484);
-#elif defined(TARGET_ARCH_ARM)
-COMPILE_ASSERT(FfiCallbackMetadata::kPageSize == 4 * KB);
-COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 488);
-#elif defined(TARGET_ARCH_RISCV32)
-COMPILE_ASSERT(FfiCallbackMetadata::kPageSize == 4 * KB);
-COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 484);
-#endif
-#endif  // defined(SIMULATOR_FFI)
+#endif  // defined(HOST_ARCH_ARM64) && defined(SIMULATOR_FFI)
 
 FfiCallbackMetadata::FfiCallbackMetadata() {
-#if defined(SIMULATOR_FFI) && defined(DART_INCLUDE_SIMULATOR)
+#if defined(HOST_ARCH_ARM64) && defined(SIMULATOR_FFI)
   // Additional asserts for SimulatorFfiCallbackTrampoline
-  // that can't be done at compile time.
-  ASSERT_EQUAL(OFFSET_OF(CallbackContext, integer_arguments),
-               0 * sizeof(uword));
-  ASSERT_EQUAL(OFFSET_OF(CallbackContext, double_arguments), 8 * sizeof(uword));
-  ASSERT_EQUAL(OFFSET_OF(CallbackContext, return_struct_pointer),
-               16 * sizeof(uword));
-  ASSERT_EQUAL(OFFSET_OF(CallbackContext, sp), 17 * sizeof(uword));
+  // in ffi_trampoline_arm64.S that can't be done at compile time.
+  ASSERT_EQUAL(OFFSET_OF(CallbackContext, integer_arguments), 0);
+  ASSERT_EQUAL(OFFSET_OF(CallbackContext, double_arguments), 64);
+  ASSERT_EQUAL(OFFSET_OF(CallbackContext, return_struct_pointer), 128);
+  ASSERT_EQUAL(OFFSET_OF(CallbackContext, sp), 136);
 #endif
 }
 
@@ -105,7 +92,7 @@ void FfiCallbackMetadata::EnsureStubPageLocked() {
   const Code& trampoline_code = StubCode::FfiCallbackTrampoline();
   uword code_start = trampoline_code.EntryPoint();
   uword code_end = code_start + trampoline_code.Size();
-#if defined(SIMULATOR_FFI) && defined(DART_INCLUDE_SIMULATOR)
+#if defined(HOST_ARCH_ARM64) && defined(SIMULATOR_FFI)
   if (FLAG_use_simulator) {
     // Use the simulator's first-level trampoline instead, which
     // calls DoRedirectedFfiCallback ->
@@ -295,7 +282,7 @@ void FfiCallbackMetadata::EnsureFreeListNotEmptyLocked() {
   // Fill in the runtime functions.
   FillRuntimeFunction(new_page, kGetFfiCallbackMetadata,
                       reinterpret_cast<void*>(DLRT_GetFfiCallbackMetadata));
-#if defined(SIMULATOR_FFI) && defined(DART_INCLUDE_SIMULATOR)
+#if defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
   FillRuntimeFunction(new_page, kDoRedirectedFfiCallback,
                       reinterpret_cast<void*>(DoRedirectedFfiCallback));
 #endif

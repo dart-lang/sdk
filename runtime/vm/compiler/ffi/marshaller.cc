@@ -987,39 +987,7 @@ const NativeLocation& CallbackMarshaller::NativeLocationOfNativeParameter(
 }
 
 bool CallbackMarshaller::IsSupportedOnSimulator() const {
-#if !defined(SIMULATOR_FFI)
-  return false;
-#elif defined(HOST_ARCH_ARM64)
-  return true;
-#elif defined(HOST_ARCH_X64) || defined(HOST_ARCH_IA32)
-  // We only support a subset of signatures just enough to be able to port
-  // dart:io to FFI: integer/pointer arguments and return values up to
-  // target::kWordSize (including smaller integers such as bool, int8, int16,
-  // int32) with up to 8 arguments, and no floats, structs by value, or
-  // variadic arguments.
-  if (contains_varargs()) {
-    return false;
-  }
-  if (IsCompoundCType(kResultIndex)) {
-    return false;
-  }
-  const auto& return_type = Location(kResultIndex).payload_type();
-  if (!return_type.IsVoid() &&
-      (!return_type.IsInt() || return_type.SizeInBytes() > target::kWordSize)) {
-    return false;
-  }
-  if (num_args() > 8) {
-    return false;
-  }
-  for (intptr_t i = 0; i < num_args(); i++) {
-    if (IsCompoundCType(i)) {
-      return false;
-    }
-    const auto& arg_type = Location(i).payload_type();
-    if (!arg_type.IsInt() || arg_type.SizeInBytes() > target::kWordSize) {
-      return false;
-    }
-  }
+#if defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
   return true;
 #else
   return false;

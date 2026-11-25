@@ -18,7 +18,6 @@
 
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/constants.h"
-#include "vm/ffi_callback_metadata.h"
 #include "vm/image_snapshot.h"
 #include "vm/native_arguments.h"
 #include "vm/os_thread.h"
@@ -2477,82 +2476,6 @@ void Simulator::DoRedirectedFfiCall(Instr instr) {
   }
 #endif
 }
-
-#if defined(SIMULATOR_FFI)
-void Simulator::DoCompiledFfiCallback(Thread* thread,
-                                      CallbackContext* ctxt,
-                                      const CallbackMetadata* metadata) {
-  uintx_t saved_pc = pc_;
-  uintx_t saved_sp = get_xreg(SP);
-  uintx_t saved_fp = get_xreg(FP);
-  uintx_t saved_ra = get_xreg(RA);
-  uintx_t saved_thr = get_xreg(THR);
-  uintx_t saved_s2 = get_xreg(S2);
-  uintx_t saved_s3 = get_xreg(S3);
-  uintx_t saved_s6 = get_xreg(S6);
-
-  // Make sure the activation frames are properly aligned.
-  uintx_t aligned_sp = saved_sp;
-  if (OS::ActivationFrameAlignment() > 1) {
-    aligned_sp = Utils::RoundDown(aligned_sp, OS::ActivationFrameAlignment());
-  }
-  uintx_t sp =
-      aligned_sp - FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta *
-                       sizeof(uintx_t);
-  set_xreg(SP, sp);
-  set_xreg(FP, aligned_sp);
-
-  set_xreg(A0, ctxt->integer_arguments[0]);
-  set_xreg(A1, ctxt->integer_arguments[1]);
-  set_xreg(A2, ctxt->integer_arguments[2]);
-  set_xreg(A3, ctxt->integer_arguments[3]);
-  set_xreg(A4, ctxt->integer_arguments[4]);
-  set_xreg(A5, ctxt->integer_arguments[5]);
-  set_xreg(A6, ctxt->integer_arguments[6]);
-  set_xreg(A7, ctxt->integer_arguments[7]);
-  set_xreg(THR, reinterpret_cast<uintx_t>(thread));
-  set_xreg(RA, kEndSimulatingPC);
-
-  pc_ = metadata->entry_point;
-  Execute();
-
-  // We can't instrument the runtime.
-  memory_.FlushAll();
-
-  ctxt->integer_arguments[0] = get_xreg(A0);
-  ctxt->integer_arguments[1] = get_xreg(A1);
-
-  set_xreg(S6, saved_s6);
-  set_xreg(S3, saved_s3);
-  set_xreg(S2, saved_s2);
-  set_xreg(THR, saved_thr);
-  set_xreg(RA, saved_ra);
-  set_xreg(FP, saved_fp);
-  set_xreg(SP, saved_sp);
-  pc_ = saved_pc;
-}
-
-void Simulator::DoRedirectedFfiCallback(Thread* thread,
-                                        CallbackContext* ctxt,
-                                        const CallbackMetadata* metadata) {
-  DoCompiledFfiCallback(thread, ctxt, metadata);
-
-  if (metadata->type == CallbackMetadata::kCall) {
-    auto* const caller_isolate =
-        reinterpret_cast<Isolate*>(metadata->caller_isolate);
-    auto* const caller_isolate_group =
-        reinterpret_cast<IsolateGroup*>(metadata->caller_isolate_group);
-    auto epilogue =
-        reinterpret_cast<void* (*)(Thread*, Isolate*, IsolateGroup*)>(
-            metadata->epilogue);
-    epilogue(thread, caller_isolate, caller_isolate_group);
-  } else {
-    ASSERT_EQUAL(metadata->type, CallbackMetadata::kTailCall);
-    auto epilogue = reinterpret_cast<void* (*)(Thread*)>(metadata->epilogue);
-    epilogue(thread);
-  }
-}
-#endif  // defined(SIMULATOR_FFI)
 
 void Simulator::InterpretAMO(Instr instr) {
   switch (instr.funct3()) {
