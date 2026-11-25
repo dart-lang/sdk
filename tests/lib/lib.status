@@ -68,6 +68,9 @@ html/worker_api_test: Skip # Issue 13221
 [ $runtime != vm ]
 isolate/spawn_uri__package_uri__test: SkipByDesign # This test uses Isolate.spawnUri and only works in JIT mode.
 
+[ $sanitizer != none ]
+isolate/int32_length_overflow_test: Skip # High memory overhead
+
 [ $system == windows ]
 html/xhr_test/xhr: Skip # Times out.  Issue 21527
 

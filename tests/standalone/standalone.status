@@ -67,6 +67,9 @@ isolate_spawn_uri_from_env_test: SkipByDesign # Uses spawnUri.
 [ $sanitizer == asan ]
 io/process_detached_test: Slow, Pass
 
+[ $sanitizer != none ]
+io/large_file_test: Skip # High memory overhead
+
 [ $sanitizer == tsan ]
 io/https_client_certificate_test: Slow, Pass
 
