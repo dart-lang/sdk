@@ -794,7 +794,7 @@ class IsCheckers extends _TypeCheckers {
       final argumentType = operandIsNullable
           ? translator.topType
           : translator.topTypeNonNullable;
-      final signature = w.FunctionType(
+      final signature = translator.typesBuilder.defineFunction(
         [argumentType, for (int i = 0; i < argumentCount; ++i) typeType],
         [w.NumType.i32],
       );
@@ -849,7 +849,7 @@ class AsCheckers extends _TypeCheckers {
           ? translator.topType
           : translator.topTypeNonNullable;
       final typeType = translator.translateType(translator.typeType);
-      final signature = w.FunctionType(
+      final signature = translator.typesBuilder.defineFunction(
         [argumentType, for (int i = 0; i < argumentCount; ++i) typeType],
         [returnType],
       );

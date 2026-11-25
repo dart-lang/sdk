@@ -599,7 +599,11 @@ class InstructionsBuilder with Builder<ir.Instructions> {
 
   bool _verifyStartOfBlock(Label label, {required List<Object> trace}) {
     return _debugTrace(
-      ["$label:", ...trace, ir.FunctionType(label.inputs, label.outputs)],
+      [
+        "$label:",
+        ...trace,
+        "(${label.inputs.join(", ")}) -> (${label.outputs.join(", ")})",
+      ],
       reachableAfter: _reachable,
       indentAfter: 1,
     );

@@ -208,10 +208,7 @@ class Translator with KernelNodes {
   final Set<Member> membersBeingGenerated = {};
   final Map<Reference, Closures> constructorClosures = {};
   final Map<Reference, ConstructorInfo> constructorInfo = {};
-  late final w.ValueType voidMarker = w.RefType.def(
-    w.StructType("void"),
-    nullable: true,
-  );
+  final w.ValueType voidMarker = const _VoidMarker();
   final Map<Procedure, w.Memory> _memories = {};
   final Map<Procedure, w.Table> _tables = {};
 
@@ -4287,4 +4284,19 @@ extension on BytesBuilder {
       addByte(byte);
     } while (value != 0);
   }
+}
+
+/// Sentinel [w.ValueType] representing an unused expression result in codegen.
+class _VoidMarker extends w.ValueType {
+  const _VoidMarker();
+
+  @override
+  bool isSubtypeOf(w.StorageType other) => identical(this, other);
+
+  @override
+  void serialize(w.Serializer s) =>
+      throw StateError('Attempt to serialize internal void marker');
+
+  @override
+  String toString() => 'void';
 }
