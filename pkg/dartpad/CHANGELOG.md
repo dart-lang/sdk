@@ -1,4 +1,6 @@
-## v0.2.0-wip
+## v0.2.0
+ - `DartPad.close()` now terminates dedicated Web Workers synchronously before
+   the returned `Future` completes.
  - `Workspace.id` and `LanguageServer.id` are no longer public.
  - `LanguageServer.workspace` and `WorkspaceWatcher.workspace` are no longer
    public.
