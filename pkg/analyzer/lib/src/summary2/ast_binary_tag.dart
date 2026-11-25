@@ -189,6 +189,8 @@ enum NamedWriteResolutionTag {
 
 enum NamespaceCombinatorTag { hide, show }
 
+enum StaticNamespaceTag { empty, extension, interface, invalid }
+
 enum TypeParameterVarianceTag {
   legacy,
   unrelated,

@@ -23,6 +23,363 @@ main() {
 @reflectiveTest
 class ConstructorInvocationResolutionTest extends PubPackageResolutionTest
     with ConstructorInvocationTestCases {
+  test_error_wrongNumberOfTypeArgumentsConstructor_implicitNew_instantiated() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class Foo<X> {
+  Foo.bar();
+}
+
+void f() {
+  Foo<int>.bar<int>();
+//            ^^^^^
+// [diag.wrongNumberOfTypeArgumentsConstructor] The constructor 'Foo.bar' doesn't have type parameters.
+}
+''');
+
+    var node = result.findNode.singleConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      name: Foo
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: <testLibrary>::@class::Foo
+      type: Foo<int>
+    selector: ConstructorSelector
+      period: .
+      name2: bar
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::Foo::@constructor::bar
+      substitution: {X: int}
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: Foo<int>
+V1: InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: Foo
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: <testLibrary>::@class::Foo
+      type: Foo<int>
+    period: .
+    name: SimpleIdentifier
+      token: bar
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::Foo::@constructor::bar
+        substitution: {X: int}
+      staticType: null
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::Foo::@constructor::bar
+      substitution: {X: int}
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: Foo<int>
+''');
+  }
+
+  test_error_wrongNumberOfTypeArgumentsConstructor_implicitNew_instantiated_prefix() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class Foo<X> {
+  Foo.bar();
+}
+''');
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart' as p;
+
+void f() {
+  p.Foo<int>.bar<int>();
+//              ^^^^^
+// [diag.wrongNumberOfTypeArgumentsConstructor] The constructor 'p.Foo.bar' doesn't have type parameters.
+}
+''');
+
+    var node = result.findNode.singleConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+        element: <testLibraryFragment>::@prefix::p
+      name: Foo
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: package:test/a.dart::@class::Foo
+      type: Foo<int>
+    selector: ConstructorSelector
+      period: .
+      name2: bar
+    element: SubstitutedConstructorElementImpl
+      baseElement: package:test/a.dart::@class::Foo::@constructor::bar
+      substitution: {X: int}
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: Foo<int>
+V1: InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+        element: <testLibraryFragment>::@prefix::p
+      name: Foo
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: package:test/a.dart::@class::Foo
+      type: Foo<int>
+    period: .
+    name: SimpleIdentifier
+      token: bar
+      element: SubstitutedConstructorElementImpl
+        baseElement: package:test/a.dart::@class::Foo::@constructor::bar
+        substitution: {X: int}
+      staticType: null
+    element: SubstitutedConstructorElementImpl
+      baseElement: package:test/a.dart::@class::Foo::@constructor::bar
+      substitution: {X: int}
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: Foo<int>
+''');
+  }
+
+  test_error_wrongNumberOfTypeArgumentsConstructor_implicitNew_instantiated_typeAlias() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class Foo<X> {
+  Foo.bar();
+}
+
+typedef A<X> = Foo<X>;
+
+void f() {
+  A<int>.bar<int>();
+//          ^^^^^
+// [diag.wrongNumberOfTypeArgumentsConstructor] The constructor 'A.bar' doesn't have type parameters.
+}
+''');
+
+    var node = result.findNode.singleConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      name: A
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: <testLibrary>::@typeAlias::A
+      type: Foo<int>
+    selector: ConstructorSelector
+      period: .
+      name2: bar
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::Foo::@constructor::bar
+      substitution: {X: int}
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: Foo<int>
+V1: InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: A
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: <testLibrary>::@typeAlias::A
+      type: Foo<int>
+    period: .
+    name: SimpleIdentifier
+      token: bar
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::Foo::@constructor::bar
+        substitution: {X: int}
+      staticType: null
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::Foo::@constructor::bar
+      substitution: {X: int}
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: Foo<int>
+''');
+  }
+
+  test_error_wrongNumberOfTypeArgumentsConstructor_implicitNew_instantiated_typeExtension() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class Foo<X> {}
+
+extension on Type {
+  void bar<T>() {}
+//     ^^^
+// [diag.unusedElement] The declaration 'bar' isn't referenced.
+}
+
+void f() {
+  Foo<int>.bar<int>();
+//         ^^^
+// [diag.newWithUndefinedConstructor] The class 'Foo' doesn't have a constructor named 'bar'.
+//            ^^^^^
+// [diag.wrongNumberOfTypeArgumentsConstructor] The constructor 'Foo.bar' doesn't have type parameters.
+}
+''');
+
+    var node = result.findNode.singleConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      name: Foo
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: <testLibrary>::@class::Foo
+      type: Foo<int>
+    selector: ConstructorSelector
+      period: .
+      name2: bar
+    element: <null>
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: Foo<int>
+V1: InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: Foo
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: <testLibrary>::@class::Foo
+      type: Foo<int>
+    period: .
+    name: SimpleIdentifier
+      token: bar
+      element: <null>
+      staticType: null
+    element: <null>
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: Foo<int>
+''');
+  }
+
   test_functionTypeAlias_noPrefix_instantiated() async {
     var result = await resolveTestCodeWithDiagnostics('''
 typedef Fn<T> = void Function(T);
@@ -30,7 +387,7 @@ typedef Fn<T> = void Function(T);
 void bar() {
   Fn<int>.foo();
 //        ^^^
-// [diag.undefinedStaticMemberReadNoStaticMembers] The function type 'Fn' doesn't have a static member named 'foo'.
+// [diag.newWithUndefinedConstructorNoConstructors] The type alias 'Fn' doesn't have a constructor named 'foo'.
 }
 
 extension E on Type {
@@ -105,7 +462,7 @@ import 'a.dart' as a;
 void bar() {
   a.Fn<int>.foo();
 //          ^^^
-// [diag.undefinedStaticMemberReadNoStaticMembers] The function type 'a.Fn' doesn't have a static member named 'foo'.
+// [diag.newWithUndefinedConstructorNoConstructors] The type alias 'a.Fn' doesn't have a constructor named 'foo'.
 }
 
 extension E on Type {

@@ -257,13 +257,19 @@ class NamedTypeResolver with ScopeHelpers {
         );
         type = InvalidTypeImpl.instance;
       } else if (type is! InterfaceTypeImpl) {
-        // Keep the represented type for invalid function-alias constructor
-        // selections. The enclosing operation reports the selected member;
-        // this qualifier is not a Type-valued receiver.
-        if (type is FunctionTypeImpl &&
-            typeArguments != null &&
+        // `X<T>.name`, where `X` aliases a type that is not an interface
+        // type, such as a function or record type, selects a constructor of
+        // a type that has none. Keep the represented type; the enclosing
+        // operation reports the selected name, or nothing if the alias is
+        // invalid. `X<T>` is not a `Type`-valued receiver here. An annotation
+        // is a constant creation, reported below as with `const`.
+        if (typeArguments != null &&
             switch (node.parent2) {
               ConstructorTearOff() => true,
+              ConstructorReference2(
+                parent2: ConstructorInvocation(parent2: Annotation()),
+              ) =>
+                false,
               ConstructorReference2(
                 selector: ConstructorSelector(),
                 parent2: ConstructorInvocation(keyword: null),

@@ -3,14 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
+import 'package:analyzer/src/dart/resolver/static_namespace.dart';
 import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/dart/type_instantiation_target.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
-import 'package:analyzer/src/error/lookup_failure_reporter.dart';
 
 /// A resolver for [ConstructorInvocation] and
 /// [DotShorthandConstructorInvocation2] nodes.
@@ -99,15 +100,21 @@ class ConstructorInvocationResolver {
     var whyNotPromotedArguments = <WhyNotPromotedGetter>[];
     var constructorReference = node.constructorReference;
     var typeReference = constructorReference.typeReference;
+    // `X<T>.name()`, where `X` aliases a type that is not an interface type,
+    // has no constructor to call. An invalid type, such as of an alias that
+    // expands to a type parameter, is already reported.
     if (constructorReference.selector case var selector?
-        when typeReference.type is FunctionTypeImpl) {
-      _typeAnalyzer.lookupFailureReporter.reportReadFailure(
-        domain: FunctionTypeAliasLookupDomain(
-          importPrefix: typeReference.importPrefix,
-          name: typeReference.name,
-        ),
-        name: selector.name2,
-        foundInstead: null,
+        when typeReference.type is! InvalidTypeImpl &&
+            StaticNamespace.of(typeReference.element) is EmptyStaticNamespace &&
+            !selector.name2.isSynthetic) {
+      _typeAnalyzer.diagnosticReporter.report(
+        diag.newWithUndefinedConstructorNoConstructors
+            .withArguments(
+              name: selector.name2.lexeme,
+              aliasName: typeReference.qualifiedName,
+              typeLiteral: typeReference.toSource(),
+            )
+            .at(selector.name2),
       );
     }
     var elementToInfer = _typeAnalyzer.inferenceHelper
@@ -134,10 +141,11 @@ class ConstructorInvocationResolver {
       whyNotPromotedArguments: whyNotPromotedArguments,
       target: target,
     ).resolveInvocation();
+    // Read after inference, which replaces the type with its inferred type
+    // arguments.
+    var type = typeReference.type!;
     node.recordStaticType(
-      typeReference.type is FunctionTypeImpl
-          ? InvalidTypeImpl.instance
-          : typeReference.type!,
+      type is InterfaceTypeImpl ? type : InvalidTypeImpl.instance,
       typeAnalyzer: _typeAnalyzer,
     );
     _typeAnalyzer.checkForArgumentTypesNotAssignableInList(

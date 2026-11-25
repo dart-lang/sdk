@@ -35,6 +35,8 @@ abstract class D4 = C with T<void>;
 main() {
   T<List<List<List<List>>>>.staticMethod<T<int>>();
   //                        ^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
+  // [analyzer] COMPILE_TIME_ERROR.NEW_WITH_UNDEFINED_CONSTRUCTOR
   // [cfe] Cannot access static member on an instantiated generic class.
+  //                                    ^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
 }

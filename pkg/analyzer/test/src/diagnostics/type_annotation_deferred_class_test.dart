@@ -60,6 +60,157 @@ f(v) {
 }''');
   }
 
+  test_constructorTearOff_class_typeArgument() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart' deferred as a;
+
+class C<T> {
+  C.named();
+}
+
+void f() {
+  C<a.A>.named;
+//  ^^^
+// [diag.typeAnnotationDeferredClass] The deferred type 'a.A' can't be used in a declaration, cast, or type test.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: C
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          importPrefix: ImportPrefixReference
+            name: a
+            period: .
+            element: <testLibraryFragment>::@prefix::a
+          name: A
+          element: package:test/a.dart::@class::A
+          type: A
+      rightBracket: >
+    element: <testLibrary>::@class::C
+    type: C<A>
+  selector: ConstructorSelector
+    period: .
+    name2: named
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::C::@constructor::named
+    substitution: {T: A}
+  staticType: C<A> Function()
+V1: ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            importPrefix: ImportPrefixReference
+              name: a
+              period: .
+              element: <testLibraryFragment>::@prefix::a
+            name: A
+            element: package:test/a.dart::@class::A
+            type: A
+        rightBracket: >
+      element: <testLibrary>::@class::C
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: named
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::C::@constructor::named
+        substitution: {T: A}
+      staticType: null
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::C::@constructor::named
+      substitution: {T: A}
+  staticType: C<A> Function()
+''');
+  }
+
+  test_constructorTearOff_recordTypeAlias_typeArgument() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart' deferred as a;
+
+typedef R<T> = (T,);
+
+void f() {
+  R<a.A>.foo;
+//  ^^^
+// [diag.typeAnnotationDeferredClass] The deferred type 'a.A' can't be used in a declaration, cast, or type test.
+//       ^^^
+// [diag.classInstantiationAccessToMemberNoConstructors] The type alias 'R' doesn't have a constructor named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: R
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          importPrefix: ImportPrefixReference
+            name: a
+            period: .
+            element: <testLibraryFragment>::@prefix::a
+          name: A
+          element: package:test/a.dart::@class::A
+          type: A
+      rightBracket: >
+    element: <testLibrary>::@typeAlias::R
+    type: (A,)
+      alias: <testLibrary>::@typeAlias::R
+        typeArguments
+          A
+  selector: ConstructorSelector
+    period: .
+    name2: foo
+  element: <null>
+  staticType: InvalidType
+V1: ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: R
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            importPrefix: ImportPrefixReference
+              name: a
+              period: .
+              element: <testLibraryFragment>::@prefix::a
+            name: A
+            element: package:test/a.dart::@class::A
+            type: A
+        rightBracket: >
+      element: <testLibrary>::@typeAlias::R
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+  staticType: InvalidType
+''');
+  }
+
   test_fieldFormalParameter() async {
     newFile('$testPackageLibPath/lib1.dart', '''
 library lib1;

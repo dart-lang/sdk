@@ -479,7 +479,7 @@ extension E on Type {
 void f() {
   ++Fn<int>.value;
 //          ^^^^^
-// [diag.undefinedStaticMemberReadNoStaticMembers] The function type 'Fn' doesn't have a static member named 'value'.
+// [diag.classInstantiationAccessToMemberNoConstructors] The type alias 'Fn' doesn't have a constructor named 'value'.
 }
 ''');
 

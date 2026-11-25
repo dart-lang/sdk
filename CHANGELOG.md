@@ -171,9 +171,20 @@ of 3.15 or greater. For more details, see
   NTFS, it uses that much disk space from the start. This SDK no longer uses
   `.analysis-driver`, so it can be deleted; older SDKs recreate it as needed.
   For more details, see SDK issue [#64297][].
+- **Breaking change** [#64720][]: A selector after a type alias of a type
+  that is not an interface type, such as a function type, a record type,
+  `dynamic`, `void`, or `Never`, is now a static member access, as the
+  specification says. So `F.toString()`, `R.hashCode`, and `R.name = 0`, and
+  extension members on `Type` or `Object` accessed through such an alias, are
+  now reported as `undefined_static_member_read` or
+  `undefined_static_member_write`, instead of accessing the `Type` object.
+  With type arguments, as in `R<int>.hashCode`, the selector is a constructor
+  reference, and is reported because the alias has no constructors. To access
+  the `Type` object, wrap the alias in parentheses: `(R).hashCode`.
 
 [#64561]: https://github.com/dart-lang/sdk/issues/64561
 [#64297]: https://github.com/dart-lang/sdk/issues/64297
+[#64720]: https://github.com/dart-lang/sdk/issues/64720
 
 #### Dart CLI
 

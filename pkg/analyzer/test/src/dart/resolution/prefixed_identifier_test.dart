@@ -1074,4 +1074,42 @@ V1: PrefixedIdentifier
   staticType: InvalidType
 ''');
   }
+
+  test_read_typeParameter_hashCode() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f<T>() {
+  T.hashCode;
+}
+''');
+
+    var node = result.findNode.singleReceiverPropertyExtraction;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: TypeLiteral
+    type: NamedType
+      name: T
+      element: #E0 T
+      type: T
+    staticType: Type
+  operator: .
+  name: hashCode
+  resolution: GetterInvocationResolution
+    element: dart:core::@class::Object::@getter::hashCode
+    type: int
+  staticType: int
+V1: PropertyAccess
+  target: TypeLiteral
+    type: NamedType
+      name: T
+      element: #E0 T
+      type: T
+    staticType: Type
+  operator: .
+  propertyName: SimpleIdentifier
+    token: hashCode
+    element: dart:core::@class::Object::@getter::hashCode
+    staticType: int
+  staticType: int
+''');
+  }
 }

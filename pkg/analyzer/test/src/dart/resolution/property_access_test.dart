@@ -3831,6 +3831,246 @@ V1: PropertyAccess
 ''');
   }
 
+  test_propertyExtraction_parenthesizedExpression_dynamicTypeAlias() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = dynamic;
+
+void f() {
+  (A).hashCode;
+}
+''');
+
+    var node = result.findNode.singleReceiverPropertyExtraction;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: TypeLiteral
+      type: NamedType
+        name: A
+        element: <testLibrary>::@typeAlias::A
+        type: dynamic
+          alias: <testLibrary>::@typeAlias::A
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  name: hashCode
+  resolution: GetterInvocationResolution
+    element: dart:core::@class::Object::@getter::hashCode
+    type: int
+  staticType: int
+V1: PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: TypeLiteral
+      type: NamedType
+        name: A
+        element: <testLibrary>::@typeAlias::A
+        type: dynamic
+          alias: <testLibrary>::@typeAlias::A
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  propertyName: SimpleIdentifier
+    token: hashCode
+    element: dart:core::@class::Object::@getter::hashCode
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_propertyExtraction_parenthesizedExpression_dynamicTypeAlias_instantiated() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A<T> = dynamic;
+
+void f() {
+  (A<int>).hashCode;
+}
+''');
+
+    var node = result.findNode.singleReceiverPropertyExtraction;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: TypeLiteral
+      type: NamedType
+        name: A
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@typeAlias::A
+        type: dynamic
+          alias: <testLibrary>::@typeAlias::A
+            typeArguments
+              int
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  name: hashCode
+  resolution: GetterInvocationResolution
+    element: dart:core::@class::Object::@getter::hashCode
+    type: int
+  staticType: int
+V1: PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: TypeLiteral
+      type: NamedType
+        name: A
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@typeAlias::A
+        type: dynamic
+          alias: <testLibrary>::@typeAlias::A
+            typeArguments
+              int
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  propertyName: SimpleIdentifier
+    token: hashCode
+    element: dart:core::@class::Object::@getter::hashCode
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_propertyExtraction_parenthesizedExpression_functionTypeAlias() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef F = void Function();
+
+void f() {
+  (F).hashCode;
+}
+''');
+
+    var node = result.findNode.singleReceiverPropertyExtraction;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: TypeLiteral
+      type: NamedType
+        name: F
+        element: <testLibrary>::@typeAlias::F
+        type: void Function()
+          alias: <testLibrary>::@typeAlias::F
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  name: hashCode
+  resolution: GetterInvocationResolution
+    element: dart:core::@class::Object::@getter::hashCode
+    type: int
+  staticType: int
+V1: PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: TypeLiteral
+      type: NamedType
+        name: F
+        element: <testLibrary>::@typeAlias::F
+        type: void Function()
+          alias: <testLibrary>::@typeAlias::F
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  propertyName: SimpleIdentifier
+    token: hashCode
+    element: dart:core::@class::Object::@getter::hashCode
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_propertyExtraction_parenthesizedExpression_functionTypeAlias_instantiated() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef F<T> = void Function(T);
+
+void f() {
+  (F<int>).hashCode;
+}
+''');
+
+    var node = result.findNode.singleReceiverPropertyExtraction;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: TypeLiteral
+      type: NamedType
+        name: F
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@typeAlias::F
+        type: void Function(int)
+          alias: <testLibrary>::@typeAlias::F
+            typeArguments
+              int
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  name: hashCode
+  resolution: GetterInvocationResolution
+    element: dart:core::@class::Object::@getter::hashCode
+    type: int
+  staticType: int
+V1: PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: TypeLiteral
+      type: NamedType
+        name: F
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@typeAlias::F
+        type: void Function(int)
+          alias: <testLibrary>::@typeAlias::F
+            typeArguments
+              int
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  propertyName: SimpleIdentifier
+    token: hashCode
+    element: dart:core::@class::Object::@getter::hashCode
+    staticType: int
+  staticType: int
+''');
+  }
+
   test_propertyExtraction_parenthesizedExpression_methodTearOff() async {
     var result = await resolveTestCode(r'''
 class A {
@@ -3925,6 +4165,126 @@ V1: PropertyAccess
 ''');
   }
 
+  test_propertyExtraction_parenthesizedExpression_neverTypeAlias() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = Never;
+
+void f() {
+  (A).hashCode;
+}
+''');
+
+    var node = result.findNode.singleReceiverPropertyExtraction;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: TypeLiteral
+      type: NamedType
+        name: A
+        element: <testLibrary>::@typeAlias::A
+        type: Never
+          alias: <testLibrary>::@typeAlias::A
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  name: hashCode
+  resolution: GetterInvocationResolution
+    element: dart:core::@class::Object::@getter::hashCode
+    type: int
+  staticType: int
+V1: PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: TypeLiteral
+      type: NamedType
+        name: A
+        element: <testLibrary>::@typeAlias::A
+        type: Never
+          alias: <testLibrary>::@typeAlias::A
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  propertyName: SimpleIdentifier
+    token: hashCode
+    element: dart:core::@class::Object::@getter::hashCode
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_propertyExtraction_parenthesizedExpression_neverTypeAlias_instantiated() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A<T> = Never;
+
+void f() {
+  (A<int>).hashCode;
+}
+''');
+
+    var node = result.findNode.singleReceiverPropertyExtraction;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: TypeLiteral
+      type: NamedType
+        name: A
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@typeAlias::A
+        type: Never
+          alias: <testLibrary>::@typeAlias::A
+            typeArguments
+              int
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  name: hashCode
+  resolution: GetterInvocationResolution
+    element: dart:core::@class::Object::@getter::hashCode
+    type: int
+  staticType: int
+V1: PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: TypeLiteral
+      type: NamedType
+        name: A
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@typeAlias::A
+        type: Never
+          alias: <testLibrary>::@typeAlias::A
+            typeArguments
+              int
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  propertyName: SimpleIdentifier
+    token: hashCode
+    element: dart:core::@class::Object::@getter::hashCode
+    staticType: int
+  staticType: int
+''');
+  }
+
   test_propertyExtraction_parenthesizedExpression_nullAware() async {
     var result = await resolveTestCode(r'''
 class A {
@@ -4012,6 +4372,408 @@ V1: PropertyAccess
     element: <null>
     staticType: Never?
   staticType: Never?
+''');
+  }
+
+  test_propertyExtraction_parenthesizedExpression_recordTypeAlias() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+void f() {
+  (R).hashCode;
+}
+''');
+
+    var node = result.findNode.singleReceiverPropertyExtraction;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: TypeLiteral
+      type: NamedType
+        name: R
+        element: <testLibrary>::@typeAlias::R
+        type: (int,)
+          alias: <testLibrary>::@typeAlias::R
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  name: hashCode
+  resolution: GetterInvocationResolution
+    element: dart:core::@class::Object::@getter::hashCode
+    type: int
+  staticType: int
+V1: PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: TypeLiteral
+      type: NamedType
+        name: R
+        element: <testLibrary>::@typeAlias::R
+        type: (int,)
+          alias: <testLibrary>::@typeAlias::R
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  propertyName: SimpleIdentifier
+    token: hashCode
+    element: dart:core::@class::Object::@getter::hashCode
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_propertyExtraction_parenthesizedExpression_recordTypeAlias_genericExtension() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension E<T> on T {
+  int get foo => 0;
+}
+
+void f() {
+  (R).foo;
+}
+''');
+
+    var node = result.findNode.singleReceiverPropertyExtraction;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: TypeLiteral
+      type: NamedType
+        name: R
+        element: <testLibrary>::@typeAlias::R
+        type: (int,)
+          alias: <testLibrary>::@typeAlias::R
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::E::@getter::foo
+    type: int
+  staticType: int
+V1: PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: TypeLiteral
+      type: NamedType
+        name: R
+        element: <testLibrary>::@typeAlias::R
+        type: (int,)
+          alias: <testLibrary>::@typeAlias::R
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::E::@getter::foo
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_propertyExtraction_parenthesizedExpression_recordTypeAlias_instantiated() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R<T> = (T,);
+
+void f() {
+  (R<int>).hashCode;
+}
+''');
+
+    var node = result.findNode.singleReceiverPropertyExtraction;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: TypeLiteral
+      type: NamedType
+        name: R
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@typeAlias::R
+        type: (int,)
+          alias: <testLibrary>::@typeAlias::R
+            typeArguments
+              int
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  name: hashCode
+  resolution: GetterInvocationResolution
+    element: dart:core::@class::Object::@getter::hashCode
+    type: int
+  staticType: int
+V1: PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: TypeLiteral
+      type: NamedType
+        name: R
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@typeAlias::R
+        type: (int,)
+          alias: <testLibrary>::@typeAlias::R
+            typeArguments
+              int
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  propertyName: SimpleIdentifier
+    token: hashCode
+    element: dart:core::@class::Object::@getter::hashCode
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_propertyExtraction_parenthesizedExpression_recordTypeAlias_nullableObjectExtension() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension on Object? {
+  int get foo => 0;
+}
+
+void f() {
+  (R).foo;
+}
+''');
+
+    var node = result.findNode.singleReceiverPropertyExtraction;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: TypeLiteral
+      type: NamedType
+        name: R
+        element: <testLibrary>::@typeAlias::R
+        type: (int,)
+          alias: <testLibrary>::@typeAlias::R
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::#0::@getter::foo
+    type: int
+  staticType: int
+V1: PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: TypeLiteral
+      type: NamedType
+        name: R
+        element: <testLibrary>::@typeAlias::R
+        type: (int,)
+          alias: <testLibrary>::@typeAlias::R
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::#0::@getter::foo
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_propertyExtraction_parenthesizedExpression_recordTypeAlias_objectExtension() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension on Object {
+  int get foo => 0;
+}
+
+void f() {
+  (R).foo;
+}
+''');
+
+    var node = result.findNode.singleReceiverPropertyExtraction;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: TypeLiteral
+      type: NamedType
+        name: R
+        element: <testLibrary>::@typeAlias::R
+        type: (int,)
+          alias: <testLibrary>::@typeAlias::R
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  name: foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@extension::#0::@getter::foo
+    type: int
+  staticType: int
+V1: PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: TypeLiteral
+      type: NamedType
+        name: R
+        element: <testLibrary>::@typeAlias::R
+        type: (int,)
+          alias: <testLibrary>::@typeAlias::R
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::#0::@getter::foo
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_propertyExtraction_parenthesizedExpression_voidTypeAlias() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = void;
+
+void f() {
+  (A).hashCode;
+}
+''');
+
+    var node = result.findNode.singleReceiverPropertyExtraction;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: TypeLiteral
+      type: NamedType
+        name: A
+        element: <testLibrary>::@typeAlias::A
+        type: void
+          alias: <testLibrary>::@typeAlias::A
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  name: hashCode
+  resolution: GetterInvocationResolution
+    element: dart:core::@class::Object::@getter::hashCode
+    type: int
+  staticType: int
+V1: PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: TypeLiteral
+      type: NamedType
+        name: A
+        element: <testLibrary>::@typeAlias::A
+        type: void
+          alias: <testLibrary>::@typeAlias::A
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  propertyName: SimpleIdentifier
+    token: hashCode
+    element: dart:core::@class::Object::@getter::hashCode
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_propertyExtraction_parenthesizedExpression_voidTypeAlias_instantiated() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A<T> = void;
+
+void f() {
+  (A<int>).hashCode;
+}
+''');
+
+    var node = result.findNode.singleReceiverPropertyExtraction;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: TypeLiteral
+      type: NamedType
+        name: A
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@typeAlias::A
+        type: void
+          alias: <testLibrary>::@typeAlias::A
+            typeArguments
+              int
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  name: hashCode
+  resolution: GetterInvocationResolution
+    element: dart:core::@class::Object::@getter::hashCode
+    type: int
+  staticType: int
+V1: PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: TypeLiteral
+      type: NamedType
+        name: A
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@typeAlias::A
+        type: void
+          alias: <testLibrary>::@typeAlias::A
+            typeArguments
+              int
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  propertyName: SimpleIdentifier
+    token: hashCode
+    element: dart:core::@class::Object::@getter::hashCode
+    staticType: int
+  staticType: int
 ''');
   }
 

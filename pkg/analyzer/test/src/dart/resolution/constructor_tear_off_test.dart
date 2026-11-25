@@ -458,7 +458,7 @@ typedef Fn<T> = void Function(T);
 void bar() {
   Fn<int>.foo;
 //        ^^^
-// [diag.undefinedStaticMemberReadNoStaticMembers] The function type 'Fn' doesn't have a static member named 'foo'.
+// [diag.classInstantiationAccessToMemberNoConstructors] The type alias 'Fn' doesn't have a constructor named 'foo'.
 }
 
 extension E on Type {

@@ -1640,14 +1640,14 @@ V1: AssignmentExpression
 ''');
   }
 
-  test_noStaticMembers_directAssignment() async {
+  test_invalidAlias_directAssignment_undefinedOnType_invalidType() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-typedef F = void Function();
+typedef A = Unknown;
+//          ^^^^^^^
+// [diag.undefinedClass] Undefined class 'Unknown'.
 
 void f() {
-  F.foo = 1;
-//  ^^^
-// [diag.undefinedStaticMemberWriteNoStaticMembers] The function type 'F' doesn't have a static setter named 'foo'.
+  A.foo = 0;
 }
 ''');
 
@@ -1656,8 +1656,8 @@ void f() {
 DirectAssignment
   target: ReceiverPropertyAssignmentTarget
     receiver: StaticQualifier
-      name: F
-      element: <testLibrary>::@typeAlias::F
+      name: A
+      element: <testLibrary>::@typeAlias::A
     operator: .
     name: foo
     read: <null>
@@ -1665,15 +1665,15 @@ DirectAssignment
       recoveryElement: <null>
   operator: =
   value: IntegerLiteral
-    literal: 1
+    literal: 0
     correspondingParameter: <null>
     staticType: int
   staticType: int
 V1: AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
-      token: F
-      element: <testLibrary>::@typeAlias::F
+      token: A
+      element: <testLibrary>::@typeAlias::A
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -1684,7 +1684,7 @@ V1: AssignmentExpression
     staticType: null
   operator: =
   rightHandSide: IntegerLiteral
-    literal: 1
+    literal: 0
     correspondingParameter: <null>
     staticType: int
   readElement: <null>
@@ -1696,74 +1696,51 @@ V1: AssignmentExpression
 ''');
   }
 
-  test_noStaticMembers_directAssignment_instantiated() async {
+  test_invalidAlias_directAssignment_undefinedOnType_selfReference() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-typedef F<T> = void Function(T);
+typedef A = List<A>;
+//      ^
+// [diag.typeAliasCannotReferenceItself] Typedefs can't reference themselves directly or recursively via another typedef.
 
 void f() {
-  F<int>.foo = 1;
-//       ^^^
-// [diag.undefinedStaticMemberWriteNoStaticMembers] The function type 'F' doesn't have a static setter named 'foo'.
+  A.foo = 0;
 }
 ''');
 
-    var node = result.findNode.singleDirectAssignment;
+    var node = result.findNode.singleExpressionStatement.expression2;
     assertResolvedNodeText(node, r'''
 DirectAssignment
-  target: InvalidExpressionAssignmentTarget
-    expression: ConstructorTearOff
-      typeReference: ConstructorTypeReference
-        name: F
-        typeArguments: TypeArgumentList
-          leftBracket: <
-          arguments
-            NamedType
-              name: int
-              element: dart:core::@class::int
-              type: int
-          rightBracket: >
-        element: <testLibrary>::@typeAlias::F
-        type: void Function(int)
-          alias: <testLibrary>::@typeAlias::F
-            typeArguments
-              int
-      selector: ConstructorSelector
-        period: .
-        name2: foo
-      element: <null>
-      staticType: InvalidType
-    write: InvalidWriteResolution
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@typeAlias::A
+    operator: .
+    name: foo
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
   operator: =
   value: IntegerLiteral
-    literal: 1
+    literal: 0
     correspondingParameter: <null>
     staticType: int
   staticType: int
 V1: AssignmentExpression
-  leftHandSide: ConstructorReference
-    constructorName: ConstructorName
-      type: NamedType
-        name: F
-        typeArguments: TypeArgumentList
-          leftBracket: <
-          arguments
-            NamedType
-              name: int
-              element: dart:core::@class::int
-              type: int
-          rightBracket: >
-        element: <testLibrary>::@typeAlias::F
-        type: null
-      period: .
-      name: SimpleIdentifier
-        token: foo
-        element: <null>
-        staticType: null
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@typeAlias::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
       element: <null>
-    staticType: InvalidType
+      staticType: null
+    element: <null>
+    staticType: null
   operator: =
   rightHandSide: IntegerLiteral
-    literal: 1
+    literal: 0
     correspondingParameter: <null>
     staticType: int
   readElement: <null>
@@ -1775,7 +1752,191 @@ V1: AssignmentExpression
 ''');
   }
 
-  test_noStaticMembers_directAssignment_prefixed() async {
+  test_noStaticMembers_directAssignment_genericExtension_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension E<T> on T {
+  set foo(int _) {}
+}
+
+void f() {
+  R.foo = 0;
+//  ^^^
+// [diag.undefinedStaticMemberWriteNoStaticMembers] The type alias 'R' doesn't have a static setter named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: R
+      element: <testLibrary>::@typeAlias::R
+    operator: .
+    name: foo
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: R
+      element: <testLibrary>::@typeAlias::R
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_noStaticMembers_directAssignment_nullableObjectExtension_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension on Object? {
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  R.foo = 0;
+//  ^^^
+// [diag.undefinedStaticMemberWriteNoStaticMembers] The type alias 'R' doesn't have a static setter named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: R
+      element: <testLibrary>::@typeAlias::R
+    operator: .
+    name: foo
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: R
+      element: <testLibrary>::@typeAlias::R
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_noStaticMembers_directAssignment_objectExtension_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension on Object {
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  R.foo = 0;
+//  ^^^
+// [diag.undefinedStaticMemberWriteNoStaticMembers] The type alias 'R' doesn't have a static setter named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: R
+      element: <testLibrary>::@typeAlias::R
+    operator: .
+    name: foo
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: R
+      element: <testLibrary>::@typeAlias::R
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_noStaticMembers_directAssignment_prefixed_undefinedOnType_functionType() async {
     newFile('$testPackageLibPath/a.dart', r'''
 typedef F = void Function();
 ''');
@@ -1785,7 +1946,7 @@ import 'a.dart' as p;
 void f() {
   p.F.foo = 1;
 //    ^^^
-// [diag.undefinedStaticMemberWriteNoStaticMembers] The function type 'p.F' doesn't have a static setter named 'foo'.
+// [diag.undefinedStaticMemberWriteNoStaticMembers] The type alias 'p.F' doesn't have a static setter named 'foo'.
 }
 ''');
 
@@ -1834,6 +1995,1104 @@ V1: AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_noStaticMembers_directAssignment_typeExtension_dynamic() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = dynamic;
+
+extension on Type {
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo = 0;
+//  ^^^
+// [diag.undefinedStaticMemberWriteNoStaticMembers] The type alias 'A' doesn't have a static setter named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@typeAlias::A
+    operator: .
+    name: foo
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@typeAlias::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_noStaticMembers_directAssignment_typeExtension_functionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef F = void Function();
+
+extension on Type {
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  F.foo = 0;
+//  ^^^
+// [diag.undefinedStaticMemberWriteNoStaticMembers] The type alias 'F' doesn't have a static setter named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: F
+      element: <testLibrary>::@typeAlias::F
+    operator: .
+    name: foo
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: F
+      element: <testLibrary>::@typeAlias::F
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_noStaticMembers_directAssignment_typeExtension_genericDynamic() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A<T> = dynamic;
+
+extension on Type {
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo = 0;
+//  ^^^
+// [diag.undefinedStaticMemberWriteNoStaticMembers] The type alias 'A' doesn't have a static setter named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@typeAlias::A
+    operator: .
+    name: foo
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@typeAlias::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_noStaticMembers_directAssignment_typeExtension_genericFunctionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A<T> = void Function(T);
+
+extension on Type {
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo = 0;
+//  ^^^
+// [diag.undefinedStaticMemberWriteNoStaticMembers] The type alias 'A' doesn't have a static setter named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@typeAlias::A
+    operator: .
+    name: foo
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@typeAlias::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_noStaticMembers_directAssignment_typeExtension_genericNever() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A<T> = Never;
+
+extension on Type {
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo = 0;
+//  ^^^
+// [diag.undefinedStaticMemberWriteNoStaticMembers] The type alias 'A' doesn't have a static setter named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@typeAlias::A
+    operator: .
+    name: foo
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@typeAlias::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_noStaticMembers_directAssignment_typeExtension_genericRecordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A<T> = (T,);
+
+extension on Type {
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo = 0;
+//  ^^^
+// [diag.undefinedStaticMemberWriteNoStaticMembers] The type alias 'A' doesn't have a static setter named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@typeAlias::A
+    operator: .
+    name: foo
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@typeAlias::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_noStaticMembers_directAssignment_typeExtension_genericVoid() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A<T> = void;
+
+extension on Type {
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo = 0;
+//  ^^^
+// [diag.undefinedStaticMemberWriteNoStaticMembers] The type alias 'A' doesn't have a static setter named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@typeAlias::A
+    operator: .
+    name: foo
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@typeAlias::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_noStaticMembers_directAssignment_typeExtension_legacyFunctionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef void A();
+
+extension on Type {
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo = 0;
+//  ^^^
+// [diag.undefinedStaticMemberWriteNoStaticMembers] The type alias 'A' doesn't have a static setter named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@typeAlias::A
+    operator: .
+    name: foo
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@typeAlias::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_noStaticMembers_directAssignment_typeExtension_legacyGenericFunctionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef void A<T>(T t);
+
+extension on Type {
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo = 0;
+//  ^^^
+// [diag.undefinedStaticMemberWriteNoStaticMembers] The type alias 'A' doesn't have a static setter named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@typeAlias::A
+    operator: .
+    name: foo
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@typeAlias::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_noStaticMembers_directAssignment_typeExtension_never() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = Never;
+
+extension on Type {
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo = 0;
+//  ^^^
+// [diag.undefinedStaticMemberWriteNoStaticMembers] The type alias 'A' doesn't have a static setter named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@typeAlias::A
+    operator: .
+    name: foo
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@typeAlias::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_noStaticMembers_directAssignment_typeExtension_nullableFunctionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = void Function()?;
+
+extension on Type {
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo = 0;
+//  ^^^
+// [diag.undefinedStaticMemberWriteNoStaticMembers] The type alias 'A' doesn't have a static setter named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@typeAlias::A
+    operator: .
+    name: foo
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@typeAlias::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_noStaticMembers_directAssignment_typeExtension_nullableNever() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = Never?;
+
+extension on Type {
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo = 0;
+//  ^^^
+// [diag.undefinedStaticMemberWriteNoStaticMembers] The type alias 'A' doesn't have a static setter named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@typeAlias::A
+    operator: .
+    name: foo
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@typeAlias::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_noStaticMembers_directAssignment_typeExtension_nullableRecordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = (int,)?;
+
+extension on Type {
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo = 0;
+//  ^^^
+// [diag.undefinedStaticMemberWriteNoStaticMembers] The type alias 'A' doesn't have a static setter named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@typeAlias::A
+    operator: .
+    name: foo
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@typeAlias::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_noStaticMembers_directAssignment_typeExtension_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension on Type {
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  R.foo = 0;
+//  ^^^
+// [diag.undefinedStaticMemberWriteNoStaticMembers] The type alias 'R' doesn't have a static setter named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: R
+      element: <testLibrary>::@typeAlias::R
+    operator: .
+    name: foo
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: R
+      element: <testLibrary>::@typeAlias::R
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_noStaticMembers_directAssignment_typeExtension_void() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = void;
+
+extension on Type {
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo = 0;
+//  ^^^
+// [diag.undefinedStaticMemberWriteNoStaticMembers] The type alias 'A' doesn't have a static setter named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@typeAlias::A
+    operator: .
+    name: foo
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@typeAlias::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_noStaticMembers_directAssignment_undefinedOnType_functionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef F = void Function();
+
+void f() {
+  F.foo = 1;
+//  ^^^
+// [diag.undefinedStaticMemberWriteNoStaticMembers] The type alias 'F' doesn't have a static setter named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleDirectAssignment;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: F
+      element: <testLibrary>::@typeAlias::F
+    operator: .
+    name: foo
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: =
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: F
+      element: <testLibrary>::@typeAlias::F
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_noStaticMembers_directAssignment_undefinedOnType_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+void f() {
+  R.foo = 0;
+//  ^^^
+// [diag.undefinedStaticMemberWriteNoStaticMembers] The type alias 'R' doesn't have a static setter named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleDirectAssignment;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: R
+      element: <testLibrary>::@typeAlias::R
+    operator: .
+    name: foo
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: R
+      element: <testLibrary>::@typeAlias::R
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_noStaticMembers_directAssignment_undefinedOnType_typeVariable() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A<X> = X;
+
+void f() {
+  A.foo = 0;
+//  ^^^
+// [diag.undefinedStaticMemberWriteNoStaticMembers] The type alias 'A' doesn't have a static setter named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleDirectAssignment;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@typeAlias::A
+    operator: .
+    name: foo
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@typeAlias::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
     correspondingParameter: <null>
     staticType: int
   readElement: <null>

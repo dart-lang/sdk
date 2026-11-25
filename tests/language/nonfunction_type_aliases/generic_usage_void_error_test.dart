@@ -67,9 +67,8 @@ main() {
   // [cfe] Couldn't find constructor 'T'.
 
   T<Null>.named();
-  // [error column 3, length 1]
-  // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
-  //      ^
+  //      ^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.NEW_WITH_UNDEFINED_CONSTRUCTOR
   // [cfe] Couldn't find constructor 'T.named'.
 
   T<Object> v12 = foo<T<bool>>(T<bool>());
@@ -79,6 +78,8 @@ main() {
 
   T<List<List<List<List>>>>.staticMethod<T<int>>();
   //                        ^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
+  // [analyzer] COMPILE_TIME_ERROR.NEW_WITH_UNDEFINED_CONSTRUCTOR
   // [cfe] The method 'staticMethod' isn't defined for the type 'Type'.
+  //                                    ^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
 }

@@ -107,11 +107,13 @@ main() {
   // [cfe] Couldn't find constructor 'T'.
 
   T<List<List<List<List>>>>.staticMethod<T<int>>();
-  // [error column 3]
+  // [error column 3, length 1]
+  // [analyzer] COMPILE_TIME_ERROR.INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER
   // [cfe] Can't use a typedef denoting a type variable as a constructor, nor for a static member access.
   //                        ^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The method 'staticMethod' isn't defined for the type 'Type'.
+  //                                    ^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
 
   T<Object>();
   // [error column 3, length 1]

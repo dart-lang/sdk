@@ -193,6 +193,16 @@ extension ConstructorDeclarationExtension on ConstructorDeclaration2 {
   }
 }
 
+extension ConstructorTypeReferenceExtension on ConstructorTypeReference {
+  /// The name of the type, with its import prefix if one is written.
+  String get qualifiedName {
+    if (importPrefix case var importPrefix?) {
+      return '${importPrefix.name.lexeme}.${name.lexeme}';
+    }
+    return name.lexeme;
+  }
+}
+
 extension DartPatternExtension on DartPattern {
   /// Return the matched value type of this pattern.
   ///

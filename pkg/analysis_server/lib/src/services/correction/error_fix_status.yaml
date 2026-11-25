@@ -359,6 +359,12 @@ class_used_as_mixin_declares_generative_constructor:
 class_instantiation_access_to_instance_member:
   status: noFix
   since: 2.15
+class_instantiation_access_to_member_no_constructors:
+  status: noFix
+  notes: |-
+    A type alias of a type that is not an interface type has no constructors;
+    the correction suggests wrapping the type literal in parentheses, which
+    changes the meaning.
 class_instantiation_access_to_static_member:
   status: hasFix
 class_instantiation_access_to_unknown_member:
@@ -1238,6 +1244,12 @@ new_with_undefined_constructor:
   status: hasFix
 new_with_undefined_constructor_default:
   status: hasFix
+new_with_undefined_constructor_no_constructors:
+  status: noFix
+  notes: |-
+    A type alias of a type that is not an interface type has no constructors;
+    the correction suggests wrapping the type literal in parentheses, which
+    changes the meaning.
 no_annotation_constructor_arguments:
   status: hasFix
 no_combined_super_signature:
@@ -1776,8 +1788,9 @@ undefined_prefixed_name_write_wrong_kind:
 undefined_static_member_read_no_static_members:
   status: noFix
   notes: |-
-    A function type has no static members; the correction suggests wrapping
-    the alias in parentheses, which changes the meaning.
+    A type alias of a type that is not an interface type has no static
+    members; the correction suggests wrapping the alias in parentheses, which
+    changes the meaning.
 undefined_static_member_read_no_static_members_dot_shorthand:
   status: noFix
   notes: |-
@@ -1820,8 +1833,9 @@ undefined_static_member_write_getter_only:
 undefined_static_member_write_no_static_members:
   status: noFix
   notes: |-
-    A function type has no static members; the correction suggests wrapping
-    the alias in parentheses, which changes the meaning.
+    A type alias of a type that is not an interface type has no static
+    members; the correction suggests wrapping the alias in parentheses, which
+    changes the meaning.
 undefined_static_member_write_not_found:
   status: hasFix
 undefined_static_member_write_private:

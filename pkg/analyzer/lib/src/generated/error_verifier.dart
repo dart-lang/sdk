@@ -909,6 +909,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     _constArgumentsVerifier.visitConstructorTearOff(node);
     _typeArgumentsVerifier.checkConstructorTearOff(node);
     _checkForInvalidGenerativeConstructorReference(node, node.element);
+    super.visitConstructorTearOff(node);
   }
 
   @override

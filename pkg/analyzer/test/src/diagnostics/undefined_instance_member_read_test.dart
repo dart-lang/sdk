@@ -959,18 +959,6 @@ void f(int p) {
 ''');
   }
 
-  test_notFound_invocation_typeLiteralFunctionTypeAlias() async {
-    await resolveTestCodeWithDiagnostics(r'''
-typedef A = void Function();
-
-void f() {
-  A.foo();
-//  ^^^
-// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'Type'.
-}
-''');
-  }
-
   test_notFound_invocation_unnamedExtensionOfOtherLibrary() async {
     newFile('$testPackageLibPath/lib.dart', '''
 class C {}
