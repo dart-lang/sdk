@@ -6,6 +6,8 @@
 
 // SharedOptions=--enable-experiment=variance
 
+import "dart:async";
+
 import "package:expect/expect.dart";
 
 import "variance_helper.dart";
@@ -49,6 +51,15 @@ class A<out T> {
 
   void method19({Contravariant<T>? x}) {}
   void method20({ContraFunction<T>? x}) {}
+
+  (T, int)? method21() => null;
+  ({T x})? method22() => null;
+  FutureOr<T>? method23() => null;
+  void method24(void Function([T]) f) {}
+  void method25(void Function({required T x}) f) {}
+  LegacyCovariant<T>? method26() => null;
+  void method27(Ignore<T> x) {}
+  Ignore<T> method28() => 0;
 }
 
 mixin BMixin<out T> {
