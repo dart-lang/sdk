@@ -1589,7 +1589,7 @@ uword PageSpace::AllocateSnapshotLockedSlow(FreeList* freelist, intptr_t size) {
   if (result != 0) {
     return result;
   }
-  OUT_OF_MEMORY();
+  Dart::PropagateOOM();
 }
 
 void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {

@@ -8,6 +8,7 @@
 #include "bin/platform.h"
 
 #include <errno.h>
+#include <sched.h>
 #include <signal.h>
 #include <string.h>
 #include <sys/prctl.h>
@@ -17,6 +18,8 @@
 #endif
 #include <sys/utsname.h>
 #include <unistd.h>
+
+#include <fstream>
 
 #include "bin/console.h"
 #include "bin/file.h"
@@ -120,8 +123,56 @@ bool Platform::Initialize(bool install_crash_handler /* = true */) {
   return true;
 }
 
+static size_t CGroupQuota() {
+  uint64_t quota = std::numeric_limits<uint64_t>::max();
+
+  std::ifstream cgroup_file("/proc/self/cgroup");
+  if (!cgroup_file.is_open()) return quota;
+  std::string line;
+  if (!std::getline(cgroup_file, line)) return quota;
+  // cgroups v1 unsupported
+  // cgroups v2 lines look like: "0::/user.slice/user-1000.slice/..."
+  size_t colon_pos = line.find("::");
+  if (colon_pos == std::string::npos) return quota;
+  std::string cgroup_path = line.substr(colon_pos + 2);
+
+  for (;;) {
+    std::string max_file_path = "/sys/fs/cgroup" + cgroup_path + "/cpu.max";
+    std::ifstream max_file(max_file_path);
+    if (!max_file.is_open()) return quota;
+    if (!std::getline(max_file, line)) return quota;
+
+    if (!line.starts_with("max ")) {
+      uint64_t numer;
+      uint64_t denom;
+      if (sscanf(line.c_str(), "%" Pu64 " %" Pu64, &numer, &denom) != 2)
+        return quota;
+      // Ceiling divide.
+      if (denom != 0) {
+        uint64_t this_level_quota = (numer + denom - 1) / denom;
+        quota = Utils::Minimum(quota, this_level_quota);
+      }
+    }
+
+    size_t slash_pos = cgroup_path.find_last_of("/");
+    if (slash_pos == std::string::npos) break;
+    if (slash_pos == 0) break;
+    cgroup_path = cgroup_path.substr(0, slash_pos);
+  }
+  return quota;
+}
+
 int Platform::NumberOfProcessors() {
-  return sysconf(_SC_NPROCESSORS_ONLN);
+  size_t count = sysconf(_SC_NPROCESSORS_ONLN);
+
+  cpu_set_t mask;
+  if (sched_getaffinity(0, sizeof(mask), &mask) == 0) {
+    count = Utils::Minimum(count, static_cast<size_t>(CPU_COUNT(&mask)));
+  }
+
+  count = Utils::Minimum(count, CGroupQuota());
+
+  return count;
 }
 
 const char* Platform::OperatingSystemVersion() {

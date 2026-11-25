@@ -100,7 +100,8 @@ group("runtime") {
   } else if (is_win) {
     deps += [
       "runtime/bin:create_process_test_helper",
-      "runtime/bin:job_helper",
+      "runtime/bin:job_query",
+      "runtime/bin:job_run",
     ]
   }
 }

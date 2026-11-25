@@ -6,8 +6,15 @@
 
 #include "platform/assert.h"
 #include "platform/utils.h"
+#include "vm/os.h"
 
 namespace dart {
+
+DEFINE_FLAG(
+    int,
+    memory_limit_percent,
+    80,
+    "Percent of job/cgroup/system memory limit to use as VM memory limit");
 
 bool VirtualMemory::InSamePage(uword address0, uword address1) {
   return (Utils::RoundDown(address0, PageSize()) ==
@@ -43,10 +50,40 @@ VirtualMemory* VirtualMemory::ForImagePage(void* pointer, uword size) {
 }
 
 VirtualMemory* VirtualMemory::Adopt(void* pointer, uword size) {
+  ForceCharge(size);
   MemoryRegion region(pointer, size);
   VirtualMemory* memory = new VirtualMemory(region, region);
   ASSERT(memory->vm_owns_region());
   return memory;
+}
+
+void VirtualMemory::Init() {
+  if (FLAG_old_gen_heap_size < 0 || FLAG_old_gen_heap_size > kMaxAddrSpaceMB) {
+    OS::PrintErr(
+        "warning: value specified for --old_gen_heap_size %d is larger than"
+        " the physically addressable range, using 0(unlimited) instead.`\n",
+        FLAG_old_gen_heap_size);
+    FLAG_old_gen_heap_size = 0;
+  }
+  if (FLAG_new_gen_semi_max_size < 0 ||
+      FLAG_new_gen_semi_max_size > kMaxAddrSpaceMB) {
+    OS::PrintErr(
+        "warning: value specified for --new_gen_semi_max_size %d is larger"
+        " than the physically addressable range, using %" Pd " instead.`\n",
+        FLAG_new_gen_semi_max_size, kDefaultNewGenSemiMaxSize);
+    FLAG_new_gen_semi_max_size = kDefaultNewGenSemiMaxSize;
+  }
+  page_size_ = QueryPageSize();
+
+  InitExecutable();
+
+  if ((FLAG_memory_limit_percent >= 0) && (FLAG_memory_limit_percent <= 100)) {
+    size_t job_memory_limit = QueryJobMemoryLimit();
+    limit_ = job_memory_limit / 100 * FLAG_memory_limit_percent;
+    if (FLAG_verbose_gc) {
+      OS::PrintErr("Set memory limit to %" Pd "\n", limit_);
+    }
+  }
 }
 
 }  // namespace dart

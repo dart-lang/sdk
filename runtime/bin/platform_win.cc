@@ -139,9 +139,36 @@ bool Platform::Initialize(bool install_crash_handler /* = true */) {
 }
 
 int Platform::NumberOfProcessors() {
-  SYSTEM_INFO info;
-  GetSystemInfo(&info);
-  return info.dwNumberOfProcessors;
+  DWORD count = GetActiveProcessorCount(ALL_PROCESSOR_GROUPS);
+
+  JOBOBJECT_CPU_RATE_CONTROL_INFORMATION info;
+  if (QueryInformationJobObject(nullptr, JobObjectCpuRateControlInformation,
+                                &info, sizeof(info), nullptr)) {
+    DWORD flags = JOB_OBJECT_CPU_RATE_CONTROL_ENABLE |
+                  JOB_OBJECT_CPU_RATE_CONTROL_HARD_CAP;
+    if ((info.ControlFlags & flags) == flags) {
+      return (count * info.CpuRate + 9999) / 10000;
+    }
+  }
+
+  USHORT group_count = 0;
+  if (!GetProcessGroupAffinity(GetCurrentProcess(), &group_count, nullptr) &&
+      (GetLastError() == ERROR_INSUFFICIENT_BUFFER)) {
+    if (group_count == 1) {
+      DWORD_PTR process_mask = 0;
+      DWORD_PTR system_mask = 0;
+      if (GetProcessAffinityMask(GetCurrentProcess(), &process_mask,
+                                 &system_mask)) {
+        if (process_mask != 0) {
+          return std::popcount(process_mask);
+        }
+      }
+    } else {
+      // Unimplemented.
+    }
+  }
+
+  return count;
 }
 
 // We pull the version number, and other version information out of the

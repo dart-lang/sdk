@@ -1,0 +1,7 @@
+#!/bin/sh
+# Run with constraints that mimic the resources available on the CI machines.
+# CpuQuota=800% - the machines have 8 vCPU.
+# MemoryMax=15G - the machines have 16G, leave 1G for system/swarming.
+# MemorySwapMax=0 - the machines have no swap.
+# OOMPolicy=continue - systemd-run's default is kill (i.e., the whole cgroup dies on OOM), but swarming doesn't run that way.
+exec systemd-run --user --scope --quiet -p CPUQuota=800% -p MemoryMax=15G -p MemorySwapMax=0 -p OOMPolicy=continue -- "$@"

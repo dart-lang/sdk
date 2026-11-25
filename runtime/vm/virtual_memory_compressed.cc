@@ -235,8 +235,22 @@ VirtualMemory* Cage::Allocate(intptr_t size,
   uword address = base_ + page_id * kCompressedPageSize;
   ASSERT(Utils::IsAligned(address, kCompressedPageSize));
   MemoryRegion region(reinterpret_cast<void*>(address), allocated_size);
-  VirtualMemory::Commit(region.pointer(), region.size(), name);
-  return new VirtualMemory(region, region, this);
+  if (VirtualMemory::Commit(region.pointer(), region.size(), name)) {
+    return new VirtualMemory(region, region, this);
+  }
+
+  {
+    MutexLocker ml(&mutex_);
+    uword end = page_id + pages;
+    for (uword i = page_id; i < end; ++i) {
+      ClearPageUsed(i);
+    }
+    if (page_id < minimum_free_page_id_) {
+      minimum_free_page_id_ = page_id;
+    }
+  }
+
+  return nullptr;
 }
 
 void Cage::Free(void* address, intptr_t size) {

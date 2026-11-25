@@ -17,20 +17,16 @@
 namespace dart {
 namespace bin {
 
-uword VirtualMemory::page_size_ = 0;
+size_t VirtualMemory::page_size_ = 0;
 
-intptr_t VirtualMemory::CalculatePageSize() {
-  const intptr_t page_size = getpagesize();
-  ASSERT(page_size != 0);
-  ASSERT(Utils::IsPowerOfTwo(page_size));
-  return page_size;
+size_t VirtualMemory::CalculatePageSize() {
+  return zx_system_get_page_size();
 }
 
 VirtualMemory* VirtualMemory::Allocate(intptr_t size,
                                        bool is_executable,
                                        const char* name) {
   ASSERT(Utils::IsAligned(size, page_size_));
-  zx_handle_t vmar = zx_vmar_root_self();
   zx_handle_t vmo = ZX_HANDLE_INVALID;
   zx_status_t status = zx_vmo_create(size, 0u, &vmo);
   if (status != ZX_OK) {
@@ -51,6 +47,7 @@ VirtualMemory* VirtualMemory::Allocate(intptr_t size,
     }
   }
 
+  const zx_handle_t vmar = zx_vmar_root_self();
   const zx_vm_option_t region_options =
       ZX_VM_PERM_READ | ZX_VM_PERM_WRITE |
       (is_executable ? ZX_VM_PERM_EXECUTE : 0);

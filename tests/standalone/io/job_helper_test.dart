@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:io";
-import "dart:typed_data";
 
 import "package:expect/expect.dart";
 import 'package:path/path.dart' as path;
@@ -13,42 +12,25 @@ main(List<String> args) async {
     return;
   }
 
-  if (args.contains("--small")) {
-    var x = new Uint8List(3 << 20); // 3 MB
-    print(x[1]); // Don't optimize away allocation.
-    return;
-  }
-
-  if (args.contains("--large")) {
-    var x = new Uint8List(3 << 30); // 3 GB
-    print(x[1]); // Don't optimize away allocation.
-    return;
-  }
-
-  var job_helper = path.join(
+  var job_run = path.join(
     path.dirname(Platform.resolvedExecutable),
-    "job_helper.exe",
+    "job_run.exe",
   );
 
-  var r = await Process.run(job_helper, [
-    Platform.resolvedExecutable,
-    ...Platform.executableArguments,
-    Platform.script.toFilePath(),
-    "--small",
+  var job_query = path.join(
+    path.dirname(Platform.resolvedExecutable),
+    "job_query.exe",
+  );
+
+  var r = await Process.run(job_run, [
+    "--memory",
+    "${2 << 30}",
+    "--",
+    job_query,
   ]);
   print(r.exitCode);
   print(r.stdout);
   print(r.stderr);
   Expect.equals(0, r.exitCode);
-
-  r = await Process.run(job_helper, [
-    Platform.resolvedExecutable,
-    ...Platform.executableArguments,
-    Platform.script.toFilePath(),
-    "--large",
-  ]);
-  print(r.exitCode);
-  print(r.stdout);
-  print(r.stderr);
-  Expect.notEquals(0, r.exitCode);
+  Expect.contains("JobMemoryLimit=${2 << 30}", r.stdout);
 }

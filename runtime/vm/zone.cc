@@ -7,6 +7,7 @@
 #include "platform/assert.h"
 #include "platform/leak_sanitizer.h"
 #include "platform/utils.h"
+#include "vm/dart.h"
 #include "vm/dart_api_state.h"
 #include "vm/flags.h"
 #include "vm/handles_impl.h"
@@ -92,7 +93,7 @@ Zone::Segment* Zone::Segment::New(intptr_t size, Zone::Segment* next) {
     total_size_.fetch_add(size);
   }
   if (memory == nullptr) {
-    OUT_OF_MEMORY();
+    Dart::PropagateOOM();
   }
   Segment* result = reinterpret_cast<Segment*>(memory->start());
 #ifdef DEBUG

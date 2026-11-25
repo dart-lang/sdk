@@ -1192,9 +1192,14 @@ executable("create_process_test_helper") {
   include_dirs = [ ".." ]
 }
 
-executable("job_helper") {
+executable("job_query") {
   configs += [ "..:dart_arch_config" ]
-  sources = [ "job_helper.cc" ]
+  sources = [ "job_query.cc" ]
+}
+
+executable("job_run") {
+  configs += [ "..:dart_arch_config" ]
+  sources = [ "job_run.cc" ]
 }
 
 source_set("run_vm_tests_set") {

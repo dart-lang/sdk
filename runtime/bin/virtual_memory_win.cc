@@ -13,9 +13,9 @@
 namespace dart {
 namespace bin {
 
-uword VirtualMemory::page_size_ = 0;
+size_t VirtualMemory::page_size_ = 0;
 
-intptr_t VirtualMemory::CalculatePageSize() {
+size_t VirtualMemory::CalculatePageSize() {
   SYSTEM_INFO info;
   GetSystemInfo(&info);
   const intptr_t page_size = info.dwPageSize;
