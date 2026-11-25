@@ -4,6 +4,9 @@
 
 // CHANGES:
 //
+// v0.61 Add support for declaration-site variance (`in`, `out`, `inout`
+// type parameter modifiers).
+//
 // v0.60 Adjust the `static final` and `static const` variable declarations
 // to require an initializing expression.
 //
@@ -737,7 +740,13 @@ enumEntry
     ;
 
 typeParameter
-    :    metadata typeIdentifier (EXTENDS typeNotVoid)?
+    :    metadata typeParameterVariance? typeIdentifier (EXTENDS typeNotVoid)?
+    ;
+
+typeParameterVariance
+    :    OUT
+    |    INOUT
+    |    IN
     ;
 
 typeParameters
@@ -1827,8 +1836,10 @@ otherIdentifierNotType
     :    ASYNC
     |    BASE
     |    HIDE
+    |    INOUT
     |    OF
     |    ON
+    |    OUT
     |    SEALED
     |    SHOW
     |    SYNC
@@ -2131,12 +2142,20 @@ HIDE
     :    'hide'
     ;
 
+INOUT
+    :    'inout'
+    ;
+
 OF
     :    'of'
     ;
 
 ON
     :    'on'
+    ;
+
+OUT
+    :    'out'
     ;
 
 SEALED
