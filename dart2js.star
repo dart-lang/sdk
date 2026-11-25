@@ -53,8 +53,9 @@ _dart2js_builder(
 )
 _dart2js_builder(
     "dart2js-unit-linux-x64-release",
-    category = "dart2js|d8|u",
+    category = "dart2js|d8|chrome|u",
     enable_cq = True,
+    properties = [chrome],
 )
 _dart2js_builder(
     "dart2js-linux-chrome",
