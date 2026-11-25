@@ -677,6 +677,10 @@ void Profiler::StopLocked() {
   Isolate::VisitIsolates(&visitor);
 
   running_ = false;
+
+  // SignalState::Disable makes this safe with the SIGPROF-based profiler.
+  delete sample_block_buffer_;
+  sample_block_buffer_ = nullptr;
 }
 
 intptr_t Profiler::CalculateSampleBufferCapacity() {
