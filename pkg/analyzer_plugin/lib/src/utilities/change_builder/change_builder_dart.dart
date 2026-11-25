@@ -2730,6 +2730,16 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
           inserted = true;
         }
 
+        var existingMatch = _findExistingImport(
+          importDirectives,
+          uriText: import.uriText,
+          prefix: import.prefix,
+        );
+        if (existingMatch != null) {
+          insert(replace: existingMatch);
+          continue;
+        }
+
         ImportDirective? lastExisting;
         ImportDirective? lastExistingDart;
         ImportDirective? lastExistingPackage;
@@ -2741,15 +2751,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
           var isExistingDart = existingUri.startsWith('dart:');
           var isExistingPackage = existingUri.startsWith('package:');
           var isExistingRelative = !existingUri.contains(':');
-          var isReplacement =
-              import.uriText == existingUri &&
-              import.prefix == (existingImport.prefix?.name ?? '');
           var isNewBeforeExisting = import.uriText.compareTo(existingUri) < 0;
 
-          if (isReplacement) {
-            insert(replace: existingImport);
-            break;
-          } else if (isDart) {
+          if (isDart) {
             if (!isExistingDart || isNewBeforeExisting) {
               insert(
                 prev: lastExistingDart,
@@ -2878,6 +2882,24 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     }, insertBeforeExisting: true);
   }
 
+  /// Collect all existing `show` and `hide` combinator names from
+  /// [import].
+  (List<List<String>>, List<List<String>>) _collectExistingCombinators(
+    ImportDirective import,
+  ) {
+    var shownNames = <List<String>>[];
+    var hiddenNames = <List<String>>[];
+    for (var combinator in import.combinators) {
+      switch (combinator) {
+        case ShowCombinator():
+          shownNames.add([for (var name in combinator.shownNames) name.name]);
+        case HideCombinator():
+          hiddenNames.add([for (var name in combinator.hiddenNames) name.name]);
+      }
+    }
+    return (shownNames, hiddenNames);
+  }
+
   String _defaultImportPrefixFor(Uri uri) {
     // TODO(FMorschel): Think of a way to identify if the current editing range
     // already contains a variable with the same name as the generated prefix.
@@ -2973,6 +2995,20 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       return ImportLibraryElementResultImpl(pendingPrefix);
     }
     return null;
+  }
+
+  /// Returns the first import in [imports] that matches [uriText] and
+  /// [prefix], or `null` if none matches.
+  ImportDirective? _findExistingImport(
+    Iterable<ImportDirective> imports, {
+    required String uriText,
+    required String prefix,
+  }) {
+    return imports.firstWhereOrNull(
+      (existingImport) =>
+          (existingImport.uri.stringValue ?? '') == uriText &&
+          (existingImport.prefix?.name ?? '') == prefix,
+    );
   }
 
   /// Returns information about the library used to import the given [element]
@@ -3125,8 +3161,6 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   }) {
     var target = libraryChangeBuilder ?? this;
     var import = target._librariesToImport[uri];
-    var existingShownNames = <List<String>>[];
-    var existingHiddenNames = <List<String>>[];
 
     if (import != null) {
       if (prefix != null) {
@@ -3146,35 +3180,14 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         forceAbsolute: forceAbsolute,
         forceRelative: forceRelative,
       );
-      // Collect the list of existing shows and hides for any imports that match
-      // the URI and prefix we care about.
-      for (var element
-          in resolvedUnit.libraryElement.firstFragment.libraryImports) {
-        var library = element.importedLibrary;
-        if (library == null) {
-          continue;
-        }
-        if ((element.prefix?.element.name ?? '') != (prefix ?? '')) {
-          // Imports need to have the same prefix to be replaced.
-          continue;
-        }
-        var elementUrlText = _getLibraryUriText(
-          library.uri,
-          forceAbsolute: forceAbsolute,
-          forceRelative: forceRelative,
-        );
-        if (uriText != elementUrlText) {
-          continue;
-        }
-        for (var combinator in element.combinators) {
-          switch (combinator) {
-            case ShowElementCombinator():
-              existingShownNames.add(combinator.shownNames.toList());
-            case HideElementCombinator():
-              existingHiddenNames.add(combinator.hiddenNames.toList());
-          }
-        }
-      }
+      var existingImport = _findExistingImport(
+        target.resolvedUnit.unit.directives.whereType<ImportDirective>(),
+        uriText: uriText,
+        prefix: prefix ?? '',
+      );
+      var (existingShownNames, existingHiddenNames) = existingImport != null
+          ? _collectExistingCombinators(existingImport)
+          : (<List<String>>[], <List<String>>[]);
       import = _LibraryImport(
         uriText: uriText,
         prefix: prefix ?? '',

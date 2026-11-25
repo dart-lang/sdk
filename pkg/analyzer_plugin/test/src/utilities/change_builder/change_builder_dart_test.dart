@@ -3623,6 +3623,107 @@ class C {}
 ''');
   }
 
+  Future<void> test_importLibrary_alreadyImported_duplicate() async {
+    var aPath = convertPath('/home/test/lib/test_a.dart');
+    addSource(aPath, 'class A {} class B {} class C {}');
+
+    var bPath = convertPath('/home/test/lib/test_b.dart');
+    var bContent = '''
+import 'package:test/test_a.dart' show A;
+import 'package:test/test_a.dart' show B;
+''';
+    addSource(bPath, bContent);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(bPath, (builder) {
+      builder.importLibrary(
+        Uri.parse('package:test/test_a.dart'),
+        showName: 'C',
+      );
+    });
+
+    var result = SourceEdit.applySequence(bContent, getEdits(builder));
+    expect(result, '''
+import 'package:test/test_a.dart' show A, C;
+import 'package:test/test_a.dart' show B;
+''');
+  }
+
+  Future<void>
+  test_importLibrary_alreadyImported_fileUri_relativeExisting() async {
+    var aPath = convertPath('/home/test/lib/test_a.dart');
+    addSource(aPath, 'class A {} class B {}');
+
+    var bPath = convertPath('/home/test/lib/test_b.dart');
+    var bContent = "import 'test_a.dart' hide A, B;";
+    addSource(bPath, bContent);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(bPath, (builder) {
+      builder.importLibrary(
+        resourceProvider.pathContext.toUri(aPath),
+        showName: 'A',
+      );
+    });
+
+    var result = SourceEdit.applySequence(bContent, getEdits(builder));
+    expect(result, "import 'test_a.dart' hide B;");
+  }
+
+  Future<void> test_importLibrary_alreadyImported_unresolved_hide() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = "import 'missing.dart' hide A, B;";
+    addSource(path, content);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.importLibrary(Uri.parse('missing.dart'), showName: 'A');
+    });
+
+    var result = SourceEdit.applySequence(content, getEdits(builder));
+    expect(result, "import 'missing.dart' hide B;");
+  }
+
+  Future<void> test_importLibrary_alreadyImported_unresolved_show() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = "import 'missing.dart' show A;";
+    addSource(path, content);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.importLibrary(Uri.parse('missing.dart'), showName: 'B');
+    });
+
+    var result = SourceEdit.applySequence(content, getEdits(builder));
+    expect(result, "import 'missing.dart' show A, B;");
+  }
+
+  Future<void> test_importLibrary_alreadyImported_unsorted() async {
+    var zPath = convertPath('/home/test/lib/z.dart');
+    addSource(zPath, '');
+
+    var aPath = convertPath('/home/test/lib/a.dart');
+    addSource(aPath, 'class A {} class B {}');
+
+    var bPath = convertPath('/home/test/lib/b.dart');
+    var bContent = '''
+import 'package:test/z.dart';
+import 'package:test/a.dart' show A;
+''';
+    addSource(bPath, bContent);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(bPath, (builder) {
+      builder.importLibrary(Uri.parse('package:test/a.dart'), showName: 'B');
+    });
+
+    var result = SourceEdit.applySequence(bContent, getEdits(builder));
+    expect(result, '''
+import 'package:test/z.dart';
+import 'package:test/a.dart' show A, B;
+''');
+  }
+
   /// Annotations on the first export are NOT treated as file-level.
   Future<void> test_importLibrary_annotationOnFirstExport() async {
     var path = convertPath('/home/test/lib/test.dart');
@@ -3690,6 +3791,29 @@ import 'package:foo/a.dart';
 
 @deprecated
 part 'part.dart';
+''');
+  }
+
+  Future<void> test_importLibrary_conditionalImport_defaultUriHide() async {
+    var stubPath = convertPath('/home/test/lib/a_stub.dart');
+    addSource(stubPath, 'class A {} class B {}');
+
+    var ioPath = convertPath('/home/test/lib/a_io.dart');
+    addSource(ioPath, 'class A {} class B {}');
+
+    var path = convertPath('/home/test/lib/test.dart');
+    var content =
+        "import 'a_stub.dart' if (dart.library.io) 'a_io.dart' hide A, B;\n";
+    addSource(path, content);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.importLibrary(Uri.parse('a_stub.dart'), showName: 'A');
+    });
+
+    var result = SourceEdit.applySequence(content, getEdits(builder));
+    expect(result, '''
+import 'a_stub.dart' if (dart.library.io) 'a_io.dart' hide B;
 ''');
   }
 
