@@ -1,0 +1,63 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:24:19: Error: Type 'Unresolved' not found.
+// typedef Invalid = Unresolved;
+//                   ^^^^^^^^^^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:25:23: Error: Type 'Unresolved' not found.
+// typedef InvalidG<T> = Unresolved;
+//                       ^^^^^^^^^^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:28:9: Error: The typedef 'Cyclic' has a reference to itself.
+// typedef Cyclic = Cyclic;
+//         ^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///static_access_without_static_members.dart" as p;
+
+typedef F = () → void;
+typedef OldF = () → void;
+typedef FG<contravariant T extends core::Object? = dynamic> = (T%) → void;
+typedef R = (core::int);
+typedef RN = (core::int)?;
+typedef RG<T extends core::Object? = dynamic> = (T%);
+typedef FB<contravariant T extends core::num> = (T) → void;
+typedef RB<T extends core::num> = (T);
+typedef D = dynamic;
+typedef V = void;
+typedef N = Never;
+typedef TV<T extends core::Object? = dynamic> = T%;
+typedef Invalid = invalid-type;
+typedef InvalidG<unrelated T extends core::Object? = dynamic> = invalid-type;
+typedef Cyclic = invalid-type;
+typedef CA<T extends core::Object? = dynamic> = self::C<T%>;
+class C<T extends core::Object? = dynamic> extends core::Object {
+  static field core::int s;
+  synthetic constructor •() → self::C<self::C::T%>
+    ;
+}
+extension /* unnamed */ _extension#0 on core::Type {
+  get typeGetter = self::_extension#0|get#typeGetter;
+}
+static extension-member method _extension#0|get#typeGetter(lowered final core::Type #this) → core::int
+  ;
+static method staticAccess() → void
+  ;
+static method constructorReference() → void
+  ;
+static method aliasOfTypeVariable() → void
+  ;
+static method aliasOfInvalidType() → void
+  ;
+static method cyclicAlias() → void
+  ;
+static method aliasOfClass() → void
+  ;
+static method typeObject() → void
+  ;
+static method main() → dynamic
+  ;

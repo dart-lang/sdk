@@ -110,8 +110,6 @@ main() {
   // [error column 3, length 1]
   // [analyzer] COMPILE_TIME_ERROR.INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER
   // [cfe] Can't use a typedef denoting a type variable as a constructor, nor for a static member access.
-  //                        ^^^^^^^^^^^^
-  // [cfe] The method 'staticMethod' isn't defined for the type 'Type'.
   //                                    ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
 

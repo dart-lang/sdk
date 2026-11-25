@@ -79,7 +79,7 @@ main() {
   T<List<List<List<List>>>>.staticMethod<T<int>>();
   //                        ^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.NEW_WITH_UNDEFINED_CONSTRUCTOR
-  // [cfe] The method 'staticMethod' isn't defined for the type 'Type'.
+  // [cfe] Couldn't find constructor 'T.staticMethod'.
   //                                    ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
 }

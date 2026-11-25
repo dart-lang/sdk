@@ -58,7 +58,7 @@ main() {
   T.named();
   //^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
-  // [cfe] The method 'named' isn't defined for the type 'Type'.
+  // [cfe] The type alias 'T' doesn't have a static member named 'named'.
 
   T v17 = foo<T>(T());
   //             ^
@@ -68,5 +68,5 @@ main() {
   T.staticMethod<T>();
   //^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
-  // [cfe] The method 'staticMethod' isn't defined for the type 'Type'.
+  // [cfe] The type alias 'T' doesn't have a static member named 'staticMethod'.
 }

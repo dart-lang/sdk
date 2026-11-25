@@ -381,6 +381,7 @@ favors
 fb
 fd
 fec
+fg
 fi
 fibonacci
 filesize
@@ -822,6 +823,7 @@ retainingpath
 rev
 revealed
 revisions
+rg
 risky
 rk
 rnone

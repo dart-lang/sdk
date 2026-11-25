@@ -1,0 +1,366 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:24:19: Error: Type 'Unresolved' not found.
+// typedef Invalid = Unresolved;
+//                   ^^^^^^^^^^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:25:23: Error: Type 'Unresolved' not found.
+// typedef InvalidG<T> = Unresolved;
+//                       ^^^^^^^^^^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:28:9: Error: The typedef 'Cyclic' has a reference to itself.
+// typedef Cyclic = Cyclic;
+//         ^^^^^^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:42:5: Error: The type alias 'F' doesn't have a static member named 'hashCode'.
+// Try wrapping 'F' in parentheses to access 'hashCode' on the 'Type' object.
+//   F.hashCode; // Error.
+//     ^^^^^^^^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:43:5: Error: The type alias 'F' doesn't have a static member named 'toString'.
+// Try wrapping 'F' in parentheses to access 'toString' on the 'Type' object.
+//   F.toString; // Error.
+//     ^^^^^^^^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:44:5: Error: The type alias 'F' doesn't have a static member named 'toString'.
+// Try wrapping 'F' in parentheses to access 'toString' on the 'Type' object.
+//   F.toString(); // Error.
+//     ^^^^^^^^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:45:6: Error: The type alias 'F' doesn't have a static member named 'toString'.
+// Try wrapping 'F' in parentheses to access 'toString' on the 'Type' object.
+//   F?.toString(); // Error.
+//      ^^^^^^^^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:46:5: Error: The type alias 'F' doesn't have a static member named 'm'.
+// Try wrapping 'F' in parentheses to access 'm' on the 'Type' object.
+//   F.m<int>(); // Error.
+//     ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:47:5: Error: The type alias 'F' doesn't have a static member named 'typeGetter'.
+// Try wrapping 'F' in parentheses to access 'typeGetter' on the 'Type' object.
+//   F.typeGetter; // Error.
+//     ^^^^^^^^^^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:48:5: Error: The type alias 'F' doesn't have a static member named 'foo'.
+// Try wrapping 'F' in parentheses to access 'foo' on the 'Type' object.
+//   F.foo = 0; // Error.
+//     ^^^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:49:5: Error: The type alias 'F' doesn't have a static member named 'foo'.
+// Try wrapping 'F' in parentheses to access 'foo' on the 'Type' object.
+//   F.foo += 1; // Error.
+//     ^^^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:50:5: Error: The type alias 'F' doesn't have a static member named 'foo'.
+// Try wrapping 'F' in parentheses to access 'foo' on the 'Type' object.
+//   F.foo ??= 1; // Error.
+//     ^^^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:51:5: Error: The type alias 'F' doesn't have a static member named 'foo'.
+// Try wrapping 'F' in parentheses to access 'foo' on the 'Type' object.
+//   F.foo++; // Error.
+//     ^^^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:52:7: Error: The type alias 'F' doesn't have a static member named 'foo'.
+// Try wrapping 'F' in parentheses to access 'foo' on the 'Type' object.
+//   ++F.foo; // Error.
+//       ^^^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:53:8: Error: The type alias 'OldF' doesn't have a static member named 'hashCode'.
+// Try wrapping 'OldF' in parentheses to access 'hashCode' on the 'Type' object.
+//   OldF.hashCode; // Error.
+//        ^^^^^^^^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:54:6: Error: The type alias 'FG' doesn't have a static member named 'hashCode'.
+// Try wrapping 'FG' in parentheses to access 'hashCode' on the 'Type' object.
+//   FG.hashCode; // Error.
+//      ^^^^^^^^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:55:5: Error: The type alias 'R' doesn't have a static member named 'hashCode'.
+// Try wrapping 'R' in parentheses to access 'hashCode' on the 'Type' object.
+//   R.hashCode; // Error.
+//     ^^^^^^^^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:56:6: Error: The type alias 'RN' doesn't have a static member named 'hashCode'.
+// Try wrapping 'RN' in parentheses to access 'hashCode' on the 'Type' object.
+//   RN.hashCode; // Error.
+//      ^^^^^^^^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:57:6: Error: The type alias 'RG' doesn't have a static member named 'hashCode'.
+// Try wrapping 'RG' in parentheses to access 'hashCode' on the 'Type' object.
+//   RG.hashCode; // Error.
+//      ^^^^^^^^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:58:5: Error: The type alias 'D' doesn't have a static member named 'toString'.
+// Try wrapping 'D' in parentheses to access 'toString' on the 'Type' object.
+//   D.toString(); // Error.
+//     ^^^^^^^^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:59:5: Error: The type alias 'V' doesn't have a static member named 'hashCode'.
+// Try wrapping 'V' in parentheses to access 'hashCode' on the 'Type' object.
+//   V.hashCode; // Error.
+//     ^^^^^^^^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:60:5: Error: The type alias 'N' doesn't have a static member named 'hashCode'.
+// Try wrapping 'N' in parentheses to access 'hashCode' on the 'Type' object.
+//   N.hashCode; // Error.
+//     ^^^^^^^^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:61:7: Error: The type alias 'p.F' doesn't have a static member named 'toString'.
+// Try wrapping 'p.F' in parentheses to access 'toString' on the 'Type' object.
+//   p.F.toString(); // Error.
+//       ^^^^^^^^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:62:7: Error: The type alias 'p.R' doesn't have a static member named 'hashCode'.
+// Try wrapping 'p.R' in parentheses to access 'hashCode' on the 'Type' object.
+//   p.R.hashCode; // Error.
+//       ^^^^^^^^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:66:11: Error: Couldn't find constructor 'FG.hashCode'.
+//   FG<int>.hashCode; // Error.
+//           ^^^^^^^^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:67:11: Error: Couldn't find constructor 'FG.m'.
+//   FG<int>.m<int>(); // Error.
+//           ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:68:11: Error: Couldn't find constructor 'RG.hashCode'.
+//   RG<int>.hashCode; // Error.
+//           ^^^^^^^^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:69:11: Error: Couldn't find constructor 'RG.foo'.
+//   RG<int>.foo = 0; // Error.
+//           ^^^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:70:13: Error: Couldn't find constructor 'RG.hashCode'.
+//   p.RG<int>.hashCode; // Error.
+//             ^^^^^^^^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:71:14: Error: Couldn't find constructor 'FB.hashCode'.
+//   FB<String>.hashCode; // Error, and type argument bound error.
+//              ^^^^^^^^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:72:14: Error: Couldn't find constructor 'RB.hashCode'.
+//   RB<String>.hashCode; // Error, and type argument bound error.
+//              ^^^^^^^^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:73:16: Error: Couldn't find constructor 'FB.hashCode'.
+//   p.FB<String>.hashCode; // Error, and type argument bound error.
+//                ^^^^^^^^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:71:3: Error: Type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'FB'.
+// Try changing type arguments so that they conform to the bounds.
+//   FB<String>.hashCode; // Error, and type argument bound error.
+//   ^
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:14:12: Context: This is the type variable whose bound isn't conformed to.
+// typedef FB<T extends num> = void Function(T);
+//            ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:72:3: Error: Type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'RB'.
+// Try changing type arguments so that they conform to the bounds.
+//   RB<String>.hashCode; // Error, and type argument bound error.
+//   ^
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:15:12: Context: This is the type variable whose bound isn't conformed to.
+// typedef RB<T extends num> = (T,);
+//            ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:73:5: Error: Type argument 'String' doesn't conform to the bound 'num' of the type variable 'T' on 'FB'.
+// Try changing type arguments so that they conform to the bounds.
+//   p.FB<String>.hashCode; // Error, and type argument bound error.
+//     ^
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:14:12: Context: This is the type variable whose bound isn't conformed to.
+// typedef FB<T extends num> = void Function(T);
+//            ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:77:3: Error: Can't use a typedef denoting a type variable as a constructor, nor for a static member access.
+//   TV.hashCode; // Error.
+//   ^
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:21:12: Context: This is the type variable ultimately denoted.
+// typedef TV<T> = T;
+//            ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:78:3: Error: Can't use a typedef denoting a type variable as a constructor, nor for a static member access.
+//   TV<int>.hashCode; // Error.
+//   ^
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:21:12: Context: This is the type variable ultimately denoted.
+// typedef TV<T> = T;
+//            ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:92:6: Error: Member not found: 'hashCode'.
+//   CA.hashCode; // Error.
+//      ^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///static_access_without_static_members.dart" as p;
+
+typedef F = () → void;
+typedef OldF = () → void;
+typedef FG<contravariant T extends core::Object? = dynamic> = (T%) → void;
+typedef R = (core::int);
+typedef RN = (core::int)?;
+typedef RG<T extends core::Object? = dynamic> = (T%);
+typedef FB<contravariant T extends core::num> = (T) → void;
+typedef RB<T extends core::num> = (T);
+typedef D = dynamic;
+typedef V = void;
+typedef N = Never;
+typedef TV<T extends core::Object? = dynamic> = T%;
+typedef Invalid = invalid-type;
+typedef InvalidG<unrelated T extends core::Object? = dynamic> = invalid-type;
+typedef Cyclic = invalid-type;
+typedef CA<T extends core::Object? = dynamic> = self::C<T%>;
+class C<T extends core::Object? = dynamic> extends core::Object {
+  static field core::int s = 0;
+  synthetic constructor •() → self::C<self::C::T%>
+    : super core::Object::•()
+    ;
+}
+extension /* unnamed */ _extension#0 on core::Type {
+  get typeGetter = self::_extension#0|get#typeGetter;
+}
+static extension-member method _extension#0|get#typeGetter(lowered final core::Type #this) → core::int
+  return 0;
+static method staticAccess() → void {
+  invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:42:5: Error: Member not found: 'hashCode'.
+  F.hashCode; // Error.
+    ^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:43:5: Error: Member not found: 'toString'.
+  F.toString; // Error.
+    ^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:44:5: Error: Method not found: 'toString'.
+  F.toString(); // Error.
+    ^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:45:6: Error: Method not found: 'toString'.
+  F?.toString(); // Error.
+     ^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:46:5: Error: Method not found: 'm'.
+  F.m<int>(); // Error.
+    ^";
+  invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:47:5: Error: Member not found: 'typeGetter'.
+  F.typeGetter; // Error.
+    ^^^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:48:5: Error: Setter not found: 'foo'.
+  F.foo = 0; // Error.
+    ^^^";
+  invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:49:5: Error: Setter not found: 'foo'.
+  F.foo += 1; // Error.
+    ^^^";
+  invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:50:5: Error: Setter not found: 'foo'.
+  F.foo ??= 1; // Error.
+    ^^^";
+  invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:51:5: Error: Getter not found: 'foo'.
+  F.foo++; // Error.
+    ^^^";
+  invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:52:7: Error: Getter not found: 'foo'.
+  ++F.foo; // Error.
+      ^^^";
+  invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:53:8: Error: Member not found: 'hashCode'.
+  OldF.hashCode; // Error.
+       ^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:54:6: Error: Member not found: 'hashCode'.
+  FG.hashCode; // Error.
+     ^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:55:5: Error: Member not found: 'hashCode'.
+  R.hashCode; // Error.
+    ^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:56:6: Error: Member not found: 'hashCode'.
+  RN.hashCode; // Error.
+     ^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:57:6: Error: Member not found: 'hashCode'.
+  RG.hashCode; // Error.
+     ^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:58:5: Error: Method not found: 'toString'.
+  D.toString(); // Error.
+    ^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:59:5: Error: Member not found: 'hashCode'.
+  V.hashCode; // Error.
+    ^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:60:5: Error: Member not found: 'hashCode'.
+  N.hashCode; // Error.
+    ^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:61:7: Error: Method not found: 'toString'.
+  p.F.toString(); // Error.
+      ^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:62:7: Error: Member not found: 'hashCode'.
+  p.R.hashCode; // Error.
+      ^^^^^^^^";
+}
+static method constructorReference() → void {
+  invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:66:11: Error: Couldn't find constructor 'FG.hashCode'.
+  FG<int>.hashCode; // Error.
+          ^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:67:11: Error: Couldn't find constructor 'FG.m'.
+  FG<int>.m<int>(); // Error.
+          ^";
+  invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:68:11: Error: Couldn't find constructor 'RG.hashCode'.
+  RG<int>.hashCode; // Error.
+          ^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:69:15: Error: Can't assign to this.
+  RG<int>.foo = 0; // Error.
+              ^";
+  invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:70:13: Error: Couldn't find constructor 'RG.hashCode'.
+  p.RG<int>.hashCode; // Error.
+            ^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:71:14: Error: Couldn't find constructor 'FB.hashCode'.
+  FB<String>.hashCode; // Error, and type argument bound error.
+             ^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:72:14: Error: Couldn't find constructor 'RB.hashCode'.
+  RB<String>.hashCode; // Error, and type argument bound error.
+             ^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:73:16: Error: Couldn't find constructor 'FB.hashCode'.
+  p.FB<String>.hashCode; // Error, and type argument bound error.
+               ^^^^^^^^";
+}
+static method aliasOfTypeVariable() → void {
+  invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:77:6: Error: Member not found: 'hashCode'.
+  TV.hashCode; // Error.
+     ^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:78:11: Error: Couldn't find constructor 'TV.hashCode'.
+  TV<int>.hashCode; // Error.
+          ^^^^^^^^";
+}
+static method aliasOfInvalidType() → void {
+  invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:82:11: Error: Member not found: 'hashCode'.
+  Invalid.hashCode; // No error here, reported at the declaration.
+          ^^^^^^^^";
+  invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:83:17: Error: Couldn't find constructor 'InvalidG.hashCode'.
+  InvalidG<int>.hashCode; // No error here, reported at the declaration.
+                ^^^^^^^^";
+}
+static method cyclicAlias() → void {
+  invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:87:10: Error: Member not found: 'hashCode'.
+  Cyclic.hashCode; // No error here, reported at the declaration.
+         ^^^^^^^^";
+}
+static method aliasOfClass() → void {
+  self::C::s;
+  invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/static_access_without_static_members.dart:92:6: Error: Member not found: 'hashCode'.
+  CA.hashCode; // Error.
+     ^^^^^^^^";
+}
+static method typeObject() → void {
+  #C1.{core::Type::hashCode}{core::int};
+  self::_extension#0|get#typeGetter(#C1);
+  #C2.{core::Type::hashCode}{core::int};
+  let final core::Type #t1 = #C1 in block {
+    #t1.{core::Type::hashCode}{core::int};
+  } =>#t1;
+  core::Type t = #C2;
+  t.{core::Type::hashCode}{core::int};
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = TypeLiteralConstant(() → void)
+  #C2 = TypeLiteralConstant((core::int))
+}
+
+Extra constant evaluation status:
+Evaluated: VariableGet @ org-dartlang-testcase:///static_access_without_static_members.dart:99:3 -> TypeLiteralConstant(void Function())
+Evaluated: VariableGet @ org-dartlang-testcase:///static_access_without_static_members.dart:99:3 -> TypeLiteralConstant(void Function())
+Extra constant evaluation: evaluated: 11, effectively constant: 2
