@@ -1392,7 +1392,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           return null;
         }
         ExperimentalFeatures experimentalFeatures =
-            new ExperimentalFeaturesFromVersion(builder.languageVersion);
+            new LibraryExperimentalFeatures(
+              new LibraryFeatures(
+                c.options.globalFeatures,
+                builder.importUri,
+                builder.languageVersion,
+              ),
+            );
         ScannerConfiguration scannerConfiguration = experimentalFeatures
             .buildScannerConfiguration();
         String? before = textualOutline(
