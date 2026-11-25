@@ -133,6 +133,8 @@ class Dart : public AllStatic {
     return dwarf_stacktrace_footnote_callback_;
   }
 
+  DART_NORETURN static void PropagateOOM();
+
  private:
   static char* DartInit(const Dart_InitializeParams* params);
 

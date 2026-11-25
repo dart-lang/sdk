@@ -28,6 +28,8 @@ typedef InvFunction<T> = T Function(T);
 
 typedef InvBoundFunction<T> = void Function<X extends T>();
 
+typedef Ignore<X> = int;
+
 class Multi<out T, inout U, in V>;
 
 class Exactly<inout T>;

@@ -81,7 +81,7 @@ final class DartPadSdk {
         web.BlobPropertyBag(type: 'application/javascript'),
       ),
     );
-    final worker = web.Worker(
+    final worker = _Worker(
       blobUrl,
       web.WorkerOptions(name: 'dartpad-worker', type: 'module'),
     );
@@ -102,8 +102,8 @@ final class DartPadSdk {
       final port = await _listenForSession(worker, worker, abort: abort);
       final dartpad = DartPad._(
         MessagePortExt.fromMessagePort(port).jsonRpcChannel(),
+        onClose: cleanup,
       );
-      dartpad.done.whenComplete(cleanup).ignore();
       ok = true;
       return dartpad;
     } finally {
@@ -139,7 +139,7 @@ final class DartPadSdk {
         'pubHostedUrl': ?pubHostedUrl?.toString(),
       },
     );
-    final sharedWorker = web.SharedWorker(
+    final sharedWorker = _SharedWorker(
       url.toString(),
       web.WorkerOptions(name: 'dartpad-worker', type: 'module'),
     )..port.start();
@@ -149,15 +149,16 @@ final class DartPadSdk {
       sharedWorker.port,
       abort: abort,
     );
-    final dartpad = DartPad._(
+    late final DartPad dartpad;
+    final pageHideSub = closeOnPageHide
+        ? web.EventStreamProviders.pageHideEvent
+              .forTarget(web.window)
+              .listen((_) => dartpad.close().ignore())
+        : null;
+    dartpad = DartPad._(
       MessagePortExt.fromMessagePort(port).jsonRpcChannel(),
+      onClose: pageHideSub == null ? null : () => pageHideSub.cancel().ignore(),
     );
-    if (closeOnPageHide) {
-      final sub = web.EventStreamProviders.pageHideEvent
-          .forTarget(web.window)
-          .listen((_) => dartpad.close().ignore());
-      dartpad.done.whenComplete(sub.cancel).ignore();
-    }
     return dartpad;
   }
 
@@ -331,10 +332,13 @@ final class DartPadSdk {
     // TODO: Consider if we want allow-same-origin, it might be needed for
     // source maps, but it decidedly breaks the security sandbox!
     iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin');
-    iframe.srcdoc = _iframeHtml(
-      sandboxJs: _assetBaseUrl.resolve('sandbox.js'),
-      headHtml: headHtml,
-      bodyHtml: bodyHtml,
+    iframe.setAttribute(
+      'srcdoc',
+      _iframeHtml(
+        sandboxJs: _assetBaseUrl.resolve('sandbox.js'),
+        headHtml: headHtml,
+        bodyHtml: bodyHtml,
+      ),
     );
     final port = await _waitForConnectPort(
       container,
@@ -369,7 +373,33 @@ final class DartPadSdk {
 
 /// A client for interacting with a DartPad Web Worker.
 final class DartPad extends WorkerClient {
-  DartPad._(super.channel);
+  void Function()? _onClose;
+
+  DartPad._(super.channel, {this._onClose}) {
+    if (_onClose != null) {
+      done.whenComplete(_runOnClose).ignore();
+    }
+  }
+
+  void _runOnClose() {
+    final onClose = _onClose;
+    _onClose = null;
+    onClose?.call();
+  }
+
+  /// Closes the connection to the worker.
+  ///
+  /// If this client owns a dedicated Web Worker (created via
+  /// [DartPadSdk.dedicatedWorker]), the worker is terminated synchronously
+  /// before the returned [Future] completes.
+  @override
+  Future<void> close() async {
+    try {
+      _runOnClose();
+    } finally {
+      await super.close();
+    }
+  }
 }
 
 /// A [sandboxed iframe][1] for running Dart code from a [Workspace].
@@ -423,4 +453,17 @@ final class DevToolsIframe {
   Future<void> close() async {
     _iframe.remove();
   }
+}
+
+// Wrappers to remain compatible with both package:web 1.x (where scriptURL is
+// JSAny) and package:web 2.x (where scriptURL is String).
+// TODO: Remove once package:web 2.0.0 is published and required.
+@JS('Worker')
+extension type _Worker._(web.Worker _) implements web.Worker {
+  external factory _Worker(String scriptURL, [web.WorkerOptions options]);
+}
+
+@JS('SharedWorker')
+extension type _SharedWorker._(web.SharedWorker _) implements web.SharedWorker {
+  external factory _SharedWorker(String scriptURL, [web.WorkerOptions options]);
 }

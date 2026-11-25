@@ -17,12 +17,17 @@
 
 #if defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX)
 #include <sys/prctl.h>
+#include <sys/sysinfo.h>
 #endif
 
 #if defined(DART_HOST_OS_MACOS)
 #include <mach/mach_error.h>
 #include <mach/mach_init.h>
 #include <mach/vm_map.h>
+#include <sys/sysctl.h>
+#if defined(DART_HOST_OS_MACOS_IOS)
+#include <os/proc.h>
+#endif
 #endif
 
 #if defined(DART_ENABLE_RX_WORKAROUNDS)
@@ -36,19 +41,15 @@
 #include "vm/cpu.h"
 #endif
 
+#include <fstream>
+
 #include "platform/assert.h"
 #include "platform/thread_sanitizer.h"
 #include "platform/utils.h"
-#include "vm/heap/pages.h"
 #include "vm/isolate.h"
+#include "vm/profiler.h"
+#include "vm/thread.h"
 #include "vm/virtual_memory_compressed.h"
-
-// #define VIRTUAL_MEMORY_LOGGING 1
-#if defined(VIRTUAL_MEMORY_LOGGING)
-#define LOG_INFO(msg, ...) OS::PrintErr(msg, ##__VA_ARGS__)
-#else
-#define LOG_INFO(msg, ...)
-#endif  // defined(VIRTUAL_MEMORY_LOGGING)
 
 namespace dart {
 
@@ -64,7 +65,9 @@ DECLARE_FLAG(bool, generate_perf_events_symbols);
 DECLARE_FLAG(bool, generate_perf_jitdump);
 #endif
 
-uword VirtualMemory::page_size_ = 0;
+size_t VirtualMemory::page_size_ = 0;
+RelaxedAtomic<size_t> VirtualMemory::used_ = {0};
+size_t VirtualMemory::limit_ = SIZE_MAX;
 
 #if defined(DART_ENABLE_RX_WORKAROUNDS)
 bool VirtualMemory::should_dual_map_executable_pages_ = false;
@@ -78,7 +81,6 @@ static void* Map(void* addr,
                  off_t offset) {
   void* result = mmap(addr, length, prot, flags, fd, offset);
   int error = errno;
-  LOG_INFO("mmap(%p, 0x%" Px ", %u, ...): %p\n", addr, length, prot, result);
   if ((result == MAP_FAILED) && (error != ENOMEM)) {
     const int kBufferSize = 1024;
     char error_buf[kBufferSize];
@@ -161,11 +163,81 @@ static void* GenericMapAligned(void* hint,
   return reinterpret_cast<void*>(aligned_base);
 }
 
-intptr_t VirtualMemory::CalculatePageSize() {
-  const intptr_t page_size = getpagesize();
+size_t VirtualMemory::QueryPageSize() {
+  const size_t page_size = getpagesize();
   ASSERT(page_size != 0);
   ASSERT(Utils::IsPowerOfTwo(page_size));
   return page_size;
+}
+
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
+static size_t CGroupLimit() {
+  size_t limit = SIZE_MAX;
+
+  std::ifstream cgroup_file("/proc/self/cgroup");
+  if (!cgroup_file.is_open()) return limit;
+  std::string line;
+  if (!std::getline(cgroup_file, line)) return limit;
+  // cgroups v1 unsupported
+  // cgroups v2 lines look like: "0::/user.slice/user-1000.slice/..."
+  size_t colon_pos = line.find("::");
+  if (colon_pos == std::string::npos) return limit;
+  std::string cgroup_path = line.substr(colon_pos + 2);
+
+  for (;;) {
+    std::string max_file_path = "/sys/fs/cgroup" + cgroup_path + "/memory.max";
+    std::ifstream max_file(max_file_path);
+    if (!max_file.is_open()) return limit;
+    if (!std::getline(max_file, line)) return limit;
+
+    if (!line.starts_with("max")) {
+      size_t this_level_limit;
+      if (sscanf(line.c_str(), "%zu", &this_level_limit) != 1) return limit;
+      limit = Utils::Minimum(limit, this_level_limit);
+    }
+
+    size_t slash_pos = cgroup_path.find_last_of("/");
+    if (slash_pos == std::string::npos) break;
+    if (slash_pos == 0) break;
+    cgroup_path = cgroup_path.substr(0, slash_pos);
+  }
+  return limit;
+}
+#endif
+
+size_t VirtualMemory::QueryJobMemoryLimit() {
+#if defined(DART_HOST_OS_MACOS)
+  // Mac has no analogue of a job.
+#if defined(DART_HOST_OS_MACOS_IOS)
+  size_t available = os_proc_available_memory();
+  if (available != 0) {
+    return available;
+  }
+#endif
+  int name[2] = {CTL_HW, HW_MEMSIZE};
+  uint64_t memsize = 0;
+  size_t len = sizeof(memsize);
+  if (sysctl(name, 2, &memsize, &len, nullptr, 0) == 0) {
+    return memsize;
+  }
+  return SIZE_MAX;
+#elif defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
+  size_t limit = SIZE_MAX;
+
+  struct sysinfo info;
+  if (sysinfo(&info) == 0) {
+    size_t ram;
+    // 32-bit systems can have more than 4GB of memory through PAE.
+    if (!__builtin_mul_overflow(static_cast<size_t>(info.totalram),
+                                static_cast<size_t>(info.mem_unit), &ram)) {
+      limit = Utils::Minimum(limit, ram);
+    }
+  }
+
+  limit = Utils::Minimum(limit, CGroupLimit());
+
+  return limit;
+#endif
 }
 
 #if defined(DART_ENABLE_RX_WORKAROUNDS)
@@ -554,24 +626,7 @@ bool CheckIfRXWorks() {
 }  // namespace
 #endif
 
-void VirtualMemory::Init() {
-  if (FLAG_old_gen_heap_size < 0 || FLAG_old_gen_heap_size > kMaxAddrSpaceMB) {
-    OS::PrintErr(
-        "warning: value specified for --old_gen_heap_size %d is larger than"
-        " the physically addressable range, using 0(unlimited) instead.`\n",
-        FLAG_old_gen_heap_size);
-    FLAG_old_gen_heap_size = 0;
-  }
-  if (FLAG_new_gen_semi_max_size < 0 ||
-      FLAG_new_gen_semi_max_size > kMaxAddrSpaceMB) {
-    OS::PrintErr(
-        "warning: value specified for --new_gen_semi_max_size %d is larger"
-        " than the physically addressable range, using %" Pd " instead.`\n",
-        FLAG_new_gen_semi_max_size, kDefaultNewGenSemiMaxSize);
-    FLAG_new_gen_semi_max_size = kDefaultNewGenSemiMaxSize;
-  }
-  page_size_ = CalculatePageSize();
-
+void VirtualMemory::InitExecutable() {
 #if defined(DART_ENABLE_RX_WORKAROUNDS)
   bool can_jit = true;
   if (IsAtLeastIOS26_0()) {
@@ -594,6 +649,9 @@ void VirtualMemory::Init() {
 
 void VirtualMemory::Cleanup() {
   page_size_ = 0;
+  // The profiler should only leak on Linux.
+  ASSERT((used_.load() == 0) || (Profiler::sample_block_buffer() != nullptr));
+  limit_ = SIZE_MAX;
 }
 
 VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
@@ -612,6 +670,10 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   // track code and data pages separately.
   if (!VirtualMemory::ExecutesGeneratedCode()) {
     is_executable = false;
+  }
+
+  if (!TryCharge(size)) {
+    return nullptr;
   }
 
   const intptr_t allocated_size = size + alignment - PageSize();
@@ -659,6 +721,7 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   }
 #endif
   if (address == nullptr) {
+    Uncharge(size);
     return nullptr;
   }
 
@@ -675,6 +738,7 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
                  &cur_protection, &max_protection, VM_INHERIT_NONE);
     if (result != KERN_SUCCESS) {
       munmap(address, size);
+      Uncharge(size);
       return nullptr;
     }
 
@@ -717,16 +781,25 @@ VirtualMemory* VirtualMemory::Reserve(intptr_t size, intptr_t alignment) {
     return nullptr;
   }
   MemoryRegion region(address, size);
-  return new VirtualMemory(region, region);
+  VirtualMemory* result = new VirtualMemory(region, region);
+  result->reserved_only_ = true;
+  return result;
 }
 
-void VirtualMemory::Commit(void* address, intptr_t size, const char* name) {
+bool VirtualMemory::Commit(void* address, intptr_t size, const char* name) {
   ASSERT(Utils::IsAligned(address, PageSize()));
   ASSERT(Utils::IsAligned(size, PageSize()));
+  if (!TryCharge(size)) {
+    return false;
+  }
   void* result = mmap(address, size, PROT_READ | PROT_WRITE,
                       MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
   if (result == MAP_FAILED) {
     int error = errno;
+    if (error == ENOMEM) {
+      Uncharge(size);
+      return false;
+    }
     const int kBufferSize = 1024;
     char error_buf[kBufferSize];
     FATAL("Failed to commit: %d (%s)", error,
@@ -735,6 +808,7 @@ void VirtualMemory::Commit(void* address, intptr_t size, const char* name) {
 #if defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX)
   prctl(PR_SET_VMA, PR_SET_VMA_ANON_NAME, address, size, name);
 #endif
+  return true;
 }
 
 void VirtualMemory::Decommit(void* address, intptr_t size) {
@@ -753,6 +827,7 @@ void VirtualMemory::Decommit(void* address, intptr_t size) {
 #if defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_LINUX)
   prctl(PR_SET_VMA, PR_SET_VMA_ANON_NAME, address, size, nullptr);
 #endif
+  Uncharge(size);
 }
 
 VirtualMemory::~VirtualMemory() {
@@ -769,12 +844,16 @@ VirtualMemory::~VirtualMemory() {
       Unmap(executable_alias_.start(), executable_alias_.end());
     }
 #endif  // defined(DART_ENABLE_RX_WORKAROUNDS)
+    if (!reserved_only_) {
+      Uncharge(region_.size());
+    }
   }
 }
 
 bool VirtualMemory::FreeSubSegment(void* address, intptr_t size) {
   const uword start = reinterpret_cast<uword>(address);
   Unmap(start, start + size);
+  Uncharge(size);
   return true;
 }
 
@@ -811,13 +890,9 @@ void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
     int error = errno;
     const int kBufferSize = 1024;
     char error_buf[kBufferSize];
-    LOG_INFO("mprotect(0x%" Px ", 0x%" Px ", %u) failed\n", page_address,
-             end_address - page_address, prot);
     FATAL("mprotect failed: %d (%s)", error,
           Utils::StrError(error, error_buf, kBufferSize));
   }
-  LOG_INFO("mprotect(0x%" Px ", 0x%" Px ", %u) ok\n", page_address,
-           end_address - page_address, prot);
 }
 
 void VirtualMemory::DontNeed(void* address, intptr_t size) {

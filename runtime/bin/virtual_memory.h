@@ -47,13 +47,13 @@ class VirtualMemory {
   static void Init() { page_size_ = CalculatePageSize(); }
 
   // Returns the cached page size. Use only if Init() has been called.
-  static intptr_t PageSize() {
+  static size_t PageSize() {
     ASSERT(page_size_ != 0);
     return page_size_;
   }
 
  private:
-  static intptr_t CalculatePageSize();
+  static size_t CalculatePageSize();
 
   // These constructors are only used internally when reserving new virtual
   // spaces. They do not reserve any virtual address space on their own.
@@ -62,7 +62,7 @@ class VirtualMemory {
   void* address_;
   size_t size_;
 
-  static uword page_size_;
+  static size_t page_size_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(VirtualMemory);
 };

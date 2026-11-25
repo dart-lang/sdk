@@ -637,7 +637,7 @@ class ProcessStarter {
     return false;
   }
 
-  int StartForExec(HANDLE hjob) {
+  int StartForExec(HANDLE job) {
     ASSERT(mode_ == kInheritStdio);
     ASSERT(Process::ModeIsAttached(mode_));
     ASSERT(!Process::ModeHasStdio(mode_));
@@ -659,14 +659,14 @@ class ProcessStarter {
     SIZE_T size = 0;
     // The call to determine the size of an attribute list always fails with
     // ERROR_INSUFFICIENT_BUFFER and that error should be ignored.
-    if (!InitializeProcThreadAttributeList(nullptr, 1, 0, &size) &&
+    if (!InitializeProcThreadAttributeList(nullptr, 2, 0, &size) &&
         (GetLastError() != ERROR_INSUFFICIENT_BUFFER)) {
       return CleanupAndReturnError();
     }
     attribute_list_ =
         reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(malloc(size));
     ZeroMemory(attribute_list_, size);
-    if (!InitializeProcThreadAttributeList(attribute_list_, 1, 0, &size)) {
+    if (!InitializeProcThreadAttributeList(attribute_list_, 2, 0, &size)) {
       return CleanupAndReturnError();
     }
     inherited_handles_ = {stdin_handle};
@@ -680,6 +680,12 @@ class ProcessStarter {
             attribute_list_, 0, PROC_THREAD_ATTRIBUTE_HANDLE_LIST,
             inherited_handles_.data(),
             inherited_handles_.size() * sizeof(HANDLE), nullptr, nullptr)) {
+      return CleanupAndReturnError();
+    }
+    HANDLE job_list[1] = {job};
+    if (!UpdateProcThreadAttribute(attribute_list_, 0,
+                                   PROC_THREAD_ATTRIBUTE_JOB_LIST, job_list,
+                                   sizeof(job_list), nullptr, nullptr)) {
       return CleanupAndReturnError();
     }
     startup_info.lpAttributeList = attribute_list_;
@@ -714,12 +720,6 @@ class ProcessStarter {
     CloseHandle(stdin_handle);
     CloseHandle(stdout_handle);
     CloseHandle(stderr_handle);
-
-    // Put this new process into the job object of the parent so that it
-    // is killed when the parent is killed.
-    if (!AssignProcessToJobObject(hjob, child_process_handle_)) {
-      return CleanupAndReturnError();
-    }
 
     // Return process id.
     *id_ = process_info.dwProcessId;
@@ -1044,6 +1044,15 @@ bool Process::Wait(intptr_t pid,
   return true;
 }
 
+class UniqueHandle : public ValueObject {
+ public:
+  explicit UniqueHandle(HANDLE handle) : handle_(handle) {}
+  ~UniqueHandle() { CloseHandle(handle_); }
+
+ private:
+  HANDLE handle_;
+};
+
 int Process::Exec(Namespace* namespc,
                   const char* path,
                   const char* arguments[],
@@ -1051,9 +1060,18 @@ int Process::Exec(Namespace* namespc,
                   const char* working_directory,
                   char* errmsg,
                   intptr_t errmsg_len) {
-  // Create a Job object with JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
-  HANDLE hjob = CreateJobObject(nullptr, nullptr);
-  if (hjob == nullptr) {
+  // A process can only query its immediately enclosing job. Copy limits from
+  // our parent job if it exists to keep them visible. We cannot do this for
+  // CPU limits because the effective limit is multiplicative instead of the
+  // minimum.
+  JOBOBJECT_EXTENDED_LIMIT_INFORMATION parent_limit_info;
+  ZeroMemory(&parent_limit_info, sizeof(parent_limit_info));
+  QueryInformationJobObject(nullptr, JobObjectExtendedLimitInformation,
+                            &parent_limit_info, sizeof(parent_limit_info),
+                            nullptr);
+
+  HANDLE job = CreateJobObject(nullptr, nullptr);
+  if (job == nullptr) {
     BufferFormatter f(errmsg, errmsg_len);
     int error = GetLastError();
     char buffer[1024];
@@ -1061,12 +1079,12 @@ int Process::Exec(Namespace* namespc,
              Utils::StrError(error, buffer, sizeof(buffer)));
     return -1;
   }
-  JOBOBJECT_EXTENDED_LIMIT_INFORMATION info;
-  DWORD qresult;
-  memset(&info, 0, sizeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION));
-  if (!QueryInformationJobObject(hjob, JobObjectExtendedLimitInformation, &info,
-                                 sizeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION),
-                                 &qresult)) {
+  UniqueHandle auto_delete(job);
+
+  JOBOBJECT_EXTENDED_LIMIT_INFORMATION limit_info;
+  ZeroMemory(&limit_info, sizeof(limit_info));
+  if (!QueryInformationJobObject(job, JobObjectExtendedLimitInformation,
+                                 &limit_info, sizeof(limit_info), nullptr)) {
     BufferFormatter f(errmsg, errmsg_len);
     int error = GetLastError();
     char buffer[1024];
@@ -1074,15 +1092,43 @@ int Process::Exec(Namespace* namespc,
              Utils::StrError(error, buffer, sizeof(buffer)));
     return -1;
   }
-  // Ensure that a child process that adds itself to this job object will
-  // be killed when the parent dies and child processes that do not add
-  // themselves to this job object will not get killed when the parent
-  // dies.
-  info.BasicLimitInformation.LimitFlags |=
-      (JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE |
-       JOB_OBJECT_LIMIT_SILENT_BREAKAWAY_OK);
-  if (!SetInformationJobObject(hjob, JobObjectExtendedLimitInformation, &info,
-                               sizeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION))) {
+
+  // When the last handle to the job is closed, kill all processes in the job.
+  // Only this process has a handle to the job, so if someone kills this
+  // dart.exe the child dartvm.exe will also get killed, simulating what happens
+  // on Linux and Mac with exec, and simulating what used to happen when only
+  // one process was involved because dart.exe was the JIT VM.
+  limit_info.BasicLimitInformation.LimitFlags |=
+      JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+
+  // When a process in the job creates a process, it automatically breaks away
+  // from this job without needing to specify CREATE_BREAKAWAY_FROM_JOB (but
+  // might remain in a parent job). So killing dart.exe won't also kill
+  // dartvm.exe's children.
+  limit_info.BasicLimitInformation.LimitFlags |=
+      JOB_OBJECT_LIMIT_SILENT_BREAKAWAY_OK;
+
+  if (parent_limit_info.BasicLimitInformation.LimitFlags &
+      JOB_OBJECT_LIMIT_ACTIVE_PROCESS) {
+    limit_info.BasicLimitInformation.LimitFlags |=
+        JOB_OBJECT_LIMIT_ACTIVE_PROCESS;
+    limit_info.BasicLimitInformation.ActiveProcessLimit =
+        parent_limit_info.BasicLimitInformation.ActiveProcessLimit;
+  }
+  if (parent_limit_info.BasicLimitInformation.LimitFlags &
+      JOB_OBJECT_LIMIT_PROCESS_MEMORY) {
+    limit_info.BasicLimitInformation.LimitFlags |=
+        JOB_OBJECT_LIMIT_PROCESS_MEMORY;
+    limit_info.ProcessMemoryLimit = parent_limit_info.ProcessMemoryLimit;
+  }
+  if (parent_limit_info.BasicLimitInformation.LimitFlags &
+      JOB_OBJECT_LIMIT_JOB_MEMORY) {
+    limit_info.BasicLimitInformation.LimitFlags |= JOB_OBJECT_LIMIT_JOB_MEMORY;
+    limit_info.JobMemoryLimit = parent_limit_info.JobMemoryLimit;
+  }
+
+  if (!SetInformationJobObject(job, JobObjectExtendedLimitInformation,
+                               &limit_info, sizeof(limit_info))) {
     BufferFormatter f(errmsg, errmsg_len);
     int error = GetLastError();
     char buffer[1024];
@@ -1091,22 +1137,7 @@ int Process::Exec(Namespace* namespc,
     return -1;
   }
 
-  // Put the current process into the job object (there is a race here
-  // as the process can crash before it is in the Job object, but since
-  // we haven't spawned any children yet this race is harmless)
-  if (!AssignProcessToJobObject(hjob, GetCurrentProcess())) {
-    BufferFormatter f(errmsg, errmsg_len);
-    int error = GetLastError();
-    char buffer[1024];
-    f.Printf("Process::Exec - AssignProcessToJobObject failed %d (%s)", error,
-             Utils::StrError(error, buffer, sizeof(buffer)));
-    return -1;
-  }
-
-  // Spawn the new child process (this child will automatically get
-  // added to the Job object).
-  // If the parent process is killed or it crashes the Job object
-  // will get destroyed and all the child processes will also get killed.
+  // Spawn the new child process.
   // arguments includes the name of the executable to run which is the same
   // as the value passed in 'path', we strip that off when starting the
   // process.
@@ -1115,7 +1146,7 @@ int Process::Exec(Namespace* namespc,
   ProcessStarter starter(path, &(arguments[1]), (arguments_length - 1),
                          working_directory, nullptr, 0, kInheritStdio, nullptr,
                          nullptr, nullptr, &pid, nullptr, &os_error_message);
-  int result = starter.StartForExec(hjob);
+  int result = starter.StartForExec(job);
   if (result != 0) {
     BufferFormatter f(errmsg, errmsg_len);
     f.Printf("ProcessStarter::StartForExec failed: %s", os_error_message.get());

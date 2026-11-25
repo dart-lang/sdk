@@ -6,6 +6,8 @@
 
 // SharedOptions=--enable-experiment=variance
 
+import "dart:async";
+
 import "variance_helper.dart";
 
 class A<in T> {
@@ -159,6 +161,42 @@ class A<in T> {
   //            ^^^^^^^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
   // [cfe] Can't use 'in' type variable 'T' in an 'inout' position.
+
+  (T, int) method26() => throw "uncalled";
+  // [error column 3, length 8]
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
+  //       ^
+  // [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
+
+  ({T x}) method27() => throw "uncalled";
+  // [error column 3, length 7]
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
+  //      ^
+  // [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
+
+  FutureOr<T> method28() => throw "uncalled";
+  // [error column 3, length 11]
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
+  //          ^
+  // [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
+
+  void method29(void Function([T]) f) {}
+  //            ^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
+  //                               ^
+  // [cfe] Can't use 'in' type variable 'T' in an 'out' position.
+
+  void method30(void Function({required T x}) f) {}
+  //            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
+  //                                          ^
+  // [cfe] Can't use 'in' type variable 'T' in an 'out' position.
+
+  LegacyCovariant<T> method31() => throw "uncalled";
+  // [error column 3, length 18]
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
+  //                 ^
+  // [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
 }
 
 mixin BMixin<in T> {

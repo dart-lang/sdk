@@ -5,6 +5,7 @@
 
 from contextlib import ExitStack
 import os
+import platform
 import string
 import subprocess
 import sys
@@ -34,6 +35,10 @@ def Main():
     if os.path.isdir(android_platform_tools):
         os.environ['PATH'] = '%s%s%s' % (os.environ['PATH'], os.pathsep,
                                          android_platform_tools)
+
+    # Swarming runs without this set.
+    if platform.system() == 'Linux' and 'XDG_RUNTIME_DIR' not in os.environ:
+        os.environ['XDG_RUNTIME_DIR'] = '/run/user/%s' % os.getuid()
 
     with utils.FileDescriptorLimitIncreaser():
         with ExitStack() as stack:

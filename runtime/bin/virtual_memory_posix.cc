@@ -27,9 +27,9 @@ namespace bin {
 #undef MAP_FAILED
 #define MAP_FAILED reinterpret_cast<void*>(-1)
 
-uword VirtualMemory::page_size_ = 0;
+size_t VirtualMemory::page_size_ = 0;
 
-intptr_t VirtualMemory::CalculatePageSize() {
+size_t VirtualMemory::CalculatePageSize() {
   const intptr_t page_size = getpagesize();
   ASSERT(page_size != 0);
   ASSERT(Utils::IsPowerOfTwo(page_size));

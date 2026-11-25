@@ -1115,4 +1115,20 @@ int64_t Dart::UptimeMicros() {
   return OS::GetCurrentMonotonicMicros() - Dart::start_time_micros_;
 }
 
+void Dart::PropagateOOM() {
+  Thread* thread = Thread::Current();
+  if (thread != nullptr) {
+    // SuspendLongJumpScope during Dart entry ensures that if a longjmp base is
+    // available, it is the innermost error handler, so check for a longjmp base
+    // before checking for an exit frame.
+    if (thread->long_jump_base() != nullptr) {
+      Report::LongJump(Object::out_of_memory_error());
+    } else if (thread->top_exit_frame_info() != 0) {
+      Exceptions::ThrowOOM();
+    }
+  }
+  // Nowhere to propagate an exception to.
+  OUT_OF_MEMORY();
+}
+
 }  // namespace dart

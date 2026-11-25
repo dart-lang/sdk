@@ -33,6 +33,7 @@ dart/hash_map_probes_limit_test: Pass, Slow # Test includes large program compil
 dart/incompatible_loading_unit_test: Pass, Slow # Spawns several subprocesses
 dart/isolates/*: Pass, Slow # Tests use many isolates and take a longer time.
 dart/isolates/fast_object_copy_test: Pass, Slow # Slow due to doing a lot of transitive object copies.
+dart/job_limit_cpu_*: Pass, Slow # Kernel service also hit by CPU quota
 dart/minimal_kernel_test: Pass, Slow # Spawns several subprocesses
 dart/msan/read_test/none: SkipByDesign
 dart/print_object_layout_test: Pass, Slow # Spawns several subprocesses
@@ -70,6 +71,7 @@ dart/minimal_kernel_test: SkipSlow # gen_kernel is too slow with optimization_co
 [ $compiler == app_jitk ]
 dart/isolates/many_isolates_blocked_at_process_run_sync_test: Skip # App snapshot creation needs regular isolate shutdown
 dart/isolates/many_isolates_blocked_at_sleep_test: Skip # App snapshot creation needs regular isolate shutdown
+dart/job_*: Skip # Avoid recursive snapshot write.
 dart/language/regress_27671_test: SkipByDesign # Relies on string comparison of exception message which may return '<optimized out>'
 dart/snapshot_version_test: RuntimeError
 
@@ -208,6 +210,7 @@ cc/TypePropagator_NonNullableLoadStaticField: SkipByDesign # Sanitizers build di
 cc/TypePropagator_RecordFieldAccess: SkipByDesign # Sanitizers build different flow graphs
 dart/exported_symbols_test: SkipByDesign # Sanitizers add extra symbols.
 dart/heap_snapshot_referrers_test: Pass, Slow
+dart/job_*: Skip # Sanitizer memory overhead or can't disable ASLR inside the container
 
 [ $sanitizer == tsan ]
 dart/analyze_snapshot_binary_test: SkipSlow
@@ -433,6 +436,9 @@ dart/catch_entry_state: SkipByDesign
 
 [ $arch == arm || $arch == arm64 || $builder_tag == crossword || $builder_tag == crossword_ast || $compiler != dartkp || $system == linux && $simulator ]
 dart/v8_snapshot_profile_writer_test: SkipByDesign # Only relevant for AOT. Doesn't work in cross-compilation (has to run on the host). On Linux/simarm64 and Linux/simarm this test requires buildtools/clang which is not always available on testing shards.
+
+[ $arch == ia32 || $arch == simarm || $arch == simriscv32 ]
+dart/job_*: Skip # Container image lacks 32-bit userspace
 
 [ $arch != x64 || $system != linux || $hot_reload || $compiler != dartk && $compiler != dartkp ]
 dart/entrypoints_verification_test: SkipByDesign # Enough to test on x64 Linux.

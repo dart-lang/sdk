@@ -4991,7 +4991,7 @@ static void AddVMMappings(JSONArray* rss_children) {
 }
 #endif
 
-static intptr_t GetProcessMemoryUsageHelper(JSONStream* js) {
+static void GetProcessMemoryUsageHelper(JSONStream* js) {
   JSONObject response(js);
   response.AddProperty("type", "ProcessMemoryUsage");
 
@@ -5105,8 +5105,6 @@ static intptr_t GetProcessMemoryUsageHelper(JSONStream* js) {
   AddVMMappings(&rss_children);
 #endif
   // TODO(46166): Implement for other operating systems.
-
-  return vm_size;
 }
 
 static const MethodParameter* const get_process_memory_usage_params[] = {
@@ -5732,11 +5730,8 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
       }
     });
   }
-  {
-    JSONStream discard_js;
-    intptr_t vm_memory = GetProcessMemoryUsageHelper(&discard_js);
-    jsobj.AddProperty("_currentMemory", vm_memory);
-  }
+  jsobj.AddProperty("_currentMemory",
+                    static_cast<intptr_t>(VirtualMemory::Used()));
 }
 
 static void GetVM(Thread* thread, JSONStream* js) {

@@ -2095,6 +2095,9 @@ VM_UNIT_TEST_CASE(PostCObject_AddressesCongruentModulo4GB) {
   array.value.as_array.length = ARRAY_SIZE(values);
   array.value.as_array.values = values;
   EXPECT(Dart_PostCObject(port_id, &array));
+
+  VirtualMemory::Decommit(first, page_size);
+  VirtualMemory::Decommit(second, page_size);
   delete memory;
 
   result = Dart_RunLoop();

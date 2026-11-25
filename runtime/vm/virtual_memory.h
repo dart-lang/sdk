@@ -5,14 +5,11 @@
 #ifndef RUNTIME_VM_VIRTUAL_MEMORY_H_
 #define RUNTIME_VM_VIRTUAL_MEMORY_H_
 
+#include "platform/atomic.h"
 #include "platform/utils.h"
 #include "vm/flags.h"
 #include "vm/globals.h"
 #include "vm/memory_region.h"
-
-#if defined(DART_HOST_OS_FUCHSIA)
-#include <zircon/types.h>
-#endif
 
 namespace dart {
 
@@ -68,6 +65,7 @@ class VirtualMemory {
   }
 
   static void Init();
+  static void InitExecutable();
   static void Cleanup();
 
   DART_FORCE_INLINE static bool ShouldDualMapExecutablePages() {
@@ -139,6 +137,7 @@ class VirtualMemory {
     ASSERT(page_size_ != 0);
     return page_size_;
   }
+  static size_t Used() { return used_.load(); }
 
   static bool InSamePage(uword address0, uword address1);
 
@@ -165,11 +164,12 @@ class VirtualMemory {
   //
   // Not available on Fuchsia.
   static VirtualMemory* Reserve(intptr_t size, intptr_t alignment);
-  static void Commit(void* address, intptr_t size, const char* name);
+  static bool Commit(void* address, intptr_t size, const char* name);
   static void Decommit(void* address, intptr_t size);
 
  private:
-  static intptr_t CalculatePageSize();
+  static size_t QueryPageSize();
+  static size_t QueryJobMemoryLimit();
 
   // Free a sub segment. On operating systems that support it this
   // can give back the virtual memory to the system. Returns true on success.
@@ -224,9 +224,31 @@ class VirtualMemory {
 #if defined(DART_COMPRESSED_POINTERS)
   Cage* cage_ = nullptr;
 #endif
+  bool reserved_only_ = false;
 
-  static uword page_size_;
+  static bool TryCharge(size_t size) {
+    size_t expected = used_.load();
+    size_t desired;
+    do {
+      if (size > (SIZE_MAX - expected)) {
+        return false;
+      }
+      desired = expected + size;
+      if (desired > limit_) {
+        return false;
+      }
+    } while (!used_.compare_exchange_weak(expected, desired));
+    return true;
+  }
+  static void ForceCharge(size_t size) { used_.fetch_add(size); }
+  static void Uncharge(size_t size) {
+    ASSERT(used_.load() >= size);
+    used_.fetch_sub(size);
+  }
 
+  static size_t page_size_;
+  static RelaxedAtomic<size_t> used_;
+  static size_t limit_;
 #if defined(DART_ENABLE_RX_WORKAROUNDS)
   static bool should_dual_map_executable_pages_;
 #endif

@@ -434,23 +434,71 @@ class TestUtils {
 String oomHelper =
     "${Directory.current.path}/pkg/test_runner/tool/oom_kill_first";
 
+final String? jobRun = () {
+  for (final f in [
+    "out\\DebugX64\\job_run.exe",
+    "out\\ReleaseX64\\job_run.exe",
+    "out\\ProductX64\\job_run.exe",
+    "out\\DebugX64C\\job_run.exe",
+    "out\\ReleaseX64C\\job_run.exe",
+    "out\\ProductX64C\\job_run.exe",
+    "out\\DebugARM64\\job_run.exe",
+    "out\\ReleaseARM64\\job_run.exe",
+    "out\\ProductARM64\\job_run.exe",
+  ]) {
+    if (File(f).existsSync()) return f;
+  }
+  return null;
+}();
+
+// TODO: What's the overhead of this? Is it cheap enough to enable by default?
+// TODO: Fix tests using too many threads.
+// TODO: Fix tests using too much memory.
+final bool enforceLimits = false;
+
 Future<Process> startProcess(
   String executable,
   List<String> arguments, {
   String? workingDirectory,
   Map<String, String>? environment,
 }) {
-  // Make the OOM killer prefer to kill the tests instead of the test harness or
-  // swarming client.
-  if (Platform.isLinux) {
-    arguments = [executable, ...arguments];
-    executable = oomHelper;
+  if (enforceLimits) {
+    // Guard against resource exhaustion by a test bringing the whole bot down.
+    // Prefer the greedy tests to fail individually instead.
+    if (Platform.isLinux) {
+      arguments = [
+        "--user",
+        "--scope",
+        "--quiet",
+        "--property=MemoryMax=3G",
+        "--property=MemorySwapMax=0",
+        "--property=TasksMax=100",
+        "--",
+        executable,
+        ...arguments,
+      ];
+      executable = "systemd-run";
+    } else if (Platform.isWindows && jobRun != null) {
+      arguments = [
+        "--memory",
+        "${3 * 1024 * 1024 * 1024}",
+        "--processes",
+        "10",
+        "--",
+        executable,
+        ...arguments,
+      ];
+      executable = jobRun!;
+    }
+  } else {
+    // Make the OOM killer prefer to kill the tests instead of the test harness
+    // or swarming client.
+    if (Platform.isLinux) {
+      arguments = [executable, ...arguments];
+      executable = oomHelper;
+    }
   }
-  // TODO(rmacnak): How to reliably find this? What should the limit's value be?
-  // if (Platform.isWindows) {
-  //   arguments = [executable, ...arguments];
-  //   executable = "out\\DebugX64\\job_helper.exe";
-  // }
+
   return Process.start(
     executable,
     arguments,

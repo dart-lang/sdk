@@ -15,60 +15,36 @@
 #include <zircon/syscalls.h>
 
 #include "platform/assert.h"
-#include "vm/allocation.h"
-#include "vm/growable_array.h"
+#include "platform/utils.h"
 #include "vm/isolate.h"
-#include "vm/lockers.h"
 #include "vm/memory_region.h"
 #include "vm/os.h"
-#include "vm/os_thread.h"
+#include "vm/profiler.h"
+#include "vm/thread.h"
 #include "vm/virtual_memory_compressed.h"
-
-// #define VIRTUAL_MEMORY_LOGGING 1
-#if defined(VIRTUAL_MEMORY_LOGGING)
-#define LOG_ERR(msg, ...)                                                      \
-  OS::PrintErr("VMVM: %s:%d: " msg, __FILE__, __LINE__, ##__VA_ARGS__)
-#define LOG_INFO(msg, ...)                                                     \
-  OS::PrintErr("VMVM: %s:%d: " msg, __FILE__, __LINE__, ##__VA_ARGS__)
-#else
-#define LOG_ERR(msg, ...)
-#define LOG_INFO(msg, ...)
-#endif  // defined(VIRTUAL_MEMORY_LOGGING)
 
 namespace dart {
 
 DECLARE_FLAG(bool, write_protect_code);
 
-uword VirtualMemory::page_size_ = 0;
+size_t VirtualMemory::page_size_ = 0;
+RelaxedAtomic<size_t> VirtualMemory::used_ = {0};
+size_t VirtualMemory::limit_ = SIZE_MAX;
 
 static zx_handle_t vmex_resource_ = ZX_HANDLE_INVALID;
 
-intptr_t VirtualMemory::CalculatePageSize() {
-  const intptr_t page_size = getpagesize();
-  ASSERT(page_size != 0);
-  ASSERT(Utils::IsPowerOfTwo(page_size));
-  return page_size;
+size_t VirtualMemory::QueryPageSize() {
+  return zx_system_get_page_size();
 }
 
-void VirtualMemory::Init() {
-  if (FLAG_old_gen_heap_size < 0 || FLAG_old_gen_heap_size > kMaxAddrSpaceMB) {
-    OS::PrintErr(
-        "warning: value specified for --old_gen_heap_size %d is larger than"
-        " the physically addressable range, using 0(unlimited) instead.`\n",
-        FLAG_old_gen_heap_size);
-    FLAG_old_gen_heap_size = 0;
-  }
-  if (FLAG_new_gen_semi_max_size < 0 ||
-      FLAG_new_gen_semi_max_size > kMaxAddrSpaceMB) {
-    OS::PrintErr(
-        "warning: value specified for --new_gen_semi_max_size %d is larger"
-        " than the physically addressable range, using %" Pd " instead.`\n",
-        FLAG_new_gen_semi_max_size, kDefaultNewGenSemiMaxSize);
-    FLAG_new_gen_semi_max_size = kDefaultNewGenSemiMaxSize;
-  }
+size_t VirtualMemory::QueryJobMemoryLimit() {
+  // zx_job_default() is the job for this process to create children. It is not
+  // necessarily the job this process is in. Anyway, Zircon jobs as yet can only
+  // limit memory by blocking the creation of VMOs completely.
+  return zx_system_get_physmem();
+}
 
-  page_size_ = CalculatePageSize();
-
+void VirtualMemory::InitExecutable() {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // If VmexResource is unavailable or does not return a valid handle then
   // this will be observed as failures from vmo_replace_as_executable below.
@@ -84,20 +60,17 @@ void VirtualMemory::Init() {
 void VirtualMemory::Cleanup() {
   vmex_resource_ = ZX_HANDLE_INVALID;
   page_size_ = 0;
+  // The profiler should only leak on Linux.
+  ASSERT((used_.load() == 0) || (Profiler::sample_block_buffer() != nullptr));
+  limit_ = SIZE_MAX;
 }
 
-static zx_handle_t getVmarForAddress(uword address) {
-  return zx_vmar_root_self();
-}
-
-static void Unmap(zx_handle_t vmar, uword start, uword end) {
-  ASSERT(start <= end);
-  const uword size = end - start;
+static void Unmap(uword start, uword size) {
   if (size == 0) {
     return;
   }
 
-  zx_status_t status = zx_vmar_unmap(vmar, start, size);
+  zx_status_t status = zx_vmar_unmap(zx_vmar_root_self(), start, size);
   if (status != ZX_OK) {
     FATAL("zx_vmar_unmap failed: %s\n", zx_status_get_string(status));
   }
@@ -121,6 +94,10 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
     is_executable = false;
   }
 
+  if (!TryCharge(size)) {
+    return nullptr;
+  }
+
   const zx_vm_option_t align_flag = Utils::ShiftForPowerOfTwo(alignment)
                                     << ZX_VM_ALIGN_BASE;
   ASSERT((ZX_VM_ALIGN_1KB <= align_flag) && (align_flag <= ZX_VM_ALIGN_4GB));
@@ -129,8 +106,7 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   zx_handle_t vmo = ZX_HANDLE_INVALID;
   zx_status_t status = zx_vmo_create(size, 0u, &vmo);
   if (status == ZX_ERR_NO_MEMORY) {
-    LOG_ERR("zx_vmo_create(0x%lx) failed: %s\n", size,
-            zx_status_get_string(status));
+    Uncharge(size);
     return nullptr;
   } else if (status != ZX_OK) {
     FATAL("zx_vmo_create(0x%lx) failed: %s\n", size,
@@ -146,9 +122,8 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
     // into memory as executable (now or later).
     status = zx_vmo_replace_as_executable(vmo, vmex_resource_, &vmo);
     if (status == ZX_ERR_NO_MEMORY) {
-      LOG_ERR("zx_vmo_replace_as_executable() failed: %s\n",
-              zx_status_get_string(status));
       zx_handle_close(vmo);
+      Uncharge(size);
       return nullptr;
     } else if (status != ZX_OK) {
       FATAL("zx_vmo_replace_as_executable() failed: %s\n",
@@ -161,11 +136,9 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
       ((is_executable && !FLAG_write_protect_code) ? ZX_VM_PERM_EXECUTE : 0);
   uword base;
   status = zx_vmar_map(vmar, region_options, 0, vmo, 0u, size, &base);
-  LOG_INFO("zx_vmar_map(%u, 0x%lx, 0x%lx)\n", region_options, base, size);
   if (status != ZX_OK) {
-    LOG_ERR("zx_vmar_map(%u, 0x%lx, 0x%lx) failed: %s\n", region_options, base,
-            size, zx_status_get_string(status));
     zx_handle_close(vmo);
+    Uncharge(size);
     return nullptr;
   }
   void* region_ptr = reinterpret_cast<void*>(base);
@@ -185,17 +158,15 @@ VirtualMemory::~VirtualMemory() {
 #endif  // defined(DART_COMPRESSED_POINTERS)
   // Reserved region may be empty due to VirtualMemory::Truncate.
   if (vm_owns_region() && reserved_.size() != 0) {
-    Unmap(getVmarForAddress(reserved_.start()), reserved_.start(),
-          reserved_.end());
-    LOG_INFO("zx_vmar_unmap(0x%lx, 0x%lx) success\n", reserved_.start(),
-             reserved_.size());
+    Unmap(reserved_.start(), reserved_.size());
+    Uncharge(region_.size());
   }
 }
 
 bool VirtualMemory::FreeSubSegment(void* address, intptr_t size) {
   const uword start = reinterpret_cast<uword>(address);
-  Unmap(getVmarForAddress(start), start, start + size);
-  LOG_INFO("zx_vmar_unmap(0x%p, 0x%lx) success\n", address, size);
+  Unmap(start, size);
+  Uncharge(size);
   return true;
 }
 
@@ -227,11 +198,8 @@ void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
       prot = ZX_VM_PERM_READ | ZX_VM_PERM_WRITE | ZX_VM_PERM_EXECUTE;
       break;
   }
-  zx_status_t status =
-      zx_vmar_protect(getVmarForAddress(page_address), prot, page_address,
-                      end_address - page_address);
-  LOG_INFO("zx_vmar_protect(%u, 0x%lx, 0x%lx)\n", prot, page_address,
-           end_address - page_address);
+  zx_status_t status = zx_vmar_protect(zx_vmar_root_self(), prot, page_address,
+                                       end_address - page_address);
   if (status != ZX_OK) {
     FATAL("zx_vmar_protect(0x%lx, 0x%lx) failed: %s\n", page_address,
           end_address - page_address, zx_status_get_string(status));
@@ -242,11 +210,9 @@ void VirtualMemory::DontNeed(void* address, intptr_t size) {
   uword start_address = reinterpret_cast<uword>(address);
   uword end_address = start_address + size;
   uword page_address = Utils::RoundDown(start_address, PageSize());
-  zx_status_t status = zx_vmar_op_range(
-      getVmarForAddress(reinterpret_cast<uword>(address)), ZX_VMAR_OP_DONT_NEED,
-      page_address, end_address - page_address, nullptr, 0);
-  LOG_INFO("zx_vmar_op_range(DONTNEED, 0x%lx, 0x%lx)\n", page_address,
-           end_address - page_address);
+  zx_status_t status =
+      zx_vmar_op_range(zx_vmar_root_self(), ZX_VMAR_OP_DONT_NEED, page_address,
+                       end_address - page_address, nullptr, 0);
   if (status != ZX_OK) {
     FATAL("zx_vmar_op_range(DONTNEED, 0x%lx, 0x%lx) failed: %s\n", page_address,
           end_address - page_address, zx_status_get_string(status));
