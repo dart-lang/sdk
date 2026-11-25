@@ -31,7 +31,6 @@ void main() {
     testNativeFunctionManyArguments3();
     testNativeFunctionManyArguments4();
     testNativeFunctionManyArguments5();
-    testNativeFunctionManyArguments6();
     testNativeFunctionPointer();
     testNullPointers();
     testFloatRounding();
@@ -389,31 +388,6 @@ UndenaryOp sumManyIntsOdd = ffiTestFunctions
 
 void testNativeFunctionManyArguments4() {
   Expect.equals(66, sumManyIntsOdd(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11));
-}
-
-typedef NativeDuodenaryOp =
-    IntPtr Function(
-      IntPtr,
-      IntPtr,
-      IntPtr,
-      IntPtr,
-      IntPtr,
-      IntPtr,
-      IntPtr,
-      IntPtr,
-      IntPtr,
-      IntPtr,
-      IntPtr,
-      IntPtr,
-    );
-typedef DuodenaryOp =
-    int Function(int, int, int, int, int, int, int, int, int, int, int, int);
-
-DuodenaryOp sumManyInts12 = ffiTestFunctions
-    .lookupFunction<NativeDuodenaryOp, DuodenaryOp>("SumManyInts12");
-
-void testNativeFunctionManyArguments6() {
-  Expect.equals(78, sumManyInts12(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12));
 }
 
 typedef NativeDoubleDecenaryOp =

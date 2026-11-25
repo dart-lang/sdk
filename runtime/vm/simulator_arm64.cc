@@ -1755,7 +1755,7 @@ struct CalloutContext {
 extern "C" void SimulatorFfiCalloutTrampoline(CalloutContext*);
 
 void Simulator::DoRedirectedFfiCall(Instr* instr) {
-#if !defined(HOST_ARCH_ARM64) && !defined(HOST_ARCH_X64)
+#if !defined(HOST_ARCH_ARM64)
   FATAL("Unsupported FFI call");
 #else
   // We can't instrument the runtime.

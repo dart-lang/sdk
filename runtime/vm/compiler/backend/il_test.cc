@@ -935,10 +935,6 @@ FlowGraph* SetupFfiFlowgraph(TestPipeline* pipeline,
   return flow_graph;
 }
 
-#if defined(SIMULATOR_FFI)
-static void NoopNativeFunction() {}
-#endif
-
 // Test that FFI calls spill all live values to the stack, and that FFI leaf
 // calls are free to use available ABI callee-save registers to avoid spilling.
 // Additionally test that register allocation is done correctly by clobbering
@@ -1011,13 +1007,6 @@ ISOLATE_UNIT_TEST_CASE(IRTest_FfiCallInstrLeafDoesntSpill) {
         assembler->Ret();
       }));
   uword native_entry = c_function.EntryPoint();
-#if defined(SIMULATOR_FFI)
-  if (FLAG_use_simulator) {
-    // On simulators with SIMULATOR_FFI, FfiCall redirects to host execution
-    // and Simulator::DoRedirectedFfiCall clobbers all volatile registers.
-    native_entry = reinterpret_cast<uword>(&NoopNativeFunction);
-  }
-#endif
 
   // Get initial compilation done.
   Invoke(root_library, "invokeDoFfiCall");

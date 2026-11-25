@@ -18,9 +18,6 @@ abi_specific_int_incomplete_aot_test: SkipByDesign # No AOT mode on IA32.
 [ $arch == simarm64_arm64 ]
 function_structs_by_value_generated_args_native_test: Pass, Slow
 
-[ $arch == simarm_x64 ]
-vmspecific_enable_ffi_test: SkipByDesign # Needs the JIT Dart executable, the builders only build runtime_precompiled for the target.
-
 [ $builder_tag == optimization_counter_threshold ]
 aliasing_test: SkipByDesign # Already has VMOptions=--optimization-counter-threshold
 function_callbacks_structs_by_value_generated_test: SkipByDesign # Already has VMOptions=--optimization-counter-threshold
@@ -115,62 +112,14 @@ function_callbacks_leaf_test: SkipByDesign # Needs access to Dart executable
 native_assets/*: SkipByDesign # Only intended to run on host oses with AOT binaries available, not available on QEMU.
 vmspecific_enable_ffi_test: SkipByDesign # Needs access to Dart executable.
 
-[ $arch != simarm && $arch != simarm64 && $arch != simarm64_arm64 && $arch != simarm_x64 && $arch != simriscv32 && $arch != simriscv64 && $simulator ]
-*: Skip # FFI not yet supported on this simulator.
-
-[ $arch != simarm && $arch != simarm64 && $arch != simarm_x64 && $arch != simriscv32 && $arch != simriscv64 ]
-simulator_unsupported_signature_test: SkipByDesign # Only tests unsupported simulator behavior on simulators.
-
 [ $arch == simarm64_arm64 && $compiler == dart2bytecode ]
 many_listener_callbacks_test: SkipSlow # Interpreter + simulator makes this very slow.
 
+[ $arch != simarm64_arm64 && $simulator ]
+*: Skip # FFI not yet supported on the arm simulator.
+
 [ $compiler != dart2analyzer && $compiler != fasta && $runtime != dart_precompiled && $runtime != vm ]
 *: SkipByDesign # FFI is a VM-only feature. (This test suite is part of the default set.)
-
-[ $arch == simarm || $arch == simarm64 || $arch == simarm_x64 || $arch == simriscv32 || $arch == simriscv64 ]
-*callables*: SkipByDesign # Callbacks not supported on simulator on x64 host.
-*callback*: SkipByDesign # Callbacks not supported on simulator on x64 host.
-*compound*: SkipByDesign
-*struct*: SkipByDesign # Structs not supported on simulator on x64 host.
-address_of_array_generated_test: SkipByDesign # >12 arguments not supported on simulator on x64 host.
-address_of_typeddata_generated_test: SkipByDesign # >12 arguments not supported on simulator on x64 host.
-c_types_test: SkipByDesign # char is unsigned on target, but signed on host x64.
-exceptional_return_const_test: SkipByDesign # Callbacks not supported on simulator on x64 host.
-extension_methods_test: SkipByDesign # Tests compound ref.
-function_test: SkipByDesign # Tests 8-bit/16-bit integer truncation in callee.
-function_varargs_*: SkipByDesign
-function_very_many_test: SkipByDesign
-hardfp_test: SkipByDesign
-invoke_callback_after_suspension_test: SkipByDesign
-isolate_group_bound_captured_local_test: SkipByDesign # Callbacks not supported on simulator on x64 host.
-many_listener_callbacks_test: SkipByDesign
-native_assets/*: SkipByDesign # Only intended to run on host oses with AOT binaries available.
-native_effect_test: SkipByDesign # Uses compound struct by value.
-regress_39063_test: SkipByDesign # Uses float/double.
-regress_46127_test: SkipByDesign # Uses float/double.
-regress_51504_test: SkipByDesign # Uses float/double.
-regress_flutter*: SkipByDesign
-regress_jump_to_frame_test: SkipByDesign # Callbacks not supported on simulator on x64 host.
-stacktrace_regress_37910_test: SkipByDesign # Callbacks not supported on simulator on x64 host.
-threading_*: SkipByDesign # Callbacks not supported on simulator on x64 host.
-variance_function_test: SkipByDesign # Callbacks not supported on simulator on x64 host.
-vmspecific_dynamic_library_test: SkipByDesign # Uses float/double.
-vmspecific_ffi_native_handles_test: SkipByDesign # Callbacks not supported on simulator on x64 host.
-vmspecific_function_gc_test: SkipByDesign # Uses float/double and >12 arguments.
-vmspecific_handle_dynamically_linked_test: SkipByDesign # Callbacks not supported on simulator on x64 host.
-vmspecific_handle_test: SkipByDesign # Callbacks not supported on simulator on x64 host.
-vmspecific_highmem_32bit_test: SkipByDesign
-vmspecific_leaf_call_test: SkipByDesign # Callbacks not supported on simulator on x64 host.
-vmspecific_pointer_load_il_test: SkipByDesign
-vmspecific_regress_37511_test: SkipByDesign # Uses float/double.
-
-[ $arch == simarm || $arch == simarm_x64 || $arch == simriscv32 ]
-aliasing_test: SkipByDesign # Uses 64-bit integers.
-regress_39044_test: SkipByDesign # Uses 64-bit integers.
-regress_43693_test: SkipByDesign # Uses 64-bit integers.
-vmspecific_handle_dynamically_linked_test: SkipByDesign # Uses 64-bit integers.
-vmspecific_handle_test: SkipByDesign # Uses 64-bit integers.
-vmspecific_send_port_id_test: SkipByDesign # Uses 64-bit integers.
 
 [ $arch == simarm64_arm64 || $sanitizer == asan || $sanitizer == msan || $sanitizer == tsan ]
 many_listener_callbacks_test: Pass, Slow

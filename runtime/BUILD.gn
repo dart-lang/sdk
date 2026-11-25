@@ -207,15 +207,7 @@ config("dart_arch_config") {
   }
   if (dart_force_simulator) {
     defines += [ "DART_INCLUDE_SIMULATOR" ]
-    if (!is_win && target_cpu == "arm64" && dart_target_arch == "arm64") {
-      defines += [ "SIMULATOR_FFI" ]
-    }
-  } else if (!is_win) {
-    if ((dart_target_arch == "arm64" || dart_target_arch == "riscv64" ||
-         dart_target_arch == "arm") && target_cpu == "x64") {
-      defines += [ "SIMULATOR_FFI" ]
-    } else if ((dart_target_arch == "arm" || dart_target_arch == "riscv32") &&
-               target_cpu == "x86") {
+    if (dart_target_arch == "arm64") {
       defines += [ "SIMULATOR_FFI" ]
     }
   }

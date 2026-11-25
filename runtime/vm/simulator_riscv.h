@@ -260,7 +260,6 @@ class Simulator {
   void InterpretMISCMEM(Instr instr);
   void InterpretSYSTEM(Instr instr);
   void InterpretECALL(Instr instr);
-  void DoRedirectedFfiCall(Instr instr);
   void InterpretAMO(Instr instr);
   void InterpretAMO8(Instr instr);
   void InterpretAMO16(Instr instr);

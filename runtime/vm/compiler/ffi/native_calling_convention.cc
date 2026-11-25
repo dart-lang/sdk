@@ -49,83 +49,6 @@ static bool SoftFpAbi(bool has_varargs, bool is_result) {
 }
 #endif  // !defined(FFI_UNIT_TESTS)
 
-// Adjusts stack argument alignment when a simulated TARGET_ARCH_* makes FFI
-// calls to (or receives callbacks from) HOST_ARCH_*.
-static intptr_t ArgumentStackAlignmentInBytes(const NativeType& payload_type,
-                                              bool is_vararg) {
-#if defined(SIMULATOR_FFI) && !defined(FFI_UNIT_TESTS) &&                      \
-    (defined(HOST_ARCH_X64) || defined(HOST_ARCH_IA32))
-  if (FLAG_use_simulator) {
-    // On TARGET_ARCH_ARM64 on macOS/iOS, stack arguments are packed to their
-    // value size (`kAlignedToValueSize`). However,
-    // `SimulatorFfiCalloutTrampoline` and `DoRedirectedFfiCall` copy stack
-    // arguments as word-sized slots to match HOST_ARCH_X64 / HOST_ARCH_IA32
-    // (`kAlignedToWordSize`).
-    return compiler::target::kWordSize;
-  }
-#endif
-  return payload_type.AlignmentInBytesStack(is_vararg);
-}
-
-// Adjusts argument register extension when a simulated TARGET_ARCH_* makes FFI
-// calls to (or receives callbacks from) HOST_ARCH_*.
-static ExtensionStrategy ArgumentRegisterExtension() {
-#if defined(SIMULATOR_FFI) && !defined(FFI_UNIT_TESTS) &&                      \
-    (defined(HOST_ARCH_X64) || defined(HOST_ARCH_IA32))
-  if (FLAG_use_simulator) {
-#if defined(TARGET_ARCH_RISCV64)
-    // TARGET_ARCH_RISCV64 only has 64-bit register moves (`kExtendedTo8`),
-    // which already satisfies HOST_ARCH_X64 (`kExtendedTo4`).
-    return kExtendedTo8;
-#else
-    // On TARGET_ARCH_ARM64 (Linux/Android/Fuchsia), sub-word register arguments
-    // are `kNotExtended`, whereas HOST_ARCH_X64 and HOST_ARCH_IA32 C callees
-    // require callers to extend narrow arguments to 4 bytes (`kExtendedTo4`).
-    return kExtendedTo4;
-#endif
-  }
-#endif
-  return CallingConventions::kArgumentRegisterExtension;
-}
-
-// Adjusts stack argument extension when a simulated TARGET_ARCH_* makes FFI
-// calls to (or receives callbacks from) HOST_ARCH_*.
-static ExtensionStrategy ArgumentStackExtension() {
-#if defined(SIMULATOR_FFI) && !defined(FFI_UNIT_TESTS) &&                      \
-    (defined(HOST_ARCH_X64) || defined(HOST_ARCH_IA32))
-  if (FLAG_use_simulator) {
-#if defined(TARGET_ARCH_RISCV64)
-    // TARGET_ARCH_RISCV64 extends stack arguments to 8 bytes (`kExtendedTo8`),
-    // which already satisfies HOST_ARCH_X64 (`kExtendedTo4`).
-    return kExtendedTo8;
-#else
-    // On TARGET_ARCH_ARM64, sub-word stack arguments are `kNotExtended`,
-    // whereas HOST_ARCH_X64 and HOST_ARCH_IA32 C callees require callers to
-    // extend narrow stack arguments to 4 bytes (`kExtendedTo4`).
-    return kExtendedTo4;
-#endif
-  }
-#endif
-  return CallingConventions::kArgumentStackExtension;
-}
-
-// Adjusts return register extension when a simulated TARGET_ARCH_* makes FFI
-// calls to (or receives callbacks from) HOST_ARCH_*.
-static ExtensionStrategy ReturnRegisterExtension() {
-#if defined(SIMULATOR_FFI) && !defined(FFI_UNIT_TESTS) &&                      \
-    (defined(HOST_ARCH_X64) || defined(HOST_ARCH_IA32))
-  if (FLAG_use_simulator) {
-    // On TARGET_ARCH_ARM, TARGET_ARCH_RISCV32, TARGET_ARCH_RISCV64, and
-    // macOS/iOS TARGET_ARCH_ARM64, C callees extend sub-word return values
-    // (`kExtendedTo4` / `kExtendedTo8`). On HOST_ARCH_X64 and HOST_ARCH_IA32,
-    // C callees leave the upper bits of `%rax`/`%eax` dirty (`kNotExtended`),
-    // so compiled target Dart code must sign/zero-extend the return value.
-    return kNotExtended;
-  }
-#endif
-  return CallingConventions::kReturnRegisterExtension;
-}
-
 static const NativeType& ConvertFloatToInt(Zone* zone, const NativeType& type) {
   ASSERT(type.IsFloat());
   if (type.SizeInBytes() == 4) {
@@ -330,8 +253,8 @@ class ArgumentAllocator : public ValueObject {
 
     // Some calling conventions require the callee to make the lowest 32 bits
     // in registers non-garbage.
-    const auto& container_type =
-        payload_type_converted.Extend(zone_, ArgumentRegisterExtension());
+    const auto& container_type = payload_type_converted.Extend(
+        zone_, CallingConventions::kArgumentRegisterExtension);
 
     return AllocateInt(payload_type, container_type, is_vararg);
   }
@@ -680,17 +603,17 @@ class ArgumentAllocator : public ValueObject {
 
   const NativeLocation& AllocateStack(const NativeType& payload_type,
                                       bool is_vararg = false) {
-    align_stack(ArgumentStackAlignmentInBytes(payload_type, is_vararg));
+    align_stack(payload_type.AlignmentInBytesStack(is_vararg));
     const intptr_t size = payload_type.SizeInBytes();
     // If the stack arguments are not packed, the 32 lowest bits should not
     // contain garbage.
     const auto& container_type =
-        payload_type.Extend(zone_, ArgumentStackExtension());
+        payload_type.Extend(zone_, CallingConventions::kArgumentStackExtension);
     const auto& result = *new (zone_) NativeStackLocation(
         payload_type, container_type, CallingConventions::kStackPointerRegister,
         stack_height_in_bytes);
     stack_height_in_bytes += size;
-    align_stack(ArgumentStackAlignmentInBytes(payload_type, is_vararg));
+    align_stack(payload_type.AlignmentInBytesStack(is_vararg));
     return result;
   }
 
@@ -1028,8 +951,8 @@ static const NativeLocation& ResultLocation(Zone* zone,
                                             bool has_varargs) {
   const auto& payload_type_converted =
       ConvertIfSoftFp(zone, payload_type, has_varargs, /*is_result*/ true);
-  const auto& container_type =
-      payload_type_converted.Extend(zone, ReturnRegisterExtension());
+  const auto& container_type = payload_type_converted.Extend(
+      zone, CallingConventions::kReturnRegisterExtension);
 
   if (container_type.IsFloat()) {
     return *new (zone) NativeFpuRegistersLocation(

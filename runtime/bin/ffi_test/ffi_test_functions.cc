@@ -77,10 +77,6 @@ DART_EXPORT int32_t SumPlus42(int32_t a, int32_t b) {
   return retval;
 }
 
-DART_EXPORT intptr_t Sum4Ints(intptr_t a, intptr_t b, intptr_t c, intptr_t d) {
-  return a + b + c + d;
-}
-
 // Sums the first two elements from the arr,
 // where arr must contains at least 2 elements.
 // It's been written to test `.address.cast()` expressions,
@@ -504,88 +500,6 @@ DART_EXPORT intptr_t SumManyIntsOdd(intptr_t a,
       static_cast<uintptr_t>(k);
   std::cout << "returning " << retval << "\n";
   return retval;
-}
-
-// Sums 12 ints.
-// Used for testing calling conventions with 12 arguments.
-DART_EXPORT intptr_t SumManyInts12(intptr_t a,
-                                   intptr_t b,
-                                   intptr_t c,
-                                   intptr_t d,
-                                   intptr_t e,
-                                   intptr_t f,
-                                   intptr_t g,
-                                   intptr_t h,
-                                   intptr_t i,
-                                   intptr_t j,
-                                   intptr_t k,
-                                   intptr_t l) {
-  std::cout << "SumManyInts12(" << a << ", " << b << ", " << c << ", " << d
-            << ", " << e << ", " << f << ", " << g << ", " << h << ", " << i
-            << ", " << j << ", " << k << ", " << l << ")\n";
-  const intptr_t retval =
-      static_cast<uintptr_t>(a) + static_cast<uintptr_t>(b) +
-      static_cast<uintptr_t>(c) + static_cast<uintptr_t>(d) +
-      static_cast<uintptr_t>(e) + static_cast<uintptr_t>(f) +
-      static_cast<uintptr_t>(g) + static_cast<uintptr_t>(h) +
-      static_cast<uintptr_t>(i) + static_cast<uintptr_t>(j) +
-      static_cast<uintptr_t>(k) + static_cast<uintptr_t>(l);
-  std::cout << "returning " << retval << "\n";
-  return retval;
-}
-
-DART_EXPORT intptr_t SumSmallInts12(int8_t a,
-                                    uint8_t b,
-                                    int16_t c,
-                                    uint16_t d,
-                                    int32_t e,
-                                    uint32_t f,
-                                    bool g,
-                                    int8_t h,
-                                    uint8_t i,
-                                    int16_t j,
-                                    uint16_t k,
-                                    int32_t l) {
-  std::cout << "SumSmallInts12(" << static_cast<int>(a) << ", "
-            << static_cast<int>(b) << ", " << c << ", " << d << ", " << e
-            << ", " << f << ", " << g << ", " << static_cast<int>(h) << ", "
-            << static_cast<int>(i) << ", " << j << ", " << k << ", " << l
-            << ")\n";
-  const intptr_t retval = static_cast<intptr_t>(a) + static_cast<intptr_t>(b) +
-                          static_cast<intptr_t>(c) + static_cast<intptr_t>(d) +
-                          static_cast<intptr_t>(e) + static_cast<intptr_t>(f) +
-                          (g ? 1 : 0) + static_cast<intptr_t>(h) +
-                          static_cast<intptr_t>(i) + static_cast<intptr_t>(j) +
-                          static_cast<intptr_t>(k) + static_cast<intptr_t>(l);
-  return retval;
-}
-
-DART_EXPORT int8_t ReturnInt8(intptr_t v) {
-  return static_cast<int8_t>(v);
-}
-
-DART_EXPORT uint8_t ReturnUint8(intptr_t v) {
-  return static_cast<uint8_t>(v);
-}
-
-DART_EXPORT int16_t ReturnInt16(intptr_t v) {
-  return static_cast<int16_t>(v);
-}
-
-DART_EXPORT uint16_t ReturnUint16(intptr_t v) {
-  return static_cast<uint16_t>(v);
-}
-
-DART_EXPORT int32_t ReturnInt32(intptr_t v) {
-  return static_cast<int32_t>(v);
-}
-
-DART_EXPORT uint32_t ReturnUint32(intptr_t v) {
-  return static_cast<uint32_t>(v);
-}
-
-DART_EXPORT bool ReturnBool(intptr_t v) {
-  return v != 0;
 }
 
 // Sums many doubles.

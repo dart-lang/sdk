@@ -21,7 +21,6 @@
 #include "vm/image_snapshot.h"
 #include "vm/native_arguments.h"
 #include "vm/os_thread.h"
-#include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"
 
 namespace dart {
@@ -1525,94 +1524,11 @@ void Simulator::SupervisorCall(Instr* instr) {
       dbg.Stop(instr, "breakpoint");
       break;
     }
-    case Instr::kSimulatorFfiRedirectCode: {
-      DoRedirectedFfiCall(instr);
-      break;
-    }
     default: {
       UNREACHABLE();
       break;
     }
   }
-}
-
-typedef int32_t(__attribute__((cdecl)) * SimulatorFfiCall12)(int32_t,
-                                                             int32_t,
-                                                             int32_t,
-                                                             int32_t,
-                                                             int32_t,
-                                                             int32_t,
-                                                             int32_t,
-                                                             int32_t,
-                                                             int32_t,
-                                                             int32_t,
-                                                             int32_t,
-                                                             int32_t);
-
-NO_SANITIZE_UNDEFINED_FUNCTION
-static int32_t InvokeFfiCall(SimulatorFfiCall12 target,
-                             int32_t a0,
-                             int32_t a1,
-                             int32_t a2,
-                             int32_t a3,
-                             int32_t a4,
-                             int32_t a5,
-                             int32_t a6,
-                             int32_t a7,
-                             int32_t a8,
-                             int32_t a9,
-                             int32_t a10,
-                             int32_t a11) {
-  return target(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
-}
-
-void Simulator::DoRedirectedFfiCall(Instr* instr) {
-#if !defined(HOST_ARCH_IA32)
-  FATAL("Unsupported FFI call");
-#else
-  // We can't instrument the runtime.
-  memory_.FlushAll();
-
-  SimulatorSetjmpBuffer buffer(this);
-  if (!DART_SETJMP(buffer.buffer_)) {
-    uword external = get_register(R8);
-    if (IsTracingExecution()) {
-      THR_Print("Call to FFI function at 0x%" Px "\n", external);
-    }
-
-    int32_t a0 = get_register(R0);
-    int32_t a1 = get_register(R1);
-    int32_t a2 = get_register(R2);
-    int32_t a3 = get_register(R3);
-    int32_t* sp = reinterpret_cast<int32_t*>(get_register(SPREG));
-    int32_t a4 = sp[0];
-    int32_t a5 = sp[1];
-    int32_t a6 = sp[2];
-    int32_t a7 = sp[3];
-    int32_t a8 = sp[4];
-    int32_t a9 = sp[5];
-    int32_t a10 = sp[6];
-    int32_t a11 = sp[7];
-
-    SimulatorFfiCall12 target = reinterpret_cast<SimulatorFfiCall12>(external);
-    int32_t result =
-        InvokeFfiCall(target, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
-
-    if (IsTracingExecution()) {
-      THR_Print("Return from FFI function at 0x%" Px "\n", external);
-    }
-
-    ClobberVolatileRegisters();
-    set_register(R0, result);
-
-    uword return_address =
-        reinterpret_cast<uword>(instr) + 2 * Instr::kInstrSize;
-    set_register(LR, return_address);
-    set_pc(return_address);
-  } else {
-    // Coming via long jump from a throw. Continue to exception handler.
-  }
-#endif
 }
 
 void Simulator::ClobberVolatileRegisters() {

@@ -1678,11 +1678,6 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ StoreToOffset(branch, THR, compiler::target::Thread::vm_tag_offset());
 #endif
 
-#if defined(SIMULATOR_FFI)
-    if (FLAG_use_simulator) {
-      __ Emit(Instr::kSimulatorFfiRedirectInstruction);
-    }
-#endif
     __ blx(branch);
 
 #if !defined(PRODUCT)

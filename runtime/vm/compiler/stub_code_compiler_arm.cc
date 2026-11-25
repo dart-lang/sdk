@@ -261,11 +261,6 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub() {
   __ TransitionGeneratedToNative(R8, FPREG, R9 /*volatile*/, NOTFP,
                                  /*enter_safepoint=*/true);
 
-#if defined(SIMULATOR_FFI)
-  if (FLAG_use_simulator) {
-    __ Emit(Instr::kSimulatorFfiRedirectInstruction);
-  }
-#endif
   __ blx(R8);
 
   __ TransitionNativeToGenerated(R9 /*volatile*/, NOTFP,

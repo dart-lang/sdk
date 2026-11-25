@@ -237,8 +237,6 @@ class CallMarshaller : public BaseMarshaller {
   // The total amount of stack space required for FFI trampolines.
   intptr_t RequiredStackSpaceInBytes() const;
 
-  bool IsSupportedOnSimulator() const;
-
  protected:
   ~CallMarshaller() {}
 };
@@ -278,8 +276,6 @@ class CallbackMarshaller : public BaseMarshaller {
     }
     return native_loc.AsLocation();
   }
-
-  bool IsSupportedOnSimulator() const;
 
  protected:
   ~CallbackMarshaller() {}
