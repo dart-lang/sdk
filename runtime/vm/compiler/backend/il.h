@@ -1239,7 +1239,10 @@ class Instruction : public ZoneObject {
                                                bool is_optimizing) const = 0;
 
   void InitializeLocationSummary(Zone* zone, bool optimizing) {
-    ASSERT(locs_ == nullptr);
+    // Unoptimized code generation may retry on branch offset overflow and
+    // reinitialize location summaries on the same flow graph, because
+    // register allocation is part of code generation.
+    ASSERT(locs_ == nullptr || !optimizing);
     locs_ = MakeLocationSummary(zone, optimizing);
   }
 

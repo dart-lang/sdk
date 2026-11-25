@@ -559,6 +559,10 @@ class Slot : public ZoneObject {
 
   bool IsIdentical(const Slot& other) const { return this == &other; }
 
+#if defined(DEBUG)
+  bool IsCanonical(Thread* thread) const;
+#endif
+
   bool IsContextSlot() const {
     return kind() == Kind::kCapturedVariable || kind() == Kind::kContext_parent;
   }

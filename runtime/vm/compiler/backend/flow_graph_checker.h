@@ -70,6 +70,10 @@ class FlowGraphChecker : public FlowGraphVisitor {
   void VisitInstanceCall(InstanceCallInstr* call) override;
   void VisitPolymorphicInstanceCall(
       PolymorphicInstanceCallInstr* call) override;
+  void VisitLoadField(LoadFieldInstr* load) override;
+  void VisitStoreField(StoreFieldInstr* store) override;
+  void VisitAllocateContext(AllocateContextInstr* alloc) override;
+  void VisitCloneContext(CloneContextInstr* clone) override;
 
   FlowGraph* const flow_graph_;
   const GrowableArray<const Function*>& inline_id_to_function_;

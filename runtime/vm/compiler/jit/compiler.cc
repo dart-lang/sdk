@@ -225,9 +225,13 @@ class CompileParsedFunctionHelper : public ValueObject {
   intptr_t osr_id() const { return osr_id_; }
   Thread* thread() const { return thread_; }
   IsolateGroup* isolate_group() const { return thread_->isolate_group(); }
+  CodePtr GenerateCode(FlowGraph* flow_graph,
+                       CompilerPassState* pass_state,
+                       ZoneGrowableArray<const ICData*>* ic_data_array);
   CodePtr FinalizeCompilation(compiler::Assembler* assembler,
                               FlowGraphCompiler* graph_compiler,
                               FlowGraph* flow_graph);
+  void HandleBailoutError(const Error& error);
 
   ParsedFunction* parsed_function_;
   const bool optimized_;
@@ -392,126 +396,63 @@ CodePtr CompileParsedFunctionHelper::FinalizeCompilation(
   return code.ptr();
 }
 
-// Return null if bailed out.
-CodePtr CompileParsedFunctionHelper::Compile() {
-  ASSERT(!FLAG_precompiled_mode);
-  const Function& function = parsed_function()->function();
-  if (optimized() && !function.IsOptimizable()) {
-    return Code::null();
+void CompileParsedFunctionHelper::HandleBailoutError(const Error& error) {
+  if (FLAG_trace_bailout) {
+    THR_Print("%s\n", error.ToErrorCString());
   }
-  Zone* const zone = thread()->zone();
-  HANDLESCOPE(thread());
-  EnterCompilerScope cs(thread());
+  if (!Compiler::IsBackgroundCompilation() && error.IsLanguageError() &&
+      (LanguageError::Cast(error).kind() == Report::kBailout)) {
+    // If it is not a background compilation, discard the error if it was
+    // not a real error, but just a bailout. If we're in a background
+    // compilation this will be dealt with in the caller.
+  } else {
+    // Otherwise, continue propagating.
+    thread()->set_sticky_error(error);
+  }
+}
 
-  // We may reattempt compilation if the function needs to be assembled using
-  // far branches on ARM. In the else branch of the setjmp call, done is set to
-  // false, and use_far_branches is set to true if there is a longjmp from the
-  // ARM assembler. In all other paths through this while loop, done is set to
-  // true. use_far_branches is always false on ia32 and x64.
-  volatile bool done = false;
-  // volatile because the variable may be clobbered by a longjmp.
-  volatile intptr_t far_branch_level = 0;
+CodePtr CompileParsedFunctionHelper::GenerateCode(
+    FlowGraph* flow_graph,
+    CompilerPassState* pass_state,
+    ZoneGrowableArray<const ICData*>* ic_data_array) {
+  Zone* const zone = thread()->zone();
+  const Function& function = parsed_function()->function();
 
   // For sufficiently large functions the first emission attempt at
   // far_branch_level=0 is almost certain to throw branch_offset_error from
-  // the assembler, which unwinds the entire optimizing pipeline
-  // (BuildFlowGraph + every optimization pass + code generation) and reruns
-  // it from scratch. Pre-set far_branch_level=1 when we already know the
+  // the assembler. Pre-set far_branch_level=1 when we already know the
   // attempt is doomed.
+  intptr_t initial_far_branch_level = 0;
   if (optimized() && function.unoptimized_code() != Code::null()) {
     const intptr_t unoptimized_size =
         Code::Handle(function.unoptimized_code()).Size();
     if (unoptimized_size > 1 * MB) {
-      far_branch_level = 1;
+      initial_far_branch_level = 1;
     }
   }
 
-  Code* volatile result = &Code::ZoneHandle(zone);
-  while (!done) {
-    *result = Code::null();
+  // We may reattempt code generation if the function needs to be assembled
+  // using far branches on ARM/RISC-V.
+  // volatile because the variable may be clobbered by a longjmp.
+  for (volatile intptr_t far_branch_level = initial_far_branch_level;
+       far_branch_level <= 2; far_branch_level = far_branch_level + 1) {
     LongJumpScope jump(thread());
     if (DART_SETJMP(*jump.Set()) == 0) {
-      FlowGraph* flow_graph = nullptr;
-      ZoneGrowableArray<const ICData*>* ic_data_array = nullptr;
-
-      CompilerState compiler_state(thread(), /*is_aot=*/false, optimized(),
-                                   CompilerState::ShouldTrace(function));
-      compiler_state.set_function(function);
-
-      {
-        // Extract type feedback before the graph is built, as the graph
-        // builder uses it to attach it to nodes.
-        ic_data_array = new (zone) ZoneGrowableArray<const ICData*>();
-
-        // Clone ICData for background compilation so that it does not
-        // change while compiling.
-        const bool clone_ic_data = Compiler::IsBackgroundCompilation();
-        function.RestoreICDataMap(ic_data_array, clone_ic_data);
-
-        if (optimized()) {
-          ASSERT(function.ic_data_array() != Array::null() ||
-                 function.ForceOptimize());
-        }
-
-        if (FLAG_print_ic_data_map) {
-          for (intptr_t i = 0; i < ic_data_array->length(); i++) {
-            if ((*ic_data_array)[i] != nullptr) {
-              THR_Print("%" Pd " ", i);
-              FlowGraphPrinter::PrintICData(*(*ic_data_array)[i]);
-            }
-          }
-        }
-
-        TIMELINE_DURATION(thread(), CompilerVerbose, "BuildFlowGraph");
-        flow_graph = Compiler::BuildFlowGraph(
-            zone, parsed_function(), ic_data_array, osr_id(), optimized());
-      }
-
-      const bool print_flow_graph =
-          (FLAG_print_flow_graph ||
-           (optimized() && FLAG_print_flow_graph_optimized)) &&
-          FlowGraphPrinter::ShouldPrint(function);
-
-      if (print_flow_graph && !optimized()) {
-        FlowGraphPrinter::PrintGraph("Unoptimized Compilation", flow_graph);
-      }
-
-      if (flow_graph->should_reorder_blocks()) {
-        // Edge weights are indexed by blocks' preorder numbers. This means
-        // we can't apply them to OSR graph because it does not have the same
-        // structure as the original graph: it was mutated by RelinkToOsrEntry.
-        if (osr_id() == Compiler::kNoOSRDeoptId) {
-          TIMELINE_DURATION(thread(), CompilerVerbose,
-                            "BlockScheduler::AssignEdgeWeights");
-          BlockScheduler::AssignEdgeWeights(flow_graph);
-        }
-      }
-
-      CompilerPassState pass_state(thread(), flow_graph);
-
-      if (optimized()) {
-        TIMELINE_DURATION(thread(), CompilerVerbose, "OptimizationPasses");
-
-        JitCallSpecializer call_specializer(flow_graph);
-        pass_state.call_specializer = &call_specializer;
-
-        flow_graph = CompilerPass::RunPipeline(CompilerPass::kJIT, &pass_state);
-      }
-
       compiler::ObjectPoolBuilder object_pool_builder;
       compiler::Assembler assembler(&object_pool_builder, far_branch_level);
       FlowGraphCompiler graph_compiler(&assembler, flow_graph,
                                        *parsed_function(), optimized(),
                                        ic_data_array);
-      pass_state.graph_compiler = &graph_compiler;
-      CompilerPass::GenerateCode(&pass_state);
+      pass_state->graph_compiler = &graph_compiler;
+      CompilerPass::GenerateCode(pass_state);
+      pass_state->graph_compiler = nullptr;
 
+      Code& result = Code::Handle(zone);
       {
         TIMELINE_DURATION(thread(), CompilerVerbose, "FinalizeCompilation");
 
         auto install_code_fun = [&]() {
-          *result =
-              FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
+          result = FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
 #if !defined(PRODUCT)
           // Isolate debuggers need to be notified of compiled function right
           // away as code is installed because there might be latent breakpoints
@@ -519,7 +460,7 @@ CodePtr CompileParsedFunctionHelper::Compile() {
           // code is executed. Otherwise concurrently running isolates might
           // execute code before its patched and miss a need to pause at a
           // breakpoint.
-          if (!result->IsNull()) {
+          if (!result.IsNull()) {
             if (!function.HasOptimizedCode()) {
               thread()->isolate_group()->debugger()->NotifyCompilation(
                   function);
@@ -550,48 +491,122 @@ CodePtr CompileParsedFunctionHelper::Compile() {
         //
         thread()->isolate_group()->RunWithStoppedMutators(install_code_fun);
       }
-      if (!result->IsNull()) {
+      if (!result.IsNull()) {
         // Must be called outside of safepoint.
-        Code::NotifyCodeObservers(function, *result, optimized());
+        Code::NotifyCodeObservers(function, result, optimized());
 
         if (FLAG_disassemble && FlowGraphPrinter::ShouldPrint(function)) {
-          Disassembler::DisassembleCode(function, *result, optimized());
+          Disassembler::DisassembleCode(function, result, optimized());
         } else if (FLAG_disassemble_optimized && optimized() &&
                    FlowGraphPrinter::ShouldPrint(function)) {
-          Disassembler::DisassembleCode(function, *result, true);
+          Disassembler::DisassembleCode(function, result, true);
         }
       }
-      // Exit the loop and the function with the correct result value.
-      done = true;
+      return result.ptr();
     } else {
-      // We bailed out or we encountered an error.
+      // We bailed out or we encountered an error. If code generation failed
+      // due to an out of range branch offset in the assembler then retry
+      // with increased far_branch_level.
+      pass_state->graph_compiler = nullptr;
       const Error& error = Error::Handle(thread()->StealStickyError());
-      if (error.ptr() == Object::branch_offset_error().ptr()) {
-        // Compilation failed due to an out of range branch offset in the
-        // assembler. We try again (done = false) with far branches enabled.
-        done = false;
-        RELEASE_ASSERT(far_branch_level < 2);
-        far_branch_level = far_branch_level + 1;
-      } else {
-        // If the error isn't due to an out of range branch offset, we don't
-        // try again (done = true).
-        if (FLAG_trace_bailout) {
-          THR_Print("%s\n", error.ToErrorCString());
-        }
-        if (!Compiler::IsBackgroundCompilation() && error.IsLanguageError() &&
-            (LanguageError::Cast(error).kind() == Report::kBailout)) {
-          // If is is not a background compilation, discard the error if it was
-          // not a real error, but just a bailout. If we're it a background
-          // compilation this will be dealt with in the caller.
-        } else {
-          // Otherwise, continue propagating unless we will try again.
-          thread()->set_sticky_error(error);
-        }
-        done = true;
+      if (error.ptr() != Object::branch_offset_error().ptr()) {
+        HandleBailoutError(error);
+        return Code::null();
       }
     }
   }
-  return result->ptr();
+
+  // Must succeed eventually with high enough far_branch_level.
+  UNREACHABLE();
+  return Code::null();
+}
+
+// Return null if bailed out.
+CodePtr CompileParsedFunctionHelper::Compile() {
+  ASSERT(!FLAG_precompiled_mode);
+  const Function& function = parsed_function()->function();
+  if (optimized() && !function.IsOptimizable()) {
+    return Code::null();
+  }
+  Zone* const zone = thread()->zone();
+  HANDLESCOPE(thread());
+  EnterCompilerScope cs(thread());
+
+  LongJumpScope jump(thread());
+  if (DART_SETJMP(*jump.Set()) == 0) {
+    FlowGraph* flow_graph = nullptr;
+    ZoneGrowableArray<const ICData*>* ic_data_array = nullptr;
+
+    CompilerState compiler_state(thread(), /*is_aot=*/false, optimized(),
+                                 CompilerState::ShouldTrace(function));
+    compiler_state.set_function(function);
+
+    {
+      // Extract type feedback before the graph is built, as the graph
+      // builder uses it to attach it to nodes.
+      ic_data_array = new (zone) ZoneGrowableArray<const ICData*>();
+
+      // Clone ICData for background compilation so that it does not
+      // change while compiling.
+      const bool clone_ic_data = Compiler::IsBackgroundCompilation();
+      function.RestoreICDataMap(ic_data_array, clone_ic_data);
+
+      if (optimized()) {
+        ASSERT(function.ic_data_array() != Array::null() ||
+               function.ForceOptimize());
+      }
+
+      if (FLAG_print_ic_data_map) {
+        for (intptr_t i = 0; i < ic_data_array->length(); i++) {
+          if ((*ic_data_array)[i] != nullptr) {
+            THR_Print("%" Pd " ", i);
+            FlowGraphPrinter::PrintICData(*(*ic_data_array)[i]);
+          }
+        }
+      }
+
+      TIMELINE_DURATION(thread(), CompilerVerbose, "BuildFlowGraph");
+      flow_graph = Compiler::BuildFlowGraph(
+          zone, parsed_function(), ic_data_array, osr_id(), optimized());
+    }
+
+    const bool print_flow_graph =
+        (FLAG_print_flow_graph ||
+         (optimized() && FLAG_print_flow_graph_optimized)) &&
+        FlowGraphPrinter::ShouldPrint(function);
+
+    if (print_flow_graph && !optimized()) {
+      FlowGraphPrinter::PrintGraph("Unoptimized Compilation", flow_graph);
+    }
+
+    if (flow_graph->should_reorder_blocks()) {
+      // Edge weights are indexed by blocks' preorder numbers. This means
+      // we can't apply them to OSR graph because it does not have the same
+      // structure as the original graph: it was mutated by RelinkToOsrEntry.
+      if (osr_id() == Compiler::kNoOSRDeoptId) {
+        TIMELINE_DURATION(thread(), CompilerVerbose,
+                          "BlockScheduler::AssignEdgeWeights");
+        BlockScheduler::AssignEdgeWeights(flow_graph);
+      }
+    }
+
+    CompilerPassState pass_state(thread(), flow_graph);
+
+    if (optimized()) {
+      TIMELINE_DURATION(thread(), CompilerVerbose, "OptimizationPasses");
+
+      JitCallSpecializer call_specializer(flow_graph);
+      pass_state.call_specializer = &call_specializer;
+
+      flow_graph = CompilerPass::RunPipeline(CompilerPass::kJIT, &pass_state);
+      pass_state.call_specializer = nullptr;
+    }
+
+    return GenerateCode(flow_graph, &pass_state, ic_data_array);
+  } else {
+    HandleBailoutError(Error::Handle(thread()->StealStickyError()));
+    return Code::null();
+  }
 }
 
 static ObjectPtr CompileFunctionHelper(const Function& function,
