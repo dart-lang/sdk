@@ -3030,6 +3030,14 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     bool forceAbsolute = false,
     bool forceRelative = false,
   }) {
+    if (libraryChangeBuilder case var libraryChangeBuilder?) {
+      return libraryChangeBuilder._getLibraryUriText(
+        uri,
+        forceAbsolute: forceAbsolute,
+        forceRelative: forceRelative,
+      );
+    }
+
     var pathContext = resolvedUnit.session.resourceProvider.pathContext;
 
     /// Returns the relative path to import [whatPath] into [resolvedUnit].
@@ -3115,7 +3123,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     bool forceAbsolute = false,
     bool forceRelative = false,
   }) {
-    var import = (libraryChangeBuilder ?? this)._librariesToImport[uri];
+    var target = libraryChangeBuilder ?? this;
+    var import = target._librariesToImport[uri];
     var existingShownNames = <List<String>>[];
     var existingHiddenNames = <List<String>>[];
 
@@ -3176,8 +3185,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       if (showName != null) {
         import._ensureShown(showName, useShow: useShow);
       }
-      (libraryChangeBuilder ?? this)._librariesToImport[uri] = import;
-      _revertData._addedLibrariesToImport.add(uri);
+      target._librariesToImport[uri] = import;
+      target._revertData._addedLibrariesToImport.add(uri);
     }
     return import;
   }

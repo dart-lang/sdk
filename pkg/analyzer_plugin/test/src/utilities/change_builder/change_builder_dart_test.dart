@@ -3693,6 +3693,42 @@ part 'part.dart';
 ''');
   }
 
+  Future<void> test_importLibrary_partFile_usesLibraryOptions() async {
+    // Prefer relative imports in lib/.
+    writeTestPackageAnalysisOptionsFile(lints: ['prefer_relative_imports']);
+    // But not in src/.
+    newFile(convertPath('/home/test/lib/src/analysis_options.yaml'), '');
+
+    var otherPath = convertPath('/home/test/lib/src/other.dart');
+    addSource(otherPath, 'class A {}');
+
+    var libPath = convertPath('/home/test/lib/test.dart');
+    var libContent = "part 'src/part.dart';\n";
+    addSource(libPath, libContent);
+
+    var partPath = convertPath('/home/test/lib/src/part.dart');
+    addSource(partPath, "part of '../test.dart';\n");
+
+    late String uriText;
+    var builder = await newBuilder();
+    // Add an import via the part file.
+    await builder.addDartFileEdit(partPath, (builder) {
+      uriText = builder.importLibrary(Uri.parse('package:test/src/other.dart'));
+    });
+
+    // The import should be relative because it went into the library.
+    expect(uriText, 'src/other.dart');
+    var fileEdits = builder.sourceChange.edits;
+    expect(fileEdits, hasLength(1));
+    expect(fileEdits.single.file, libPath);
+    var result = SourceEdit.applySequence(libContent, fileEdits.single.edits);
+    expect(result, '''
+import 'src/other.dart';
+
+part 'src/part.dart';
+''');
+  }
+
   Future<void> test_importLibrary_quotes_fromExistingExport() async {
     var path = convertPath('/home/test/lib/test.dart');
     var content = 'export "dart:bbb";\n';
@@ -3926,6 +3962,39 @@ class C {
 
     var change = builder.sourceChange;
     expect(change.edits[0].edits[0].replacement, 'import \'dart:math\';\n');
+  }
+
+  Future<void> test_revert_librariesToImport_partFile() async {
+    var libPath = convertPath('/home/test/lib/test.dart');
+    var libContent = "part 'src/part.dart';\n";
+    addSource(libPath, libContent);
+
+    var partPath = convertPath('/home/test/lib/src/part.dart');
+    addSource(partPath, "part of '../test.dart';\n");
+
+    var builder = await newBuilder();
+    // Add and commit an import to ensure it's not reverted.
+    await builder.addDartFileEdit(partPath, (builder) {
+      builder.importLibrary(Uri.parse('dart:math'));
+    });
+    builder.commit();
+
+    // Add an import and revert it.
+    await builder.addDartFileEdit(partPath, (builder) {
+      builder.importLibrary(Uri.parse('dart:io'));
+    });
+    builder.revert();
+
+    // Expect only the first import was kept.
+    var fileEdits = builder.sourceChange.edits;
+    expect(fileEdits, hasLength(1));
+    expect(fileEdits.single.file, libPath);
+    var result = SourceEdit.applySequence(libContent, fileEdits.single.edits);
+    expect(result, '''
+import 'dart:math';
+
+part 'src/part.dart';
+''');
   }
 }
 
