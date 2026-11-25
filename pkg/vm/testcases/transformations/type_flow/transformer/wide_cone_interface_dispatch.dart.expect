@@ -1,0 +1,164 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+class WideA extends core::Object {
+  synthetic constructor •() → self::WideA
+    : super core::Object::•()
+    ;
+}
+class WideA1 extends self::WideA {
+  synthetic constructor •() → self::WideA1
+    : super self::WideA::•()
+    ;
+}
+class NarrowB extends core::Object {
+  synthetic constructor •() → self::NarrowB
+    : super core::Object::•()
+    ;
+
+  [@vm.inferred-return-type.metadata=dart.core::_Record (inexact type args)]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
+  [@vm.unboxing-info.metadata=()->r<2>]
+  method m() → (core::int, core::int)
+    return (5, 6);
+}
+class WideC extends core::Object {
+  synthetic constructor •() → self::WideC
+    : super core::Object::•()
+    ;
+
+  [@vm.inferred-return-type.metadata=dart.core::_Record (inexact type args)]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]
+  [@vm.unboxing-info.metadata=()->r<2>]
+  method m() → (core::int, core::int)
+    return (3, 4);
+
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]
+  method incompatible() → void {}
+}
+class WideC1 extends self::WideC {
+  synthetic constructor •() → self::WideC1
+    : super self::WideC::•()
+    ;
+}
+class WideD extends core::Object {
+  synthetic constructor •() → self::WideD
+    : super core::Object::•()
+    ;
+
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 10)]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]
+  [@vm.unboxing-info.metadata=()->i]
+  method foo() → core::int
+    return 10;
+}
+class WideAD extends self::WideA implements self::WideD {
+  synthetic constructor •() → self::WideAD
+    : super self::WideA::•()
+    ;
+
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 42)]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]
+  [@vm.unboxing-info.metadata=()->i]
+  method foo() → core::int
+    return 42;
+}
+@#C3
+class DynA extends core::Object {
+  synthetic constructor •() → self::DynA
+    : super core::Object::•()
+    ;
+}
+@#C3
+class DynC extends core::Object {
+  synthetic constructor •() → self::DynC
+    : super core::Object::•()
+    ;
+
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 99)]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:9,getterSelectorId:10]
+  [@vm.unboxing-info.metadata=[!regcc]]
+  @#C5
+  method m() → core::int
+    return 99;
+
+  [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:11,getterSelectorId:12]
+  [@vm.unboxing-info.metadata=[!regcc]]
+  @#C5
+  method incompatible() → void {}
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  core::print([@vm.inferred-type.metadata=dart.core::_Smi (value: 6)] [@vm.direct-call.metadata=#lib::NarrowB.m] [@vm.inferred-type.metadata=dart.core::_Record (inexact type args) (skip check)] new self::NarrowB::•().{self::NarrowB::m}(){() → (core::int, core::int)}.$2{core::int});
+  final self::WideC c = [@vm.direct-call.metadata=dart.core::_GrowableList.[]] [@vm.inferred-type.metadata=! (skip check)] [@vm.inferred-type.metadata=dart.core::_GrowableList<#lib::WideC>] core::_GrowableList::_literal2<self::WideC>(new self::WideC::•(), new self::WideC1::•()).{core::List::[]}(0){(core::int) → self::WideC};
+  [@vm.direct-call.metadata=#lib::WideC.incompatible] [@vm.inferred-type.metadata=? (skip check)] c.{self::WideC::incompatible}(){() → void};
+  core::print([@vm.inferred-type.metadata=dart.core::_Smi (value: 4)] [@vm.direct-call.metadata=#lib::WideC.m] [@vm.inferred-type.metadata=dart.core::_Record (inexact type args) (skip check)] c.{self::WideC::m}(){() → (core::int, core::int)}.$2{core::int});
+  new self::DynC::•();
+  final self::WideD d = [@vm.direct-call.metadata=dart.core::_GrowableList.[]] [@vm.inferred-type.metadata=! (skip check)] [@vm.inferred-type.metadata=dart.core::_GrowableList<#lib::WideD>] core::_GrowableList::_literal2<self::WideD>(new self::WideD::•(), new self::WideAD::•()).{core::List::[]}(0){(core::int) → self::WideD};
+  core::print([@vm.inferred-type.metadata=dart.core::_Smi] d.{self::WideD::foo}(){() → core::int});
+  final self::WideA a = [@vm.direct-call.metadata=dart.core::_GrowableList.[]] [@vm.inferred-type.metadata=! (skip check)] [@vm.inferred-type.metadata=dart.core::_GrowableList<#lib::WideA>] core::_GrowableList::_literal3<self::WideA>(new self::WideA::•(), new self::WideA1::•(), new self::WideAD::•()).{core::List::[]}(0){(core::int) → self::WideA};
+  core::print([@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::testBothWideDisjoint(a));
+  core::print([@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::testWideAndNarrowDisjoint(a));
+  core::print([@vm.inferred-type.metadata=dart.core::_Smi] self::testBothWideOverlapping(a));
+  core::print([@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::testClosedAndDynExtendable(a));
+  final self::DynA dynA = [@vm.direct-call.metadata=dart.core::_GrowableList.[]] [@vm.inferred-type.metadata=! (skip check)] [@vm.inferred-type.metadata=dart.core::_GrowableList<#lib::DynA>] core::_GrowableList::_literal1<self::DynA>(new self::DynA::•()).{core::List::[]}(0){(core::int) → self::DynA};
+  core::print([@vm.inferred-type.metadata=int] self::testBothDynExtendable(dynA));
+  core::print([@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::testDynExtendableAndClosed(dynA));
+}
+
+[@vm.inferred-return-type.metadata=dart.core::_Smi (value: 0)]
+[@vm.unboxing-info.metadata=(b)->i]
+static method testBothWideDisjoint([@vm.inferred-arg-type.metadata=!] self::WideA a) → core::int {
+  if(a is self::WideC) {
+    [@vm.inferred-type.metadata=? (skip check)](a as self::WideC).{self::WideC::incompatible}(){() → void};
+    return block {
+      [@vm.inferred-type.metadata=! (skip check)](a as self::WideC).{self::WideC::m}(){() → (core::int, core::int)};
+    } =>throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
+  }
+  return 0;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::_Smi (value: 0)]
+[@vm.unboxing-info.metadata=(b)->i]
+static method testWideAndNarrowDisjoint([@vm.inferred-arg-type.metadata=!] self::WideA a) → core::int
+  return a is self::NarrowB ?{core::int} block {
+    [@vm.inferred-type.metadata=! (skip check)](a as self::NarrowB).{self::NarrowB::m}(){() → (core::int, core::int)};
+  } =>throw "Attempt to execute code removed by Dart AOT compiler (TFA)" : 0;
+
+[@vm.inferred-return-type.metadata=dart.core::_Smi]
+[@vm.unboxing-info.metadata=(b)->i]
+static method testBothWideOverlapping([@vm.inferred-arg-type.metadata=!] self::WideA a) → core::int
+  return a is self::WideD ?{core::int} [@vm.direct-call.metadata=#lib::WideAD.foo] [@vm.inferred-type.metadata=dart.core::_Smi (skip check) (value: 42)](a as self::WideD).{self::WideD::foo}(){() → core::int} : 0;
+
+[@vm.inferred-return-type.metadata=dart.core::_Smi (value: 0)]
+[@vm.unboxing-info.metadata=(b)->i]
+static method testClosedAndDynExtendable([@vm.inferred-arg-type.metadata=!] self::WideA a) → core::int
+  return a is self::DynC ?{core::int} [@vm.inferred-type.metadata=! (skip check)](a as self::DynC).{self::DynC::m}(){() → core::int} : 0;
+
+[@vm.inferred-return-type.metadata=int]
+[@vm.unboxing-info.metadata=(b)->i]
+static method testBothDynExtendable([@vm.inferred-arg-type.metadata=!] self::DynA a) → core::int {
+  if(a is self::DynC) {
+    (a as self::DynC).{self::DynC::incompatible}(){() → void};
+    return [@vm.inferred-type.metadata=int](a as self::DynC).{self::DynC::m}(){() → core::int};
+  }
+  return 0;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::_Smi (value: 0)]
+[@vm.unboxing-info.metadata=(b)->i]
+static method testDynExtendableAndClosed([@vm.inferred-arg-type.metadata=!] self::DynA a) → core::int
+  return a is self::WideC ?{core::int} block {
+    [@vm.inferred-type.metadata=! (skip check)](a as self::WideC).{self::WideC::m}(){() → (core::int, core::int)};
+  } =>throw "Attempt to execute code removed by Dart AOT compiler (TFA)" : 0;
+constants  {
+  #C1 = "dyn-module:extendable"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+  #C4 = "dyn-module:can-be-overridden"
+  #C5 = core::pragma {name:#C4, options:#C2}
+}

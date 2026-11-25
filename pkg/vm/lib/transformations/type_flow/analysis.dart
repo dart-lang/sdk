@@ -639,28 +639,43 @@ final class _DispatchableInvocation extends _Invocation {
     return result;
   }
 
-  // Returns true if set of targets is known at compilation time.
+  /// Collects all statically known dispatch targets for [receiver] into
+  /// [targets].
+  ///
+  /// - For each matching member (or [noSuchMethodMarker]), records the
+  ///   narrowed receiver types that dispatch to it.
+  /// - For [InterfaceSelector], only considers subtypes of the selector's
+  ///   enclosing class.
+  /// - Subscribes this invocation to invalidation if new allocated classes or
+  ///   dynamic targets are discovered later.
+  /// - Returns `true` if [targets] is complete, or `false` if dynamic modules
+  ///   may add unknown targets at runtime (known targets are still collected in
+  ///   [targets]).
   bool _collectTargetsForReceiverType(
     Type receiver,
     Map<Member, _ReceiverTypeBuilder> targets,
     TypeFlowAnalysis typeFlowAnalysis,
   ) {
+    final selector = this.selector;
+    assert(typeFlowAnalysis.currentInvocation == this);
     assert(receiver != emptyType); // should be filtered earlier
+    assert(targets.isEmpty);
+    assert(selector is InterfaceSelector || selector is DynamicSelector);
 
+    final hierarchyCache = typeFlowAnalysis.hierarchyCache;
     final bool isNullableReceiver = receiver is NullableType;
     if (isNullableReceiver) {
       receiver = receiver.baseType;
       assert(receiver is! NullableType);
     }
 
-    final selector = this.selector;
-    if (selector is InterfaceSelector) {
-      final staticReceiverType = typeFlowAnalysis.hierarchyCache
-          .getTFClass(selector.member.enclosingClass!)
-          .coneType;
+    final TFClass? staticReceiverClass = selector is InterfaceSelector
+        ? hierarchyCache.getTFClass(selector.member.enclosingClass!)
+        : null;
+    if (staticReceiverClass != null) {
       receiver = receiver.intersection(
-        staticReceiverType,
-        typeFlowAnalysis.hierarchyCache,
+        staticReceiverClass.coneType,
+        hierarchyCache,
       );
       assert(receiver is! NullableType);
 
@@ -671,19 +686,45 @@ final class _DispatchableInvocation extends _Invocation {
 
     ConeType? dynamicallyExtendableReceiver;
     if (receiver is ConeType) {
-      if (receiver.cls.hasDynamicallyExtendableSubtypes) {
-        dynamicallyExtendableReceiver = receiver;
+      if (staticReceiverClass == null ||
+          receiver.cls.isSubtypeOf(staticReceiverClass)) {
+        if (receiver.cls.hasDynamicallyExtendableSubtypes) {
+          dynamicallyExtendableReceiver = receiver;
+        }
+        // Specialization of type cone will add dependency of the current
+        // invocation to the receiver class. A new allocated class discovered
+        // in the receiver cone will invalidate this invocation.
+        receiver = hierarchyCache.specializeTypeCone(
+          receiver.cls,
+          allowWideCone: false,
+        );
+      } else {
+        assert(receiver is WideConeType);
+        if (receiver.cls.hasDynamicallyExtendableSubtypes &&
+            staticReceiverClass.hasDynamicallyExtendableSubtypes) {
+          dynamicallyExtendableReceiver = staticReceiverClass.coneType;
+        }
+        receiver = hierarchyCache.specializeConeIntersection(
+          receiver.cls,
+          staticReceiverClass,
+        );
       }
-      // Specialization of type cone will add dependency of the current
-      // invocation to the receiver class. A new allocated class discovered
-      // in the receiver cone will invalidate this invocation.
-      receiver = typeFlowAnalysis.hierarchyCache.specializeTypeCone(
-        receiver.cls,
-        allowWideCone: false,
-      );
     }
 
-    assert(targets.isEmpty);
+    // For interface calls, both the specialized receiver and any dynamically
+    // extendable cone must be subtypes of staticReceiverClass.
+    assert(
+      staticReceiverClass == null ||
+          receiver is EmptyType ||
+          (receiver is AnyInstanceType
+              ? staticReceiverClass == hierarchyCache._objectTFClass
+              : receiver.isSubtypeOf(staticReceiverClass)),
+    );
+    assert(
+      dynamicallyExtendableReceiver == null ||
+          staticReceiverClass == null ||
+          dynamicallyExtendableReceiver.isSubtypeOf(staticReceiverClass),
+    );
 
     bool unknownTargets = false;
     if (receiver is ConcreteType) {
@@ -696,10 +737,8 @@ final class _DispatchableInvocation extends _Invocation {
       _collectTargetsForSelector(targets, typeFlowAnalysis);
       // Any class from a dynamic module may have unknown target for the
       // dynamic call with AnyInstanceType receiver.
-      unknownTargets = typeFlowAnalysis
-          .hierarchyCache
-          ._objectTFClass
-          .hasDynamicallyExtendableSubtypes;
+      unknownTargets =
+          hierarchyCache._objectTFClass.hasDynamicallyExtendableSubtypes;
     } else {
       assert(receiver is EmptyType);
     }
@@ -743,7 +782,8 @@ final class _DispatchableInvocation extends _Invocation {
     Member? target = cls.getDispatchTarget(selector);
 
     if (target != null) {
-      if (areArgumentsValidFor(target)) {
+      if (selector is InterfaceSelector || areArgumentsValidFor(target)) {
+        assert(selector is! InterfaceSelector || areArgumentsValidFor(target));
         if (kPrintTrace) {
           tracePrint("Found $target for concrete receiver $receiver");
         }
@@ -1780,6 +1820,35 @@ class _ClassHierarchyCache extends TypeHierarchy {
     }
 
     return cls.specializedConeType;
+  }
+
+  /// Specializes the intersection of cones `[a]+` and `[b]+` without wide-cone
+  /// approximation, returning only allocated classes that subtype both [a] and
+  /// [b].
+  ///
+  /// Expands whichever cone has fewer allocated subtypes and filters the result
+  /// against the other. Subscribing only to the smaller cone is sufficient
+  /// because any newly allocated common subtype invalidates both cones.
+  Type specializeConeIntersection(TFClass a, TFClass b) {
+    assert(!a.isSubtypeOf(b) && !b.isSubtypeOf(a));
+    final aImpl = a as _TFClassImpl;
+    final bImpl = b as _TFClassImpl;
+    final _TFClassImpl smaller;
+    final _TFClassImpl larger;
+    if (aImpl._allocatedSubtypes.length < bImpl._allocatedSubtypes.length) {
+      smaller = aImpl;
+      larger = bImpl;
+    } else {
+      smaller = bImpl;
+      larger = aImpl;
+    }
+    final expanded = specializeTypeCone(smaller, allowWideCone: false);
+    assert(
+      expanded is EmptyType || expanded is ConcreteType || expanded is SetType,
+    );
+    // Intersect with _wideConeType instead of coneType so we only check
+    // subtyping against larger without specializing it or adding a dependency.
+    return larger._wideConeType.intersection(expanded, this);
   }
 
   @override
