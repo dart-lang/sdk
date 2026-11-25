@@ -3,9 +3,13 @@
 This folder contains two types of tests for validating sourcemaps:
 the debugging behavior and the stacktrace behavior.
 
-Running the tests requires building the sdk target: `ddc_stable_test`.
+Running the tests requires building the sdk target: `ddc_stable_test` (or `ddc_canary_test` for
+the canary suites). The debugging tests also require Chrome.
 
-Except for that, running them should simply be a matter of executing the `*_suite.dart` files.
+Except for that, running them should simply be a matter of executing `sourcemaps_test.dart` and
+`sourcemaps_canary_test.dart` (debugging tests), or the `stacktrace*_suite.dart` files (stacktrace
+tests). The debugging tests also run through `tools/test.py`, e.g.
+`python3 tools/test.py -n web-dev-unittest-asserts-linux pkg/dev_compiler/test/sourcemap/sourcemaps_test`.
 
 All tests are plain Dart files and goes in "testfiles" (debugging tests) or "stacktrace_testfiles"
 (stacktrace tests). They are automatically picked up by the testing framework.
@@ -18,19 +22,19 @@ See `README.md` in `pkg/sourcemap_testing`.
 
 One can filter which tests are run by running (from the sourcemap folder):
 ```
-dart sourcemaps_suite.dart -- sourcemaps/printing_class_fields
+dart sourcemaps_test.dart -- sourcemaps/testfiles/printing_class_fields
 ```
 
 One can additionally get debug output for failing tests (i.e. tests with different outcome than
 expected), e.g.:
 ```
-dart sourcemaps_suite.dart -Ddebug=true -- sourcemaps/printing_class_fields
+dart sourcemaps_test.dart -Ddebug=true -- sourcemaps/testfiles/printing_class_fields
 ```
 
 The latter is also useful in combination with `/*fail*/` when adding new tests to see all the places
 where the debugger stopped (both in JS positions and translated to dart positions).
 
-For instance `-Ddebug=true -- sourcemaps/next_through_catch_test` with a `/*fail*/`
+For instance `-Ddebug=true -- sourcemaps/testfiles/next_through_catch_test` with a `/*fail*/`
 currently gives output like the following:
 
 ```

@@ -4,7 +4,7 @@
 
 import 'package:testing/testing.dart';
 
-import 'sourcemaps_suite.dart';
+import 'sourcemaps_test.dart';
 
 Future<ChainContext> createContext(
   Chain suite,

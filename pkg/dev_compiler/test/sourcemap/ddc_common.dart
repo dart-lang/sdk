@@ -47,7 +47,7 @@ class Compile extends Step<Data, Data, ChainContext> {
     var outDirUri = data.outDir.uri;
     var testFile = outDirUri.resolve(data.testFileName);
     File.fromUri(testFile).writeAsStringSync(data.code.sourceCode);
-    var outputFilename = 'js.js';
+    var outputFilename = jsFileName;
     var outputFile = outDirUri.resolve(outputFilename);
     var outWrapperPath = outDirUri.resolve('wrapper.js');
 
@@ -151,9 +151,7 @@ String getWrapperContent({
   var imports = '';
   String mainClosure;
   if (moduleFormat == 'es6') {
-    var inputPath = inputFile.path;
-    inputPath = inputPath.substring(0, inputPath.lastIndexOf('.'));
-    final inputFileNameNoExt = pathToJSIdentifier(inputPath);
+    var inputFileNameNoExt = _es6LibraryIdentifier(inputFile);
     imports =
         '''
     import { dart, _isolate_helper } from '${uriPathForwardSlashed(sdkJsFile)}';
@@ -197,78 +195,64 @@ String getWrapperContent({
     ''';
 }
 
-void createHtmlWrapper({
-  required Uri inputFile,
+/// Returns the page that `runChromeAndStep` loads to run [outputFile].
+///
+/// The page is served from the same directory as [outputFile] and loads the
+/// SDK through `chromeUrlPathForSdkFile`.
+String getBootstrapHtmlContent({
   required Uri sdkJsFile,
-  required Uri outputFile,
-  required String jsContent,
-  required String outputFilename,
-  required String moduleFormat,
-  required bool canary,
-}) {
-  // For debugging via HTML, Chrome and ./pkg/test_runner/bin/http_server.dart.
-  var sdkRootPath = sdkRoot!.path;
-  var sdkFile = File(p.relative(sdkJsFile.path, from: sdkRootPath));
-  var jsRootDart = '/root_dart/${sdkFile.uri}';
-  File.fromUri(outputFile.resolve('$outputFilename.html.js')).writeAsStringSync(
-    jsContent.replaceFirst("from 'dart_sdk.js'", "from '$jsRootDart'"),
-  );
-  File.fromUri(outputFile.resolve('$outputFilename.html.html'))
-      .writeAsStringSync(
-        getWrapperHtmlContent(
-          inputFile: inputFile,
-          jsRootDart: jsRootDart,
-          outFileRootBuild: '/root_build/$outputFilename.html.js',
-          moduleFormat: moduleFormat,
-          canary: canary,
-        ),
-      );
-
-  print(
-    'You should now be able to run\n\n'
-    'dart $sdkRootPath/pkg/test_runner/bin/http_server.dart -p 39550 '
-    '--network 127.0.0.1 '
-    '--build-directory=${outputFile.resolve('.').toFilePath()}'
-    '\n\nand go to\n\n'
-    'http://127.0.0.1:39550/root_build/$outputFilename.html.html'
-    '\n\nto step through via the browser.',
-  );
-}
-
-String getWrapperHtmlContent({
+  required Uri? ddcModuleLoaderFile,
   required Uri inputFile,
-  required String jsRootDart,
-  required String outFileRootBuild,
+  required Uri outputFile,
   required String moduleFormat,
   required bool canary,
 }) {
-  String callMain;
+  var sdkJsUrlPath = chromeUrlPathForSdkFile(sdkJsFile.toFilePath());
+  var outputFileName = outputFile.pathSegments.last;
+  String scripts;
   if (moduleFormat == 'es6') {
-    callMain =
+    var inputFileNameNoExt = _es6LibraryIdentifier(inputFile);
+    scripts =
         '''
-      import { dart, _isolate_helper } from '$jsRootDart';
-      import { test } from '$outFileRootBuild';
-      let main = test.main;
-      main();
-    ''';
+    <script type="module">
+      import { dart, _isolate_helper } from '$sdkJsUrlPath';
+      import { $inputFileNameNoExt } from './$outputFileName';
+      self.scheduleMain = function() {
+        $inputFileNameNoExt.main([]);
+      };
+    </script>''';
   } else {
     assert(moduleFormat == 'ddc' && canary);
-    callMain = "dartDevEmbedder.runMain('$inputFile', {})";
+    var loaderUrlPath = chromeUrlPathForSdkFile(
+      ddcModuleLoaderFile!.toFilePath(),
+    );
+    scripts =
+        '''
+    <script src="$loaderUrlPath"></script>
+    <script src="$sdkJsUrlPath"></script>
+    <script src="$outputFileName"></script>
+    <script>
+      self.scheduleMain = function() {
+        dartDevEmbedder.runMain('$inputFile', {});
+      };
+    </script>''';
   }
   return '''
 <!DOCTYPE html>
 <html>
   <head>
-    <title>ddc test</title>
-    <script type="module">
-    $callMain
-    </script>
+    <title>ddc step test</title>
+$scripts
   </head>
-  <body>
-    <h1>ddc test</h1>
-  </body>
+  <body></body>
 </html>
 ''';
+}
+
+/// The name under which DDC's es6 output for [inputFile] exports its library.
+String _es6LibraryIdentifier(Uri inputFile) {
+  var inputPath = inputFile.path;
+  return pathToJSIdentifier(inputPath.substring(0, inputPath.lastIndexOf('.')));
 }
 
 Uri selfUri = Platform.script.resolve('ddc_common.dart');

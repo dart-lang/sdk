@@ -7,7 +7,7 @@ import 'package:testing/testing.dart';
 
 import 'common.dart';
 import 'ddc_common.dart';
-import 'sourcemaps_suite.dart';
+import 'sourcemaps_test.dart';
 
 Future<ChainContext> _createContext(
   Chain suite,

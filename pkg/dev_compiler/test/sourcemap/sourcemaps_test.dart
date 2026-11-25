@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -51,9 +51,10 @@ class SourceMapContext extends ChainContextWithCleanupHelper
           debugging: debugging(),
           moduleFormat: moduleFormat,
           canary: canary,
+          chrome: true,
         ),
       ),
-      const StepWithD8(),
+      const StepWithChrome(),
       CheckSteps(debugging()),
     ];
   }
@@ -68,11 +69,16 @@ class DevCompilerRunner implements CompilerRunner {
   final String moduleFormat;
   final bool canary;
 
+  /// Whether to prepare the output for `runChromeAndStep` (a `bootstrap.html`)
+  /// instead of for d8 (a `wrapper.js`).
+  final bool chrome;
+
   const DevCompilerRunner(
     this.context, {
     this.debugging = false,
     this.moduleFormat = 'es6',
     this.canary = false,
+    this.chrome = false,
   });
 
   @override
@@ -128,35 +134,51 @@ class DevCompilerRunner implements CompilerRunner {
     }
 
     var jsContent = File.fromUri(outputFile).readAsStringSync();
+    // d8 loads the SDK straight from disk, while Chrome loads it from the
+    // server started by `runChromeAndStep`.
+    var sdkJsImport = chrome
+        ? chromeUrlPathForSdkFile(sdkJsFile.toFilePath())
+        : uriPathForwardSlashed(sdkJsFile);
     File.fromUri(outputFile).writeAsStringSync(
-      jsContent.replaceFirst(
-        "from 'dart_sdk.js'",
-        "from '${uriPathForwardSlashed(sdkJsFile)}'",
-      ),
+      jsContent.replaceFirst("from 'dart_sdk.js'", "from '$sdkJsImport'"),
     );
 
-    if (debugging) {
-      createHtmlWrapper(
-        inputFile: inputFile,
-        sdkJsFile: sdkJsFile,
-        outputFile: outputFile,
-        jsContent: jsContent,
-        outputFilename: outputFile.pathSegments.last,
-        moduleFormat: moduleFormat,
-        canary: canary,
+    if (chrome) {
+      File.fromUri(outputFile.resolve('bootstrap.html')).writeAsStringSync(
+        getBootstrapHtmlContent(
+          sdkJsFile: sdkJsFile,
+          ddcModuleLoaderFile: ddcModuleLoaderFile,
+          inputFile: inputFile,
+          outputFile: outputFile,
+          moduleFormat: moduleFormat,
+          canary: canary,
+        ),
+      );
+      if (debugging) {
+        // `http_server.dart` serves the same `/root_build/` and `/root_dart/`
+        // paths that `runChromeAndStep` uses, so the page works as is.
+        print(
+          'To step through this test in a browser, run\n\n'
+          '  dart ${sdkRoot!.path}/pkg/test_runner/bin/http_server.dart '
+          '-p 39550 --network 127.0.0.1 '
+          '--build-directory=${outputFile.resolve('.').toFilePath()}\n\n'
+          'then open http://127.0.0.1:39550/root_build/bootstrap.html, set '
+          'breakpoints in DevTools, and call scheduleMain() in the console.\n'
+          'The directory is only kept if the test fails.',
+        );
+      }
+    } else {
+      File.fromUri(outWrapperFile).writeAsStringSync(
+        getWrapperContent(
+          sdkJsFile: sdkJsFile,
+          ddcModuleLoaderFile: ddcModuleLoaderFile,
+          inputFile: inputFile,
+          outputFile: outputFile,
+          moduleFormat: moduleFormat,
+          canary: canary,
+        ),
       );
     }
-
-    File.fromUri(outWrapperFile).writeAsStringSync(
-      getWrapperContent(
-        sdkJsFile: sdkJsFile,
-        ddcModuleLoaderFile: ddcModuleLoaderFile,
-        inputFile: inputFile,
-        outputFile: outputFile,
-        moduleFormat: moduleFormat,
-        canary: canary,
-      ),
-    );
   }
 }
 

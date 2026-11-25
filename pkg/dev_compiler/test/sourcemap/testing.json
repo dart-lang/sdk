@@ -7,7 +7,7 @@
     {
       "name": "sourcemaps",
       "kind": "Chain",
-      "source": "sourcemaps_suite.dart",
+      "source": "sourcemaps_test.dart",
       "root": ".",
       "status": "sourcemaps.status",
       "pattern": [
@@ -19,7 +19,7 @@
     {
       "name": "sourcemaps_canary",
       "kind": "Chain",
-      "source": "sourcemaps_canary_suite.dart",
+      "source": "sourcemaps_canary_test.dart",
       "root": ".",
       "status": "sourcemaps_canary.status",
       "pattern": [

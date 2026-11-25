@@ -11,11 +11,15 @@ resolution: workspace
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
   _fe_analyzer_shared: any
+  browser_launcher: any
   dart2js_tools: any
   expect: any
   path: any
+  shelf: any
+  shelf_static: any
   source_maps: any
   source_span: any
+  webkit_inspection_protocol: any
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
