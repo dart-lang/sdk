@@ -8140,8 +8140,22 @@ bool Serializer::CreateArtificialNodeIfNeeded(ObjectPtr obj) {
       type = "Mint";
       break;
     }
+    case kClosureCid: {
+      type = "Closure";
+      auto const closure = Closure::RawCast(obj);
+      links.Add({closure->untag()->function(),
+                 V8SnapshotProfileWriter::Reference::Property("function_")});
+      break;
+    }
     default:
-      FATAL("Request to create artificial node for object with cid %d", cid);
+      // Other canonical instances can also appear in weakened constant hash
+      // tables, so only internal VM objects are unexpected here.
+      if (IsInternalOnlyClassId(cid)) {
+        FATAL("Request to create artificial node for object with cid %d", cid);
+      }
+      type = String::ToCString(
+          thread(), isolate_group()->class_table()->At(cid)->untag()->name());
+      break;
   }
 
   id = AssignArtificialRef(obj);
