@@ -31,34 +31,4 @@ extension Function on Object {}
 // [diag.builtInIdentifierAsExtensionName] The built-in identifier 'Function' can't be used as an extension name.
 ''');
   }
-
-  test_inout() async {
-    await resolveTestCodeWithDiagnostics(r'''
-extension inout on Object {}
-//        ^^^^^
-// [diag.builtInIdentifierAsExtensionName] The built-in identifier 'inout' can't be used as an extension name.
-''');
-  }
-
-  test_inout_beforePrimaryConstructors() async {
-    await resolveTestCodeWithDiagnostics(r'''
-// %before-language-feature: primary-constructors
-extension inout on Object {}
-''');
-  }
-
-  test_out() async {
-    await resolveTestCodeWithDiagnostics(r'''
-extension out on Object {}
-//        ^^^
-// [diag.builtInIdentifierAsExtensionName] The built-in identifier 'out' can't be used as an extension name.
-''');
-  }
-
-  test_out_beforePrimaryConstructors() async {
-    await resolveTestCodeWithDiagnostics(r'''
-// %before-language-feature: primary-constructors
-extension out on Object {}
-''');
-  }
 }

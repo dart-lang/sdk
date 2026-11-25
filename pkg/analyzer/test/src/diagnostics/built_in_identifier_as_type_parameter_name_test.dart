@@ -33,36 +33,6 @@ class A<Function> {}
 ''');
   }
 
-  test_class_inout() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class A<inout> {}
-//      ^^^^^
-// [diag.builtInIdentifierAsTypeParameterName] The built-in identifier 'inout' can't be used as a type parameter name.
-''');
-  }
-
-  test_class_inout_beforePrimaryConstructors() async {
-    await resolveTestCodeWithDiagnostics(r'''
-// %before-language-feature: primary-constructors
-class A<inout> {}
-''');
-  }
-
-  test_class_out() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class A<out> {}
-//      ^^^
-// [diag.builtInIdentifierAsTypeParameterName] The built-in identifier 'out' can't be used as a type parameter name.
-''');
-  }
-
-  test_class_out_beforePrimaryConstructors() async {
-    await resolveTestCodeWithDiagnostics(r'''
-// %before-language-feature: primary-constructors
-class A<out> {}
-''');
-  }
-
   test_extension_as() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension <as> on List {}
@@ -71,43 +41,11 @@ extension <as> on List {}
 ''');
   }
 
-  test_extension_inout() async {
-    await resolveTestCodeWithDiagnostics(r'''
-extension <inout> on List {}
-//         ^^^^^
-// [diag.builtInIdentifierAsTypeParameterName] The built-in identifier 'inout' can't be used as a type parameter name.
-''');
-  }
-
-  test_extension_out() async {
-    await resolveTestCodeWithDiagnostics(r'''
-extension <out> on List {}
-//         ^^^
-// [diag.builtInIdentifierAsTypeParameterName] The built-in identifier 'out' can't be used as a type parameter name.
-''');
-  }
-
   test_function_as() async {
     await resolveTestCodeWithDiagnostics(r'''
 void f<as>() {}
 //     ^^
 // [diag.builtInIdentifierAsTypeParameterName] The built-in identifier 'as' can't be used as a type parameter name.
-''');
-  }
-
-  test_function_inout() async {
-    await resolveTestCodeWithDiagnostics(r'''
-void f<inout>() {}
-//     ^^^^^
-// [diag.builtInIdentifierAsTypeParameterName] The built-in identifier 'inout' can't be used as a type parameter name.
-''');
-  }
-
-  test_function_out() async {
-    await resolveTestCodeWithDiagnostics(r'''
-void f<out>() {}
-//     ^^^
-// [diag.builtInIdentifierAsTypeParameterName] The built-in identifier 'out' can't be used as a type parameter name.
 ''');
   }
 }

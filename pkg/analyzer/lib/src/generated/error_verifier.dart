@@ -3763,15 +3763,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       diagnosticReporter.report(
         code.withArguments(name: token.lexeme).at(token),
       );
-      return;
-    }
-
-    if (_featureSet.isEnabled(Feature.variance)) {
-      if (token.keyword == Keyword.INOUT || token.keyword == Keyword.OUT) {
-        diagnosticReporter.report(
-          code.withArguments(name: token.lexeme).at(token),
-        );
-      }
     }
   }
 

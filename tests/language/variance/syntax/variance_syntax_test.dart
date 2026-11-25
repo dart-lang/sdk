@@ -27,6 +27,10 @@ mixin E<in T extends E1> {}
 
 class F<out T> = Object with D<T>;
 
+class G<out out> {}
+
+class H<out inout> {}
+
 main() {
   B<int, String, bool> b = B();
 
@@ -34,4 +38,8 @@ main() {
   Expect.equals(2, c.foo(3));
 
   F<int> f = F();
+
+  G<int> g = G();
+
+  H<int> h = H();
 }
