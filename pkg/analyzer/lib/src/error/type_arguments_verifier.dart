@@ -82,11 +82,11 @@ class TypeArgumentsVerifier {
       return;
     }
     var constructorType = node.staticType;
-    if (constructorType is DynamicType) {
-      // An erroneous constructor tear-off.
-      return;
-    }
     if (constructorType is! FunctionType) {
+      // An erroneous constructor tear-off, such as `C<int>.unknown`, or
+      // `R<int>.name` where `R` aliases a type without constructors. The
+      // type arguments still apply to the type.
+      checkConstructorTypeReference(node.typeReference);
       return;
     }
     var typeArguments = [

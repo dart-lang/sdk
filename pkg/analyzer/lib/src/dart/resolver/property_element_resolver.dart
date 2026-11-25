@@ -21,6 +21,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/lexical_lookup.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
+import 'package:analyzer/src/dart/resolver/static_namespace.dart';
 import 'package:analyzer/src/dart/resolver/this_lookup.dart';
 import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -1665,54 +1666,47 @@ class PropertyElementResolver with ScopeHelpers {
         nameToken: receiver.name,
       );
     }
-    var element = receiver.element;
-    var interfaceElement = switch (element) {
-      InterfaceElementImpl element => element,
-      TypeAliasElementImpl(aliasedType: InterfaceTypeImpl(:var element)) =>
-        element,
-      _ => null,
-    };
-    if (interfaceElement != null) {
-      return _resolveTargetInterfaceElement(
-        typeReference: interfaceElement,
-        isCascaded: false,
-        propertyName: name,
-        hasRead: hasRead,
-        hasWrite: hasWrite,
-        isDotShorthand: false,
-        readPosition: readPosition,
-      );
-    } else if (element is ExtensionElementImpl) {
-      return _resolveTargetExtensionElement(
-        extension: element,
-        propertyName: name,
-        hasRead: hasRead,
-        hasWrite: hasWrite,
-        readPosition: readPosition,
-      );
-    } else if (element case TypeAliasElement(aliasedType: FunctionType())) {
-      if (hasRead) {
-        _lookupFailureReporter.reportReadFailure(
-          domain: FunctionTypeAliasLookupDomain(
-            importPrefix: receiver.importPrefix,
-            name: receiver.name,
-          ),
-          name: name,
-          foundInstead: null,
+    switch (receiver.namespace) {
+      case InterfaceStaticNamespace(:var interface):
+        return _resolveTargetInterfaceElement(
+          typeReference: interface,
+          isCascaded: false,
+          propertyName: name,
+          hasRead: hasRead,
+          hasWrite: hasWrite,
+          isDotShorthand: false,
+          readPosition: readPosition,
         );
-      } else if (hasWrite) {
-        _lookupFailureReporter.reportWriteFailure(
-          domain: FunctionTypeAliasLookupDomain(
-            importPrefix: receiver.importPrefix,
-            name: receiver.name,
-          ),
-          name: name,
-          foundInstead: null,
+      case ExtensionStaticNamespace(element: var extension):
+        return _resolveTargetExtensionElement(
+          extension: extension,
+          propertyName: name,
+          hasRead: hasRead,
+          hasWrite: hasWrite,
+          readPosition: readPosition,
         );
-      }
-      return PropertyElementResolverResult();
+      case EmptyStaticNamespace():
+        var domain = EmptyStaticNamespaceLookupDomain(
+          importPrefix: receiver.importPrefix,
+          name: receiver.name,
+        );
+        if (hasRead) {
+          _lookupFailureReporter.reportReadFailure(
+            domain: domain,
+            name: name,
+            foundInstead: null,
+          );
+        } else if (hasWrite) {
+          _lookupFailureReporter.reportWriteFailure(
+            domain: domain,
+            name: name,
+            foundInstead: null,
+          );
+        }
+        return PropertyElementResolverResult();
+      case InvalidStaticNamespace():
+        return PropertyElementResolverResult();
     }
-    throw StateError('Unexpected static qualifier element: $element');
   }
 
   PropertyElementResolverResult _resolveTargetExtensionElement({

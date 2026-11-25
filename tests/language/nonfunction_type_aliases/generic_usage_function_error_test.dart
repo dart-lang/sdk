@@ -67,7 +67,9 @@ main() {
 
   T<List<List<List<List>>>>.staticMethod<T<int>>();
   //                        ^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
+  // [analyzer] COMPILE_TIME_ERROR.NEW_WITH_UNDEFINED_CONSTRUCTOR
   // [cfe] A constructor invocation can't have type arguments after the constructor name.
   // [cfe] Member not found: 'Function.staticMethod'.
+  //                                    ^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
 }

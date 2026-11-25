@@ -42,6 +42,7 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
+import 'package:analyzer/src/dart/resolver/static_namespace.dart';
 import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -55334,8 +55335,8 @@ final class StaticQualifierImpl extends NamedReceiverImpl
   @override
   final Token name;
 
-  @override
-  Element? element;
+  /// What [name] denotes, set when the qualifier is created.
+  late final StaticNamespace namespace;
 
   ScopeLookupResult? scopeLookupResult;
 
@@ -55356,6 +55357,9 @@ final class StaticQualifierImpl extends NamedReceiverImpl
     }
     return name;
   }
+
+  @override
+  ElementImpl get element => namespace.element;
 
   @generated
   @override

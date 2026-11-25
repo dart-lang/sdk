@@ -275,7 +275,7 @@
     },
     "web-dev-canary-unittest-asserts-linux": {
       "options": {
-        "builder-tag": "ddc-canary",
+        "builder-tag": "ddc_canary",
         "compiler": "dartk",
         "enable-asserts": true,
         "mode": "release",
@@ -2072,14 +2072,6 @@
           ]
         },
         {
-          "name": "ddc sourcemap tests",
-          "script": "out/ReleaseX64/dart",
-          "arguments": [
-            "pkg/dev_compiler/test/sourcemap/sourcemaps_suite.dart",
-            "-rnone"
-          ]
-        },
-        {
           "name": "ddc sourcemap stacktrace tests",
           "script": "out/ReleaseX64/dart",
           "arguments": [
@@ -2164,14 +2156,6 @@
             "-nddc-mac-chrome",
             "--verbose",
             "--use-sdk"
-          ]
-        },
-        {
-          "name": "ddc sourcemap tests",
-          "script": "xcodebuild/ReleaseARM64/dart",
-          "arguments": [
-            "pkg/dev_compiler/test/sourcemap/sourcemaps_suite.dart",
-            "-rnone"
           ]
         },
         {
@@ -2352,14 +2336,6 @@
             "-nddc-canary-linux-chrome",
             "--verbose",
             "--use-sdk"
-          ]
-        },
-        {
-          "name": "ddc sourcemap tests",
-          "script": "out/ReleaseX64/dart",
-          "arguments": [
-            "pkg/dev_compiler/test/sourcemap/sourcemaps_canary_suite.dart",
-            "-rnone"
           ]
         },
         {

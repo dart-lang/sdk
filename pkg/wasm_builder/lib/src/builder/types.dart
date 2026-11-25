@@ -74,8 +74,7 @@ ir.StructType _getBrandType(int index) {
 /// disambiguate them we assign unique brand types to rec groups that are
 /// structually equivalent.
 class _RecGroupBuilder {
-  late final List<List<ir.DefType>> _allRecursiveGroups =
-      _createAllRecursiveGroups();
+  late final _RecGroupGraph _recGroupGraph = _createAllRecursiveGroups();
   final List<ir.DefType> _allDefinedTypes = [];
   final Set<ir.StructType> _brandedStructs = {};
 
@@ -112,8 +111,11 @@ class _RecGroupBuilder {
       final type2 = group2[i];
       if (type1 is! ir.StructType) {
         if (type2 is ir.StructType) return false;
-        return type1.isStructuralSubtypeOf(type2) &&
-            type2.isStructuralSubtypeOf(type1);
+        if (!type1.isStructuralSubtypeOf(type2) ||
+            !type2.isStructuralSubtypeOf(type1)) {
+          return false;
+        }
+        continue;
       }
       if (type2 is! ir.StructType) return false;
       if (!type1.isStructurallyEqualTo(type2)) return false;
@@ -237,8 +239,8 @@ class _RecGroupBuilder {
   ///
   /// Adds brand types to groups where necessary so that similar struct types
   /// are not considered equivalent.
-  List<List<ir.DefType>> _createAllRecursiveGroups() {
-    Map<ir.DefType, Set<ir.DefType>> typeGraph = {};
+  _RecGroupGraph _createAllRecursiveGroups() {
+    final typeGraph = Map<ir.DefType, Set<ir.DefType>>.identity();
     for (ir.DefType type in _allDefinedTypes) {
       typeGraph[type] = _edgesforType(type);
     }
@@ -267,7 +269,29 @@ class _RecGroupBuilder {
 
     _assignBrandTypes(groups);
 
-    return groups;
+    final typeToGroupIndex = Map<ir.DefType, int>.identity();
+    for (int i = 0; i < groups.length; i++) {
+      for (final type in groups[i]) {
+        typeToGroupIndex[type] = i;
+      }
+    }
+
+    final groupEdges = List<List<int>>.generate(groups.length, (i) {
+      final deps = <int>{};
+      for (final type in groups[i]) {
+        final edges = typeGraph[type];
+        if (edges == null) continue;
+        for (final target in edges) {
+          final targetGroupIndex = typeToGroupIndex[target]!;
+          if (targetGroupIndex != i) {
+            deps.add(targetGroupIndex);
+          }
+        }
+      }
+      return deps.isEmpty ? const [] : deps.toList(growable: false);
+    }, growable: false);
+
+    return _RecGroupGraph(groups, typeToGroupIndex, groupEdges);
   }
 
   void addDefinedType(ir.DefType type) {
@@ -286,28 +310,50 @@ class _RecGroupBuilder {
   List<List<ir.DefType>> createGroupsForModule(
     Set<ir.DefType> directlyUsedTypes,
   ) {
-    final allUsedTypes = {...directlyUsedTypes};
+    final graph = _recGroupGraph;
+    final groups = graph.groups;
+    final typeToGroupIndex = graph.typeToGroupIndex;
+    final groupEdges = graph.groupEdges;
 
-    void addUsedType(ir.DefType type) {
-      // Visit all the children of type and include them as well.
-      for (final edge in _edgesforType(type)) {
-        if (!allUsedTypes.add(edge)) continue;
-        addUsedType(edge);
+    final visited = <int>{};
+    final worklist = <int>[];
+
+    void enqueueType(ir.DefType type) {
+      final groupIndex = typeToGroupIndex[type];
+      if (groupIndex != null) {
+        if (visited.add(groupIndex)) {
+          worklist.add(groupIndex);
+        }
+      } else {
+        for (final edge in _edgesforType(type)) {
+          enqueueType(edge);
+        }
       }
     }
 
     for (final type in directlyUsedTypes) {
-      addUsedType(type);
+      enqueueType(type);
     }
 
-    final usedGroups = <List<ir.DefType>>[];
-    for (final group in _allRecursiveGroups) {
-      if (group.any(allUsedTypes.contains)) {
-        usedGroups.add(group);
+    for (int i = 0; i < worklist.length; i++) {
+      for (final depGroupIndex in groupEdges[worklist[i]]) {
+        if (visited.add(depGroupIndex)) {
+          worklist.add(depGroupIndex);
+        }
       }
     }
-    return usedGroups;
+
+    worklist.sort();
+    return [for (final index in worklist) groups[index]];
   }
+}
+
+class _RecGroupGraph {
+  final List<List<ir.DefType>> groups;
+  final Map<ir.DefType, int> typeToGroupIndex;
+  final List<List<int>> groupEdges;
+
+  _RecGroupGraph(this.groups, this.typeToGroupIndex, this.groupEdges);
 }
 
 class TypesBuilder {
@@ -431,11 +477,27 @@ class _RecursionGroupKey {
   final int groupLength;
   final int lengthOfFirstStruct;
   final List<ir.DefType> types;
-
-  _RecursionGroupKey(this.groupLength, this.lengthOfFirstStruct, this.types);
-
   @override
-  int get hashCode => Object.hash(groupLength, lengthOfFirstStruct);
+  final int hashCode;
+
+  _RecursionGroupKey(this.groupLength, this.lengthOfFirstStruct, this.types)
+    : hashCode = _computeHashCode(groupLength, lengthOfFirstStruct, types);
+
+  static int _computeHashCode(
+    int groupLength,
+    int lengthOfFirstStruct,
+    List<ir.DefType> types,
+  ) {
+    int hash = Object.hash(groupLength, lengthOfFirstStruct);
+    for (final type in types) {
+      if (type is! ir.StructType) continue;
+      hash = Object.hash(hash, type.fields.length);
+      for (final field in type.fields) {
+        hash = Object.hash(hash, field.mutable, field.type);
+      }
+    }
+    return hash;
+  }
 
   @override
   bool operator ==(Object other) {

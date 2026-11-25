@@ -1835,6 +1835,35 @@ classInstantiationAccessToInstanceMember = DiagnosticWithArguments(
 );
 
 /// Parameters:
+/// String name: the name of the constructor
+/// String aliasName: the name of the type alias, with its import prefix
+/// String typeLiteral: the type alias with its import prefix and type
+///                     arguments
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String name,
+    required String aliasName,
+    required String typeLiteral,
+  })
+>
+classInstantiationAccessToMemberNoConstructors = DiagnosticWithArguments(
+  name: 'class_instantiation_access_to_member',
+  problemMessage:
+      "The type alias '{1}' doesn't have a constructor named '{0}'.",
+  correctionMessage:
+      "Try wrapping '{2}' in parentheses to access '{0}' on the 'Type' "
+      "object.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'class_instantiation_access_to_member_no_constructors',
+  withArguments: _withArgumentsClassInstantiationAccessToMemberNoConstructors,
+  expectedTypes: [
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+  ],
+);
+
+/// Parameters:
 /// String name: the name of the member
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String name})
@@ -12246,6 +12275,35 @@ newWithUndefinedConstructorDefault = DiagnosticWithArguments(
   expectedTypes: [ExpectedType.string],
 );
 
+/// Parameters:
+/// String name: the name of the constructor
+/// String aliasName: the name of the type alias, with its import prefix
+/// String typeLiteral: the type alias with its import prefix and type
+///                     arguments
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String name,
+    required String aliasName,
+    required String typeLiteral,
+  })
+>
+newWithUndefinedConstructorNoConstructors = DiagnosticWithArguments(
+  name: 'new_with_undefined_constructor',
+  problemMessage:
+      "The type alias '{1}' doesn't have a constructor named '{0}'.",
+  correctionMessage:
+      "Try wrapping '{2}' in parentheses to access '{0}' on the 'Type' "
+      "object.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'new_with_undefined_constructor_no_constructors',
+  withArguments: _withArgumentsNewWithUndefinedConstructorNoConstructors,
+  expectedTypes: [
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+  ],
+);
+
 /// No parameters.
 const DiagnosticWithoutArguments noAnnotationConstructorArguments =
     DiagnosticWithoutArgumentsImpl(
@@ -17305,8 +17363,7 @@ undefinedShownName = DiagnosticWithArguments(
 
 /// Parameters:
 /// String name: the name of the member
-/// String aliasName: the name of the function type alias, with its import
-///                   prefix
+/// String aliasName: the name of the type alias, with its import prefix
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
     required String name,
@@ -17316,10 +17373,10 @@ const DiagnosticWithArguments<
 undefinedStaticMemberReadNoStaticMembers = DiagnosticWithArguments(
   name: 'undefined_static_member_read',
   problemMessage:
-      "The function type '{1}' doesn't have a static member named '{0}'.",
+      "The type alias '{1}' doesn't have a static member named '{0}'.",
   correctionMessage:
-      "Try wrapping the function type alias in parentheses to access '{0}' "
-      "on the 'Type' object.",
+      "Try wrapping '{1}' in parentheses to access '{0}' on the 'Type' "
+      "object.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_static_member_read_no_static_members',
@@ -17673,8 +17730,7 @@ undefinedStaticMemberWriteGetterOnly = DiagnosticWithArguments(
 
 /// Parameters:
 /// String name: the name of the setter
-/// String aliasName: the name of the function type alias, with its import
-///                   prefix
+/// String aliasName: the name of the type alias, with its import prefix
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
     required String name,
@@ -17684,10 +17740,10 @@ const DiagnosticWithArguments<
 undefinedStaticMemberWriteNoStaticMembers = DiagnosticWithArguments(
   name: 'undefined_static_member_write',
   problemMessage:
-      "The function type '{1}' doesn't have a static setter named '{0}'.",
+      "The type alias '{1}' doesn't have a static setter named '{0}'.",
   correctionMessage:
-      "Try wrapping the function type alias in parentheses to access '{0}' "
-      "on the 'Type' object.",
+      "Try wrapping '{1}' in parentheses to access '{0}' on the 'Type' "
+      "object.",
   hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_static_member_write_no_static_members',
@@ -20145,6 +20201,18 @@ LocatableDiagnostic _withArgumentsClassInstantiationAccessToInstanceMember({
   );
 }
 
+LocatableDiagnostic
+_withArgumentsClassInstantiationAccessToMemberNoConstructors({
+  required String name,
+  required String aliasName,
+  required String typeLiteral,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.classInstantiationAccessToMemberNoConstructors,
+    [name, aliasName, typeLiteral],
+  );
+}
+
 LocatableDiagnostic _withArgumentsClassInstantiationAccessToStaticMember({
   required String name,
 }) {
@@ -22271,6 +22339,17 @@ LocatableDiagnostic _withArgumentsNewWithUndefinedConstructorDefault({
   return LocatableDiagnosticImpl(diag.newWithUndefinedConstructorDefault, [
     className,
   ]);
+}
+
+LocatableDiagnostic _withArgumentsNewWithUndefinedConstructorNoConstructors({
+  required String name,
+  required String aliasName,
+  required String typeLiteral,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.newWithUndefinedConstructorNoConstructors,
+    [name, aliasName, typeLiteral],
+  );
 }
 
 LocatableDiagnostic _withArgumentsNoCombinedSuperSignature({

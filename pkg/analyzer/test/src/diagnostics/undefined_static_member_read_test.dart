@@ -313,20 +313,6 @@ C c = C.m();
 ''');
   }
 
-  test_found_invocation_functionTypeAlias_typeExtension() async {
-    await resolveTestCodeWithDiagnostics('''
-typedef Fn<T> = void Function(T);
-
-void bar() {
-  Fn.foo();
-}
-
-extension E on Type {
-  void foo() {}
-}
-''');
-  }
-
   test_found_invocation_getter() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
@@ -388,6 +374,102 @@ class A {
 f() { A?.m(); }
 //     ^^
 // [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?.' is unnecessary.
+''');
+  }
+
+  test_found_invocation_typeAlias_extensionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+extension type E(int it) {
+  static void foo() {}
+}
+
+typedef A = E;
+
+void f() {
+  A.foo();
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extensionType::E::@method::foo
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extensionType::E::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_found_invocation_typeAlias_nullable() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = int?;
+
+void f() {
+  A.parse('0');
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: parse
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      SimpleStringLiteral
+        literal: '0'
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::int::@method::parse
+    invokeType: int Function(String, {int? radix})
+    type: int
+  staticType: int
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: parse
+    element: dart:core::@class::int::@method::parse
+    staticType: int Function(String, {int? radix})
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      SimpleStringLiteral
+        literal: '0'
+    rightParenthesis: )
+  staticInvokeType: int Function(String, {int? radix})
+  staticType: int
 ''');
   }
 
@@ -1369,14 +1451,1224 @@ V1: PrefixedIdentifier
 ''');
   }
 
-  test_noStaticMembers_compoundAssignment() async {
+  test_invalidAlias_compoundAssignment_undefinedOnType_invalidType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = Unknown;
+//          ^^^^^^^
+// [diag.undefinedClass] Undefined class 'Unknown'.
+
+void f() {
+  A.foo += 1;
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@typeAlias::A
+    operator: .
+    name: foo
+    read: InvalidNamedReadResolution
+      recoveryElement: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: +=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: add
+  element: <null>
+  operatorResultType: InvalidType
+  staticType: InvalidType
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@typeAlias::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_invalidAlias_compoundAssignment_undefinedOnType_selfReference() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = List<A>;
+//      ^
+// [diag.typeAliasCannotReferenceItself] Typedefs can't reference themselves directly or recursively via another typedef.
+
+void f() {
+  A.foo += 1;
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@typeAlias::A
+    operator: .
+    name: foo
+    read: InvalidNamedReadResolution
+      recoveryElement: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: +=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: add
+  element: <null>
+  operatorResultType: InvalidType
+  staticType: InvalidType
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@typeAlias::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_invalidAlias_functionInstantiation_undefinedOnType_invalidType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = Unknown;
+//          ^^^^^^^
+// [diag.undefinedClass] Undefined class 'Unknown'.
+
+void f() {
+  A.foo<int>;
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: ReceiverPropertyExtraction
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@typeAlias::A
+    operator: .
+    name: foo
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@typeAlias::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: InvalidType
+    element: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+''');
+  }
+
+  test_invalidAlias_functionInstantiation_undefinedOnType_selfReference() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = List<A>;
+//      ^
+// [diag.typeAliasCannotReferenceItself] Typedefs can't reference themselves directly or recursively via another typedef.
+
+void f() {
+  A.foo<int>;
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: ReceiverPropertyExtraction
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@typeAlias::A
+    operator: .
+    name: foo
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@typeAlias::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: InvalidType
+    element: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+''');
+  }
+
+  test_invalidAlias_ifNullAssignment_undefinedOnType_invalidType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = Unknown;
+//          ^^^^^^^
+// [diag.undefinedClass] Undefined class 'Unknown'.
+
+void f() {
+  A.foo ??= 0;
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+IfNullAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@typeAlias::A
+    operator: .
+    name: foo
+    read: InvalidNamedReadResolution
+      recoveryElement: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: ??=
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: InvalidType
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@typeAlias::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: ??=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_invalidAlias_ifNullAssignment_undefinedOnType_selfReference() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = List<A>;
+//      ^
+// [diag.typeAliasCannotReferenceItself] Typedefs can't reference themselves directly or recursively via another typedef.
+
+void f() {
+  A.foo ??= 0;
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+IfNullAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@typeAlias::A
+    operator: .
+    name: foo
+    read: InvalidNamedReadResolution
+      recoveryElement: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: ??=
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: InvalidType
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@typeAlias::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: ??=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_invalidAlias_increment_undefinedOnType_invalidType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = Unknown;
+//          ^^^^^^^
+// [diag.undefinedClass] Undefined class 'Unknown'.
+
+void f() {
+  A.foo++;
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+IncrementOrDecrementExpression
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@typeAlias::A
+    operator: .
+    name: foo
+    read: InvalidNamedReadResolution
+      recoveryElement: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: ++
+  operation: increment
+  position: postfix
+  element: <null>
+  operatorResultType: dynamic
+  staticType: InvalidType
+V1: PostfixExpression
+  operand: PropertyAccess
+    target: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@typeAlias::A
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: ++
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_invalidAlias_increment_undefinedOnType_selfReference() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = List<A>;
+//      ^
+// [diag.typeAliasCannotReferenceItself] Typedefs can't reference themselves directly or recursively via another typedef.
+
+void f() {
+  A.foo++;
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+IncrementOrDecrementExpression
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@typeAlias::A
+    operator: .
+    name: foo
+    read: InvalidNamedReadResolution
+      recoveryElement: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: ++
+  operation: increment
+  position: postfix
+  element: <null>
+  operatorResultType: dynamic
+  staticType: InvalidType
+V1: PostfixExpression
+  operand: PropertyAccess
+    target: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@typeAlias::A
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: ++
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_invalidAlias_invocation_objectMember_invalidType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = Unknown;
+//          ^^^^^^^
+// [diag.undefinedClass] Undefined class 'Unknown'.
+
+void f() {
+  A.toString();
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_invalidAlias_invocation_objectMember_selfReference() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = List<A>;
+//      ^
+// [diag.typeAliasCannotReferenceItself] Typedefs can't reference themselves directly or recursively via another typedef.
+
+void f() {
+  A.toString();
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_invalidAlias_propertyExtraction_objectMember_aliasCycle() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = B;
+//      ^
+// [diag.typeAliasCannotReferenceItself] Typedefs can't reference themselves directly or recursively via another typedef.
+typedef B = A;
+//      ^
+// [diag.typeAliasCannotReferenceItself] Typedefs can't reference themselves directly or recursively via another typedef.
+
+void f() {
+  A.hashCode;
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: hashCode
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: hashCode
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_invalidAlias_propertyExtraction_objectMember_invalidType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = Unknown;
+//          ^^^^^^^
+// [diag.undefinedClass] Undefined class 'Unknown'.
+
+void f() {
+  A.hashCode;
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: hashCode
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: hashCode
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_invalidAlias_propertyExtraction_objectMember_selfReference() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = List<A>;
+//      ^
+// [diag.typeAliasCannotReferenceItself] Typedefs can't reference themselves directly or recursively via another typedef.
+
+void f() {
+  A.hashCode;
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: hashCode
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: hashCode
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_compoundAssignment_genericExtension_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension E<T> on T {
+  int get foo => 0;
+
+  set foo(int _) {}
+}
+
+void f() {
+  R.foo += 1;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: R
+      element: <testLibrary>::@typeAlias::R
+    operator: .
+    name: foo
+    read: InvalidNamedReadResolution
+      recoveryElement: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: +=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: add
+  element: <null>
+  operatorResultType: InvalidType
+  staticType: InvalidType
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: R
+      element: <testLibrary>::@typeAlias::R
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_compoundAssignment_nullableObjectExtension_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension on Object? {
+  int get foo => 0;
+//        ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  R.foo += 1;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: R
+      element: <testLibrary>::@typeAlias::R
+    operator: .
+    name: foo
+    read: InvalidNamedReadResolution
+      recoveryElement: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: +=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: add
+  element: <null>
+  operatorResultType: InvalidType
+  staticType: InvalidType
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: R
+      element: <testLibrary>::@typeAlias::R
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_compoundAssignment_objectExtension_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension on Object {
+  int get foo => 0;
+//        ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  R.foo += 1;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: R
+      element: <testLibrary>::@typeAlias::R
+    operator: .
+    name: foo
+    read: InvalidNamedReadResolution
+      recoveryElement: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: +=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: add
+  element: <null>
+  operatorResultType: InvalidType
+  staticType: InvalidType
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: R
+      element: <testLibrary>::@typeAlias::R
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_compoundAssignment_typeExtension_dynamic() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = dynamic;
+
+extension on Type {
+  int get foo => 0;
+//        ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo += 1;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@typeAlias::A
+    operator: .
+    name: foo
+    read: InvalidNamedReadResolution
+      recoveryElement: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: +=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: add
+  element: <null>
+  operatorResultType: InvalidType
+  staticType: InvalidType
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@typeAlias::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_compoundAssignment_typeExtension_functionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef F = void Function();
+
+extension on Type {
+  int get foo => 0;
+//        ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  F.foo += 1;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'F' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: F
+      element: <testLibrary>::@typeAlias::F
+    operator: .
+    name: foo
+    read: InvalidNamedReadResolution
+      recoveryElement: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: +=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: add
+  element: <null>
+  operatorResultType: InvalidType
+  staticType: InvalidType
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: F
+      element: <testLibrary>::@typeAlias::F
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_compoundAssignment_typeExtension_never() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = Never;
+
+extension on Type {
+  int get foo => 0;
+//        ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo += 1;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@typeAlias::A
+    operator: .
+    name: foo
+    read: InvalidNamedReadResolution
+      recoveryElement: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: +=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: add
+  element: <null>
+  operatorResultType: InvalidType
+  staticType: InvalidType
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@typeAlias::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_compoundAssignment_typeExtension_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension on Type {
+  int get foo => 0;
+//        ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  R.foo += 1;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: R
+      element: <testLibrary>::@typeAlias::R
+    operator: .
+    name: foo
+    read: InvalidNamedReadResolution
+      recoveryElement: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: +=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: add
+  element: <null>
+  operatorResultType: InvalidType
+  staticType: InvalidType
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: R
+      element: <testLibrary>::@typeAlias::R
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_compoundAssignment_typeExtension_void() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = void;
+
+extension on Type {
+  int get foo => 0;
+//        ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo += 1;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@typeAlias::A
+    operator: .
+    name: foo
+    read: InvalidNamedReadResolution
+      recoveryElement: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: +=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: add
+  element: <null>
+  operatorResultType: InvalidType
+  staticType: InvalidType
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@typeAlias::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_compoundAssignment_undefinedOnType_functionType() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 typedef F = void Function();
 
 void f() {
   F.foo += 1;
 //  ^^^
-// [diag.undefinedStaticMemberReadNoStaticMembers] The function type 'F' doesn't have a static member named 'foo'.
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'F' doesn't have a static member named 'foo'.
 }
 ''');
 
@@ -1407,6 +2699,66 @@ V1: AssignmentExpression
     prefix: SimpleIdentifier
       token: F
       element: <testLibrary>::@typeAlias::F
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_compoundAssignment_undefinedOnType_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+void f() {
+  R.foo += 1;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: R
+      element: <testLibrary>::@typeAlias::R
+    operator: .
+    name: foo
+    read: InvalidNamedReadResolution
+      recoveryElement: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: +=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  binaryOperator: add
+  element: <null>
+  operatorResultType: InvalidType
+  staticType: InvalidType
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: R
+      element: <testLibrary>::@typeAlias::R
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -1566,14 +2918,1105 @@ V1: DotShorthandPropertyAccess
 ''');
   }
 
-  test_noStaticMembers_ifNullAssignment() async {
+  test_noStaticMembers_functionInstantiation_genericExtension_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension E<T> on T {
+  void foo<X>() {}
+}
+
+void f() {
+  R.foo<int>;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: ReceiverPropertyExtraction
+    receiver: StaticQualifier
+      name: R
+      element: <testLibrary>::@typeAlias::R
+    operator: .
+    name: foo
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: R
+      element: <testLibrary>::@typeAlias::R
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: InvalidType
+    element: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_functionInstantiation_nullableObjectExtension_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension on Object? {
+  void foo<X>() {}
+//     ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  R.foo<int>;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: ReceiverPropertyExtraction
+    receiver: StaticQualifier
+      name: R
+      element: <testLibrary>::@typeAlias::R
+    operator: .
+    name: foo
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: R
+      element: <testLibrary>::@typeAlias::R
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: InvalidType
+    element: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_functionInstantiation_objectExtension_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension on Object {
+  void foo<X>() {}
+//     ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  R.foo<int>;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: ReceiverPropertyExtraction
+    receiver: StaticQualifier
+      name: R
+      element: <testLibrary>::@typeAlias::R
+    operator: .
+    name: foo
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: R
+      element: <testLibrary>::@typeAlias::R
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: InvalidType
+    element: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_functionInstantiation_typeExtension_dynamic() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = dynamic;
+
+extension on Type {
+  void foo<T>() {}
+//     ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo<int>;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: ReceiverPropertyExtraction
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@typeAlias::A
+    operator: .
+    name: foo
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@typeAlias::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: InvalidType
+    element: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_functionInstantiation_typeExtension_functionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef F = void Function();
+
+extension on Type {
+  void foo<T>() {}
+//     ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  F.foo<int>;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'F' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleFunctionInstantiation;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: ReceiverPropertyExtraction
+    receiver: StaticQualifier
+      name: F
+      element: <testLibrary>::@typeAlias::F
+    operator: .
+    name: foo
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: F
+      element: <testLibrary>::@typeAlias::F
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: InvalidType
+    element: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_functionInstantiation_typeExtension_never() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = Never;
+
+extension on Type {
+  void foo<T>() {}
+//     ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo<int>;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: ReceiverPropertyExtraction
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@typeAlias::A
+    operator: .
+    name: foo
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@typeAlias::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: InvalidType
+    element: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_functionInstantiation_typeExtension_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension on Type {
+  void foo<T>() {}
+//     ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  R.foo<int>;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: ReceiverPropertyExtraction
+    receiver: StaticQualifier
+      name: R
+      element: <testLibrary>::@typeAlias::R
+    operator: .
+    name: foo
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: R
+      element: <testLibrary>::@typeAlias::R
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: InvalidType
+    element: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_functionInstantiation_typeExtension_void() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = void;
+
+extension on Type {
+  void foo<T>() {}
+//     ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo<int>;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: ReceiverPropertyExtraction
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@typeAlias::A
+    operator: .
+    name: foo
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@typeAlias::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: InvalidType
+    element: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_functionInstantiation_undefinedOnType_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+void f() {
+  R.foo<int>;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+FunctionInstantiation
+  operand: ReceiverPropertyExtraction
+    receiver: StaticQualifier
+      name: R
+      element: <testLibrary>::@typeAlias::R
+    operator: .
+    name: foo
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+V1: FunctionReference
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: R
+      element: <testLibrary>::@typeAlias::R
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: InvalidType
+    element: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_ifNullAssignment_genericExtension_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension E<T> on T {
+  int get foo => 0;
+
+  set foo(int _) {}
+}
+
+void f() {
+  R.foo ??= 0;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+IfNullAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: R
+      element: <testLibrary>::@typeAlias::R
+    operator: .
+    name: foo
+    read: InvalidNamedReadResolution
+      recoveryElement: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: ??=
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: InvalidType
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: R
+      element: <testLibrary>::@typeAlias::R
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: ??=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_ifNullAssignment_nullableObjectExtension_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension on Object? {
+  int get foo => 0;
+//        ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  R.foo ??= 0;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+IfNullAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: R
+      element: <testLibrary>::@typeAlias::R
+    operator: .
+    name: foo
+    read: InvalidNamedReadResolution
+      recoveryElement: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: ??=
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: InvalidType
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: R
+      element: <testLibrary>::@typeAlias::R
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: ??=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_ifNullAssignment_objectExtension_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension on Object {
+  int get foo => 0;
+//        ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  R.foo ??= 0;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+IfNullAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: R
+      element: <testLibrary>::@typeAlias::R
+    operator: .
+    name: foo
+    read: InvalidNamedReadResolution
+      recoveryElement: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: ??=
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: InvalidType
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: R
+      element: <testLibrary>::@typeAlias::R
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: ??=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_ifNullAssignment_typeExtension_dynamic() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = dynamic;
+
+extension on Type {
+  int get foo => 0;
+//        ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo ??= 0;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+IfNullAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@typeAlias::A
+    operator: .
+    name: foo
+    read: InvalidNamedReadResolution
+      recoveryElement: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: ??=
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: InvalidType
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@typeAlias::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: ??=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_ifNullAssignment_typeExtension_functionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef F = void Function();
+
+extension on Type {
+  int get foo => 0;
+//        ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  F.foo ??= 0;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'F' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+IfNullAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: F
+      element: <testLibrary>::@typeAlias::F
+    operator: .
+    name: foo
+    read: InvalidNamedReadResolution
+      recoveryElement: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: ??=
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: InvalidType
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: F
+      element: <testLibrary>::@typeAlias::F
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: ??=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_ifNullAssignment_typeExtension_never() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = Never;
+
+extension on Type {
+  int get foo => 0;
+//        ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo ??= 0;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+IfNullAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@typeAlias::A
+    operator: .
+    name: foo
+    read: InvalidNamedReadResolution
+      recoveryElement: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: ??=
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: InvalidType
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@typeAlias::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: ??=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_ifNullAssignment_typeExtension_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension on Type {
+  int get foo => 0;
+//        ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  R.foo ??= 0;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+IfNullAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: R
+      element: <testLibrary>::@typeAlias::R
+    operator: .
+    name: foo
+    read: InvalidNamedReadResolution
+      recoveryElement: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: ??=
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: InvalidType
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: R
+      element: <testLibrary>::@typeAlias::R
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: ??=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_ifNullAssignment_typeExtension_void() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = void;
+
+extension on Type {
+  int get foo => 0;
+//        ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo ??= 0;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+IfNullAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@typeAlias::A
+    operator: .
+    name: foo
+    read: InvalidNamedReadResolution
+      recoveryElement: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: ??=
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: InvalidType
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@typeAlias::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: ??=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_ifNullAssignment_undefinedOnType_functionType() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 typedef F = void Function();
 
 void f() {
   F.foo ??= 1;
 //  ^^^
-// [diag.undefinedStaticMemberReadNoStaticMembers] The function type 'F' doesn't have a static member named 'foo'.
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'F' doesn't have a static member named 'foo'.
 }
 ''');
 
@@ -1623,14 +4066,563 @@ V1: AssignmentExpression
 ''');
   }
 
-  test_noStaticMembers_increment() async {
+  test_noStaticMembers_ifNullAssignment_undefinedOnType_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+void f() {
+  R.foo ??= 0;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+IfNullAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: R
+      element: <testLibrary>::@typeAlias::R
+    operator: .
+    name: foo
+    read: InvalidNamedReadResolution
+      recoveryElement: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: ??=
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: InvalidType
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: R
+      element: <testLibrary>::@typeAlias::R
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: ??=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_increment_genericExtension_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension E<T> on T {
+  int get foo => 0;
+
+  set foo(int _) {}
+}
+
+void f() {
+  R.foo++;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+IncrementOrDecrementExpression
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: R
+      element: <testLibrary>::@typeAlias::R
+    operator: .
+    name: foo
+    read: InvalidNamedReadResolution
+      recoveryElement: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: ++
+  operation: increment
+  position: postfix
+  element: <null>
+  operatorResultType: dynamic
+  staticType: InvalidType
+V1: PostfixExpression
+  operand: PropertyAccess
+    target: SimpleIdentifier
+      token: R
+      element: <testLibrary>::@typeAlias::R
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: ++
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_increment_nullableObjectExtension_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension on Object? {
+  int get foo => 0;
+//        ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  R.foo++;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+IncrementOrDecrementExpression
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: R
+      element: <testLibrary>::@typeAlias::R
+    operator: .
+    name: foo
+    read: InvalidNamedReadResolution
+      recoveryElement: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: ++
+  operation: increment
+  position: postfix
+  element: <null>
+  operatorResultType: dynamic
+  staticType: InvalidType
+V1: PostfixExpression
+  operand: PropertyAccess
+    target: SimpleIdentifier
+      token: R
+      element: <testLibrary>::@typeAlias::R
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: ++
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_increment_objectExtension_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension on Object {
+  int get foo => 0;
+//        ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  R.foo++;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+IncrementOrDecrementExpression
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: R
+      element: <testLibrary>::@typeAlias::R
+    operator: .
+    name: foo
+    read: InvalidNamedReadResolution
+      recoveryElement: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: ++
+  operation: increment
+  position: postfix
+  element: <null>
+  operatorResultType: dynamic
+  staticType: InvalidType
+V1: PostfixExpression
+  operand: PropertyAccess
+    target: SimpleIdentifier
+      token: R
+      element: <testLibrary>::@typeAlias::R
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: ++
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_increment_typeExtension_dynamic() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = dynamic;
+
+extension on Type {
+  int get foo => 0;
+//        ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo++;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+IncrementOrDecrementExpression
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@typeAlias::A
+    operator: .
+    name: foo
+    read: InvalidNamedReadResolution
+      recoveryElement: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: ++
+  operation: increment
+  position: postfix
+  element: <null>
+  operatorResultType: dynamic
+  staticType: InvalidType
+V1: PostfixExpression
+  operand: PropertyAccess
+    target: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@typeAlias::A
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: ++
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_increment_typeExtension_functionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef F = void Function();
+
+extension on Type {
+  int get foo => 0;
+//        ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  F.foo++;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'F' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+IncrementOrDecrementExpression
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: F
+      element: <testLibrary>::@typeAlias::F
+    operator: .
+    name: foo
+    read: InvalidNamedReadResolution
+      recoveryElement: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: ++
+  operation: increment
+  position: postfix
+  element: <null>
+  operatorResultType: dynamic
+  staticType: InvalidType
+V1: PostfixExpression
+  operand: PropertyAccess
+    target: SimpleIdentifier
+      token: F
+      element: <testLibrary>::@typeAlias::F
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: ++
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_increment_typeExtension_never() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = Never;
+
+extension on Type {
+  int get foo => 0;
+//        ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo++;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+IncrementOrDecrementExpression
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@typeAlias::A
+    operator: .
+    name: foo
+    read: InvalidNamedReadResolution
+      recoveryElement: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: ++
+  operation: increment
+  position: postfix
+  element: <null>
+  operatorResultType: dynamic
+  staticType: InvalidType
+V1: PostfixExpression
+  operand: PropertyAccess
+    target: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@typeAlias::A
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: ++
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_increment_typeExtension_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension on Type {
+  int get foo => 0;
+//        ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  R.foo++;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+IncrementOrDecrementExpression
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: R
+      element: <testLibrary>::@typeAlias::R
+    operator: .
+    name: foo
+    read: InvalidNamedReadResolution
+      recoveryElement: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: ++
+  operation: increment
+  position: postfix
+  element: <null>
+  operatorResultType: dynamic
+  staticType: InvalidType
+V1: PostfixExpression
+  operand: PropertyAccess
+    target: SimpleIdentifier
+      token: R
+      element: <testLibrary>::@typeAlias::R
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: ++
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_increment_typeExtension_void() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = void;
+
+extension on Type {
+  int get foo => 0;
+//        ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo++;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+IncrementOrDecrementExpression
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: A
+      element: <testLibrary>::@typeAlias::A
+    operator: .
+    name: foo
+    read: InvalidNamedReadResolution
+      recoveryElement: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: ++
+  operation: increment
+  position: postfix
+  element: <null>
+  operatorResultType: dynamic
+  staticType: InvalidType
+V1: PostfixExpression
+  operand: PropertyAccess
+    target: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@typeAlias::A
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: ++
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_increment_undefinedOnType_functionType() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 typedef F = void Function();
 
 void f() {
   F.foo++;
 //  ^^^
-// [diag.undefinedStaticMemberReadNoStaticMembers] The function type 'F' doesn't have a static member named 'foo'.
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'F' doesn't have a static member named 'foo'.
 }
 ''');
 
@@ -1675,27 +4667,79 @@ V1: PostfixExpression
 ''');
   }
 
-  test_noStaticMembers_invocation() async {
+  test_noStaticMembers_increment_undefinedOnType_recordType() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-typedef F = void Function();
+typedef R = (int,);
 
 void f() {
-  F.foo();
+  R.foo++;
 //  ^^^
-// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'Type'.
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+IncrementOrDecrementExpression
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: R
+      element: <testLibrary>::@typeAlias::R
+    operator: .
+    name: foo
+    read: InvalidNamedReadResolution
+      recoveryElement: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <null>
+  operator: ++
+  operation: increment
+  position: postfix
+  element: <null>
+  operatorResultType: dynamic
+  staticType: InvalidType
+V1: PostfixExpression
+  operand: PropertyAccess
+    target: SimpleIdentifier
+      token: R
+      element: <testLibrary>::@typeAlias::R
+      staticType: null
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: ++
+  readElement: <null>
+  readType: InvalidType
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_invocation_genericExtension_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension E<T> on T {
+  void foo() {}
+}
+
+void f() {
+  R.foo();
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
 }
 ''');
 
     var node = result.findNode.singleExpressionStatement.expression2;
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
-  receiver: TypeLiteral
-    type: NamedType
-      name: F
-      element: <testLibrary>::@typeAlias::F
-      type: void Function()
-        alias: <testLibrary>::@typeAlias::F
-    staticType: Type
+  receiver: StaticQualifier
+    name: R
+    element: <testLibrary>::@typeAlias::R
   operator: .
   name: foo
   argumentList: ArgumentList
@@ -1706,13 +4750,10 @@ ReceiverMethodInvocation
     recovery: <null>
   staticType: InvalidType
 V1: MethodInvocation
-  target: TypeLiteral
-    type: NamedType
-      name: F
-      element: <testLibrary>::@typeAlias::F
-      type: void Function()
-        alias: <testLibrary>::@typeAlias::F
-    staticType: Type
+  target: SimpleIdentifier
+    token: R
+    element: <testLibrary>::@typeAlias::R
+    staticType: null
   operator: .
   methodName: SimpleIdentifier
     token: foo
@@ -1726,91 +4767,1845 @@ V1: MethodInvocation
 ''');
   }
 
-  test_noStaticMembers_invocation_instantiated() async {
+  test_noStaticMembers_invocation_nullableObjectExtension_recordType() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-typedef F<T> = void Function(T);
+typedef R = (int,);
+
+extension on Object? {
+  void foo() {}
+//     ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
 
 void f() {
-  F<int>.foo();
-//       ^^^
-// [diag.undefinedStaticMemberReadNoStaticMembers] The function type 'F' doesn't have a static member named 'foo'.
+  R.foo();
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
 }
 ''');
 
     var node = result.findNode.singleExpressionStatement.expression2;
     assertResolvedNodeText(node, r'''
-ConstructorInvocation
-  constructorReference: ConstructorReference2
-    typeReference: ConstructorTypeReference
-      name: F
-      typeArguments: TypeArgumentList
-        leftBracket: <
-        arguments
-          NamedType
-            name: int
-            element: dart:core::@class::int
-            type: int
-        rightBracket: >
-      element: <testLibrary>::@typeAlias::F
-      type: void Function(int)
-        alias: <testLibrary>::@typeAlias::F
-          typeArguments
-            int
-    selector: ConstructorSelector
-      period: .
-      name2: foo
-    element: <null>
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: R
+    element: <testLibrary>::@typeAlias::R
+  operator: .
+  name: foo
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
   staticType: InvalidType
-V1: InstanceCreationExpression
-  constructorName: ConstructorName
-    type: NamedType
-      name: F
-      typeArguments: TypeArgumentList
-        leftBracket: <
-        arguments
-          NamedType
-            name: int
-            element: dart:core::@class::int
-            type: int
-        rightBracket: >
-      element: <testLibrary>::@typeAlias::F
-      type: void Function(int)
-        alias: <testLibrary>::@typeAlias::F
-          typeArguments
-            int
-    period: .
-    name: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: R
+    element: <testLibrary>::@typeAlias::R
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
     element: <null>
+    staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
+  staticInvokeType: InvalidType
   staticType: InvalidType
 ''');
   }
 
-  test_noStaticMembers_propertyExtraction() async {
+  test_noStaticMembers_invocation_objectExtension_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension on Object {
+  void foo() {}
+//     ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  R.foo();
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: R
+    element: <testLibrary>::@typeAlias::R
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: R
+    element: <testLibrary>::@typeAlias::R
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_invocation_objectMember_dynamic() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = dynamic;
+
+void f() {
+  A.toString();
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'toString'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_invocation_objectMember_functionType() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 typedef F = void Function();
 
 void f() {
-  F.foo;
-//  ^^^
-// [diag.undefinedStaticMemberReadNoStaticMembers] The function type 'F' doesn't have a static member named 'foo'.
+  F.toString();
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'F' doesn't have a static member named 'toString'.
 }
 ''');
 
-    var node = result.findNode.singleReceiverPropertyExtraction;
+    var node = result.findNode.singleExpressionStatement.expression2;
     assertResolvedNodeText(node, r'''
-ReceiverPropertyExtraction
+ReceiverMethodInvocation
   receiver: StaticQualifier
     name: F
     element: <testLibrary>::@typeAlias::F
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: F
+    element: <testLibrary>::@typeAlias::F
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_invocation_objectMember_genericDynamic() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A<T> = dynamic;
+
+void f() {
+  A.toString();
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'toString'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_invocation_objectMember_genericFunctionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A<T> = void Function(T);
+
+void f() {
+  A.toString();
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'toString'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_invocation_objectMember_genericNever() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A<T> = Never;
+
+void f() {
+  A.toString();
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'toString'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_invocation_objectMember_genericRecordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A<T> = (T,);
+
+void f() {
+  A.toString();
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'toString'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_invocation_objectMember_genericVoid() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A<T> = void;
+
+void f() {
+  A.toString();
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'toString'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_invocation_objectMember_legacyFunctionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef void A();
+
+void f() {
+  A.toString();
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'toString'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_invocation_objectMember_legacyGenericFunctionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef void A<T>(T t);
+
+void f() {
+  A.toString();
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'toString'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_invocation_objectMember_never() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = Never;
+
+void f() {
+  A.toString();
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'toString'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_invocation_objectMember_nullableFunctionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = void Function()?;
+
+void f() {
+  A.toString();
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'toString'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_invocation_objectMember_nullableNever() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = Never?;
+
+void f() {
+  A.toString();
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'toString'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_invocation_objectMember_nullableRecordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = (int,)?;
+
+void f() {
+  A.toString();
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'toString'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_invocation_objectMember_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+void f() {
+  R.toString();
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'toString'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: R
+    element: <testLibrary>::@typeAlias::R
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: R
+    element: <testLibrary>::@typeAlias::R
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_invocation_objectMember_typeVariable() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A<X> = X;
+
+void f() {
+  A.toString();
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'toString'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_invocation_objectMember_void() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = void;
+
+void f() {
+  A.toString();
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'toString'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_invocation_prefixed_objectMember_functionType() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+typedef F = void Function();
+''');
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart' as p;
+
+void f() {
+  p.F.toString();
+//    ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'p.F' doesn't have a static member named 'toString'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
+      element: <testLibraryFragment>::@prefix::p
+    name: F
+    element: package:test/a.dart::@typeAlias::F
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: p
+      element: <testLibraryFragment>::@prefix::p
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: F
+      element: package:test/a.dart::@typeAlias::F
+      staticType: null
+    element: package:test/a.dart::@typeAlias::F
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_invocation_prefixed_objectMember_recordType() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+typedef R = (int,);
+''');
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart' as p;
+
+void f() {
+  p.R.toString();
+//    ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'p.R' doesn't have a static member named 'toString'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
+      element: <testLibraryFragment>::@prefix::p
+    name: R
+    element: package:test/a.dart::@typeAlias::R
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: p
+      element: <testLibraryFragment>::@prefix::p
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: R
+      element: package:test/a.dart::@typeAlias::R
+      staticType: null
+    element: package:test/a.dart::@typeAlias::R
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_invocation_typeArguments_genericExtension_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension E<T> on T {
+  void foo<X>() {}
+}
+
+void f() {
+  R.foo<int>();
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: R
+    element: <testLibrary>::@typeAlias::R
+  operator: .
+  name: foo
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+  typeArgumentTypes
+    int
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: R
+    element: <testLibrary>::@typeAlias::R
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_noStaticMembers_invocation_typeArguments_nullableObjectExtension_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension on Object? {
+  void foo<X>() {}
+//     ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  R.foo<int>();
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: R
+    element: <testLibrary>::@typeAlias::R
+  operator: .
+  name: foo
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+  typeArgumentTypes
+    int
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: R
+    element: <testLibrary>::@typeAlias::R
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_noStaticMembers_invocation_typeArguments_objectExtension_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension on Object {
+  void foo<X>() {}
+//     ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  R.foo<int>();
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: R
+    element: <testLibrary>::@typeAlias::R
+  operator: .
+  name: foo
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+  typeArgumentTypes
+    int
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: R
+    element: <testLibrary>::@typeAlias::R
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_noStaticMembers_invocation_typeArguments_typeExtension_dynamic() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = dynamic;
+
+extension on Type {
+  void foo<T>() {}
+//     ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo<int>();
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: foo
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+  typeArgumentTypes
+    int
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_noStaticMembers_invocation_typeArguments_typeExtension_functionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef F = void Function();
+
+extension on Type {
+  void foo<T>() {}
+//     ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  F.foo<int>();
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'F' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: F
+    element: <testLibrary>::@typeAlias::F
+  operator: .
+  name: foo
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+  typeArgumentTypes
+    int
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: F
+    element: <testLibrary>::@typeAlias::F
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_noStaticMembers_invocation_typeArguments_typeExtension_never() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = Never;
+
+extension on Type {
+  void foo<T>() {}
+//     ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo<int>();
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: foo
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+  typeArgumentTypes
+    int
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_noStaticMembers_invocation_typeArguments_typeExtension_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension on Type {
+  void foo<T>() {}
+//     ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  R.foo<int>();
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: R
+    element: <testLibrary>::@typeAlias::R
+  operator: .
+  name: foo
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+  typeArgumentTypes
+    int
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: R
+    element: <testLibrary>::@typeAlias::R
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_noStaticMembers_invocation_typeArguments_typeExtension_void() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = void;
+
+extension on Type {
+  void foo<T>() {}
+//     ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo<int>();
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: foo
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+  typeArgumentTypes
+    int
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_noStaticMembers_invocation_typeExtension_dynamic() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = dynamic;
+
+extension on Type {
+  void foo() {}
+//     ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo();
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_invocation_typeExtension_functionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef F = void Function();
+
+extension on Type {
+  void foo() {}
+//     ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  F.foo();
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'F' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: F
+    element: <testLibrary>::@typeAlias::F
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: F
+    element: <testLibrary>::@typeAlias::F
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_invocation_typeExtension_never() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = Never;
+
+extension on Type {
+  void foo() {}
+//     ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo();
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_invocation_typeExtension_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension on Type {
+  void foo() {}
+//     ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  R.foo();
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: R
+    element: <testLibrary>::@typeAlias::R
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: R
+    element: <testLibrary>::@typeAlias::R
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_invocation_typeExtension_void() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = void;
+
+extension on Type {
+  void foo() {}
+//     ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo();
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_invocation_undefinedOnType_functionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef F = void Function();
+
+void f() {
+  F.foo();
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'F' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: F
+    element: <testLibrary>::@typeAlias::F
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: F
+    element: <testLibrary>::@typeAlias::F
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_invocation_undefinedOnType_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+void f() {
+  R.foo();
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: StaticQualifier
+    name: R
+    element: <testLibrary>::@typeAlias::R
+  operator: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: R
+    element: <testLibrary>::@typeAlias::R
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_genericExtension_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension E<T> on T {
+  int get foo => 0;
+}
+
+void f() {
+  R.foo;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: R
+    element: <testLibrary>::@typeAlias::R
   operator: .
   name: foo
   resolution: InvalidNamedReadResolution
@@ -1818,8 +6613,8 @@ ReceiverPropertyExtraction
   staticType: InvalidType
 V1: PrefixedIdentifier
   prefix: SimpleIdentifier
-    token: F
-    element: <testLibrary>::@typeAlias::F
+    token: R
+    element: <testLibrary>::@typeAlias::R
     staticType: null
   period: .
   identifier: SimpleIdentifier
@@ -1831,65 +6626,926 @@ V1: PrefixedIdentifier
 ''');
   }
 
-  test_noStaticMembers_propertyExtraction_instantiated() async {
+  test_noStaticMembers_propertyExtraction_nullableObjectExtension_recordType() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
-typedef F<T> = void Function(T);
+typedef R = (int,);
+
+extension on Object? {
+  int get foo => 0;
+//        ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
 
 void f() {
-  F<int>.foo;
-//       ^^^
-// [diag.undefinedStaticMemberReadNoStaticMembers] The function type 'F' doesn't have a static member named 'foo'.
+  R.foo;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
 }
 ''');
 
-    var node = result.findNode.singleConstructorTearOff;
+    var node = result.findNode.singleExpressionStatement.expression2;
     assertResolvedNodeText(node, r'''
-ConstructorTearOff
-  typeReference: ConstructorTypeReference
-    name: F
-    typeArguments: TypeArgumentList
-      leftBracket: <
-      arguments
-        NamedType
-          name: int
-          element: dart:core::@class::int
-          type: int
-      rightBracket: >
-    element: <testLibrary>::@typeAlias::F
-    type: void Function(int)
-      alias: <testLibrary>::@typeAlias::F
-        typeArguments
-          int
-  selector: ConstructorSelector
-    period: .
-    name2: foo
-  element: <null>
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: R
+    element: <testLibrary>::@typeAlias::R
+  operator: .
+  name: foo
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
   staticType: InvalidType
-V1: ConstructorReference
-  constructorName: ConstructorName
-    type: NamedType
-      name: F
-      typeArguments: TypeArgumentList
-        leftBracket: <
-        arguments
-          NamedType
-            name: int
-            element: dart:core::@class::int
-            type: int
-        rightBracket: >
-      element: <testLibrary>::@typeAlias::F
-      type: null
-    period: .
-    name: SimpleIdentifier
-      token: foo
-      element: <null>
-      staticType: null
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: R
+    element: <testLibrary>::@typeAlias::R
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
     element: <null>
+    staticType: InvalidType
+  element: <null>
   staticType: InvalidType
 ''');
   }
 
-  test_noStaticMembers_propertyExtraction_prefixed() async {
+  test_noStaticMembers_propertyExtraction_nullAware_objectMember_dynamic() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = dynamic;
+
+void f() {
+  A?.hashCode;
+// ^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?.' is unnecessary.
+//   ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'hashCode'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: ?.
+  name: hashCode
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PropertyAccess
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  operator: ?.
+  propertyName: SimpleIdentifier
+    token: hashCode
+    element: <null>
+    staticType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_nullAware_objectMember_functionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef F = void Function();
+
+void f() {
+  F?.hashCode;
+// ^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?.' is unnecessary.
+//   ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'F' doesn't have a static member named 'hashCode'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: F
+    element: <testLibrary>::@typeAlias::F
+  operator: ?.
+  name: hashCode
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PropertyAccess
+  target: SimpleIdentifier
+    token: F
+    element: <testLibrary>::@typeAlias::F
+    staticType: null
+  operator: ?.
+  propertyName: SimpleIdentifier
+    token: hashCode
+    element: <null>
+    staticType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_nullAware_objectMember_never() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = Never;
+
+void f() {
+  A?.hashCode;
+// ^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?.' is unnecessary.
+//   ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'hashCode'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: ?.
+  name: hashCode
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PropertyAccess
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  operator: ?.
+  propertyName: SimpleIdentifier
+    token: hashCode
+    element: <null>
+    staticType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_nullAware_objectMember_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+void f() {
+  R?.hashCode;
+// ^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?.' is unnecessary.
+//   ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'hashCode'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: R
+    element: <testLibrary>::@typeAlias::R
+  operator: ?.
+  name: hashCode
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PropertyAccess
+  target: SimpleIdentifier
+    token: R
+    element: <testLibrary>::@typeAlias::R
+    staticType: null
+  operator: ?.
+  propertyName: SimpleIdentifier
+    token: hashCode
+    element: <null>
+    staticType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_nullAware_objectMember_void() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = void;
+
+void f() {
+  A?.hashCode;
+// ^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?.' is unnecessary.
+//   ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'hashCode'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: ?.
+  name: hashCode
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PropertyAccess
+  target: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  operator: ?.
+  propertyName: SimpleIdentifier
+    token: hashCode
+    element: <null>
+    staticType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_objectExtension_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension on Object {
+  int get foo => 0;
+//        ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  R.foo;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: R
+    element: <testLibrary>::@typeAlias::R
+  operator: .
+  name: foo
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: R
+    element: <testLibrary>::@typeAlias::R
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_objectMember_dynamic() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = dynamic;
+
+void f() {
+  A.hashCode;
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'hashCode'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: hashCode
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: hashCode
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_objectMember_functionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef F = void Function();
+
+void f() {
+  F.hashCode;
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'F' doesn't have a static member named 'hashCode'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: F
+    element: <testLibrary>::@typeAlias::F
+  operator: .
+  name: hashCode
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: F
+    element: <testLibrary>::@typeAlias::F
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: hashCode
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_objectMember_genericDynamic() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A<T> = dynamic;
+
+void f() {
+  A.hashCode;
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'hashCode'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: hashCode
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: hashCode
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_objectMember_genericFunctionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A<T> = void Function(T);
+
+void f() {
+  A.hashCode;
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'hashCode'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: hashCode
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: hashCode
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_objectMember_genericNever() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A<T> = Never;
+
+void f() {
+  A.hashCode;
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'hashCode'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: hashCode
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: hashCode
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_objectMember_genericRecordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A<T> = (T,);
+
+void f() {
+  A.hashCode;
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'hashCode'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: hashCode
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: hashCode
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_objectMember_genericVoid() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A<T> = void;
+
+void f() {
+  A.hashCode;
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'hashCode'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: hashCode
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: hashCode
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_objectMember_legacyFunctionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef void A();
+
+void f() {
+  A.hashCode;
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'hashCode'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: hashCode
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: hashCode
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_objectMember_legacyGenericFunctionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef void A<T>(T t);
+
+void f() {
+  A.hashCode;
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'hashCode'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: hashCode
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: hashCode
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_objectMember_never() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = Never;
+
+void f() {
+  A.hashCode;
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'hashCode'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: hashCode
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: hashCode
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_objectMember_nullableFunctionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = void Function()?;
+
+void f() {
+  A.hashCode;
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'hashCode'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: hashCode
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: hashCode
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_objectMember_nullableNever() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = Never?;
+
+void f() {
+  A.hashCode;
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'hashCode'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: hashCode
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: hashCode
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_objectMember_nullableRecordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = (int,)?;
+
+void f() {
+  A.hashCode;
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'hashCode'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: hashCode
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: hashCode
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_objectMember_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+void f() {
+  R.hashCode;
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'hashCode'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: R
+    element: <testLibrary>::@typeAlias::R
+  operator: .
+  name: hashCode
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: R
+    element: <testLibrary>::@typeAlias::R
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: hashCode
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_objectMember_typeVariable() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A<X> = X;
+
+void f() {
+  A.hashCode;
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'hashCode'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: hashCode
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: hashCode
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_objectMember_void() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = void;
+
+void f() {
+  A.hashCode;
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'hashCode'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: hashCode
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: hashCode
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_prefixed_objectMember_recordType() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+typedef R = (int,);
+''');
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart' as p;
+
+void f() {
+  p.R.hashCode;
+//    ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'p.R' doesn't have a static member named 'hashCode'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    importPrefix: ImportPrefixReference
+      name: p
+      period: .
+      element: <testLibraryFragment>::@prefix::p
+    name: R
+    element: package:test/a.dart::@typeAlias::R
+  operator: .
+  name: hashCode
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PropertyAccess
+  target: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: p
+      element: <testLibraryFragment>::@prefix::p
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: R
+      element: package:test/a.dart::@typeAlias::R
+      staticType: null
+    element: package:test/a.dart::@typeAlias::R
+    staticType: null
+  operator: .
+  propertyName: SimpleIdentifier
+    token: hashCode
+    element: <null>
+    staticType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_prefixed_undefinedOnType_functionType() async {
     newFile('$testPackageLibPath/a.dart', r'''
 typedef F = void Function();
 ''');
@@ -1899,7 +7555,7 @@ import 'a.dart' as p;
 void f() {
   p.F.foo;
 //    ^^^
-// [diag.undefinedStaticMemberReadNoStaticMembers] The function type 'p.F' doesn't have a static member named 'foo'.
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'p.F' doesn't have a static member named 'foo'.
 }
 ''');
 
@@ -1936,6 +7592,1155 @@ V1: PropertyAccess
     token: foo
     element: <null>
     staticType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_tearOff_genericExtension_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension E<T> on T {
+  void foo() {}
+}
+
+void f() {
+  R.foo;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: R
+    element: <testLibrary>::@typeAlias::R
+  operator: .
+  name: foo
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: R
+    element: <testLibrary>::@typeAlias::R
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_tearOff_nullableObjectExtension_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension on Object? {
+  void foo() {}
+//     ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  R.foo;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: R
+    element: <testLibrary>::@typeAlias::R
+  operator: .
+  name: foo
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: R
+    element: <testLibrary>::@typeAlias::R
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_tearOff_objectExtension_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension on Object {
+  void foo() {}
+//     ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  R.foo;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: R
+    element: <testLibrary>::@typeAlias::R
+  operator: .
+  name: foo
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: R
+    element: <testLibrary>::@typeAlias::R
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_tearOff_objectMember_dynamic() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = dynamic;
+
+void f() {
+  A.toString;
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'toString'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: toString
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_tearOff_objectMember_functionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef F = void Function();
+
+void f() {
+  F.toString;
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'F' doesn't have a static member named 'toString'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: F
+    element: <testLibrary>::@typeAlias::F
+  operator: .
+  name: toString
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: F
+    element: <testLibrary>::@typeAlias::F
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_tearOff_objectMember_genericDynamic() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A<T> = dynamic;
+
+void f() {
+  A.toString;
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'toString'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: toString
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_tearOff_objectMember_genericFunctionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A<T> = void Function(T);
+
+void f() {
+  A.toString;
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'toString'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: toString
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_tearOff_objectMember_genericNever() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A<T> = Never;
+
+void f() {
+  A.toString;
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'toString'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: toString
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_tearOff_objectMember_genericRecordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A<T> = (T,);
+
+void f() {
+  A.toString;
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'toString'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: toString
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_tearOff_objectMember_genericVoid() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A<T> = void;
+
+void f() {
+  A.toString;
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'toString'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: toString
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_tearOff_objectMember_legacyFunctionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef void A();
+
+void f() {
+  A.toString;
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'toString'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: toString
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_tearOff_objectMember_legacyGenericFunctionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef void A<T>(T t);
+
+void f() {
+  A.toString;
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'toString'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: toString
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_tearOff_objectMember_never() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = Never;
+
+void f() {
+  A.toString;
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'toString'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: toString
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_tearOff_objectMember_nullableFunctionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = void Function()?;
+
+void f() {
+  A.toString;
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'toString'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: toString
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_tearOff_objectMember_nullableNever() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = Never?;
+
+void f() {
+  A.toString;
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'toString'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: toString
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_tearOff_objectMember_nullableRecordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = (int,)?;
+
+void f() {
+  A.toString;
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'toString'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: toString
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_tearOff_objectMember_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+void f() {
+  R.toString;
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'toString'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: R
+    element: <testLibrary>::@typeAlias::R
+  operator: .
+  name: toString
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: R
+    element: <testLibrary>::@typeAlias::R
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_tearOff_objectMember_void() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = void;
+
+void f() {
+  A.toString;
+//  ^^^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'toString'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: toString
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: toString
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_tearOff_typeExtension_dynamic() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = dynamic;
+
+extension on Type {
+  void foo() {}
+//     ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: foo
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_tearOff_typeExtension_functionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef F = void Function();
+
+extension on Type {
+  void foo() {}
+//     ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  F.foo;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'F' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: F
+    element: <testLibrary>::@typeAlias::F
+  operator: .
+  name: foo
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: F
+    element: <testLibrary>::@typeAlias::F
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_tearOff_typeExtension_never() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = Never;
+
+extension on Type {
+  void foo() {}
+//     ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: foo
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_tearOff_typeExtension_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension on Type {
+  void foo() {}
+//     ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  R.foo;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: R
+    element: <testLibrary>::@typeAlias::R
+  operator: .
+  name: foo
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: R
+    element: <testLibrary>::@typeAlias::R
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_tearOff_typeExtension_void() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = void;
+
+extension on Type {
+  void foo() {}
+//     ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: foo
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_typeExtension_dynamic() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = dynamic;
+
+extension on Type {
+  int get foo => 0;
+//        ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: foo
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_typeExtension_functionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef F = void Function();
+
+extension on Type {
+  int get foo => 0;
+//        ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  F.foo;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'F' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: F
+    element: <testLibrary>::@typeAlias::F
+  operator: .
+  name: foo
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: F
+    element: <testLibrary>::@typeAlias::F
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_typeExtension_never() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = Never;
+
+extension on Type {
+  int get foo => 0;
+//        ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: foo
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_typeExtension_recordType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+extension on Type {
+  int get foo => 0;
+//        ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  R.foo;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'R' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: R
+    element: <testLibrary>::@typeAlias::R
+  operator: .
+  name: foo
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: R
+    element: <testLibrary>::@typeAlias::R
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_typeExtension_void() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = void;
+
+extension on Type {
+  int get foo => 0;
+//        ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f() {
+  A.foo;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'A' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: A
+    element: <testLibrary>::@typeAlias::A
+  operator: .
+  name: foo
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@typeAlias::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_propertyExtraction_undefinedOnType_functionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef F = void Function();
+
+void f() {
+  F.foo;
+//  ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'F' doesn't have a static member named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleReceiverPropertyExtraction;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: F
+    element: <testLibrary>::@typeAlias::F
+  operator: .
+  name: foo
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: F
+    element: <testLibrary>::@typeAlias::F
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  element: <null>
   staticType: InvalidType
 ''');
   }

@@ -14,18 +14,22 @@ TODO
 
 This is supposed to work in a few steps:
 1) Create the JS
-2) Run the JS with D8, setting instructed breakpoints etc.
+2) Run the JS in Chrome under the debugger, setting instructed breakpoints etc.
 3) Translating JS positions to Dart positions
 4) Validating the stepped positions.
 
 In the above, the helper assumes
 1) The dart file is called "test.dart" and is placed in the output directory before compiling to
 "js.js" in the output dir.
+2) The output dir contains a page (by default "bootstrap.html") that loads "js.js" and defines a
+global `scheduleMain()` function that runs the program, instead of running it itself. This lets
+the breakpoints be set before any of the program runs. The output dir is served under
+`/root_build/` and the SDK checkout under `/root_dart/` (see `chromeUrlPathForSdkFile`).
 
 And then performs via
-2) `runD8AndStep`
-3) `checkD8Steps`
-4) (done in above step)
+3) `runChromeAndStep`
+4) `checkSteps`
+5) (done in above step)
 
 The test files themselves contain information about where to stop, which breakpoints to expect etc.
 They contain this information in comments inlined in the code as in `/*key*/` where `key` can be one
@@ -58,14 +62,14 @@ first stop. For example `nbb:0:1` means not before first expected stop.
 as the `i`th stop (1-indexed).
 
 Note that in an ideal world `bc:{i}` would not be unnecessary: Stopping at a line and stepping
-should generally be enough. Because of the current behavior of d8 though, for instance
+should generally be enough. Because of the current behavior of V8 though, for instance
 ```
 baz(foo(), bar())
 ```
 will stop at `baz`, go into `foo`, stop at `bar`, go into `bar` and stop at `baz`.
 From a Dart perspective we would instead expect it to stop at `foo`, go into `foo`, stop at `bar`,
 go into `bar` and stop a `baz`.
-Having **bc:{i}** allows us to force this behavior as d8 can actually stop at `foo` too.
+Having **bc:{i}** allows us to force this behavior as V8 can actually stop at `foo` too.
 
 All of these annotations are removed before compiling to js and the expected output thus refers to
 the unannotated code.
@@ -75,7 +79,7 @@ breakpoints before, between and after the expected breakpoints.
 
 ### Debugging a test
 
-By calling `checkD8Steps` with the `debug` parameter set to `true` one can get information like this
+By calling `checkSteps` with the `debug` parameter set to `true` one can get information like this
 dumped to standard out:
 
 ```

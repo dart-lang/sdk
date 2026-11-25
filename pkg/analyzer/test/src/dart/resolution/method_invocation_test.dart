@@ -13176,6 +13176,278 @@ V1: MethodInvocation
 ''');
   }
 
+  test_receiverMethod_parenthesizedExpression_dynamicTypeAlias() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = dynamic;
+
+void f() {
+  (A).toString();
+}
+''');
+
+    var node = result.findNode.singleReceiverMethodInvocation;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: TypeLiteral
+      type: NamedType
+        name: A
+        element: <testLibrary>::@typeAlias::A
+        type: dynamic
+          alias: <testLibrary>::@typeAlias::A
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::Object::@method::toString
+    invokeType: String Function()
+    type: String
+  staticType: String
+V1: MethodInvocation
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: TypeLiteral
+      type: NamedType
+        name: A
+        element: <testLibrary>::@typeAlias::A
+        type: dynamic
+          alias: <testLibrary>::@typeAlias::A
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    element: dart:core::@class::Object::@method::toString
+    staticType: String Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: String Function()
+  staticType: String
+''');
+  }
+
+  test_receiverMethod_parenthesizedExpression_dynamicTypeAlias_instantiated() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A<T> = dynamic;
+
+void f() {
+  (A<int>).toString();
+}
+''');
+
+    var node = result.findNode.singleReceiverMethodInvocation;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: TypeLiteral
+      type: NamedType
+        name: A
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@typeAlias::A
+        type: dynamic
+          alias: <testLibrary>::@typeAlias::A
+            typeArguments
+              int
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::Object::@method::toString
+    invokeType: String Function()
+    type: String
+  staticType: String
+V1: MethodInvocation
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: TypeLiteral
+      type: NamedType
+        name: A
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@typeAlias::A
+        type: dynamic
+          alias: <testLibrary>::@typeAlias::A
+            typeArguments
+              int
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    element: dart:core::@class::Object::@method::toString
+    staticType: String Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: String Function()
+  staticType: String
+''');
+  }
+
+  test_receiverMethod_parenthesizedExpression_functionTypeAlias() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef F = void Function();
+
+void f() {
+  (F).toString();
+}
+''');
+
+    var node = result.findNode.singleReceiverMethodInvocation;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: TypeLiteral
+      type: NamedType
+        name: F
+        element: <testLibrary>::@typeAlias::F
+        type: void Function()
+          alias: <testLibrary>::@typeAlias::F
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::Object::@method::toString
+    invokeType: String Function()
+    type: String
+  staticType: String
+V1: MethodInvocation
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: TypeLiteral
+      type: NamedType
+        name: F
+        element: <testLibrary>::@typeAlias::F
+        type: void Function()
+          alias: <testLibrary>::@typeAlias::F
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    element: dart:core::@class::Object::@method::toString
+    staticType: String Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: String Function()
+  staticType: String
+''');
+  }
+
+  test_receiverMethod_parenthesizedExpression_functionTypeAlias_instantiated() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef F<T> = void Function(T);
+
+void f() {
+  (F<int>).toString();
+}
+''');
+
+    var node = result.findNode.singleReceiverMethodInvocation;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: TypeLiteral
+      type: NamedType
+        name: F
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@typeAlias::F
+        type: void Function(int)
+          alias: <testLibrary>::@typeAlias::F
+            typeArguments
+              int
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::Object::@method::toString
+    invokeType: String Function()
+    type: String
+  staticType: String
+V1: MethodInvocation
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: TypeLiteral
+      type: NamedType
+        name: F
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@typeAlias::F
+        type: void Function(int)
+          alias: <testLibrary>::@typeAlias::F
+            typeArguments
+              int
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    element: dart:core::@class::Object::@method::toString
+    staticType: String Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: String Function()
+  staticType: String
+''');
+  }
+
   test_receiverMethod_parenthesizedExpression_neverAlias() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 typedef N = Never;
@@ -13240,6 +13512,142 @@ V1: MethodInvocation
 ''');
   }
 
+  test_receiverMethod_parenthesizedExpression_neverTypeAlias() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = Never;
+
+void f() {
+  (A).toString();
+}
+''');
+
+    var node = result.findNode.singleReceiverMethodInvocation;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: TypeLiteral
+      type: NamedType
+        name: A
+        element: <testLibrary>::@typeAlias::A
+        type: Never
+          alias: <testLibrary>::@typeAlias::A
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::Object::@method::toString
+    invokeType: String Function()
+    type: String
+  staticType: String
+V1: MethodInvocation
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: TypeLiteral
+      type: NamedType
+        name: A
+        element: <testLibrary>::@typeAlias::A
+        type: Never
+          alias: <testLibrary>::@typeAlias::A
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    element: dart:core::@class::Object::@method::toString
+    staticType: String Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: String Function()
+  staticType: String
+''');
+  }
+
+  test_receiverMethod_parenthesizedExpression_neverTypeAlias_instantiated() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A<T> = Never;
+
+void f() {
+  (A<int>).toString();
+}
+''');
+
+    var node = result.findNode.singleReceiverMethodInvocation;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: TypeLiteral
+      type: NamedType
+        name: A
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@typeAlias::A
+        type: Never
+          alias: <testLibrary>::@typeAlias::A
+            typeArguments
+              int
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::Object::@method::toString
+    invokeType: String Function()
+    type: String
+  staticType: String
+V1: MethodInvocation
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: TypeLiteral
+      type: NamedType
+        name: A
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@typeAlias::A
+        type: Never
+          alias: <testLibrary>::@typeAlias::A
+            typeArguments
+              int
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    element: dart:core::@class::Object::@method::toString
+    staticType: String Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: String Function()
+  staticType: String
+''');
+  }
+
   test_receiverMethod_parenthesizedExpression_nullAware_null() async {
     var result = await resolveTestCode(r'''
 void f(Null a) {
@@ -13286,6 +13694,278 @@ V1: MethodInvocation
     rightParenthesis: )
   staticInvokeType: InvalidType
   staticType: InvalidType
+''');
+  }
+
+  test_receiverMethod_parenthesizedExpression_recordTypeAlias() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+void f() {
+  (R).toString();
+}
+''');
+
+    var node = result.findNode.singleReceiverMethodInvocation;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: TypeLiteral
+      type: NamedType
+        name: R
+        element: <testLibrary>::@typeAlias::R
+        type: (int,)
+          alias: <testLibrary>::@typeAlias::R
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::Object::@method::toString
+    invokeType: String Function()
+    type: String
+  staticType: String
+V1: MethodInvocation
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: TypeLiteral
+      type: NamedType
+        name: R
+        element: <testLibrary>::@typeAlias::R
+        type: (int,)
+          alias: <testLibrary>::@typeAlias::R
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    element: dart:core::@class::Object::@method::toString
+    staticType: String Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: String Function()
+  staticType: String
+''');
+  }
+
+  test_receiverMethod_parenthesizedExpression_recordTypeAlias_instantiated() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R<T> = (T,);
+
+void f() {
+  (R<int>).toString();
+}
+''');
+
+    var node = result.findNode.singleReceiverMethodInvocation;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: TypeLiteral
+      type: NamedType
+        name: R
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@typeAlias::R
+        type: (int,)
+          alias: <testLibrary>::@typeAlias::R
+            typeArguments
+              int
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::Object::@method::toString
+    invokeType: String Function()
+    type: String
+  staticType: String
+V1: MethodInvocation
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: TypeLiteral
+      type: NamedType
+        name: R
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@typeAlias::R
+        type: (int,)
+          alias: <testLibrary>::@typeAlias::R
+            typeArguments
+              int
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    element: dart:core::@class::Object::@method::toString
+    staticType: String Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: String Function()
+  staticType: String
+''');
+  }
+
+  test_receiverMethod_parenthesizedExpression_voidTypeAlias() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = void;
+
+void f() {
+  (A).toString();
+}
+''');
+
+    var node = result.findNode.singleReceiverMethodInvocation;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: TypeLiteral
+      type: NamedType
+        name: A
+        element: <testLibrary>::@typeAlias::A
+        type: void
+          alias: <testLibrary>::@typeAlias::A
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::Object::@method::toString
+    invokeType: String Function()
+    type: String
+  staticType: String
+V1: MethodInvocation
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: TypeLiteral
+      type: NamedType
+        name: A
+        element: <testLibrary>::@typeAlias::A
+        type: void
+          alias: <testLibrary>::@typeAlias::A
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    element: dart:core::@class::Object::@method::toString
+    staticType: String Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: String Function()
+  staticType: String
+''');
+  }
+
+  test_receiverMethod_parenthesizedExpression_voidTypeAlias_instantiated() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A<T> = void;
+
+void f() {
+  (A<int>).toString();
+}
+''');
+
+    var node = result.findNode.singleReceiverMethodInvocation;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: ParenthesizedExpression
+    leftParenthesis: (
+    expression2: TypeLiteral
+      type: NamedType
+        name: A
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@typeAlias::A
+        type: void
+          alias: <testLibrary>::@typeAlias::A
+            typeArguments
+              int
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::Object::@method::toString
+    invokeType: String Function()
+    type: String
+  staticType: String
+V1: MethodInvocation
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: TypeLiteral
+      type: NamedType
+        name: A
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+          rightBracket: >
+        element: <testLibrary>::@typeAlias::A
+        type: void
+          alias: <testLibrary>::@typeAlias::A
+            typeArguments
+              int
+      staticType: Type
+    rightParenthesis: )
+    staticType: Type
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    element: dart:core::@class::Object::@method::toString
+    staticType: String Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: String Function()
+  staticType: String
 ''');
   }
 
@@ -13455,6 +14135,52 @@ V1: MethodInvocation
   staticType: int
   typeArgumentTypes
     int
+''');
+  }
+
+  test_receiverMethod_typeParameter_typeLiteral() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f<T>() {
+  T.toString();
+}
+''');
+
+    var node = result.findNode.singleReceiverMethodInvocation;
+    assertResolvedNodeText(node, r'''
+ReceiverMethodInvocation
+  receiver: TypeLiteral
+    type: NamedType
+      name: T
+      element: #E0 T
+      type: T
+    staticType: Type
+  operator: .
+  name: toString
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: dart:core::@class::Object::@method::toString
+    invokeType: String Function()
+    type: String
+  staticType: String
+V1: MethodInvocation
+  target: TypeLiteral
+    type: NamedType
+      name: T
+      element: #E0 T
+      type: T
+    staticType: Type
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    element: dart:core::@class::Object::@method::toString
+    staticType: String Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: String Function()
+  staticType: String
 ''');
   }
 

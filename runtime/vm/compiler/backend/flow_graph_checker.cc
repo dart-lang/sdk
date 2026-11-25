@@ -612,6 +612,26 @@ void FlowGraphChecker::VisitPolymorphicInstanceCall(
   ASSERT(!flow_graph_->function().ForceOptimize());
 }
 
+void FlowGraphChecker::VisitLoadField(LoadFieldInstr* load) {
+  ASSERT1(load->slot().IsCanonical(flow_graph_->thread()), load);
+}
+
+void FlowGraphChecker::VisitStoreField(StoreFieldInstr* store) {
+  ASSERT1(store->slot().IsCanonical(flow_graph_->thread()), store);
+}
+
+void FlowGraphChecker::VisitAllocateContext(AllocateContextInstr* alloc) {
+  for (const Slot* slot : alloc->context_slots()) {
+    ASSERT1(slot->IsCanonical(flow_graph_->thread()), alloc);
+  }
+}
+
+void FlowGraphChecker::VisitCloneContext(CloneContextInstr* clone) {
+  for (const Slot* slot : clone->context_slots()) {
+    ASSERT1(slot->IsCanonical(flow_graph_->thread()), clone);
+  }
+}
+
 // Main entry point of graph checker.
 void FlowGraphChecker::Check(const char* pass_name) {
   if (FLAG_trace_compiler) {

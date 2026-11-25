@@ -52,6 +52,159 @@ f(p) {p as N;}
     );
   }
 
+  test_constructorTearOff_class_typeArgument() async {
+    newFile('$testPackageLibPath/a1.dart', r'''
+class A {}
+''');
+
+    newFile('$testPackageLibPath/a2.dart', r'''
+class A {}
+''');
+
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'a1.dart';
+import 'a2.dart';
+
+class C<T> {
+  C.named();
+}
+
+void f() {
+  C<A>.named;
+//  ^
+// [diag.ambiguousImport] The name 'A' is defined in the libraries 'package:test/a1.dart' and 'package:test/a2.dart'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: C
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: A
+          element: multiplyDefinedElement
+            package:test/a1.dart::@class::A
+            package:test/a2.dart::@class::A
+          type: InvalidType
+      rightBracket: >
+    element: <testLibrary>::@class::C
+    type: C<InvalidType>
+  selector: ConstructorSelector
+    period: .
+    name2: named
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::C::@constructor::named
+    substitution: {T: InvalidType}
+  staticType: C<InvalidType> Function()
+V1: ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: A
+            element: multiplyDefinedElement
+              package:test/a1.dart::@class::A
+              package:test/a2.dart::@class::A
+            type: InvalidType
+        rightBracket: >
+      element: <testLibrary>::@class::C
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: named
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::C::@constructor::named
+        substitution: {T: InvalidType}
+      staticType: null
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::C::@constructor::named
+      substitution: {T: InvalidType}
+  staticType: C<InvalidType> Function()
+''');
+  }
+
+  test_constructorTearOff_recordTypeAlias_typeArgument() async {
+    newFile('$testPackageLibPath/a1.dart', r'''
+class A {}
+''');
+
+    newFile('$testPackageLibPath/a2.dart', r'''
+class A {}
+''');
+
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'a1.dart';
+import 'a2.dart';
+
+typedef R<T> = (T,);
+
+void f() {
+  R<A>.foo;
+//  ^
+// [diag.ambiguousImport] The name 'A' is defined in the libraries 'package:test/a1.dart' and 'package:test/a2.dart'.
+//     ^^^
+// [diag.classInstantiationAccessToMemberNoConstructors] The type alias 'R' doesn't have a constructor named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: R
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: A
+          element: multiplyDefinedElement
+            package:test/a1.dart::@class::A
+            package:test/a2.dart::@class::A
+          type: InvalidType
+      rightBracket: >
+    element: <testLibrary>::@typeAlias::R
+    type: (InvalidType,)
+      alias: <testLibrary>::@typeAlias::R
+        typeArguments
+          InvalidType
+  selector: ConstructorSelector
+    period: .
+    name2: foo
+  element: <null>
+  staticType: InvalidType
+V1: ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: R
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: A
+            element: multiplyDefinedElement
+              package:test/a1.dart::@class::A
+              package:test/a2.dart::@class::A
+            type: InvalidType
+        rightBracket: >
+      element: <testLibrary>::@typeAlias::R
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+  staticType: InvalidType
+''');
+  }
+
   test_extends() async {
     newFile("$testPackageLibPath/lib1.dart", '''
 library lib1;

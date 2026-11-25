@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/resolver/static_namespace.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_flags.dart';
@@ -1733,11 +1734,33 @@ class AstBinaryReader {
     );
   }
 
+  StaticNamespace _readStaticNamespace() {
+    switch (_reader.readEnum(StaticNamespaceTag.values)) {
+      case StaticNamespaceTag.empty:
+        return EmptyStaticNamespace(
+          _reader.readElement() as TypeAliasElementImpl,
+        );
+      case StaticNamespaceTag.extension:
+        return ExtensionStaticNamespace(
+          _reader.readElement() as ExtensionElementImpl,
+        );
+      case StaticNamespaceTag.interface:
+        return InterfaceStaticNamespace(
+          element: _reader.readElement() as ElementImpl,
+          interface: _reader.readElement() as InterfaceElementImpl,
+        );
+      case StaticNamespaceTag.invalid:
+        return InvalidStaticNamespace(
+          _reader.readElement() as TypeAliasElementImpl,
+        );
+    }
+  }
+
   StaticQualifierImpl _readStaticQualifier() {
     var importPrefix = _readOptionalNode() as ImportPrefixReferenceImpl?;
     var name = _readNameToken();
     return StaticQualifierImpl(importPrefix: importPrefix, name: name)
-      ..element = _reader.readElement();
+      ..namespace = _readStaticNamespace();
   }
 
   StringInterpolation _readStringInterpolation() {

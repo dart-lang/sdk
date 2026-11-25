@@ -7645,20 +7645,16 @@ typedef Cb = void Function();
 
 var a = Cb.foo<int>;
 //         ^^^
-// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'Type'.
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'Cb' doesn't have a static member named 'foo'.
 ''');
 
     var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
   operand: ReceiverPropertyExtraction
-    receiver: TypeLiteral
-      type: NamedType
-        name: Cb
-        element: <testLibrary>::@typeAlias::Cb
-        type: void Function()
-          alias: <testLibrary>::@typeAlias::Cb
-      staticType: Type
+    receiver: StaticQualifier
+      name: Cb
+      element: <testLibrary>::@typeAlias::Cb
     operator: .
     name: foo
     resolution: InvalidNamedReadResolution
@@ -7674,19 +7670,17 @@ FunctionInstantiation
     rightBracket: >
   staticType: InvalidType
 V1: FunctionReference
-  function: PropertyAccess
-    target: TypeLiteral
-      type: NamedType
-        name: Cb
-        element: <testLibrary>::@typeAlias::Cb
-        type: void Function()
-          alias: <testLibrary>::@typeAlias::Cb
-      staticType: Type
-    operator: .
-    propertyName: SimpleIdentifier
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: Cb
+      element: <testLibrary>::@typeAlias::Cb
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
       token: foo
       element: <null>
       staticType: InvalidType
+    element: <null>
     staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -7706,22 +7700,16 @@ typedef T<E> = E;
 
 var a = T.foo<int>;
 //        ^^^
-// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'Type'.
+// [diag.undefinedStaticMemberReadNoStaticMembers] The type alias 'T' doesn't have a static member named 'foo'.
 ''');
 
     var node = result.findNode.functionInstantiation('foo<int>;');
     assertResolvedNodeText(node, r'''
 FunctionInstantiation
   operand: ReceiverPropertyExtraction
-    receiver: TypeLiteral
-      type: NamedType
-        name: T
-        element: <testLibrary>::@typeAlias::T
-        type: dynamic
-          alias: <testLibrary>::@typeAlias::T
-            typeArguments
-              dynamic
-      staticType: Type
+    receiver: StaticQualifier
+      name: T
+      element: <testLibrary>::@typeAlias::T
     operator: .
     name: foo
     resolution: InvalidNamedReadResolution
@@ -7737,21 +7725,17 @@ FunctionInstantiation
     rightBracket: >
   staticType: InvalidType
 V1: FunctionReference
-  function: PropertyAccess
-    target: TypeLiteral
-      type: NamedType
-        name: T
-        element: <testLibrary>::@typeAlias::T
-        type: dynamic
-          alias: <testLibrary>::@typeAlias::T
-            typeArguments
-              dynamic
-      staticType: Type
-    operator: .
-    propertyName: SimpleIdentifier
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: T
+      element: <testLibrary>::@typeAlias::T
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
       token: foo
       element: <null>
       staticType: InvalidType
+    element: <null>
     staticType: InvalidType
   typeArguments: TypeArgumentList
     leftBracket: <

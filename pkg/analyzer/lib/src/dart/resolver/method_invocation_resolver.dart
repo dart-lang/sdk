@@ -19,6 +19,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
+import 'package:analyzer/src/dart/resolver/static_namespace.dart';
 import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/dart/type_instantiation_target.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -831,24 +832,21 @@ class MethodInvocationResolver with ScopeHelpers {
       );
     }
     var name = node.namedInvocationParts!.selector.name;
-    var namespace = receiver.element;
-    var interface = switch (namespace) {
-      InterfaceElementImpl element => element,
-      TypeAliasElementImpl(aliasedType: InterfaceTypeImpl(:var element)) =>
-        element,
-      _ => null,
+    var namespace = receiver.namespace;
+    // The declaration whose static members are looked up, if any.
+    var declaration = switch (namespace) {
+      InterfaceStaticNamespace(:var interface) => interface,
+      ExtensionStaticNamespace(element: var extension) => extension,
+      EmptyStaticNamespace() => null,
+      InvalidStaticNamespace() => null,
     };
-    InternalExecutableElement? element;
-    if (interface != null) {
-      element =
-          (interface.getGetter(name.lexeme) ?? interface.getMethod(name.lexeme))
-              as InternalExecutableElement?;
-    } else if (namespace is ExtensionElementImpl) {
-      element =
-          namespace.getGetter(name.lexeme) ?? namespace.getMethod(name.lexeme);
-    }
+    var element =
+        (declaration?.getGetter(name.lexeme) ??
+                declaration?.getMethod(name.lexeme))
+            as InternalExecutableElement?;
     if (_definingLibrary.featureSet.isEnabled(Feature.static_extensions)) {
-      if (element == null && interface != null) {
+      if (namespace case InterfaceStaticNamespace(:var interface)
+          when element == null) {
         var interfaceSetter = interface.getSetter(name.lexeme);
         if (interfaceSetter == null || !interfaceSetter.isStatic) {
           var result = _typeAnalyzer.typePropertyResolver
@@ -907,22 +905,24 @@ class MethodInvocationResolver with ScopeHelpers {
       return;
     }
     if (element == null) {
-      // Function-type aliases are converted to expression receivers before
-      // qualified invocation resolution.
-      var declaration = switch (namespace) {
-        ExtensionElementImpl() => namespace,
-        _ => interface,
-      };
-      if (declaration == null) {
-        throw StateError('Unexpected static invocation qualifier: $namespace');
+      if (declaration != null) {
+        _lookupFailureReporter.reportReadFailure(
+          domain: StaticLookupDomain(declaration),
+          name: name,
+          foundInstead: declaration.getMemberForFailedLookup(
+            Name(_definingLibraryUri, name.lexeme),
+          ),
+        );
+      } else if (namespace is EmptyStaticNamespace) {
+        _lookupFailureReporter.reportReadFailure(
+          domain: EmptyStaticNamespaceLookupDomain(
+            importPrefix: receiver.importPrefix,
+            name: receiver.name,
+          ),
+          name: name,
+          foundInstead: null,
+        );
       }
-      _lookupFailureReporter.reportReadFailure(
-        domain: StaticLookupDomain(declaration),
-        name: name,
-        foundInstead: declaration.getMemberForFailedLookup(
-          Name(_definingLibraryUri, name.lexeme),
-        ),
-      );
     }
     _resolveNamedInvocation(
       _createNamedInvocation(node, receiver),

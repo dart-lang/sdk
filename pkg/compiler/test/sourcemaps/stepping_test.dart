@@ -84,7 +84,7 @@ Future runTest(
   String path = dir.path;
   String inputFile = '$path/$testFileName';
   File(inputFile).writeAsStringSync(annotatedCode.sourceCode);
-  String outputFile = '$path/js.js';
+  String outputFile = '$path/$jsFileName';
   List<String> arguments = <String>[
     '--out=$outputFile',
     inputFile,
@@ -92,20 +92,40 @@ Future runTest(
   ];
   CompilationResult compilationResult = await entry.internalMain(arguments);
   Expect.isTrue(compilationResult.isSuccess);
-  List<String> scriptD8Command = [
-    '$sdkPath/_internal/js_runtime/lib/preambles/d8.js',
-    outputFile,
-  ];
-  ProcessResult result = runD8AndStep(
+  File('$path/bootstrap.html').writeAsStringSync(bootstrapHtml);
+  List<String> output = await runChromeAndStep(
     dir.path,
     testFileName,
     annotatedCode,
-    scriptD8Command,
   );
-  List<String> d8output = result.stdout.split("\n");
   if (verbose) {
-    d8output.forEach(print);
+    output.forEach(print);
   }
-  checkD8Steps(dir.path, d8output, annotatedCode, debug: debug);
+  checkSteps(dir.path, output, annotatedCode, debug: debug);
   dir.deleteSync(recursive: true);
 }
+
+/// The page `runChromeAndStep` loads to run `js.js`.
+///
+/// dart2js output calls `main` as soon as it loads unless a `dartMainRunner`
+/// hook is defined, so the hook holds `main` back until `runChromeAndStep` has
+/// set its breakpoints and calls `scheduleMain`.
+const String bootstrapHtml =
+    '''
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>dart2js step test</title>
+    <script>
+      var scheduleMain;
+      self.dartMainRunner = function(main, args) {
+        scheduleMain = function() {
+          main(args);
+        };
+      };
+    </script>
+    <script src="$jsFileName"></script>
+  </head>
+  <body></body>
+</html>
+''';

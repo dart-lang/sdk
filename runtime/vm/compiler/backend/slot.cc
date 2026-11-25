@@ -55,6 +55,16 @@ class SlotCache : public ZoneObject {
     return *slot;
   }
 
+#if defined(DEBUG)
+  bool IsCanonical(const Slot& slot) const {
+    const intptr_t index = static_cast<intptr_t>(slot.kind());
+    if ((index >= 0) && (index < kNativeSlotsCount)) {
+      return native_fields_[index] == &slot;
+    }
+    return fields_.LookupValue(&slot) == &slot;
+  }
+#endif
+
  private:
   explicit SlotCache(Thread* thread)
       : zone_(thread->zone()), fields_(thread->zone()) {}
@@ -347,6 +357,12 @@ const Slot& Slot::GetCanonicalSlot(Thread* thread,
                           representation, field_guard_state);
   return SlotCache::Instance(thread).Canonicalize(slot);
 }
+
+#if defined(DEBUG)
+bool Slot::IsCanonical(Thread* thread) const {
+  return SlotCache::Instance(thread).IsCanonical(*this);
+}
+#endif
 
 FieldGuardState::FieldGuardState(const Field& field)
     : state_(GuardedCidBits::encode(field.guarded_cid()) |

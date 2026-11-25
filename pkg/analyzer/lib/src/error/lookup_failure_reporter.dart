@@ -116,6 +116,41 @@ final class DotShorthandLookupDomain extends LookupDomain {
   }
 }
 
+/// A lookup in the static members of a type alias of a type that is not an
+/// interface type, which has none.
+///
+/// For example, `F.foo` and `F.foo = 0`, where `F` is an alias of a function
+/// type. Every lookup in it fails.
+final class EmptyStaticNamespaceLookupDomain extends LookupDomain {
+  /// The name of the alias, with its import prefix if one is written.
+  final String aliasName;
+
+  new({required ImportPrefixReferenceImpl? importPrefix, required Token name})
+    : aliasName = importPrefix != null
+          ? '${importPrefix.name.lexeme}.${name.lexeme}'
+          : name.lexeme;
+
+  @override
+  LocatableDiagnostic _readFailure(
+    String name,
+    _FoundInstead foundInstead,
+    ReadPosition position,
+  ) {
+    return diag.undefinedStaticMemberReadNoStaticMembers.withArguments(
+      name: name,
+      aliasName: aliasName,
+    );
+  }
+
+  @override
+  LocatableDiagnostic? _writeFailure(String name, _FoundInstead foundInstead) {
+    return diag.undefinedStaticMemberWriteNoStaticMembers.withArguments(
+      name: name,
+      aliasName: aliasName,
+    );
+  }
+}
+
 /// A lookup in the members of an explicit extension override.
 ///
 /// For example, `E(x).foo` and `E(x).foo = 0`.
@@ -192,40 +227,6 @@ final class ExtensionOverrideLookupDomain extends LookupDomain {
           extensionName: _extensionName,
         );
     }
-  }
-}
-
-/// A lookup in the static members of a function-type alias.
-///
-/// For example, `F.foo` and `F.foo = 0`. A function-type alias has no static
-/// members, so every lookup in it fails.
-final class FunctionTypeAliasLookupDomain extends LookupDomain {
-  /// The name of the alias, with its import prefix if one is written.
-  final String aliasName;
-
-  new({required ImportPrefixReferenceImpl? importPrefix, required Token name})
-    : aliasName = importPrefix != null
-          ? '${importPrefix.name.lexeme}.${name.lexeme}'
-          : name.lexeme;
-
-  @override
-  LocatableDiagnostic _readFailure(
-    String name,
-    _FoundInstead foundInstead,
-    ReadPosition position,
-  ) {
-    return diag.undefinedStaticMemberReadNoStaticMembers.withArguments(
-      name: name,
-      aliasName: aliasName,
-    );
-  }
-
-  @override
-  LocatableDiagnostic? _writeFailure(String name, _FoundInstead foundInstead) {
-    return diag.undefinedStaticMemberWriteNoStaticMembers.withArguments(
-      name: name,
-      aliasName: aliasName,
-    );
   }
 }
 

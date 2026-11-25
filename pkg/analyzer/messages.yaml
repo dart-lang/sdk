@@ -2841,6 +2841,16 @@ CompileTimeErrorCode:
     problemMessage: "The instance member '#name' can't be accessed on a class instantiation."
     correctionMessage: Try changing the member name to the name of a constructor.
     hasPublishedDocs: false
+  classInstantiationAccessToMemberNoConstructors:
+    type: compileTimeError
+    parameters:
+      String name: the name of the constructor
+      String aliasName: the name of the type alias, with its import prefix
+      String typeLiteral: the type alias with its import prefix and type arguments
+    sharedName: classInstantiationAccessToMember
+    problemMessage: "The type alias '#aliasName' doesn't have a constructor named '#name'."
+    correctionMessage: "Try wrapping '#typeLiteral' in parentheses to access '#name' on the 'Type' object."
+    hasPublishedDocs: false
   classInstantiationAccessToUnknownMember:
     type: compileTimeError
     parameters:
@@ -12512,6 +12522,16 @@ CompileTimeErrorCode:
 
       A f() => A();
       ```
+  newWithUndefinedConstructorNoConstructors:
+    type: compileTimeError
+    parameters:
+      String name: the name of the constructor
+      String aliasName: the name of the type alias, with its import prefix
+      String typeLiteral: the type alias with its import prefix and type arguments
+    sharedName: newWithUndefinedConstructor
+    problemMessage: "The type alias '#aliasName' doesn't have a constructor named '#name'."
+    correctionMessage: "Try wrapping '#typeLiteral' in parentheses to access '#name' on the 'Type' object."
+    hasPublishedDocs: false
   nonAbstractClassInheritsAbstractMemberFivePlus:
     type: compileTimeError
     parameters:
@@ -19956,10 +19976,10 @@ CompileTimeErrorCode:
     type: compileTimeError
     parameters:
       String name: the name of the member
-      String aliasName: the name of the function type alias, with its import prefix
+      String aliasName: the name of the type alias, with its import prefix
     sharedName: undefinedStaticMemberRead
-    problemMessage: "The function type '#aliasName' doesn't have a static member named '#name'."
-    correctionMessage: "Try wrapping the function type alias in parentheses to access '#name' on the 'Type' object."
+    problemMessage: "The type alias '#aliasName' doesn't have a static member named '#name'."
+    correctionMessage: "Try wrapping '#aliasName' in parentheses to access '#name' on the 'Type' object."
     hasPublishedDocs: true
   undefinedStaticMemberReadNoStaticMembersDotShorthand:
     type: compileTimeError
@@ -20144,10 +20164,10 @@ CompileTimeErrorCode:
     type: compileTimeError
     parameters:
       String name: the name of the setter
-      String aliasName: the name of the function type alias, with its import prefix
+      String aliasName: the name of the type alias, with its import prefix
     sharedName: undefinedStaticMemberWrite
-    problemMessage: "The function type '#aliasName' doesn't have a static setter named '#name'."
-    correctionMessage: "Try wrapping the function type alias in parentheses to access '#name' on the 'Type' object."
+    problemMessage: "The type alias '#aliasName' doesn't have a static setter named '#name'."
+    correctionMessage: "Try wrapping '#aliasName' in parentheses to access '#name' on the 'Type' object."
     hasPublishedDocs: true
   undefinedStaticMemberWriteNotFound:
     type: compileTimeError

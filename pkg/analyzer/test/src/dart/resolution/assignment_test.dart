@@ -1112,7 +1112,7 @@ extension E on Type {
 void f() {
   Fn<int>.foo += 1;
 //        ^^^
-// [diag.undefinedStaticMemberReadNoStaticMembers] The function type 'Fn' doesn't have a static member named 'foo'.
+// [diag.classInstantiationAccessToMemberNoConstructors] The type alias 'Fn' doesn't have a constructor named 'foo'.
 }
 ''');
 
@@ -1195,7 +1195,7 @@ typedef Fn<T> = void Function(T);
 void bar() {
   Fn<int>.foo = 7;
 //        ^^^
-// [diag.undefinedStaticMemberWriteNoStaticMembers] The function type 'Fn' doesn't have a static setter named 'foo'.
+// [diag.classInstantiationAccessToMemberNoConstructors] The type alias 'Fn' doesn't have a constructor named 'foo'.
 }
 
 extension E on Type {
@@ -1374,7 +1374,7 @@ extension E on Type {
 void f() {
   a.Fn<int>.foo = 1;
 //          ^^^
-// [diag.undefinedStaticMemberWriteNoStaticMembers] The function type 'a.Fn' doesn't have a static setter named 'foo'.
+// [diag.classInstantiationAccessToMemberNoConstructors] The type alias 'a.Fn' doesn't have a constructor named 'foo'.
 }
 ''');
 

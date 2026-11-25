@@ -2,16 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/resolver/static_namespace.dart';
 import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
-import 'package:analyzer/src/error/lookup_failure_reporter.dart';
 
 /// A resolver for [ConstructorTearOff] nodes.
 class ConstructorTearOffResolver {
@@ -55,57 +55,51 @@ class ConstructorTearOffResolver {
       //
       // Only report errors when the constructor tearoff feature is enabled,
       // to avoid reporting redundant errors.
-      var enclosingElement = node.typeReference.element;
-      if (enclosingElement is TypeAliasElement) {
-        var aliasedType = enclosingElement.aliasedType;
-        if (aliasedType is FunctionType) {
-          var typeReference = node.typeReference;
-          if (node.parent2 case AssignmentTarget(hasRead: false)) {
-            _typeAnalyzer.lookupFailureReporter.reportWriteFailure(
-              domain: FunctionTypeAliasLookupDomain(
-                importPrefix: typeReference.importPrefix,
-                name: typeReference.name,
-              ),
-              name: name,
-              foundInstead: null,
+      var typeReference = node.typeReference;
+      switch (StaticNamespace.of(typeReference.element)) {
+        case InterfaceStaticNamespace(:var interface):
+          var method =
+              interface.getMethod(name.lexeme) ??
+              interface.getGetter(name.lexeme) ??
+              interface.getSetter(name.lexeme);
+          if (method != null) {
+            var error = method.isStatic
+                ? diag.classInstantiationAccessToStaticMember
+                : diag.classInstantiationAccessToInstanceMember;
+            _typeAnalyzer.diagnosticReporter.report(
+              error.withArguments(name: name.lexeme).at(node),
             );
-          } else {
-            _typeAnalyzer.lookupFailureReporter.reportReadFailure(
-              domain: FunctionTypeAliasLookupDomain(
-                importPrefix: typeReference.importPrefix,
-                name: typeReference.name,
-              ),
-              name: name,
-              foundInstead: null,
+          } else if (!name.isSynthetic) {
+            _typeAnalyzer.diagnosticReporter.report(
+              diag.classInstantiationAccessToUnknownMember
+                  .withArguments(
+                    className: interface.name!,
+                    memberName: name.lexeme,
+                  )
+                  .at(node),
             );
           }
-        }
-        enclosingElement = aliasedType is InterfaceType
-            ? aliasedType.element
-            : null;
-      }
-      if (enclosingElement is InterfaceElement) {
-        var method =
-            enclosingElement.getMethod(name.lexeme) ??
-            enclosingElement.getGetter(name.lexeme) ??
-            enclosingElement.getSetter(name.lexeme);
-        if (method != null) {
-          var error = method.isStatic
-              ? diag.classInstantiationAccessToStaticMember
-              : diag.classInstantiationAccessToInstanceMember;
+        case EmptyStaticNamespace() when typeReference.type is InvalidType:
+          // An alias that expands to a type parameter, already reported.
+          break;
+        case EmptyStaticNamespace() when !name.isSynthetic:
+          // With type arguments the selector names a constructor, also when
+          // it is assigned, and the aliased type has none.
           _typeAnalyzer.diagnosticReporter.report(
-            error.withArguments(name: name.lexeme).at(node),
-          );
-        } else if (!name.isSynthetic) {
-          _typeAnalyzer.diagnosticReporter.report(
-            diag.classInstantiationAccessToUnknownMember
+            diag.classInstantiationAccessToMemberNoConstructors
                 .withArguments(
-                  className: enclosingElement.name!,
-                  memberName: name.lexeme,
+                  name: name.lexeme,
+                  aliasName: typeReference.qualifiedName,
+                  typeLiteral: typeReference.toSource(),
                 )
-                .at(node),
+                .at(name),
           );
-        }
+        case EmptyStaticNamespace():
+          break;
+        case ExtensionStaticNamespace():
+        case InvalidStaticNamespace():
+        case null:
+          break;
       }
     }
     _inferArgumentTypes(node, contextType: contextType);

@@ -12324,6 +12324,32 @@ Message _withArgumentsTooManyArguments({
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+  Message Function({required String aliasName, required String memberName})
+>
+typeAliasWithoutStaticMembers = const Template(
+  "TypeAliasWithoutStaticMembers",
+  withArguments: _withArgumentsTypeAliasWithoutStaticMembers,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsTypeAliasWithoutStaticMembers({
+  required String aliasName,
+  required String memberName,
+}) {
+  var aliasName_0 = conversions.validateAndDemangleName(aliasName);
+  var memberName_0 = conversions.validateAndDemangleName(memberName);
+  return new Message(
+    typeAliasWithoutStaticMembers,
+    problemMessage:
+        """The type alias '${aliasName_0}' doesn't have a static member named '${memberName_0}'.""",
+    correctionMessage:
+        """Try wrapping '${aliasName_0}' in parentheses to access '${memberName_0}' on the 'Type' object.""",
+    arguments: {'aliasName': aliasName, 'memberName': memberName},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function({required int expectedCount})>
 typeArgumentMismatch = const Template(
   "TypeArgumentMismatch",

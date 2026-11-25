@@ -14,7 +14,7 @@ class Data {
   late Directory outDir;
   late String testFileName;
   late AnnotatedCode code;
-  late List<String> d8Output;
+  late List<String> stepOutput;
 
   Data(this.uri);
 }
@@ -67,22 +67,19 @@ class SetCwdToSdkRoot extends Step<Data, Data, ChainContext> {
   }
 }
 
-class StepWithD8 extends Step<Data, Data, ChainContext> {
-  const StepWithD8();
+class StepWithChrome extends Step<Data, Data, ChainContext> {
+  const StepWithChrome();
 
   @override
   String get name => 'step';
 
   @override
   Future<Result<Data>> run(Data data, ChainContext context) async {
-    var outWrapperPath = p.join(data.outDir.path, 'wrapper.js');
-    var runResult = runD8AndStep(
+    data.stepOutput = await runChromeAndStep(
       data.outDir.path,
       data.testFileName,
       data.code,
-      ['--module', outWrapperPath],
     );
-    data.d8Output = (runResult.stdout as String).split('\n');
     return pass(data);
   }
 }
@@ -97,7 +94,7 @@ class CheckSteps extends Step<Data, Data, ChainContext> {
 
   @override
   Future<Result<Data>> run(Data data, ChainContext context) async {
-    checkD8Steps(data.outDir.path, data.d8Output, data.code, debug: debug);
+    checkSteps(data.outDir.path, data.stepOutput, data.code, debug: debug);
     return pass(data);
   }
 }

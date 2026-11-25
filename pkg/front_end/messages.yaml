@@ -3084,6 +3084,18 @@ typedefTypeParameterNotConstructorCause:
   problemMessage: "This is the type variable ultimately denoted."
   severity: CONTEXT
 
+typeAliasWithoutStaticMembers:
+  parameters:
+    Name aliasName: The name of the type alias, with its import prefix.
+    Name memberName: The name of the static member that was not found.
+  problemMessage: "The type alias '#aliasName' doesn't have a static member named '#memberName'."
+  correctionMessage: "Try wrapping '#aliasName' in parentheses to access '#memberName' on the 'Type' object."
+  script: |
+    typedef F = void Function();
+    void f() {
+      F.toString();
+    }
+
 typedefNullableType:
   parameters: none
   problemMessage: "Can't create typedef from nullable type."

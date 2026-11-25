@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/resolver/static_namespace.dart';
 import 'package:analyzer/src/summary2/ast_binary_flags.dart';
 import 'package:analyzer/src/summary2/ast_binary_tag.dart';
 import 'package:analyzer/src/summary2/bundle_writer.dart';
@@ -925,11 +926,11 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitStaticQualifier(StaticQualifier node) {
+  void visitStaticQualifier(covariant StaticQualifierImpl node) {
     _sink.writeEnum(AstNodeTag.StaticQualifier);
     _writeOptionalNode(node.importPrefix);
     _writeNameToken(node.name);
-    _sink.writeElement(node.element);
+    _writeStaticNamespace(node.namespace);
   }
 
   @override
@@ -1301,6 +1302,24 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
 
   void _writeOptionalNode(AstNode? node) {
     _sink.writeOptionalObject(node, _writeNode);
+  }
+
+  void _writeStaticNamespace(StaticNamespace namespace) {
+    switch (namespace) {
+      case EmptyStaticNamespace():
+        _sink.writeEnum(StaticNamespaceTag.empty);
+        _sink.writeElement(namespace.element);
+      case ExtensionStaticNamespace():
+        _sink.writeEnum(StaticNamespaceTag.extension);
+        _sink.writeElement(namespace.element);
+      case InterfaceStaticNamespace():
+        _sink.writeEnum(StaticNamespaceTag.interface);
+        _sink.writeElement(namespace.element);
+        _sink.writeElement(namespace.interface);
+      case InvalidStaticNamespace():
+        _sink.writeEnum(StaticNamespaceTag.invalid);
+        _sink.writeElement(namespace.element);
+    }
   }
 
   void _writeStringReference(String string) {

@@ -1,0 +1,57 @@
+import 'static_access_without_static_members.dart' as p;
+
+class C<T> {
+  static int s = 0;
+}
+
+extension on Type {
+  int get typeGetter => 0;
+}
+
+main() {}
+
+typedef CA<T> = C<T>;
+
+typedef Cyclic = Cyclic;
+
+typedef D = dynamic;
+
+typedef F = void Function();
+
+typedef FB<T extends num> = void Function(T);
+
+typedef FG<T> = void Function(T);
+
+typedef Invalid = Unresolved;
+
+typedef InvalidG<T> = Unresolved;
+
+typedef N = Never;
+
+typedef R = (int,);
+
+typedef RB<T extends num> = (T,);
+
+typedef RG<T> = (T,);
+
+typedef RN = (int,)?;
+
+typedef TV<T> = T;
+
+typedef V = void;
+
+typedef void OldF();
+
+void aliasOfClass() {}
+
+void aliasOfInvalidType() {}
+
+void aliasOfTypeVariable() {}
+
+void constructorReference() {}
+
+void cyclicAlias() {}
+
+void staticAccess() {}
+
+void typeObject() {}

@@ -74,8 +74,7 @@ main() {
   // [error column 3]
   // [cfe] Can't use a typedef denoting a type variable as a constructor, nor for a static member access.
   //^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
-  // [cfe] The method 'named' isn't defined for the type 'Type'.
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
 
   T().unknownInstanceMethod();
   // [error column 3, length 1]
@@ -87,13 +86,11 @@ main() {
   // [error column 3]
   // [cfe] Can't use a typedef denoting a type variable as a constructor, nor for a static member access.
   //^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
-  // [cfe] The method 'staticMethod' isn't defined for the type 'Type'.
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
 
   T.unknownStaticMethod();
   // [error column 3]
   // [cfe] Can't use a typedef denoting a type variable as a constructor, nor for a static member access.
   //^^^^^^^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
-  // [cfe] The method 'unknownStaticMethod' isn't defined for the type 'Type'.
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
 }

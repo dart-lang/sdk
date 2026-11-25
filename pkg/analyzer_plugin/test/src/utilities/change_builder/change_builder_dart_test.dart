@@ -3623,6 +3623,130 @@ class C {}
 ''');
   }
 
+  Future<void> test_importLibrary_alreadyImported_duplicate() async {
+    var aPath = convertPath('/home/test/lib/test_a.dart');
+    addSource(aPath, 'class A {} class B {} class C {}');
+
+    var bPath = convertPath('/home/test/lib/test_b.dart');
+    var bContent = '''
+import 'package:test/test_a.dart' show A;
+import 'package:test/test_a.dart' show B;
+''';
+    addSource(bPath, bContent);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(bPath, (builder) {
+      builder.importLibrary(
+        Uri.parse('package:test/test_a.dart'),
+        showName: 'C',
+      );
+    });
+
+    var result = SourceEdit.applySequence(bContent, getEdits(builder));
+    expect(result, '''
+import 'package:test/test_a.dart' show A, C;
+import 'package:test/test_a.dart' show B;
+''');
+  }
+
+  Future<void>
+  test_importLibrary_alreadyImported_fileUri_packageExisting() async {
+    var aPath = convertPath('/home/test/lib/test_a.dart');
+    addSource(aPath, 'class A {} class B {}');
+
+    var bPath = convertPath('/home/test/lib/test_b.dart');
+    var bContent = "import 'package:test/test_a.dart' hide A, B;";
+    addSource(bPath, bContent);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(bPath, (builder) {
+      builder.importLibrary(
+        // Add import using full file URI.
+        resourceProvider.pathContext.toUri(aPath),
+        showName: 'A',
+      );
+    });
+
+    var result = SourceEdit.applySequence(bContent, getEdits(builder));
+    // We should have reused/edited the existing package URI.
+    expect(result, "import 'package:test/test_a.dart' hide B;");
+  }
+
+  Future<void>
+  test_importLibrary_alreadyImported_fileUri_relativeExisting() async {
+    var aPath = convertPath('/home/test/lib/test_a.dart');
+    addSource(aPath, 'class A {} class B {}');
+
+    var bPath = convertPath('/home/test/lib/test_b.dart');
+    var bContent = "import 'test_a.dart' hide A, B;";
+    addSource(bPath, bContent);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(bPath, (builder) {
+      builder.importLibrary(
+        resourceProvider.pathContext.toUri(aPath),
+        showName: 'A',
+      );
+    });
+
+    var result = SourceEdit.applySequence(bContent, getEdits(builder));
+    expect(result, "import 'test_a.dart' hide B;");
+  }
+
+  Future<void> test_importLibrary_alreadyImported_unresolved_hide() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = "import 'missing.dart' hide A, B;";
+    addSource(path, content);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.importLibrary(Uri.parse('missing.dart'), showName: 'A');
+    });
+
+    var result = SourceEdit.applySequence(content, getEdits(builder));
+    expect(result, "import 'missing.dart' hide B;");
+  }
+
+  Future<void> test_importLibrary_alreadyImported_unresolved_show() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = "import 'missing.dart' show A;";
+    addSource(path, content);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.importLibrary(Uri.parse('missing.dart'), showName: 'B');
+    });
+
+    var result = SourceEdit.applySequence(content, getEdits(builder));
+    expect(result, "import 'missing.dart' show A, B;");
+  }
+
+  Future<void> test_importLibrary_alreadyImported_unsorted() async {
+    var zPath = convertPath('/home/test/lib/z.dart');
+    addSource(zPath, '');
+
+    var aPath = convertPath('/home/test/lib/a.dart');
+    addSource(aPath, 'class A {} class B {}');
+
+    var bPath = convertPath('/home/test/lib/b.dart');
+    var bContent = '''
+import 'package:test/z.dart';
+import 'package:test/a.dart' show A;
+''';
+    addSource(bPath, bContent);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(bPath, (builder) {
+      builder.importLibrary(Uri.parse('package:test/a.dart'), showName: 'B');
+    });
+
+    var result = SourceEdit.applySequence(bContent, getEdits(builder));
+    expect(result, '''
+import 'package:test/z.dart';
+import 'package:test/a.dart' show A, B;
+''');
+  }
+
   /// Annotations on the first export are NOT treated as file-level.
   Future<void> test_importLibrary_annotationOnFirstExport() async {
     var path = convertPath('/home/test/lib/test.dart');
@@ -3690,6 +3814,88 @@ import 'package:foo/a.dart';
 
 @deprecated
 part 'part.dart';
+''');
+  }
+
+  Future<void> test_importLibrary_conditionalImport_defaultUriHide() async {
+    var stubPath = convertPath('/home/test/lib/a_stub.dart');
+    addSource(stubPath, 'class A {} class B {}');
+
+    var ioPath = convertPath('/home/test/lib/a_io.dart');
+    addSource(ioPath, 'class A {} class B {}');
+
+    var path = convertPath('/home/test/lib/test.dart');
+    var content =
+        "import 'a_stub.dart' if (dart.library.io) 'a_io.dart' hide A, B;\n";
+    addSource(path, content);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.importLibrary(Uri.parse('a_stub.dart'), showName: 'A');
+    });
+
+    var result = SourceEdit.applySequence(content, getEdits(builder));
+    expect(result, '''
+import 'a_stub.dart' if (dart.library.io) 'a_io.dart' hide B;
+''');
+  }
+
+  /// If an existing import exists for the same library but different style
+  /// (relative, but we're passing `package:`) we should still match and update
+  /// it instead of adding a new one.
+  Future<void> test_importLibrary_packageUri_relativeExisting() async {
+    var aPath = convertPath('/home/test/lib/test_a.dart');
+    addSource(aPath, 'class A {} class B {}');
+
+    var bPath = convertPath('/home/test/lib/test_b.dart');
+    var bContent = "import 'test_a.dart' show A;";
+    addSource(bPath, bContent);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(bPath, (builder) {
+      builder.importLibrary(
+        Uri.parse('package:test/test_a.dart'),
+        showName: 'B',
+      );
+    });
+
+    var result = SourceEdit.applySequence(bContent, getEdits(builder));
+    expect(result, "import 'test_a.dart' show A, B;");
+  }
+
+  Future<void> test_importLibrary_partFile_usesLibraryOptions() async {
+    // Prefer relative imports in lib/.
+    writeTestPackageAnalysisOptionsFile(lints: ['prefer_relative_imports']);
+    // But not in src/.
+    newFile(convertPath('/home/test/lib/src/analysis_options.yaml'), '');
+
+    var otherPath = convertPath('/home/test/lib/src/other.dart');
+    addSource(otherPath, 'class A {}');
+
+    var libPath = convertPath('/home/test/lib/test.dart');
+    var libContent = "part 'src/part.dart';\n";
+    addSource(libPath, libContent);
+
+    var partPath = convertPath('/home/test/lib/src/part.dart');
+    addSource(partPath, "part of '../test.dart';\n");
+
+    late String uriText;
+    var builder = await newBuilder();
+    // Add an import via the part file.
+    await builder.addDartFileEdit(partPath, (builder) {
+      uriText = builder.importLibrary(Uri.parse('package:test/src/other.dart'));
+    });
+
+    // The import should be relative because it went into the library.
+    expect(uriText, 'src/other.dart');
+    var fileEdits = builder.sourceChange.edits;
+    expect(fileEdits, hasLength(1));
+    expect(fileEdits.single.file, libPath);
+    var result = SourceEdit.applySequence(libContent, fileEdits.single.edits);
+    expect(result, '''
+import 'src/other.dart';
+
+part 'src/part.dart';
 ''');
   }
 
@@ -3926,6 +4132,39 @@ class C {
 
     var change = builder.sourceChange;
     expect(change.edits[0].edits[0].replacement, 'import \'dart:math\';\n');
+  }
+
+  Future<void> test_revert_librariesToImport_partFile() async {
+    var libPath = convertPath('/home/test/lib/test.dart');
+    var libContent = "part 'src/part.dart';\n";
+    addSource(libPath, libContent);
+
+    var partPath = convertPath('/home/test/lib/src/part.dart');
+    addSource(partPath, "part of '../test.dart';\n");
+
+    var builder = await newBuilder();
+    // Add and commit an import to ensure it's not reverted.
+    await builder.addDartFileEdit(partPath, (builder) {
+      builder.importLibrary(Uri.parse('dart:math'));
+    });
+    builder.commit();
+
+    // Add an import and revert it.
+    await builder.addDartFileEdit(partPath, (builder) {
+      builder.importLibrary(Uri.parse('dart:io'));
+    });
+    builder.revert();
+
+    // Expect only the first import was kept.
+    var fileEdits = builder.sourceChange.edits;
+    expect(fileEdits, hasLength(1));
+    expect(fileEdits.single.file, libPath);
+    var result = SourceEdit.applySequence(libContent, fileEdits.single.edits);
+    expect(result, '''
+import 'dart:math';
+
+part 'src/part.dart';
+''');
   }
 }
 

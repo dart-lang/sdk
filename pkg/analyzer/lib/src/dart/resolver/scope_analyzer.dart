@@ -27,6 +27,7 @@ import 'package:analyzer/src/dart/resolver/named_type_resolver.dart';
 import 'package:analyzer/src/dart/resolver/record_type_annotation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/scope_context.dart';
+import 'package:analyzer/src/dart/resolver/static_namespace.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/listener.dart';
@@ -786,13 +787,33 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
     // `C<T>.n()` is a constructor invocation, unless `C` names a function,
     // method, or variable, as `f` in `f<int>.call()`. An unknown `C` is taken
     // for a misspelled class, see [_buildCalledConstructorTypeReference].
-    if (node.operand case ParsedNameAccessImpl(
-      operand: ParsedTypeArgumentsImpl instantiation,
-      :var operator,
-      :var name,
+    if (node.namedInvocationParts case (
+      selector: ParsedNameAccessImpl(
+        operand: ParsedTypeArgumentsImpl instantiation,
+        :var operator,
+        :var name,
+      ),
+      :var typeArguments,
     )) {
       if (_buildCalledConstructorTypeReference(instantiation, node)
           case var typeReference?) {
+        // Type arguments after the constructor name, as in `C<T>.n<U>()`, are
+        // an error. As for `C.n<U>()`, they stay on the invocation, where
+        // they are not used.
+        if (typeArguments != null) {
+          var className = switch (typeReference.importPrefix) {
+            var prefix? => '${prefix.name.lexeme}.${typeReference.name.lexeme}',
+            null => typeReference.name.lexeme,
+          };
+          _diagnosticReporter.report(
+            diag.wrongNumberOfTypeArgumentsConstructor
+                .withArguments(
+                  className: className,
+                  constructorName: name.lexeme,
+                )
+                .at(typeArguments),
+          );
+        }
         var expression = ConstructorInvocationImpl(
           keyword: null,
           constructorReference: ConstructorReference2Impl(
@@ -800,7 +821,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
             selector: ConstructorSelectorImpl.v2(period: operator, name2: name),
           ),
           argumentList: node.argumentList,
-          typeArguments: null,
+          typeArguments: typeArguments,
         );
         node.replaceWith(expression);
         expression.accept2(this);
@@ -1165,10 +1186,10 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   /// Returns the reference to the type `C<T>` or `p.C<T>` in `C<T>.name` or
-  /// `p.C<T>.name`, if `C` names a class, enum, mixin, or extension type,
-  /// possibly through a type alias, or a function-type alias. Written type
-  /// arguments make this constructor syntax even if `C` has no constructor
-  /// `name`, or cannot have constructors at all.
+  /// `p.C<T>.name`, if `C` names a class, enum, mixin, or extension type, or
+  /// any type alias. Written type arguments make this constructor syntax even
+  /// if `C` has no constructor `name`, or cannot have constructors at all, as
+  /// an alias of a record type: `name` is never a member of the `Type` object.
   ///
   /// Otherwise returns `null`, and `C<T>` is a value, such as the generic
   /// function instantiation `f<int>`.
@@ -1180,13 +1201,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   ) {
     if (_lookupInstantiatedName(instantiation) case var typeName?) {
       var element = typeName.element;
-      // TODO(scheglov): `X<T>.name` is constructor syntax for any type `X`,
-      // not only for a class or a function-type alias. So any name that is
-      // not a value, such as a record or type parameter alias, should be a
-      // type reference, instead of `X<T>` being a type literal whose `.name`
-      // reads a member of `Type`.
-      if (element.unaliasedInterface != null ||
-          element is TypeAliasElement && element.aliasedType is FunctionType) {
+      if (element is InterfaceElement || element is TypeAliasElement) {
         return ConstructorTypeReferenceImpl(
           importPrefix: typeName.importPrefix,
           name: typeName.name,
@@ -1488,9 +1503,10 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
 
     // `C.n` is a constructor tear-off, if `C` has the constructor `n`.
     var receiver = _lowerReceiver(operand, hasSelector: true);
-    if (receiver is StaticQualifierImpl) {
-      var interface = receiver.element.unaliasedInterface;
-      if (interface?.getNamedConstructor(name.lexeme) != null) {
+    if (receiver case StaticQualifierImpl(
+      namespace: InterfaceStaticNamespace(:var interface),
+    )) {
+      if (interface.getNamedConstructor(name.lexeme) != null) {
         return ConstructorTearOffImpl(
           typeReference: ConstructorTypeReferenceImpl(
             importPrefix: receiver.importPrefix,
@@ -1534,29 +1550,10 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
       );
     }
 
-    // Otherwise `X<T>` instantiates the value `X`. Usually `X` is lowered
-    // later: the caller visits the returned `FunctionInstantiation`, which
-    // visits `X`.
-    //
-    // But `F.m<int>`, with `F` a function-type alias, must read `m` from the
-    // type literal `F`, while `F.m` lowered alone keeps `F` as a static
-    // qualifier. So a name access is lowered here, where the type arguments
-    // are known, and its receiver is replaced, see [_functionTypeAliasValue].
-    // TODO(scheglov): Lower `X` later in all cases, once a function-type alias
-    // is a type literal, see the TODO in [_buildNameReceiver].
-    var operand = node.operand;
-    if (operand is ParsedNameAccessImpl) {
-      var expression = _lowerNameAccessAsValue(operand);
-      operand.replaceWith(expression);
-      operand = expression;
-      if (operand case ReceiverPropertyExtractionImpl(:var receiver)) {
-        if (_functionTypeAliasValue(receiver) case var value?) {
-          operand.receiver = value;
-        }
-      }
-    }
+    // Otherwise `X<T>` instantiates the value `X`. `X` is lowered later: the
+    // caller visits the returned `FunctionInstantiation`, which visits `X`.
     return FunctionInstantiationImpl(
-      operand: operand,
+      operand: node.operand,
       typeArguments: node.typeArguments,
     );
   }
@@ -1891,16 +1888,14 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
     TypeArgumentListImpl? typeArguments,
   ) {
     var receiver = _lowerReceiver(selector.operand, hasSelector: true);
-    // `F.m()` calls a member of `Type` on the type literal `F`.
-    receiver = _functionTypeAliasValue(receiver) ?? receiver;
 
     // `C.n()` and `C.new()` are constructor invocations, if `C` has the
     // constructor `n`, or `new` is written.
-    if (receiver is StaticQualifierImpl) {
-      var interface = receiver.element.unaliasedInterface;
-      var constructor = interface?.getNamedConstructor(selector.name.lexeme);
-      if (interface != null &&
-          (constructor != null || selector.name.lexeme == 'new')) {
+    if (receiver case StaticQualifierImpl(
+      namespace: InterfaceStaticNamespace(:var interface),
+    )) {
+      var constructor = interface.getNamedConstructor(selector.name.lexeme);
+      if (constructor != null || selector.name.lexeme == 'new') {
         // Type arguments after the constructor name are an error. They stay
         // on the invocation, where they are written, and do not apply to `C`.
         if (typeArguments != null) {
@@ -2155,10 +2150,10 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   /// Returns the receiver for [name], optionally prefixed with
   /// [importPrefix], whose scope lookup gave [lookup].
   ///
-  /// If [hasSelector], a name of a class, enum, mixin, extension type, or
-  /// extension, possibly through a type alias, is a static qualifier, as `C`
-  /// in `C.x`. So is a function-type alias, see the body. Otherwise the name
-  /// is a value, see [_buildNameExpression]: `C` alone is a type literal.
+  /// If [hasSelector], a name that denotes a [StaticNamespace], such as a
+  /// class, an extension, or a type alias, is a static qualifier, as `C` in
+  /// `C.x`. Otherwise the name is a value, see [_buildNameExpression]: `C`
+  /// alone is a type literal.
   static NamedReceiverImpl _buildNameReceiver({
     required ImportPrefixReferenceImpl? importPrefix,
     required Token name,
@@ -2166,23 +2161,9 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
     required bool hasSelector,
   }) {
     if (hasSelector) {
-      var element = lookup.getter;
-      // Static members are accessed through a class, enum, mixin, extension
-      // type, or extension, or a type alias of one of these. Any other name
-      // of a type is a type literal, and a selector reads a member of `Type`.
-      if (element.unaliasedInterface != null || element is ExtensionElement) {
+      if (StaticNamespace.of(lookup.getter) case var namespace?) {
         return StaticQualifierImpl(importPrefix: importPrefix, name: name)
-          ..element = element
-          ..scopeLookupResult = lookup;
-      }
-      // TODO(scheglov): A function-type alias should be a type literal, as
-      // other type aliases that do not denote a class are, and as in the CFE.
-      // It is a qualifier only to report invalid static access for `F.x`;
-      // but `F.m()` and `F.m<T>` use members of `Type`, see
-      // [_functionTypeAliasValue].
-      if (element is TypeAliasElement && element.aliasedType is FunctionType) {
-        return StaticQualifierImpl(importPrefix: importPrefix, name: name)
-          ..element = element
+          ..namespace = namespace
           ..scopeLookupResult = lookup;
       }
     }
@@ -2192,24 +2173,6 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
       name: name,
       lookup: lookup,
     );
-  }
-
-  /// Returns `F` as a value if [receiver] is a static qualifier `F` naming a
-  /// function-type alias, otherwise `null`.
-  ///
-  /// `F.m()` and `F.m<T>` use the members of `Type`, while the read `F.m`
-  /// keeps the qualifier, to report the invalid static access.
-  static ExpressionImpl? _functionTypeAliasValue(NamedReceiverImpl receiver) {
-    if (receiver case StaticQualifierImpl(
-      element: TypeAliasElement(aliasedType: FunctionType()),
-    )) {
-      return _buildNameExpression(
-        importPrefix: receiver.importPrefix,
-        name: receiver.name,
-        lookup: receiver.scopeLookupResult!,
-      );
-    }
-    return null;
   }
 
   /// Puts the [extensionOverride] built for [node], the call `E(x)` of an

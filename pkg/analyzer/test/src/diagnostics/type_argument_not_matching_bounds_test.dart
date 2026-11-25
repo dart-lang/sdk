@@ -52,6 +52,557 @@ f() { return const G<B>(); }
 ''');
   }
 
+  test_constructorInvocation_recordTypeAlias() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R<T extends num> = (T,);
+
+void f() {
+  R<String>.toString();
+//  ^^^^^^
+// [diag.typeArgumentNotMatchingBounds] 'String' doesn't conform to the bound 'num' of the type parameter 'T'.
+//          ^^^^^^^^
+// [diag.newWithUndefinedConstructorNoConstructors] The type alias 'R' doesn't have a constructor named 'toString'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      name: R
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: String
+            element: dart:core::@class::String
+            type: String
+        rightBracket: >
+      element: <testLibrary>::@typeAlias::R
+      type: (String,)
+        alias: <testLibrary>::@typeAlias::R
+          typeArguments
+            String
+    selector: ConstructorSelector
+      period: .
+      name2: toString
+    element: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: InvalidType
+V1: InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: R
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: String
+            element: dart:core::@class::String
+            type: String
+        rightBracket: >
+      element: <testLibrary>::@typeAlias::R
+      type: (String,)
+        alias: <testLibrary>::@typeAlias::R
+          typeArguments
+            String
+    period: .
+    name: SimpleIdentifier
+      token: toString
+      element: <null>
+      staticType: null
+    element: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: InvalidType
+''');
+  }
+
+  test_constructorTearOff_class_nested() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A<T extends num> {}
+
+class C<T> {
+  C.named();
+}
+
+void f() {
+  C<A<String>>.named;
+//  ^^^^^^^^^
+// [context 1] The inverted type 'A<String>' is also not regular-bounded, so the type is not well-bounded.
+//    ^^^^^^
+// [diag.typeArgumentNotMatchingBounds][context 1] 'String' doesn't conform to the bound 'num' of the type parameter 'T'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: C
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: A
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: String
+                element: dart:core::@class::String
+                type: String
+            rightBracket: >
+          element: <testLibrary>::@class::A
+          type: A<String>
+      rightBracket: >
+    element: <testLibrary>::@class::C
+    type: C<A<String>>
+  selector: ConstructorSelector
+    period: .
+    name2: named
+  element: SubstitutedConstructorElementImpl
+    baseElement: <testLibrary>::@class::C::@constructor::named
+    substitution: {T: A<String>}
+  staticType: C<A<String>> Function()
+V1: ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: A
+            typeArguments: TypeArgumentList
+              leftBracket: <
+              arguments
+                NamedType
+                  name: String
+                  element: dart:core::@class::String
+                  type: String
+              rightBracket: >
+            element: <testLibrary>::@class::A
+            type: A<String>
+        rightBracket: >
+      element: <testLibrary>::@class::C
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: named
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::C::@constructor::named
+        substitution: {T: A<String>}
+      staticType: null
+    element: SubstitutedConstructorElementImpl
+      baseElement: <testLibrary>::@class::C::@constructor::named
+      substitution: {T: A<String>}
+  staticType: C<A<String>> Function()
+''');
+  }
+
+  test_constructorTearOff_class_undefined() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C<T extends num> {}
+
+void f() {
+  C<String>.foo;
+//^^^^^^^^^^^^^
+// [diag.classInstantiationAccessToUnknownMember] The class 'C' doesn't have a constructor named 'foo'.
+//  ^^^^^^
+// [diag.typeArgumentNotMatchingBounds] 'String' doesn't conform to the bound 'num' of the type parameter 'T'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: C
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: String
+          element: dart:core::@class::String
+          type: String
+      rightBracket: >
+    element: <testLibrary>::@class::C
+    type: C<String>
+  selector: ConstructorSelector
+    period: .
+    name2: foo
+  element: <null>
+  staticType: InvalidType
+V1: ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: String
+            element: dart:core::@class::String
+            type: String
+        rightBracket: >
+      element: <testLibrary>::@class::C
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_constructorTearOff_classTypeAlias_undefined() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef L<T extends num> = List<T>;
+
+void f() {
+  L<String>.foo;
+//^^^^^^^^^^^^^
+// [diag.classInstantiationAccessToUnknownMember] The class 'List' doesn't have a constructor named 'foo'.
+//  ^^^^^^
+// [diag.typeArgumentNotMatchingBounds] 'String' doesn't conform to the bound 'num' of the type parameter 'T'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: L
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: String
+          element: dart:core::@class::String
+          type: String
+      rightBracket: >
+    element: <testLibrary>::@typeAlias::L
+    type: List<String>
+      alias: <testLibrary>::@typeAlias::L
+        typeArguments
+          String
+  selector: ConstructorSelector
+    period: .
+    name2: foo
+  element: <null>
+  staticType: InvalidType
+V1: ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: L
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: String
+            element: dart:core::@class::String
+            type: String
+        rightBracket: >
+      element: <testLibrary>::@typeAlias::L
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_constructorTearOff_functionTypeAlias() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef F<T extends num> = void Function(T);
+
+void f() {
+  F<String>.foo;
+//  ^^^^^^
+// [diag.typeArgumentNotMatchingBounds] 'String' doesn't conform to the bound 'num' of the type parameter 'T'.
+//          ^^^
+// [diag.classInstantiationAccessToMemberNoConstructors] The type alias 'F' doesn't have a constructor named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: F
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: String
+          element: dart:core::@class::String
+          type: String
+      rightBracket: >
+    element: <testLibrary>::@typeAlias::F
+    type: void Function(String)
+      alias: <testLibrary>::@typeAlias::F
+        typeArguments
+          String
+  selector: ConstructorSelector
+    period: .
+    name2: foo
+  element: <null>
+  staticType: InvalidType
+V1: ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: F
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: String
+            element: dart:core::@class::String
+            type: String
+        rightBracket: >
+      element: <testLibrary>::@typeAlias::F
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_constructorTearOff_recordTypeAlias() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R<T extends num> = (T,);
+
+void f() {
+  R<String>.foo;
+//  ^^^^^^
+// [diag.typeArgumentNotMatchingBounds] 'String' doesn't conform to the bound 'num' of the type parameter 'T'.
+//          ^^^
+// [diag.classInstantiationAccessToMemberNoConstructors] The type alias 'R' doesn't have a constructor named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: R
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: String
+          element: dart:core::@class::String
+          type: String
+      rightBracket: >
+    element: <testLibrary>::@typeAlias::R
+    type: (String,)
+      alias: <testLibrary>::@typeAlias::R
+        typeArguments
+          String
+  selector: ConstructorSelector
+    period: .
+    name2: foo
+  element: <null>
+  staticType: InvalidType
+V1: ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: R
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: String
+            element: dart:core::@class::String
+            type: String
+        rightBracket: >
+      element: <testLibrary>::@typeAlias::R
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_constructorTearOff_recordTypeAlias_assignmentTarget() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R<T extends num> = (T,);
+
+void f() {
+  R<String>.foo = 0;
+//  ^^^^^^
+// [diag.typeArgumentNotMatchingBounds] 'String' doesn't conform to the bound 'num' of the type parameter 'T'.
+//          ^^^
+// [diag.classInstantiationAccessToMemberNoConstructors] The type alias 'R' doesn't have a constructor named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: InvalidExpressionAssignmentTarget
+    expression: ConstructorTearOff
+      typeReference: ConstructorTypeReference
+        name: R
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: String
+              element: dart:core::@class::String
+              type: String
+          rightBracket: >
+        element: <testLibrary>::@typeAlias::R
+        type: (String,)
+          alias: <testLibrary>::@typeAlias::R
+            typeArguments
+              String
+      selector: ConstructorSelector
+        period: .
+        name2: foo
+      element: <null>
+      staticType: InvalidType
+    write: InvalidWriteResolution
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: ConstructorReference
+    constructorName: ConstructorName
+      type: NamedType
+        name: R
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: String
+              element: dart:core::@class::String
+              type: String
+          rightBracket: >
+        element: <testLibrary>::@typeAlias::R
+        type: null
+      period: .
+      name: SimpleIdentifier
+        token: foo
+        element: <null>
+        staticType: null
+      element: <null>
+    staticType: InvalidType
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_constructorTearOff_recordTypeAlias_nested() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A<T extends num> {}
+
+typedef R<T> = (T,);
+
+void f() {
+  R<A<String>>.foo;
+//  ^^^^^^^^^
+// [context 1] The inverted type 'A<String>' is also not regular-bounded, so the type is not well-bounded.
+//    ^^^^^^
+// [diag.typeArgumentNotMatchingBounds][context 1] 'String' doesn't conform to the bound 'num' of the type parameter 'T'.
+//             ^^^
+// [diag.classInstantiationAccessToMemberNoConstructors] The type alias 'R' doesn't have a constructor named 'foo'.
+}
+''');
+
+    var node = result.findNode.singleExpressionStatement.expression2;
+    assertResolvedNodeText(node, r'''
+ConstructorTearOff
+  typeReference: ConstructorTypeReference
+    name: R
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: A
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: String
+                element: dart:core::@class::String
+                type: String
+            rightBracket: >
+          element: <testLibrary>::@class::A
+          type: A<String>
+      rightBracket: >
+    element: <testLibrary>::@typeAlias::R
+    type: (A<String>,)
+      alias: <testLibrary>::@typeAlias::R
+        typeArguments
+          A<String>
+  selector: ConstructorSelector
+    period: .
+    name2: foo
+  element: <null>
+  staticType: InvalidType
+V1: ConstructorReference
+  constructorName: ConstructorName
+    type: NamedType
+      name: R
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: A
+            typeArguments: TypeArgumentList
+              leftBracket: <
+              arguments
+                NamedType
+                  name: String
+                  element: dart:core::@class::String
+                  type: String
+              rightBracket: >
+            element: <testLibrary>::@class::A
+            type: A<String>
+        rightBracket: >
+      element: <testLibrary>::@typeAlias::R
+      type: null
+    period: .
+    name: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+  staticType: InvalidType
+''');
+  }
+
   test_enum_inferred() async {
     await resolveTestCodeWithDiagnostics('''
 enum E<T extends int> {

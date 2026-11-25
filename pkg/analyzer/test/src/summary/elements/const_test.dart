@@ -11194,6 +11194,119 @@ library
 ''');
   }
 
+  test_const_reference_staticField_typeAlias() async {
+    var library = await buildLibrary(r'''
+class C {
+  static const int F = 42;
+}
+
+typedef A = C;
+
+const V = A.F;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::C
+          fields
+            #F2 hasInitializer isConst isOriginDeclaration isStatic F (nameOffset:29) (firstTokenOffset:29) (offset:29)
+              element: <testLibrary>::@class::C::@field::F
+              constantInitializer2: expression_0
+                IntegerLiteral
+                  literal: 42 @33
+                  staticType: int
+              inducedGetter: #F3
+          constructors
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::C::@constructor::new
+              typeName: C
+          getters
+            #F3 isComplete isOriginVariable isStatic F (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+              element: <testLibrary>::@class::C::@getter::F
+              inducingVariable: #F2
+      typeAliases
+        #F5 A (nameOffset:48) (firstTokenOffset:40) (offset:48)
+          element: <testLibrary>::@typeAlias::A
+      topLevelVariables
+        #F6 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:62) (firstTokenOffset:62) (offset:62)
+          element: <testLibrary>::@topLevelVariable::V
+          constantInitializer2: expression_1
+            ReceiverPropertyExtraction
+              receiver: StaticQualifier
+                name: A @66
+                element: <testLibrary>::@typeAlias::A
+              operator: . @67
+              name: F @68
+              resolution: GetterInvocationResolution
+                element: <testLibrary>::@class::C::@getter::F
+                type: int
+              staticType: int
+          constantInitializer: expression_2
+            PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: A @66
+                element: <testLibrary>::@typeAlias::A
+                staticType: null
+              period: . @67
+              identifier: SimpleIdentifier
+                token: F @68
+                element: <testLibrary>::@class::C::@getter::F
+                staticType: int
+              element: <testLibrary>::@class::C::@getter::F
+              staticType: int
+          inducedGetter: #F7
+      getters
+        #F7 isComplete isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
+          element: <testLibrary>::@getter::V
+          inducingVariable: #F6
+  classes
+    isSimplyBounded class C
+      reference: <testLibrary>::@class::C
+      firstFragment: #F1
+      fields
+        hasInitializer isConst isOriginDeclaration isStatic F
+          reference: <testLibrary>::@class::C::@field::F
+          firstFragment: #F2
+          type: int
+          constantInitializer2: expression_0
+          getter: <testLibrary>::@class::C::@getter::F
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F4
+      getters
+        isOriginVariable isStatic F
+          reference: <testLibrary>::@class::C::@getter::F
+          firstFragment: #F3
+          returnType: int
+          variable: <testLibrary>::@class::C::@field::F
+  typeAliases
+    isSimplyBounded A
+      reference: <testLibrary>::@typeAlias::A
+      firstFragment: #F5
+      aliasedType: C
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer V
+      reference: <testLibrary>::@topLevelVariable::V
+      firstFragment: #F6
+      type: int
+      constantInitializer2: expression_1
+      constantInitializer: expression_2
+      getter: <testLibrary>::@getter::V
+  getters
+    isOriginVariable isStatic V
+      reference: <testLibrary>::@getter::V
+      firstFragment: #F7
+      returnType: int
+      variable: <testLibrary>::@topLevelVariable::V
+''');
+  }
+
   test_const_reference_staticMethod() async {
     var library = await buildLibrary(r'''
 class C {
@@ -12803,6 +12916,142 @@ library
           firstFragment: #F4
           returnType: List<T>
           variable: <testLibrary>::@class::C::@field::f
+''');
+  }
+
+  test_const_reference_typeAlias_invalidType() async {
+    var library = await buildLibrary(r'''
+typedef A = Unknown;
+
+const V = A.foo;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      typeAliases
+        #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
+          element: <testLibrary>::@typeAlias::A
+      topLevelVariables
+        #F2 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:28) (firstTokenOffset:28) (offset:28)
+          element: <testLibrary>::@topLevelVariable::V
+          constantInitializer2: expression_0
+            ReceiverPropertyExtraction
+              receiver: StaticQualifier
+                name: A @32
+                element: <testLibrary>::@typeAlias::A
+              operator: . @33
+              name: foo @34
+              resolution: InvalidNamedReadResolution
+                recoveryElement: <null>
+              staticType: InvalidType
+          constantInitializer: expression_1
+            PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: A @32
+                element: <testLibrary>::@typeAlias::A
+                staticType: null
+              period: . @33
+              identifier: SimpleIdentifier
+                token: foo @34
+                element: <null>
+                staticType: InvalidType
+              element: <null>
+              staticType: InvalidType
+          inducedGetter: #F3
+      getters
+        #F3 isComplete isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+          element: <testLibrary>::@getter::V
+          inducingVariable: #F2
+  typeAliases
+    isSimplyBounded A
+      reference: <testLibrary>::@typeAlias::A
+      firstFragment: #F1
+      aliasedType: InvalidType
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer V
+      reference: <testLibrary>::@topLevelVariable::V
+      firstFragment: #F2
+      type: InvalidType
+      constantInitializer2: expression_0
+      constantInitializer: expression_1
+      getter: <testLibrary>::@getter::V
+  getters
+    isOriginVariable isStatic V
+      reference: <testLibrary>::@getter::V
+      firstFragment: #F3
+      returnType: InvalidType
+      variable: <testLibrary>::@topLevelVariable::V
+''');
+  }
+
+  test_const_reference_typeAlias_recordType() async {
+    var library = await buildLibrary(r'''
+typedef A = (int,);
+
+const V = A.hashCode;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      typeAliases
+        #F1 A (nameOffset:8) (firstTokenOffset:0) (offset:8)
+          element: <testLibrary>::@typeAlias::A
+      topLevelVariables
+        #F2 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:27) (firstTokenOffset:27) (offset:27)
+          element: <testLibrary>::@topLevelVariable::V
+          constantInitializer2: expression_0
+            ReceiverPropertyExtraction
+              receiver: StaticQualifier
+                name: A @31
+                element: <testLibrary>::@typeAlias::A
+              operator: . @32
+              name: hashCode @33
+              resolution: InvalidNamedReadResolution
+                recoveryElement: <null>
+              staticType: InvalidType
+          constantInitializer: expression_1
+            PrefixedIdentifier
+              prefix: SimpleIdentifier
+                token: A @31
+                element: <testLibrary>::@typeAlias::A
+                staticType: null
+              period: . @32
+              identifier: SimpleIdentifier
+                token: hashCode @33
+                element: <null>
+                staticType: InvalidType
+              element: <null>
+              staticType: InvalidType
+          inducedGetter: #F3
+      getters
+        #F3 isComplete isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+          element: <testLibrary>::@getter::V
+          inducingVariable: #F2
+  typeAliases
+    isSimplyBounded A
+      reference: <testLibrary>::@typeAlias::A
+      firstFragment: #F1
+      aliasedType: (int,)
+  topLevelVariables
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer V
+      reference: <testLibrary>::@topLevelVariable::V
+      firstFragment: #F2
+      type: InvalidType
+      constantInitializer2: expression_0
+      constantInitializer: expression_1
+      getter: <testLibrary>::@getter::V
+  getters
+    isOriginVariable isStatic V
+      reference: <testLibrary>::@getter::V
+      firstFragment: #F3
+      returnType: InvalidType
+      variable: <testLibrary>::@topLevelVariable::V
 ''');
   }
 

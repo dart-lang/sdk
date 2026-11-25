@@ -4753,20 +4753,21 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
           _fileUri,
         );
       } else {
+        // Checks the bounds of the type arguments, also for aliases that are
+        // not declarations, such as aliases of function types.
+        if (aliasedTypeArguments != null) {
+          new NamedTypeBuilderImpl(
+              typeName,
+              const NullabilityBuilder.omitted(),
+              arguments: aliasedTypeArguments,
+              uriOffset: uriOffset,
+              instanceTypeParameterAccess:
+                  _helper.instanceTypeParameterAccessState,
+            )
+            ..bind(_helper.libraryBuilder, aliasBuilder)
+            ..build(_helper.libraryBuilder, TypeUse.instantiation);
+        }
         if (declarationBuilder is DeclarationBuilder) {
-          if (aliasedTypeArguments != null) {
-            new NamedTypeBuilderImpl(
-                typeName,
-                const NullabilityBuilder.omitted(),
-                arguments: aliasedTypeArguments,
-                uriOffset: uriOffset,
-                instanceTypeParameterAccess:
-                    _helper.instanceTypeParameterAccessState,
-              )
-              ..bind(_helper.libraryBuilder, aliasBuilder)
-              ..build(_helper.libraryBuilder, TypeUse.instantiation);
-          }
-
           // If the arguments weren't supplied, the tear off is treated as
           // generic, and the aliased type arguments match type parameters of
           // the type alias.
@@ -5142,11 +5143,75 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
               arguments: arguments,
               isTypeArgumentsInForest: send.isTypeArgumentsInForest,
             );
+    } else if (aliasBuilder != null) {
+      return _buildSelectorAccessOnAliasWithoutNamespace(send, aliasBuilder);
     } else {
       // `SomeType?.toString` is the same as `SomeType.toString`, not
       // `(SomeType).toString`.
       return super.buildSelectorAccess(send, operatorOffset, isNullAware);
     }
+  }
+
+  /// Builds `X.id`, `X.id(...)`, or `X<T>.id` where [aliasBuilder] `X`
+  /// aliases a type that has neither static members nor constructors, such
+  /// as a function type, a record type, `dynamic`, `void`, or `Never`.
+  ///
+  /// Without type arguments the selector is a static member access, and with
+  /// them a constructor reference, so it is always an error. It never
+  /// accesses the `Type` object, as `(X).id` does, so that the meaning of
+  /// `X.id` does not depend on which type `X` aliases.
+  Expression_Generator _buildSelectorAccessOnAliasWithoutNamespace(
+    Selector send,
+    TypeAliasBuilder aliasBuilder,
+  ) {
+    int nameOffset = offsetForToken(send.token);
+    String memberName = send.name.text;
+    // Cyclic aliases, aliases of invalid types, and aliases of type variables
+    // (`typedef X<T> = T;`) have already been reported, the last ones by
+    // `unaliasDeclaration` in `buildSelectorAccess`.
+    bool errorHasBeenReported = switch (aliasBuilder.typedef.type) {
+      InvalidType() => true,
+      TypeParameterType() => true,
+      _ => false,
+    };
+    if (typeArguments != null) {
+      return _helper.buildUnresolvedError(
+        '${aliasBuilder.name}.$memberName',
+        nameOffset,
+        kind: UnresolvedKind.Constructor,
+        errorHasBeenReported: errorHasBeenReported,
+      );
+    }
+    if (!errorHasBeenReported) {
+      // Reported here, once, because the generator does not know yet whether
+      // the member is read, written, or invoked.
+      problemReporting.addProblem(
+        diag.typeAliasWithoutStaticMembers.withArguments(
+          aliasName: typeName.fullName,
+          memberName: memberName,
+        ),
+        nameOffset,
+        memberName.length,
+        _fileUri,
+      );
+    }
+    Generator generator = new UnresolvedNameGenerator(
+      _helper,
+      send.token,
+      send.name,
+      unresolvedReadKind: UnresolvedKind.Member,
+      errorHasBeenReported: true,
+    );
+    ActualArguments? arguments = send.arguments;
+    return arguments == null
+        ? generator
+        : generator.doInvocation(
+            offset: nameOffset,
+            typeArgumentBuilders: send.typeArgumentBuilders,
+            typeArguments: send.typeArguments,
+            arguments: arguments,
+            isTypeArgumentsInForest: send.isTypeArgumentsInForest,
+          );
   }
 
   @override
@@ -5777,6 +5842,8 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
 
   final UnresolvedKind unresolvedReadKind;
 
+  /// Whether the error for [name] has already been reported, so that no
+  /// access through this generator reports another one.
   final bool errorHasBeenReported;
 
   factory(
@@ -5818,11 +5885,7 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
     required ActualArguments arguments,
     bool isTypeArgumentsInForest = false,
   }) {
-    return buildError(
-      charOffset: offset,
-      kind: UnresolvedKind.Method,
-      errorHasBeenReported: errorHasBeenReported,
-    );
+    return buildError(charOffset: offset, kind: UnresolvedKind.Method);
   }
 
   @override
@@ -5836,7 +5899,7 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
       _plainNameForRead,
       charOffset,
       kind: kind,
-      errorHasBeenReported: errorHasBeenReported,
+      errorHasBeenReported: errorHasBeenReported || this.errorHasBeenReported,
     );
   }
 
@@ -5880,10 +5943,7 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
 
   @override
   InternalExpression buildSimpleRead() {
-    return buildError(
-      kind: unresolvedReadKind,
-      errorHasBeenReported: errorHasBeenReported,
-    );
+    return buildError(kind: unresolvedReadKind);
   }
 
   @override
@@ -5896,10 +5956,7 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
   InternalInvalidExpression _buildUnresolvedVariableAssignment({
     required bool isCompound,
   }) {
-    return buildError(
-      kind: UnresolvedKind.Setter,
-      errorHasBeenReported: errorHasBeenReported,
-    );
+    return buildError(kind: UnresolvedKind.Setter);
   }
 
   @override

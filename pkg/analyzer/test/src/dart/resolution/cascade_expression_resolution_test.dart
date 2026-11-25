@@ -958,6 +958,46 @@ V1: FunctionExpressionInvocation
 ''');
   }
 
+  test_typeLiteral_dynamicTypeAlias_propertyGet() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = dynamic;
+
+void f() {
+  A..hashCode;
+}
+''');
+
+    var node = result.findNode.singleCascadeExpression;
+    assertResolvedNodeText(node, r'''
+CascadeExpression
+  target2: TypeLiteral
+    type: NamedType
+      name: A
+      element: <testLibrary>::@typeAlias::A
+      type: dynamic
+        alias: <testLibrary>::@typeAlias::A
+    staticType: Type
+  sections
+    CascadeSection
+      operator: ..
+      body: CascadePropertyExtraction
+        name: hashCode
+        resolution: GetterInvocationResolution
+          element: dart:core::@class::Object::@getter::hashCode
+          type: int
+        staticType: int
+  cascadeSections
+    PropertyAccess
+      operator: ..
+      propertyName: SimpleIdentifier
+        token: hashCode
+        element: dart:core::@class::Object::@getter::hashCode
+        staticType: int
+      staticType: int
+  staticType: Type
+''');
+  }
+
   test_typeLiteral_functionTypeAlias_compoundAssignment() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 typedef F = void Function();
@@ -1023,6 +1063,54 @@ CascadeExpression
       writeType: int
       element: dart:core::@class::num::@method::+
       staticType: int
+  staticType: Type
+''');
+  }
+
+  test_typeLiteral_functionTypeAlias_methodInvocation() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef F = void Function();
+
+void f() {
+  F..toString();
+}
+''');
+
+    var node = result.findNode.singleCascadeExpression;
+    assertResolvedNodeText(node, r'''
+CascadeExpression
+  target2: TypeLiteral
+    type: NamedType
+      name: F
+      element: <testLibrary>::@typeAlias::F
+      type: void Function()
+        alias: <testLibrary>::@typeAlias::F
+    staticType: Type
+  sections
+    CascadeSection
+      operator: ..
+      body: CascadeMethodInvocation
+        name: toString
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+        resolution: ExecutableInvocationResolution
+          element: dart:core::@class::Object::@method::toString
+          invokeType: String Function()
+          type: String
+        staticType: String
+  cascadeSections
+    MethodInvocation
+      operator: ..
+      methodName: SimpleIdentifier
+        token: toString
+        element: dart:core::@class::Object::@method::toString
+        staticType: String Function()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticInvokeType: String Function()
+      staticType: String
   staticType: Type
 ''');
   }
@@ -1125,6 +1213,126 @@ CascadeExpression
       writeElement: <testLibrary>::@extension::#0::@setter::foo
       writeType: int
       element: <null>
+      staticType: int
+  staticType: Type
+''');
+  }
+
+  test_typeLiteral_neverTypeAlias_propertyGet() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = Never;
+
+void f() {
+  A..hashCode;
+}
+''');
+
+    var node = result.findNode.singleCascadeExpression;
+    assertResolvedNodeText(node, r'''
+CascadeExpression
+  target2: TypeLiteral
+    type: NamedType
+      name: A
+      element: <testLibrary>::@typeAlias::A
+      type: Never
+        alias: <testLibrary>::@typeAlias::A
+    staticType: Type
+  sections
+    CascadeSection
+      operator: ..
+      body: CascadePropertyExtraction
+        name: hashCode
+        resolution: GetterInvocationResolution
+          element: dart:core::@class::Object::@getter::hashCode
+          type: int
+        staticType: int
+  cascadeSections
+    PropertyAccess
+      operator: ..
+      propertyName: SimpleIdentifier
+        token: hashCode
+        element: dart:core::@class::Object::@getter::hashCode
+        staticType: int
+      staticType: int
+  staticType: Type
+''');
+  }
+
+  test_typeLiteral_recordTypeAlias_propertyGet() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef R = (int,);
+
+void f() {
+  R..hashCode;
+}
+''');
+
+    var node = result.findNode.singleCascadeExpression;
+    assertResolvedNodeText(node, r'''
+CascadeExpression
+  target2: TypeLiteral
+    type: NamedType
+      name: R
+      element: <testLibrary>::@typeAlias::R
+      type: (int,)
+        alias: <testLibrary>::@typeAlias::R
+    staticType: Type
+  sections
+    CascadeSection
+      operator: ..
+      body: CascadePropertyExtraction
+        name: hashCode
+        resolution: GetterInvocationResolution
+          element: dart:core::@class::Object::@getter::hashCode
+          type: int
+        staticType: int
+  cascadeSections
+    PropertyAccess
+      operator: ..
+      propertyName: SimpleIdentifier
+        token: hashCode
+        element: dart:core::@class::Object::@getter::hashCode
+        staticType: int
+      staticType: int
+  staticType: Type
+''');
+  }
+
+  test_typeLiteral_voidTypeAlias_propertyGet() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+typedef A = void;
+
+void f() {
+  A..hashCode;
+}
+''');
+
+    var node = result.findNode.singleCascadeExpression;
+    assertResolvedNodeText(node, r'''
+CascadeExpression
+  target2: TypeLiteral
+    type: NamedType
+      name: A
+      element: <testLibrary>::@typeAlias::A
+      type: void
+        alias: <testLibrary>::@typeAlias::A
+    staticType: Type
+  sections
+    CascadeSection
+      operator: ..
+      body: CascadePropertyExtraction
+        name: hashCode
+        resolution: GetterInvocationResolution
+          element: dart:core::@class::Object::@getter::hashCode
+          type: int
+        staticType: int
+  cascadeSections
+    PropertyAccess
+      operator: ..
+      propertyName: SimpleIdentifier
+        token: hashCode
+        element: dart:core::@class::Object::@getter::hashCode
+        staticType: int
       staticType: int
   staticType: Type
 ''');
