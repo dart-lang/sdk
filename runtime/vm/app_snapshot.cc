@@ -7673,9 +7673,18 @@ class UnitSerializationRoots : public SerializationRoots {
       CodePtr code = static_cast<CodePtr>(deferred_object->ptr());
       ASSERT(s->RefId(code) == (start_index + i));
       ASSERT(!Code::IsDiscarded(code));
+      if (s->profile_writer() != nullptr) {
+        // The code is a base object, so make it a root in the profile to keep
+        // its instructions reachable.
+        s->profile_writer()->AddRoot(s->GetProfileId(code), "deferred-code");
+      }
+      Serializer::WritingObjectScope scope(
+          s, "Code", code,
+          CodeSerializationCluster::MakeDisambiguatedCodeName(s, code));
       s->WriteInstructions(code->untag()->instructions_,
                            code->untag()->unchecked_offset_, code, false);
-      s->WriteRootRef(code->untag()->code_source_map_, "deferred-code");
+      s->WriteRootRef(code->untag()->code_source_map_,
+                      "deferred-code-source-map");
     }
 
     ObjectPoolPtr pool =
@@ -8055,8 +8064,8 @@ bool Serializer::CreateArtificialNodeIfNeeded(ObjectPtr obj) {
         if (ObjectPool::TypeBits::decode(bits) ==
             ObjectPool::EntryType::kTaggedObject) {
           auto const elem = pool->untag()->data()[i].raw_obj_;
-          // Elements should be reachable from the global object pool.
-          ASSERT(HasRef(elem));
+          // Elements may be unreachable if the pool belongs to code in
+          // another loading unit, so artificial nodes may be needed for them.
           links.Add({elem, V8SnapshotProfileWriter::Reference::Element(i)});
         }
       }
