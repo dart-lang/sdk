@@ -40,11 +40,7 @@ class Instructions implements Serializable {
       if (localDefType != null) usedTypes.add(localDefType);
     }
     for (final instruction in instructions) {
-      usedTypes.addAll(instruction.usedDefTypes);
-      for (final valueType in instruction.usedValueTypes) {
-        final type = valueType.containedDefType;
-        if (type != null) usedTypes.add(type);
-      }
+      instruction.collectUsedTypes(usedTypes);
     }
   }
 

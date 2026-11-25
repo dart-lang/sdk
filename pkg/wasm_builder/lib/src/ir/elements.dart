@@ -8,4 +8,10 @@ class Elements {
   final List<ElementSegment> segments;
 
   Elements(this.segments);
+
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    for (final segment in segments) {
+      segment.collectUsedTypes(usedTypes);
+    }
+  }
 }

@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:typed_data';
-
 import 'package:expect/expect.dart';
 import 'package:wasm_builder/wasm_builder.dart';
+
+import 'test_utils.dart';
 
 void main() {
   testNameMapsAreSorted();
@@ -41,7 +41,7 @@ void testNameMapsAreSorted() {
   b.end();
   fn.build();
 
-  final deserialized = _roundtrip(builder.build());
+  final deserialized = roundtripAndVerifyModule(builder.build());
   final deserializedFn = deserialized.functions.defined.single;
   Expect.listEquals([0, 1, 2], deserializedFn.localNames.keys.toList());
   Expect.listEquals([
@@ -60,13 +60,4 @@ void testNameMapsAreSorted() {
     'b',
     'c',
   ], deserializedStruct.fieldNames.values.toList());
-}
-
-Module _roundtrip(Module module) =>
-    Module.deserialize(Deserializer(_serializeModule(module)));
-
-Uint8List _serializeModule(Module module) {
-  final s = Serializer();
-  module.serialize(s);
-  return s.data;
 }

@@ -5,7 +5,9 @@
 import '../serialize/serialize.dart';
 import 'ir.dart';
 
-sealed class ElementSegment implements Serializable {}
+sealed class ElementSegment implements Serializable {
+  void collectUsedTypes(Set<DefType> usedTypes);
+}
 
 sealed class ActiveElementSegment extends ElementSegment {
   final Table table;
@@ -25,6 +27,9 @@ final class ActiveFunctionElementSegment extends ActiveElementSegment {
     super.startIndex, [
     List<BaseFunction>? entries,
   ]) : entries = entries ?? [];
+
+  @override
+  void collectUsedTypes(Set<DefType> usedTypes) {}
 
   @override
   void serialize(Serializer s) {
@@ -86,6 +91,17 @@ final class ActiveExpressionElementSegment extends ActiveElementSegment {
   final List<List<Instruction>> expressions = [];
 
   ActiveExpressionElementSegment(super.table, this.type, super.startIndex);
+
+  @override
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    final defType = type.containedDefType;
+    if (defType != null) usedTypes.add(defType);
+    for (final expression in expressions) {
+      for (final instruction in expression) {
+        instruction.collectUsedTypes(usedTypes);
+      }
+    }
+  }
 
   @override
   void serialize(Serializer s) {
@@ -152,6 +168,9 @@ final class DeclarativeElementSegment implements ElementSegment {
   final List<BaseFunction> entries;
 
   DeclarativeElementSegment(this.entries);
+
+  @override
+  void collectUsedTypes(Set<DefType> usedTypes) {}
 
   @override
   void serialize(Serializer s) {

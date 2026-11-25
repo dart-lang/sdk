@@ -428,12 +428,14 @@ class TypesBuilder {
     ir.Tables tables,
     ir.Globals globals,
     ir.Tags tags,
+    ir.Elements elements,
   ) {
-    final usedTypes = <ir.DefType>{};
+    final usedTypes = Set<ir.DefType>.identity();
     tables.collectUsedTypes(usedTypes);
     functions.collectUsedTypes(usedTypes);
     globals.collectUsedTypes(usedTypes);
     tags.collectUsedTypes(usedTypes);
+    elements.collectUsedTypes(usedTypes);
     final types = _recGroupBuilder.createGroupsForModule(usedTypes);
     return ir.Types(types);
   }
