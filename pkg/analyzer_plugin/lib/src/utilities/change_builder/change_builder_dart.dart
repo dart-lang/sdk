@@ -2732,6 +2732,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 
         var existingMatch = _findExistingImport(
           importDirectives,
+          uri: import.uri,
           uriText: import.uriText,
           prefix: import.prefix,
         );
@@ -2997,17 +2998,21 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     return null;
   }
 
-  /// Returns the first import in [imports] that matches [uriText] and
-  /// [prefix], or `null` if none matches.
+  /// Returns the first import in [imports] that matches [uri]
+  /// (or [uriText]) and [prefix], or `null` if none matches.
   ImportDirective? _findExistingImport(
     Iterable<ImportDirective> imports, {
+    required Uri uri,
     required String uriText,
     required String prefix,
   }) {
     return imports.firstWhereOrNull(
-      (existingImport) =>
-          (existingImport.uri.stringValue ?? '') == uriText &&
-          (existingImport.prefix?.name ?? '') == prefix,
+      (existingImport) => _matchesExistingImport(
+        existingImport,
+        uri: uri,
+        uriText: uriText,
+        prefix: prefix,
+      ),
     );
   }
 
@@ -3027,6 +3032,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
         var importedLibrary = import.importedLibrary;
         if (importedLibrary != null) {
           return _LibraryImport(
+            uri: importedLibrary.uri,
             uriText: importedLibrary.uri.toString(),
             isExplicitlyImported: true,
             shownNames: [
@@ -3182,6 +3188,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       );
       var existingImport = _findExistingImport(
         target.resolvedUnit.unit.directives.whereType<ImportDirective>(),
+        uri: uri,
         uriText: uriText,
         prefix: prefix ?? '',
       );
@@ -3189,6 +3196,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
           ? _collectExistingCombinators(existingImport)
           : (<List<String>>[], <List<String>>[]);
       import = _LibraryImport(
+        uri: uri,
         uriText: uriText,
         prefix: prefix ?? '',
         isExplicitlyImported: isExplicitImport,
@@ -3492,6 +3500,41 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// Returns whether the [element] is defined in the target library.
   bool _isDefinedLocally(Element element) {
     return element.library == resolvedUnit.libraryElement;
+  }
+
+  /// Returns whether [import] matches an import for [uri]
+  /// (or [uriText]) and [prefix].
+  bool _matchesExistingImport(
+    ImportDirective import, {
+    required Uri uri,
+    required String uriText,
+    required String prefix,
+  }) {
+    var existingUri = import.uri.stringValue ?? '';
+    var existingPrefix = import.prefix?.name ?? '';
+    if (prefix != existingPrefix) {
+      return false;
+    }
+    if (uriText == existingUri) {
+      return true;
+    }
+    var existingLibraryUri = import.libraryImport?.importedLibrary?.uri;
+    if (existingLibraryUri == null) {
+      return false;
+    }
+    if (uri == existingLibraryUri) {
+      return true;
+    }
+    if (uri.isScheme('file')) {
+      var pathContext = resolvedUnit.session.resourceProvider.pathContext;
+      var canonicalUri = resolvedUnit.session.uriConverter.pathToUri(
+        pathContext.fromUri(uri),
+      );
+      if (canonicalUri == existingLibraryUri) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /// Prepends a line containing [docImportContent] to [docComment], a single
@@ -3898,6 +3941,8 @@ class _InsertionPreparer {
 
 /// Information about a library import.
 class _LibraryImport implements Comparable<_LibraryImport> {
+  final Uri uri;
+
   final String uriText;
 
   late final DirectiveSortPriority sortPriority;
@@ -3924,6 +3969,7 @@ class _LibraryImport implements Comparable<_LibraryImport> {
   bool isExplicitlyImported;
 
   new({
+    required this.uri,
     required this.uriText,
     required String prefix,
     required this.isExplicitlyImported,

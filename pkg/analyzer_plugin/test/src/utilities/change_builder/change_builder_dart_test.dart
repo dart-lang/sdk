@@ -3650,6 +3650,29 @@ import 'package:test/test_a.dart' show B;
   }
 
   Future<void>
+  test_importLibrary_alreadyImported_fileUri_packageExisting() async {
+    var aPath = convertPath('/home/test/lib/test_a.dart');
+    addSource(aPath, 'class A {} class B {}');
+
+    var bPath = convertPath('/home/test/lib/test_b.dart');
+    var bContent = "import 'package:test/test_a.dart' hide A, B;";
+    addSource(bPath, bContent);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(bPath, (builder) {
+      builder.importLibrary(
+        // Add import using full file URI.
+        resourceProvider.pathContext.toUri(aPath),
+        showName: 'A',
+      );
+    });
+
+    var result = SourceEdit.applySequence(bContent, getEdits(builder));
+    // We should have reused/edited the existing package URI.
+    expect(result, "import 'package:test/test_a.dart' hide B;");
+  }
+
+  Future<void>
   test_importLibrary_alreadyImported_fileUri_relativeExisting() async {
     var aPath = convertPath('/home/test/lib/test_a.dart');
     addSource(aPath, 'class A {} class B {}');
@@ -3815,6 +3838,29 @@ part 'part.dart';
     expect(result, '''
 import 'a_stub.dart' if (dart.library.io) 'a_io.dart' hide B;
 ''');
+  }
+
+  /// If an existing import exists for the same library but different style
+  /// (relative, but we're passing `package:`) we should still match and update
+  /// it instead of adding a new one.
+  Future<void> test_importLibrary_packageUri_relativeExisting() async {
+    var aPath = convertPath('/home/test/lib/test_a.dart');
+    addSource(aPath, 'class A {} class B {}');
+
+    var bPath = convertPath('/home/test/lib/test_b.dart');
+    var bContent = "import 'test_a.dart' show A;";
+    addSource(bPath, bContent);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(bPath, (builder) {
+      builder.importLibrary(
+        Uri.parse('package:test/test_a.dart'),
+        showName: 'B',
+      );
+    });
+
+    var result = SourceEdit.applySequence(bContent, getEdits(builder));
+    expect(result, "import 'test_a.dart' show A, B;");
   }
 
   Future<void> test_importLibrary_partFile_usesLibraryOptions() async {
