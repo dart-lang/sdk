@@ -91,6 +91,12 @@ class Image : public ValueObject {
   // (GUID and age) of the PDB for PE images.
   OS::BuildId build_id() const;
 
+#if defined(DART_PRECOMPILED_RUNTIME) && defined(DART_HOST_OS_WINDOWS)
+  // Returns the build ID of the PE image starting at [image], which is the
+  // signature of its PDB, or no data if it has none.
+  static OS::BuildId PEBuildId(const uint8_t* image);
+#endif
+
   // Returns whether this instructions section was directly compiled to a shared
   // object. Only valid for instructions images from precompiled snapshots.
   bool compiled_to_shared_object() const;
@@ -878,6 +884,10 @@ class AssemblyImageWriter : public ImageWriter {
                              const char* symbol,
                              intptr_t offset);
   virtual void AddDataSymbol(const char* symbol, intptr_t offset, size_t size);
+
+  // Writes the debugging information as CodeView records, which the linker
+  // puts in the PDB.
+  void WriteCodeView();
 
   BaseWriteStream* const assembly_stream_;
   Dwarf* const assembly_dwarf_;

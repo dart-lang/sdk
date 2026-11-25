@@ -20,10 +20,6 @@
 
 namespace dart {
 
-class CodeViewBuilder;
-template <typename T>
-class Trie;
-
 // Emits a PE/COFF .obj file consumed by MSVC link.exe to build a
 // Windows DLL.  This is the third subclass of SharedObjectWriter, alongside
 // ElfWriter and MachOWriter, and short-circuits the historical
@@ -56,14 +52,6 @@ class CoffWriter : public SharedObjectWriter {
                  const SharedObjectWriter::SymbolDataArray* symbols) override;
 
   void Finalize() override;
-
-  const GrowableArray<const Code*>& debug_codes();
-  const GrowableArray<const Function*>& debug_functions();
-  const GrowableArray<const Script*>& debug_scripts();
-  const Trie<const char>* debug_deobfuscation_trie();
-  intptr_t LookupDebugCodeLabel(const Code& code);
-  intptr_t LookupDebugFunction(const Function& function);
-  intptr_t LookupDebugScript(const Script& script);
 
   void AssertConsistency(const SharedObjectWriter* debug) const override {
     if (debug->AsCoffWriter() == nullptr) {
@@ -253,13 +241,6 @@ class CoffWriter : public SharedObjectWriter {
     intptr_t size;
   };
   ZoneGrowableArray<TextPortion> text_portions_;
-
-  // Tracks where each appended .text portion lives so the unwind data
-  // generator can reference it by section-relative offset.  These are filled
-  // in by AppendToSection for .text.
-  CodeViewBuilder* codeview_ = nullptr;
-
-  friend class CodeViewBuilder;
 
   DISALLOW_COPY_AND_ASSIGN(CoffWriter);
 };

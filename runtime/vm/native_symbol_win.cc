@@ -92,48 +92,30 @@ void NativeSymbolResolver::FreeSymbolName(const char* name) {
   free(const_cast<char*>(name));
 }
 
-struct Context {
-  uword pc;
-  uword dso_base;
-  const char* dso_name;
-  bool success;
-};
-
-BOOL CALLBACK EnumerateModulesCallback(PCSTR ModuleName,
-                                       DWORD64 ModuleBase,
-                                       ULONG ModuleSize,
-                                       PVOID UserContext) {
-  Context* context = reinterpret_cast<Context*>(UserContext);
-  if ((ModuleBase <= context->pc) && (context->pc < ModuleBase + ModuleSize)) {
-    context->dso_base = ModuleBase;
-    context->dso_name = Utils::StrDup(ModuleName);
-    context->success = true;
-    return FALSE;  // stop enumeration
-  }
-  return TRUE;  // continue enumeration
-}
-
 bool NativeSymbolResolver::LookupSharedObject(uword pc,
                                               uword* dso_base,
                                               const char** dso_name) {
 #ifdef DART_TARGET_OS_WINDOWS_UWP
   return false;
 #else
-  Context context;
-  context.pc = pc;
-  context.success = false;
-  if (!EnumerateLoadedModulesEx(GetCurrentProcess(), EnumerateModulesCallback,
-                                &context)) {
+  // Unlike the functions of DbgHelp, these are thread safe, so there's no need
+  // to take the lock.
+  HMODULE module;
+  if (!GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                              GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                          reinterpret_cast<LPCWSTR>(pc), &module)) {
     return false;
-  }
-  if (!context.success) {
-    return false;
-  }
-  if (dso_base != nullptr) {
-    *dso_base = context.dso_base;
   }
   if (dso_name != nullptr) {
-    *dso_name = context.dso_name;
+    char name[MAX_PATH];
+    if (GetModuleFileNameA(module, name, ARRAY_SIZE(name)) == 0) {
+      return false;
+    }
+    *dso_name = Utils::StrDup(name);
+  }
+  if (dso_base != nullptr) {
+    // The handle of a module is the address that it is loaded at.
+    *dso_base = reinterpret_cast<uword>(module);
   }
   return true;
 #endif  // ifdef DART_TARGET_OS_WINDOWS_UWP

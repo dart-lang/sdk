@@ -5,16 +5,20 @@
 /// Utility methods to manipulate `package:js` annotated JavaScript interop
 /// objects in cases where the name to call is not known at runtime.
 ///
-/// > [!Note]
-/// > You should usually use `dart:js_interop` instead of this library.
-/// > To learn more, check out the
-/// > [JS interop documentation](https://dart.dev/interop/js-interop).
+/// > [!Warning]
+/// > This core library is deprecated and scheduled for removal in Dart 4.0.
+/// > Use `dart:js_interop` or `dart:js_interop_unsafe` instead. See the
+/// > [JS interop documentation](https://dart.dev/interop/js-interop) for
+/// > details.
 ///
 /// You should only use these methods when the same effect cannot be achieved
 /// with `@JS()` annotations.
 ///
-/// {@category Web (Legacy)}
-@Deprecated('Use dart:js_interop instead.')
+/// {@category Deprecated}
+@Deprecated(
+  'Scheduled for removal in Dart 4.0. Use dart:js_interop or '
+  'dart:js_interop_unsafe instead. See https://dart.dev/interop/js-interop.',
+)
 library dart.js_util;
 
 export 'dart:js_interop' show NullRejectionException;

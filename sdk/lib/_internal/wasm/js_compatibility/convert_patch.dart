@@ -190,10 +190,11 @@ class _NumberBuffer {
     return minCapacity;
   }
 
-  // Grows to the exact size asked for.
+  // Grows to the requested size, or at least doubles the capacity.
   void ensureCapacity(int newCapacity) {
     Uint8List list = this.list;
     if (newCapacity <= list.length) return;
+    if (newCapacity < 2 * list.length) newCapacity = 2 * list.length;
     Uint8List newList = Uint8List(newCapacity);
     newList.setRange(0, list.length, list, 0);
     this.list = newList;
@@ -1291,13 +1292,7 @@ abstract class _ChunkedJsonParser<T> {
         digit = char ^ CHAR_0;
       } while (digit <= 9);
       if (exponentOverflow) {
-        if (doubleValue == 0.0 || expSign < 0) {
-          listener.handleNumber(sign < 0 ? -0.0 : 0.0);
-        } else {
-          listener.handleNumber(
-            sign < 0 ? double.negativeInfinity : double.infinity,
-          );
-        }
+        listener.handleNumber(parseDouble(start, position));
         return position;
       }
       intValue += expSign * exponent;

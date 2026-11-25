@@ -77,46 +77,44 @@ Dart_EntropySource Dart::entropy_source_callback_ = nullptr;
 Dart_DwarfStackTraceFootnoteCallback Dart::dwarf_stacktrace_footnote_callback_ =
     nullptr;
 
-class DartInitializationState : public AllStatic {
+// A phase and a count of active users, kept in a single atomic word.
+//
+// Users can only enter while the gate is in the phase they expect, and a
+// transition can wait until all active users have left. This lets API calls
+// use VM state without racing with Dart::Init and Dart::Cleanup.
+template <typename PhaseField>
+class PhaseGate {
  public:
-  static bool StartInit() {
-    uword expected = PhaseField::encode(kUnInitialized) | CountField::encode(0);
-    uword desired = PhaseField::encode(kInitializing) | CountField::encode(0);
+  using Phase = typename PhaseField::Type;
+
+  explicit constexpr PhaseGate(Phase phase)
+      : state_(PhaseField::encode(phase) | CountField::encode(0)) {}
+
+  Phase phase() const { return PhaseField::decode(state_.load()); }
+
+  // Changes the phase from |from| to |to| if there are no active users.
+  bool TryTransitionEmpty(Phase from, Phase to) {
+    uword expected = PhaseField::encode(from) | CountField::encode(0);
+    uword desired = PhaseField::encode(to) | CountField::encode(0);
     return state_.compare_exchange_strong(expected, desired,
-                                          std::memory_order_acquire);
+                                          std::memory_order_acq_rel);
   }
 
-  static void AbandonInit() {
-    uword expected = PhaseField::encode(kInitializing) | CountField::encode(0);
-    uword desired = PhaseField::encode(kUnInitialized) | CountField::encode(0);
-    bool result = state_.compare_exchange_strong(expected, desired,
-                                                 std::memory_order_release);
+  void TransitionEmpty(Phase from, Phase to) {
+    const bool result = TryTransitionEmpty(from, to);
     ASSERT(result);
   }
 
-  static void FinishInit() {
-    uword expected = PhaseField::encode(kInitializing) | CountField::encode(0);
-    uword desired = PhaseField::encode(kInitialized) | CountField::encode(0);
-    bool result = state_.compare_exchange_strong(expected, desired,
-                                                 std::memory_order_release);
-    ASSERT(result);
-  }
-
-  static bool IsInitialized() {
-    return PhaseField::decode(state_.load()) == kInitialized;
-  }
-  static bool IsShuttingDown() {
-    return PhaseField::decode(state_.load()) == kCleaningup;
-  }
-
-  static bool StartCleanup() {
+  // Changes the phase from |from| to |to|, then waits until all active users
+  // have left.
+  bool TryTransitionAndDrain(Phase from, Phase to) {
     uword expected = state_.load(std::memory_order_acquire);
     uword desired;
     do {
-      if (PhaseField::decode(expected) != kInitialized) {
+      if (PhaseField::decode(expected) != from) {
         return false;
       }
-      desired = PhaseField::update(kCleaningup, expected);
+      desired = PhaseField::update(to, expected);
     } while (!state_.compare_exchange_weak(expected, desired,
                                            std::memory_order_relaxed));
 
@@ -127,54 +125,121 @@ class DartInitializationState : public AllStatic {
     return true;
   }
 
-  static void FinishCleanup() {
-    uword expected = PhaseField::encode(kCleaningup) | CountField::encode(0);
-    uword desired = PhaseField::encode(kUnInitialized) | CountField::encode(0);
-    bool result = state_.compare_exchange_strong(expected, desired,
-                                                 std::memory_order_release);
-    ASSERT(result);
-  }
-
-  static bool SetInUse() {
+  // Registers an active user if the gate is in phase |phase|.
+  bool TryEnter(Phase phase) {
     uword expected = state_.load(std::memory_order_relaxed);
     uword desired;
     do {
-      if (PhaseField::decode(expected) != kInitialized) {
+      if (PhaseField::decode(expected) != phase) {
         return false;
       }
-      desired = PhaseField::encode(kInitialized) |
-                CountField::encode(CountField::decode(expected) + 1);
+      desired = CountField::update(CountField::decode(expected) + 1, expected);
     } while (!state_.compare_exchange_weak(expected, desired,
+                                           std::memory_order_acquire,
                                            std::memory_order_relaxed));
     return true;
   }
 
-  static void ResetInUse() {
-    uword expected = state_.load(std::memory_order_relaxed);
-    uword desired;
-    do {
-      ASSERT(PhaseField::decode(expected) == kInitialized ||
-             PhaseField::decode(expected) == kCleaningup);
-      desired = CountField::update(CountField::decode(expected) - 1, expected);
-    } while (!state_.compare_exchange_weak(expected, desired,
-                                           std::memory_order_release));
+  // Unregisters an active user.
+  void Leave() {
+    const uword previous =
+        state_.fetch_sub(CountField::encode(1), std::memory_order_release);
+    ASSERT(CountField::decode(previous) > 0);
   }
 
  private:
-  static constexpr uword kUnInitialized = 0;
-  static constexpr uword kInitializing = 1;
-  static constexpr uword kInitialized = 2;
-  static constexpr uword kCleaningup = 3;
+  using CountField = BitField<uword,
+                              uword,
+                              PhaseField::kNextBit,
+                              kBitsPerWord - PhaseField::kNextBit>;
 
-  using PhaseField = BitField<uword, uword, 0, 2>;
-  using CountField =
-      BitField<uword, uword, PhaseField::kNextBit, kBitsPerWord - 2>;
+  std::atomic<uword> state_;
 
-  static std::atomic<uword> state_;
+  DISALLOW_COPY_AND_ASSIGN(PhaseGate);
 };
 
-std::atomic<uword> DartInitializationState::state_ = {
-    PhaseField::encode(kUnInitialized) | CountField::encode(0)};
+class DartInitializationState : public AllStatic {
+ public:
+  static bool StartInit() {
+    return gate_.TryTransitionEmpty(kUnInitialized, kInitializing);
+  }
+
+  static void AbandonInit() {
+    gate_.TransitionEmpty(kInitializing, kUnInitialized);
+  }
+
+  static void FinishInit() {
+    gate_.TransitionEmpty(kInitializing, kInitialized);
+  }
+
+  static bool IsInitialized() { return gate_.phase() == kInitialized; }
+  static bool IsShuttingDown() { return gate_.phase() == kCleaningup; }
+
+  static bool StartCleanup() {
+    return gate_.TryTransitionAndDrain(kInitialized, kCleaningup);
+  }
+
+  static void FinishCleanup() {
+    gate_.TransitionEmpty(kCleaningup, kUnInitialized);
+  }
+
+  static bool SetInUse() { return gate_.TryEnter(kInitialized); }
+
+  static void ResetInUse() {
+    ASSERT(IsInitialized() || IsShuttingDown());
+    gate_.Leave();
+  }
+
+ private:
+  enum Phase {
+    kUnInitialized = 0,
+    kInitializing,
+    kInitialized,
+    kCleaningup,
+  };
+
+  using PhaseField = BitField<uword, Phase, 0, 2>;
+
+  static PhaseGate<PhaseField> gate_;
+};
+
+PhaseGate<DartInitializationState::PhaseField> DartInitializationState::gate_(
+    kUnInitialized);
+
+// Tracks whether Dart_PostCObject can post messages, and the active
+// Dart_PostCObject calls.
+//
+// Writing a message uses VM state, e.g. the zone segment cache, which must not
+// be torn down while a message is being written. But posting cannot stop as
+// soon as Dart::Cleanup starts either: isolates that are shutting down may
+// still wait for messages from embedder threads, e.g. the service isolate for
+// the dart:io events that let it close its server socket. So Dart::Cleanup
+// only disables posting once all isolates have shut down, and then waits for
+// the active calls before it tears down the VM state.
+class PortMapState : public AllStatic {
+ public:
+  static void Enable() { gate_.TransitionEmpty(kDisabled, kEnabled); }
+
+  static void DisableAndWait() {
+    const bool result = gate_.TryTransitionAndDrain(kEnabled, kDisabled);
+    ASSERT(result);
+  }
+
+  static bool SetInUse() { return gate_.TryEnter(kEnabled); }
+  static void ResetInUse() { gate_.Leave(); }
+
+ private:
+  enum Phase {
+    kDisabled = 0,
+    kEnabled,
+  };
+
+  using PhaseField = BitField<uword, Phase, 0, 1>;
+
+  static PhaseGate<PhaseField> gate_;
+};
+
+PhaseGate<PortMapState::PhaseField> PortMapState::gate_(kDisabled);
 
 #if defined(DART_PRECOMPILER) || defined(DART_PRECOMPILED_RUNTIME)
 static void CheckOffsets() {
@@ -373,6 +438,7 @@ char* Dart::Init(const Dart_InitializeParams* params) {
     DartInitializationState::AbandonInit();
     return retval;
   }
+  PortMapState::Enable();
   DartInitializationState::FinishInit();
 
   // The service and kernel isolates require the VM state to be initialized.
@@ -554,6 +620,14 @@ char* Dart::Cleanup() {
   // before shutting down the thread pool.
   WaitForIsolateShutdown();
 
+  // No isolate is left to receive messages. Stop embedder threads from posting
+  // messages before tearing down the VM state that writing them uses.
+  if (FLAG_trace_shutdown) {
+    OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Disabling Dart_PostCObject\n",
+                 UptimeMillis());
+  }
+  PortMapState::DisableAndWait();
+
   // Shutdown the thread pool. On return, all thread pool threads have exited.
   if (FLAG_trace_shutdown) {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Deleting thread pool\n",
@@ -654,6 +728,14 @@ bool Dart::SetActiveApiCall() {
 
 void Dart::ResetActiveApiCall() {
   DartInitializationState::ResetInUse();
+}
+
+bool Dart::SetActivePostCObject() {
+  return PortMapState::SetInUse();
+}
+
+void Dart::ResetActivePostCObject() {
+  PortMapState::ResetInUse();
 }
 
 Isolate* Dart::CreateIsolate(const char* name_prefix,

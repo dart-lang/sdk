@@ -799,7 +799,9 @@ ProcessedSampleBuffer* SampleBlockBuffer::BuildProcessedSampleBuffer(
     buffer = new (zone) ProcessedSampleBuffer();
   }
 
-  FlushSampleBlocks(isolate);
+  if (!filter->take_samples()) {
+    FlushSampleBlocks(isolate);
+  }
 
   for (intptr_t i = 0; i < capacity_; ++i) {
     SampleBlock* block = &blocks_[i];

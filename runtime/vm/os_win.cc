@@ -426,6 +426,13 @@ OS::BuildId OS::GetAppBuildId(const uint8_t* snapshot_instructions) {
   if (build_id.data != nullptr) {
     return build_id;
   }
+#if defined(DART_PRECOMPILED_RUNTIME)
+  // Assembly snapshots are linked into a PE image, whose build ID is the
+  // signature of its PDB, as for PE/COFF snapshots.
+  if (!instructions_image.compiled_to_shared_object()) {
+    return Image::PEBuildId(GetAppDSOBase(snapshot_instructions));
+  }
+#endif
   return {0, nullptr};
 }
 

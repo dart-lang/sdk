@@ -103,10 +103,13 @@ class ByteStorePage extends DiagnosticPageWithNav {
     }
     buf.writeln('</div>');
     buf.writeln('<div class="column one-half">');
-    if (bucketEntryCounts != null) {
+    if (stats.singleFileStorePath != null) {
       _writeSingleFileStore(stats, bucketEntryCounts);
     } else if (stats.usesFileByteStore) {
       _writeFileStore(stats);
+    } else if (stats.singleFileStoreOpenFailure case var failure?) {
+      h3('Disk Store');
+      p('The single-file store could not be opened: $failure');
     } else {
       h3('Disk Store');
       p('The disk store is disabled or unavailable.');
@@ -285,17 +288,17 @@ class ByteStorePage extends DiagnosticPageWithNav {
 
   void _writeSingleFileStore(
     AnalysisServerByteStoreStats stats,
-    List<int> bucketEntryCounts,
+    List<int>? bucketEntryCounts,
   ) {
-    var dataBytes = stats.singleFileDataBytes ?? 0;
-    var usedDataBytes = dataBytes - (stats.singleFileFreeDataBytes ?? 0);
-    var entrySlotCount = stats.singleFileTableSlotCount ?? 0;
-    var bucketSize = entrySlotCount ~/ bucketEntryCounts.length;
-    var entryCount = bucketEntryCounts.sum;
-    // The file outlives this process, and is shared with other processes, so
-    // it holds much more than this process wrote to it.
-    _writeFactGroups('Single File Store', {
-      'File': {
+    Map<String, String> fileFacts(List<int> bucketEntryCounts) {
+      var dataBytes = stats.singleFileDataBytes ?? 0;
+      var usedDataBytes = dataBytes - (stats.singleFileFreeDataBytes ?? 0);
+      var entrySlotCount = stats.singleFileTableSlotCount ?? 0;
+      var bucketSize = entrySlotCount ~/ bucketEntryCounts.length;
+      var entryCount = bucketEntryCounts.sum;
+      // The file outlives this process, and is shared with other processes, so
+      // it holds much more than this process wrote to it.
+      return {
         'Data limit': printBytes(dataBytes),
         'Data used': printBytes(usedDataBytes),
         'Data usage': _formatFraction(usedDataBytes, dataBytes),
@@ -310,7 +313,11 @@ class ByteStorePage extends DiagnosticPageWithNav {
           bucketEntryCounts.max,
           bucketSize,
         ),
-      },
+      };
+    }
+
+    _writeFactGroups('Single File Store', {
+      if (bucketEntryCounts != null) 'File': fileFacts(bucketEntryCounts),
       'This process': {
         'Pending entries': _formatCount(stats.singleFilePendingEntryCount ?? 0),
         'Commits': _formatCount(stats.singleFileCommitCount ?? 0),
@@ -343,6 +350,9 @@ class ByteStorePage extends DiagnosticPageWithNav {
         ),
       },
     });
+    if (stats.singleFileStoreStorageFailure case var failure?) {
+      p('Stopped using the file after a storage failure: $failure');
+    }
   }
 
   /// Writes a table with a group of lines for each of [rows], one line for

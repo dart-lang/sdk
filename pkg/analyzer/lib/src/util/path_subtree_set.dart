@@ -27,10 +27,13 @@ class PathSubtreeSet {
   /// normalized.
   new(this._context, Iterable<String> roots)
     : _roots = PathSet(context: _context) {
-    for (var root in roots) {
-      _roots.add(root);
-      _rootLengths.add(root.length);
-    }
+    roots.forEach(add);
+  }
+
+  /// Adds the subtree at [root], which must be absolute and normalized.
+  void add(String root) {
+    _roots.add(root);
+    _rootLengths.add(root.length);
   }
 
   /// Whether [path], or one of its ancestors, is a root of a subtree.

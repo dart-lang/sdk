@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-import 'dart:typed_data';
-
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
@@ -14,7 +11,6 @@ import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
-import 'package:analyzer/src/file_system/timing_resource_provider.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:test/test.dart';
 import 'package:unified_analytics/unified_analytics.dart';
@@ -28,10 +24,6 @@ void main() {
     test(
       'createAnalysisServer_alreadyStarted',
       SocketServerTest.createAnalysisServer_alreadyStarted,
-    );
-    test(
-      'createAnalysisServer_preservesFileByteStore',
-      SocketServerTest.createAnalysisServer_preservesFileByteStore,
     );
   });
 }
@@ -66,35 +58,6 @@ class SocketServerTest {
         });
   }
 
-  static Future<void> createAnalysisServer_preservesFileByteStore() async {
-    var cacheFolder = Directory.systemTemp.createTempSync('server-io-timing');
-    var channel = MockServerChannel();
-    var socketServer = _createSocketServer(
-      channel,
-      options: AnalysisServerOptions()..cacheFolder = cacheFolder.path,
-    );
-    try {
-      var server = socketServer.analysisServer!;
-      var stats = server.byteStoreStats!;
-      expect(stats.usesFileByteStore, isTrue);
-      expect(stats.fileStorePath, contains(cacheFolder.path));
-      expect(
-        server
-            .timingResourceProvider
-            .timings[ResourceProviderOperation.resourceGetStateLocation]
-            ?.count,
-        greaterThanOrEqualTo(1),
-      );
-      server.byteStore.putGet('io_timing_test', Uint8List.fromList([1, 2, 3]));
-      expect(server.byteStore.get('io_timing_test'), [1, 2, 3]);
-    } finally {
-      await channel.simulateRequestFromClient(
-        ServerShutdownParams().toRequest('0', clientUriConverter: null),
-      );
-      cacheFolder.deleteSync(recursive: true);
-    }
-  }
-
   static Future<void> createAnalysisServer_successful() {
     var channel = MockServerChannel();
     _createSocketServer(channel);
@@ -111,12 +74,9 @@ class SocketServerTest {
         });
   }
 
-  static SocketServer _createSocketServer(
-    MockServerChannel channel, {
-    AnalysisServerOptions? options,
-  }) {
+  static SocketServer _createSocketServer(MockServerChannel channel) {
     var server = SocketServer(
-      options ?? AnalysisServerOptions(),
+      AnalysisServerOptions(),
       DartSdkManager(''),
       CrashReportingAttachmentsBuilder.empty,
       SessionLogger(),

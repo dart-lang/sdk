@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io' as io;
 import 'dart:typed_data';
 
+import 'package:analysis_server/src/session_logger/session_listener.dart';
 import 'package:analysis_server/src/utilities/timing_byte_store.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
@@ -57,7 +59,16 @@ class const AnalysisServerByteStoreStats({
   final int? singleFileOversizedValueCount,
   final int? singleFilePendingEntryCount,
   final int? singleFileResetCount,
+
+  /// Why the single-file store could not be opened, if it could not.
+  final String? singleFileStoreOpenFailure,
+
   final String? singleFileStorePath,
+
+  /// The failure after which the opened single-file store stopped accessing
+  /// storage, if any.
+  final String? singleFileStoreStorageFailure,
+
   final int? singleFileTableSlotCount,
   final int? writeBytes,
   final int? writeCount,
@@ -85,17 +96,23 @@ class ServerByteStore {
   /// The single-file byte store owned by this manager, if any.
   SingleFileByteStore? _singleFileByteStore;
 
+  /// The failure to open the single-file byte store, if it was requested but
+  /// could not be opened.
+  io.FileSystemException? _singleFileStoreOpenFailure;
+
   new(
     ResourceProvider resourceProvider, {
     ByteStore? providedByteStore,
     bool disableFileByteStore = false,
     bool useSingleFileByteStore = false,
+    SessionListener? sessionListener,
   }) {
     byteStore = _createByteStore(
       resourceProvider,
       providedByteStore: providedByteStore,
       disableFileByteStore: disableFileByteStore,
       useSingleFileByteStore: useSingleFileByteStore,
+      sessionListener: sessionListener,
     );
   }
 
@@ -158,6 +175,9 @@ class ServerByteStore {
       singleFileOversizedValueBytes: singleFileStatistics?.oversizedValueBytes,
       singleFileOversizedValueCount: singleFileStatistics?.oversizedValueCount,
       singleFileResetCount: singleFileStatistics?.resetCount,
+      singleFileStoreOpenFailure: _singleFileStoreOpenFailure?.toString(),
+      singleFileStoreStorageFailure: singleFileByteStore?.storageFailure
+          ?.toString(),
       singleFileTableSlotCount: singleFileByteStore?.tableSlotCount,
     );
   }
@@ -197,6 +217,7 @@ class ServerByteStore {
     ByteStore? providedByteStore,
     required bool disableFileByteStore,
     required bool useSingleFileByteStore,
+    required SessionListener? sessionListener,
   }) {
     const M = 1024 * 1024 /*1 MiB*/;
     const G = 1024 * 1024 * 1024 /*1 GiB*/;
@@ -227,17 +248,26 @@ class ServerByteStore {
     if (baseProvider is PhysicalResourceProvider) {
       ByteStore? fileByteStore;
       if (useSingleFileByteStore) {
-        var folder = resourceProvider.getStateLocation('.analysis-cache');
-        if (folder != null) {
-          fileByteStore = _singleFileByteStore =
-              SingleFileByteStore.inDirectory(
-                folder.path,
-                filePageCountLog2: 22, // 4 GiB, including metadata.
-                tableSlotCountLog2: 19, // 524,288 entries.
-                bufferPoolCapacityLog2: 12, // 4 MiB of cached pages.
-                maxPendingValueBytes: M,
-                maxPendingEntryCount: 64,
-              );
+        // The disk store is an optimization, so continue without it.
+        try {
+          var folder = resourceProvider.getStateLocation('.analysis-cache');
+          if (folder != null) {
+            fileByteStore = _singleFileByteStore =
+                SingleFileByteStore.inDirectory(
+                  folder.path,
+                  filePageCountLog2: 22, // 4 GiB, including metadata.
+                  tableSlotCountLog2: 19, // 524,288 entries.
+                  bufferPoolCapacityLog2: 12, // 4 MiB of cached pages.
+                  maxPendingValueBytes: M,
+                  maxPendingEntryCount: 64,
+                );
+          }
+        } on io.FileSystemException catch (exception, stackTrace) {
+          _singleFileStoreOpenFailure = exception;
+          sessionListener?.logInfo(
+            'Could not open the single-file byte store: $exception\n'
+            '$stackTrace',
+          );
         }
       } else {
         var folder = resourceProvider.getStateLocation('.analysis-driver');

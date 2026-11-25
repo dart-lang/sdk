@@ -55,18 +55,11 @@ main(List<String> args) async {
     ]);
 
     for (final format in GenSnapshotFormat.values) {
-      // TODO(dartbug.com/64732): Add COFF-appropriate checking (including
-      // for the Windows assembly case) in compareStrippedAndUnstripped and
-      // then only skip COFF on non-Windows platforms and don't skip assembly.
+      // TODO(dartbug.com/64732): Add COFF-appropriate checking in
+      // compareStrippedAndUnstripped and then only skip COFF on non-Windows
+      // platforms.
       if (format == GenSnapshotFormat.coff) {
         print('Skipping COFF output until test appropriately extended.');
-        continue;
-      }
-      if (format == GenSnapshotFormat.assembly && Platform.isWindows) {
-        print(
-          'Skipping Windows assembly output until test appropriately '
-          'extended.',
-        );
         continue;
       }
       await runTestCase(tempDir, scriptDill, format);
@@ -105,6 +98,10 @@ Future<void> runTestCase(
   );
 }
 
+// Returns whether the assembly in [filename] has CodeView records.
+bool hasCodeView(String filename) =>
+    File(filename).readAsStringSync().contains(r'.section .debug$S');
+
 void compareStrippedAndUnstripped({
   required TestCase stripped,
   required TestCase unstripped,
@@ -117,10 +114,11 @@ void compareStrippedAndUnstripped({
       break;
     case GenSnapshotFormat.assembly:
       if (Platform.isWindows) {
-        Expect.fail("Assembly output on Windows is currently untested.");
+        // Only the unstripped assembly has CodeView records.
+        Expect.isFalse(hasCodeView(stripped.outputPath));
+        Expect.isTrue(hasCodeView(unstripped.outputPath));
       }
-      // For assembly outputs on other platforms, just compare the file sizes
-      // for now.
+      // Otherwise, just compare the file sizes for now.
       final strippedSize = File(stripped.outputPath).lengthSync();
       final unstrippedSize = File(unstripped.outputPath).lengthSync();
       print(

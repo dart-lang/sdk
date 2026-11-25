@@ -82,6 +82,7 @@ dependency_overrides:
               rootUri.startsWith('../samples/') || // sample package
               rootUri.startsWith('../runtime/') || // VM package
               rootUri.startsWith('../tests/ffi') || // FFI tests
+              rootUri.startsWith('../tests/language') || // language tests
               rootUri.startsWith(
                 '../tools',
               ) || // A tool package for developing the SDK.

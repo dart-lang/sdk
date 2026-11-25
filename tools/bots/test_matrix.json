@@ -3224,15 +3224,24 @@
       },
       "steps": [
         {
-          "name": "validate pkg/ pubspec files",
-          "script": "tools/package_deps/bin/package_deps.dart"
-        },
-        {
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
             "pkg_bot"
           ]
+        },
+        {
+          "name": "package unit tests",
+          "arguments": [
+            "-nunittest-asserts-${mode}-${system}-${arch}",
+            "pkg/pkg/(?!(analyzer*|analysis_server|analysis_server_plugin|compiler|dart2wasm|dev_compiler|dwds/test/integration|js_runtime|front_end|kernel|frontend_server|nnbd_migration|dartdev/test/native_assets|vm_service)/)"
+          ],
+          "shards": 4,
+          "fileset": "vm"
+        },
+        {
+          "name": "validate pkg/ pubspec files",
+          "script": "tools/package_deps/bin/package_deps.dart"
         },
         {
           "name": "validate SDK API docs",
@@ -3326,15 +3335,6 @@
             "--fatal-infos",
             "tools"
           ]
-        },
-        {
-          "name": "package unit tests",
-          "arguments": [
-            "-nunittest-asserts-${mode}-${system}-${arch}",
-            "pkg/pkg/(?!(analyzer*|analysis_server|analysis_server_plugin|compiler|dart2wasm|dev_compiler|dwds/test/integration|js_runtime|front_end|kernel|frontend_server|nnbd_migration|dartdev/test/native_assets|vm_service)/)"
-          ],
-          "shards": 3,
-          "fileset": "vm"
         }
       ]
     },

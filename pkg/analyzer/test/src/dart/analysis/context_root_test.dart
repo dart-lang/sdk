@@ -47,12 +47,17 @@ class ContextRootTest with ResourceProviderMixin {
     newFile(aPath, '');
     newFile(bPath, '');
     newFile(cPath, '');
-    contextRoot.excluded.add(newFolder(excludePath));
+    contextRoot.addExcluded(newFolder(excludePath));
 
     expect(
       contextRoot.analyzedFiles(),
       unorderedEquals([optionsPath, readmePath, aPath, bPath]),
     );
+  }
+
+  test_excluded_unmodifiable() {
+    var folder = newFolder('/test/root/exclude');
+    expect(() => contextRoot.excluded.add(folder), throwsUnsupportedError);
   }
 
   test_isAnalyzed_excludedByGlob_includedFile() {
@@ -112,30 +117,40 @@ class ContextRootTest with ResourceProviderMixin {
     _assertAnalyzedFiles2(root, [includedFile1, includedFile2, implicitFile]);
   }
 
+  test_isAnalyzed_explicitlyExcluded_afterQuery() {
+    var excludePath = convertPath('/test/root/exclude');
+    var filePath = convertPath('/test/root/exclude/a.dart');
+    expect(contextRoot.isAnalyzed(filePath), isTrue);
+
+    contextRoot.addExcluded(newFolder(excludePath));
+    expect(contextRoot.isAnalyzed(filePath), isFalse);
+    expect(contextRoot.excluded, [getFolder(excludePath)]);
+  }
+
   test_isAnalyzed_explicitlyExcluded_byFile() {
     var excludePath = convertPath('/test/root/exclude/c.dart');
     var siblingPath = convertPath('/test/root/exclude/d.dart');
-    contextRoot.excluded.add(newFile(excludePath, ''));
+    contextRoot.addExcluded(newFile(excludePath, ''));
     expect(contextRoot.isAnalyzed(excludePath), isFalse);
     expect(contextRoot.isAnalyzed(siblingPath), isTrue);
   }
 
   test_isAnalyzed_explicitlyExcluded_byFile_analysisOptions() {
     var excludePath = convertPath('/test/root/analysis_options.yaml');
-    contextRoot.excluded.add(newFile(excludePath, ''));
+    contextRoot.addExcluded(newFile(excludePath, ''));
     expect(contextRoot.isAnalyzed(excludePath), isFalse);
   }
 
   test_isAnalyzed_explicitlyExcluded_byFile_pubspec() {
     var excludePath = convertPath('/test/root/pubspec.yaml');
-    contextRoot.excluded.add(newFile(excludePath, ''));
+    contextRoot.addExcluded(newFile(excludePath, ''));
     expect(contextRoot.isAnalyzed(excludePath), isFalse);
   }
 
   test_isAnalyzed_explicitlyExcluded_byFolder() {
     String excludePath = convertPath('/test/root/exclude');
     String filePath = convertPath('/test/root/exclude/root.dart');
-    contextRoot.excluded.add(newFolder(excludePath));
+    contextRoot.addExcluded(newFolder(excludePath));
     expect(contextRoot.isAnalyzed(filePath), isFalse);
   }
 
@@ -144,7 +159,7 @@ class ContextRootTest with ResourceProviderMixin {
     String bPath = convertPath('/test/root/lib/b.dart');
     File aFile = getFile(aPath);
 
-    contextRoot.excluded.add(aFile);
+    contextRoot.addExcluded(aFile);
 
     expect(contextRoot.isAnalyzed(aPath), isFalse);
     expect(contextRoot.isAnalyzed(bPath), isTrue);

@@ -45,8 +45,8 @@ Future<void> main() async {
       if (!Platform.isMacOS) runElf,
       runMachODylib,
       if (hasDsymutil) runMachODsym,
-      // Don't run assembly on Windows since DLLs don't contain DWARF.
-      if (!Platform.isWindows) runAssembly,
+      // On Windows, the debugging information of DLLs is in their PDB.
+      Platform.isWindows ? runWindowsAssembly : runAssembly,
       runPECoff,
     ],
   );
@@ -240,6 +240,63 @@ Future<DwarfAssemblyState?> runAssembly(
   );
 }
 
+class DwarfWindowsAssemblyState extends PECoffState<Dwarf> {
+  DwarfWindowsAssemblyState(
+    super.output,
+    super.outputWithOppositeFlag,
+    super.pdb,
+  );
+
+  @override
+  String get description => 'assembly';
+
+  @override
+  Future<void> check(Trace trace, Dwarf dwarf) => compareTraces(
+    trace,
+    output,
+    outputWithOppositeFlag,
+    dwarf,
+    fromAssembly: true,
+    // The build ID of the DLL is the signature of the PDB.
+    matchingBuildIds: true,
+  );
+}
+
+Future<DwarfWindowsAssemblyState?> runWindowsAssembly(
+  String tempDir,
+  String scriptDill,
+) async {
+  if (skipAssembly != false) return null;
+
+  print("Generating assembly snapshots");
+  final asmPath = path.join(tempDir, 'dwarf_assembly.S');
+  final snapshotPath = path.join(tempDir, 'dwarf_assembly.dll');
+  final pdbPath = path.join(tempDir, 'dwarf_assembly.pdb');
+  await run(genSnapshot, <String>[
+    '--dwarf-stack-traces-mode',
+    '--snapshot-kind=app-aot-assembly',
+    '--assembly=$asmPath',
+    scriptDill,
+  ]);
+  await assembleSnapshot(asmPath, snapshotPath, debug: true);
+
+  final pdb = Dwarf.fromFile(pdbPath)!;
+
+  // Run the resulting Dwarf-AOT compiled script.
+  print("Generating assembly snapshot outputs");
+  final output = await runTestProgram(dartPrecompiledRuntime, <String>[
+    '--dwarf-stack-traces-mode',
+    snapshotPath,
+    scriptDill,
+  ]);
+  final outputWithOppositeFlag = await runTestProgram(
+    dartPrecompiledRuntime,
+    <String>['--no-dwarf-stack-traces-mode', snapshotPath, scriptDill],
+  );
+
+  return DwarfWindowsAssemblyState(output, outputWithOppositeFlag, pdb);
+}
+
 class DwarfPECoffState extends PECoffState<Dwarf> {
   DwarfPECoffState(super.output, super.outputWithOppositeFlag, super.pdb);
 
@@ -429,6 +486,7 @@ Future<void> compareTraces(
   DwarfTestOutput output2,
   Dwarf dwarf, {
   bool fromAssembly = false,
+  bool? matchingBuildIds,
 }) async {
   final header1 = StackTraceHeader.fromLines(output1.trace);
   print('Header1 = $header1');
@@ -449,7 +507,7 @@ Future<void> compareTraces(
     output2,
     dwarf,
     sampleOffset: tracePCOffsets1.first,
-    matchingBuildIds: !fromAssembly,
+    matchingBuildIds: matchingBuildIds ?? !fromAssembly,
   );
 
   final decoder = DwarfStackTraceDecoder(dwarf);

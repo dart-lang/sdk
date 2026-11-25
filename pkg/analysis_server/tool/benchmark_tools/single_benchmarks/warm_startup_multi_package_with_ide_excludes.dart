@@ -158,13 +158,20 @@ const _packageCounts = [25, 50, 100];
 /// one included root per package to avoid macOS FSEvents 1000ms retry jitter
 /// (`TimerUtils::Sleep(1000)` in `runtime/bin/file_system_watcher_macos.cc`).
 ///
-/// The scenario without excludes is the control, see [_printExcludeOverhead].
+/// For each protocol, the scenario without excludes is the control, see
+/// [_printExcludeOverhead].
 const _scenarios = [
   _Scenario(
     name: 'legacy_3p_excludes',
     description: 'IntelliJ / Android Studio today (3 excludes per package)',
     protocol: _Protocol.legacy,
     includePerPackageExcludes: true,
+  ),
+  _Scenario(
+    name: 'legacy_no_excludes',
+    description: 'Legacy control (0 excludes)',
+    protocol: _Protocol.legacy,
+    includePerPackageExcludes: false,
   ),
   _Scenario(
     name: 'lsp_3p_excludes',
@@ -289,16 +296,26 @@ Directory _createWorkspaceDirectory(Directory tmpDir) {
 }
 
 /// Prints the warm median of each scenario with excludes minus the warm
-/// median of the control scenario without excludes, for each package count.
+/// median of the scenario without excludes with the same protocol, for each
+/// package count.
 ///
 /// This is the cost of the IDE excludes, the headline number of the
-/// benchmark.
+/// benchmark. The protocols differ in costs that do not depend on the
+/// excludes, so each scenario is compared with its own protocol.
 void _printExcludeOverhead(List<_ResultRow> rows) {
-  var control = _scenarios.singleWhere((s) => !s.includePerPackageExcludes);
   var withExcludes = _scenarios.where((s) => s.includePerPackageExcludes);
 
+  _Scenario controlFor(_Scenario scenario) {
+    return _scenarios.singleWhere(
+      (s) => s.protocol == scenario.protocol && !s.includePerPackageExcludes,
+    );
+  }
+
   print('');
-  print('Exclude overhead (warm median minus `${control.name}`):');
+  print(
+    'Exclude overhead (warm median minus the scenario without excludes '
+    'with the same protocol):',
+  );
   print('');
   print('| Packages | ${withExcludes.map((s) => s.name).join(' | ')} |');
   print('|---:|${'---:|' * withExcludes.length}');
@@ -313,8 +330,10 @@ void _printExcludeOverhead(List<_ResultRow> rows) {
           .inMilliseconds;
     }
 
-    var controlMs = warmMedianMs(control);
-    var cells = withExcludes.map((s) => '+${warmMedianMs(s) - controlMs} ms');
+    var cells = withExcludes.map((s) {
+      var overheadMs = warmMedianMs(s) - warmMedianMs(controlFor(s));
+      return '${overheadMs >= 0 ? '+' : ''}$overheadMs ms';
+    });
     print('| $packageCount | ${cells.join(' | ')} |');
   }
 }

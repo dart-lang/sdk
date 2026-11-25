@@ -37,6 +37,7 @@ EXECUTABLE_NAMES = {
         'iexplore': 'iexplore.exe',
         'vctip': 'vctip.exe',
         'mspdbsrv': 'mspdbsrv.exe',
+        'test_app': 'test_app.exe',
     },
     'linux': {
         'chrome': 'chrome',
@@ -296,6 +297,7 @@ def KillDart():
     status += Kill("run_vm_tests", dump_stacks=True)
     status += Kill("flutter_tester", dump_stacks=True)
     status += Kill("crashpad_handler", dump_stacks=True)
+    status += Kill("test_app", dump_stacks=True)
     return status
 
 

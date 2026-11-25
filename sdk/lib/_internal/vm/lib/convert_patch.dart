@@ -224,10 +224,11 @@ class _NumberBuffer {
     return minCapacity;
   }
 
-  // Grows to the exact size asked for.
+  // Grows to the requested size, or at least doubles the capacity.
   void ensureCapacity(int newCapacity) {
     Uint8List list = this.list;
     if (newCapacity <= list.length) return;
+    if (newCapacity < 2 * list.length) newCapacity = 2 * list.length;
     Uint8List newList = Uint8List(newCapacity);
     newList.setRange(0, list.length, list, 0);
     this.list = newList;
@@ -1413,13 +1414,7 @@ mixin _ChunkedJsonParser<T> on _JsonParserWithListener {
         digit = char ^ CHAR_0;
       } while (digit <= 9);
       if (exponentOverflow) {
-        if (doubleValue == 0.0 || expSign < 0) {
-          listener.handleNumber(sign < 0 ? -0.0 : 0.0);
-        } else {
-          listener.handleNumber(
-            sign < 0 ? double.negativeInfinity : double.infinity,
-          );
-        }
+        listener.handleNumber(parseDouble(start, position));
         return position;
       }
       intValue += expSign * exponent;
@@ -1596,11 +1591,9 @@ class _JsonUtf8Parser extends _JsonParserWithListener
     if (value is Uint8List) {
       chunk = value;
     } else {
-      final bytes = Uint8List(end - start);
-      bytes.setRange(0, bytes.length, value, start);
-      end = bytes.length;
+      chunk = _Utf8Decoder._makeUint8List(value, start, end);
+      end -= start;
       start = 0;
-      chunk = bytes;
     }
     chunkEnd = end;
     parse(start);

@@ -18,26 +18,50 @@
 
 namespace dart {
 
-class CoffWriter;
 class DebugInfoStream;
+class Dwarf;
 
 // Translates the Dart debug metadata into Microsoft CodeView records embedded
 // in .debug$S (symbols + line numbers) and .debug$T (types).  The output is
 // designed so that `link.exe /DEBUG` synthesizes a Microsoft .pdb compatible
 // with WinDbg / Visual Studio.
 //
-// Owned by CoffWriter; appends bytes and relocations directly into the
-// CoffWriter's .debug$S / .debug$T sections.
+// Used by CoffWriter for PE/COFF snapshots, and by AssemblyImageWriter for
+// assembly snapshots for Windows, which write the records and the relocations
+// of .debug$S to their output.
 class CodeViewBuilder : public ZoneObject {
  public:
+  // A field of .debug$S that the linker sets to the location of the symbol of
+  // a Code.
+  struct Relocation {
+    enum class Kind {
+      // The 32-bit offset of the symbol in its section (SECREL).
+      kSectionOffset,
+      // The 16-bit index of the section of the symbol (SECTION).
+      kSectionIndex,
+    };
+
+    // The offset of the field in .debug$S.
+    intptr_t offset;
+    // The label of the Code.
+    intptr_t label;
+    Kind kind;
+  };
+
+  // Writes the records of the Codes in [dwarf] whose labels [code_symbols]
+  // maps to the names of their symbols in the text section. Other labels in
+  // [code_symbols] are ignored.
   CodeViewBuilder(Zone* zone,
-                  CoffWriter* writer,
+                  Dwarf* dwarf,
+                  const IntMap<const char*>& code_symbols,
                   DebugInfoStream* debug_s,
                   DebugInfoStream* debug_t);
 
-  // Populate the .debug$S and .debug$T sections.  Caller (CoffWriter::Finalize)
-  // must have created both sections before calling.
+  // Populate the .debug$S and .debug$T sections.
   void Build();
+
+  // The relocations of .debug$S, in increasing order of offset.
+  const GrowableArray<Relocation>& relocations() const { return relocations_; }
 
  private:
   // A row of a line table: the location of the code starting at pc_offset,
@@ -85,10 +109,10 @@ class CodeViewBuilder : public ZoneObject {
     intptr_t func_id = -1;  // index into func_ids_
   };
 
-  // CodeView metadata of a Code, indexed like CoffWriter::debug_codes().
+  // CodeView metadata of a Code, indexed like Dwarf::codes().
   struct CodeInfo {
     const char* name = nullptr;
-    // The VM-internal label registered with debug info/Coff.
+    // The label of the Code.
     intptr_t label = 0;
     // The index of the LF_FUNC_ID in func_ids_.
     intptr_t func_id = -1;
@@ -107,6 +131,9 @@ class CodeViewBuilder : public ZoneObject {
   uint32_t EmitFuncIdRecord(const char* name);
 
   // .debug$S helpers.
+  // Writes a field that the linker sets to the [kind] of location of the
+  // symbol of the Code with [label].
+  void WriteRelocatedField(intptr_t label, Relocation::Kind kind);
   void EmitObjectAndCompileSymbolsSubsection();
   void EmitFunctionSymbolsSubsection(const CodeInfo& info, const Code& code);
   void EmitLinesSubsection(const CodeInfo& info, const Code& code);
@@ -135,22 +162,19 @@ class CodeViewBuilder : public ZoneObject {
   const char* ResolvedScriptUri(const Script& script);
 
   Zone* const zone_;
-  // CodeViewBuilder is allocated and used synchronously by
-  // CoffWriter::EmitCodeView() during CoffWriter::Finalize(). The CoffWriter
-  // and the debug streams owned by its .debug$S/.debug$T Sections therefore
-  // remain valid for the builder's lifetime, before the sections are laid out
-  // and written.
-  CoffWriter* const writer_;
+  Dwarf* const dwarf_;
+  const IntMap<const char*>& code_symbols_;
   DebugInfoStream* const debugS_;
   DebugInfoStream* const debugT_;
+  GrowableArray<Relocation> relocations_;
 
   // The LF_FUNC_ID records, and their indices by name.
   ZoneGrowableArray<FuncId>* func_ids_;
   CStringIntMap func_id_indices_;
 
-  // Parallel to CoffWriter::debug_functions().
+  // Parallel to Dwarf::functions().
   ZoneGrowableArray<FunctionInfo>* functions_;
-  // Parallel to CoffWriter::debug_codes().
+  // Parallel to Dwarf::codes().
   ZoneGrowableArray<CodeInfo>* codes_;
 
   // Parallel arrays indexed by debug script index.  Computed

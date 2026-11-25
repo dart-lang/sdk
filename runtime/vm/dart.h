@@ -41,6 +41,12 @@ class Dart : public AllStatic {
   static bool SetActiveApiCall();
   static void ResetActiveApiCall();
 
+  // Used to indicate that a Dart_PostCObject call is active. Returns false if
+  // messages cannot be posted, i.e. before the VM is initialized or once
+  // Dart_Cleanup has shut down all isolates.
+  static bool SetActivePostCObject();
+  static void ResetActivePostCObject();
+
   static Isolate* CreateIsolate(const char* name_prefix,
                                 const Dart_IsolateFlags& api_flags,
                                 IsolateGroup* isolate_group);

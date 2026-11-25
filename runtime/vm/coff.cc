@@ -80,41 +80,6 @@ CoffWriter::CoffWriter(Zone* zone,
   string_table_ = new (zone) ZoneGrowableArray<uint8_t>(zone, 128);
 }
 
-const GrowableArray<const Code*>& CoffWriter::debug_codes() {
-  ASSERT(dwarf() != nullptr);
-  return dwarf()->codes();
-}
-
-const GrowableArray<const Function*>& CoffWriter::debug_functions() {
-  ASSERT(dwarf() != nullptr);
-  return dwarf()->functions();
-}
-
-const GrowableArray<const Script*>& CoffWriter::debug_scripts() {
-  ASSERT(dwarf() != nullptr);
-  return dwarf()->scripts();
-}
-
-const Trie<const char>* CoffWriter::debug_deobfuscation_trie() {
-  ASSERT(dwarf() != nullptr);
-  return dwarf()->deobfuscation_trie();
-}
-
-intptr_t CoffWriter::LookupDebugCodeLabel(const Code& code) {
-  ASSERT(dwarf() != nullptr);
-  return dwarf()->LookupCodeLabel(code);
-}
-
-intptr_t CoffWriter::LookupDebugFunction(const Function& function) {
-  ASSERT(dwarf() != nullptr);
-  return dwarf()->LookupFunction(function);
-}
-
-intptr_t CoffWriter::LookupDebugScript(const Script& script) {
-  ASSERT(dwarf() != nullptr);
-  return dwarf()->LookupScript(script);
-}
-
 // -----------------------------------------------------------------------------
 // String table
 // -----------------------------------------------------------------------------
@@ -747,9 +712,24 @@ void CoffWriter::EmitCodeView() {
       coff::PE_SCN_CNT_INITIALIZED_DATA | coff::PE_SCN_MEM_READ |
           coff::PE_SCN_MEM_DISCARDABLE | coff::PE_SCN_ALIGN_1BYTES,
       /*alignment_log2=*/0, /*is_bss=*/false);
-  codeview_ =
-      new (zone_) CodeViewBuilder(zone_, this, &debug_s->data, &debug_t->data);
-  codeview_->Build();
+
+  IntMap<const char*> code_symbols(zone_);
+  for (const CoffSym& symbol : *symbols_) {
+    if (symbol.label > 0 && symbol.section_number == kTextSectionNumber) {
+      code_symbols.Insert(symbol.label, symbol.name);
+    }
+  }
+  CodeViewBuilder codeview(zone_, dwarf_, code_symbols, &debug_s->data,
+                           &debug_t->data);
+  codeview.Build();
+  for (const auto& relocation : codeview.relocations()) {
+    const uint16_t type =
+        relocation.kind == CodeViewBuilder::Relocation::Kind::kSectionOffset
+            ? coff::PE_REL_AMD64_SECREL
+            : coff::PE_REL_AMD64_SECTION;
+    debug_s->relocs->Add(
+        {static_cast<uint32_t>(relocation.offset), relocation.label, type});
+  }
 }
 
 // -----------------------------------------------------------------------------

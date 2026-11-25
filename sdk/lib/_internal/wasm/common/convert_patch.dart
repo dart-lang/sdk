@@ -277,10 +277,11 @@ class _NumberBuffer {
     return minCapacity;
   }
 
-  // Grows to the exact size asked for.
+  // Grows to the requested size, or at least doubles the capacity.
   void ensureCapacity(int newCapacity) {
     WasmArray<WasmI8> array = this.array;
     if (newCapacity <= array.length) return;
+    if (newCapacity < 2 * array.length) newCapacity = 2 * array.length;
     WasmArray<WasmI8> newArray = WasmArray<WasmI8>(newCapacity);
     newArray.copy(0, array, 0, array.length);
     this.array = newArray;
@@ -1599,13 +1600,7 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
         digit = char ^ CHAR_0;
       } while (digit <= 9);
       if (exponentOverflow) {
-        if (doubleValue == 0.0 || expSign < 0) {
-          listener.handleNumber(sign < 0 ? -0.0 : 0.0);
-        } else {
-          listener.handleNumber(
-            sign < 0 ? double.negativeInfinity : double.infinity,
-          );
-        }
+        listener.handleNumber(parseDouble(start, position));
         return position;
       }
       intValue += expSign * exponent;
@@ -1931,11 +1926,9 @@ class _JsonUtf8Parser extends _ChunkedJsonParserState
     if (value is U8List) {
       chunk = value;
     } else {
-      final bytes = U8List(end - start);
-      bytes.setRange(0, bytes.length, value, start);
-      end = bytes.length;
+      chunk = U8List.withData(_makeI8Array(value, start, end), 0, end - start);
+      end -= start;
       start = 0;
-      chunk = bytes;
     }
     chunkEnd = end;
     parse(start);

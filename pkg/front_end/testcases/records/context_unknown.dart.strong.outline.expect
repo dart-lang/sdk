@@ -1,0 +1,26 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "package:expect/static_type_helper.dart";
+
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    ;
+  method call() → core::int
+    ;
+}
+static method contextRecordUnknown<T extends core::Object? = dynamic>((self::contextRecordUnknown::T%) x) → void
+  ;
+static method contextRecordNamedUnknown<T extends core::Object? = dynamic>(({required f1: self::contextRecordNamedUnknown::T%}) x) → void
+  ;
+static method contextRecordListOfUnknown<T extends core::Object? = dynamic>((core::List<self::contextRecordListOfUnknown::T%>) x) → void
+  ;
+static method contextRecordNamedListOfUnknown<T extends core::Object? = dynamic>(({required f1: core::List<self::contextRecordNamedListOfUnknown::T%>}) x) → void
+  ;
+static method contextRecordFunctionReturningUnknown<T extends core::Object? = dynamic>((() → self::contextRecordFunctionReturningUnknown::T%) x) → void
+  ;
+static method contextRecordNamedFunctionReturningUnknown<T extends core::Object? = dynamic>(({required f1: () → self::contextRecordNamedFunctionReturningUnknown::T%}) x) → void
+  ;
+static method main() → void
+  ;

@@ -1,0 +1,50 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "package:expect/static_type_helper.dart" as sta;
+
+import "package:expect/static_type_helper.dart";
+
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  method call() → core::int
+    return 0;
+}
+static method contextRecordUnknown<T extends core::Object? = dynamic>((self::contextRecordUnknown::T%) x) → void {}
+static method contextRecordNamedUnknown<T extends core::Object? = dynamic>(({required f1: self::contextRecordNamedUnknown::T%}) x) → void {}
+static method contextRecordListOfUnknown<T extends core::Object? = dynamic>((core::List<self::contextRecordListOfUnknown::T%>) x) → void {}
+static method contextRecordNamedListOfUnknown<T extends core::Object? = dynamic>(({required f1: core::List<self::contextRecordNamedListOfUnknown::T%>}) x) → void {}
+static method contextRecordFunctionReturningUnknown<T extends core::Object? = dynamic>((() → self::contextRecordFunctionReturningUnknown::T%) x) → void {}
+static method contextRecordNamedFunctionReturningUnknown<T extends core::Object? = dynamic>(({required f1: () → self::contextRecordNamedFunctionReturningUnknown::T%}) x) → void {}
+static method main() → void {
+  {
+    dynamic d = 0 as dynamic;
+    self::contextRecordUnknown<dynamic>(let final(dynamic) #t1 = (d) in block {
+      sta::StaticType|expectStaticType<(dynamic), ((dynamic)) → (dynamic)>(#t1);
+      #t1.$1{dynamic}{dynamic}.abs();
+    } =>#t1);
+    self::contextRecordNamedUnknown<dynamic>(let final({f1: dynamic}) #t2 = ({f1: d}) in block {
+      sta::StaticType|expectStaticType<({f1: dynamic}), (({required f1: dynamic})) → ({required f1: dynamic})>(#t2);
+      #t2.f1{dynamic}{dynamic}.abs();
+    } =>#t2);
+  }
+  {
+    dynamic d##1 = <core::int>[1] as dynamic;
+    self::contextRecordListOfUnknown<dynamic>(let final(core::List<dynamic>) #t3 = (d##1 as{TypeError,ForDynamic} core::List<dynamic>) in block {
+      sta::StaticType|expectStaticType<(core::List<dynamic>), ((core::List<core::Object?>)) → (core::List<core::Object?>)>(#t3);
+    } =>#t3);
+    self::contextRecordNamedListOfUnknown<dynamic>(let final({f1: core::List<dynamic>}) #t4 = ({f1: d##1 as{TypeError,ForDynamic} core::List<dynamic>}) in block {
+      sta::StaticType|expectStaticType<({f1: core::List<dynamic>}), (({required f1: core::List<core::Object?>})) → ({required f1: core::List<core::Object?>})>(#t4);
+    } =>#t4);
+  }
+  {
+    self::contextRecordFunctionReturningUnknown<core::int>(let final(() → core::int) #t5 = (let final self::C #t6 = new self::C::•() in #t6 == null ?{() → core::int} null : #t6.{self::C::call}{() → core::int}) in block {
+      sta::StaticType|expectStaticType<(() → core::int), ((() → core::int)) → (() → core::int)>(#t5);
+    } =>#t5);
+    self::contextRecordNamedFunctionReturningUnknown<core::int>(let final({f1: () → core::int}) #t7 = ({f1: let final self::C #t8 = new self::C::•() in #t8 == null ?{() → core::int} null : #t8.{self::C::call}{() → core::int}}) in block {
+      sta::StaticType|expectStaticType<({f1: () → core::int}), (({required f1: () → core::int})) → ({required f1: () → core::int})>(#t7);
+    } =>#t7);
+  }
+}

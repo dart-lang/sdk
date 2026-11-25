@@ -32,7 +32,7 @@ def Main(argv):
     if revision is None:
         revision = 'main'
     output = '''dartdoc:
-  categoryOrder: ["Core", "VM", "Web", "Web (Legacy)"]
+  categoryOrder: ["Core", "VM", "Web", "Deprecated"]
   categories:
     'Web':
       external:

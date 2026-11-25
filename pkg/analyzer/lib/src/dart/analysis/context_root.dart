@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
+
 import 'package:_fe_analyzer_shared/src/scanner/characters.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/util/path_subtree_set.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:glob/glob.dart';
-import 'package:path/path.dart';
 
 /// An implementation of a context root.
 class ContextRootImpl implements ContextRoot {
@@ -23,8 +25,17 @@ class ContextRootImpl implements ContextRoot {
   @override
   final List<Resource> included = [];
 
+  /// The files and directories that [addExcluded] excluded.
+  final List<Resource> _excluded = [];
+
+  /// The paths of [_excluded], for [_isExcluded].
+  late final PathSubtreeSet _excludedSubtrees = PathSubtreeSet(
+    resourceProvider.pathContext,
+    const [],
+  );
+
   @override
-  final List<Resource> excluded = [];
+  late final List<Resource> excluded = UnmodifiableListView(_excluded);
 
   /// A list of the globs for excluded files that were read from the analysis
   /// options file.
@@ -62,6 +73,12 @@ class ContextRootImpl implements ContextRoot {
   @override
   bool operator ==(Object other) {
     return other is ContextRootImpl && root.path == other.root.path;
+  }
+
+  /// Excludes [resource] from analysis.
+  void addExcluded(Resource resource) {
+    _excluded.add(resource);
+    _excludedSubtrees.add(resource.path);
   }
 
   @override
@@ -191,7 +208,7 @@ class ContextRootImpl implements ContextRoot {
     }
   }
 
-  /// Return `true` if the given [path] is not excluded by one of the
+  /// Return `true` if the given [path] is excluded by one of the
   /// [excludedPaths], or an applicable [excludedGlobs].
   ///
   /// This method is invoked while processing an explicitly [includedPath],
@@ -201,24 +218,8 @@ class ContextRootImpl implements ContextRoot {
       return true;
     }
 
-    Context context = resourceProvider.pathContext;
-    for (String excludedPath in excludedPaths) {
-      if (context.isAbsolute(excludedPath)) {
-        if (path == excludedPath || context.isWithin(excludedPath, path)) {
-          return true;
-        }
-      } else {
-        // The documentation claims that [excludedPaths] only contains absolute
-        // paths, so we shouldn't be able to reach this point.
-        for (String includedPath in includedPaths) {
-          if (context.isWithin(
-            context.join(includedPath, excludedPath),
-            path,
-          )) {
-            return true;
-          }
-        }
-      }
+    if (_excludedSubtrees.containsSelfOrAncestor(path)) {
+      return true;
     }
 
     for (var pattern in excludedGlobs) {

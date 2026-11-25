@@ -15,11 +15,12 @@ It accepts only `--dart=<path>` and `--json`; the scenarios and the sweep are fi
 
 ### What it simulates
 
-A pub workspace with 25, 50, or 100 packages, 50 small Dart libraries per package, one shared `.dart_tool/package_config.json`, opened as a single included root. For each package count, three scenarios run AOT `dart language-server` with a persistent disk cache (`--cache`):
+A pub workspace with 25, 50, or 100 packages, 50 small Dart libraries per package, one shared `.dart_tool/package_config.json`, opened as a single included root. For each package count, four scenarios run AOT `dart language-server` with a persistent disk cache (`--cache`):
 
 - `legacy_3p_excludes`: `--protocol=analyzer`, 3 excludes per package (`<package>/.dart_tool`, `<package>/.pub`, `<package>/build`) sent in `analysis.setAnalysisRoots`. This is IntelliJ and Android Studio today.
+- `legacy_no_excludes`: `--protocol=analyzer`, no excludes. This is the control for `legacy_3p_excludes`.
 - `lsp_3p_excludes`: `--protocol=lsp`, the same excludes sent as `analysisExcludedFolders` in the `workspace/configuration` response. VS Code sends none by default (Dart-Code 3.147), so this models users who configured excludes, and a possible future IntelliJ client that uses LSP.
-- `lsp_no_excludes`: `--protocol=lsp`, no excludes. This is the control, and the default for VS Code.
+- `lsp_no_excludes`: `--protocol=lsp`, no excludes. This is the control for `lsp_3p_excludes`, and the default for VS Code.
 
 Each scenario first runs a cold analysis to fill the cache, then 3 fresh server processes against the filled cache. The measured time is from sending `analysis.setAnalysisRoots` (legacy) or `initialized` (LSP) until analysis finishes, so it includes root discovery, file listing, and watcher setup, but not process launch.
 
@@ -40,7 +41,7 @@ The server checks every analyzed file against every included and excluded root, 
 ### Metrics
 
 - Primary: warm initial analysis time, median of 3 runs, for each scenario and package count.
-- Headline: the exclude overhead, the warm median of a scenario with excludes minus that of `lsp_no_excludes`, printed as a separate table. Fixes should bring it close to zero at every package count. If it grows with the package count again, that is a regression. A change that speeds up every file, with or without excludes, also speeds up the control, so the overhead does not show it; compare the warm medians too.
+- Headline: the exclude overhead, the warm median of a scenario with excludes minus that of the scenario without excludes with the same protocol, printed as a separate table. The protocols differ in costs that do not depend on the excludes: for example, the legacy server sends `analysis.errors` for every file, even without errors, while the LSP server publishes diagnostics only for files that have them. Fixes should bring it close to zero at every package count. If it grows with the package count again, that is a regression. A change that speeds up every file, with or without excludes, also speeds up the control, so the overhead does not show it; compare the warm medians too.
 
 The generated libraries are tiny, so reading, linking, and diagnostics cost much less than in real code. Relative speedups here are therefore much larger than in real repositories. Report the absolute milliseconds saved, and check the real impact on a real repository, as in the calibration below.
 
@@ -51,6 +52,26 @@ The Dart SDK repository, opened in IntelliJ, sends 32 included and 292 excluded 
 - Warm startup: median 6,320 ms (runs: 6,706, 6,306, 6,320 ms).
 - In a separate run under the sampling profiler (250 µs period), `isWithin` takes about 24% of CPU (about 1.5 s of the 6.3 s), two thirds of it in `AbstractNotificationManager._isIncluded`.
 - Control: `pkg/analyzer` alone (1,625 files, no excludes) has a warm median of 1,984 ms, of which `isWithin` is about 3% (about 60 ms). Adding 496 excludes raises the median to 2,250 ms and `isWithin` to about 18%.
+
+After the optimizations below, the same IntelliJ project was replayed on Linux x64 (AMD Ryzen 9 PRO 8945HS), with the server from before the optimizations (`f3091555445`) and the server after CL 580840 (product AOT, 3 interleaved rounds of 3 warm runs, mean of the warm medians). The payload is built from the `.iml` files of the project, as `DartServerRootsHandler` does: the content root of each module with the Dart SDK enabled is included, and its excluded folders and the `.idea` directory of the project are excluded. Six modules whose `.iml` files are not in this checkout, three of them outside the repository, are left out, which gives 30 included and 287 excluded roots.
+
+| Scenario | Before | After |
+|---|---:|---:|
+| With the excludes | 5,022 ms | 3,724 ms (−26%) |
+| The same included roots, without excludes | 3,967 ms | 3,755 ms (−5%) |
+| Exclude overhead | +1,055 ms | −31 ms |
+
+After the optimizations the overhead is negative, because without the excludes the server also analyzes the files in the excluded folders.
+
+The same replay on macOS (Apple M4 Pro, 32 included and 292 excluded roots, 6,720 analyzed files, product AOT from the same commits, 3 interleaved rounds of 3 warm runs against a shared filled cache) hits frequent `+1,000 ms` retries inside `analysis.setAnalysisRoots` when registering 32 FSEvents watchers (`TimerUtils::Sleep(1000)` in `runtime/bin/file_system_watcher_macos.cc`, occurring on 20 of the 36 runs, including one 10-second spike). Combining the median 0-retry `analysis.setAnalysisRoots` response time with the median post-`analysis.setAnalysisRoots` analysis time across all 9 warm runs (taking the median of only the 0-retry runs directly gives `6,955 → 5,410 ms`, −22%):
+
+| Scenario | Before | After |
+|---|---:|---:|
+| With the excludes | 6,960 ms | 5,466 ms (−21%) |
+| The same included roots, without excludes | 5,736 ms | 5,457 ms (−5%) |
+| Exclude overhead | +1,224 ms | +9 ms |
+
+The −1,494 ms saved with excludes matches the ~1.5 s sampling-profiler estimate above; the percentage is smaller than on Linux (−21% vs −26%) because macOS pays ~2.3 s in `analysis.setAnalysisRoots` watcher setup even at 0 retries. Both scenarios analyze the same 6,720 files here (the only existing non-dot excluded directory with Dart files is `pkg/front_end/testcases`, already excluded by `pkg/front_end/analysis_options_no_lints.yaml`), so the exclude overhead drops to noise (+9 ms) rather than turning negative.
 
 ### Baseline before the optimizations
 
@@ -77,6 +98,8 @@ Exclude overhead:
 | 100 | +1067 ms | +1032 ms |
 
 Each doubling of the package count multiplies the overhead by about 3.7–4.1, consistent with quadratic growth. At 100 packages, the excludes take 59% of the warm startup. With a 48-character `TMPDIR`, the overhead at 100 packages was +1073 ms and +1019 ms, so the padding works.
+
+Here and in the Optimizations entries below, up to "A control for each protocol", the overhead of both scenarios was computed against `lsp_no_excludes`. So the overhead of `legacy_3p_excludes` there includes costs of the legacy protocol that do not depend on the excludes: 58 ms at 100 packages with the server of CL 580800.
 
 ### Optimizations
 
@@ -186,6 +209,100 @@ Profile:
 | `package:path` code, with callees | 13.87G (67.0%) | 6.00G (47.3%) | −57% |
 
 After this change, `isWithin` in `ContextRootImpl._isExcluded` (41.9%) is most of the remaining exclude overhead.
+
+#### [CL 580800](https://dart-review.googlesource.com/c/sdk/+/580800): Look up the ancestors of a path in `ContextRootImpl._isExcluded`
+
+`_isExcluded` checked each file against every excluded path with `Context.isWithin`, both while listing the files of the context root and in `isAnalyzed` for every analysis result. Now `ContextRootImpl` keeps the excluded paths in a `PathSubtreeSet`, which `addExcluded` updates, so the cost no longer depends on the number of excludes.
+
+Warm medians:
+
+| Packages | legacy_3p_excludes | lsp_3p_excludes | lsp_no_excludes |
+|---:|---:|---:|---:|
+| 25 | 206 → 192 ms | 190 → 174 ms | 175 → 172 ms |
+| 50 | 443 → 380 ms | 418 → 350 ms | 348 → 347 ms |
+| 100 | 996 → 760 ms | 948 → 703 ms | 696 → 694 ms |
+
+Exclude overhead:
+
+| Packages | legacy_3p_excludes | lsp_3p_excludes |
+|---:|---:|---:|
+| 25 | 30 → 20 ms | 15 → 2 ms |
+| 50 | 95 → 33 ms | 70 → 3 ms |
+| 100 | 301 → 66 ms | 252 → 9 ms |
+
+Profile:
+
+| | Before | After | Change |
+|---|---:|---:|---:|
+| All server instructions | 12.68G | 6.97G | −45% |
+| `ContextRootImpl._isExcluded`, with callees | 5.50G (43.4%) | 0.044G (0.6%) | −99% |
+| `PathSubtreeSet.containsSelfOrAncestor`, with callees | 0.065G (0.5%) | 0.090G (1.3%) | |
+| `package:path` code, with callees | 5.92G (46.7%) | 0.62G (8.9%) | −89% |
+
+One of the 3 profiled runs after the change spent 0.56G more in GC than the other two, which adds 0.19G to the mean. The overhead of `lsp_3p_excludes` is now within the noise. The 66 ms of `legacy_3p_excludes` at 100 packages that remain do not depend on the excludes, see the next entry.
+
+#### [CL 580820](https://dart-review.googlesource.com/c/sdk/+/580820): A control for each protocol
+
+The overhead of `legacy_3p_excludes` was computed against `lsp_no_excludes`, so it included costs of the legacy protocol that do not depend on the excludes. Now each scenario with excludes is compared with the scenario without excludes with the same protocol, and the new `legacy_no_excludes` is the legacy control.
+
+Measured with the server of CL 580800.
+
+Warm medians:
+
+| Packages | legacy_3p_excludes | legacy_no_excludes | lsp_3p_excludes | lsp_no_excludes |
+|---:|---:|---:|---:|---:|
+| 25 | 193 ms | 191 ms | 176 ms | 174 ms |
+| 50 | 383 ms | 383 ms | 353 ms | 346 ms |
+| 100 | 762 ms | 751 ms | 706 ms | 694 ms |
+
+Exclude overhead, against `lsp_no_excludes` → against the control with the same protocol:
+
+| Packages | legacy_3p_excludes | lsp_3p_excludes |
+|---:|---:|---:|
+| 25 | 19 → 2 ms | 3 ms |
+| 50 | 37 → 0 ms | 7 ms |
+| 100 | 69 → 11 ms | 12 ms |
+
+The overhead of both scenarios is within the noise, so with the optimizations above, the IDE excludes cost about 10 ms at 100 packages in either protocol.
+
+The legacy protocol costs more than LSP: `legacy_no_excludes` minus `lsp_no_excludes` is 17, 37, and 58 ms at 25, 50, and 100 packages. In a profile of the 3 warm runs of both controls at 100 packages, the legacy server executes 1.34G more instructions (7.04G → 8.38G):
+
+- 0.57G to send `analysis.errors` for every file, even without errors, while the LSP server publishes diagnostics only for files that have them. Of these, 0.35G convert the path of the file to a URI in `Context.toUri`, about half of it in `Context.current`, which reads `Uri.base` on every call, even for an absolute path.
+- 0.38G to send `analysis.flushResults` for every file at shutdown, after the measured time.
+- 0.17G in `BulkFixProcessor`, which lists the files of every context root for `DartFixPromptManager`.
+- 0.17G in GC and other threads.
+
+#### [CL 580840](https://dart-review.googlesource.com/c/sdk/+/580840): Convert file paths to URIs without `Context.toUri` in `ClientUriConverter`
+
+When the client sends `supportsUris: true`, as IntelliJ does with SDK 3.4 and newer, the legacy server converts the path of every file in `analysis.errors` and other notifications to a `file:` URI. `Context.toUri` did this by reading `Context.current`, which reads `Uri.base` on every call, splitting the path into segments, building a `Uri`, and converting it back to a string. Now `toClientFilePath` writes `file://` and the path, with the characters that are not allowed in a URI path percent-encoded. Windows UNC paths still use `Context.toUri`.
+
+Measured with 4 interleaved rounds.
+
+Warm medians:
+
+| Packages | legacy_3p_excludes | legacy_no_excludes | lsp_3p_excludes | lsp_no_excludes |
+|---:|---:|---:|---:|---:|
+| 25 | 190 → 186 ms | 192 → 184 ms | 176 → 176 ms | 174 → 174 ms |
+| 50 | 377 → 369 ms | 376 → 368 ms | 354 → 354 ms | 348 → 349 ms |
+| 100 | 755 → 741 ms | 749 → 737 ms | 704 → 707 ms | 695 → 694 ms |
+
+The cost of the legacy protocol, `legacy_no_excludes` minus `lsp_no_excludes`:
+
+| Packages | Before | After |
+|---:|---:|---:|
+| 25 | 17 ms | 10 ms |
+| 50 | 29 ms | 19 ms |
+| 100 | 55 ms | 43 ms |
+
+Profile of the 3 warm runs of `legacy_no_excludes` at 100 packages:
+
+| | Before | After | Change |
+|---|---:|---:|---:|
+| All server instructions | 8.37G | 7.75G | −7% |
+| `ClientUriConverter.toClientFilePath`, with callees | 0.66G (7.9%) | 0.038G (0.5%) | −94% |
+| `AnalysisServer.handleAnalysisEvent`, with callees | 0.69G (8.2%) | 0.37G (4.8%) | −46% |
+
+About half of the conversions are in `analysis.flushResults` at shutdown, after the measured time.
 
 ### Limitations
 

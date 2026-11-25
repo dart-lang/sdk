@@ -48,13 +48,16 @@ String get analysisServerSrcPath {
 }
 
 void deleteServerCache() {
-  // ~/.dartServer/.analysis-driver/
+  // ~/.dartServer/.analysis-cache/ (SingleFileByteStore, the default)
+  // ~/.dartServer/.analysis-driver/ (EvictingFileByteStore)
   var resourceProvider = PhysicalResourceProvider.INSTANCE;
-  var stateLocation = resourceProvider.getStateLocation('.analysis-driver');
-  try {
-    stateLocation?.delete();
-  } catch (e) {
-    // ignore any exception
+  for (var name in ['.analysis-cache', '.analysis-driver']) {
+    var stateLocation = resourceProvider.getStateLocation(name);
+    try {
+      stateLocation?.delete();
+    } catch (e) {
+      // ignore any exception
+    }
   }
 }
 

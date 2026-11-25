@@ -104,6 +104,10 @@ String? get clangBuildToolsDir {
   return null;
 }
 
+// Assembles [assemblyPath] into the shared object [snapshotPath].
+//
+// If [debug], the shared object has debugging information, except on Windows,
+// where it is written to the PDB with the same path but the extension .pdb.
 Future<void> assembleSnapshot(
   String assemblyPath,
   String snapshotPath, {
@@ -145,10 +149,24 @@ Future<void> assembleSnapshot(
     } else if (buildDir.endsWith('RISCV64')) {
       ccFlags.add('--target=riscv64-linux-gnu');
     }
+  } else if (Platform.isWindows) {
+    // Use the same flags as the test runner.
+    if (buildDir.endsWith('ARM64') || buildDir.endsWith('ARM64C')) {
+      ccFlags.add('--target=arm64-windows');
+    } else {
+      ccFlags.add('--target=x86_64-windows');
+    }
+    ldFlags.add('-Wl,/NOENTRY');
   }
 
   if (debug) {
-    ccFlags.add('-g');
+    if (Platform.isWindows) {
+      // The debugging information is already in the assembly.
+      ldFlags.add('-Wl,/DEBUG');
+      ldFlags.add('-Wl,/PDB:${path.setExtension(snapshotPath, '.pdb')}');
+    } else {
+      ccFlags.add('-g');
+    }
   }
 
   await run(cc, <String>[

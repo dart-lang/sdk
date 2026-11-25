@@ -1,0 +1,13 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "dart:convert";
+import "dart:math";
+
+static method calculate(core::Map<dynamic, dynamic> values) → core::num
+  ;
+static method main() → void
+  ;
+static method throws(() → void f) → dynamic
+  ;

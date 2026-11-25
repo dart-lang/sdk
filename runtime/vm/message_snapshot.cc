@@ -15,6 +15,7 @@
 #include "vm/dart_entry.h"
 #include "vm/flags.h"
 #include "vm/growable_array.h"
+#include "vm/hash_map.h"
 #include "vm/heap/heap.h"
 #include "vm/heap/weak_table.h"
 #include "vm/longjump.h"
@@ -262,20 +263,21 @@ class ApiMessageSerializer : public BaseSerializer {
   ~ApiMessageSerializer();
 
   bool MarkObjectId(Dart_CObject* object, intptr_t id) {
-    ASSERT(id != WeakTable::kNoValue);
-    return forward_table_.MarkValueExclusive(
-        static_cast<ObjectPtr>(reinterpret_cast<uword>(object)), id);
+    ASSERT(id != kNoObjectId);
+    if (forward_table_.HasKey(object)) {
+      return false;
+    }
+    forward_table_.Insert({object, id});
+    return true;
   }
 
   void SetObjectId(Dart_CObject* object, intptr_t id) {
-    ASSERT(id != WeakTable::kNoValue);
-    forward_table_.SetValueExclusive(
-        static_cast<ObjectPtr>(reinterpret_cast<uword>(object)), id);
+    ASSERT(id != kNoObjectId);
+    forward_table_.Update({object, id});
   }
 
   intptr_t GetObjectId(Dart_CObject* object) const {
-    return forward_table_.GetValueExclusive(
-        static_cast<ObjectPtr>(reinterpret_cast<uword>(object)));
+    return forward_table_.LookupValue(object);
   }
 
   DART_NOINLINE void AddBaseObject(Dart_CObject* base_object) {
@@ -288,7 +290,7 @@ class ApiMessageSerializer : public BaseSerializer {
   }
   void ForwardRef(Dart_CObject* old, Dart_CObject* nue) {
     intptr_t id = GetObjectId(nue);
-    ASSERT(id != WeakTable::kNoValue);
+    ASSERT(id != kNoObjectId);
     SetObjectId(old, id);
     num_written_objects_--;
   }
@@ -302,7 +304,7 @@ class ApiMessageSerializer : public BaseSerializer {
 
   void WriteRef(Dart_CObject* object) {
     intptr_t index = GetObjectId(object);
-    ASSERT(index != WeakTable::kNoValue);
+    ASSERT(index != kNoObjectId);
     WriteUnsigned(index);
   }
 
@@ -312,7 +314,11 @@ class ApiMessageSerializer : public BaseSerializer {
   }
 
  private:
-  WeakTable forward_table_;
+  // The id of a Dart_CObject that is not in the forward table.
+  static constexpr intptr_t kNoObjectId = 0;
+
+  DirectChainedHashMap<RawPointerKeyValueTrait<Dart_CObject, intptr_t>>
+      forward_table_;
   GrowableArray<Dart_CObject*> stack_;
   const char* exception_message_;
 };
@@ -2694,7 +2700,7 @@ MessageSerializer::~MessageSerializer() {
 }
 
 ApiMessageSerializer::ApiMessageSerializer(Zone* zone)
-    : BaseSerializer(nullptr, zone), forward_table_(), stack_(zone, 0) {}
+    : BaseSerializer(nullptr, zone), forward_table_(zone), stack_(zone, 0) {}
 
 ApiMessageSerializer::~ApiMessageSerializer() {}
 

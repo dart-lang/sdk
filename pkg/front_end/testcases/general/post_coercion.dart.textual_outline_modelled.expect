@@ -1,0 +1,8 @@
+class A;
+
+class B {
+  A? _a;
+  A get a {}
+}
+
+dynamic createA() => A();

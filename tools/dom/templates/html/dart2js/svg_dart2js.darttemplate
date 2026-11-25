@@ -5,17 +5,21 @@
 /// Scalable Vector Graphics:
 /// Two-dimensional vector graphics with support for events and animation.
 ///
-/// > [!Note]
-/// > This core library is deprecated, and scheduled for removal in late 2025.
-/// > It has been replaced by [package:web](https://pub.dev/packages/web).
-/// > The [migration guide](https://dart.dev/go/package-web) has more details.
+/// > [!Warning]
+/// > This core library is deprecated and scheduled for removal in Dart 4.0.
+/// > Use [package:web](https://pub.dev/packages/web) and `dart:js_interop`
+/// > instead. See the [migration guide](https://dart.dev/go/package-web) for
+/// > details.
 ///
 /// For details about the features and syntax of SVG, a W3C standard,
 /// refer to the
 /// [Scalable Vector Graphics Specification](http://www.w3.org/TR/SVG/).
 ///
-/// {@category Web (Legacy)}
-@Deprecated('Use package:web and dart:js_interop instead.')
+/// {@category Deprecated}
+@Deprecated(
+  'Scheduled for removal in Dart 4.0. Use package:web and dart:js_interop '
+  'instead. See https://dart.dev/go/package-web.',
+)
 library dart.dom.svg;
 
 import 'dart:async';

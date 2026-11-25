@@ -6655,13 +6655,11 @@ static void CreateAppAOTSnapshotHelper(
 
   bool generate_debug = debug_callback_data != nullptr;
 #if defined(DART_TARGET_OS_WINDOWS)
-  if (format == Dart_AotBinaryFormat_Assembly) {
-    // TODO(https://github.com/dart-lang/sdk/issues/60812): Support PDB.
-    generate_debug = false;  // PDB unimplemented, no DWARF in PE.
-  }
-  if (format == Dart_AotBinaryFormat_PECoff_Obj) {
-    // COFF debug info is emitted as CodeView records in the .obj itself. The
-    // linker materializes those records into app.pdb via /DEBUG.
+  if (format == Dart_AotBinaryFormat_Assembly ||
+      format == Dart_AotBinaryFormat_PECoff_Obj) {
+    // Unless stripped, the debug info is emitted as CodeView records in the
+    // assembly or the .obj itself. The linker materializes those records into
+    // the PDB via /DEBUG.
     generate_debug = false;
   }
 #endif

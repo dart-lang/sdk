@@ -4,13 +4,17 @@
 
 /// High-fidelity audio programming in the browser.
 ///
-/// > [!Note]
-/// > This core library is deprecated, and scheduled for removal in late 2025.
-/// > It has been replaced by [package:web](https://pub.dev/packages/web).
-/// > The [migration guide](https://dart.dev/go/package-web) has more details.
+/// > [!Warning]
+/// > This core library is deprecated and scheduled for removal in Dart 4.0.
+/// > Use [package:web](https://pub.dev/packages/web) and `dart:js_interop`
+/// > instead. See the [migration guide](https://dart.dev/go/package-web) for
+/// > details.
 ///
-/// {@category Web (Legacy)}
-@Deprecated('Use package:web and dart:js_interop instead.')
+/// {@category Deprecated}
+@Deprecated(
+  'Scheduled for removal in Dart 4.0. Use package:web and dart:js_interop '
+  'instead. See https://dart.dev/go/package-web.',
+)
 library dart.dom.web_audio;
 
 import 'dart:async';

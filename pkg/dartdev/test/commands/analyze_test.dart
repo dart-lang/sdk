@@ -477,7 +477,7 @@ void f() {
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('No issues found!'));
-    expect(cache.findDirectory('.analysis-driver'), isNotNull);
+    expect(cache.findDirectory('.analysis-cache'), isNotNull);
   });
 
   group('display mode', () {

@@ -18,6 +18,15 @@ main() {
 class PathSubtreeSetPosixTest {
   final Context context = Context(style: Style.posix);
 
+  void test_add() {
+    var set = PathSubtreeSet(context, []);
+    expect(set.containsSelfOrAncestor('/a/b/c.dart'), isFalse);
+
+    set.add('/a/b');
+    expect(set.containsSelfOrAncestor('/a/b/c.dart'), isTrue);
+    expect(set.containsSelfOrAncestor('/a/c.dart'), isFalse);
+  }
+
   void test_ancestor() {
     var set = PathSubtreeSet(context, ['/a/b']);
     expect(set.containsSelfOrAncestor('/a/b/c.dart'), isTrue);

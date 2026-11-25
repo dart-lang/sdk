@@ -900,8 +900,7 @@ class _SyncStarContext extends BodyInferenceContext {
         )
         .expression;
     node.expression = expression..parent = node;
-    DartType type =
-        expressionResult.postCoercionType ?? expressionResult.inferredType;
+    DartType type = expressionResult.inferredType;
     if (_needToInferReturnType) {
       DartType elementType = type;
       if (node.isYieldStar) {
@@ -1069,8 +1068,7 @@ class _AsyncStarContext extends BodyInferenceContext {
         )
         .expression;
     node.expression = expression..parent = node;
-    DartType type =
-        expressionResult.postCoercionType ?? expressionResult.inferredType;
+    DartType type = expressionResult.inferredType;
     if (_needToInferReturnType) {
       DartType elementType = type;
       if (node.isYieldStar) {

@@ -1422,6 +1422,13 @@ class SocketException implements IOException {
   const SocketException(this.message, {this.osError, this.address, this.port});
 
   /// Creates an exception reporting that a socket was used after it was closed.
+  ///
+  /// The [message] describes that the socket is closed, and [osError],
+  /// [address], and [port] are `null`.
+  ///
+  /// For example, [Socket.remoteAddress], [Socket.remotePort], and
+  /// [Socket.setOption] throw this exception once the socket has been destroyed
+  /// or closed in both directions.
   const SocketException.closed()
     : message = 'Socket has been closed',
       osError = null,

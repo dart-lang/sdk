@@ -41,7 +41,28 @@ class DartApiCallScope : public ValueObject {
     return failure_value;                                                      \
   }
 
+class PostCObjectScope : public ValueObject {
+ public:
+  PostCObjectScope() : active_(Dart::SetActivePostCObject()) {}
+  ~PostCObjectScope() {
+    if (active_) {
+      Dart::ResetActivePostCObject();
+    }
+  }
+  bool active() const { return active_; }
+
+ private:
+  const bool active_;
+};
+
 static bool PostCObjectHelper(Dart_Port port_id, Dart_CObject* message) {
+  // Writing the message uses VM state, e.g. the zone segment cache, which
+  // Dart_Cleanup must not tear down until the message has been posted.
+  PostCObjectScope post_cobject_scope;
+  if (!post_cobject_scope.active()) {
+    return false;
+  }
+
   AllocOnlyStackZone zone;
   std::unique_ptr<Message> msg = WriteApiMessage(
       zone.GetZone(), message, port_id, Message::kNormalPriority);

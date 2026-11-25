@@ -7,26 +7,28 @@
 #if defined(DART_PRECOMPILER)
 
 #include "vm/code_descriptors.h"
-#include "vm/coff.h"
 #include "vm/datastream.h"
 #include "vm/debug_info.h"
 #include "vm/debug_info_stream.h"
+#include "vm/dwarf.h"
 #include "vm/hash_map.h"
 #include "vm/image_snapshot.h"
 #include "vm/object.h"
-#include "vm/os.h"
 #include "vm/version.h"
 
 namespace dart {
 
 CodeViewBuilder::CodeViewBuilder(Zone* zone,
-                                 CoffWriter* writer,
+                                 Dwarf* dwarf,
+                                 const IntMap<const char*>& code_symbols,
                                  DebugInfoStream* debug_s,
                                  DebugInfoStream* debug_t)
     : zone_(zone),
-      writer_(writer),
+      dwarf_(ASSERT_NOTNULL(dwarf)),
+      code_symbols_(code_symbols),
       debugS_(ASSERT_NOTNULL(debug_s)),
       debugT_(ASSERT_NOTNULL(debug_t)),
+      relocations_(zone, 64),
       func_ids_(new (zone) ZoneGrowableArray<FuncId>(zone, 64)),
       func_id_indices_(zone),
       functions_(new (zone) ZoneGrowableArray<FunctionInfo>(zone, 64)),
@@ -69,14 +71,14 @@ static uint32_t EncodeSignedAnnotation(int32_t value) {
 
 const char* CodeViewBuilder::FunctionName(const Function& function) {
   const char* const raw_name = function.QualifiedUserVisibleNameCString();
-  return ImageWriter::Deobfuscate(zone_, writer_->debug_deobfuscation_trie(),
+  return ImageWriter::Deobfuscate(zone_, dwarf_->deobfuscation_trie(),
                                   raw_name);
 }
 
 int32_t CodeViewBuilder::ScriptIndex(const Function& function) {
   const Script& script = Script::Handle(zone_, function.script());
   // Debug script indices are 1-based.
-  return static_cast<int32_t>(writer_->LookupDebugScript(script) - 1);
+  return static_cast<int32_t>(dwarf_->LookupScript(script) - 1);
 }
 
 int32_t CodeViewBuilder::StartLine(const Function& function) {
@@ -95,7 +97,7 @@ int32_t CodeViewBuilder::StartLine(const Function& function) {
 
 const char* CodeViewBuilder::ResolvedScriptUri(const Script& script) {
   return DebugInfo::ResolveScriptUri(zone_, script,
-                                     writer_->debug_deobfuscation_trie());
+                                     dwarf_->deobfuscation_trie());
 }
 
 // ----------------------------------------------------------------------------
@@ -121,7 +123,7 @@ void CodeViewBuilder::ComputeScriptTables() {
   // String table starts with a mandatory empty string at offset 0.
   static constexpr uint32_t kCheckSumEntrySize = 8;
   uint32_t string_offset = 1;
-  const auto& scripts = writer_->debug_scripts();
+  const auto& scripts = dwarf_->scripts();
   for (intptr_t i = 0; i < scripts.length(); i++) {
     const Script& script = *(scripts[i]);
     const char* uri = ResolvedScriptUri(script);
@@ -149,7 +151,7 @@ intptr_t CodeViewBuilder::AddFuncId(const char* name) {
 }
 
 void CodeViewBuilder::GatherFunctions() {
-  const auto& functions = writer_->debug_functions();
+  const auto& functions = dwarf_->functions();
   functions_->Clear();
   functions_->EnsureLength(functions.length(), FunctionInfo());
   for (intptr_t i = 0; i < functions.length(); i++) {
@@ -158,7 +160,7 @@ void CodeViewBuilder::GatherFunctions() {
 }
 
 void CodeViewBuilder::GatherCodes() {
-  const auto& codes = writer_->debug_codes();
+  const auto& codes = dwarf_->codes();
   codes_->Clear();
   codes_->EnsureLength(codes.length(), CodeInfo());
 
@@ -168,32 +170,27 @@ void CodeViewBuilder::GatherCodes() {
   for (intptr_t i = 0; i < codes.length(); i++) {
     CodeInfo& info = (*codes_)[i];
     const Code& code = *(codes[i]);
-    const intptr_t label = writer_->LookupDebugCodeLabel(code);
-    if (label <= 0 || !writer_->label_to_symbol_index_.HasKey(label)) continue;
-
-    const intptr_t sym_idx = writer_->label_to_symbol_index_.Lookup(label);
-    ASSERT(sym_idx > 0 && sym_idx <= writer_->symbols_->length());
-    const auto& sym = (*writer_->symbols_)[sym_idx - 1];
-    ASSERT(sym.section_number == CoffWriter::kTextSectionNumber);
+    const intptr_t label = dwarf_->LookupCodeLabel(code);
+    if (label <= 0) continue;
+    const char* const symbol = code_symbols_.Lookup(label);
+    if (symbol == nullptr) continue;
 
     info.label = label;
     if (code.IsFunctionCode() && !code.IsUnknownDartCode()) {
       function = code.function();
       ASSERT(!function.IsNull());
-      info.func_id =
-          (*functions_)[writer_->LookupDebugFunction(function)].func_id;
+      info.func_id = (*functions_)[dwarf_->LookupFunction(function)].func_id;
       info.name = (*func_ids_)[info.func_id].name;
       if (info.name[0] == '\0') {
-        info.name = sym.name != nullptr ? sym.name : "<anonymous>";
+        info.name = symbol;
         info.func_id = AddFuncId(info.name);
       }
       info.is_visible = function.is_visible();
       info.file_index = ScriptIndex(function);
     } else {
-      // No Dart-level function (stubs etc.) -- use the COFF symbol name we
-      // already chose for this Code so the .pdb at least shows that.
-      info.name = sym.name != nullptr ? sym.name
-                                      : OS::SCreate(zone_, "code_%" Pd, label);
+      // No Dart-level function (stubs etc.) -- use the name of the symbol of
+      // this Code so the .pdb at least shows that.
+      info.name = symbol;
       info.func_id = AddFuncId(info.name);
     }
   }
@@ -320,8 +317,7 @@ void CodeViewBuilder::GatherLocations(CodeInfo* info, const Code& code) {
               new (zone_) InlineSite(zone_, function, start_pc_offset);
           inline_sites->Add(site);
           frames.Add({DebugInfoPosition(), site->rows, site->children, site});
-          const intptr_t function_index =
-              writer_->LookupDebugFunction(function);
+          const intptr_t function_index = dwarf_->LookupFunction(function);
           FuncId& func_id = (*func_ids_)[(*functions_)[function_index].func_id];
           if (func_id.inlined == -1) {
             func_id.inlined = function_index;
@@ -418,10 +414,22 @@ uint32_t CodeViewBuilder::EmitFuncIdRecord(const char* name) {
 // .debug$S subsections
 // ----------------------------------------------------------------------------
 
+void CodeViewBuilder::WriteRelocatedField(intptr_t label,
+                                          Relocation::Kind kind) {
+  relocations_.Add({debugS_->Position(), label, kind});
+  switch (kind) {
+    case Relocation::Kind::kSectionOffset:
+      debugS_->u4(0);
+      break;
+    case Relocation::Kind::kSectionIndex:
+      debugS_->u2(0);
+      break;
+  }
+}
+
 void CodeViewBuilder::EmitOneFunctionSymbol(const CodeInfo& info,
                                             const Code& code) {
   const uint32_t code_size = static_cast<uint32_t>(code.Size());
-  auto* const relocs = writer_->by_kind_[CoffWriter::kSecDebugS]->relocs;
 
   // S_GPROC32_ID, or S_LPROC32_ID for functions that are invisible in stack
   // traces, so that symbolizers can hide them like DWARF-based ones hide
@@ -435,15 +443,8 @@ void CodeViewBuilder::EmitOneFunctionSymbol(const CodeInfo& info,
     debugS_->u4(0);          // DebugStart
     debugS_->u4(code_size);  // DebugEnd
     debugS_->u4((*func_ids_)[info.func_id].type_index);
-    // CodeOffset slot -- SECREL relocation against this function's COFF
-    // symbol.
-    relocs->Add({static_cast<uint32_t>(debugS_->Position()), info.label,
-                 coff::PE_REL_AMD64_SECREL});
-    debugS_->u4(0);  // inline addend
-    // Segment slot -- SECTION relocation against this function's COFF symbol.
-    relocs->Add({static_cast<uint32_t>(debugS_->Position()), info.label,
-                 coff::PE_REL_AMD64_SECTION});
-    debugS_->u2(0);
+    WriteRelocatedField(info.label, Relocation::Kind::kSectionOffset);
+    WriteRelocatedField(info.label, Relocation::Kind::kSectionIndex);
     debugS_->u1(0);  // flags
     debugS_->string(info.name);
     debugS_->Align(4);
@@ -458,8 +459,10 @@ void CodeViewBuilder::EmitOneFunctionSymbol(const CodeInfo& info,
     debugS_->u4(0);  // bytes of callee-saved regs
     debugS_->u4(0);  // offset of exception handler
     debugS_->u2(0);  // section of exception handler
-    // Flags: EncodedLocalBasePointer=rbp (bits 14-15 == 0b01).
-    debugS_->u4(1u << 14);
+    // Flags: EncodedLocalBasePointer and EncodedParamBasePointer=frame
+    // pointer, which is rbp on X64 and x29 on ARM64 (bits 14-15 and bits 16-17
+    // == 0b10), like clang.
+    debugS_->u4((2u << 14) | (2u << 16));
     debugS_->Align(4);
   });
 
@@ -493,7 +496,7 @@ void CodeViewBuilder::EmitInlineSite(const InlineSite& site) {
     WriteCompressedAnnotation(&annotations, opcode);
     WriteCompressedAnnotation(&annotations, operand);
   };
-  const intptr_t function_index = writer_->LookupDebugFunction(site.function);
+  const intptr_t function_index = dwarf_->LookupFunction(site.function);
   const FuncId& func_id = (*func_ids_)[(*functions_)[function_index].func_id];
   ASSERT(func_id.inlined != -1);
   // The other functions with the LF_FUNC_ID can be in other scripts.
@@ -562,7 +565,11 @@ void CodeViewBuilder::EmitObjectAndCompileSymbolsSubsection() {
     debugS_->WritePrefixedLengthU16([&]() {
       debugS_->u2(coff::S_COMPILE3);
       debugS_->u4(static_cast<uint32_t>(coff::CV_CFL_C));
+#if defined(TARGET_ARCH_ARM64)
+      debugS_->u2(coff::CV_CFL_ARM64);
+#else
       debugS_->u2(coff::CV_CFL_X64);
+#endif
       debugS_->u2(0);  // FE Major
       debugS_->u2(0);  // FE Minor
       debugS_->u2(0);  // FE Build
@@ -597,15 +604,11 @@ void CodeViewBuilder::EmitLinesSubsection(const CodeInfo& info,
   if (rows.is_empty()) return;
   ASSERT(info.file_index >= 0);
 
-  intptr_t code_offset_pos = 0;
-  intptr_t section_pos = 0;
   debugS_->u4(coff::DEBUG_S_LINES);
   debugS_->WritePrefixedLength([&]() {
     // DEBUG_S_LINES section header.
-    code_offset_pos = debugS_->Position();
-    debugS_->u4(0);  // inline addend
-    section_pos = debugS_->Position();
-    debugS_->u2(0);  // Section (SECTION reloc)
+    WriteRelocatedField(info.label, Relocation::Kind::kSectionOffset);
+    WriteRelocatedField(info.label, Relocation::Kind::kSectionIndex);
     debugS_->u2(coff::CvLineSectionHeader::kHaveColumns);  // Flags
     debugS_->u4(static_cast<uint32_t>(code.Size()));
 
@@ -630,13 +633,6 @@ void CodeViewBuilder::EmitLinesSubsection(const CodeInfo& info,
     }
   });
   debugS_->Align(4);
-
-  writer_->by_kind_[CoffWriter::kSecDebugS]->relocs->Add(
-      {static_cast<uint32_t>(code_offset_pos), info.label,
-       coff::PE_REL_AMD64_SECREL});
-  writer_->by_kind_[CoffWriter::kSecDebugS]->relocs->Add(
-      {static_cast<uint32_t>(section_pos), info.label,
-       coff::PE_REL_AMD64_SECTION});
 }
 
 // For each LF_FUNC_ID of inlined functions, the script and start line of the
@@ -665,7 +661,7 @@ void CodeViewBuilder::EmitInlineeLinesSubsection() {
 void CodeViewBuilder::EmitFileChecksumsSubsection() {
   debugS_->u4(coff::DEBUG_S_FILECHKSMS);
   debugS_->WritePrefixedLength([&]() {
-    const auto& scripts = writer_->debug_scripts();
+    const auto& scripts = dwarf_->scripts();
     for (intptr_t i = 0; i < scripts.length(); i++) {
       // Each entry is exactly 8 bytes (6 payload + 2 padding), matching the
       // layout assumed by ComputeScriptTables.
@@ -685,7 +681,7 @@ void CodeViewBuilder::EmitStringTableSubsection() {
     // Leading mandatory empty string.
     debugS_->u1(0);
 
-    const auto& scripts = writer_->debug_scripts();
+    const auto& scripts = dwarf_->scripts();
     for (intptr_t i = 0; i < scripts.length(); i++) {
       const Script& script = *(scripts[i]);
       const char* uri = ResolvedScriptUri(script);
@@ -704,7 +700,7 @@ void CodeViewBuilder::Build() {
   GatherCodes();
   ComputeScriptTables();
 
-  const auto& codes = writer_->debug_codes();
+  const auto& codes = dwarf_->codes();
   ASSERT(codes_->length() == codes.length());
   for (intptr_t i = 0; i < codes.length(); i++) {
     CodeInfo& info = (*codes_)[i];
