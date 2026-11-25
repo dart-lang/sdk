@@ -394,10 +394,19 @@ class TypesBuilder {
   ir.StructType defineStruct(
     String name, {
     Iterable<ir.FieldType>? fields,
+    Map<int, String>? fieldNames,
     ir.DefType? superType,
     required bool brand,
   }) {
     final type = ir.StructType(name, fields: fields, superType: superType);
+    if (fieldNames != null) {
+      assert(
+        fieldNames.keys.every(
+          (index) => index >= 0 && index < type.fields.length,
+        ),
+      );
+      type.fieldNames.addAll(fieldNames);
+    }
     _recGroupBuilder.addDefinedType(type);
     if (brand) {
       _recGroupBuilder._brandedStructs.add(type);
