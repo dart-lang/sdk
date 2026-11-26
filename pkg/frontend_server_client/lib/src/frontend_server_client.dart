@@ -23,6 +23,10 @@ class FrontendServerClient {
   /// Completes the next time this client becomes idle, see [_isIdle].
   Completer<void>? _idleCompleter;
 
+  /// Set the first time [_feServerStdoutLines] is cancelled, which can only
+  /// be done once.
+  Future<void>? _stdoutLinesCancelled;
+
   FrontendServerClient._(
     this._entrypoint,
     this._feServer,
@@ -31,6 +35,10 @@ class FrontendServerClient {
   }) : _verbose = verbose ?? false,
        _state = _ClientState.waitingForFirstCompile {
     _feServer.stderr.transform(utf8.decoder).listen(stderr.write);
+    // Writing to a frontend server that has exited fails later, as an error
+    // on `stdin.done`. The call that was waiting for an answer already
+    // reports the exit, so that error must not end up unhandled.
+    _feServer.stdin.done.ignore();
   }
 
   /// Starts the frontend server.
@@ -187,6 +195,10 @@ class FrontendServerClient {
   /// [invalidatedUris] must not be null for all but the very first compile.
   ///
   /// The frontend server _does not_ do any of its own invalidation.
+  ///
+  /// Throws a [StateError] if the frontend server exits before the compile
+  /// finishes. After that, every call except [shutdown] and [kill] throws a
+  /// [StateError].
   Future<CompileResult> compile([List<Uri>? invalidatedUris]) =>
       _compile(invalidatedUris, restart: false);
 
@@ -239,9 +251,12 @@ class FrontendServerClient {
         );
       case _ClientState.compilingExpression:
         throw StateError('Unreachable');
+      case _ClientState.exited:
+        throw StateError(_exitedMessage);
     }
     _state = _ClientState.compiling;
 
+    var exited = false;
     try {
       final command = StringBuffer('$action $_entrypoint');
       if (action != 'compile') {
@@ -301,6 +316,12 @@ class FrontendServerClient {
             throw StateError('Unreachable');
         }
       }
+      // The loop also ends when the frontend server's output closes, which
+      // happens when it exits. Then the reply is incomplete.
+      if (state != _CompileState.done) {
+        exited = true;
+        throw StateError('The frontend server exited while compiling.');
+      }
 
       return CompileResult._(
         dillOutput: outputDillPath,
@@ -310,7 +331,9 @@ class FrontendServerClient {
         compilerOutputLines: compilerOutputLines,
       );
     } finally {
-      _state = _ClientState.waitingForAcceptOrReject;
+      _setState(
+        exited ? _ClientState.exited : _ClientState.waitingForAcceptOrReject,
+      );
     }
   }
 
@@ -344,12 +367,14 @@ class FrontendServerClient {
     String? scriptUri,
   }) async {
     while (!_isIdle) {
+      _throwIfExited();
       await _nextIdle;
     }
     // See Frontend Server state machine here:
     // pkg/frontend_server/lib/frontend_server.dart
     final previousState = _state;
     _state = _ClientState.compilingExpression;
+    var exited = false;
     try {
       _sendCommand('JSON_INPUT');
       _sendCommand(
@@ -406,11 +431,12 @@ class FrontendServerClient {
           compilerOutputLines.add(line);
         }
       }
+      exited = true;
       throw StateError(
         'The frontend server exited while compiling an expression.',
       );
     } finally {
-      _setState(previousState);
+      _setState(exited ? _ClientState.exited : previousState);
     }
   }
 
@@ -418,6 +444,7 @@ class FrontendServerClient {
   ///
   /// Either [accept] or [reject] should be called after every [compile] call.
   void accept() {
+    _throwIfExited();
     if (_state != _ClientState.waitingForAcceptOrReject) {
       throw StateError(
         'Called `accept` but there was no previous compile to accept.',
@@ -434,6 +461,7 @@ class FrontendServerClient {
   /// The result of this call must be awaited before a new [compile] can be
   /// done.
   Future<void> reject() async {
+    _throwIfExited();
     if (_state != _ClientState.waitingForAcceptOrReject) {
       throw StateError(
         'Called `reject` but there was no previous compile to reject.',
@@ -467,6 +495,12 @@ class FrontendServerClient {
           throw StateError('Unreachable');
       }
     }
+    // The loop also ends when the frontend server's output closes, which
+    // happens when it exits. Then the reply is incomplete.
+    if (rejectState != _RejectState.done) {
+      _setState(_ClientState.exited);
+      throw StateError('The frontend server exited while rejecting.');
+    }
     _setState(_ClientState.waitingForRecompile);
   }
 
@@ -474,6 +508,7 @@ class FrontendServerClient {
   /// accepted previously so that next call to [compile] produces complete
   /// kernel file.
   void reset() {
+    _throwIfExited();
     if (_state == _ClientState.compiling ||
         _state == _ClientState.compilingExpression) {
       throw StateError(
@@ -486,21 +521,33 @@ class FrontendServerClient {
   }
 
   /// Stop the service gracefully (using the shutdown command)
+  ///
+  /// Can be called after the frontend server has exited, and more than once.
   Future<int> shutdown() async {
-    _sendCommand('quit');
+    if (_state != _ClientState.exited) {
+      _sendCommand('quit');
+      _setState(_ClientState.exited);
+    }
     final timer = Timer(const Duration(seconds: 1), _feServer.kill);
     final exitCode = await _feServer.exitCode;
     timer.cancel();
-    await _feServerStdoutLines.cancel();
+    await _cancelStdoutLines();
     return exitCode;
   }
 
   /// Kills the server forcefully by calling `kill` on the process, and
   /// returns the result.
+  ///
+  /// Can be called after the frontend server has exited, and more than once.
   bool kill({ProcessSignal processSignal = ProcessSignal.sigterm}) {
-    _feServerStdoutLines.cancel();
+    _setState(_ClientState.exited);
+    unawaited(_cancelStdoutLines());
     return _feServer.kill(processSignal);
   }
+
+  /// Stops reading the frontend server's output.
+  Future<void> _cancelStdoutLines() => _stdoutLinesCancelled ??=
+      _feServerStdoutLines.cancel() ?? Future<void>.value();
 
   /// Sends [command] to the [_feServer] via stdin, and logs it if [_verbose].
   void _sendCommand(String command) {
@@ -529,12 +576,24 @@ class FrontendServerClient {
   Future<void> get _nextIdle => (_idleCompleter ??= Completer<void>()).future;
 
   /// Sets [_state] and updates _idleCompleter.
+  ///
+  /// Callers waiting for the client to become idle are also woken up when the
+  /// frontend server exits, so they can throw instead of waiting forever.
+  /// Once the state is `exited`, it never changes again.
   void _setState(_ClientState state) {
+    if (_state == _ClientState.exited) return;
     _state = state;
-    if (_isIdle) {
+    if (_isIdle || state == _ClientState.exited) {
       _idleCompleter?.complete();
       _idleCompleter = null;
     }
+  }
+
+  static const _exitedMessage = 'The frontend server has exited.';
+
+  /// Throws a [StateError] if the frontend server has exited.
+  void _throwIfExited() {
+    if (_state == _ClientState.exited) throw StateError(_exitedMessage);
   }
 }
 
@@ -601,6 +660,7 @@ class CompileResult {
 enum _ClientState {
   compiling,
   compilingExpression,
+  exited,
   rejecting,
   waitingForAcceptOrReject,
   waitingForFirstCompile,

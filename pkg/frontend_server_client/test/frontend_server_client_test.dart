@@ -553,6 +553,188 @@ void main() {
     }, timeout: const Timeout.factor(4));
   });
 
+  group('frontend server process', () {
+    /// Writes a stand-in frontend server with [source], and returns its path.
+    Future<String> fakeFrontendServer(String source) async {
+      await d.file('fake_frontend_server.dart', source).create();
+      return p.join(d.sandbox, 'fake_frontend_server.dart');
+    }
+
+    test('compile throws if the frontend server exits', () async {
+      final frontendServerPath = await fakeFrontendServer('''
+import 'dart:io';
+
+Future<void> main() async {
+  await stdin.first;
+  exit(1);
+}
+''');
+      final feClient = await FrontendServerClient.start(
+        'main.dart',
+        p.join(d.sandbox, 'out', 'app.dill'),
+        vmPlatformDill,
+        frontendServerPath: frontendServerPath,
+      );
+      addTearDown(feClient.kill);
+      await expectLater(
+        feClient.compile(),
+        throwsA(
+          isA<StateError>().having(
+            (error) => error.message,
+            'message',
+            contains('exited'),
+          ),
+        ),
+      );
+    });
+
+    test('every call throws after the frontend server exits', () async {
+      final frontendServerPath = await fakeFrontendServer('''
+import 'dart:io';
+
+Future<void> main() async {
+  await stdin.first;
+  exit(1);
+}
+''');
+      final feClient = await FrontendServerClient.start(
+        'main.dart',
+        p.join(d.sandbox, 'out', 'app.dill'),
+        vmPlatformDill,
+        frontendServerPath: frontendServerPath,
+      );
+      addTearDown(feClient.kill);
+      final exited = throwsA(
+        isA<StateError>().having(
+          (error) => error.message,
+          'message',
+          contains('exited'),
+        ),
+      );
+      await expectLater(feClient.compile(), exited);
+
+      expect(feClient.accept, exited);
+      await expectLater(feClient.reject(), exited);
+      expect(feClient.reset, exited);
+      await expectLater(feClient.compile([Uri.file('main.dart')]), exited);
+      // Waited forever for the client to become idle before it threw.
+      await expectLater(
+        feClient
+            .compileExpressionToJs(
+              expression: '1',
+              column: 1,
+              jsFrameValues: {},
+              jsModules: {},
+              libraryUri: 'main.dart',
+              line: 1,
+              moduleName: 'main',
+            )
+            .timeout(const Duration(seconds: 10)),
+        exited,
+      );
+    });
+
+    test('shutdown and kill can be repeated after the frontend server '
+        'exits', () async {
+      final frontendServerPath = await fakeFrontendServer('''
+import 'dart:io';
+
+Future<void> main() async {
+  await stdin.first;
+  exit(1);
+}
+''');
+      final feClient = await FrontendServerClient.start(
+        'main.dart',
+        p.join(d.sandbox, 'out', 'app.dill'),
+        vmPlatformDill,
+        frontendServerPath: frontendServerPath,
+      );
+      await expectLater(feClient.compile(), throwsStateError);
+
+      expect(await feClient.shutdown(), 1);
+      expect(await feClient.shutdown(), 1);
+      feClient.kill();
+      feClient.kill();
+      // An error from writing to the exited frontend server would arrive
+      // later, as an unhandled error that fails this test.
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+    });
+
+    test('every call throws after kill', () async {
+      final frontendServerPath = await fakeFrontendServer('''
+import 'dart:io';
+
+Future<void> main() async {
+  await stdin.drain<void>();
+}
+''');
+      final feClient = await FrontendServerClient.start(
+        'main.dart',
+        p.join(d.sandbox, 'out', 'app.dill'),
+        vmPlatformDill,
+        frontendServerPath: frontendServerPath,
+      );
+      feClient.kill();
+      await expectLater(
+        feClient.compile(),
+        throwsA(
+          isA<StateError>().having(
+            (error) => error.message,
+            'message',
+            contains('exited'),
+          ),
+        ),
+      );
+      await feClient.shutdown();
+    });
+
+    test('stays exited when a call finishes after shutdown', () async {
+      // Answers `compile` and `reject`, and exits on `quit`.
+      final frontendServerPath = await fakeFrontendServer('''
+import 'dart:convert';
+import 'dart:io';
+
+void main() {
+  stdin.transform(utf8.decoder).transform(const LineSplitter()).listen((line) {
+    if (line.startsWith('compile')) {
+      print('result key');
+      print('key');
+      print('key out.dill 0');
+    } else if (line == 'reject') {
+      print('result key');
+      print('key');
+    } else if (line == 'quit') {
+      exit(0);
+    }
+  });
+}
+''');
+      final feClient = await FrontendServerClient.start(
+        'main.dart',
+        p.join(d.sandbox, 'out', 'app.dill'),
+        vmPlatformDill,
+        frontendServerPath: frontendServerPath,
+      );
+      await feClient.compile();
+      // The reject is answered before the frontend server reads `quit`.
+      final rejected = feClient.reject();
+      final exitCode = feClient.shutdown();
+      await rejected;
+      expect(await exitCode, 0);
+      await expectLater(
+        feClient.compile([Uri.file('main.dart')]),
+        throwsA(
+          isA<StateError>().having(
+            (error) => error.message,
+            'message',
+            contains('exited'),
+          ),
+        ),
+      );
+    });
+  });
+
   test('can enable experiments', () async {
     await d.dir('a', [
       d.dir('bin', [
