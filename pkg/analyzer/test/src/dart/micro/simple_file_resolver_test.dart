@@ -2571,7 +2571,10 @@ void f(A a) {}
   }
 
   test_resolve_part_of_name() async {
-    var a = newFile('/workspace/dart/test/lib/a.dart', r'''
+    var a = newFileWithLanguageFeatureDirective(
+      '/workspace/dart/test/lib/a.dart',
+      r'''
+// %before-language-feature: enhanced-parts
 library my.lib;
 
 part 'test.dart';
@@ -2579,9 +2582,11 @@ part 'test.dart';
 class A {
   int m;
 }
-''');
+''',
+    );
 
     await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: enhanced-parts
 part of my.lib;
 
 void func() {

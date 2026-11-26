@@ -12,9 +12,11 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
+        // @dart=3.4
         import "b.dart";
         main() { b(); }
       b.dart: |
+        // @dart=3.4
         library libFoo;
         // The middle-part is the kept one.
         part 'e.dart';
@@ -26,12 +28,15 @@ worlds:
           e();
         }
       c.dart: |
+        // @dart=3.4
         part of libFoo;
         c() {}
       d.dart: |
+        // @dart=3.4
         part of libFoo;
         d() {}
       e.dart: |
+        // @dart=3.4
         part of libFoo;
         e() {}
     expectedLibraryCount: 2
@@ -42,6 +47,7 @@ worlds:
     expectInitializeFromDill: false
     sources:
       main.dart: |
+        // @dart=3.4
         library libFoo;
         part 'c.dart';
         main() { c(); }

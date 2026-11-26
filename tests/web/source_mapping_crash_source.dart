@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of source_mapping_crash_test;
+part of 'source_mapping_crash_test.dart';
 
 /*******************************************************************************
  * Long comment to make positions in this file exceed those in

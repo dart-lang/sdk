@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of touch;
+part of 'touch.dart';
 
 /// Convenience methods for dealing with time.
 /// In the future this could also provide an entry point to mock out time

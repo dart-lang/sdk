@@ -3135,9 +3135,18 @@ partOfTwoLibraries:
   problemMessage: "Can't use '#uri' as a part of more than one library."
   correctionMessage: "Try moving the shared declarations into the libraries, or into a new library."
   script:
-    main.dart: "library lib; import 'lib.dart'; part 'part.dart';"
-    lib.dart: "library lib; part 'part.dart';"
-    part.dart: "part of lib;"
+    main.dart: |
+      // @dart=3.4
+      library lib;
+      import 'lib.dart';
+      part 'part.dart';
+    lib.dart: |
+      // @dart=3.4
+      library lib;
+      part 'part.dart';
+    part.dart: |
+      // @dart=3.4
+      part of lib;
 
 partOfTwoLibrariesContext:
   parameters: none
@@ -3199,14 +3208,17 @@ partInPart:
   correctionMessage: "Try moving the 'part' declaration to the containing library."
   script:
     main.dart: |
+      // @dart=3.4
       part "part.dart";
       main() {}
 
     part.dart: |
+      // @dart=3.4
       part of "main.dart";
       part "part_part.dart";
 
     part_part.dart: |
+      // @dart=3.4
       part of "part.dart";
 
 partInPartLibraryContext:
@@ -3218,7 +3230,10 @@ partOrphan:
   parameters: none
   problemMessage: "This part doesn't have a containing library."
   correctionMessage: "Try removing the 'part of' declaration."
-  script: "part of none; main() {}"
+  script: |
+    // @dart=3.4
+    part of none;
+    main() {}
 
 partExport:
   parameters: none
@@ -3457,9 +3472,11 @@ partOfLibraryNameMismatch:
   problemMessage: "Using '#uri' as part of '#libraryName' but its 'part of' declaration says '#partOfName'."
   script:
     main.dart: |
+      // @dart=3.4
       library foo;
       part 'lib.dart';
     lib.dart: |
+      // @dart=3.4
       part of bar;
 
 partOfUseUri:
@@ -3471,8 +3488,10 @@ partOfUseUri:
   correctionMessage: "Try changing the 'part of' declaration to use a relative file name."
   script:
     main.dart: |
+      // @dart=3.4
       part 'lib.dart';
     lib.dart: |
+      // @dart=3.4
       part of foo;
 
 partOfUriMismatch:

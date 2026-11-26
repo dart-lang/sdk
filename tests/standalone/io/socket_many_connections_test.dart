@@ -11,7 +11,8 @@ import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
 import "dart:isolate";
-part "testing_server.dart";
+
+import "testing_server.dart";
 
 const connectionsCount = 200;
 

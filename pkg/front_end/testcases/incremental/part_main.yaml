@@ -19,7 +19,7 @@ worlds:
         }
         method1() {}
       second.dart: |
-        part of first;
+        part of 'first.dart';
 
         method2() {}
     expectedLibraryCount: 1
@@ -42,7 +42,7 @@ worlds:
           print('method1');
         }
       second.dart: |
-        part of first;
+        part of 'first.dart';
 
         method2() {
           print('method2');

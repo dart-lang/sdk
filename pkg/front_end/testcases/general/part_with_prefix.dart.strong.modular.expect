@@ -2,12 +2,12 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/part_with_prefix_part.dart:7:1: Error: The part-of directive must be the only directive in a part.
+// pkg/front_end/testcases/general/part_with_prefix_part.dart:9:1: Error: The part-of directive must be the only directive in a part.
 // Try removing the other directives, or moving them to the library for which this is a part.
 // import 'part_with_prefix_lib1.dart' as foo;
 // ^^^^^^
 //
-// pkg/front_end/testcases/general/part_with_prefix_part.dart:8:1: Error: The part-of directive must be the only directive in a part.
+// pkg/front_end/testcases/general/part_with_prefix_part.dart:10:1: Error: The part-of directive must be the only directive in a part.
 // Try removing the other directives, or moving them to the library for which this is a part.
 // import 'part_with_prefix_lib2.dart' deferred as bar;
 // ^^^^^^

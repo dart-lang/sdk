@@ -2,7 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of ServerTest;
+import "dart:async";
+import "dart:io";
+import "dart:isolate";
+
+import "package:expect/expect.dart";
 
 abstract class TestingServer {
   static const HOST = "127.0.0.1";

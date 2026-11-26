@@ -1,4 +1,4 @@
-part of swarmlib;
+part of 'swarmlib.dart';
 
 /// An iterator that allows the user to move forward and backward though
 /// a set of items. (Bi-directional)

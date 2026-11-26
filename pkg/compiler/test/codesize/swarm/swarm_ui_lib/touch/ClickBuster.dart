@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of touch;
+part of 'touch.dart';
 
 /// Click buster implementation, which is a behavior that prevents native clicks
 /// from firing at undesirable times. There are two scenarios where we may want

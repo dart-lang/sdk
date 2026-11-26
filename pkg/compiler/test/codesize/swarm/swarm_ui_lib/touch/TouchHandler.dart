@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of touch;
+part of 'touch.dart';
 
 /// Touch Handler. Class that handles all touch events and
 /// uses them to interpret higher level gestures and behaviors. TouchEvent is a

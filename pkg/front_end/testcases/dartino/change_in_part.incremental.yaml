@@ -9,7 +9,7 @@ main.dart: |
   part 'part.dart';
 
 part.dart.patch: |
-  part of test.main;
+  part of 'main.dart';
 
   main() {
   <<<< "Hello, World!"

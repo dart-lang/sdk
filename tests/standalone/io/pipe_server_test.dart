@@ -18,7 +18,7 @@ import "dart:isolate";
 import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
 
-part "testing_server.dart";
+import "testing_server.dart";
 
 String getDataFilename(String path) =>
     Platform.script.resolve(path).toFilePath();

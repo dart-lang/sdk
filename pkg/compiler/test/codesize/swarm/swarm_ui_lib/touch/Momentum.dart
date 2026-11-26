@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of touch;
+part of 'touch.dart';
 
 /// Implementations can be used to simulate the deceleration of an element within
 /// a certain region. To use this behavior you need to provide an initial

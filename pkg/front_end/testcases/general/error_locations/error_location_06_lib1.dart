@@ -7,7 +7,7 @@
 // offset that is larger than the largest valid offset in error_location_06.
 // This in turn can cause a crash, if the fileUri for that z is the wrong file.
 
-part of error_location_06;
+part of 'error_location_06.dart';
 
 x1(z, {z}) {}
 

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of swarmlib;
+part of 'swarmlib.dart';
 
 /// The top-level collection of all sections for a user. */
 // TODO(jimhug): This is known as UserData in the server model.
