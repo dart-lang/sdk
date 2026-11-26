@@ -84,6 +84,8 @@ class Dwds {
     Future<String>? extensionUri;
     ExtensionBackend? extensionBackend;
     if (debugSettings.enableDebugExtension) {
+      bool isChromeExtensionOrigin(String origin) =>
+          origin.startsWith(chromeExtensionSchemePrefix);
       final handler = debugSettings.useSseForDebugBackend
           ? SseSocketHandler(
               SseHandler(
@@ -93,11 +95,10 @@ class Dwds {
                 // window too long may cause issues if the user closes a debug
                 // session and initiates a new one during the keepAlive window.
                 keepAlive: const Duration(seconds: 5),
-                originCheck: (origin) =>
-                    origin.startsWith(chromeExtensionSchemePrefix),
+                originCheck: isChromeExtensionOrigin,
               ),
             )
-          : WebSocketSocketHandler();
+          : WebSocketSocketHandler(originCheck: isChromeExtensionOrigin);
 
       extensionBackend = await ExtensionBackend.start(
         handler,

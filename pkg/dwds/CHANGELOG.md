@@ -2,6 +2,8 @@
 
 - Update `package:sse` to `^5.0.0-wip` and allow `chrome-extension://` origins
   on SSE debug handlers.
+- Validate `Host` and `Origin` headers in `DevHandler` and restrict
+  `ExtensionBackend` WebSocket connections to `chrome-extension://` origins.
 
 ## 27.2.1
 
