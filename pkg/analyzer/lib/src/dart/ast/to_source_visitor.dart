@@ -1439,6 +1439,10 @@ class ToSourceVisitor implements AstVisitor2<void> {
     _visitToken(node.constKeyword, suffix: ' ');
     _visitToken(node.leftParenthesis);
     _visitNodeList(node.fields2, separator: ', ');
+    var fields = node.fields2;
+    if (fields.length == 1 && fields.first is! RecordLiteralNamedField) {
+      sink.write(',');
+    }
     _visitToken(node.rightParenthesis);
   }
 
@@ -1470,6 +1474,8 @@ class ToSourceVisitor implements AstVisitor2<void> {
       _visitNodeList(positionalFields, separator: ', ');
       if (namedFields != null) {
         sink.write(', ');
+      } else if (positionalFields.length == 1) {
+        sink.write(',');
       }
     }
     _visitNode(namedFields);
