@@ -32,6 +32,7 @@ import 'src/commands/installed.dart';
 import 'src/commands/language_server.dart';
 import 'src/commands/migrate.dart';
 import 'src/commands/run.dart';
+import 'src/commands/serve.dart';
 import 'src/commands/test.dart';
 import 'src/commands/tooling_daemon.dart';
 import 'src/commands/uninstall.dart';
@@ -83,6 +84,7 @@ const _commandsWithPubspecTelemetry = {
   'compile',
   'create',
   'doc',
+  'experimental-serve',
   'fix',
   'pub',
   'run',
@@ -181,6 +183,7 @@ class DartdevRunner extends CommandRunner<int> {
         vmArgs: vmArgs,
       ),
     );
+    addCommand(ServeCommand(verbose: verbose));
     addCommand(
       TestCommand(
         nativeAssetsExperimentEnabled: nativeAssetsExperimentEnabled,

@@ -28,3 +28,20 @@ later `build/`) hold what each command needs. Tests mirror this in
    scripts that start the app.
 
 There is no debugging, hot reload or hot restart yet.
+
+## Try it
+
+`test/web/fixtures/hello_web` is a minimal web app (the one the tests use). With an SDK
+built from this checkout:
+
+```
+cd pkg/dartdev/test/web/fixtures/hello_web
+dart pub get
+dart experimental-serve
+```
+
+The command is called `experimental-serve` until the feature is ready; it
+will then become `dart serve`.
+
+Open the printed URL: the page title changes from "loading" to "hello" once
+`main()` runs.

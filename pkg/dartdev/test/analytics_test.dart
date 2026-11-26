@@ -234,6 +234,24 @@ void main() {
       }
     });
 
+    test('experimental-serve', () async {
+      // Without a web/ directory the command fails before it starts a
+      // server.
+      final p = project();
+      final analytics = await p.runLocalWithFakeAnalytics([
+        'experimental-serve',
+      ]);
+      expect(analytics.sentEvents, [
+        Event.dartCliCommandExecuted(
+          name: 'experimental-serve',
+          enabledExperiments: '',
+          exitCode: 65,
+          pubspecHasFlutterSdk: false,
+          pubspecEnvironmentSdk: '^3.0.0',
+        ),
+      ]);
+    });
+
     test('compile', () async {
       final p = project(
         mainSrc: 'void main(List<String> args) => print(args);',
