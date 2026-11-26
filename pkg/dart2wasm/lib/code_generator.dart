@@ -5393,9 +5393,20 @@ class SwitchInfo {
                       e.constant is NullConstant)),
         );
 
+    bool checkWithExpr<L extends Expression, C extends Constant>(
+      Class exprCls,
+    ) =>
+        translator.hierarchy.isSubInterfaceOf(switchExprClass, exprCls) &&
+        check<L, C>();
+
     bool isEqualityPrimitive(Expression e) =>
         e is ConstantExpression &&
-            (e.constant is StringConstant || e.constant is SymbolConstant) ||
+            (e.constant is IntConstant ||
+                e.constant is DoubleConstant ||
+                e.constant is StringConstant ||
+                e.constant is SymbolConstant) ||
+        e is IntLiteral ||
+        e is DoubleLiteral ||
         e is StringLiteral ||
         e is SymbolLiteral;
 
@@ -5513,7 +5524,9 @@ class SwitchInfo {
 
         codeGen.call(equalsMember.reference);
       };
-    } else if (check<BoolLiteral, BoolConstant>()) {
+    } else if (checkWithExpr<BoolLiteral, BoolConstant>(
+      translator.coreTypes.boolClass,
+    )) {
       // bool switch
       nonNullableType = w.NumType.i32;
       nullableType =
@@ -5523,7 +5536,9 @@ class SwitchInfo {
         pushCaseExpr();
         codeGen.b.i32_eq();
       };
-    } else if (check<IntLiteral, IntConstant>()) {
+    } else if (checkWithExpr<IntLiteral, IntConstant>(
+      translator.coreTypes.intClass,
+    )) {
       // int switch
       nonNullableType = w.NumType.i64;
       nullableType =
@@ -5568,7 +5583,9 @@ class SwitchInfo {
         pushCaseExpr();
         codeGen.b.i64_eq();
       };
-    } else if (check<StringLiteral, StringConstant>()) {
+    } else if (checkWithExpr<StringLiteral, StringConstant>(
+      translator.coreTypes.stringClass,
+    )) {
       // String switch
       nonNullableType = translator.stringType;
       nullableType = translator.stringTypeNullable;
