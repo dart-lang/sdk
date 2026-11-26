@@ -49,10 +49,12 @@ dependencies:
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
+  dart_flutter_team_lints: any
   expect: any
   fake_async: any
   lints: any
   pub_semver: any
   record_use: any
   test: any
+  test_descriptor: any
   yaml_edit: any
