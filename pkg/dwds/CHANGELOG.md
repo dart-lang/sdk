@@ -1,3 +1,8 @@
+## 27.2.2-wip
+
+- Update `package:sse` to `^5.0.0-wip` and allow `chrome-extension://` origins
+  on SSE debug handlers.
+
 ## 27.2.1
 
 - Fix connecting to large apps failing when Chrome takes more than 20 seconds

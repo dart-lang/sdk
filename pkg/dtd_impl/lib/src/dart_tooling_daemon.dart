@@ -464,6 +464,7 @@ class DartToolingDaemon {
     final handler = SseHandler(
       Uri.parse('/$_kSseHandlerPath'),
       keepAlive: sseKeepAlive,
+      originCheck: _isAllowedOrigin,
     );
 
     handler.connections.rest.listen((sseConnection) {

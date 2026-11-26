@@ -440,6 +440,7 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
           ? Uri.parse('/$authCode/$kSseHandlerPath')
           : Uri.parse('/$kSseHandlerPath'),
       keepAlive: sseKeepAlive,
+      originCheck: _disableServiceOriginCheck ? (_) => true : _isAllowedOrigin,
     );
 
     handler.connections.rest.listen((sseConnection) {

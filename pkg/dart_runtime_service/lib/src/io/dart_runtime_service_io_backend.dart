@@ -176,9 +176,12 @@ mixin DartRuntimeServiceIoBackend<IM extends IsolateManager>
       );
       handlerCascade = handlerCascade.add(
         sseClientHandler(
-          clientManager: clientManager,
-          sseHandlerPath: config.sseHandlerPath!,
           authCode: authCode,
+          clientManager: clientManager,
+          originCheck: config.disableOriginCheck
+              ? (_) => true
+              : (origin) => isAllowedOrigin(origin, frontend, boundAddress),
+          sseHandlerPath: config.sseHandlerPath!,
         ),
       );
     }

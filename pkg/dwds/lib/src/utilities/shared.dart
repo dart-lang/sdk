@@ -7,6 +7,8 @@ import 'dart:async';
 import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart';
 
+const chromeExtensionSchemePrefix = 'chrome-extension://';
+
 VMRef toVMRef(VM vm) => VMRef(name: vm.name);
 
 int _nextId = 0;

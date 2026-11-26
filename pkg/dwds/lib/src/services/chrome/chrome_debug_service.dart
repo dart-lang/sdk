@@ -97,6 +97,7 @@ final class ChromeDebugService extends DebugService<ChromeProxyService> {
     final sseHandler = SseHandler(
       Uri.parse('/$authToken/$_kSseHandlerPath'),
       keepAlive: const Duration(seconds: 5),
+      originCheck: (origin) => origin.startsWith(chromeExtensionSchemePrefix),
     );
     final handler = sseHandler.handler;
     safeUnawaited(() async {

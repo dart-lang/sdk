@@ -71,7 +71,7 @@ Middleware authCodeVerificationMiddleware({required String authCode}) =>
     };
 
 /// Creates [Middleware] that rejects requests whose `Origin` (or
-/// `Sec-WebSocket-Origin`) is not allowed by [_isAllowedOrigin].
+/// `Sec-WebSocket-Origin`) is not allowed by [isAllowedOrigin].
 ///
 /// [boundAddress] is the IP address the server is bound to.
 Middleware originCheckMiddleware({
@@ -90,7 +90,7 @@ Middleware originCheckMiddleware({
       }
 
       for (final origin in origins.split(',')) {
-        if (_isAllowedOrigin(origin, frontend, boundAddress)) {
+        if (isAllowedOrigin(origin, frontend, boundAddress)) {
           return innerHandler(request);
         }
       }
@@ -124,7 +124,7 @@ Middleware hostCheckMiddleware({
 /// is on the server's port and its host is either the host in the service URI
 /// (which may be a hostname) or [boundAddress], the IP address the server is
 /// bound to.
-bool _isAllowedOrigin(
+bool isAllowedOrigin(
   String origin,
   DartRuntimeService frontend,
   String boundAddress,
@@ -159,13 +159,13 @@ bool _isAllowedOrigin(
 /// which may optionally include a port (e.g., `localhost` or `localhost:8080`).
 ///
 /// Prepends `http://` to the host header to parse it as a [Uri] and delegates
-/// to [_isAllowedOrigin].
+/// to [isAllowedOrigin].
 bool _isAllowedHost(
   String hostHeader,
   DartRuntimeService frontend,
   String boundAddress,
 ) {
-  return _isAllowedOrigin('http://$hostHeader', frontend, boundAddress);
+  return isAllowedOrigin('http://$hostHeader', frontend, boundAddress);
 }
 
 /// Creates a [Handler] responsible for processing HTTP requests.
@@ -253,9 +253,10 @@ Handler webSocketClientHandler({required ClientManager clientManager}) {
 
 /// Creates a [Handler] for incoming SSE connections.
 Handler sseClientHandler({
-  required ClientManager clientManager,
-  required String sseHandlerPath,
   required String? authCode,
+  required ClientManager clientManager,
+  required bool Function(String origin) originCheck,
+  required String sseHandlerPath,
 }) {
   // Give connections time to reestablish before considering them closed.
   // Required to reestablish connections killed by UberProxy.
@@ -264,6 +265,7 @@ Handler sseClientHandler({
   final handler = SseHandler(
     Uri.parse(['', ?authCode, sseHandlerPath].join('/')),
     keepAlive: sseKeepAlive,
+    originCheck: originCheck,
   );
 
   final logger = Logger('SSEClientHandler');
