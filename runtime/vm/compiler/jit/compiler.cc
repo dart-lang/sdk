@@ -434,8 +434,8 @@ CodePtr CompileParsedFunctionHelper::GenerateCode(
   // We may reattempt code generation if the function needs to be assembled
   // using far branches on ARM/RISC-V.
   // volatile because the variable may be clobbered by a longjmp.
-  for (volatile intptr_t far_branch_level = initial_far_branch_level;
-       far_branch_level <= 2; far_branch_level = far_branch_level + 1) {
+  volatile intptr_t far_branch_level = initial_far_branch_level;
+  while (far_branch_level <= 2) {
     LongJumpScope jump(thread());
     if (DART_SETJMP(*jump.Set()) == 0) {
       compiler::ObjectPoolBuilder object_pool_builder;
@@ -513,6 +513,8 @@ CodePtr CompileParsedFunctionHelper::GenerateCode(
         HandleBailoutError(error);
         return Code::null();
       }
+
+      far_branch_level = far_branch_level + 1;
     }
   }
 
