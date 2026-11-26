@@ -6938,6 +6938,45 @@ ASSEMBLER_TEST_RUN(Vaddw, test) {
       "ret\n");
 }
 
+ASSEMBLER_TEST_GENERATE(Vmulw, assembler) {
+  __ fldrq(V0, Address(R0, 0));
+  __ fldrq(V1, Address(R0, 16));
+  __ vmulw(V2, V0, V1);
+  __ fstrq(V2, Address(R0, 32));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Vmulw, test) {
+  typedef void (*VmulwCode)(intptr_t) DART_UNUSED;
+  struct {
+    int32_t left[4];
+    int32_t right[4];
+    int32_t result[4];
+  } buffer;
+  auto check = [&](const int32_t (&left)[4], const int32_t (&right)[4],
+                   const int32_t (&expected)[4]) {
+    for (intptr_t i = 0; i < 4; i++) {
+      buffer.left[i] = left[i];
+      buffer.right[i] = right[i];
+      buffer.result[i] = static_cast<int32_t>(0xAAAAAAAA);
+    }
+    EXECUTE_TEST_CODE_INTPTR_INTPTR(VmulwCode, test->entry(),
+                                    reinterpret_cast<intptr_t>(&buffer));
+    for (intptr_t i = 0; i < 4; i++) {
+      EXPECT_EQ(expected[i], buffer.result[i]);
+    }
+  };
+  check({3, -5, 7, -9}, {7, 11, -13, -15}, {21, -55, -91, 135});
+  check({0x10001, kMaxInt32, kMinInt32, 0x55555555}, {0x10001, -1, -1, 3},
+        {0x20001, -kMaxInt32, kMinInt32, -1});
+  EXPECT_DISASSEMBLY(
+      "fldrq v0, [r0]\n"
+      "fldrq v1, [r0, #16]\n"
+      "vmulw v2, v0, v1\n"
+      "fstrq v2, [r0, #32]\n"
+      "ret\n");
+}
+
 ASSEMBLER_TEST_GENERATE(Vsshlw, assembler) {
   __ LoadImmediate(R0, 1);
   __ LoadImmediate(R1, 2);

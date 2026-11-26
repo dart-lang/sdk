@@ -1461,6 +1461,9 @@ class Assembler : public AssemblerBase {
   void vmuld(VRegister vd, VRegister vn, VRegister vm) {
     EmitSIMDThreeSameOp(VMULD, vd, vn, vm);
   }
+  void vmulw(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VMULW, vd, vn, vm);
+  }
   void vdivs(VRegister vd, VRegister vn, VRegister vm) {
     EmitSIMDThreeSameOp(VDIVS, vd, vn, vm);
   }

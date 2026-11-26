@@ -1039,6 +1039,7 @@ enum SIMDThreeSameOp {
   VADDX = SIMDThreeSameFixed | B30 | B23 | B22 | B15,
   VSUBW = SIMDThreeSameFixed | B30 | B29 | B23 | B15,
   VSUBX = SIMDThreeSameFixed | B30 | B29 | B23 | B22 | B15,
+  VMULW = SIMDThreeSameFixed | B30 | B23 | B15 | B12 | B11,
   VADDS = SIMDThreeSameFixed | B30 | B15 | B14 | B12,
   VADDD = SIMDThreeSameFixed | B30 | B22 | B15 | B14 | B12,
   VSUBS = SIMDThreeSameFixed | B30 | B23 | B15 | B14 | B12,
