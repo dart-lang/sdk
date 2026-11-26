@@ -143,13 +143,19 @@ void checkVMSymbolsAreValid(
     if (symbol.type != SymbolType.STT_OBJECT) {
       Expect.fail('Unexpected symbol type ${symbol.type}');
     }
+    String name = symbol.name;
+    // In assembly output, symbols other than the _kDart* symbols may be
+    // prefixed with an underscore, so strip it.
+    if (isAssembled && name.startsWith('_') && !name.startsWith('_kDart')) {
+      name = name.substring(1);
+    }
     // The name of object symbols are prefixed with the type of the object. If
     // there is useful additional information, the additional information is
     // provided after the type in parentheses.
-    int objectTypeEnd = symbol.name.indexOf(' (');
+    int objectTypeEnd = name.indexOf(' (');
     final objectType = objectTypeEnd > 0
-        ? symbol.name.substring(0, objectTypeEnd)
-        : symbol.name;
+        ? name.substring(0, objectTypeEnd)
+        : name;
 
     switch (objectType) {
       // Used for entries in the non-clustered portion of the read-only data
@@ -261,10 +267,15 @@ void checkElf(Elf? snapshot, Elf debugInfo, {required bool isAssembled}) {
   Expect.isNotEmpty(debugLocalObjectSymbols);
 
   // We expect exactly one local object symbols with names starting with
-  // 'RawBytes'.
+  // 'RawBytes', which may be prefixed with an underscore in assembly output.
   int rawBytesSeen = debugLocalObjectSymbols.fold<int>(
     0,
-    (i, s) => i + (s.name.startsWith('RawBytes') ? 1 : 0),
+    (i, s) =>
+        i +
+        (s.name.startsWith('RawBytes') ||
+                isAssembled && s.name.startsWith('_RawBytes')
+            ? 1
+            : 0),
   );
   Expect.equals(
     1,

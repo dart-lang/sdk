@@ -545,9 +545,8 @@ bool CallSpecializer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
       } else if (binary_feedback.OperandsAre(kFloat32x4Cid)) {
         operands_type = kFloat32x4Cid;
       } else if (binary_feedback.OperandsAre(kInt32x4Cid)) {
-        if (op_kind == Token::kMUL) {
-          // Int32x4 multiplication has no SimdOp yet, so it keeps using the
-          // Dart implementation.
+        if ((op_kind == Token::kMUL) &&
+            !FlowGraphCompiler::SupportsInt32x4Mul()) {
           return false;
         }
         operands_type = kInt32x4Cid;
@@ -2373,6 +2372,9 @@ class SimdLowering : public ValueObject {
       case MethodRecognizer::kInt32x4Sub:
         Int32x4Binary(Token::kSUB);
         return true;
+      case MethodRecognizer::kInt32x4Mul:
+        Int32x4Binary(Token::kMUL);
+        return true;
       case MethodRecognizer::kInt32x4BitAnd:
         Int32x4Binary(Token::kBIT_AND);
         return true;
@@ -3140,6 +3142,7 @@ static bool InlineSimdOp(FlowGraph* flow_graph,
     case MethodRecognizer::kFloat64x2Sub:
     case MethodRecognizer::kInt32x4Add:
     case MethodRecognizer::kInt32x4Sub:
+    case MethodRecognizer::kInt32x4Mul:
     case MethodRecognizer::kInt32x4BitAnd:
     case MethodRecognizer::kInt32x4BitOr:
     case MethodRecognizer::kInt32x4BitXor:
@@ -3554,6 +3557,13 @@ bool CallSpecializer::TryInlineRecognizedMethod(
     case MethodRecognizer::kInt32x4LessThanOrEqual:
     case MethodRecognizer::kInt32x4Abs:
 #endif
+      return InlineSimdOp(flow_graph, is_dynamic_call, call, receiver, kind,
+                          graph_entry, entry, last, result);
+
+    case MethodRecognizer::kInt32x4Mul:
+      if (!FlowGraphCompiler::SupportsInt32x4Mul()) {
+        return false;
+      }
       return InlineSimdOp(flow_graph, is_dynamic_call, call, receiver, kind,
                           graph_entry, entry, last, result);
 

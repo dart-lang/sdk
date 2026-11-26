@@ -113,4 +113,37 @@ void main() {
     );
     await iframe.close();
   });
+
+  testFlutterWorkspace('ws.compile() with older sdk constraint', (ws) async {
+    await ws.writeFileFromText('pubspec.yaml', '''
+name: myapp
+dependencies:
+  flutter:
+    sdk: flutter
+environment:
+  sdk: ^3.0.0
+''');
+    await ws.pub(command: 'get');
+
+    await ws.writeFileFromText('bin/main.dart', '''
+      import 'package:flutter/material.dart';
+
+      void main() => runApp(
+        const MaterialApp(home: Center(child: Text('Hello Old SDK'))),
+      );
+    ''');
+
+    final iframe = FakeSandboxedIframe();
+    final sandbox = await ws.connectSandboxedIframe(iframe.port);
+
+    var result = await sandbox.run('bin/main.dart', mode: 'flutter');
+    check(result.log).isEmpty;
+    await iframe.checkEvent(
+      .it()..isA<LoadModulesEvent>(.it()..anyModuleContains('Hello Old SDK')),
+    );
+    await iframe.checkEvent(
+      .it()..isA<RunEvent>(.it()..mode.equals('flutter')),
+    );
+    await iframe.close();
+  });
 }

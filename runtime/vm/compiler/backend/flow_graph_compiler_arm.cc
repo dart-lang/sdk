@@ -65,6 +65,10 @@ bool FlowGraphCompiler::SupportsUnboxedSimd128() {
   return TargetCPUFeatures::neon_supported() && FLAG_enable_simd_inline;
 }
 
+bool FlowGraphCompiler::SupportsInt32x4Mul() {
+  return true;
+}
+
 bool FlowGraphCompiler::CanConvertInt64ToDouble() {
   // ARM does not have a short instruction sequence for converting int64 to
   // double.

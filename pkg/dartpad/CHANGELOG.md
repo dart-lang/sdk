@@ -1,3 +1,7 @@
+## v0.2.1-wip
+ - Flutter wrapper template now includes a `// @dart=3.7` language version
+   marker so packages with older SDK constraints compile cleanly.
+
 ## v0.2.0
  - `DartPad.close()` now terminates dedicated Web Workers synchronously before
    the returned `Future` completes.

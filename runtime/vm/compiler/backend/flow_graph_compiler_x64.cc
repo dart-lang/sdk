@@ -13,6 +13,7 @@
 #include "vm/compiler/backend/parallel_move_resolver.h"
 #include "vm/compiler/ffi/native_location.h"
 #include "vm/compiler/jit/compiler.h"
+#include "vm/cpu.h"
 #include "vm/dart_entry.h"
 #include "vm/deopt_instructions.h"
 #include "vm/dispatch_table.h"
@@ -61,6 +62,10 @@ FlowGraphCompiler::~FlowGraphCompiler() {
 
 bool FlowGraphCompiler::SupportsUnboxedSimd128() {
   return FLAG_enable_simd_inline;
+}
+
+bool FlowGraphCompiler::SupportsInt32x4Mul() {
+  return TargetCPUFeatures::sse4_1_supported();
 }
 
 bool FlowGraphCompiler::CanConvertInt64ToDouble() {

@@ -1,0 +1,80 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+class Box<T extends core::Object? = dynamic> extends core::Object {
+
+  [@vm.inferred-type.metadata=dart.core::_Record (inexact type args)]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
+  final field self::Box::T% value;
+  constructor •([@vm.inferred-arg-type.metadata=dart.core::_Record (inexact type args)] initializing-formal self::Box::T% value) → self::Box<self::Box::T%>
+    : self::Box::value = value, super core::Object::•()
+    ;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  self::testGenericField();
+  self::testFunctionType();
+  self::testGenericClosure();
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method testGenericField() → void {
+  core::print([@vm.inferred-type.metadata=dart.core::_OneByteString] [@vm.direct-call.metadata=#lib::Box.value] [@vm.inferred-type.metadata=dart.core::_Record (inexact type args)] new self::Box::•<(core::String)>(("a")).{self::Box::value}{(core::String)}.$1{core::String});
+  final core::List<self::Box<(core::int, core::int)>> list = [@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic> (inexact type args)] core::_GrowableList::•<self::Box<(core::int, core::int)>>(0);
+  {
+    synthesized core::Iterator<self::Box<(core::int, core::int)>> :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<dynamic> (inexact type args)] list.{core::Iterable::iterator}{core::Iterator<self::Box<(core::int, core::int)>>};
+    for (; [@vm.direct-call.metadata=dart._internal::ListIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      final self::Box<(core::int, core::int)> b = [@vm.direct-call.metadata=dart._internal::ListIterator.current] [@vm.inferred-type.metadata=#lib::Box<dynamic> (inexact type args)] :sync-for-iterator.{core::Iterator::current}{self::Box<(core::int, core::int)>};
+      {
+        block {
+          [@vm.inferred-type.metadata=!] [@vm.direct-call.metadata=#lib::Box.value] [@vm.inferred-type.metadata=dart.core::_Record (inexact type args)] b.{self::Box::value}{(core::int, core::int)}.$2{core::int};
+        } =>throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
+      }
+    }
+  }
+  core::Object box = new self::Box::•<(core::String)>(("b"));
+  if(box is self::Box<(core::int, core::int)>) {
+    block {
+      [@vm.inferred-type.metadata=!] [@vm.direct-call.metadata=#lib::Box.value] [@vm.inferred-type.metadata=dart.core::_Record (inexact type args)] box{self::Box<(core::int, core::int)>}.{self::Box::value}{(core::int, core::int)}.$1{core::int};
+    } =>throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
+  }
+  if(box is self::Box<({required x: core::int})>) {
+    block {
+      [@vm.inferred-type.metadata=!] [@vm.direct-call.metadata=#lib::Box.value] [@vm.inferred-type.metadata=dart.core::_Record (inexact type args)] box{self::Box<({required x: core::int})>}.{self::Box::value}{({required x: core::int})}.x{core::int};
+    } =>throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
+  }
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+[@vm.closure-id=2]
+static method testFunctionType() → void {
+  core::Object f = [@vm.closure-id=1]() → (core::String) => ("c");
+  if(f is () → (core::int, core::int)) {
+    block {
+      [@vm.inferred-type.metadata=!] [@vm.direct-call.metadata=closure 1 in #lib::testFunctionType] [@vm.inferred-type.metadata=dart.core::_Record (inexact type args) (receiver not int)] f{() → (core::int, core::int)}(){() → (core::int, core::int)}.$2{core::int};
+    } =>throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
+  }
+  core::Object g = [@vm.closure-id=2]() → ({a: core::String}) => ({a: "d"});
+  if(g is () → ({required b: core::int})) {
+    block {
+      [@vm.inferred-type.metadata=!] [@vm.direct-call.metadata=closure 2 in #lib::testFunctionType] [@vm.inferred-type.metadata=dart.core::_Record (inexact type args) (receiver not int)] g{() → ({required b: core::int})}(){() → ({required b: core::int})}.b{core::int};
+    } =>throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
+  }
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method testGenericClosure() → void {
+  final () → (core::String)? c1 = [@vm.inferred-type.metadata=dart.core::_Closure (closure 1 in #lib::makeClosure)] self::makeClosure<(core::String)>(("e"));
+  final () → (core::int, core::int)? c2 = [@vm.inferred-type.metadata=dart.core::_Closure (closure 1 in #lib::makeClosure)] self::makeClosure<(core::int, core::int)>(null);
+  core::print([@vm.inferred-type.metadata=dart.core::_OneByteString (value: "e")] [@vm.direct-call.metadata=closure 1 in #lib::makeClosure] [@vm.inferred-type.metadata=dart.core::_Record? (inexact type args) (receiver not int)] c1(){() → (core::String)?}!.$1{core::String});
+  block {
+    [@vm.inferred-type.metadata=!] [@vm.direct-call.metadata=closure 1 in #lib::makeClosure] [@vm.inferred-type.metadata=dart.core::_Record? (inexact type args) (receiver not int)] c2(){() → (core::int, core::int)?}!.$2{core::int};
+  } =>throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
+}
+
+[@vm.inferred-return-type.metadata=dart.core::_Closure (closure 1 in #lib::makeClosure)]
+[@vm.closure-id=1]
+static method makeClosure<T extends core::Object? = dynamic>([@vm.inferred-type.metadata=dart.core::_Record? (inexact type args)] [@vm.inferred-arg-type.metadata=dart.core::_Record? (inexact type args)] self::makeClosure::T? x) → () → self::makeClosure::T?
+  return [@vm.closure-id=1]() → self::makeClosure::T? => x;

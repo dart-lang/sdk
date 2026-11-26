@@ -45,6 +45,10 @@ bool FlowGraphCompiler::SupportsUnboxedSimd128() {
   return FLAG_enable_simd_inline;
 }
 
+bool FlowGraphCompiler::SupportsInt32x4Mul() {
+  return false;
+}
+
 bool FlowGraphCompiler::CanConvertInt64ToDouble() {
   return true;
 }

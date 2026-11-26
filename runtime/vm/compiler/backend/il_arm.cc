@@ -4732,6 +4732,9 @@ DEFINE_EMIT(Simd32x4BinaryOp,
     case SimdOpInstr::kInt32x4Sub:
       __ vsubqi(compiler::kFourBytes, result, left, right);
       break;
+    case SimdOpInstr::kInt32x4Mul:
+      __ vmulqi(compiler::kFourBytes, result, left, right);
+      break;
     case SimdOpInstr::kInt32x4Equal:
       __ vceqqi(compiler::kFourBytes, result, left, right);
       break;
@@ -5299,6 +5302,7 @@ DEFINE_EMIT(Int32x4Shift,
   CASE(Int32x4BitXor)                                                          \
   CASE(Int32x4Add)                                                             \
   CASE(Int32x4Sub)                                                             \
+  CASE(Int32x4Mul)                                                             \
   CASE(Int32x4Equal)                                                           \
   CASE(Int32x4NotEqual)                                                        \
   CASE(Int32x4AndNot)                                                          \

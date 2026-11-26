@@ -4495,6 +4495,7 @@ LocationSummary* SimdOpInstr::MakeLocationSummary(Zone* zone, bool opt) const {
     case SimdOpInstr::kInt32x4ShrS:
     case SimdOpInstr::kInt32x4ShrU:
     case SimdOpInstr::kInt32x4AndNot:
+    case SimdOpInstr::kInt32x4Mul:
     case SimdOpInstr::kInt32x4Negate:
     case SimdOpInstr::kInt32x4Abs:
     case SimdOpInstr::kFloat32x4GreaterThan:
@@ -4528,6 +4529,7 @@ void SimdOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case SimdOpInstr::kInt32x4ShrS:
     case SimdOpInstr::kInt32x4ShrU:
     case SimdOpInstr::kInt32x4AndNot:
+    case SimdOpInstr::kInt32x4Mul:
     case SimdOpInstr::kInt32x4Negate:
     case SimdOpInstr::kInt32x4Abs:
     case SimdOpInstr::kFloat32x4GreaterThan:
