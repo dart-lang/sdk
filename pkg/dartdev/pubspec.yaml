@@ -18,6 +18,7 @@ dependencies:
   clock: any
   code_assets: any
   collection: any
+  crypto: any
   dap_adapters: any
   dart2native: any
   dart_data_home: any
@@ -43,6 +44,8 @@ dependencies:
   perf_witness: any
   pub: any
   pub_formats: any
+  shelf: any
+  shelf_static: any
   unified_analytics: any
   vm: any
   vm_service: any
