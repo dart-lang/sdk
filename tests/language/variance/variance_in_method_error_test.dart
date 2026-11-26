@@ -197,6 +197,11 @@ class A<in T> {
   // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
   //                 ^
   // [cfe] Can't use 'in' type variable 'T' in an 'out' position in the return type.
+
+  void method32(covariant InvBoundFunction<T> x) {}
+  //                      ^
+  // [analyzer] unspecified
+  // [cfe] unspecified
 }
 
 mixin BMixin<in T> {

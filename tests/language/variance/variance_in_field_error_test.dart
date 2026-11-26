@@ -37,6 +37,13 @@ class A<in T> {
   // ^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
   // [cfe] Can't use 'in' type variable 'T' in an 'out' position.
+
+  // The getter is allowed, but the implicitly induced setter has the parameter
+  // type `void Function(T)?`, which puts `T` in an `out` position.
+  void Function(T)? g;
+  //                ^
+  // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
+  // [cfe] Can't use 'in' type variable 'T' in an 'out' position.
 }
 
 mixin BMixin<in T> {

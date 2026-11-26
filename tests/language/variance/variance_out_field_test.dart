@@ -17,6 +17,7 @@ class A<out T> {
   A<T> get d => this;
   covariant late T e;
   void set f(covariant T value) => value;
+  late final T? g = null;
 }
 
 mixin BMixin<out T> {
@@ -46,6 +47,8 @@ void testClass() {
   Expect.equals(2, a.e);
 
   a.f = 2;
+
+  Expect.isNull(a.g);
 }
 
 void testMixin() {

@@ -16,6 +16,7 @@ class A<in T> {
     Expect.equals(2, val);
   };
   A<T> get c => this;
+  covariant void Function(T)? d;
 }
 
 mixin BMixin<in T> {
@@ -37,6 +38,10 @@ void testClass() {
   a.b(2);
 
   a.c.a = 2;
+
+  A<int> numA = A<num>();
+  numA.d = (num x) {};
+  Expect.throws<TypeError>(() => numA.d = (int x) {});
 }
 
 void testMixin() {
