@@ -221,6 +221,51 @@ V1: ClassDeclaration
 ''');
   }
 
+  void test_class_enabled_outAndInoutAsNames() {
+    var parseResult = parseTestCodeWithDiagnostics(
+      'class A<out out, inout inout> { }',
+      featureSet: _enabledFeatureSet,
+    );
+
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration2
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          varianceKeyword: out
+          name: out
+        TypeParameter
+          varianceKeyword: inout
+          name: inout
+      rightBracket: >
+  body: BlockInstanceDeclarationBody
+    leftBracket: {
+    rightBracket: }
+V1: ClassDeclaration
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          varianceKeyword: out
+          name: out
+        TypeParameter
+          varianceKeyword: inout
+          name: inout
+      rightBracket: >
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
   void test_class_enabled_single() {
     var parseResult = parseTestCodeWithDiagnostics(
       'class A<in T> { }',

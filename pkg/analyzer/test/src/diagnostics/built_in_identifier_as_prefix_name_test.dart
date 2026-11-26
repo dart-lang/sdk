@@ -35,42 +35,4 @@ import 'dart:async' as Function;
 // [diag.builtInIdentifierAsPrefixName] The built-in identifier 'Function' can't be used as a prefix name.
 ''');
   }
-
-  test_inout() async {
-    await resolveTestCodeWithDiagnostics(r'''
-import 'dart:async' as inout;
-//     ^^^^^^^^^^^^
-// [diag.unusedImport] Unused import: 'dart:async'.
-//                     ^^^^^
-// [diag.builtInIdentifierAsPrefixName] The built-in identifier 'inout' can't be used as a prefix name.
-''');
-  }
-
-  test_inout_beforePrimaryConstructors() async {
-    await resolveTestCodeWithDiagnostics(r'''
-// %before-language-feature: primary-constructors
-import 'dart:async' as inout;
-//     ^^^^^^^^^^^^
-// [diag.unusedImport] Unused import: 'dart:async'.
-''');
-  }
-
-  test_out() async {
-    await resolveTestCodeWithDiagnostics(r'''
-import 'dart:async' as out;
-//     ^^^^^^^^^^^^
-// [diag.unusedImport] Unused import: 'dart:async'.
-//                     ^^^
-// [diag.builtInIdentifierAsPrefixName] The built-in identifier 'out' can't be used as a prefix name.
-''');
-  }
-
-  test_out_beforePrimaryConstructors() async {
-    await resolveTestCodeWithDiagnostics(r'''
-// %before-language-feature: primary-constructors
-import 'dart:async' as out;
-//     ^^^^^^^^^^^^
-// [diag.unusedImport] Unused import: 'dart:async'.
-''');
-  }
 }

@@ -32,34 +32,4 @@ extension type Function(int it) {}
 // [diag.builtInIdentifierAsExtensionTypeName] The built-in identifier 'Function' can't be used as an extension type name.
 ''');
   }
-
-  test_inout() async {
-    await resolveTestCodeWithDiagnostics(r'''
-extension type inout(int it) {}
-//             ^^^^^
-// [diag.builtInIdentifierAsExtensionTypeName] The built-in identifier 'inout' can't be used as an extension type name.
-''');
-  }
-
-  test_inout_beforePrimaryConstructors() async {
-    await resolveTestCodeWithDiagnostics(r'''
-// %before-language-feature: primary-constructors
-extension type inout(int it) {}
-''');
-  }
-
-  test_out() async {
-    await resolveTestCodeWithDiagnostics(r'''
-extension type out(int it) {}
-//             ^^^
-// [diag.builtInIdentifierAsExtensionTypeName] The built-in identifier 'out' can't be used as an extension type name.
-''');
-  }
-
-  test_out_beforePrimaryConstructors() async {
-    await resolveTestCodeWithDiagnostics(r'''
-// %before-language-feature: primary-constructors
-extension type out(int it) {}
-''');
-  }
 }

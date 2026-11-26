@@ -63,15 +63,11 @@ class D<in out inout in out X> {}
 // [cfe] Each type parameter can have at most one variance modifier.
 
 typedef E<out T> = T Function(T a);
-//        ^^^
-// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
 //            ^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ',' before this.
 
 extension Extension<out T> on List<T> {}
-//                  ^^^
-// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
 //                      ^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ',' before this.
@@ -87,23 +83,17 @@ void topLevelFunction<in T>() {}
 
 class Methods {
   static void staticMethod<inout T>() {}
-  //                       ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
   //                             ^
   // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
   // [cfe] Expected ',' before this.
 
   void instanceMethod<out T>() {}
-  //                  ^^^
-  // [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
   //                      ^
   // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
   // [cfe] Expected ',' before this.
 }
 
 typedef NonFunctionAlias<out T> = List<T>;
-//                       ^^^
-// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
 //                           ^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ',' before this.
@@ -129,15 +119,11 @@ typedef FunctionAlias<in T> = void Function(T);
 // [cfe] Expected a function body or '=>'.
 
 typedef void OldStyleFunctionAlias<inout T>(T x);
-//                                 ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
 //                                       ^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ',' before this.
 
 void Function<out T>()? genericFunctionType;
-//            ^^^
-// [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
 //                ^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ',' before this.
@@ -162,8 +148,6 @@ void main() {
   // [cfe] Expected ';' after this.
 
   var functionLiteral = <out T>() {};
-  //                     ^^^
-  // [analyzer] COMPILE_TIME_ERROR.BUILT_IN_IDENTIFIER_IN_DECLARATION
   //                         ^
   // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
   // [cfe] Expected ',' before this.

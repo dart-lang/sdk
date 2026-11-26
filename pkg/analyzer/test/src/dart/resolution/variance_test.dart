@@ -181,4 +181,46 @@ V1: MethodInvocation
     Upper
 ''');
   }
+
+  test_outAndInoutAsNames_classAndMixin() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class out<inout> {}
+
+mixin inout<out> {}
+''');
+  }
+
+  test_outAndInoutAsNames_classicTypedef() async {
+    await resolveTestCodeWithDiagnostics(r'''
+typedef void out();
+
+typedef void inout();
+''');
+  }
+
+  test_outAndInoutAsNames_enumAndClassTypeAlias() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum out { a }
+
+mixin M {}
+
+class inout = Object with M;
+''');
+  }
+
+  test_outAndInoutAsNames_extensionTypeAndPrefix() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:async' as inout;
+
+extension type out(inout.Future<int> it) {}
+''');
+  }
+
+  test_outAndInoutAsNames_typedefAndExtension() async {
+    await resolveTestCodeWithDiagnostics(r'''
+typedef out<inout> = void Function(inout);
+
+extension inout<out> on List<out> {}
+''');
+  }
 }

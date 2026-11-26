@@ -26,44 +26,6 @@ class as = A with B;
 ''');
   }
 
-  test_classTypeAlias_inout() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class A {}
-mixin B {}
-class inout = A with B;
-//    ^^^^^
-// [diag.builtInIdentifierAsTypedefName] The built-in identifier 'inout' can't be used as a typedef name.
-''');
-  }
-
-  test_classTypeAlias_inout_beforePrimaryConstructors() async {
-    await resolveTestCodeWithDiagnostics(r'''
-// %before-language-feature: primary-constructors
-class A {}
-mixin B {}
-class inout = A with B;
-''');
-  }
-
-  test_classTypeAlias_out() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class A {}
-mixin B {}
-class out = A with B;
-//    ^^^
-// [diag.builtInIdentifierAsTypedefName] The built-in identifier 'out' can't be used as a typedef name.
-''');
-  }
-
-  test_classTypeAlias_out_beforePrimaryConstructors() async {
-    await resolveTestCodeWithDiagnostics(r'''
-// %before-language-feature: primary-constructors
-class A {}
-mixin B {}
-class out = A with B;
-''');
-  }
-
   test_typedef_classic() async {
     await resolveTestCodeWithDiagnostics(r'''
 typedef void as();
@@ -82,72 +44,12 @@ typedef void as();
 ''');
   }
 
-  test_typedef_classic_inout() async {
-    await resolveTestCodeWithDiagnostics(r'''
-typedef void inout();
-//           ^^^^^
-// [diag.builtInIdentifierAsTypedefName] The built-in identifier 'inout' can't be used as a typedef name.
-''');
-  }
-
-  test_typedef_classic_inout_beforePrimaryConstructors() async {
-    await resolveTestCodeWithDiagnostics(r'''
-// %before-language-feature: primary-constructors
-typedef void inout();
-''');
-  }
-
-  test_typedef_classic_out() async {
-    await resolveTestCodeWithDiagnostics(r'''
-typedef void out();
-//           ^^^
-// [diag.builtInIdentifierAsTypedefName] The built-in identifier 'out' can't be used as a typedef name.
-''');
-  }
-
-  test_typedef_classic_out_beforePrimaryConstructors() async {
-    await resolveTestCodeWithDiagnostics(r'''
-// %before-language-feature: primary-constructors
-typedef void out();
-''');
-  }
-
   test_typedef_generic_as() async {
     await resolveTestCodeWithDiagnostics(r'''
 typedef as = void Function();
 //      ^^
 // [diag.expectedIdentifierButGotKeyword] 'as' can't be used as an identifier because it's a keyword.
 // [diag.builtInIdentifierAsTypedefName] The built-in identifier 'as' can't be used as a typedef name.
-''');
-  }
-
-  test_typedef_generic_inout() async {
-    await resolveTestCodeWithDiagnostics(r'''
-typedef inout = void Function();
-//      ^^^^^
-// [diag.builtInIdentifierAsTypedefName] The built-in identifier 'inout' can't be used as a typedef name.
-''');
-  }
-
-  test_typedef_generic_inout_beforePrimaryConstructors() async {
-    await resolveTestCodeWithDiagnostics(r'''
-// %before-language-feature: primary-constructors
-typedef inout = void Function();
-''');
-  }
-
-  test_typedef_generic_out() async {
-    await resolveTestCodeWithDiagnostics(r'''
-typedef out = void Function();
-//      ^^^
-// [diag.builtInIdentifierAsTypedefName] The built-in identifier 'out' can't be used as a typedef name.
-''');
-  }
-
-  test_typedef_generic_out_beforePrimaryConstructors() async {
-    await resolveTestCodeWithDiagnostics(r'''
-// %before-language-feature: primary-constructors
-typedef out = void Function();
 ''');
   }
 
