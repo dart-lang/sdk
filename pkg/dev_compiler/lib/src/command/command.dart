@@ -691,6 +691,13 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
   var jsModule = compiler.emitModule(component);
   var outFiles = <Future>[];
 
+  // Windows treats URI paths and file paths as separate locations. Convert
+  // the file path to a URI path for consistency.
+  var multiRootOutputPath = options.multiRootOutputPath;
+  if (multiRootOutputPath != null) {
+    multiRootOutputPath = sourcePathToUri(p.absolute(multiRootOutputPath)).path;
+  }
+
   // Also the old Analyzer backend had some code to make debugging better when
   // --single-out-file is used, but that option does not appear to be used by
   // any of our build systems.
@@ -707,7 +714,7 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
       jsUrl: p.toUri(output).toString(),
       mapUrl: p.toUri('$output.map').toString(),
       customScheme: options.multiRootScheme,
-      multiRootOutputPath: options.multiRootOutputPath,
+      multiRootOutputPath: multiRootOutputPath,
       component: component,
     );
 
