@@ -366,6 +366,7 @@ dartdev/test/commands/info_linux_test: SkipByDesign
 
 [ $runtime == vm && $system != macos ]
 dartdev/test/commands/info_macos_test: SkipByDesign
+dartdev/test/native_assets_macos_test: SkipByDesign
 
 [ $runtime == vm && $system == windows ]
 analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180

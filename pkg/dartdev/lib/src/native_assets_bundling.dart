@@ -56,7 +56,7 @@ Future<void> _copyAssets(
   bool verbose,
 ) async {
   final filesToCopy = <({String id, Uri src, Uri dest})>[];
-  final codeAssetUris = <Uri>[];
+  final codeAssets = <({String assetId, Uri dylib})>[];
 
   for (final (:asset, :target) in targetMapping) {
     final targetPath = target.path;
@@ -68,7 +68,7 @@ Future<void> _copyAssets(
       switch (asset) {
         case CodeAsset(:final file!):
           filesToCopy.add((id: asset.id, src: file, dest: targetUri));
-          codeAssetUris.add(targetUri);
+          codeAssets.add((assetId: asset.id, dylib: targetUri));
         case DataAsset(:final file):
           filesToCopy.add((id: asset.id, src: file, dest: targetUri));
         default:
@@ -89,7 +89,7 @@ Future<void> _copyAssets(
     await Future.wait(filesToCopy.map((file) => file.src.copyTo(file.dest)));
 
     if (target.os == OS.macOS) {
-      await rewriteInstallNames(codeAssetUris, relocatable: relocatable);
+      await rewriteInstallNames(codeAssets, relocatable: relocatable);
     }
   }
 }
