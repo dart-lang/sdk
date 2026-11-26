@@ -30,6 +30,7 @@ dependencies:
   file: any
   front_end: any
   frontend_server: any
+  frontend_server_client: any
   hooks: any
   hooks_runner: any
   http: any

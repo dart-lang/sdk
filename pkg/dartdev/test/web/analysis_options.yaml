@@ -3,6 +3,10 @@ include: package:dart_flutter_team_lints/analysis_options.yaml
 # TODO(https://github.com/dart-lang/sdk/issues/64975): Remove this file once
 # all of pkg/dartdev uses the same lints.
 analyzer:
+  exclude:
+    # Apps with their own pubspec, resolved only after `dart pub get` in a
+    # copy (see serve/test_utils.dart).
+    - fixtures/**
   language:
     # From pkg/dartdev/analysis_options.yaml, which this file replaces.
     strict-raw-types: true
