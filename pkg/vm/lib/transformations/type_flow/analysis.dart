@@ -1312,8 +1312,25 @@ class _FieldValue extends _DependencyTracker {
   }
 
   Type getValue(TypeFlowAnalysis typeFlowAnalysis, Type? receiverType) {
-    if (receiverType is RecordConcreteType && !receiverType.isRaw) {
-      return receiverType.getFieldType(field.name);
+    if (receiverType is RecordConcreteType) {
+      // The TFA type may have no intersection with the static type, in which
+      // case the code is unreachable.
+      //
+      // This can happen due to TFA generally not always narrowing TFA types
+      // to static types (e.g. when getting values out of fields of generic
+      // classes, when getting the result value of calling closures)
+      //
+      // => We detect this case by effectively doing a shape check: Is the
+      // record shape of the [receiverType] the same as the record shape of this
+      // [_FieldValue]?
+      // => The fields will be identical iff the shape is the same.
+      final recordClass = receiverType.cls as _TFClassImpl;
+      final recordField = recordClass._dispatchTargetsNonSetters[field.name];
+      final isSameRecordShape = identical(recordField, field);
+      if (!isSameRecordShape) {
+        return emptyType;
+      }
+      if (!receiverType.isRaw) return receiverType.getFieldType(field.name);
     }
     ensureInitialized(typeFlowAnalysis, receiverType);
     addDependentInvocation(typeFlowAnalysis.currentInvocation);
