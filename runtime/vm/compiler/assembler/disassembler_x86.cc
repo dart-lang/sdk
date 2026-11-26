@@ -1266,6 +1266,10 @@ int DisassemblerX64::Print660F38Instruction(uint8_t* current) {
     get_modrm(*(current + 1), &mod, &regop, &rm);
     Print("ptest %s,", NameOfXMMRegister(regop));
     return 1 + PrintRightXMMOperand(current + 1);
+  } else if (*current == 0x40) {
+    get_modrm(*(current + 1), &mod, &regop, &rm);
+    Print("pmulld %s,", NameOfXMMRegister(regop));
+    return 1 + PrintRightXMMOperand(current + 1);
   } else {
     UnimplementedInstruction(*current);
     return 1;

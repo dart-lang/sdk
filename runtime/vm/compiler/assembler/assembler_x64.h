@@ -576,6 +576,8 @@ class Assembler : public AssemblerBase {
 
   void ptest(XmmRegister dst, XmmRegister src);
 
+  void pmulld(XmmRegister dst, XmmRegister src);
+
   void CompareImmediate(Register reg,
                         const Immediate& imm,
                         OperandSize width = kEightBytes);
