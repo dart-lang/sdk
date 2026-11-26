@@ -1497,13 +1497,23 @@ void ImageWriter::SnapshotTextObjectNamer::AddNonUniqueNameFor(
 
 void ImageWriter::SnapshotTextObjectNamer::ModifyForAssembly(
     BaseTextBuffer* buffer) {
-  if (buffer->buffer()[0] == 'L') {
-    // Assembler treats labels starting with `L` as local which can cause
-    // some issues down the line e.g. on Mac the linker might fail to encode
-    // compact unwind information because multiple functions end up being
-    // treated as a single function. See https://github.com/flutter/flutter/issues/102281.
-    //
-    // Avoid this by prepending an underscore.
+  bool add_underscore = false;
+#if defined(DART_TARGET_OS_MACOS) || defined(DART_TARGET_OS_MACOS_IOS)
+  // On Darwin, the linker strips symbols starting with 'l' as linker-private,
+  // and the assembler treats labels starting with 'L' as local, which can
+  // keep the linker from encoding compact unwind information because multiple
+  // functions end up being treated as a single function. C compilers avoid
+  // both by prefixing all symbols with '_', so do the same here unless the
+  // name already starts with one.
+  // See https://github.com/dart-lang/sdk/issues/64716 and
+  // https://github.com/flutter/flutter/issues/102281.
+  add_underscore = buffer->buffer()[0] != '_';
+#else
+  // The assembler treats labels starting with 'L' as local, so prepend an
+  // underscore to keep them as symbols.
+  add_underscore = buffer->buffer()[0] == 'L';
+#endif
+  if (add_underscore) {
     auto* const result = OS::SCreate(zone_, "_%s", buffer->buffer());
     buffer->Clear();
     buffer->AddString(result);
