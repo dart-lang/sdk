@@ -4161,6 +4161,15 @@ final x = $code;
     _assertSource(code, node);
   }
 
+  void test_recordLiteral_const_positional_single() {
+    var code = 'const (0,)';
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = $code;
+''');
+    var node = parseResult.findNode.singleRecordLiteral;
+    _assertSource(code, node);
+  }
+
   void test_recordLiteral_mixed() {
     var code = '(0, true, a: 0, b: true)';
     var parseResult = parseTestCodeWithDiagnostics('''
@@ -4181,6 +4190,15 @@ final x = $code;
 
   void test_recordLiteral_positional() {
     var code = '(0, true)';
+    var parseResult = parseTestCodeWithDiagnostics('''
+final x = $code;
+''');
+    var node = parseResult.findNode.singleRecordLiteral;
+    _assertSource(code, node);
+  }
+
+  void test_recordLiteral_positional_single() {
+    var code = '(0,)';
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = $code;
 ''');
@@ -4230,6 +4248,15 @@ $code f() {}
 
   void test_recordTypeAnnotation_positional_nullable() {
     var code = '(int, bool)?';
+    var parseResult = parseTestCodeWithDiagnostics('''
+$code f() {}
+''');
+    var node = parseResult.findNode.singleRecordTypeAnnotation;
+    _assertSource(code, node);
+  }
+
+  void test_recordTypeAnnotation_positional_single() {
+    var code = '(int,)';
     var parseResult = parseTestCodeWithDiagnostics('''
 $code f() {}
 ''');
