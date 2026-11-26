@@ -35,6 +35,7 @@ dependencies:
   hooks: any
   hooks_runner: any
   http: any
+  http_multi_server: any
   kernel: any
   language_server_protocol: any
   logging: any
@@ -61,4 +62,5 @@ dev_dependencies:
   record_use: any
   test: any
   test_descriptor: any
+  webdriver: any
   yaml_edit: any
