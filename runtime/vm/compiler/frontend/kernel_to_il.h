@@ -289,6 +289,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment ThrowLateInitializationError(TokenPosition position,
                                         const char* throw_method_name,
                                         const String& name);
+  Fragment ThrowUnsupportedError(TokenPosition position, const String& message);
   Fragment BuildImplicitClosureCreation(TokenPosition position,
                                         const Function& target);
 

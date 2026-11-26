@@ -1741,6 +1741,8 @@ void Simulator::DoRedirectedCall(Instr* instr) {
   }
 }
 
+#if defined(SIMULATOR_FFI) &&                                                  \
+    (defined(HOST_ARCH_ARM64) || defined(HOST_ARCH_X64))
 struct CalloutContext {
   uword saved_stack_pointer;
   uword saved_frame_pointer;
@@ -1753,9 +1755,11 @@ struct CalloutContext {
 };
 
 extern "C" void SimulatorFfiCalloutTrampoline(CalloutContext*);
+#endif
 
 void Simulator::DoRedirectedFfiCall(Instr* instr) {
-#if !defined(HOST_ARCH_ARM64)
+#if !defined(SIMULATOR_FFI) ||                                                 \
+    (!defined(HOST_ARCH_ARM64) && !defined(HOST_ARCH_X64))
   FATAL("Unsupported FFI call");
 #else
   // We can't instrument the runtime.

@@ -799,6 +799,7 @@ enum Opcode {
 enum Funct12 {
   ECALL = 0,
   EBREAK = 1,
+  SIMULATOR_FFI_CALL = 2,
 
   WRS_NTO = 0x0d,
   WRS_STO = 0x1d,
@@ -1427,6 +1428,8 @@ class Instr {
   static constexpr uint32_t kInstrSize = 4;
   static constexpr uint32_t kSimulatorRedirectInstruction =
       ECALL << 20 | SYSTEM;
+  static constexpr uint32_t kSimulatorFfiRedirectInstruction =
+      SIMULATOR_FFI_CALL << 20 | SYSTEM;
 
  private:
   const uint32_t encoding_;

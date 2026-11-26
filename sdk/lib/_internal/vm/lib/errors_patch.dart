@@ -126,6 +126,7 @@ class _InternalError {
 @patch
 @pragma("vm:entry-point")
 class UnsupportedError {
+  @pragma("vm:entry-point", "call")
   static Never _throwNew(String msg) {
     throw UnsupportedError(msg);
   }
