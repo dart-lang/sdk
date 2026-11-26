@@ -394,10 +394,19 @@ class TypesBuilder {
   ir.StructType defineStruct(
     String name, {
     Iterable<ir.FieldType>? fields,
+    Map<int, String>? fieldNames,
     ir.DefType? superType,
     required bool brand,
   }) {
     final type = ir.StructType(name, fields: fields, superType: superType);
+    if (fieldNames != null) {
+      assert(
+        fieldNames.keys.every(
+          (index) => index >= 0 && index < type.fields.length,
+        ),
+      );
+      type.fieldNames.addAll(fieldNames);
+    }
     _recGroupBuilder.addDefinedType(type);
     if (brand) {
       _recGroupBuilder._brandedStructs.add(type);
@@ -428,12 +437,14 @@ class TypesBuilder {
     ir.Tables tables,
     ir.Globals globals,
     ir.Tags tags,
+    ir.Elements elements,
   ) {
-    final usedTypes = <ir.DefType>{};
+    final usedTypes = Set<ir.DefType>.identity();
     tables.collectUsedTypes(usedTypes);
     functions.collectUsedTypes(usedTypes);
     globals.collectUsedTypes(usedTypes);
     tags.collectUsedTypes(usedTypes);
+    elements.collectUsedTypes(usedTypes);
     final types = _recGroupBuilder.createGroupsForModule(usedTypes);
     return ir.Types(types);
   }

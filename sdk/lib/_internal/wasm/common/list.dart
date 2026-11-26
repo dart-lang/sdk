@@ -763,6 +763,8 @@ extension WasmListBaseUnsafeExtensions on WasmListBase {
 }
 
 bool _elementsHaveType<T>(List list) {
+  // No need to check if T is a top type (Object? <: T).
+  if (const <Object?>[] is List<T>) return true;
   for (int i = 0; i < list.length; ++i) {
     if (list[i] is! T) return false;
   }

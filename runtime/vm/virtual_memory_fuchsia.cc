@@ -60,8 +60,7 @@ void VirtualMemory::InitExecutable() {
 void VirtualMemory::Cleanup() {
   vmex_resource_ = ZX_HANDLE_INVALID;
   page_size_ = 0;
-  // The profiler should only leak on Linux.
-  ASSERT((used_.load() == 0) || (Profiler::sample_block_buffer() != nullptr));
+  ASSERT(used_.load() == 0);
   limit_ = SIZE_MAX;
 }
 

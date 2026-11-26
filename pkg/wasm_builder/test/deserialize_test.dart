@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:typed_data';
-
-import 'package:expect/expect.dart';
 import 'package:wasm_builder/wasm_builder.dart';
+
+import 'test_utils.dart';
 
 void main() {
   testSimdInstructionDeserialize();
@@ -28,7 +27,7 @@ void testSimdInstructionDeserialize() {
     ..end();
   fn.build();
 
-  roundtripSerializeAndCompare(builder.build());
+  roundtripAndVerifyModule(builder.build());
 }
 
 void testBrOnCastRoundTrip() {
@@ -67,18 +66,5 @@ void testBrOnCastRoundTrip() {
     }
   }
 
-  roundtripSerializeAndCompare(builder.build());
-}
-
-void roundtripSerializeAndCompare(Module module) {
-  final bytes = _serializeModule(module);
-  final deserialized = Module.deserialize(Deserializer(bytes));
-  Expect.listEquals(bytes, _serializeModule(deserialized));
-  Expect.equals(module.printAsWat(), deserialized.printAsWat());
-}
-
-Uint8List _serializeModule(Module module) {
-  final s = Serializer();
-  module.serialize(s);
-  return s.data;
+  roundtripAndVerifyModule(builder.build());
 }

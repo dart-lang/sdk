@@ -105,6 +105,7 @@ class ModuleBuilder with Builder<ir.Module> {
       finalTables,
       finalGlobals,
       finalTags,
+      finalElements,
     );
     final finalDataSegments = dataSegments.build();
     final imports = ir.Imports(

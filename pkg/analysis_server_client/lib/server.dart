@@ -75,12 +75,17 @@ class Server extends ServerBase {
   /// with "--observe" and "--pause-isolates-on-exit", allowing the observatory
   /// to be used.
   ///
-  /// If [serverPath] is specified, then that analysis server will be launched,
-  /// otherwise the analysis server snapshot in the SDK will be launched.
+  /// If [serverPath] is specified, then that analysis server will be launched
+  /// (typically Dart source or a `.dill` kernel file via `dart`, or an AOT
+  /// snapshot via `dartaotruntime`); otherwise the analysis server AOT snapshot
+  /// in the SDK will be launched with `dartaotruntime`.
   ///
   /// If [enableAsserts] is specified, then asserts will be enabled in the new
   /// dart process for that server. This is typically just useful to enable
   /// locally for debugging.
+  ///
+  /// When launching an AOT snapshot, [profileServer], [servicePort], and
+  /// [enableAsserts] are unsupported and throw an [UnsupportedError].
   @override
   Future start({
     String? clientId,
@@ -99,58 +104,99 @@ class Server extends ServerBase {
     if (_process != null) {
       throw Exception('Process already started');
     }
-    dartBinary ??= Platform.executable;
 
-    // The integration tests run 3x faster when run from snapshots
-    // (you need to run test.py with --use-sdk).
+    final resolvedExeDir = dirname(Platform.resolvedExecutable);
+    // Look in both the running executable's directory (when invoked from an
+    // SDK's `bin/`) and `dart-sdk/bin/` (when invoked from a Dart build root).
+    final sdkBinCandidates = [
+      resolvedExeDir,
+      join(resolvedExeDir, 'dart-sdk', 'bin'),
+    ];
+
+    // Whether the server will be launched with `dartaotruntime` instead of
+    // `dart`; AOT runtimes reject VM flags such as `--packages`,
+    // `--enable-asserts`, and `--observe`.
+    final bool isAot;
+    final String resolvedServerPath;
+    String? preferredBinDir;
     if (serverPath == null) {
-      // Look for snapshots/analysis_server.dart.snapshot.
-      serverPath = normalize(
-        join(
-          dirname(Platform.resolvedExecutable),
-          'snapshots',
-          'analysis_server.dart.snapshot',
-        ),
-      );
-
-      if (!FileSystemEntity.isFileSync(serverPath)) {
-        // Look for dart-sdk/bin/snapshots/analysis_server.dart.snapshot.
-        serverPath = normalize(
-          join(
-            dirname(Platform.resolvedExecutable),
-            'dart-sdk',
-            'bin',
-            'snapshots',
-            'analysis_server.dart.snapshot',
-          ),
+      // No custom server entry point was passed: default to the SDK's prebuilt
+      // AOT snapshot.
+      isAot = true;
+      ({String snapshot, String binDir})? found;
+      for (final binDir in sdkBinCandidates) {
+        final candidateSnapshot = normalize(
+          join(binDir, 'snapshots', 'analysis_server_aot.dart.snapshot'),
+        );
+        if (FileSystemEntity.isFileSync(candidateSnapshot)) {
+          found = (snapshot: candidateSnapshot, binDir: binDir);
+          break;
+        }
+      }
+      if (found == null) {
+        throw StateError(
+          'Unable to locate the SDK analysis server AOT snapshot '
+          '(analysis_server_aot.dart.snapshot) relative to '
+          '${Platform.resolvedExecutable}. Specify serverPath to run from '
+          'source.',
         );
       }
+      resolvedServerPath = found.snapshot;
+      preferredBinDir = found.binDir;
+    } else {
+      resolvedServerPath = serverPath;
+      // A custom [serverPath] was provided. Treat it as AOT if it points to a
+      // built AOT snapshot or [dartBinary] is `dartaotruntime`; otherwise
+      // assume Dart source or a `.dill` kernel file run with `dart`.
+      isAot =
+          (dartBinary != null &&
+              basenameWithoutExtension(dartBinary) == 'dartaotruntime') ||
+          serverPath.endsWith('_aot.dart.snapshot') ||
+          serverPath.endsWith('_aot_product.dart.snapshot');
+    }
+
+    final resolvedDartBinary = _resolveDartBinary(
+      dartBinary: dartBinary,
+      isAot: isAot,
+      sdkBinCandidates: [?preferredBinDir, ...sdkBinCandidates],
+    );
+
+    // `dartaotruntime` (especially product-mode SDK builds) does not support
+    // JIT/VM-service flags.
+    if (isAot && (profileServer || servicePort != null || enableAsserts)) {
+      throw UnsupportedError(
+        'VM flags (profileServer, servicePort, enableAsserts) are not '
+        'supported when running an analysis server AOT snapshot; '
+        'specify serverPath to run from source.',
+      );
     }
 
     var arguments = <String>[];
-    //
-    // Add VM arguments.
-    //
-    if (profileServer) {
-      if (servicePort == null) {
-        arguments.add('--observe');
-      } else {
-        arguments.add('--observe=$servicePort');
+    if (!isAot) {
+      // Only pass VM flags when running on `dart` (source or kernel); passing
+      // flags like `--packages` to `dartaotruntime` fails with unrecognized
+      // flag errors.
+      if (profileServer) {
+        if (servicePort == null) {
+          arguments.add('--observe');
+        } else {
+          arguments.add('--observe=$servicePort');
+        }
+        arguments.add('--pause-isolates-on-exit');
+      } else if (servicePort != null) {
+        arguments.add('--enable-vm-service=$servicePort');
       }
-      arguments.add('--pause-isolates-on-exit');
-    } else if (servicePort != null) {
-      arguments.add('--enable-vm-service=$servicePort');
-    }
-    if (Platform.packageConfig != null) {
-      arguments.add('--packages=${Platform.packageConfig}');
-    }
-    if (enableAsserts) {
-      arguments.add('--enable-asserts');
+      if (Platform.packageConfig != null) {
+        arguments.add('--packages=${Platform.packageConfig}');
+      }
+      if (enableAsserts) {
+        arguments.add('--enable-asserts');
+      }
     }
     //
     // Add the server executable.
     //
-    arguments.add(serverPath);
+    arguments.add(resolvedServerPath);
 
     arguments.addAll(
       getServerArguments(
@@ -164,8 +210,8 @@ class Server extends ServerBase {
       ),
     );
 
-    listener?.startingServer(dartBinary, arguments);
-    final process = await Process.start(dartBinary, arguments);
+    listener?.startingServer(resolvedDartBinary, arguments);
+    final process = await Process.start(resolvedDartBinary, arguments);
     _process = process;
     // ignore: unawaited_futures
     process.exitCode.then((int code) {
@@ -212,5 +258,23 @@ class Server extends ServerBase {
         return process.exitCode;
       },
     );
+  }
+
+  /// Resolves the executable (`dartaotruntime` or `dart`) used to launch the
+  /// analysis server.
+  static String _resolveDartBinary({
+    required String? dartBinary,
+    required bool isAot,
+    required List<String> sdkBinCandidates,
+  }) {
+    if (dartBinary != null) return dartBinary;
+    if (!isAot) return Platform.executable;
+
+    final aotRuntimeName = Platform.isWindows
+        ? 'dartaotruntime.exe'
+        : 'dartaotruntime';
+    return sdkBinCandidates
+        .map((binDir) => normalize(join(binDir, aotRuntimeName)))
+        .firstWhere(FileSystemEntity.isFileSync, orElse: () => aotRuntimeName);
   }
 }

@@ -431,30 +431,26 @@ class ClosureLayouter extends RecursiveVisitor {
   /// NOTE: Call sites can rely on Dart's [Map] guarantees of preserving
   /// iteration order (so e.g. `{'a': typeA, 'b': typeB}` is guaranteed to add
   /// fields in that order).
-  ///
-  /// Additional fields can be added later, by adding to the [fields] list.
-  /// This enables struct types to be recursive.
   w.StructType _defineStruct(
     String name, {
     Map<String, w.FieldType>? namedFields,
     w.StructType? superType,
     bool? brand,
   }) {
-    final type = translator.typesBuilder.defineStruct(
+    final fields = <w.FieldType>[...?superType?.fields];
+    final fieldNames = <int, String>{...?superType?.fieldNames};
+    namedFields?.forEach((String name, w.FieldType value) {
+      final int index = fields.length;
+      fields.add(value);
+      fieldNames[index] = name;
+    });
+    return translator.typesBuilder.defineStruct(
       name,
+      fields: fields,
+      fieldNames: fieldNames,
       superType: superType,
       brand: brand ?? translator.options.uniqueTypes,
     );
-    if (superType != null) {
-      type.fields.addAll(superType.fields);
-      type.fieldNames.addAll(superType.fieldNames);
-    }
-    namedFields?.forEach((String name, w.FieldType value) {
-      final int index = type.fields.length;
-      type.fields.add(value);
-      type.fieldNames[index] = name;
-    });
-    return type;
   }
 
   w.ValueType get topType => translator.topType;
@@ -573,28 +569,10 @@ class ClosureLayouter extends RecursiveVisitor {
     w.StructType parentVtableStruct =
         parent?.vtableStruct ??
         (typeCount == 0 ? nonGenericVtableBaseStruct : genericVtableBaseStruct);
-    w.StructType vtableStruct = _defineStruct(
-      vtableName,
-      superType: parentVtableStruct,
-    );
-
-    // Define a new struct type for the closure, extending [closureBaseStruct]
-    // directly or indirectly, and install a new vtable struct (which is a
-    // subtype of the vtable struct of the [closureBaseStruct]).
-    final closureStructSuper = parent?.closureStruct ?? closureBaseStruct;
-    assert(closureStructSuper.isSubtypeOf(closureBaseStruct));
-    final closureStruct = _defineStruct(
-      closureName,
-      superType: closureStructSuper,
-    );
-    assert(closureStruct.fieldNames[3] == 'vtable');
-    closureStruct.fields[3] = w.FieldType(
-      w.RefType.def(vtableStruct, nullable: false),
-      mutable: false,
-    );
+    final vtableFields = <w.FieldType>[...parentVtableStruct.fields];
+    final vtableFieldNames = <int, String>{...parentVtableStruct.fieldNames};
 
     ClosureRepresentation? instantiatedRepresentation;
-    w.StructType? instantiationContextStruct;
     if (typeCount > 0) {
       // Add or set vtable field for the instantiation function.
       instantiatedRepresentation = getClosureRepresentation(
@@ -621,8 +599,59 @@ class ClosureLayouter extends RecursiveVisitor {
         w.RefType.def(instantiationFunctionType, nullable: false),
         mutable: false,
       );
-      vtableStruct.fields[vtableInstantiationFunctionIndex] = functionFieldType;
+      vtableFields[vtableInstantiationFunctionIndex] = functionFieldType;
+    }
 
+    // Add vtable fields for additional entry points relative to the parent.
+    for (int paramCount in paramCounts) {
+      w.FunctionType entry = translator.typesBuilder.defineFunction(
+        [
+          closureContextFieldType,
+          ...List.filled(typeCount, typeType),
+          ...List.filled(paramCount, topType),
+        ],
+        [topType],
+      );
+      final index = vtableFields.length;
+      vtableFields.add(
+        w.FieldType(w.RefType.def(entry, nullable: false), mutable: false),
+      );
+      vtableFieldNames[index] = 'closureCallEntry-$typeCount-$paramCount';
+    }
+
+    final w.StructType vtableStruct = translator.typesBuilder.defineStruct(
+      vtableName,
+      fields: vtableFields,
+      fieldNames: vtableFieldNames,
+      superType: parentVtableStruct,
+      brand: translator.options.uniqueTypes,
+    );
+
+    // Define a new struct type for the closure, extending [closureBaseStruct]
+    // directly or indirectly, and install a new vtable struct (which is a
+    // subtype of the vtable struct of the [closureBaseStruct]).
+    final closureStructSuper = parent?.closureStruct ?? closureBaseStruct;
+    assert(closureStructSuper.isSubtypeOf(closureBaseStruct));
+    assert(
+      closureStructSuper.fields[FieldIndex.closureVtable].type.isSubtypeOf(
+        w.RefType.def(vtableBaseStruct, nullable: false),
+      ),
+    );
+    final closureFields = <w.FieldType>[...closureStructSuper.fields];
+    closureFields[FieldIndex.closureVtable] = w.FieldType(
+      w.RefType.def(vtableStruct, nullable: false),
+      mutable: false,
+    );
+    final closureStruct = translator.typesBuilder.defineStruct(
+      closureName,
+      fields: closureFields,
+      fieldNames: closureStructSuper.fieldNames,
+      superType: closureStructSuper,
+      brand: translator.options.uniqueTypes,
+    );
+
+    w.StructType? instantiationContextStruct;
+    if (typeCount > 0) {
       // Build layout for the context of instantiated closures, containing the
       // original closure plus the type arguments.
       String instantiationContextName = [
@@ -641,24 +670,6 @@ class ClosureLayouter extends RecursiveVisitor {
         superType: _getInstantiationContextBaseStruct(typeCount),
         brand: translator.options.uniqueTypes,
       );
-    }
-
-    // Add vtable fields for additional entry points relative to the parent.
-    for (int paramCount in paramCounts) {
-      w.FunctionType entry = translator.typesBuilder.defineFunction(
-        [
-          closureContextFieldType,
-          ...List.filled(typeCount, typeType),
-          ...List.filled(paramCount, topType),
-        ],
-        [topType],
-      );
-      final index = vtableStruct.fields.length;
-      vtableStruct.fields.add(
-        w.FieldType(w.RefType.def(entry, nullable: false), mutable: false),
-      );
-      vtableStruct.fieldNames[index] =
-          'closureCallEntry-$typeCount-$paramCount';
     }
 
     final vTableBaseIndex = typeCount > 0
@@ -1538,49 +1549,33 @@ class Closures {
   }
 
   void _buildContexts() {
-    // Make struct definitions
     for (Context context in contexts.values) {
       if (context.isEmpty) continue;
 
       final owner = context.owner;
+      final String name;
       if (owner is Constructor) {
-        context.struct = translator.typesBuilder.defineStruct(
-          "<$owner-constructor-context>",
-          brand: translator.options.uniqueTypes,
-        );
+        name = "<$owner-constructor-context>";
       } else if (owner.parent is Constructor) {
         Constructor constructor = owner.parent as Constructor;
-        context.struct = translator.typesBuilder.defineStruct(
-          "<$constructor-constructor-body-context>",
-          brand: translator.options.uniqueTypes,
-        );
+        name = "<$constructor-constructor-body-context>";
       } else {
-        context.struct = translator.typesBuilder.defineStruct(
-          "<context ${owner.location}>",
-          brand: translator.options.uniqueTypes,
-        );
+        name = "<context ${owner.location}>";
       }
-    }
 
-    // Build object layouts
-    for (Context context in contexts.values) {
-      if (context.isEmpty) continue;
-
-      w.StructType struct = context.struct;
+      final fields = <w.FieldType>[];
       final parent = context.parent;
       if (parent != null) {
         assert(!parent.isEmpty);
-        struct.fields.add(
-          w.FieldType(w.RefType.def(parent.struct, nullable: true)),
-        );
+        fields.add(w.FieldType(w.RefType.def(parent.struct, nullable: true)));
       }
       if (context.containsThis) {
         assert(_member.enclosingClass != null);
-        struct.fields.add(w.FieldType(_nullableThisType!));
+        fields.add(w.FieldType(_nullableThisType!));
       }
       for (Variable variable in context.variables) {
-        int index = struct.fields.length;
-        struct.fields.add(
+        int index = fields.length;
+        fields.add(
           w.FieldType(
             translator
                 .translateTypeOfLocalVariable(variable)
@@ -1590,10 +1585,16 @@ class Closures {
         captures[variable]!.fieldIndex = index;
       }
       for (TypeParameter parameter in context.typeParameters) {
-        int index = struct.fields.length;
-        struct.fields.add(w.FieldType(typeType.withNullability(true)));
+        int index = fields.length;
+        fields.add(w.FieldType(typeType.withNullability(true)));
         captures[parameter]!.fieldIndex = index;
       }
+
+      context.struct = translator.typesBuilder.defineStruct(
+        name,
+        fields: fields,
+        brand: translator.options.uniqueTypes,
+      );
     }
   }
 }
@@ -1834,8 +1835,10 @@ class _ContextCollector extends RecursiveVisitor {
 
     isInInitializer = true;
 
-    // Create constructor context.
+    // Create constructor context (insert before visiting initializers so parent
+    // contexts always precede their children in `closures.contexts`).
     final Context constructorContext = Context(node, null, false);
+    closures.contexts[node] = constructorContext;
     currentContext = constructorContext;
 
     // Visit the class's type parameters so that captured type parameters can
@@ -1858,9 +1861,8 @@ class _ContextCollector extends RecursiveVisitor {
 
     isInInitializer = false;
 
-    if (!constructorContext.isEmpty) {
-      closures.contexts[node] = constructorContext;
-      currentContext = constructorContext;
+    if (constructorContext.isEmpty) {
+      closures.contexts.remove(node);
     }
     _newContext(node.function);
     currentContext = null;

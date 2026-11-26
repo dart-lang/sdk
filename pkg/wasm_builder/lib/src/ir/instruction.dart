@@ -9,15 +9,9 @@ import '../serialize/serialize.dart';
 import 'ir.dart';
 
 abstract mixin class Instruction implements Serializable {
-  /// The [ValueType] types referenced by this instruction. Used to determine
-  /// which types need to be included in the module. Unused types will not be
-  /// emitted in the wasm output.
-  List<ValueType> get usedValueTypes => const [];
-
-  /// The [DefType] types referenced by this instruction. Used to determine
-  /// which types need to be included in the module. Unused types will not be
-  /// emitted in the wasm output.
-  List<DefType> get usedDefTypes => const [];
+  /// Collects any [DefType]s directly referenced by this instruction into
+  /// [usedTypes]. Unused types will not be emitted in the wasm output.
+  void collectUsedTypes(Set<DefType> usedTypes) {}
 
   const Instruction();
 
@@ -669,7 +663,10 @@ class BeginOneOutputBlock extends Instruction {
   final ValueType type;
 
   @override
-  List<ValueType> get usedValueTypes => [type];
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    final defType = type.containedDefType;
+    if (defType != null) usedTypes.add(defType);
+  }
 
   BeginOneOutputBlock(this.type);
 
@@ -704,7 +701,9 @@ class BeginFunctionBlock extends Instruction {
   final FunctionType type;
 
   @override
-  List<DefType> get usedDefTypes => [type];
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    usedTypes.add(type);
+  }
 
   BeginFunctionBlock(this.type);
 
@@ -760,7 +759,10 @@ class BeginOneOutputLoop extends Instruction {
   final ValueType type;
 
   @override
-  List<ValueType> get usedValueTypes => [type];
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    final defType = type.containedDefType;
+    if (defType != null) usedTypes.add(defType);
+  }
 
   BeginOneOutputLoop(this.type);
 
@@ -792,7 +794,9 @@ class BeginFunctionLoop extends Instruction {
   final FunctionType type;
 
   @override
-  List<DefType> get usedDefTypes => [type];
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    usedTypes.add(type);
+  }
 
   BeginFunctionLoop(this.type);
 
@@ -841,7 +845,10 @@ class BeginOneOutputIf extends Instruction {
   final ValueType type;
 
   @override
-  List<ValueType> get usedValueTypes => [type];
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    final defType = type.containedDefType;
+    if (defType != null) usedTypes.add(defType);
+  }
 
   BeginOneOutputIf(this.type);
 
@@ -872,7 +879,9 @@ class BeginFunctionIf extends Instruction {
   final FunctionType type;
 
   @override
-  List<DefType> get usedDefTypes => [type];
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    usedTypes.add(type);
+  }
 
   BeginFunctionIf(this.type);
 
@@ -935,7 +944,10 @@ class BeginOneOutputTry extends Instruction {
   final ValueType type;
 
   @override
-  List<ValueType> get usedValueTypes => [type];
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    final defType = type.containedDefType;
+    if (defType != null) usedTypes.add(defType);
+  }
 
   BeginOneOutputTry(this.type);
 
@@ -968,7 +980,9 @@ class BeginFunctionTry extends Instruction {
   final FunctionType type;
 
   @override
-  List<DefType> get usedDefTypes => [type];
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    usedTypes.add(type);
+  }
 
   BeginFunctionTry(this.type);
 
@@ -1231,7 +1245,9 @@ class CallIndirect extends Instruction {
   final Table? table;
 
   @override
-  List<DefType> get usedDefTypes => [type];
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    usedTypes.add(type);
+  }
 
   CallIndirect(this.type, this.table);
 
@@ -1264,7 +1280,9 @@ class CallRef extends Instruction {
   final FunctionType type;
 
   @override
-  List<DefType> get usedDefTypes => [type];
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    usedTypes.add(type);
+  }
 
   CallRef(this.type);
 
@@ -1299,9 +1317,6 @@ class Drop extends SingleByteInstruction {
 }
 
 class Select extends Instruction {
-  @override
-  List<ValueType> get usedValueTypes => [];
-
   const Select();
 
   static Select deserialize(Deserializer d) {
@@ -1321,7 +1336,10 @@ class SelectWithType extends Instruction {
   final ValueType type;
 
   @override
-  List<ValueType> get usedValueTypes => [type];
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    final defType = type.containedDefType;
+    if (defType != null) usedTypes.add(defType);
+  }
 
   SelectWithType(this.type);
 
@@ -2139,9 +2157,9 @@ class RefNull extends Instruction {
   final HeapType heapType;
 
   @override
-  List<DefType> get usedDefTypes {
+  void collectUsedTypes(Set<DefType> usedTypes) {
     final type = heapType;
-    return type is DefType ? [type] : const [];
+    if (type is DefType) usedTypes.add(type);
   }
 
   RefNull(this.heapType);
@@ -2282,7 +2300,9 @@ class StructGet extends Instruction {
   final int fieldIndex;
 
   @override
-  List<DefType> get usedDefTypes => [structType];
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    usedTypes.add(structType);
+  }
 
   StructGet(this.structType, this.fieldIndex);
 
@@ -2317,7 +2337,9 @@ class StructGetS extends Instruction {
   final int fieldIndex;
 
   @override
-  List<DefType> get usedDefTypes => [structType];
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    usedTypes.add(structType);
+  }
 
   StructGetS(this.structType, this.fieldIndex);
 
@@ -2352,7 +2374,9 @@ class StructGetU extends Instruction {
   final int fieldIndex;
 
   @override
-  List<DefType> get usedDefTypes => [structType];
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    usedTypes.add(structType);
+  }
 
   StructGetU(this.structType, this.fieldIndex);
 
@@ -2387,7 +2411,9 @@ class StructSet extends Instruction {
   final int fieldIndex;
 
   @override
-  List<DefType> get usedDefTypes => [structType];
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    usedTypes.add(structType);
+  }
 
   StructSet(this.structType, this.fieldIndex);
 
@@ -2421,7 +2447,9 @@ class StructNew extends Instruction {
   final StructType structType;
 
   @override
-  List<DefType> get usedDefTypes => [structType];
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    usedTypes.add(structType);
+  }
 
   StructNew(this.structType);
 
@@ -2454,7 +2482,9 @@ class StructNewDefault extends Instruction {
   final StructType structType;
 
   @override
-  List<DefType> get usedDefTypes => [structType];
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    usedTypes.add(structType);
+  }
 
   StructNewDefault(this.structType);
 
@@ -2487,7 +2517,9 @@ class ArrayGet extends Instruction {
   final ArrayType arrayType;
 
   @override
-  List<DefType> get usedDefTypes => [arrayType];
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    usedTypes.add(arrayType);
+  }
 
   ArrayGet(this.arrayType);
 
@@ -2517,7 +2549,9 @@ class ArrayGetS extends Instruction {
   final ArrayType arrayType;
 
   @override
-  List<DefType> get usedDefTypes => [arrayType];
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    usedTypes.add(arrayType);
+  }
 
   ArrayGetS(this.arrayType);
 
@@ -2547,7 +2581,9 @@ class ArrayGetU extends Instruction {
   final ArrayType arrayType;
 
   @override
-  List<DefType> get usedDefTypes => [arrayType];
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    usedTypes.add(arrayType);
+  }
 
   ArrayGetU(this.arrayType);
 
@@ -2577,7 +2613,9 @@ class ArraySet extends Instruction {
   final ArrayType arrayType;
 
   @override
-  List<DefType> get usedDefTypes => [arrayType];
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    usedTypes.add(arrayType);
+  }
 
   ArraySet(this.arrayType);
 
@@ -2623,7 +2661,9 @@ class ArrayNewFixed extends Instruction {
   final int length;
 
   @override
-  List<DefType> get usedDefTypes => [arrayType];
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    usedTypes.add(arrayType);
+  }
 
   ArrayNewFixed(this.arrayType, this.length);
 
@@ -2661,7 +2701,9 @@ class ArrayNew extends Instruction {
   final ArrayType arrayType;
 
   @override
-  List<DefType> get usedDefTypes => [arrayType];
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    usedTypes.add(arrayType);
+  }
 
   ArrayNew(this.arrayType);
 
@@ -2694,7 +2736,9 @@ class ArrayNewDefault extends Instruction {
   final ArrayType arrayType;
 
   @override
-  List<DefType> get usedDefTypes => [arrayType];
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    usedTypes.add(arrayType);
+  }
 
   ArrayNewDefault(this.arrayType);
 
@@ -2728,7 +2772,9 @@ class ArrayNewData extends Instruction {
   final DataSegment data;
 
   @override
-  List<DefType> get usedDefTypes => [arrayType];
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    usedTypes.add(arrayType);
+  }
 
   ArrayNewData(this.arrayType, this.data);
 
@@ -2768,7 +2814,10 @@ class ArrayCopy extends Instruction {
   final ArrayType sourceArrayType;
 
   @override
-  List<DefType> get usedDefTypes => [destArrayType, sourceArrayType];
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    usedTypes.add(destArrayType);
+    usedTypes.add(sourceArrayType);
+  }
 
   ArrayCopy({required this.destArrayType, required this.sourceArrayType});
 
@@ -2804,7 +2853,9 @@ class ArrayFill extends Instruction {
   final ArrayType arrayType;
 
   @override
-  List<DefType> get usedDefTypes => [arrayType];
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    usedTypes.add(arrayType);
+  }
 
   ArrayFill(this.arrayType);
 
@@ -2883,6 +2934,12 @@ class RefTest extends Instruction {
 
   RefTest(this.targetType);
 
+  @override
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    final defType = targetType.containedDefType;
+    if (defType != null) usedTypes.add(defType);
+  }
+
   static RefTest deserialize(Deserializer d, Types types, bool nullable) {
     return RefTest(
       RefType(HeapType.deserialize(d, types.defined), nullable: nullable),
@@ -2911,7 +2968,10 @@ class RefCast extends Instruction {
   final RefType targetType;
 
   @override
-  List<ValueType> get usedValueTypes => [targetType];
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    final defType = targetType.containedDefType;
+    if (defType != null) usedTypes.add(defType);
+  }
 
   RefCast(this.targetType);
 
@@ -2945,7 +3005,12 @@ class BrOnCast extends Instruction {
   final RefType targetType;
 
   @override
-  List<ValueType> get usedValueTypes => [inputType, targetType];
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    final inputDefType = inputType.containedDefType;
+    if (inputDefType != null) usedTypes.add(inputDefType);
+    final targetDefType = targetType.containedDefType;
+    if (targetDefType != null) usedTypes.add(targetDefType);
+  }
 
   BrOnCast(this.labelIndex, this.inputType, this.targetType);
 
@@ -2993,7 +3058,12 @@ class BrOnCastFail extends Instruction {
   final RefType targetType;
 
   @override
-  List<ValueType> get usedValueTypes => [inputType, targetType];
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    final inputDefType = inputType.containedDefType;
+    if (inputDefType != null) usedTypes.add(inputDefType);
+    final targetDefType = targetType.containedDefType;
+    if (targetDefType != null) usedTypes.add(targetDefType);
+  }
 
   BrOnCastFail(this.labelIndex, this.inputType, this.targetType);
 
@@ -4969,7 +5039,10 @@ class BeginOneOutputTryTable extends Instruction {
   final List<TryTableCatch> catches;
 
   @override
-  List<ValueType> get usedValueTypes => [type];
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    final defType = type.containedDefType;
+    if (defType != null) usedTypes.add(defType);
+  }
 
   BeginOneOutputTryTable(this.type, this.catches);
 
@@ -5028,7 +5101,9 @@ class BeginFunctionTryTable extends Instruction {
   }
 
   @override
-  List<DefType> get usedDefTypes => [type];
+  void collectUsedTypes(Set<DefType> usedTypes) {
+    usedTypes.add(type);
+  }
 
   @override
   void serialize(Serializer s) {

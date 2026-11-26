@@ -5,6 +5,8 @@
 import 'package:expect/expect.dart';
 import 'package:wasm_builder/wasm_builder.dart';
 
+import 'test_utils.dart';
+
 void main() {
   testNoEffectTryTable();
   testOneOutputTryTable();
@@ -66,11 +68,7 @@ void testNoEffectTryTable() {
     'Actual WAT:\n$wat',
   );
 
-  // Verify round-trip serialize/deserialize preserves WAT output.
-  final serializer = Serializer();
-  module.serialize(serializer);
-  final deserialized = Module.deserialize(Deserializer(serializer.data));
-  Expect.equals(wat, deserialized.printAsWat());
+  roundtripAndVerifyModule(module);
 }
 
 void testOneOutputTryTable() {
@@ -102,10 +100,7 @@ void testOneOutputTryTable() {
     'Actual WAT:\n$wat',
   );
 
-  final serializer = Serializer();
-  module.serialize(serializer);
-  final deserialized = Module.deserialize(Deserializer(serializer.data));
-  Expect.equals(wat, deserialized.printAsWat());
+  roundtripAndVerifyModule(module);
 }
 
 void testFunctionTryTable() {
@@ -145,8 +140,5 @@ void testFunctionTryTable() {
     'Actual WAT:\n$wat',
   );
 
-  final serializer = Serializer();
-  module.serialize(serializer);
-  final deserialized = Module.deserialize(Deserializer(serializer.data));
-  Expect.equals(wat, deserialized.printAsWat());
+  roundtripAndVerifyModule(module);
 }
