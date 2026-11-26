@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // VMOptions=--max_deoptimization_counter_threshold=1000 --optimization-counter-threshold=10 --no-background-compilation
+// The x64 lowering of the multiplication operator needs SSE4.1, so run once
+// without it to cover the fallback.
+// VMOptions=--max_deoptimization_counter_threshold=1000 --optimization-counter-threshold=10 --no-background-compilation --no_use_sse41
 
 import 'dart:typed_data';
 

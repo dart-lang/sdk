@@ -49,6 +49,10 @@ bool FlowGraphCompiler::SupportsUnboxedSimd128() {
   return false;
 }
 
+bool FlowGraphCompiler::SupportsInt32x4Mul() {
+  return true;
+}
+
 bool FlowGraphCompiler::CanConvertInt64ToDouble() {
 #if XLEN == 32
   return false;

@@ -2150,6 +2150,7 @@ final class _Int32x4 implements Int32x4 {
   Int32x4 operator -(Int32x4 other) =>
       Int32x4(x - other.x, y - other.y, z - other.z, w - other.w);
 
+  @pragma("vm:recognized", "other")
   Int32x4 operator *(Int32x4 other) =>
       Int32x4(x * other.x, y * other.y, z * other.z, w * other.w);
 

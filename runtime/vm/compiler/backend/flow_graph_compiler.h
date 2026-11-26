@@ -445,6 +445,9 @@ class FlowGraphCompiler : public ValueObject {
   ~FlowGraphCompiler();
 
   static bool SupportsUnboxedSimd128();
+  // Whether a lane-wise Int32x4 multiplication can be compiled without a call
+  // to the Dart implementation.
+  static bool SupportsInt32x4Mul();
   static bool CanConvertInt64ToDouble();
 
   // Accessors.

@@ -8841,6 +8841,8 @@ SimdOpInstr::Kind SimdOpInstr::KindForOperator(MethodRecognizer::Kind kind) {
       return SimdOpInstr::kInt32x4Add;
     case MethodRecognizer::kInt32x4Sub:
       return SimdOpInstr::kInt32x4Sub;
+    case MethodRecognizer::kInt32x4Mul:
+      return SimdOpInstr::kInt32x4Mul;
     case MethodRecognizer::kInt32x4BitAnd:
       return SimdOpInstr::kInt32x4BitAnd;
     case MethodRecognizer::kInt32x4BitOr:
@@ -8871,6 +8873,7 @@ SimdOpInstr* SimdOpInstr::CreateFromCall(Zone* zone,
     case MethodRecognizer::kFloat64x2Sub:
     case MethodRecognizer::kInt32x4Add:
     case MethodRecognizer::kInt32x4Sub:
+    case MethodRecognizer::kInt32x4Mul:
     case MethodRecognizer::kInt32x4BitAnd:
     case MethodRecognizer::kInt32x4BitOr:
     case MethodRecognizer::kInt32x4BitXor:
@@ -8975,6 +8978,8 @@ SimdOpInstr::Kind SimdOpInstr::KindForOperator(intptr_t cid, Token::Kind op) {
           return kInt32x4Add;
         case Token::kSUB:
           return kInt32x4Sub;
+        case Token::kMUL:
+          return kInt32x4Mul;
         case Token::kBIT_AND:
           return kInt32x4BitAnd;
         case Token::kBIT_OR:
