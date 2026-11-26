@@ -5,7 +5,7 @@
 // Don't let the formatter change the location of things.
 // dart format off
 
-part of test.method_location;
+part of 'method_mirror_location_test.dart';
 
 class ClassInOtherFile {
   ClassInOtherFile();

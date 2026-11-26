@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of touch;
+part of 'touch.dart';
 
 /// Wraps a callback with translations of mouse events to touch events. Use
 /// this function to invoke your callback that expects touch events after

@@ -4,7 +4,7 @@
 
 // Dart test for testing access to private fields.
 
-part of PrivateTest.dart;
+part of 'private_test.dart';
 
 String _private2() {
   return "private2";

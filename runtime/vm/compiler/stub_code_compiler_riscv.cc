@@ -275,6 +275,11 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub() {
   __ Bind(&done);
 #endif
 
+#if defined(SIMULATOR_FFI)
+  if (FLAG_use_simulator) {
+    __ Emit32(Instr::kSimulatorFfiRedirectInstruction);
+  }
+#endif
   __ jalr(T0);
 
   __ TransitionNativeToGenerated(T1, /*exit_safepoint=*/true);

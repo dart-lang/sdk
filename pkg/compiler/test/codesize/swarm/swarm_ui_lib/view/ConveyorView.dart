@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of view;
+part of 'view.dart';
 
 /// Holds a number of child views.  As you switch between views, the old
 /// view is pushed off to the side and the new view slides in from the other

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of swarmlib;
+part of 'swarmlib.dart';
 
 // TODO(jacobr): there is a lot of dead code in this class. Checking is as is
 // and then doing a large pass to remove functionality that doesn't make sense

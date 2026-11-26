@@ -74,7 +74,7 @@ void unawaited(Future<void>? future) {}
 '''),
 
   MockSdkLibraryUnit('async/stream.dart', r'''
-part of dart.async;
+part of 'async.dart';
 
 abstract mixin class Stream<T> {
   const Stream();

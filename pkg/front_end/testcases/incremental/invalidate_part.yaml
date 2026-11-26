@@ -14,11 +14,11 @@ sources:
     import 'c.dart';
     part 'b.dart';
   b.dart: |
-    part of a;
+    part of 'a.dart';
     b() { print("b"); }
   c.dart: |
     library c;
     part 'd.dart';
   d.dart: |
-    part of c;
+    part of 'c.dart';
     d() { print("d"); }

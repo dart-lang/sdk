@@ -1,3 +1,5 @@
+// @dart = 3.4
+
 import 'part_of_multiple_lib1.dart';
 
 import 'part_of_multiple_lib2.dart';

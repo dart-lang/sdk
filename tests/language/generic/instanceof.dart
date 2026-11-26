@@ -3,7 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test that instanceof works correctly with type variables.
 
-part of GenericInstanceofTest.dart;
+import "package:expect/expect.dart";
+import "package:expect/variations.dart" as variation;
+
+const bool hasUnsoundNullSafety = variation.unsoundNullSafety;
 
 class Foo<T> {
   Foo() {}

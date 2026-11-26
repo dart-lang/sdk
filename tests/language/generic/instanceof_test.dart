@@ -5,11 +5,7 @@
 
 library GenericInstanceofTest.dart;
 
-import "package:expect/expect.dart";
-import "package:expect/variations.dart" as variation;
-part "instanceof.dart";
-
-const bool hasUnsoundNullSafety = variation.unsoundNullSafety;
+import "instanceof.dart";
 
 main() {
   // Repeat type checks so that inlined tests can be tested as well.

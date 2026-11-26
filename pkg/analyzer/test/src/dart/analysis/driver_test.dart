@@ -3377,11 +3377,13 @@ linter:
     - omit_local_variable_types
 ''');
 
-    newFile('$testPackageLibPath/a.dart', r'''
+    newFileWithLanguageFeatureDirective('$testPackageLibPath/a.dart', r'''
+// %before-language-feature: enhanced-parts
 part of other.lib;
 ''');
 
     await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: enhanced-parts
 library my.lib;
 part 'a.dart';
 //   ^^^^^^^^

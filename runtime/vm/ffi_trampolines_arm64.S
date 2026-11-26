@@ -150,11 +150,11 @@ LOCAL_SYMBOL(start_before_padding):
   brk 0 // ubsan padding
 LOCAL_SYMBOL(start):
 #if defined(__Fuchsia__)
-  .rept 483 // FfiCallbackMetadata::NumCallbackTrampolinesPerPage()
+  .rept 482 // FfiCallbackMetadata::NumCallbackTrampolinesPerPage()
 #elif defined(__APPLE__)
   .rept 2010 // FfiCallbackMetadata::NumCallbackTrampolinesPerPage()
 #else
-  .rept 8157 // FfiCallbackMetadata::NumCallbackTrampolinesPerPage()
+  .rept 8154 // FfiCallbackMetadata::NumCallbackTrampolinesPerPage()
 #endif
   adr x9, 0
   b LOCAL_SYMBOL(body)
@@ -182,7 +182,7 @@ LOCAL_SYMBOL(body):
   mov x0, sp
   mov x1, x9  // I.e., which callback.
 
-  adr x2, LOCAL_SYMBOL(start)
+  adr x2, LOCAL_SYMBOL(start_before_padding)
 #if defined(__Fuchsia__)
   and x2, x2, ~(0x1000-1)  // FfiCallbackMetadata::kPageSize = 4k
   add x2, x2, 0x2000

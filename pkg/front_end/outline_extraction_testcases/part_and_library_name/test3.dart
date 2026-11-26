@@ -1,3 +1,4 @@
+// @dart=3.4
 library test3;
 
 part "test3_part.dart";

@@ -754,6 +754,46 @@ intptr_t CallMarshaller::RequiredStackSpaceInBytes() const {
   return PassByPointerStackOffset(kAfterLastArgumentIndex);
 }
 
+bool CallMarshaller::IsSupportedOnSimulator() const {
+#if !defined(SIMULATOR_FFI)
+  return false;
+#elif defined(HOST_ARCH_ARM64)
+  return true;
+#elif defined(HOST_ARCH_X64) || defined(HOST_ARCH_IA32)
+  // We only support a subset of signatures just enough to be able to port
+  // dart:io to FFI: integer/pointer arguments and return values up to
+  // target::kWordSize (including smaller integers such as bool, int8, int16,
+  // int32) with up to 12 arguments, and no floats, structs by value, or
+  // variadic arguments.
+  if (contains_varargs()) {
+    return false;
+  }
+  if (ReturnsCompound()) {
+    return false;
+  }
+  const auto& return_type = Location(kResultIndex).payload_type();
+  if (!return_type.IsVoid() &&
+      (!return_type.IsInt() || return_type.SizeInBytes() > target::kWordSize)) {
+    return false;
+  }
+  if (num_args() > 12) {
+    return false;
+  }
+  for (intptr_t i = 0; i < num_args(); i++) {
+    if (IsCompoundCType(i)) {
+      return false;
+    }
+    const auto& arg_type = Location(i).payload_type();
+    if (!arg_type.IsInt() || arg_type.SizeInBytes() > target::kWordSize) {
+      return false;
+    }
+  }
+  return true;
+#else
+  return false;
+#endif
+}
+
 // This classes translates the ABI location of arguments into the locations they
 // will inhabit after entry-frame setup in the invocation of a native callback.
 //
@@ -944,6 +984,46 @@ const NativeLocation& CallbackMarshaller::NativeLocationOfNativeParameter(
   const auto& multi_loc = *multiple.locations().At(index);
   ASSERT(multi_loc.IsStack() && multi_loc.AsStack().base_register() == SPREG);
   return multi_loc;
+}
+
+bool CallbackMarshaller::IsSupportedOnSimulator() const {
+#if !defined(SIMULATOR_FFI)
+  return false;
+#elif defined(HOST_ARCH_ARM64)
+  return true;
+#elif defined(HOST_ARCH_X64) || defined(HOST_ARCH_IA32)
+  // We only support a subset of signatures just enough to be able to port
+  // dart:io to FFI: integer/pointer arguments and return values up to
+  // target::kWordSize (including smaller integers such as bool, int8, int16,
+  // int32) with up to 8 arguments, and no floats, structs by value, or
+  // variadic arguments.
+  if (contains_varargs()) {
+    return false;
+  }
+  if (IsCompoundCType(kResultIndex)) {
+    return false;
+  }
+  const auto& return_type = Location(kResultIndex).payload_type();
+  if (!return_type.IsVoid() &&
+      (!return_type.IsInt() || return_type.SizeInBytes() > target::kWordSize)) {
+    return false;
+  }
+  if (num_args() > 8) {
+    return false;
+  }
+  for (intptr_t i = 0; i < num_args(); i++) {
+    if (IsCompoundCType(i)) {
+      return false;
+    }
+    const auto& arg_type = Location(i).payload_type();
+    if (!arg_type.IsInt() || arg_type.SizeInBytes() > target::kWordSize) {
+      return false;
+    }
+  }
+  return true;
+#else
+  return false;
+#endif
 }
 
 }  // namespace ffi

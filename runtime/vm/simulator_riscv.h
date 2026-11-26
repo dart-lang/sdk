@@ -19,6 +19,8 @@ class Isolate;
 class Mutex;
 class SimulatorSetjmpBuffer;
 class Thread;
+struct CallbackContext;
+struct CallbackMetadata;
 
 #define ELEN 64
 #define VLEN 128
@@ -180,6 +182,16 @@ class Simulator {
                bool fp_return = false,
                bool fp_args = false);
 
+#if defined(SIMULATOR_FFI)
+  void DoCompiledFfiCallback(Thread* thread,
+                             CallbackContext* ctxt,
+                             const CallbackMetadata* metadata);
+
+  void DoRedirectedFfiCallback(Thread* thread,
+                               CallbackContext* ctxt,
+                               const CallbackMetadata* metadata);
+#endif
+
   // Runtime and native call support.
   enum CallKind {
     kRuntimeCall,
@@ -260,6 +272,7 @@ class Simulator {
   void InterpretMISCMEM(Instr instr);
   void InterpretSYSTEM(Instr instr);
   void InterpretECALL(Instr instr);
+  void DoRedirectedFfiCall(Instr instr);
   void InterpretAMO(Instr instr);
   void InterpretAMO8(Instr instr);
   void InterpretAMO16(Instr instr);

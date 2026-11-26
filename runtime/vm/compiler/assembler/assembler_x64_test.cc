@@ -4380,6 +4380,39 @@ ASSEMBLER_TEST_RUN(PackedShiftRightLogical, test) {
       "ret\n");
 }
 
+ASSEMBLER_TEST_GENERATE(PackedIntegerMultiply, assembler) {
+  __ movq(RAX, CallingConventions::kArg1Reg);
+  __ movups(XMM0, Address(RAX, 0));
+  __ movups(XMM1, Address(RAX, 16));
+  __ pmulld(XMM0, XMM1);
+  __ movups(Address(RAX, 32), XMM0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(PackedIntegerMultiply, test) {
+  typedef void (*PackedIntegerMultiplyCode)(int32_t* data);
+  auto check = [&](const int32_t (&left)[4], const int32_t (&right)[4],
+                   const int32_t (&expected)[4]) {
+    int32_t data[12];
+    for (intptr_t i = 0; i < 4; i++) {
+      data[i] = left[i];
+      data[4 + i] = right[i];
+      data[8 + i] = static_cast<int32_t>(0xAAAAAAAA);
+    }
+    reinterpret_cast<PackedIntegerMultiplyCode>(test->entry())(data);
+    for (intptr_t i = 0; i < 4; i++) {
+      EXPECT_EQ(expected[i], data[8 + i]);
+    }
+  };
+  check({3, -5, 7, -9}, {7, 11, -13, -15}, {21, -55, -91, 135});
+  check({0x10001, kMaxInt32, kMinInt32, 0x55555555}, {0x10001, -1, -1, 3},
+        {0x20001, -kMaxInt32, kMinInt32, -1});
+  EXPECT_DISASSEMBLY_ENDS_WITH(
+      "pmulld xmm0,xmm1\n"
+      "movups [rax+0x20],xmm0\n"
+      "ret\n");
+}
+
 ASSEMBLER_TEST_GENERATE(PackedLogicalNot, assembler) {
   static const struct ALIGN16 {
     uint32_t a;

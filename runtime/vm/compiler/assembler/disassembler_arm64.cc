@@ -1481,6 +1481,8 @@ void ARM64Decoder::DecodeSIMDThreeSame(Instr* instr) {
     Format(instr, "vadd'vsz 'vd, 'vn, 'vm");
   } else if ((U == 1) && (opcode == 0x10)) {
     Format(instr, "vsub'vsz 'vd, 'vn, 'vm");
+  } else if ((U == 0) && (opcode == 0x13)) {
+    Format(instr, "vmul'vsz 'vd, 'vn, 'vm");
   } else if ((U == 0) && (opcode == 0x1a)) {
     if (instr->Bit(23) == 0) {
       Format(instr, "vadd'vsz 'vd, 'vn, 'vm");

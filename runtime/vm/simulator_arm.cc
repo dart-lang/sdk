@@ -18,9 +18,11 @@
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/constants.h"
 #include "vm/cpu.h"
+#include "vm/ffi_callback_metadata.h"
 #include "vm/image_snapshot.h"
 #include "vm/native_arguments.h"
 #include "vm/os_thread.h"
+#include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"
 
 namespace dart {
@@ -1524,12 +1526,176 @@ void Simulator::SupervisorCall(Instr* instr) {
       dbg.Stop(instr, "breakpoint");
       break;
     }
+    case Instr::kSimulatorFfiRedirectCode: {
+      DoRedirectedFfiCall(instr);
+      break;
+    }
     default: {
       UNREACHABLE();
       break;
     }
   }
 }
+
+#if defined(SIMULATOR_FFI) && defined(HOST_ARCH_IA32)
+typedef int32_t(__attribute__((cdecl)) * SimulatorFfiCall12)(int32_t,
+                                                             int32_t,
+                                                             int32_t,
+                                                             int32_t,
+                                                             int32_t,
+                                                             int32_t,
+                                                             int32_t,
+                                                             int32_t,
+                                                             int32_t,
+                                                             int32_t,
+                                                             int32_t,
+                                                             int32_t);
+
+NO_SANITIZE_UNDEFINED_FUNCTION
+static int32_t InvokeFfiCall(SimulatorFfiCall12 target,
+                             int32_t a0,
+                             int32_t a1,
+                             int32_t a2,
+                             int32_t a3,
+                             int32_t a4,
+                             int32_t a5,
+                             int32_t a6,
+                             int32_t a7,
+                             int32_t a8,
+                             int32_t a9,
+                             int32_t a10,
+                             int32_t a11) {
+  return target(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
+}
+#endif  // defined(SIMULATOR_FFI) && defined(HOST_ARCH_IA32)
+
+void Simulator::DoRedirectedFfiCall(Instr* instr) {
+#if !defined(SIMULATOR_FFI) || !defined(HOST_ARCH_IA32)
+  FATAL("Unsupported FFI call");
+#else
+  // We can't instrument the runtime.
+  memory_.FlushAll();
+
+  SimulatorSetjmpBuffer buffer(this);
+  if (!DART_SETJMP(buffer.buffer_)) {
+    uword external = get_register(R8);
+    if (IsTracingExecution()) {
+      THR_Print("Call to FFI function at 0x%" Px "\n", external);
+    }
+
+    int32_t a0 = get_register(R0);
+    int32_t a1 = get_register(R1);
+    int32_t a2 = get_register(R2);
+    int32_t a3 = get_register(R3);
+    int32_t* sp = reinterpret_cast<int32_t*>(get_register(SPREG));
+    int32_t a4 = sp[0];
+    int32_t a5 = sp[1];
+    int32_t a6 = sp[2];
+    int32_t a7 = sp[3];
+    int32_t a8 = sp[4];
+    int32_t a9 = sp[5];
+    int32_t a10 = sp[6];
+    int32_t a11 = sp[7];
+
+    SimulatorFfiCall12 target = reinterpret_cast<SimulatorFfiCall12>(external);
+    int32_t result =
+        InvokeFfiCall(target, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
+
+    if (IsTracingExecution()) {
+      THR_Print("Return from FFI function at 0x%" Px "\n", external);
+    }
+
+    ClobberVolatileRegisters();
+    set_register(R0, result);
+
+    uword return_address =
+        reinterpret_cast<uword>(instr) + 2 * Instr::kInstrSize;
+    set_register(LR, return_address);
+    set_pc(return_address);
+  } else {
+    // Coming via long jump from a throw. Continue to exception handler.
+  }
+#endif
+}
+
+#if defined(SIMULATOR_FFI)
+void Simulator::DoCompiledFfiCallback(Thread* thread,
+                                      CallbackContext* ctxt,
+                                      const CallbackMetadata* metadata) {
+  int32_t saved_pc = get_pc();
+  int32_t saved_sp = get_register(SPREG);
+  int32_t saved_fp = get_register(FP);
+  int32_t saved_lr = get_register(LR);
+  int32_t saved_thr = get_register(THR);
+  int32_t saved_r4 = get_register(R4);
+  int32_t saved_r8 = get_register(R8);
+  int32_t saved_r9 = get_register(R9);
+
+  // Make sure the activation frames are properly aligned.
+  int32_t sp = saved_sp;
+  if (OS::ActivationFrameAlignment() > 1) {
+    sp = Utils::RoundDown(sp, OS::ActivationFrameAlignment());
+  }
+  // Push stack arguments args[4..7] onto the simulated stack (so args[4] is at
+  // the lowest address).
+  for (intptr_t i = 7; i >= 4; i--) {
+    sp -= sizeof(int32_t);
+    *reinterpret_cast<int32_t*>(sp) = ctxt->integer_arguments[i];
+  }
+  // Allocate FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta
+  // (6 words = 24 bytes) matching FfiCallbackTrampolineStub.
+  sp -= FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta *
+        sizeof(int32_t);
+  set_register(SPREG, sp);
+  set_register(FP, sp + 4 * sizeof(int32_t));
+
+  set_register(R0, ctxt->integer_arguments[0]);
+  set_register(R1, ctxt->integer_arguments[1]);
+  set_register(R2, ctxt->integer_arguments[2]);
+  set_register(R3, ctxt->integer_arguments[3]);
+  set_register(THR, reinterpret_cast<int32_t>(thread));
+  set_register(LR, kEndSimulatingPC);
+
+  set_pc(metadata->entry_point);
+  Execute();
+
+  // We can't instrument the runtime.
+  memory_.FlushAll();
+
+  ctxt->integer_arguments[0] = get_register(R0);
+  ctxt->integer_arguments[1] = get_register(R1);
+
+  set_register(R4, saved_r4);
+  set_register(R8, saved_r8);
+  set_register(R9, saved_r9);
+  set_register(THR, saved_thr);
+  set_register(FP, saved_fp);
+  set_register(LR, saved_lr);
+  set_register(SPREG, saved_sp);
+  set_pc(saved_pc);
+}
+
+void Simulator::DoRedirectedFfiCallback(Thread* thread,
+                                        CallbackContext* ctxt,
+                                        const CallbackMetadata* metadata) {
+  DoCompiledFfiCallback(thread, ctxt, metadata);
+
+  if (metadata->type == CallbackMetadata::kCall) {
+    auto* const caller_isolate =
+        reinterpret_cast<Isolate*>(metadata->caller_isolate);
+    auto* const caller_isolate_group =
+        reinterpret_cast<IsolateGroup*>(metadata->caller_isolate_group);
+    auto epilogue =
+        reinterpret_cast<void* (*)(Thread*, Isolate*, IsolateGroup*)>(
+            metadata->epilogue);
+    epilogue(thread, caller_isolate, caller_isolate_group);
+  } else {
+    ASSERT_EQUAL(metadata->type, CallbackMetadata::kTailCall);
+    auto epilogue = reinterpret_cast<void* (*)(Thread*)>(metadata->epilogue);
+    epilogue(thread);
+  }
+}
+#endif  // defined(SIMULATOR_FFI)
 
 void Simulator::ClobberVolatileRegisters() {
   // Clear atomic reservation.

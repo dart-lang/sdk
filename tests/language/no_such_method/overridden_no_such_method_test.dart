@@ -5,8 +5,7 @@
 
 library OverriddenNoSuchMethodTest.dart;
 
-import "package:expect/expect.dart";
-part "overridden.dart";
+import "overridden.dart";
 
 main() {
   OverriddenNoSuchMethod.testMain();

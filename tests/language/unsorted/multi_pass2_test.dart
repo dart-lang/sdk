@@ -7,8 +7,8 @@
 library MultiPassTest.dart;
 
 import "package:expect/expect.dart";
-part "multi_pass_a.dart";
-part "multi_pass_b.dart";
+part "multi_pass2_b.dart";
+part "multi_pass2_a.dart";
 
 class Base {
   Base(this.value) {}

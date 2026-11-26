@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=3.4
+
 library foo;
 
 import 'part_part_of_differently_named_library_lib2.dart';

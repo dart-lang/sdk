@@ -606,6 +606,18 @@ void Assembler::ptest(XmmRegister dst, XmmRegister src) {
   EmitRegisterOperand(dst & 7, src);
 }
 
+void Assembler::pmulld(XmmRegister dst, XmmRegister src) {
+  ASSERT(src <= XMM15);
+  ASSERT(dst <= XMM15);
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitRegRegRex(dst, src);
+  EmitUint8(0x0F);
+  EmitUint8(0x38);
+  EmitUint8(0x40);
+  EmitRegisterOperand(dst & 7, src);
+}
+
 void Assembler::fldl(const Address& src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0xDD);

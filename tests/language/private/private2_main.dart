@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Dart test for testing access to private fields across class hierarchies.
 
-part of Private2Test;
+part of 'private2_test.dart';
 
 class A {
   var _f;

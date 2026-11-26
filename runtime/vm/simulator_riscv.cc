@@ -18,9 +18,11 @@
 
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/constants.h"
+#include "vm/ffi_callback_metadata.h"
 #include "vm/image_snapshot.h"
 #include "vm/native_arguments.h"
 #include "vm/os_thread.h"
+#include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"
 
 namespace dart {
@@ -265,7 +267,6 @@ void Simulator::PrepareCall(PreservedRegisters* preserved) {
 }
 
 void Simulator::ClobberVolatileRegisters() {
-#if defined(DEBUG)
   reserved_address_ = reserved_value_ = 0;  // Clear atomic reservation.
   for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
     if ((kAbiVolatileCpuRegs & (1 << i)) != 0) {
@@ -286,7 +287,6 @@ void Simulator::ClobberVolatileRegisters() {
       vregs_[i][j] = random_.NextUInt64();
     }
   }
-#endif
 }
 
 void Simulator::SavePreservedRegisters(PreservedRegisters* preserved) {
@@ -2078,6 +2078,9 @@ void Simulator::InterpretSYSTEM(Instr instr) {
         case EBREAK:
           Fault("EBREAK");
           break;
+        case SIMULATOR_FFI_CALL:
+          DoRedirectedFfiCall(instr);
+          return;
         case WRS_NTO:
         case WRS_STO:
           // Could issue mwait on host?
@@ -2338,6 +2341,221 @@ void Simulator::InterpretECALL(Instr instr) {
     // Coming via long jump from a throw. Continue to exception handler.
   }
 }
+
+#if defined(SIMULATOR_FFI)
+#if defined(TARGET_ARCH_RISCV32) && defined(HOST_ARCH_IA32)
+typedef int32_t(__attribute__((cdecl)) * SimulatorFfiCall12)(int32_t,
+                                                             int32_t,
+                                                             int32_t,
+                                                             int32_t,
+                                                             int32_t,
+                                                             int32_t,
+                                                             int32_t,
+                                                             int32_t,
+                                                             int32_t,
+                                                             int32_t,
+                                                             int32_t,
+                                                             int32_t);
+
+NO_SANITIZE_UNDEFINED_FUNCTION
+static int32_t InvokeFfiCall(SimulatorFfiCall12 target,
+                             int32_t a0,
+                             int32_t a1,
+                             int32_t a2,
+                             int32_t a3,
+                             int32_t a4,
+                             int32_t a5,
+                             int32_t a6,
+                             int32_t a7,
+                             int32_t a8,
+                             int32_t a9,
+                             int32_t a10,
+                             int32_t a11) {
+  return target(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
+}
+#elif defined(TARGET_ARCH_RISCV64) && defined(HOST_ARCH_X64)
+struct CalloutContext {
+  uword saved_stack_pointer;
+  uword saved_frame_pointer;
+  uword simulator_stack_pointer;
+  uword simulator_frame_pointer;
+  uword integer_arguments[8];
+  uword double_arguments[8];
+  uword r8;
+  uword target;
+};
+
+extern "C" void SimulatorFfiCalloutTrampoline(CalloutContext*);
+#endif
+#endif  // defined(SIMULATOR_FFI)
+
+void Simulator::DoRedirectedFfiCall(Instr instr) {
+#if !defined(SIMULATOR_FFI) ||                                                 \
+    !((defined(TARGET_ARCH_RISCV32) && defined(HOST_ARCH_IA32)) ||             \
+      (defined(TARGET_ARCH_RISCV64) && defined(HOST_ARCH_X64)))
+  FATAL("Unsupported FFI call");
+#else
+  // We can't instrument the runtime.
+  memory_.FlushAll();
+
+  SimulatorSetjmpBuffer buffer(this);
+  if (!DART_SETJMP(buffer.buffer_)) {
+    uintx_t saved_pc = pc_;
+    uword external = get_xreg(T0);
+    if (IsTracingExecution()) {
+      THR_Print("Call to FFI function at 0x%" Px "\n", external);
+    }
+
+#if defined(TARGET_ARCH_RISCV32) && defined(HOST_ARCH_IA32)
+    int32_t a0 = get_xreg(A0);
+    int32_t a1 = get_xreg(A1);
+    int32_t a2 = get_xreg(A2);
+    int32_t a3 = get_xreg(A3);
+    int32_t a4 = get_xreg(A4);
+    int32_t a5 = get_xreg(A5);
+    int32_t a6 = get_xreg(A6);
+    int32_t a7 = get_xreg(A7);
+    int32_t* sp = reinterpret_cast<int32_t*>(get_xreg(SP));
+    int32_t a8 = sp[0];
+    int32_t a9 = sp[1];
+    int32_t a10 = sp[2];
+    int32_t a11 = sp[3];
+
+    SimulatorFfiCall12 target = reinterpret_cast<SimulatorFfiCall12>(external);
+    int32_t result =
+        InvokeFfiCall(target, a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
+
+    if (IsTracingExecution()) {
+      THR_Print("Return from FFI function at 0x%" Px "\n", external);
+    }
+
+    ClobberVolatileRegisters();
+    set_xreg(A0, result);
+#else
+    CalloutContext ctxt;
+    ctxt.simulator_stack_pointer = get_xreg(SP);
+    ctxt.simulator_frame_pointer = get_xreg(FP);
+    ctxt.integer_arguments[0] = get_xreg(A0);
+    ctxt.integer_arguments[1] = get_xreg(A1);
+    ctxt.integer_arguments[2] = get_xreg(A2);
+    ctxt.integer_arguments[3] = get_xreg(A3);
+    ctxt.integer_arguments[4] = get_xreg(A4);
+    ctxt.integer_arguments[5] = get_xreg(A5);
+    ctxt.integer_arguments[6] = get_xreg(A6);
+    ctxt.integer_arguments[7] = get_xreg(A7);
+    ctxt.double_arguments[0] = bit_cast<uword>(get_fregd(FA0));
+    ctxt.double_arguments[1] = bit_cast<uword>(get_fregd(FA1));
+    ctxt.double_arguments[2] = bit_cast<uword>(get_fregd(FA2));
+    ctxt.double_arguments[3] = bit_cast<uword>(get_fregd(FA3));
+    ctxt.double_arguments[4] = bit_cast<uword>(get_fregd(FA4));
+    ctxt.double_arguments[5] = bit_cast<uword>(get_fregd(FA5));
+    ctxt.double_arguments[6] = bit_cast<uword>(get_fregd(FA6));
+    ctxt.double_arguments[7] = bit_cast<uword>(get_fregd(FA7));
+    ctxt.r8 = 0;
+    ctxt.target = external;
+
+    SimulatorFfiCalloutTrampoline(&ctxt);
+
+    if (IsTracingExecution()) {
+      THR_Print("Return from FFI function at 0x%" Px "\n", external);
+    }
+
+    ClobberVolatileRegisters();
+    set_xreg(A0, ctxt.integer_arguments[0]);
+    set_xreg(A1, ctxt.integer_arguments[1]);
+    set_fregd(FA0, bit_cast<double>(ctxt.double_arguments[0]));
+    set_fregd(FA1, bit_cast<double>(ctxt.double_arguments[1]));
+#endif
+
+    // Skip over the redirect instruction and following jalr (which may be
+    // 16-bit c_jalr or 32-bit jalr).
+    uint16_t next_parcel =
+        *reinterpret_cast<uint16_t*>(saved_pc + Instr::kInstrSize);
+    size_t next_len = IsCInstruction(next_parcel) ? 2 : 4;
+    uintx_t return_address = saved_pc + Instr::kInstrSize + next_len;
+    set_xreg(RA, return_address);
+    pc_ = return_address;
+  } else {
+    // Coming via long jump from a throw. Continue to exception handler.
+  }
+#endif
+}
+
+#if defined(SIMULATOR_FFI)
+void Simulator::DoCompiledFfiCallback(Thread* thread,
+                                      CallbackContext* ctxt,
+                                      const CallbackMetadata* metadata) {
+  uintx_t saved_pc = pc_;
+  uintx_t saved_sp = get_xreg(SP);
+  uintx_t saved_fp = get_xreg(FP);
+  uintx_t saved_ra = get_xreg(RA);
+  uintx_t saved_thr = get_xreg(THR);
+  uintx_t saved_s2 = get_xreg(S2);
+  uintx_t saved_s3 = get_xreg(S3);
+  uintx_t saved_s6 = get_xreg(S6);
+
+  // Make sure the activation frames are properly aligned.
+  uintx_t aligned_sp = saved_sp;
+  if (OS::ActivationFrameAlignment() > 1) {
+    aligned_sp = Utils::RoundDown(aligned_sp, OS::ActivationFrameAlignment());
+  }
+  uintx_t sp =
+      aligned_sp - FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta *
+                       sizeof(uintx_t);
+  set_xreg(SP, sp);
+  set_xreg(FP, aligned_sp);
+
+  set_xreg(A0, ctxt->integer_arguments[0]);
+  set_xreg(A1, ctxt->integer_arguments[1]);
+  set_xreg(A2, ctxt->integer_arguments[2]);
+  set_xreg(A3, ctxt->integer_arguments[3]);
+  set_xreg(A4, ctxt->integer_arguments[4]);
+  set_xreg(A5, ctxt->integer_arguments[5]);
+  set_xreg(A6, ctxt->integer_arguments[6]);
+  set_xreg(A7, ctxt->integer_arguments[7]);
+  set_xreg(THR, reinterpret_cast<uintx_t>(thread));
+  set_xreg(RA, kEndSimulatingPC);
+
+  pc_ = metadata->entry_point;
+  Execute();
+
+  // We can't instrument the runtime.
+  memory_.FlushAll();
+
+  ctxt->integer_arguments[0] = get_xreg(A0);
+  ctxt->integer_arguments[1] = get_xreg(A1);
+
+  set_xreg(S6, saved_s6);
+  set_xreg(S3, saved_s3);
+  set_xreg(S2, saved_s2);
+  set_xreg(THR, saved_thr);
+  set_xreg(RA, saved_ra);
+  set_xreg(FP, saved_fp);
+  set_xreg(SP, saved_sp);
+  pc_ = saved_pc;
+}
+
+void Simulator::DoRedirectedFfiCallback(Thread* thread,
+                                        CallbackContext* ctxt,
+                                        const CallbackMetadata* metadata) {
+  DoCompiledFfiCallback(thread, ctxt, metadata);
+
+  if (metadata->type == CallbackMetadata::kCall) {
+    auto* const caller_isolate =
+        reinterpret_cast<Isolate*>(metadata->caller_isolate);
+    auto* const caller_isolate_group =
+        reinterpret_cast<IsolateGroup*>(metadata->caller_isolate_group);
+    auto epilogue =
+        reinterpret_cast<void* (*)(Thread*, Isolate*, IsolateGroup*)>(
+            metadata->epilogue);
+    epilogue(thread, caller_isolate, caller_isolate_group);
+  } else {
+    ASSERT_EQUAL(metadata->type, CallbackMetadata::kTailCall);
+    auto epilogue = reinterpret_cast<void* (*)(Thread*)>(metadata->epilogue);
+    epilogue(thread);
+  }
+}
+#endif  // defined(SIMULATOR_FFI)
 
 void Simulator::InterpretAMO(Instr instr) {
   switch (instr.funct3()) {

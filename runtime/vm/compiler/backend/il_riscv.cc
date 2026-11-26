@@ -1509,6 +1509,12 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ mv(A3, T3);  // TODO(rmacnak): Only when needed.
     __ mv(A4, T4);
     __ mv(A5, T5);
+#if defined(SIMULATOR_FFI)
+    if (FLAG_use_simulator) {
+      __ Emit32(Instr::kSimulatorFfiRedirectInstruction);
+      ASSERT(target == T0);
+    }
+#endif
     __ jalr(target);
 
 #if !defined(PRODUCT)
@@ -1537,6 +1543,12 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ mv(A3, T3);  // TODO(rmacnak): Only when needed.
       __ mv(A4, T4);
       __ mv(A5, T5);
+#if defined(SIMULATOR_FFI)
+      if (FLAG_use_simulator) {
+        __ Emit32(Instr::kSimulatorFfiRedirectInstruction);
+        ASSERT(target == T0);
+      }
+#endif
       __ jalr(target);
 
       // Update information in the thread object and leave the safepoint.

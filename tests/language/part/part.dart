@@ -2,6 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of org.dartlang.test.part_test;
+part of 'part_test.dart';
 
 const foo = 'foo';

@@ -77,6 +77,10 @@ DART_EXPORT int32_t SumPlus42(int32_t a, int32_t b) {
   return retval;
 }
 
+DART_EXPORT intptr_t Sum4Ints(intptr_t a, intptr_t b, intptr_t c, intptr_t d) {
+  return a + b + c + d;
+}
+
 // Sums the first two elements from the arr,
 // where arr must contains at least 2 elements.
 // It's been written to test `.address.cast()` expressions,
@@ -500,6 +504,88 @@ DART_EXPORT intptr_t SumManyIntsOdd(intptr_t a,
       static_cast<uintptr_t>(k);
   std::cout << "returning " << retval << "\n";
   return retval;
+}
+
+// Sums 12 ints.
+// Used for testing calling conventions with 12 arguments.
+DART_EXPORT intptr_t SumManyInts12(intptr_t a,
+                                   intptr_t b,
+                                   intptr_t c,
+                                   intptr_t d,
+                                   intptr_t e,
+                                   intptr_t f,
+                                   intptr_t g,
+                                   intptr_t h,
+                                   intptr_t i,
+                                   intptr_t j,
+                                   intptr_t k,
+                                   intptr_t l) {
+  std::cout << "SumManyInts12(" << a << ", " << b << ", " << c << ", " << d
+            << ", " << e << ", " << f << ", " << g << ", " << h << ", " << i
+            << ", " << j << ", " << k << ", " << l << ")\n";
+  const intptr_t retval =
+      static_cast<uintptr_t>(a) + static_cast<uintptr_t>(b) +
+      static_cast<uintptr_t>(c) + static_cast<uintptr_t>(d) +
+      static_cast<uintptr_t>(e) + static_cast<uintptr_t>(f) +
+      static_cast<uintptr_t>(g) + static_cast<uintptr_t>(h) +
+      static_cast<uintptr_t>(i) + static_cast<uintptr_t>(j) +
+      static_cast<uintptr_t>(k) + static_cast<uintptr_t>(l);
+  std::cout << "returning " << retval << "\n";
+  return retval;
+}
+
+DART_EXPORT intptr_t SumSmallInts12(int8_t a,
+                                    uint8_t b,
+                                    int16_t c,
+                                    uint16_t d,
+                                    int32_t e,
+                                    uint32_t f,
+                                    bool g,
+                                    int8_t h,
+                                    uint8_t i,
+                                    int16_t j,
+                                    uint16_t k,
+                                    int32_t l) {
+  std::cout << "SumSmallInts12(" << static_cast<int>(a) << ", "
+            << static_cast<int>(b) << ", " << c << ", " << d << ", " << e
+            << ", " << f << ", " << g << ", " << static_cast<int>(h) << ", "
+            << static_cast<int>(i) << ", " << j << ", " << k << ", " << l
+            << ")\n";
+  const intptr_t retval = static_cast<intptr_t>(a) + static_cast<intptr_t>(b) +
+                          static_cast<intptr_t>(c) + static_cast<intptr_t>(d) +
+                          static_cast<intptr_t>(e) + static_cast<intptr_t>(f) +
+                          (g ? 1 : 0) + static_cast<intptr_t>(h) +
+                          static_cast<intptr_t>(i) + static_cast<intptr_t>(j) +
+                          static_cast<intptr_t>(k) + static_cast<intptr_t>(l);
+  return retval;
+}
+
+DART_EXPORT int8_t ReturnInt8(intptr_t v) {
+  return static_cast<int8_t>(v);
+}
+
+DART_EXPORT uint8_t ReturnUint8(intptr_t v) {
+  return static_cast<uint8_t>(v);
+}
+
+DART_EXPORT int16_t ReturnInt16(intptr_t v) {
+  return static_cast<int16_t>(v);
+}
+
+DART_EXPORT uint16_t ReturnUint16(intptr_t v) {
+  return static_cast<uint16_t>(v);
+}
+
+DART_EXPORT int32_t ReturnInt32(intptr_t v) {
+  return static_cast<int32_t>(v);
+}
+
+DART_EXPORT uint32_t ReturnUint32(intptr_t v) {
+  return static_cast<uint32_t>(v);
+}
+
+DART_EXPORT bool ReturnBool(intptr_t v) {
+  return v != 0;
 }
 
 // Sums many doubles.
@@ -1455,6 +1541,58 @@ DART_EXPORT int32_t CallTwoIntFunctionIsolateOwnership(
   Dart_EnterIsolate(isolate);
   Dart_ClearCurrentThreadOwnsIsolate_ForTesting();
   return result;
+}
+
+DART_EXPORT bool CallBoolPointerFunction(bool (*fn)(void*), void* ptr) {
+  return fn(ptr);
+}
+
+DART_EXPORT intptr_t CallEightIntPtrFunction(intptr_t (*fn)(intptr_t,
+                                                            intptr_t,
+                                                            intptr_t,
+                                                            intptr_t,
+                                                            intptr_t,
+                                                            intptr_t,
+                                                            intptr_t,
+                                                            intptr_t),
+                                             intptr_t a0,
+                                             intptr_t a1,
+                                             intptr_t a2,
+                                             intptr_t a3,
+                                             intptr_t a4,
+                                             intptr_t a5,
+                                             intptr_t a6,
+                                             intptr_t a7) {
+  return fn(a0, a1, a2, a3, a4, a5, a6, a7);
+}
+
+DART_EXPORT int8_t CallSmallIntsCallback(
+    int8_t (*fn)(int8_t, int16_t, int32_t, uint8_t, uint16_t, uint32_t, bool),
+    int8_t a0,
+    int16_t a1,
+    int32_t a2,
+    uint8_t a3,
+    uint16_t a4,
+    uint32_t a5,
+    bool a6) {
+  return fn(a0, a1, a2, a3, a4, a5, a6);
+}
+
+DART_EXPORT int32_t CallTwoIntFunctionOnNewThread(int32_t (*fn)(int32_t,
+                                                                int32_t),
+                                                  int32_t a,
+                                                  int32_t b) {
+  int32_t result = 0;
+  std::thread thread([&]() { result = fn(a, b); });
+  thread.join();
+  return result;
+}
+
+DART_EXPORT intptr_t CallCallbackAndReadMemory(void (*fn)(intptr_t*),
+                                               intptr_t initial_value) {
+  intptr_t value = initial_value;
+  fn(&value);
+  return value;
 }
 
 }  // namespace dart

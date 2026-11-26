@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of touch;
+part of 'touch.dart';
 
 /// Functions to model constant acceleration as a cubic Bezier
 /// curve (http://en.wikipedia.org/wiki/Bezier_curve). These functions are

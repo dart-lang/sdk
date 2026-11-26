@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of unaliased_bounds_checks_in_constructor_calls_with_parts_lib;
+part of 'unaliased_bounds_checks_in_constructor_calls_with_parts_lib.dart';
 
 class C<X> {}
 

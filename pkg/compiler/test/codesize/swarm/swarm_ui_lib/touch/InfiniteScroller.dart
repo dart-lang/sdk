@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of touch;
+part of 'touch.dart';
 
 /// Adds a listener to the scroller with triggers events
 /// when a trigger point at the top, or bottom, of the screen is reached.

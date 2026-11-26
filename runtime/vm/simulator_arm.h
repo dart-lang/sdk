@@ -26,6 +26,8 @@ class Isolate;
 class Mutex;
 class SimulatorSetjmpBuffer;
 class Thread;
+struct CallbackContext;
+struct CallbackMetadata;
 
 typedef union {
   int8_t i8[16];
@@ -45,6 +47,16 @@ class Simulator {
 
   Simulator();
   ~Simulator();
+
+#if defined(SIMULATOR_FFI)
+  void DoCompiledFfiCallback(Thread* thread,
+                             CallbackContext* ctxt,
+                             const CallbackMetadata* metadata);
+
+  void DoRedirectedFfiCallback(Thread* thread,
+                               CallbackContext* ctxt,
+                               const CallbackMetadata* metadata);
+#endif
 
   // The currently executing Simulator instance, which is associated to the
   // current thread.
@@ -194,6 +206,7 @@ class Simulator {
   int32_t GetImm(Instr* instr, bool* carry_out);
   void HandleRList(Instr* instr, bool load);
   void SupervisorCall(Instr* instr);
+  void DoRedirectedFfiCall(Instr* instr);
 
   // Read and write memory.
   void UnalignedAccess(const char* msg, uword addr, Instr* instr);

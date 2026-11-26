@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of regress_25389;
+part of 'regress25389_test.dart';
 
 abstract class ComponentState<S extends ComponentState<S>> {}
 

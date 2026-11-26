@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of touch;
+part of 'touch.dart';
 
 // TODO(jacobr): pick a better name. This was goog.math in Closure.
 /// Math utility functions originally from the closure Math library.

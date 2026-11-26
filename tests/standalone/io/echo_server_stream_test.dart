@@ -17,7 +17,8 @@ import "package:expect/expect.dart";
 import "dart:async";
 import "dart:io";
 import "dart:isolate";
-part "testing_server.dart";
+
+import "testing_server.dart";
 
 class EchoServerGame {
   static const MSGSIZE = 10;

@@ -7,6 +7,6 @@
 
 // A top-level variable being accessed both from the library and the importer.
 
-part of HelloScriptLib;
+part of 'hello_script_lib.dart';
 
 var x;

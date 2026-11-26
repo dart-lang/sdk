@@ -6,7 +6,7 @@
 
 // This file is part of the test import_combinators_test.dart
 
-part of importCombinatorsTest;
+part of 'combinators_test.dart';
 
 lookBehindCurtain() {
   return show; // show is an imported identifier.

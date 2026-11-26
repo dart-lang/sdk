@@ -1053,6 +1053,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       "--${format.fileOption}=$output",
       if (split) "--loading-unit-manifest=$tempDir/ignored.json",
       if (_isAndroid && (_isArm || _isArmX64)) ...['--no-sim-use-hardfp'],
+      if (_configuration.isSimulator) '--use-simulator',
       if (_configuration.isMinified) '--obfuscate',
       if (arguments.contains('--print-flow-graph-optimized'))
         '--redirect-isolate-log-to=$tempDir/out.il',
