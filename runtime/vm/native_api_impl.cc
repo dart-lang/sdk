@@ -55,11 +55,54 @@ class PostCObjectScope : public ValueObject {
   const bool active_;
 };
 
-static bool PostCObjectHelper(Dart_Port port_id, Dart_CObject* message) {
+static void FinalizeCObject(Dart_CObject* cobject) {
+  if (cobject == nullptr) return;
+  switch (cobject->type) {
+    case Dart_CObject_kArray:
+      if (cobject->value.as_array.values != nullptr) {
+        // Prevent infinite recursion for cyclic data structures.
+        cobject->type = Dart_CObject_kNull;
+        for (intptr_t i = 0; i < cobject->value.as_array.length; i++) {
+          FinalizeCObject(cobject->value.as_array.values[i]);
+        }
+        cobject->type = Dart_CObject_kArray;
+      }
+      break;
+    case Dart_CObject_kExternalTypedData:
+    case Dart_CObject_kUnmodifiableExternalTypedData: {
+      auto& external_typed_data = cobject->value.as_external_typed_data;
+      if (external_typed_data.callback != nullptr) {
+        external_typed_data.callback(nullptr, external_typed_data.peer);
+        external_typed_data.peer = nullptr;
+        external_typed_data.callback = nullptr;
+      }
+      break;
+    }
+    case Dart_CObject_kNativePointer: {
+      auto& native_pointer = cobject->value.as_native_pointer;
+      if (native_pointer.callback != nullptr) {
+        native_pointer.callback(nullptr,
+                                reinterpret_cast<void*>(native_pointer.ptr));
+        native_pointer.ptr = 0;
+        native_pointer.callback = nullptr;
+      }
+      break;
+    }
+    default:
+      break;
+  }
+}
+
+static bool PostCObjectHelper(Dart_Port port_id,
+                              Dart_CObject* message,
+                              bool finalize_on_failure = false) {
   // Writing the message uses VM state, e.g. the zone segment cache, which
   // Dart_Cleanup must not tear down until the message has been posted.
   PostCObjectScope post_cobject_scope;
   if (!post_cobject_scope.active()) {
+    if (finalize_on_failure) {
+      FinalizeCObject(message);
+    }
     return false;
   }
 
@@ -68,15 +111,24 @@ static bool PostCObjectHelper(Dart_Port port_id, Dart_CObject* message) {
       zone.GetZone(), message, port_id, Message::kNormalPriority);
 
   if (msg == nullptr) {
+    if (finalize_on_failure) {
+      FinalizeCObject(message);
+    }
     return false;
   }
 
   // Post the message at the given port.
-  return PortMap::PostMessage(std::move(msg));
+  return PortMap::PostMessage(std::move(msg), /*before_events=*/false,
+                              finalize_on_failure);
 }
 
 DART_EXPORT bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message) {
-  return PostCObjectHelper(port_id, message);
+  return PostCObjectHelper(port_id, message, /*finalize_on_failure=*/false);
+}
+
+DART_EXPORT bool Dart_PostOrDropCObject(Dart_Port port_id,
+                                        Dart_CObject* message) {
+  return PostCObjectHelper(port_id, message, /*finalize_on_failure=*/true);
 }
 
 DART_EXPORT bool Dart_PostInteger(Dart_Port port_id, int64_t message) {

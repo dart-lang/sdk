@@ -560,57 +560,62 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
 
     String? nativeAssets;
     DartNativeAssetsBuilder? builder;
-    Uri baseUri = Directory.current.uri;
-    if (mainCommand.isNotEmpty) {
-      final file = File(mainCommand);
-      if (file.existsSync()) {
-        baseUri = file.absolute.uri.resolve('.');
-      }
-    }
-    final packageConfigUri = await DartNativeAssetsBuilder.ensurePackageConfig(
-      baseUri,
-    );
-    if (packageConfigUri != null) {
-      final packageConfig = await DartNativeAssetsBuilder.loadPackageConfig(
-        packageConfigUri,
-      );
-      if (packageConfig == null) {
-        return compileErrorExitCode;
-      }
-      final runPackageName =
-          getPackageForCommand(mainCommand) ??
-          // TODO(https://dartbug.com/63713): Don't use cwd for test.
-          packageConfig.packageOf(baseUri)?.name;
-      if (runPackageName != null) {
-        final pubspecUri = await DartNativeAssetsBuilder.findWorkspacePubspec(
+    final directFile = _resolveDirectFile(mainCommand);
+    // Precompiled artifacts (kernel files, AppJIT/AOT snapshots) are already
+    // compiled and have no guaranteed correspondence to any enclosing package
+    // config, so do not run build hooks or rewrite them.
+    final isPrecompiledFile =
+        directFile != null &&
+        (await isFileKernelFile(directFile) ||
+            await isFileAppJitSnapshot(directFile) ||
+            await isFileAotSnapshot(directFile));
+    if (!isPrecompiledFile) {
+      final baseUri =
+          directFile?.absolute.uri.resolve('.') ?? Directory.current.uri;
+      final packageConfigUri =
+          await DartNativeAssetsBuilder.ensurePackageConfig(baseUri);
+      if (packageConfigUri != null) {
+        final packageConfig = await DartNativeAssetsBuilder.loadPackageConfig(
           packageConfigUri,
         );
-        builder = DartNativeAssetsBuilder(
-          pubspecUri: pubspecUri,
-          packageConfigUri: packageConfigUri,
-          packageConfig: packageConfig,
-          runPackageName: runPackageName,
-          // Enable accessing assets of dev dependencies in the debugger and
-          // enabling commands such as `dart run test` and `dart run
-          // coverage_with_test` that rely on having dev dependencies.
-          includeDevDependencies: true,
-          verbose: verbose,
-          dataAssetsExperimentEnabled: dataAssetsExperimentEnabled,
-        );
-        if (!nativeAssetsExperimentEnabled) {
-          if (await builder.warnOnNativeAssets()) {
-            return errorExitCode;
-          }
-        } else if (await builder.hasHooks()) {
-          final assetsYamlFileUri = await progress(
-            'Running build hooks',
-            builder.compileNativeAssetsJitYamlFile,
+        if (packageConfig == null) {
+          return compileErrorExitCode;
+        }
+        final runPackageName =
+            getPackageForCommand(mainCommand) ??
+            // TODO(https://dartbug.com/63713): Don't use cwd for test.
+            packageConfig.packageOf(baseUri)?.name;
+        if (runPackageName != null) {
+          final pubspecUri = await DartNativeAssetsBuilder.findWorkspacePubspec(
+            packageConfigUri,
           );
-          if (assetsYamlFileUri == null) {
-            log.stderr('Error: Running build hooks failed.');
-            return errorExitCode;
+          builder = DartNativeAssetsBuilder(
+            pubspecUri: pubspecUri,
+            packageConfigUri: packageConfigUri,
+            packageConfig: packageConfig,
+            runPackageName: runPackageName,
+            // Enable accessing assets of dev dependencies in the debugger and
+            // enabling commands such as `dart run test` and `dart run
+            // coverage_with_test` that rely on having dev dependencies.
+            includeDevDependencies: true,
+            verbose: verbose,
+            dataAssetsExperimentEnabled: dataAssetsExperimentEnabled,
+          );
+          if (!nativeAssetsExperimentEnabled) {
+            if (await builder.warnOnNativeAssets()) {
+              return errorExitCode;
+            }
+          } else if (await builder.hasHooks()) {
+            final assetsYamlFileUri = await progress(
+              'Running build hooks',
+              builder.compileNativeAssetsJitYamlFile,
+            );
+            if (assetsYamlFileUri == null) {
+              log.stderr('Error: Running build hooks failed.');
+              return errorExitCode;
+            }
+            nativeAssets = assetsYamlFileUri.toFilePath();
           }
-          nativeAssets = assetsYamlFileUri.toFilePath();
         }
       }
     }
@@ -843,22 +848,33 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
   }
 }
 
-/// Keep in sync with [getExecutableForCommand].
+/// Resolves [descriptor] to an existing file on disk, or returns `null` if it
+/// does not refer to a direct file.
 ///
-/// Returns `null` if the root package should be used.
-// TODO(https://github.com/dart-lang/pub/issues/4067): Don't duplicate logic.
-String? getPackageForCommand(String descriptor) {
-  final root = current;
+/// Keep in sync with [getExecutableForCommand].
+File? _resolveDirectFile(String descriptor) {
+  if (descriptor.isEmpty) {
+    return null;
+  }
   var asPath = descriptor;
   try {
     asPath = Uri.parse(descriptor).toFilePath();
   } catch (_) {
     // Follow the same fallback logic as [getExecutableForCommand].
   }
-  final asDirectFile = join(root, asPath);
-  if (File(asDirectFile).existsSync()) {
+  final file = File(join(current, asPath));
+  return file.existsSync() ? file : null;
+}
+
+/// Keep in sync with [getExecutableForCommand].
+///
+/// Returns `null` if the root package should be used.
+// TODO(https://github.com/dart-lang/pub/issues/4067): Don't duplicate logic.
+String? getPackageForCommand(String descriptor) {
+  if (_resolveDirectFile(descriptor) != null) {
     return null; // Root package.
   }
+  final root = current;
   if (!File(join(root, 'pubspec.yaml')).existsSync()) {
     return null;
   }

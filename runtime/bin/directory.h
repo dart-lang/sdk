@@ -130,7 +130,7 @@ class DirectoryListing {
     }
   }
 
-  Namespace* namespc() const { return namespc_; }
+  Namespace* namespc() const { return namespc_.get(); }
 
   DirectoryListingEntry* top() const { return top_; }
 
@@ -146,7 +146,7 @@ class DirectoryListing {
 
  private:
   PathBuffer path_buffer_;
-  Namespace* namespc_;
+  RetainedPointer<Namespace> namespc_;
   DirectoryListingEntry* top_;
   bool error_;
   bool recursive_;

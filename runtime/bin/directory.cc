@@ -313,8 +313,9 @@ CObject* Directory::ListStartRequest(const CObjectArray& request) {
     return error;
   }
   // TODO(ajohnsen): Consider returning the first few results.
-  return new CObjectIntptr(
-      CObject::NewIntptr(reinterpret_cast<intptr_t>(dir_listing)));
+  return new CObjectNativePointer(
+      CObject::NewNativePointer(reinterpret_cast<intptr_t>(dir_listing),
+                                sizeof(*dir_listing), ReleaseListing));
 }
 
 CObject* Directory::ListNextRequest(const CObjectArray& request) {

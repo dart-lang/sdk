@@ -8559,6 +8559,95 @@ TEST_CASE(DartAPI_PostCObject_DoesNotRunFinalizerOnFailure) {
   free(my_str);  // Never a double-free.
 }
 
+static void IncrementFinalizer(void* isolate_callback_data, void* peer) {
+  int* counter = reinterpret_cast<int*>(peer);
+  (*counter)++;
+}
+
+TEST_CASE(DartAPI_PostOrDropCObject_RunsFinalizerOnFailure) {
+  int ext_count = 0;
+  Dart_CObject ext;
+  ext.type = Dart_CObject_kExternalTypedData;
+  ext.value.as_external_typed_data.type = Dart_TypedData_kUint8;
+  ext.value.as_external_typed_data.length = 0;
+  ext.value.as_external_typed_data.data = nullptr;
+  ext.value.as_external_typed_data.peer = &ext_count;
+  ext.value.as_external_typed_data.callback = IncrementFinalizer;
+
+  EXPECT(!Dart_PostOrDropCObject(ILLEGAL_PORT, &ext));
+  EXPECT_EQ(1, ext_count);
+
+  int unmod_count = 0;
+  Dart_CObject unmod;
+  unmod.type = Dart_CObject_kUnmodifiableExternalTypedData;
+  unmod.value.as_external_typed_data.type = Dart_TypedData_kUint8;
+  unmod.value.as_external_typed_data.length = 0;
+  unmod.value.as_external_typed_data.data = nullptr;
+  unmod.value.as_external_typed_data.peer = &unmod_count;
+  unmod.value.as_external_typed_data.callback = IncrementFinalizer;
+
+  EXPECT(!Dart_PostOrDropCObject(ILLEGAL_PORT, &unmod));
+  EXPECT_EQ(1, unmod_count);
+
+  int ptr_count = 0;
+  Dart_CObject native_ptr;
+  native_ptr.type = Dart_CObject_kNativePointer;
+  native_ptr.value.as_native_pointer.ptr =
+      reinterpret_cast<intptr_t>(&ptr_count);
+  native_ptr.value.as_native_pointer.size = sizeof(ptr_count);
+  native_ptr.value.as_native_pointer.callback = IncrementFinalizer;
+
+  EXPECT(!Dart_PostOrDropCObject(ILLEGAL_PORT, &native_ptr));
+  EXPECT_EQ(1, ptr_count);
+
+  // Nested array with duplicate references (DAG) and a cycle.
+  ext_count = 0;
+  ptr_count = 0;
+  Dart_CObject array;
+  Dart_CObject* elements[4] = {&ext, &native_ptr, &ext, &array};
+  array.type = Dart_CObject_kArray;
+  array.value.as_array.length = 4;
+  array.value.as_array.values = elements;
+
+  EXPECT(!Dart_PostOrDropCObject(ILLEGAL_PORT, &array));
+  EXPECT_EQ(1, ext_count);
+  EXPECT_EQ(1, ptr_count);
+
+  // Serialization failure (unsupported element) still runs finalizers.
+  ext_count = 0;
+  Dart_CObject unsupported;
+  unsupported.type = Dart_CObject_kUnsupported;
+  Dart_CObject* bad_elements[2] = {&ext, &unsupported};
+  Dart_CObject bad_array;
+  bad_array.type = Dart_CObject_kArray;
+  bad_array.value.as_array.length = 2;
+  bad_array.value.as_array.values = bad_elements;
+
+  EXPECT(!Dart_PostOrDropCObject(ILLEGAL_PORT, &bad_array));
+  EXPECT_EQ(1, ext_count);
+}
+
+static void FreePeerFinalizer(void* isolate_callback_data, void* peer) {
+  *reinterpret_cast<char*>(peer) = '\0';
+  free(peer);
+}
+
+TEST_CASE(DartAPI_PostOrDropCObject_Success) {
+  const char* original_str = "Transferred to VM";
+  char* my_str = Utils::StrDup(original_str);
+  Dart_CObject message;
+  message.type = Dart_CObject_kExternalTypedData;
+  message.value.as_external_typed_data.type = Dart_TypedData_kUint8;
+  message.value.as_external_typed_data.length = strlen(my_str);
+  message.value.as_external_typed_data.data =
+      reinterpret_cast<uint8_t*>(my_str);
+  message.value.as_external_typed_data.peer = my_str;
+  message.value.as_external_typed_data.callback = FreePeerFinalizer;
+
+  EXPECT(Dart_PostOrDropCObject(Dart_GetMainPortId(), &message));
+  EXPECT(strcmp(original_str, my_str) == 0);  // Should still be valid.
+}
+
 VM_UNIT_TEST_CASE(DartAPI_NewNativePort) {
   // Create a port with a bogus handler.
   Dart_Port error_port = Dart_NewNativePort("Foo", nullptr, true);

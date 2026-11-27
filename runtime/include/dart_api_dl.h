@@ -53,6 +53,8 @@ typedef void (*Dart_NativeMessageHandler_DL)(Dart_Port_DL dest_port_id,
   /***** dart_native_api.h *****/                                              \
   /* Dart_Port */                                                              \
   F(Dart_PostCObject, bool, (Dart_Port_DL port_id, Dart_CObject * message))    \
+  F(Dart_PostOrDropCObject, bool,                                              \
+    (Dart_Port_DL port_id, Dart_CObject * message))                            \
   F(Dart_PostInteger, bool, (Dart_Port_DL port_id, int64_t message))           \
   F(Dart_NewNativePort, Dart_Port_DL,                                          \
     (const char* name, Dart_NativeMessageHandler_DL handler,                   \

@@ -129,6 +129,23 @@ typedef struct _Dart_CObject {
 DART_EXPORT bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message);
 
 /**
+ * Posts a message on some port, or drops it if posting fails.
+ *
+ * Behaves like Dart_PostCObject, except that ownership of external typed data
+ * and native pointers in 'message' is always transferred to the VM: if false
+ * is returned, their finalizers are invoked before returning.
+ *
+ * This function may be called on any thread, including after Dart_Cleanup.
+ *
+ * \param port_id The destination port.
+ * \param message The message to send.
+ *
+ * \return True if the message was posted.
+ */
+DART_EXPORT bool Dart_PostOrDropCObject(Dart_Port port_id,
+                                        Dart_CObject* message);
+
+/**
  * Posts a message on some port. The message will contain the integer 'message'.
  *
  * \param port_id The destination port.

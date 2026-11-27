@@ -83,6 +83,14 @@ void testNativeAPIs() {
   final closeNativePort = closeNativePortDL.value
       .asFunction<bool Function(int)>();
   Expect.isTrue(closeNativePort(port));
+
+  Expect.isTrue(NativeApi.minorVersion >= 8);
+  Expect.isTrue(testLibrary.providesSymbol("Dart_PostOrDropCObject_DL"));
+  final postOrDropCObjectDL = testLibrary
+      .lookup<
+        Pointer<NativeFunction<Bool Function(Int64, Pointer<Dart_CObject>)>>
+      >("Dart_PostOrDropCObject_DL");
+  Expect.notEquals(nullptr, postOrDropCObjectDL.value);
 }
 
 void _noopMessageHandler(int destPortId, Pointer<Dart_CObject> message) {}

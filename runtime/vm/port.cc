@@ -141,21 +141,25 @@ void PortMap::ClosePorts(MessageHandler* handler) {
 }
 
 bool PortMap::PostMessage(std::unique_ptr<Message> message,
-                          bool before_events) {
-  Locker ml;
-  if (ports_ == nullptr) {
-    return false;
+                          bool before_events,
+                          bool finalize_on_failure) {
+  {
+    Locker ml;
+    if (ports_ != nullptr) {
+      auto it = ports_->TryLookup(message->dest_port());
+      if (it != ports_->end()) {
+        auto handler = (*it).handler;
+        ASSERT(handler != nullptr);
+        handler->PostMessage(std::move(message), before_events);
+        return true;
+      }
+    }
   }
-  auto it = ports_->TryLookup(message->dest_port());
-  if (it == ports_->end()) {
+  if (!finalize_on_failure) {
     // Ownership of external data remains with the poster.
     message->DropFinalizers();
-    return false;
   }
-  auto handler = (*it).handler;
-  ASSERT(handler != nullptr);
-  handler->PostMessage(std::move(message), before_events);
-  return true;
+  return false;
 }
 
 #if defined(TESTING)

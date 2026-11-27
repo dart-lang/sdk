@@ -280,6 +280,7 @@ main() {
     "Dart_ObjectIsType",
     "Dart_Post",
     "Dart_PostCObject",
+    "Dart_PostOrDropCObject",
     "Dart_PostInteger",
     "Dart_Precompile",
     "Dart_PrepareToAbort",

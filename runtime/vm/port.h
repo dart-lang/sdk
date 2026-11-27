@@ -48,8 +48,13 @@ class PortMap : public AllStatic {
   // active any longer.
   //
   // Claims ownership of 'message'.
+  //
+  // If posting fails, finalizers attached to 'message' are run only when
+  // 'finalize_on_failure' is true; otherwise they are dropped and ownership of
+  // any external data remains with the caller.
   static bool PostMessage(std::unique_ptr<Message> message,
-                          bool before_events = false);
+                          bool before_events = false,
+                          bool finalize_on_failure = false);
 
   // Returns the origin id for port 'id'.
   static Dart_Port GetOriginId(Dart_Port id);
