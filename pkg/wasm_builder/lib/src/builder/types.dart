@@ -358,10 +358,9 @@ class _RecGroupGraph {
 
 class TypesBuilder {
   final Map<_FunctionTypeKey, ir.FunctionType> _functionTypeMap = {};
-  final _RecGroupBuilder _recGroupBuilder;
+  final _RecGroupBuilder _recGroupBuilder = _RecGroupBuilder();
 
-  TypesBuilder({TypesBuilder? parent})
-    : _recGroupBuilder = parent?._recGroupBuilder ?? _RecGroupBuilder();
+  TypesBuilder();
 
   /// Add a new function type to the module.
   ///

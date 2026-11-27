@@ -28,7 +28,7 @@ class ModuleBuilder with Builder<ir.Module> {
   final String moduleName;
   final Uri? sourceMapUrl;
   final DebugInfoTables? debugInfoTables;
-  late final TypesBuilder types;
+  final TypesBuilder types;
   late final functions = FunctionsBuilder(this);
   late final elements = ElementsBuilder(this);
   late final tables = TablesBuilder(module);
@@ -49,14 +49,17 @@ class ModuleBuilder with Builder<ir.Module> {
   final bool allowRelaxedSimd;
 
   /// Create a new, initially empty, module.
+  ///
+  /// When building multiple modules that exchange WasmGC types, pass a shared
+  /// [types] builder so all modules canonicalize and emit identical recursion
+  /// groups.
   ModuleBuilder(
     this.moduleName,
     this.sourceMapUrl, {
-    ModuleBuilder? parent,
+    TypesBuilder? types,
     this.allowRelaxedSimd = false,
-  }) : debugInfoTables = sourceMapUrl == null ? null : DebugInfoTables() {
-    types = TypesBuilder(parent: parent?.types);
-  }
+  }) : types = types ?? TypesBuilder(),
+       debugInfoTables = sourceMapUrl == null ? null : DebugInfoTables();
 
   void addCustomSection(String name, Uint8List data) {
     _extraCustomSections.add(ExtraCustomSection(name, data));

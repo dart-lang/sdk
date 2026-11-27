@@ -414,7 +414,7 @@ class Translator with KernelNodes {
   Iterable<w.ModuleBuilder> get modules => _builderToOutput.keys;
   w.ModuleBuilder get mainModule =>
       _outputToBuilder[_moduleOutputData.mainModule]!;
-  w.TypesBuilder get typesBuilder => mainModule.types;
+  final w.TypesBuilder typesBuilder = w.TypesBuilder();
   final Map<ModuleMetadata, w.ModuleBuilder> _outputToBuilder = {};
   final Map<w.ModuleBuilder, ModuleMetadata> _builderToOutput = {};
   final Map<w.Module, w.ModuleBuilder> moduleToBuilder = {};
@@ -502,7 +502,7 @@ class Translator with KernelNodes {
       final builder = w.ModuleBuilder(
         outputModule.moduleImportName,
         sourceMapUrlGenerator?.call(outputModule.moduleName),
-        parent: outputModule.isMain ? null : mainModule,
+        types: typesBuilder,
       );
       _outputToBuilder[outputModule] = builder;
       _builderToOutput[builder] = outputModule;
