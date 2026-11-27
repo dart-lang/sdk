@@ -1,4 +1,4 @@
-// @dart = 3.4
+// @dart = 3.14
 
 @Foo
 part 'having_part_with_parts_and_annotation_lib1.dart';
