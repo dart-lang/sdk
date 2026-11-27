@@ -468,6 +468,7 @@ typedef void (*Dart_PrepareToAbortType)();
 typedef void (*Dart_SetDwarfStackTraceFootnoteCallbackType)(
     Dart_DwarfStackTraceFootnoteCallback);
 typedef bool (*Dart_PostCObjectType)(Dart_Port, Dart_CObject*);
+typedef bool (*Dart_PostOrDropCObjectType)(Dart_Port, Dart_CObject*);
 typedef bool (*Dart_PostIntegerType)(Dart_Port, int64_t);
 typedef Dart_Port (*Dart_NewNativePortType)(const char*,
                                             Dart_NativeMessageHandler,
@@ -778,6 +779,7 @@ static Dart_PrepareToAbortType Dart_PrepareToAbortFn = NULL;
 static Dart_SetDwarfStackTraceFootnoteCallbackType
     Dart_SetDwarfStackTraceFootnoteCallbackFn = NULL;
 static Dart_PostCObjectType Dart_PostCObjectFn = NULL;
+static Dart_PostOrDropCObjectType Dart_PostOrDropCObjectFn = NULL;
 static Dart_PostIntegerType Dart_PostIntegerFn = NULL;
 static Dart_NewNativePortType Dart_NewNativePortFn = NULL;
 static Dart_NewConcurrentNativePortType Dart_NewConcurrentNativePortFn = NULL;
@@ -1380,6 +1382,8 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
             process, "Dart_SetDwarfStackTraceFootnoteCallback");
     Dart_PostCObjectFn =
         (Dart_PostCObjectType)GetProcAddress(process, "Dart_PostCObject");
+    Dart_PostOrDropCObjectFn = (Dart_PostOrDropCObjectType)GetProcAddress(
+        process, "Dart_PostOrDropCObject");
     Dart_PostIntegerFn =
         (Dart_PostIntegerType)GetProcAddress(process, "Dart_PostInteger");
     Dart_NewNativePortFn =
@@ -2724,6 +2728,10 @@ void Dart_SetDwarfStackTraceFootnoteCallback(
 
 bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message) {
   return Dart_PostCObjectFn(port_id, message);
+}
+
+bool Dart_PostOrDropCObject(Dart_Port port_id, Dart_CObject* message) {
+  return Dart_PostOrDropCObjectFn(port_id, message);
 }
 
 bool Dart_PostInteger(Dart_Port port_id, int64_t message) {

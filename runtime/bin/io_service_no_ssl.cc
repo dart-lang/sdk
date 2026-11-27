@@ -49,7 +49,7 @@ void IOServiceCallback(Dart_Port dest_port_id, Dart_CObject* message) {
   result.SetAt(0, request[0]);
   result.SetAt(1, response);
   ASSERT(reply_port_id != ILLEGAL_PORT);
-  Dart_PostCObject(reply_port_id, result.AsApiCObject());
+  Dart_PostOrDropCObject(reply_port_id, result.AsApiCObject());
 }
 
 intptr_t IOService::max_concurrency_ = 32;
