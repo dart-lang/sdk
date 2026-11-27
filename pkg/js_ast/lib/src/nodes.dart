@@ -903,9 +903,9 @@ class For extends Loop {
     this.init,
     this.condition,
     this.update,
-    Statement body, {
+    super.body, {
     JavaScriptNodeSourceInformation? sourceInformation,
-  }) : super(body) {
+  }) {
     _sourceInformation = sourceInformation;
   }
 
@@ -945,9 +945,9 @@ class ForIn extends Loop {
   ForIn(
     this.leftHandSide,
     this.object,
-    Statement body, {
+    super.body, {
     JavaScriptNodeSourceInformation? sourceInformation,
-  }) : super(body) {
+  }) {
     _sourceInformation = sourceInformation;
   }
 
@@ -981,9 +981,9 @@ class While extends Loop {
 
   While(
     this.condition,
-    Statement body, {
+    super.body, {
     JavaScriptNodeSourceInformation? sourceInformation,
-  }) : super(body) {
+  }) {
     _sourceInformation = sourceInformation;
   }
 
@@ -1248,7 +1248,7 @@ abstract class SwitchClause extends Node {
 class Case extends SwitchClause {
   final Expression expression;
 
-  Case(this.expression, Block body) : super(body);
+  Case(this.expression, super.body);
 
   @override
   T accept<T>(NodeVisitor<T> visitor) => visitor.visitCase(this);

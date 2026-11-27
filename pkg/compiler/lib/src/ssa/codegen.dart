@@ -4370,7 +4370,7 @@ abstract class _RecordedUseSequence extends Iterable<RecordedUse> {
 
 class _RecordedUseLeaf extends _RecordedUseSequence {
   final List<RecordedUse> items;
-  const _RecordedUseLeaf(this.items, int length) : super._(length);
+  const _RecordedUseLeaf(this.items, super.length) : super._();
 }
 
 class _RecordedUseComposite extends _RecordedUseSequence {

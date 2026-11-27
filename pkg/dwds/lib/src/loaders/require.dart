@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'package:dwds/src/debugging/dart_runtime_debugger.dart';
 import 'package:dwds/src/debugging/metadata/provider.dart';
 import 'package:dwds/src/loaders/strategy.dart';
-import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/services/expression_compiler.dart';
 import 'package:path/path.dart' as p;
 import 'package:shelf/shelf.dart';
@@ -137,10 +136,10 @@ class RequireStrategy extends LoadStrategy {
     this._sourceMapPathForModule,
     this._serverPathForAppUri,
     this._moduleInfoForProvider,
-    AssetReader assetReader,
+    super.assetReader,
     this._buildSettings, {
     super.packageConfigPath,
-  }) : super(assetReader);
+  });
 
   @override
   Handler get handler => (request) async {

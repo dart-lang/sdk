@@ -42,7 +42,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
 
   final RefactoringStatus _status = RefactoringStatus();
 
-  new(this.resolveResult, SourceRange selection) : super(selection);
+  new(this.resolveResult, super.selection);
 
   /// Returns the [RefactoringStatus] result of selection checking.
   RefactoringStatus get status => _status;

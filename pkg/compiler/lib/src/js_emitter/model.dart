@@ -103,22 +103,15 @@ class MainFragment extends Fragment {
   final js.Expression? recordTypeStubs;
 
   MainFragment(
-    OutputUnit outputUnit,
-    String outputFileName,
+    super.outputUnit,
+    super.outputFileName,
     this.invokeMain,
     this.recordTypeStubs,
-    List<Library> libraries,
-    List<StaticField> staticNonFinalFields,
-    List<StaticField> staticLazilyInitializedFields,
-    List<Constant> constants,
-  ) : super(
-        outputUnit,
-        outputFileName,
-        libraries,
-        staticNonFinalFields,
-        staticLazilyInitializedFields,
-        constants,
-      );
+    super.libraries,
+    super.staticNonFinalFields,
+    super.staticLazilyInitializedFields,
+    super.constants,
+  );
 
   @override
   bool get isMainFragment => true;
@@ -134,21 +127,14 @@ class DeferredFragment extends Fragment {
   final String name;
 
   DeferredFragment(
-    OutputUnit outputUnit,
-    String outputFileName,
+    super.outputUnit,
+    super.outputFileName,
     this.name,
-    List<Library> libraries,
-    List<StaticField> staticNonFinalFields,
-    List<StaticField> staticLazilyInitializedFields,
-    List<Constant> constants,
-  ) : super(
-        outputUnit,
-        outputFileName,
-        libraries,
-        staticNonFinalFields,
-        staticLazilyInitializedFields,
-        constants,
-      );
+    super.libraries,
+    super.staticNonFinalFields,
+    super.staticLazilyInitializedFields,
+    super.constants,
+  );
 
   @override
   bool get isMainFragment => false;
@@ -635,8 +621,7 @@ class StaticDartMethod extends DartMethod implements StaticMethod {
 
 class StaticStubMethod extends StubMethod implements StaticMethod {
   LibraryEntity library;
-  StaticStubMethod(this.library, js.Name name, js.Expression code)
-    : super(name, code);
+  StaticStubMethod(this.library, js.Name super.name, super.code);
 
   @override
   String toString() {

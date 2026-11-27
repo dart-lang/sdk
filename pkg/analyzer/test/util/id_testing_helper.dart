@@ -237,12 +237,7 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
   // TODO(paulberry): Maybe this should have access to the [ResolvedUnitResult] instead.
   final Map<Uri, AnnotatedCode> code;
 
-  new(
-    this.code,
-    Uri mainUri,
-    Map<Uri, Map<Id, ActualData<T>>> actualMaps,
-    Map<Id, ActualData<T>> globalData,
-  ) : super(mainUri, actualMaps, globalData);
+  new(this.code, super.mainUri, super.actualMaps, super.globalData);
 
   @override
   int getOffsetFromId(Id id, Uri uri) {

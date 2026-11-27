@@ -661,9 +661,10 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       // For local development we don't have a built SDK yet, so point directly
       // at the built summary file location.
       var sdkSummaryFile = 'ddc_outline.dill';
-      var sdkSummary = Path(
-        _configuration.buildDirectory,
-      ).append(sdkSummaryFile).absolute.toNativePath();
+      var sdkSummary = Path(_configuration.buildDirectory)
+          .append(sdkSummaryFile)
+          .absolute
+          .toNativePath();
       args.addAll(["--dart-sdk-summary", sdkSummary]);
     }
     args.addAll(options);
@@ -688,9 +689,10 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       args.add("-s");
       var outlineFilename = '${package}_outline.dill';
 
-      var summary = Path(
-        _configuration.buildDirectory,
-      ).append('$ddcGenDir/$outlineFilename').absolute.toNativePath();
+      var summary = Path(_configuration.buildDirectory)
+          .append('$ddcGenDir/$outlineFilename')
+          .absolute
+          .toNativePath();
       args.add("$summary=$package");
     }
 
@@ -752,12 +754,10 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       var dartLibraryPath = repositoryUri
           .resolve('pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js')
           .path;
-      var sdkJsDir = Uri.directory(
-        _configuration.buildDirectory,
-      ).resolve('$buildOptionsDir/sdk/ddc');
-      var pkgJsDir = Uri.directory(
-        _configuration.buildDirectory,
-      ).resolve('$buildOptionsDir/pkg/ddc');
+      var sdkJsDir = Uri.directory(_configuration.buildDirectory)
+          .resolve('$buildOptionsDir/sdk/ddc');
+      var pkgJsDir = Uri.directory(_configuration.buildDirectory)
+          .resolve('$buildOptionsDir/pkg/ddc');
       var sdkJsPath = 'dart_sdk.js';
       // Approximate the renaming done to identifiers in `pathToJSIdentifier()`
       // from pkg/dev_compiler/lib/src/compiler/js_names.dart to handle the
@@ -1770,8 +1770,8 @@ class FastaCompilerConfiguration extends CompilerConfiguration {
   FastaCompilerConfiguration._(
     this._platformDill,
     this._vmExecutable,
-    TestConfiguration configuration,
-  ) : super._subclass(configuration);
+    super.configuration,
+  ) : super._subclass();
 
   @override
   bool get runRuntimeDespiteMissingCompileTimeError => true;

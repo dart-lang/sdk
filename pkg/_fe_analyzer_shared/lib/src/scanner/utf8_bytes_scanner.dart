@@ -91,14 +91,13 @@ class Utf8BytesScanner extends AbstractScanner {
     ScannerConfiguration? configuration,
     bool includeComments = false,
     LanguageVersionChanged? languageVersionChanged,
-    bool allowLazyStrings = true,
+    super.allowLazyStrings,
   }) : _bytesLengthMinusOne = _bytes.length - 1,
        super(
          configuration,
          includeComments,
          languageVersionChanged,
          numberOfBytesHint: _bytes.length,
-         allowLazyStrings: allowLazyStrings,
        ) {
     // Skip a leading BOM.
     if (containsBomAt(/* offset = */ 0)) {

@@ -829,15 +829,15 @@ class JsClosureClassInfo extends JsScopeInfo
   JsClosureClassInfo.fromScopeInfo(
     this.closureClassEntity,
     ir.FunctionNode closureSourceNode,
-    Map<ir.Variable, JContextField> boxedVariables,
-    KernelScopeInfo info,
-    ClassEntity? enclosingClass,
+    super.boxedVariables,
+    super.info,
+    super.enclosingClass,
     this._closureEntity,
     this._closureEntityVariable,
   ) : _variableToFieldMap = {},
       _typeVariableToFieldMap = {},
       _localToFieldMap = {},
-      super.from(boxedVariables, info, enclosingClass);
+      super.from();
 
   factory JsClosureClassInfo.readFromDataSource(DataSourceReader source) {
     source.begin(tag);

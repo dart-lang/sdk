@@ -24,11 +24,7 @@ class BuiltInServerIsolateChannel extends ServerIsolateChannel {
 
   /// Initialize a newly created channel to communicate with an isolate running
   /// the given [entryPoint].
-  new(
-    this.entryPoint,
-    this.pluginId,
-    InstrumentationService instrumentationService,
-  ) : super._(instrumentationService);
+  new(this.entryPoint, this.pluginId, super.instrumentationService) : super._();
 
   @override
   Future<Isolate> _spawnIsolate() {
@@ -53,11 +49,8 @@ class DiscoveredServerIsolateChannel extends ServerIsolateChannel {
 
   /// Initialize a newly created channel to communicate with an isolate running
   /// the code at the given [uri].
-  new(
-    this.pluginUri,
-    this.packagesUri,
-    InstrumentationService instrumentationService,
-  ) : super._(instrumentationService);
+  new(this.pluginUri, this.packagesUri, super.instrumentationService)
+    : super._();
 
   @override
   String get pluginId => pluginUri.toString();

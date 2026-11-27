@@ -48,11 +48,11 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   late _RenameClassMemberValidator _validator;
 
   new(
-    RefactoringWorkspace workspace,
-    AnalysisSessionHelper sessionHelper,
+    super.workspace,
+    super.sessionHelper,
     this.interfaceElement,
-    Element element,
-  ) : super(workspace, sessionHelper, element);
+    super.element,
+  );
 
   @override
   String get refactoringName {

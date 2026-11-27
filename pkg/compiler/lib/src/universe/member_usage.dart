@@ -43,8 +43,7 @@ abstract class MemberUsage extends AbstractUsage<MemberUse> {
 
   MemberUsage.internal(this.entity) : super();
 
-  MemberUsage.cloned(this.entity, EnumSet<MemberUse> pendingUse)
-    : super.cloned(pendingUse);
+  MemberUsage.cloned(this.entity, super.pendingUse) : super.cloned();
 
   factory MemberUsage(MemberEntity member, {MemberAccess? potentialAccess}) {
     /// Create the set of potential accesses to [member], limited to [original]

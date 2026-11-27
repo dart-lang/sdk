@@ -39,18 +39,18 @@ class Chain extends Suite {
   final List<String> excludeEndsWith;
 
   new(
-    String name,
-    String kind,
+    super.name,
+    super.kind,
     this.source,
     this.root,
     this.subRoots,
-    Uri statusFile,
+    Uri super.statusFile,
     this.includeEndsWith,
     this.pattern,
     this.exclude,
     this.excludeContains,
     this.excludeEndsWith,
-  ) : super(name, kind, statusFile);
+  );
 
   factory fromJsonMap(Uri base, Map json, String name, String kind) {
     Uri source = base.resolve(json["source"]);

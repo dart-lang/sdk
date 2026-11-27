@@ -373,12 +373,12 @@ class Dart2jsSummaryTarget extends Dart2jsTarget with SummaryMixin {
   final bool excludeNonSources;
 
   Dart2jsSummaryTarget(
-    String name,
+    super.name,
     this.sources,
     this.excludeNonSources,
-    TargetFlags targetFlags, {
-    bool deprecatedJsInterop = true,
-  }) : super(name, targetFlags, deprecatedJsInterop: deprecatedJsInterop);
+    super.targetFlags, {
+    bool super.deprecatedJsInterop = true,
+  });
 
   @override
   bool isModularlyCompatibleWith(Target other) {

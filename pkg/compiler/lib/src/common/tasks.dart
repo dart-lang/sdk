@@ -234,7 +234,7 @@ abstract class CompilerTask {
 class GenericTask extends CompilerTask {
   @override
   final String name;
-  GenericTask(this.name, Measurer measurer) : super(measurer);
+  GenericTask(this.name, super.measurer);
 }
 
 class GenericTaskWithMetrics extends GenericTask {

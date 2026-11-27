@@ -514,7 +514,7 @@ class TypeConstantValue extends ObjectConstantValue {
   /// The user type that this constant represents.
   final DartType representedType;
 
-  TypeConstantValue(this.representedType, InterfaceType type) : super(type);
+  TypeConstantValue(this.representedType, super.type);
 
   @override
   bool operator ==(other) {
