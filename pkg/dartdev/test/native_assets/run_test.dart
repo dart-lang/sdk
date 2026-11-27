@@ -366,4 +366,81 @@ Couldn't resolve native function 'multiply' in 'package:drop_dylib_link/dylib_mu
       }
     },
   );
+
+  // Regression test for https://github.com/dart-lang/sdk/issues/64914.
+  for (final (compileSubcommand, extension) in [
+    ('kernel', 'dill'),
+    ('jit-snapshot', 'jit'),
+  ]) {
+    test(
+      'dart run <file>.$extension does not run build hooks and resolves packageConfig',
+      timeout: longTimeout,
+      () async {
+        await nativeAssetsTest('dart_app', (dartAppUri) async {
+          await runPubGet(workingDirectory: dartAppUri, logger: logger);
+
+          final scriptFile = File.fromUri(
+            dartAppUri.resolve('bin/print_package_config.dart'),
+          );
+          await scriptFile.writeAsString('''
+import 'dart:isolate';
+
+Future<void> main() async {
+  print('packageConfig: \${await Isolate.packageConfig}');
+  print(
+    'native_add: \${await Isolate.resolvePackageUri(Uri.parse('package:native_add/'))}',
+  );
+}
+''');
+
+          final outputRelative = 'bin/print_package_config.$extension';
+          final outputUri = dartAppUri.resolve(outputRelative);
+          await runDart(
+            arguments: [
+              'compile',
+              compileSubcommand,
+              'bin/print_package_config.dart',
+              '-o',
+              outputRelative,
+            ],
+            workingDirectory: dartAppUri,
+            logger: logger,
+          );
+          expect(await File.fromUri(outputUri).exists(), isTrue);
+
+          String normalizeCase(String s) =>
+              Platform.isWindows ? s.toLowerCase() : s;
+          final expectedPackageConfig = dartAppUri
+              .resolve('.dart_tool/package_config.json')
+              .toString();
+          final expectedNativeAdd = dartAppUri
+              .resolve('../native_add/lib/')
+              .toString();
+
+          for (final target in [outputRelative, outputUri.toString()]) {
+            final result = await runDart(
+              arguments: ['run', target],
+              workingDirectory: dartAppUri,
+              logger: logger,
+            );
+            expect(
+              normalizeCase(result.stdout),
+              stringContainsInOrder([
+                normalizeCase('packageConfig: $expectedPackageConfig'),
+                normalizeCase('native_add: $expectedNativeAdd'),
+              ]),
+            );
+            // Build hooks must not have been invoked for a precompiled file.
+            expect(result.stderr, isEmpty);
+            expect(
+              await File.fromUri(
+                dartAppUri.resolve('.dart_tool/native_assets.yaml'),
+              ).exists(),
+              isFalse,
+            );
+          }
+        });
+      },
+    );
+  }
 }
