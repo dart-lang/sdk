@@ -101,16 +101,25 @@ class WebSocketConnection extends SocketConnection {
 /// An implementation of [SocketHandler] that accepts WebSocket connections and
 /// wraps them in a [WebSocketConnection].
 class WebSocketSocketHandler extends SocketHandler {
-  late Handler _handler;
+  late final Handler _handler;
   final StreamController<WebSocketConnection> _connectionsStream =
       StreamController<WebSocketConnection>();
   StreamQueue<WebSocketConnection>? _connectionsStreamQueue;
 
-  WebSocketSocketHandler() {
-    _handler = webSocketHandler(
+  WebSocketSocketHandler({bool Function(String origin)? originCheck}) {
+    final wsHandler = webSocketHandler(
       (WebSocketChannel channel, _) =>
           _connectionsStream.add(WebSocketConnection(channel)),
     );
+    _handler = originCheck == null
+        ? wsHandler
+        : (Request request) {
+            final origin = request.headers['origin'];
+            if (origin != null && !originCheck(origin.toLowerCase())) {
+              return Response.forbidden('Forbidden origin');
+            }
+            return wsHandler(request);
+          };
   }
 
   @override

@@ -122,6 +122,7 @@ class D<T> {
   T? method() => null;
   void method2(T x) {}
   void method3(covariant T x) {}
+  void method4(covariant T x) {}
 }
 
 class E<in T> extends D<void Function(T)> {
@@ -130,6 +131,9 @@ class E<in T> extends D<void Function(T)> {
 
   @override
   void method3(covariant void Function(T) x) {}
+
+  @override
+  void method4(void Function(T) x) {}
 }
 
 void testClass() {
@@ -235,6 +239,7 @@ void testOverrideLegacyMethods() {
   Expect.isTrue(e.method() is Function);
   e.method2(contraFunction);
   e.method3(contraFunction);
+  e.method4(contraFunction);
   e.x = contraFunction;
 
   D<Object> d = e;
@@ -243,6 +248,7 @@ void testOverrideLegacyMethods() {
   e = new E<Object>();
   Expect.throws(() => e.method2(contraFunction));
   Expect.throws(() => e.method3(contraFunction));
+  Expect.throws(() => e.method4(contraFunction));
 }
 
 main() {

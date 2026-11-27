@@ -1,0 +1,6 @@
+name: hello_web
+description: A minimal web app to serve with `dart serve`, used by the tests.
+publish_to: none
+
+environment:
+  sdk: ^3.15.0-0

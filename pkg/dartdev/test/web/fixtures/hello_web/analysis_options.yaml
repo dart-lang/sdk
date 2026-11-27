@@ -1,0 +1,2 @@
+# The fixture app is its own package: don't inherit the web code's lints,
+# which it can't resolve.

@@ -28,7 +28,7 @@ dependencies:
   shelf_static: ^1.0.0
   shelf_web_socket: '>=1.0.0 <4.0.0'
   shelf: ^1.0.0
-  sse: ^4.0.0
+  sse: ^5.0.0-wip
   stream_channel: ^2.0.0
   vm_service: '>=14.3.0 <16.0.0'
   web_socket_channel: '>=2.0.0 <4.0.0'

@@ -1,6 +1,6 @@
 name: dwds
 # Every time this changes you need to run `dart run tool/build.dart`.
-version: 27.2.1
+version: 27.2.2-wip
 
 description: >-
   A service that proxies between the Chrome debug protocol and the Dart VM
@@ -29,7 +29,7 @@ dependencies:
   shelf_proxy: ^1.0.4
   shelf_web_socket: ">=2.0.0 <4.0.0"
   source_maps: ^0.10.10
-  sse: ^4.2.0
+  sse: ^5.0.0-wip
   stack_trace: ^1.10.0
   stream_channel: ^2.1.2
   vm_service: ">=14.2.4 <16.0.0"

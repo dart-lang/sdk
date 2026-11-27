@@ -405,6 +405,12 @@ of 3.15 or greater. For more details, see
   rebuilt on every run for packages depended on by path, and could be stale for
   hosted packages with a path `dependency_override`.
 
+- On Linux, `dart build cli` now separates the CLI runtime in `bundle/bin/`
+  from the application's AOT snapshot in `bundle/lib/`. Deploy the entire bundle
+  and preserve its directory structure, even for applications without native
+  dependencies. Copying individual executables out of the bundle is not
+  supported. For more details, see SDK issue [#64915][].
+
 - When `dart run <package>:<command>` and `dart test` run a precompiled
   executable, `Platform.script` now points at the Dart source file instead of
   the kernel snapshot. Resolving paths relative to `Platform.script` now works
@@ -442,6 +448,7 @@ of 3.15 or greater. For more details, see
 
 [#63240]: https://github.com/dart-lang/sdk/issues/63240
 [#64298]: https://github.com/dart-lang/sdk/issues/64298
+[#64915]: https://github.com/dart-lang/sdk/issues/64915
 
 #### Formatter
 

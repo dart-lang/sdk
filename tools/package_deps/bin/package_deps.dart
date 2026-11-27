@@ -338,6 +338,7 @@ class Package implements Comparable<Package> {
           'pkg/analyzer_cli/test/data/',
           'pkg/analyzer_testing/lib/mock_packages/package_content/',
           'pkg/dartdev/test/data/',
+          'pkg/dartdev/test/web/fixtures/',
           'pkg/dwds_test_common/fixtures/',
           'pkg/front_end/test/id_testing/data/',
           'pkg/front_end/test/enable_non_nullable/data/',

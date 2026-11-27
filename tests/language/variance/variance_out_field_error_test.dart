@@ -25,6 +25,13 @@ class A<out T> {
   // ^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_TYPE_PARAMETER_VARIANCE_POSITION
   // [cfe] Can't use 'out' type variable 'T' in an 'in' position.
+
+  // A `late final` variable without an initializer implicitly induces a setter,
+  // and its parameter type puts `T` in an `in` position.
+  late final T e;
+  //           ^
+  // [analyzer] unspecified
+  // [cfe] Can't use 'out' type variable 'T' in an 'in' position.
 }
 
 mixin BMixin<out T> {

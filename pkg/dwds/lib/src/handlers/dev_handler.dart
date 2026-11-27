@@ -55,6 +55,9 @@ import 'package:webkit_inspection_protocol/webkit_inspection_protocol.dart';
 /// Note: this should not be checked in enabled.
 const _enableLogging = false;
 
+const _loopbackHosts = <String>{'localhost', '127.0.0.1', '::1'};
+const _wildcardHostnames = <String>{'any', '0.0.0.0', '::', '[::]'};
+
 final _logger = Logger('DevHandler');
 
 /// SSE handler to enable development features like hot reload and
@@ -66,6 +69,11 @@ class DevHandler {
   final DevTools? _devTools;
   final AssetReader _assetReader;
   final String _hostname;
+  late final String _normalizedHostname =
+      Uri.tryParse('http://$_hostname')?.host ?? _hostname.toLowerCase();
+  late final bool _allowsAnyHost =
+      _urlEncoder != null ||
+      _wildcardHostnames.contains(_hostname.toLowerCase());
   final _connectedApps = StreamController<AppConnection>.broadcast();
   final _servicesByAppId = <String, AppDebugServices>{};
   final _appConnectionByAppId = <String, AppConnection>{};
@@ -122,10 +130,58 @@ class DevHandler {
     final path = request.requestedUri.path;
     final sseHandler = _sseHandlers[path];
     if (sseHandler != null) {
+      final hostUri = _parseHostHeader(request);
+      if (hostUri == null ||
+          !_isAllowedHost(hostUri.host) ||
+          !_isAllowedOrigin(request, hostUri)) {
+        _logger.warning(
+          'Rejected DevHandler request with Host '
+          '"${request.headers[HttpHeaders.hostHeader]}" and Origin '
+          '"${request.headers['origin']}".',
+        );
+        return Response.forbidden('Forbidden');
+      }
       return sseHandler.handler(request);
     }
     return Response.notFound('');
   };
+
+  Uri? _parseHostHeader(Request request) {
+    final hostHeader = request.headers[HttpHeaders.hostHeader];
+    if (hostHeader == null) return null;
+    final uri = Uri.tryParse('http://$hostHeader');
+    if (uri == null ||
+        uri.host.isEmpty ||
+        uri.userInfo.isNotEmpty ||
+        uri.path.isNotEmpty ||
+        uri.hasQuery ||
+        uri.hasFragment) {
+      return null;
+    }
+    return uri;
+  }
+
+  bool _isAllowedHost(String host) =>
+      _allowsAnyHost ||
+      host == _normalizedHostname ||
+      _loopbackHosts.contains(host) ||
+      InternetAddress.tryParse(host) != null;
+
+  bool _isAllowedOrigin(Request request, Uri hostUri) {
+    final origin = request.headers['origin'];
+    if (origin == null) return true;
+    final originUri = Uri.tryParse(origin);
+    if (originUri == null ||
+        (!originUri.isScheme('http') && !originUri.isScheme('https')) ||
+        origin.toLowerCase() != originUri.origin) {
+      return false;
+    }
+    // Ignore scheme so TLS-terminating proxies (https Origin, http request)
+    // still match.
+    return originUri.authority == hostUri.authority ||
+        (_loopbackHosts.contains(originUri.host) &&
+            _loopbackHosts.contains(hostUri.host));
+  }
 
   Future<void> close() => _closed ??= () async {
     await Future.wait([for (final sub in _subs) sub.cancel()]);
@@ -136,6 +192,7 @@ class DevHandler {
       _servicesByAppId.values.map((service) => service.close()),
     );
     _servicesByAppId.clear();
+    await _extensionBackend?.close();
   }();
 
   void _emitBuildResults(BuildResult result) {
@@ -927,6 +984,11 @@ class DevHandler {
                     uri,
                     keepAlive: const Duration(days: 3000),
                     ignoreDisconnect: sseIgnoreDisconnect,
+                    // DevHandler.handler validates Host and Origin (including
+                    // https Origins behind TLS-terminating proxies) before
+                    // delegating here; SseHandler still enforces Sec-Fetch-Site
+                    // when Origin is absent.
+                    originCheck: (_) => true,
                   ),
                 )
               : WebSocketSocketHandler();

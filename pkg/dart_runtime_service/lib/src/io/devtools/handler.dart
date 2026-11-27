@@ -136,6 +136,8 @@ FutureOr<Handler> defaultHandler({
     return devtoolsStaticAssetHandler(request);
   }
 
+  List<Uri> allowedUris() => <Uri>[?serviceUriGetter?.call(), ?serverUri];
+
   // Support DevTools client-server interface via SSE.
   // Note: the handler path needs to match the full *original* path, not the
   // current request URL (we remove '/devtools' in the initial router but we
@@ -144,6 +146,9 @@ FutureOr<Handler> defaultHandler({
   final devToolsApiHandler = SseHandler(
     Uri.parse(devToolsSseHandlerPath),
     keepAlive: sseKeepAlive,
+    originCheck: disableServiceOriginCheck
+        ? (_) => true
+        : (origin) => _isAllowedOrigin(origin, allowedUris: allowedUris()),
   );
 
   clientManager ??= DevToolsClientManager(
@@ -153,8 +158,6 @@ FutureOr<Handler> defaultHandler({
   devToolsApiHandler.connections.rest.listen((sseConnection) {
     clientManager!.acceptClient(sseConnection, enableLogging: enableLogging);
   });
-
-  List<Uri> allowedUris() => <Uri>[?serviceUriGetter?.call(), ?serverUri];
 
   FutureOr<Response> devtoolsHandler(Request request) {
     // If the request isn't of the form api/<method> assume it's a request for

@@ -15,6 +15,7 @@ import 'package:dwds/src/handlers/socket_connections.dart';
 import 'package:dwds/src/readers/asset_reader.dart';
 import 'package:dwds/src/servers/devtools.dart';
 import 'package:dwds/src/servers/extension_backend.dart';
+import 'package:dwds/src/utilities/shared.dart';
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:sse/server/sse_handler.dart';
@@ -83,6 +84,8 @@ class Dwds {
     Future<String>? extensionUri;
     ExtensionBackend? extensionBackend;
     if (debugSettings.enableDebugExtension) {
+      bool isChromeExtensionOrigin(String origin) =>
+          origin.startsWith(chromeExtensionSchemePrefix);
       final handler = debugSettings.useSseForDebugBackend
           ? SseSocketHandler(
               SseHandler(
@@ -92,9 +95,10 @@ class Dwds {
                 // window too long may cause issues if the user closes a debug
                 // session and initiates a new one during the keepAlive window.
                 keepAlive: const Duration(seconds: 5),
+                originCheck: isChromeExtensionOrigin,
               ),
             )
-          : WebSocketSocketHandler();
+          : WebSocketSocketHandler(originCheck: isChromeExtensionOrigin);
 
       extensionBackend = await ExtensionBackend.start(
         handler,

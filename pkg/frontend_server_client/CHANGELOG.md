@@ -1,3 +1,11 @@
+## 4.2.1-wip
+
+- `compile` and `recompileRestart` throw a `StateError` if the frontend server
+  exits before the compile finishes. After the frontend server exits, every
+  call except `shutdown` and `kill` throws a `StateError` instead of hanging.
+- `shutdown` and `kill` can be called after the frontend server has exited, and
+  more than once. After either, every other call throws a `StateError`.
+
 ## 4.2.0
 
 - Support the DDC library bundle format and allow Frontend Server-driven hot

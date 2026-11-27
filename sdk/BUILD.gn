@@ -641,7 +641,6 @@ copy("copy_dart2wasm_platform") {
   visibility = [ ":*" ]
   deps = [
     ":copy_libraries",
-    "../:dart2wasm_platform",
     "../utils/dart2wasm:dart2wasm_js_compatibility_platform",
     "../utils/dart2wasm:dart2wasm_platform",
     "../utils/dart2wasm:dart2wasm_standalone_platform",

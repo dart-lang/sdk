@@ -126,6 +126,16 @@ FutureOr<Handler> defaultHandler({
     return devtoolsStaticAssetHandler(request);
   }
 
+  bool isAllowedOrigin(String origin) {
+    return validation.isAllowedOrigin(
+      origin,
+      allowedUris: [
+        if (dds?.uri case final uri?) uri,
+        if (serverUri case final uri?) uri,
+      ],
+    );
+  }
+
   // Support DevTools client-server interface via SSE.
   // Note: the handler path needs to match the full *original* path, not the
   // current request URL (we remove '/devtools' in the initial router but we
@@ -134,6 +144,11 @@ FutureOr<Handler> defaultHandler({
   final devToolsApiHandler = SseHandler(
     Uri.parse(devToolsSseHandlerPath),
     keepAlive: sseKeepAlive,
+    originCheck: (origin) =>
+        (dds != null
+            ? dds.disableServiceOriginCheck
+            : disableServiceOriginCheck) ||
+        isAllowedOrigin(origin),
   );
 
   clientManager ??= ClientManager(requestNotificationPermissions: false);
@@ -144,16 +159,6 @@ FutureOr<Handler> defaultHandler({
       enableLogging: dds?.shouldLogRequests ?? false,
     ),
   );
-
-  bool isAllowedOrigin(String origin) {
-    return validation.isAllowedOrigin(
-      origin,
-      allowedUris: [
-        if (dds?.uri case final uri?) uri,
-        if (serverUri case final uri?) uri,
-      ],
-    );
-  }
 
   bool isAllowedHost(String hostHeader) {
     return validation.isAllowedHost(

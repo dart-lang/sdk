@@ -18,6 +18,7 @@ dependencies:
   clock: any
   code_assets: any
   collection: any
+  crypto: any
   dap_adapters: any
   dart2native: any
   dart_data_home: any
@@ -30,9 +31,11 @@ dependencies:
   file: any
   front_end: any
   frontend_server: any
+  frontend_server_client: any
   hooks: any
   hooks_runner: any
   http: any
+  http_multi_server: any
   kernel: any
   language_server_protocol: any
   logging: any
@@ -42,6 +45,8 @@ dependencies:
   perf_witness: any
   pub: any
   pub_formats: any
+  shelf: any
+  shelf_static: any
   unified_analytics: any
   vm: any
   vm_service: any
@@ -49,10 +54,13 @@ dependencies:
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
+  dart_flutter_team_lints: any
   expect: any
   fake_async: any
   lints: any
   pub_semver: any
   record_use: any
   test: any
+  test_descriptor: any
+  webdriver: any
   yaml_edit: any

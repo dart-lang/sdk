@@ -11,6 +11,14 @@ import 'package:test/test.dart';
 
 import 'common/test_helper.dart';
 
+const _devToolsSsePath = 'api/sse';
+const _eventStreamMimeType = 'text/event-stream';
+const _evilOrigin = 'http://evil.example.com';
+const _httpScheme = 'http';
+const _originHeader = 'Origin';
+const _sseClientId = 'test-client';
+const _sseClientIdParam = 'sseClientId';
+
 void main() {
   group('DDS Security', () {
     late Process process;
@@ -89,6 +97,20 @@ void main() {
           throwsA(isA<WebSocketException>()),
         );
       });
+
+      test('forbids SSE GET request with bad Origin header', () async {
+        final sseUri = dds.sseUri!.replace(
+          scheme: _httpScheme,
+          queryParameters: <String, String>{_sseClientIdParam: _sseClientId},
+        );
+        final request = await client.getUrl(sseUri);
+        request.headers
+          ..set(HttpHeaders.acceptHeader, _eventStreamMimeType)
+          ..set(_originHeader, _evilOrigin);
+        final response = await request.close();
+        expect(response.statusCode, HttpStatus.forbidden);
+        await response.drain<void>();
+      });
     });
 
     group('Disable Origin Check', () {
@@ -126,6 +148,21 @@ void main() {
         final response = await request.close();
         expect(response.statusCode, HttpStatus.notFound);
         await response.drain();
+      });
+
+      test('allows SSE GET request with bad Origin header', () async {
+        final sseUri = dds.sseUri!.replace(
+          scheme: _httpScheme,
+          queryParameters: <String, String>{_sseClientIdParam: _sseClientId},
+        );
+        final request = await client.getUrl(sseUri);
+        request.headers
+          ..set(HttpHeaders.acceptHeader, _eventStreamMimeType)
+          ..set(_originHeader, _evilOrigin);
+        final response = await request.close();
+        expect(response.statusCode, HttpStatus.ok);
+        final socket = await response.detachSocket();
+        socket.destroy();
       });
     });
 
@@ -220,6 +257,24 @@ void main() {
         );
 
         test(
+          'forbids SSE GET request with bad Origin header to /api/sse',
+          () async {
+            final sseUri = serverUri.resolve(_devToolsSsePath).replace(
+              queryParameters: <String, String>{
+                _sseClientIdParam: _sseClientId,
+              },
+            );
+            final request = await client.getUrl(sseUri);
+            request.headers
+              ..set(HttpHeaders.acceptHeader, _eventStreamMimeType)
+              ..set(_originHeader, _evilOrigin);
+            final response = await request.close();
+            expect(response.statusCode, HttpStatus.forbidden);
+            await response.drain<void>();
+          },
+        );
+
+        test(
           'allows GET request with loopback Origin and same-site '
           'Sec-Fetch-Site header to /api/ping',
           () async {
@@ -263,6 +318,25 @@ void main() {
             final response = await request.close();
             expect(response.statusCode, HttpStatus.ok);
             await response.drain();
+          },
+        );
+
+        test(
+          'allows SSE GET request with bad Origin header to /api/sse',
+          () async {
+            final sseUri = serverUri.resolve(_devToolsSsePath).replace(
+              queryParameters: <String, String>{
+                _sseClientIdParam: _sseClientId,
+              },
+            );
+            final request = await client.getUrl(sseUri);
+            request.headers
+              ..set(HttpHeaders.acceptHeader, _eventStreamMimeType)
+              ..set(_originHeader, _evilOrigin);
+            final response = await request.close();
+            expect(response.statusCode, HttpStatus.ok);
+            final socket = await response.detachSocket();
+            socket.destroy();
           },
         );
       });

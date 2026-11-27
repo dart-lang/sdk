@@ -328,6 +328,7 @@ analyzer/test/src/task/strong/inferred_type_test: Slow, Pass
 
 [ $arch != x64 && ($system == linux || $system == windows) ]
 dart_runtime_service/test/sse_client_test: Skip # Chrome not available
+dartdev/test/web/serve/integration/serve_in_chrome_test: Skip # Chrome not available
 dartpad_worker/test/ci_test: Skip # Chrome not available
 dds/test/devtools_server/instance_reuse_test: Skip # Chrome not available
 dds/test/devtools_server/remote_control_test: Skip # Chrome not available
