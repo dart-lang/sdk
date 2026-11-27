@@ -4,7 +4,7 @@
 
 // Formatting can break multitests, so don't format them.
 // dart format off
-// @dart=3.4
+// @dart=3.14
 
 library malformed_test;
 

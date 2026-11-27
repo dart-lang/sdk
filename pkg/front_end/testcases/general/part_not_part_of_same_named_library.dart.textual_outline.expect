@@ -1,4 +1,4 @@
-// @dart = 3.4
+// @dart = 3.14
 
 import 'part_not_part_of_same_named_library_lib2.dart';
 

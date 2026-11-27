@@ -385,7 +385,7 @@ final class F32x4 extends WasmTypedDataBase implements Float32x4 {
       I32x4.fromV128(WasmF32x4(_bits).eq(WasmF32x4((other as F32x4)._bits)));
 
   Int32x4 notEqual(Float32x4 other) =>
-      I32x4.fromV128(~WasmF32x4(_bits).eq(WasmF32x4((other as F32x4)._bits)));
+      I32x4.fromV128(WasmF32x4(_bits).ne(WasmF32x4((other as F32x4)._bits)));
 
   Float32x4 scale(double scale) => F32x4.fromV128(
     WasmF32x4(_bits) * WasmF32x4.splat(WasmF32.fromDouble(scale)),
@@ -570,7 +570,7 @@ final class I32x4 extends WasmTypedDataBase implements Int32x4 {
   );
   Int32x4 operator -() => I32x4.fromV128((-WasmI32x4(_bits)).value);
 
-  Int32x4 abs() => I32x4(x.abs(), y.abs(), z.abs(), w.abs());
+  Int32x4 abs() => I32x4.fromV128(WasmI32x4(_bits).abs().value);
 
   Int32x4 operator <<(int shiftAmount) =>
       I32x4.fromV128(WasmI32x4(_bits).shl(WasmI32.fromInt(shiftAmount)));

@@ -1,5 +1,5 @@
 org-dartlang-testcase:///main.dart:
-// @dart = 3.4
+// @dart = 3.14
 import 'test3.dart';
 var x = test3partfoo();
 
@@ -7,7 +7,7 @@ var x = test3partfoo();
 
 
 org-dartlang-testcase:///test3.dart:
-// @dart = 3.4
+// @dart = 3.14
 library test3;
 part "test3_part.dart";
 
@@ -15,6 +15,6 @@ part "test3_part.dart";
 
 
 org-dartlang-testcase:///test3_part.dart:
-// @dart = 3.4
+// @dart = 3.14
 part of test3;
 void test3partfoo() {}
